@@ -1,0 +1,2 @@
+1
+(0)|(test enemy 1)|(Megaman standing still)|(sheet1)|(70.000000)|(100.000000)|(TimeBasedEnemyPhaseStartCondition|(0.000000))|(0)

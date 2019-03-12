@@ -1,0 +1,1 @@
+test level 1|1|(TimeBasedEnemySpawnCondition|(0.000000))|1|(300.000000|300.000000|0)|

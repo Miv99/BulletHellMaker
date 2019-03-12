@@ -1,0 +1,162 @@
+flyweight for bullets
+state machine for enemy phases
+
+always have a default spritesheet loaded
+
+Documentation to put in the editor somewhere:
+-When an enemy is killed, all bullets attached to it will despawn
+
+Notes for me:
+-The mainEMP of an attack is always spawned at the exact same time of an attack; spawnType's time is ignored
+
+
+TODO:
+-Fix component/entity space reservation in GameInstance
+ DONE
+-implement DestroyEnemyBulletsEPA execute()
+-Add flash(Color color, float interval, float duration) to SpriteComponent
+ DONE
+-Add to EMP: OnContactAction: TurnIntangible (remove HitboxComponent), DestroyBulletAndAttachedChildren (give children DespawnComponent to this EMP when they spawn),
+	DestroyBulletOnly (remove Sprite and Hitbox)
+-DeathActionComponent (for player + enemies + bullets): does a list of DeathActions: ExecuteAttack (enemies only), ParticleExplosion, PlaySound
+
+LOW PRIORITY TODO:
+-Currently, every time a new CustomPolarEMPA is executed, a new reference entity is created, and the new reference entity's reference is the old reference.
+	This creates a chain of references that is unnecessary; only the new reference's position relative to the first reference's reference (if any) is important
+	because references do not move with respect to their own reference. It is important that the first reference's reference is kept known.
+	When new references are created,
+		1. Find base reference (DFS the chain until an entity that is not a SimpleReference is reached, call it [A])
+		2. New reference is [A] and is positioned at position of the entity relative to [A] (subtract their global positions to find it)
+ DONE
+
+
+Entity executes attack --> all soundEffectNames added to a queue in entity's SoundComponent
+Entity with EMPActionManagerComponent is spawned
+	vector<pair<float, EMP*>> spawnTargets = {mainEMP} // time : EMP
+	int attachedEntity = entity_that_executed_the_attack
+EMPActionSystem calls update on every EMPActionManagerComponent
+Entity with the MPActionManagerComponent (call it A) spawns one of its spawnTargets according to its spawnType
+	--> if attachedEntity has an EnemyComponent, make sure the attachedEntity still exists first
+	--> create an entity (call it B) from the spawnTarget with EMPActionManagerComponent: spawnTargets = {all of B's children}, attachedEntity = A
+	--> give B HitboxComponent, SpriteComponent, MovementPathComponent
+	--> if attachedEntity has EnemyComponent, give B EnemyBulletComponent; if has PlayerComponent, give B PlayerBulletComponent
+	--> if using the editor, also give it EditorEnemyBulletComponent if is EnemyBullet
+
+
+// ------------------------------------------------------------------------------------------------------------------------------------------------
+editable = attack/attack pattern/emp/enemy/enemyphase/player
+id-editable = attack/attack pattern/enemy/enemyphase
+one big editor instead of multiple things for each editable
+
+when simulating (testing) in the editor, 
+give all entites an Editor(EnemyBullet/Enemy/Player)Component that has the ids of the Editor______ objects so that
+user can click on a bullet/enemy and view the attack/attackpattern/emp/enemy/enemyphase/player it belongs to
+
+click entity --> opens up windows/tabs/whatever for all the Editor_____ components it has; ie:
+Click enemy bullet --> open Attack, AttackPattern, Enemy, EnemyPhase
+Click enemy --> open Attack, AttackPattern, Enemy, EnemyPhase
+Click player --> open Player
+
+When making changes to and then saving an editable that is used by multiple other editables one layer up
+(enemy > enemy phase; enemy > attack pattern; attack pattern > attack), ask user to confirm before saving ("this change will affect multiple other enemies/attack patterns")
+
+every editable is local only to the level pack
+user can load a different level pack and choose which id-editables to import
+// ------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Move custom = player chooses the MP to use and manually defines the relevant TFVs
+TODO: find some way of loading and saving TFVs and MPs such that no duplicate ones are created
+eg if there are 500 sub-MPs with 1 MP as reference, make sure there won't be 500*500 MPs created
+
+MP = movable point
+global position = position ignoring all references
+
+// ------------------------------------------------------------------------------------------------------------------------------------------------
+Sprite sheet editor:
+1. User creates a new sprite sheet and gives it a name
+2. User loads an image associated with that sprite sheet
+3. User can select rectangles in the image to be saved as textures in the sprite sheet meta file. User can specify color and sprite size of the texture.
+
+Todo: make sure sprite sheet name is a valid file name
+Note: the sprite sheet name is the meta file's name, but the sprite sheet image's name can be anything. It doesn't necessarily have to be the same
+as the sprite sheet name.
+// ------------------------------------------------------------------------------------------------------------------------------------------------
+
+// ------------------------------------------------------------------------------------------------------------------------------------------------
+Level editor:
+1. User populates a list of enemies to spawn and their spawn locations (see Main MP spawn locations under Attack editor)
+// ------------------------------------------------------------------------------------------------------------------------------------------------
+
+// ------------------------------------------------------------------------------------------------------------------------------------------------
+Enemy editor:
+1. User attaches a sprite, spritesheet, and hitbox to the enemy
+2. User specifies enemy HP
+3. User populates a list of enemy phases and how they activate (EnemyPhaseStartCondition)
+4. User gives enemy a name --> it is saved
+// ------------------------------------------------------------------------------------------------------------------------------------------------
+
+// ------------------------------------------------------------------------------------------------------------------------------------------------
+Enemy phase editor:
+1. User populates a phase with a list of attack pattern names and when they occur
+2. User gives the phase a name --> it is saved
+// ------------------------------------------------------------------------------------------------------------------------------------------------
+
+// ------------------------------------------------------------------------------------------------------------------------------------------------
+Attack pattern editor:
+1. User populates a list of attacks and when they will occur
+2. User populates a list of MPActions (only MPActions for main MP (see Attack editor) allowed)
+3. User populates a list of sound effects to be played and when
+4. User gives attack pattern a name --> it is saved
+
+Internally, all "Move" and "Stay still" MPActions are combined into a single AggregatorMP
+// ------------------------------------------------------------------------------------------------------------------------------------------------
+
+// ------------------------------------------------------------------------------------------------------------------------------------------------
+Attack editor:
+1. The main MP is created
+2. User specifies main MP spawn location
+3. User can create sub-MPs (MPs whose reference is the main MP or another sub-MP)
+4. User can attach any MP to a sprite and hitbox
+5. User can give any MP a list of MPActions; the main MP must have at least 1 "Move" or "Stay still at specified location" MPAction so that its lifespan is known
+6. User populates a list of sound effects to be played and when
+7. User gives the attack a name --> it is saved
+
+Main MP spawn locations:
+Specified global position
+Specified position relative to the attack's parent (some enemy) (a StationaryMP is dropped from parent at time of attack with lifespan equal to main MP's lifespan)
+Specified position relative to the attack's parent's MP (some enemy's MP) (main MP will be moving relative to parent's motion; uses EntityMP)
+
+MPActions only if is sub-MP:
+Detach from parent (user must add at least 1 "Stay still" or "Move" MPAction after a detach)
+				   (in-game, after detachment, the sub-MP will be attached to an AggregatorMP containing all MPActions after the detach)
+				   (there cannot be more detach actions on a sub-MP than the depth of the reference tree (number of references deep until the main MP is encountered))
+
+MPActions for all MPs: (code for main and sub-MP are the same)
+Move to a position (basically a macro for linear movement at constant speed) (exists in the GUI only)
+//TODO: maybe EPA for hovering (double dampened movement along some user-defined axis) (only in GUI)
+Move custom
+Stay still at last position for [x] seconds (there must be at least 1 "Move" or "Stay still at specified position" action before this one)
+Stay still at specified position for [x] seconds (StationaryMP)
+Loop a group of actions [x] times (user specifies odd or even expansion)
+
+MPActions for main MP or if there is a detach action before these ones:
+Move to player + offset
+// these 3 are GUI only
+Move to specific global position
+Move in direction of player + offset (user must specify a speed)
+Move in direction of specific global position (user must specify a speed)
+
+For any "Move to" action, the user can specify the TFV used for distance
+OR user can choose basic options: 
+	-can specify a speed (will use LinearTFV with autocalculated time to expire when MP is out of bounds)
+	-can specify a time
+// ------------------------------------------------------------------------------------------------------------------------------------------------
+	
+
+// ------------------------------------------------------------------------------------------------------------------------------------------------
+TFV editor:
+1. User chooses a concrete TFV
+2. User modifies parameters
+3. Show the some value vs time graph at all times
+// ------------------------------------------------------------------------------------------------------------------------------------------------
