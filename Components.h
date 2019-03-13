@@ -109,8 +109,8 @@ public:
 
 	void update(float deltaTime);
 
-	inline std::shared_ptr<sf::Sprite> getSprite() { return sprite; }
-	inline void setAnimation(std::unique_ptr<SpriteAnimation> animation) { this->animation = std::move(animation); }
+	inline const std::shared_ptr<sf::Sprite> getSprite() { return sprite; }
+	inline void setEffectAnimation(std::unique_ptr<SpriteEffectAnimation> animation) { this->animation = std::move(animation); }
 	// Angle in degrees
 	inline void setRotation(float angle) { sprite->setRotation(angle); }
 	inline void setScale(float x, float y) { sprite->setScale(x, y); }
@@ -128,7 +128,7 @@ public:
 private:
 	std::shared_ptr<sf::Sprite> sprite;
 	// Animation that the sprite is currently undergoing, if any
-	std::unique_ptr<SpriteAnimation> animation;
+	std::unique_ptr<SpriteEffectAnimation> animation;
 };
 
 class PlayerTag {};

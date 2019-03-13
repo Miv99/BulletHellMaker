@@ -11,23 +11,18 @@ Notes for me:
 
 
 TODO:
--Fix component/entity space reservation in GameInstance
- DONE
--implement DestroyEnemyBulletsEPA execute()
--Add flash(Color color, float interval, float duration) to SpriteComponent
- DONE
+-Bullet trails (type, if any, chosen by player on each EMP in Attack)
+-Bullets rotated to be facing angle of travel (toggleable on each EMP)
+-Multiple small shockwave effects
+-MoveCustomPolar: Add another offset addition that's in range [randMin, randMax], specified by user
+-AttackPattern: add vector<pair<float(time), string(sprite/animation name)>> spriteChanges; 
+-Add shared_ptr<Animation> to SpriteComponent; update() will change the sprite ptr if animation != nullptr
+	-sprites and animations share the same text file to avoid name conflicts
+
+-FadeAwaySpriteAnimation
 -Add to EMP: OnContactAction: TurnIntangible (remove HitboxComponent), DestroyBulletAndAttachedChildren (give children DespawnComponent to this EMP when they spawn),
 	DestroyBulletOnly (remove Sprite and Hitbox)
 -DeathActionComponent (for player + enemies + bullets): does a list of DeathActions: ExecuteAttack (enemies only), ParticleExplosion, PlaySound
-
-LOW PRIORITY TODO:
--Currently, every time a new CustomPolarEMPA is executed, a new reference entity is created, and the new reference entity's reference is the old reference.
-	This creates a chain of references that is unnecessary; only the new reference's position relative to the first reference's reference (if any) is important
-	because references do not move with respect to their own reference. It is important that the first reference's reference is kept known.
-	When new references are created,
-		1. Find base reference (DFS the chain until an entity that is not a SimpleReference is reached, call it [A])
-		2. New reference is [A] and is positioned at position of the entity relative to [A] (subtract their global positions to find it)
- DONE
 
 
 Entity executes attack --> all soundEffectNames added to a queue in entity's SoundComponent

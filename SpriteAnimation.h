@@ -7,13 +7,13 @@
 
 /*
 Base class for modifying a sf::Sprite over time
-SA for short.
+SEA for short.
 
 See RenderSystem::loadShaders for the list of shaders that can be used.
 */
-class SpriteAnimation {
+class SpriteEffectAnimation {
 public:
-	inline SpriteAnimation(std::shared_ptr<sf::Sprite> sprite) : sprite(sprite) {}
+	inline SpriteEffectAnimation(std::shared_ptr<sf::Sprite> sprite) : sprite(sprite) {}
 	virtual void update(float deltaTime) = 0;
 
 	bool usesShader() { return useShader; }
@@ -36,7 +36,7 @@ Causes a sprite to flash white.
 The first flash will start as soon as the animation starts.
 Sprite goes back to how it was originally after the animation.
 */
-class FlashWhiteSA : public SpriteAnimation {
+class FlashWhiteSEA : public SpriteEffectAnimation {
 public:
 	/*
 	flashInterval - time after the end of a flash that the next one begins
@@ -45,7 +45,7 @@ public:
 
 	The total interval between each entire flash animation is (flashInterval + flashDuration)
 	*/
-	inline FlashWhiteSA(std::shared_ptr<sf::Sprite> sprite, float flashInterval, float flashDuration, float animationDuration) : SpriteAnimation(sprite),
+	inline FlashWhiteSEA(std::shared_ptr<sf::Sprite> sprite, float flashInterval, float flashDuration, float animationDuration) : SpriteEffectAnimation(sprite),
 		flashInterval(flashInterval), flashDuration(flashDuration), animationDuration(animationDuration) {
 		// Load shader
 		shader.loadFromFile("Shaders/tint.frag", sf::Shader::Fragment);

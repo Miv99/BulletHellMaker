@@ -1,6 +1,6 @@
 #include "SpriteAnimation.h"
 
-void FlashWhiteSA::update(float deltaTime) {
+void FlashWhiteSEA::update(float deltaTime) {
 	if (done) {
 		return;
 	}
