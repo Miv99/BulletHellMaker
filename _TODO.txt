@@ -5,6 +5,7 @@ always have a default spritesheet loaded
 
 Documentation to put in the editor somewhere:
 -When an enemy is killed, all bullets attached to it will despawn
+-Sprite names cannot contain the characters '[' ']'
 
 Notes for me:
 -The mainEMP of an attack is always spawned at the exact same time of an attack; spawnType's time is ignored
@@ -17,7 +18,10 @@ TODO:
 -MoveCustomPolar: Add another offset addition that's in range [randMin, randMax], specified by user
 -AttackPattern: add vector<pair<float(time), string(sprite/animation name)>> spriteChanges; 
 -Add shared_ptr<Animation> to SpriteComponent; update() will change the sprite ptr if animation != nullptr
-	-sprites and animations share the same text file to avoid name conflicts
+	-sprites and animations share the same text file but stored in different maps, but same names are NOT allowed
+	-a different set of animations (idle/movement/attack) can be attached to each enemy phase; this is done in enemy, not enemy phase, so that
+	 the same enemy phase can be used for multiple enemies with different sprites
+	-BIG TODO: have SpriteComponent use only Animation instead of sf::Sprite; sprite is retrieved from that animation
 
 -FadeAwaySpriteAnimation
 -Add to EMP: OnContactAction: TurnIntangible (remove HitboxComponent), DestroyBulletAndAttachedChildren (give children DespawnComponent to this EMP when they spawn),

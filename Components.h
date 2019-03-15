@@ -8,6 +8,7 @@
 #include <string>
 #include "SpriteLoader.h"
 #include "SpriteAnimation.h"
+#include "Animation.h"
 
 class MovablePoint;
 class AggregatorMP;
@@ -105,30 +106,35 @@ private:
 
 class SpriteComponent {
 public:
-	SpriteComponent(std::shared_ptr<sf::Sprite> sprite) : sprite(sprite) {}
+	SpriteComponent(std::shared_ptr<sf::Sprite> sprite) : sprite(sprite), originalSprite(*sprite) {}
 
 	void update(float deltaTime);
 
 	inline const std::shared_ptr<sf::Sprite> getSprite() { return sprite; }
-	inline void setEffectAnimation(std::unique_ptr<SpriteEffectAnimation> animation) { this->animation = std::move(animation); }
+	inline void updateSprite(sf::Sprite newSprite) { *sprite = newSprite; }
+	inline void setAnimation(std::unique_ptr<Animation> animation) { this->animation = std::move(animation); }
+	inline void setEffectAnimation(std::unique_ptr<SpriteEffectAnimation> effectAnimation) { this->effectAnimation = std::move(effectAnimation); }
 	// Angle in degrees
 	inline void setRotation(float angle) { sprite->setRotation(angle); }
 	inline void setScale(float x, float y) { sprite->setScale(x, y); }
 	inline bool usesShader() {
-		if (animation == nullptr) {
+		if (effectAnimation == nullptr) {
 			return false;
 		}
-		return animation->usesShader();
+		return effectAnimation->usesShader();
 	}
 	inline sf::Shader& getShader() {
-		assert(animation != nullptr);
-		return animation->getShader();
+		assert(effectAnimation != nullptr);
+		return effectAnimation->getShader();
 	}
 
 private:
 	std::shared_ptr<sf::Sprite> sprite;
+	sf::Sprite originalSprite;
+	// Effect animation that the sprite is currently undergoing, if any
+	std::unique_ptr<SpriteEffectAnimation> effectAnimation;
 	// Animation that the sprite is currently undergoing, if any
-	std::unique_ptr<SpriteEffectAnimation> animation;
+	std::unique_ptr<Animation> animation;
 };
 
 class PlayerTag {};

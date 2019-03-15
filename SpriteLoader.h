@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include "Animation.h"
 
 /*
 The only purpose of this class is to have an IntRect that can be used as a key for maps
@@ -16,11 +17,13 @@ public:
 	}
 };
 
-class SpriteSheetData {
-public:
-	inline SpriteSheetData(std::string spriteName, ComparableIntRect area, int spriteWidth, int spriteHeight, sf::Color color = sf::Color(255, 255, 255, 255)) : spriteName(spriteName), area(area), color(color), spriteWidth(spriteWidth), spriteHeight(spriteHeight) {}
+//TODO: SpriteSheetData -> SpriteData; create new AnimationData also stored in SpriteSheet; add save() to SpriteLoader; getAnimation() uses AnimationData to generate a new Animation every time it's called
 
-	bool operator==(const SpriteSheetData& other) const;
+class SpriteData {
+public:
+	inline SpriteData(std::string spriteName, ComparableIntRect area, int spriteWidth, int spriteHeight, sf::Color color = sf::Color(255, 255, 255, 255)) : spriteName(spriteName), area(area), color(color), spriteWidth(spriteWidth), spriteHeight(spriteHeight) {}
+
+	bool operator==(const SpriteData& other) const;
 	inline ComparableIntRect getArea() const { return area; }
 	inline sf::Color getColor() const { return color; }
 	inline int getSpriteWidth() const { return spriteWidth; }
@@ -35,11 +38,27 @@ private:
 	int spriteHeight;
 };
 
+class AnimationData {
+public:
+	inline AnimationData(std::string animationName, std::string animationType, std::vector<std::pair<float, std::string>> spriteNames) : animationName(animationName), animationType(animationType), spriteNames(spriteNames) {}
+
+	bool operator==(const AnimationData& other) const;
+	inline const std::string getAnimationType() const { return animationType; }
+	inline const std::vector<std::pair<float, std::string>> getSpriteNames() const { return spriteNames; }
+
+private:
+	std::string animationName;
+	std::string animationType;
+	std::vector<std::pair<float, std::string>> spriteNames;
+};
+
 class SpriteSheet {
 public:
 	inline SpriteSheet(std::string name) : name(name) {}
 	std::shared_ptr<sf::Sprite> getSprite(const std::string& spriteName);
-	void insertDataItem(const std::string&, std::shared_ptr<SpriteSheetData>);
+	std::unique_ptr<Animation> getAnimation(const std::string& animationName);
+	void insertSprite(const std::string&, std::shared_ptr<SpriteData>);
+	void insertAnimation(const std::string&, std::shared_ptr<AnimationData>);
 	bool loadImage(const std::string& imageFileName);
 	void preloadTextures();
 
@@ -49,8 +68,12 @@ private:
 	std::shared_ptr<sf::Image> image;
 	// Maps an area on the image to a Texture
 	std::map<ComparableIntRect, std::shared_ptr<sf::Texture>> textures;
-	// Maps a sprite name to SpriteSheetData
-	std::map<std::string, std::shared_ptr<SpriteSheetData>> spriteSheetData;
+	// Maps a sprite name to SpriteData
+	std::map<std::string, std::shared_ptr<SpriteData>> spriteData;
+	// Maps an animation name to AnimationData
+	std::map<std::string, std::shared_ptr<AnimationData>> animationData;
+	// Maps an animation name to a list of pairs of sprites and for how long each sprite appears for
+	std::map<std::string, std::vector<std::pair<float, std::shared_ptr<sf::Sprite>>>> animationSprites;
 };
 
 class SpriteLoader {
@@ -59,6 +82,7 @@ public:
 	SpriteLoader(const std::string& levelPackRelativePath, const std::vector<std::pair<std::string, std::string>>& spriteSheetNamePairs);
 
 	std::shared_ptr<sf::Sprite> getSprite(const std::string& spriteName, const std::string& spriteSheetName);
+	std::unique_ptr<Animation> getAnimation(const std::string& animationName, const std::string& spriteSheetName);
 	void preloadTextures();
 	void clearSpriteSheets();
 

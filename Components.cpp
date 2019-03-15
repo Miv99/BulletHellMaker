@@ -142,7 +142,17 @@ void LevelManagerTag::update(EntityCreationQueue& queue, SpriteLoader& spriteLoa
 
 void SpriteComponent::update(float deltaTime) {
 	if (animation != nullptr) {
-		animation->update(deltaTime);
+		auto newSprite = animation->update(deltaTime);
+		if (newSprite == nullptr) {
+			// Animation is finished, so revert back to original sprite
+			updateSprite(originalSprite);
+		} else {
+			updateSprite(*newSprite);
+		}
+	}
+
+	if (effectAnimation != nullptr) {
+		effectAnimation->update(deltaTime);
 	}
 }
 

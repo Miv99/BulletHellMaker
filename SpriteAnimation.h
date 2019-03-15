@@ -6,7 +6,7 @@
 #include <algorithm>
 
 /*
-Base class for modifying a sf::Sprite over time
+Base class for modifying a sf::Sprite over time.
 SEA for short.
 
 See RenderSystem::loadShaders for the list of shaders that can be used.
