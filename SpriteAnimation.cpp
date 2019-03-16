@@ -23,7 +23,9 @@ void FlashWhiteSEA::update(float deltaTime) {
 	}
 	else {
 		// Is flashing
-		flashIntensity = std::min(-2.0f * (t / flashDuration - 0.5f) + 1, -0.3f * (t / flashDuration) + 1);
+		// Scale flash intensity to have max of 0.7
+		//TODO: put this as a constant somewhere
+		flashIntensity = 0.7f * std::min(-2.0f * (t / flashDuration - 0.5f) + 1, -0.3f * (t / flashDuration) + 1);
 	}
 	shader.setUniform("flashColor", sf::Glsl::Vec4(1, 1, 1, flashIntensity));
 }
