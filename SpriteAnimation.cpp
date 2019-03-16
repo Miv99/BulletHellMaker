@@ -1,4 +1,5 @@
 #include "SpriteAnimation.h"
+#include <algorithm>
 
 void FlashWhiteSEA::update(float deltaTime) {
 	if (done) {
@@ -25,4 +26,14 @@ void FlashWhiteSEA::update(float deltaTime) {
 		flashIntensity = std::min(-2.0f * (t / flashDuration - 0.5f) + 1, -0.3f * (t / flashDuration) + 1);
 	}
 	shader.setUniform("flashColor", sf::Glsl::Vec4(1, 1, 1, flashIntensity));
+}
+
+void FadeAwaySEA::update(float deltaTime) {
+	if (time > animationDuration) {
+		return;
+	}
+
+	time += deltaTime;
+	auto color = sprite->getColor();
+	sprite->setColor(sf::Color(color.r, color.g, color.b, std::max(minOpacity * 255.0f, 255.0f * (-(maxOpacity - minOpacity) / animationDuration * time + maxOpacity))));
 }

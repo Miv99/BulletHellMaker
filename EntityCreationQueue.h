@@ -23,6 +23,25 @@ protected:
 };
 
 /*
+Command for creating an entity that acts as a part of a shadow trail.
+*/
+class SpawnShadowTrailCommand : public EntityCreationCommand {
+public:
+	inline SpawnShadowTrailCommand(entt::DefaultRegistry& registry, sf::Sprite sprite, float x, float y, float shadowLifespan) : EntityCreationCommand(registry), sprite(sprite), x(x), y(y), shadowLifespan(shadowLifespan) {}
+
+	void execute(EntityCreationQueue& queue) override;
+	int getEntitiesQueuedCount() override;
+
+private:
+	sf::Sprite sprite;
+	// Global positions
+	float x;
+	float y;
+	// The lifespan of each shadow, in seconds
+	float shadowLifespan;
+};
+
+/*
 Command for creating an enemy.
 */
 class SpawnEnemyCommand : public EntityCreationCommand {

@@ -9,6 +9,7 @@
 #include "DespawnSystem.h"
 #include "SpriteAnimationSystem.h"
 #include "EntityCreationQueue.h"
+#include "ShadowTrailSystem.h"
 
 class LevelPack;
 class LevelManagerTag;
@@ -38,6 +39,7 @@ private:
 	std::unique_ptr<DespawnSystem> despawnSystem;
 	std::unique_ptr<EnemySystem> enemySystem;
 	std::unique_ptr<SpriteAnimationSystem> spriteAnimationSystem;
+	std::unique_ptr< ShadowTrailSystem> shadowTrailSystem;
 
 	bool paused;
 

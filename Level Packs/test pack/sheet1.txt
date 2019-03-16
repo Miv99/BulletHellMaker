@@ -29,4 +29,4 @@ FrameData = 0.5|(Megaman standing still)|0.5|(oh my god he's dead)
 
 [Megaman attack]
 Type = StandardAnimation
-FrameData = 0.2|(Megaman standing still)|0.5|(oh my god he's dead)
+FrameData = 2|(Megaman standing still)|2|(oh my god he's dead)

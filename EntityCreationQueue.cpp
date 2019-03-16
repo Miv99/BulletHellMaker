@@ -174,3 +174,17 @@ void SpawnEnemyCommand::execute(EntityCreationQueue & queue) {
 int SpawnEnemyCommand::getEntitiesQueuedCount() {
 	return 1;
 }
+
+void SpawnShadowTrailCommand::execute(EntityCreationQueue & queue) {
+	auto shadow = registry.create();
+	registry.assign<PositionComponent>(shadow, x, y);
+	// Make a copy of the sprite to be the shadow's sprite
+	auto& spriteComponent = registry.assign<SpriteComponent>(shadow, std::make_shared<sf::Sprite>(sprite));
+	//TODO: make these shadow trail numbers some constants
+	spriteComponent.setEffectAnimation(std::make_unique<FadeAwaySEA>(spriteComponent.getSprite(), 0, 0.75f, shadowLifespan));
+	registry.assign<DespawnComponent>(shadow, shadowLifespan);
+}
+
+int SpawnShadowTrailCommand::getEntitiesQueuedCount() {
+	return 1;
+}

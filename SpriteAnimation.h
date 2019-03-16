@@ -61,3 +61,26 @@ private:
 	float animationDuration;
 	bool done = false;
 };
+
+/*
+Causes a sprite to fade away (lowers opacity).
+*/
+class FadeAwaySEA : public SpriteEffectAnimation {
+public:
+	/*
+	minOpacity - minimum opacity in range [0, 1]
+	maxOpacity - maximum opacity in range [0, 1]
+	animationDuration - total time for the sprite to fade from maxOpacity to minOpacity
+	*/
+	inline FadeAwaySEA(std::shared_ptr<sf::Sprite> sprite, float minOpacity, float maxOpacity, float animationDuration) : SpriteEffectAnimation(sprite), minOpacity(minOpacity), 
+		maxOpacity(maxOpacity), animationDuration(animationDuration) {
+		useShader = false;
+	}
+
+	void update(float deltaTime) override;
+
+private:
+	float minOpacity;
+	float maxOpacity;
+	float animationDuration;
+};

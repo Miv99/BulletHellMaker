@@ -308,3 +308,35 @@ private:
 	// Time since this entity was spawned
 	float time = 0;
 };
+
+/*
+Component for entities with shadow trails.
+*/
+class ShadowTrailComponent {
+public:
+	/*
+	interval - time inbetween each shadow's creation
+	lifespan - lifespan of each shadow
+	*/
+	inline ShadowTrailComponent(float interval, float lifespan) : interval(interval), lifespan(lifespan) {}
+	/*
+	Returns true if a shadow should be created at the moment of the update call.
+	*/
+	inline bool update(float deltaTime) {
+		time += deltaTime;
+		if (time > interval) {
+			time -= interval;
+			return true;
+		}
+		return false;
+	}
+	inline float getLifespan() { return lifespan; }
+
+private:
+	// Time inbetween each shadow's creation
+	float interval;
+	// Time since the last shadow was created
+	float time = 0;
+	// Lifespan of each shadow
+	float lifespan;
+};

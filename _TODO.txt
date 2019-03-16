@@ -6,22 +6,29 @@ always have a default spritesheet loaded
 Documentation to put in the editor somewhere:
 -When an enemy is killed, all bullets attached to it will despawn
 -Sprite names cannot contain the characters '[' ']'
+-No two sprite/animation can have the same name
 
 Notes for me:
 -The mainEMP of an attack is always spawned at the exact same time of an attack; spawnType's time is ignored
 
 
 TODO:
+-Bezier movablepoint
 -Bullet trails (type, if any, chosen by player on each EMP in Attack)
 -Bullets rotated to be facing angle of travel (toggleable on each EMP)
 -Multiple small shockwave effects
 -MoveCustomPolar: Add another offset addition that's in range [randMin, randMax], specified by user
 -AttackPattern: add vector<pair<float(time), string(sprite/animation name)>> spriteChanges; 
--Add shared_ptr<Animation> to SpriteComponent; update() will change the sprite ptr if animation != nullptr
-	-sprites and animations share the same text file but stored in different maps, but same names are NOT allowed
+-animations
+	-no two sprite/animation can have the same name
 	-a different set of animations (idle/movement/attack) can be attached to each enemy phase; this is done in enemy, not enemy phase, so that
 	 the same enemy phase can be used for multiple enemies with different sprites
-	-BIG TODO: have SpriteComponent use only Animation instead of sf::Sprite; sprite is retrieved from that animation
+	-use a state machine in SpriteComponent that restarts an animation only if state is changed from attack to attack (only attack anim can be interrupted
+	by another attack anim)
+	-keep track of last known pos of an entity in a map in rendersystem; listener for entity deletion -> delete map entry; use this map to see if an entity
+	is moving to update its SpriteComponent's state machine
+	-sprites/anims have 3 options: rotate with angle of movement, lock rotation, lock rotation and face direction of movement
+		-third option means if entity is moving left, all sprites/anims are mirrored across middle y-axis but do not rotate
 
 -FadeAwaySpriteAnimation
 -Add to EMP: OnContactAction: TurnIntangible (remove HitboxComponent), DestroyBulletAndAttachedChildren (give children DespawnComponent to this EMP when they spawn),
