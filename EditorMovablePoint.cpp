@@ -24,6 +24,9 @@ std::string EditorMovablePoint::format() {
 
 	res += delim + "(" + spawnType->format() + ")";
 
+	res += delim + "(" + tos(shadowTrailInterval) + ")";
+	res += delim + "(" + tos(shadowTrailLifespan) + ")";
+
 	return res;
 }
 
@@ -47,7 +50,10 @@ void EditorMovablePoint::load(std::string formattedString) {
 		actions.push_back(EMPActionFactory::create(items[i]));
 	}
 
-	spawnType = EMPSpawnTypeFactory::create(items[i]);
+	spawnType = EMPSpawnTypeFactory::create(items[i++]);
+
+	shadowTrailInterval = stoi(items[i++]);
+	shadowTrailLifespan = stoi(items[i++]);
 }
 
 void EditorMovablePoint::setSpawnType(std::shared_ptr<EMPSpawnType> spawnType) {

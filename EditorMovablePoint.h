@@ -33,6 +33,8 @@ public:
 	inline const std::shared_ptr<EMPSpawnType> getSpawnType() { return spawnType; }
 	inline const std::vector<std::shared_ptr<EditorMovablePoint>> getChildren() { return children; }
 	inline const std::vector<std::shared_ptr<EMPAction>> getActions() { return actions; }
+	inline float getShadowTrailInterval() { return shadowTrailInterval; }
+	inline float getShadowTrailLifespan() { return shadowTrailLifespan; }
 
 	inline void setSpriteName(std::string spriteName, std::string spriteSheetName) { this->spriteName = spriteName; this->spriteSheetName = spriteSheetName; }
 	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; }
@@ -84,6 +86,11 @@ private:
 	std::vector<std::shared_ptr<EMPAction>> actions;
 	// Details of how this EMP will be spawned
 	std::shared_ptr<EMPSpawnType> spawnType;
+
+	// See ShadowTrailComponent
+	float shadowTrailInterval = 0.15f;
+	// Set to 0 to disable shadow trail
+	float shadowTrailLifespan = 0;
 
 	std::string spriteName = "";
 	std::string spriteSheetName = "";

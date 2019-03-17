@@ -14,12 +14,14 @@ Notes for me:
 
 TODO:
 -Bezier movablepoint
--Bullet trails (type, if any, chosen by player on each EMP in Attack)
+-Make entity positions be their sprite's center
 -Bullets rotated to be facing angle of travel (toggleable on each EMP)
--Multiple small shockwave effects
--MoveCustomPolar: Add another offset addition that's in range [randMin, randMax], specified by user
--AttackPattern: add vector<pair<float(time), string(sprite/animation name)>> spriteChanges; 
+-Multiple small shockwave effects 
+-mandatory death effect for each enemy: user chooses a SpriteEffectAnimation (FadeAway, RedFadeAway (tint red + fade away), ...)
+-when an enemy dies, create new entity to play the death animation+effect; if no animation, just do the effect
 -animations
+	-animation sets (idle/movement/attack/death) stored in Enemy but can be different for each EnemyPhase
+	-optional death animation (must be standard animation)
 	-no two sprite/animation can have the same name
 	-a different set of animations (idle/movement/attack) can be attached to each enemy phase; this is done in enemy, not enemy phase, so that
 	 the same enemy phase can be used for multiple enemies with different sprites

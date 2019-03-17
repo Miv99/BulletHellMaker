@@ -37,6 +37,10 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 		registry.assign<EnemyBulletComponent>(bullet, attackID, attackPatternID, enemyID, enemyPhaseID);
 	}
 
+	if (emp->getShadowTrailLifespan() != 0) {
+		registry.assign<ShadowTrailComponent>(bullet, emp->getShadowTrailInterval(), emp->getShadowTrailLifespan());
+	}
+
 	if (emp->getChildren().size() > 0) {
 		EMPSpawnerComponent& empSpawnerComponent = registry.assign<EMPSpawnerComponent>(bullet, emp->getChildren(), bullet, attackID, attackPatternID, enemyID, enemyPhaseID);
 		// Update in case there are any children that should be spawned instantly
@@ -78,6 +82,10 @@ void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
 		registry.assign<SpriteComponent>(bullet, spriteLoader.getSprite(emp->getSpriteName(), emp->getSpriteSheetName()));
 
 		registry.assign<PlayerBulletComponent>(bullet, attackID, attackPatternID);
+	}
+
+	if (emp->getShadowTrailLifespan() != 0) {
+		registry.assign<ShadowTrailComponent>(bullet, emp->getShadowTrailInterval(), emp->getShadowTrailLifespan());
 	}
 
 	if (emp->getChildren().size() > 0) {
