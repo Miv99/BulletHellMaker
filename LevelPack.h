@@ -32,6 +32,7 @@ class LevelPack {
 public:
 	LevelPack(std::string name);
 
+	void load();
 	void save();
 
 	void preloadTextures();

@@ -9,6 +9,7 @@
 #include "SpriteLoader.h"
 #include "SpriteAnimation.h"
 #include "Animation.h"
+#include "EntityAnimatableSet.h"
 
 class MovablePoint;
 class AggregatorMP;
@@ -106,13 +107,28 @@ private:
 
 class SpriteComponent {
 public:
-	SpriteComponent(std::shared_ptr<sf::Sprite> sprite) : sprite(sprite), originalSprite(*sprite) {}
+	inline SpriteComponent() {}
+	inline SpriteComponent(std::shared_ptr<sf::Sprite> sprite) : sprite(sprite), originalSprite(*sprite) {}
 
 	void update(float deltaTime);
 
+	inline bool animationIsDone() { assert(animation != nullptr); return animation->isDone(); }
 	inline const std::shared_ptr<sf::Sprite> getSprite() { return sprite; }
 	inline void updateSprite(sf::Sprite newSprite) { *sprite = newSprite; }
-	inline void setAnimation(std::unique_ptr<Animation> animation) { this->animation = std::move(animation); }
+	inline void updateSprite(std::shared_ptr<sf::Sprite> newSprite) { 
+		if (!sprite) {
+			sprite = newSprite;
+		} else {
+			updateSprite(*newSprite);
+		}
+	}
+	inline void setAnimation(std::unique_ptr<Animation> animation) {
+		if (animation) {
+			this->animation = std::move(animation);
+		} else {
+			this->animation = nullptr;
+		}
+	}
 	inline void setEffectAnimation(std::unique_ptr<SpriteEffectAnimation> effectAnimation) { this->effectAnimation = std::move(effectAnimation); }
 	// Angle in degrees
 	inline void setRotation(float angle) { sprite->setRotation(angle); }
@@ -130,6 +146,7 @@ public:
 
 private:
 	std::shared_ptr<sf::Sprite> sprite;
+	// The original sprite. Used for returning to original appearance after an animation ends.
 	sf::Sprite originalSprite;
 	// Effect animation that the sprite is currently undergoing, if any
 	std::unique_ptr<SpriteEffectAnimation> effectAnimation;
@@ -281,8 +298,9 @@ public:
 	attackPattern - same but attack pattern
 	enemyID - same but enemy
 	enemyPhaseID - same but enemy phase
+	playAttackAnimation - whether or not to play this entity's attack animation
 	*/
-	EMPSpawnerComponent(std::vector<std::shared_ptr<EditorMovablePoint>> emps, uint32_t parent, int attackID, int attackPatternID, int enemyID, int enemyPhaseID);
+	EMPSpawnerComponent(std::vector<std::shared_ptr<EditorMovablePoint>> emps, uint32_t parent, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation);
 	/*
 	Constructor for an player bullets spawner.
 
@@ -290,8 +308,9 @@ public:
 	parent - the entity that the spawned EMPs will be spawned in reference to; may be unused depending on the EMP's spawn type
 	attackID - the ID of the attack each EMP originated from
 	attackPattern - same but attack pattern
+	playAttackAnimation - whether or not to play this entity's attack animation
 	*/
-	EMPSpawnerComponent(std::vector<std::shared_ptr<EditorMovablePoint>> emps, uint32_t parent, int attackID, int attackPatternID);
+	EMPSpawnerComponent(std::vector<std::shared_ptr<EditorMovablePoint>> emps, uint32_t parent, int attackID, int attackPatternID, bool playAttackAnimation);
 
 	void EMPSpawnerComponent::update(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, EntityCreationQueue& queue, float deltaTime);
 
@@ -304,6 +323,7 @@ private:
 	int attackPatternID;
 	int enemyID;
 	int enemyPhaseID;
+	bool playAttackAnimation;
 
 	// Time since this entity was spawned
 	float time = 0;
@@ -339,4 +359,31 @@ private:
 	float time = 0;
 	// Lifespan of each shadow
 	float lifespan;
+};
+
+/*
+Component for entities with an EntityAnimatableSet
+*/
+class AnimatableSetComponent {
+public:
+	// States
+	static const int IDLE = 0, MOVEMENT = 1, ATTACK = 2;
+
+	inline EntityAnimatableSet getAnimatableSet() { return animatableSet; }
+	inline void setAnimatableSet(EntityAnimatableSet animatableSet) { this->animatableSet = animatableSet; }
+
+	/*
+	x, y - this entity's current global position
+	spriteComponent - this entity's sprite component
+	*/
+	void update(SpriteLoader& spriteLoader, float x, float y, SpriteComponent& spriteComponent, float deltaTime);
+	void changeState(int newState, SpriteLoader& spriteLoader, SpriteComponent &spriteComponent);
+
+private:
+	EntityAnimatableSet animatableSet;
+
+	float lastX;
+	float lastY;
+	int currentState = -1;
+	bool firstUpdateHasBeenCalled = false;
 };

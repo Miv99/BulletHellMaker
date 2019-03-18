@@ -38,20 +38,20 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 	collisionSystem = std::make_unique<CollisionSystem>(registry, MAP_WIDTH, MAP_HEIGHT, HitboxComponent(levelPack->searchLargestHitbox()));
 	despawnSystem = std::make_unique<DespawnSystem>(registry);
 	enemySystem = std::make_unique<EnemySystem>(*queue, *spriteLoader, *levelPack, registry);
-	spriteAnimationSystem = std::make_unique<SpriteAnimationSystem>(registry);
+	spriteAnimationSystem = std::make_unique<SpriteAnimationSystem>(*spriteLoader, registry);
 	shadowTrailSystem = std::make_unique<ShadowTrailSystem>(*queue, registry);
 }
 
 void GameInstance::physicsUpdate(float deltaTime) {
 	if (!paused) {
+		queue->executeAll();
+
 		registry.get<LevelManagerTag>().update(*queue, *spriteLoader, *levelPack, registry, deltaTime);
 		enemySystem->update(deltaTime);
 		shadowTrailSystem->update(deltaTime);
 		movementSystem->update(deltaTime);
 		despawnSystem->update(deltaTime);
 		collisionSystem->update(deltaTime);
-
-		queue->executeAll();
 	}
 }
 

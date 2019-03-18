@@ -4,13 +4,19 @@
 #include "EditorMovablePointSpawnType.h"
 #include "SpriteLoader.h"
 #include "Enemy.h"
+#include "EntityAnimatableSet.h"
 
-EMPSpawnFromEnemyCommand::EMPSpawnFromEnemyCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, uint32_t entity, float timeLag, int attackID, int attackPatternID, int enemyID, int enemyPhaseID) : 
-	EntityCreationCommand(registry), spriteLoader(spriteLoader), emp(emp),
+EMPSpawnFromEnemyCommand::EMPSpawnFromEnemyCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, uint32_t entity, float timeLag, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation) :
+	EntityCreationCommand(registry), spriteLoader(spriteLoader), emp(emp), playAttackAnimation(playAttackAnimation),
 	entity(entity), timeLag(timeLag), attackID(attackID), attackPatternID(attackPatternID), enemyID(enemyID), enemyPhaseID(enemyPhaseID) {
 }
 
 void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
+	// Change AnimatableSetComponent state to attack state
+	if (playAttackAnimation) {
+		registry.get<AnimatableSetComponent>(entity).changeState(AnimatableSetComponent::ATTACK, spriteLoader, registry.get<SpriteComponent>(entity));
+	}
+
 	// Create the entity
 	auto bullet = registry.create();
 	MPSpawnInformation spawnInfo = emp->getSpawnType()->getSpawnInfo(registry, entity);
@@ -29,20 +35,21 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 	}
 
 	registry.assign<MovementPathComponent>(bullet, registry, entity, emp->getSpawnType(), emp->getActions(), timeLag);
-	// If sprite name is not empty, this EMP is a bullet
-	if (emp->getSpriteName() != "") {
+	// If animatable name is not empty, this EMP is a bullet
+	Animatable animatable = emp->getAnimatable();
+	if (animatable.getAnimatableName() != "") {
 		registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius());
-		registry.assign<SpriteComponent>(bullet, spriteLoader.getSprite(emp->getSpriteName(), emp->getSpriteSheetName()));
+		registry.assign<SpriteComponent>(bullet, spriteLoader.getSprite(animatable.getAnimatableName(), animatable.getSpriteSheetName()));
 
 		registry.assign<EnemyBulletComponent>(bullet, attackID, attackPatternID, enemyID, enemyPhaseID);
 	}
 
-	if (emp->getShadowTrailLifespan() != 0) {
+	if (emp->getShadowTrailLifespan() > 0) {
 		registry.assign<ShadowTrailComponent>(bullet, emp->getShadowTrailInterval(), emp->getShadowTrailLifespan());
 	}
 
 	if (emp->getChildren().size() > 0) {
-		EMPSpawnerComponent& empSpawnerComponent = registry.assign<EMPSpawnerComponent>(bullet, emp->getChildren(), bullet, attackID, attackPatternID, enemyID, enemyPhaseID);
+		EMPSpawnerComponent& empSpawnerComponent = registry.assign<EMPSpawnerComponent>(bullet, emp->getChildren(), bullet, attackID, attackPatternID, enemyID, enemyPhaseID, playAttackAnimation);
 		// Update in case there are any children that should be spawned instantly
 		empSpawnerComponent.update(registry, spriteLoader, queue, 0);
 	}
@@ -52,12 +59,17 @@ int EMPSpawnFromEnemyCommand::getEntitiesQueuedCount() {
 	return emp->getTreeSize();
 }
 
-EMPSpawnFromPlayerCommand::EMPSpawnFromPlayerCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, uint32_t entity, float timeLag, int attackID, int attackPatternID) :
-	EntityCreationCommand(registry), spriteLoader(spriteLoader), emp(emp),
+EMPSpawnFromPlayerCommand::EMPSpawnFromPlayerCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, uint32_t entity, float timeLag, int attackID, int attackPatternID, bool playAttackAnimation) :
+	EntityCreationCommand(registry), spriteLoader(spriteLoader), emp(emp), playAttackAnimation(playAttackAnimation),
 	entity(entity), timeLag(timeLag), attackID(attackID), attackPatternID(attackPatternID) {
 }
 
 void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
+	// Change AnimatableSetComponent state to attack state
+	if (playAttackAnimation) {
+		registry.get<AnimatableSetComponent>(entity).changeState(AnimatableSetComponent::ATTACK, spriteLoader, registry.get<SpriteComponent>(entity));
+	}
+	
 	// Create the entity
 	auto bullet = registry.create();
 	MPSpawnInformation spawnInfo = emp->getSpawnType()->getSpawnInfo(registry, entity);
@@ -76,20 +88,21 @@ void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
 	}
 
 	registry.assign<MovementPathComponent>(bullet, registry, entity, emp->getSpawnType(), emp->getActions(), timeLag);
-	// If sprite name is not empty, this EMP is a bullet
-	if (emp->getSpriteName() != "") {
+	// If animatable name is not empty, this EMP is a bullet
+	Animatable animatable = emp->getAnimatable();
+	if (animatable.getAnimatableName() != "") {
 		registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius());
-		registry.assign<SpriteComponent>(bullet, spriteLoader.getSprite(emp->getSpriteName(), emp->getSpriteSheetName()));
+		registry.assign<SpriteComponent>(bullet, spriteLoader.getSprite(animatable.getAnimatableName(), animatable.getSpriteSheetName()));
 
 		registry.assign<PlayerBulletComponent>(bullet, attackID, attackPatternID);
 	}
 
-	if (emp->getShadowTrailLifespan() != 0) {
+	if (emp->getShadowTrailLifespan() > 0) {
 		registry.assign<ShadowTrailComponent>(bullet, emp->getShadowTrailInterval(), emp->getShadowTrailLifespan());
 	}
 
 	if (emp->getChildren().size() > 0) {
-		EMPSpawnerComponent& empSpawnerComponent = registry.assign<EMPSpawnerComponent>(bullet, emp->getChildren(), bullet, attackID, attackPatternID);
+		EMPSpawnerComponent& empSpawnerComponent = registry.assign<EMPSpawnerComponent>(bullet, emp->getChildren(), bullet, attackID, attackPatternID, playAttackAnimation);
 		// Update in case there are any children that should be spawned instantly
 		empSpawnerComponent.update(registry, spriteLoader, queue, 0);
 	}
@@ -172,8 +185,9 @@ void SpawnEnemyCommand::execute(EntityCreationQueue & queue) {
 	registry.assign<MovementPathComponent>(enemy, registry, enemy, std::make_shared<SpecificGlobalEMPSpawn>(0, x, y), std::vector<std::shared_ptr<EMPAction>>(), 0);
 	registry.assign<HealthComponent>(enemy, enemyInfo->getHealth(), enemyInfo->getHealth());
 	registry.assign<HitboxComponent>(enemy, enemyInfo->getHitboxRadius());
-	registry.assign<SpriteComponent>(enemy, spriteLoader.getSprite(enemyInfo->getSpriteName(), enemyInfo->getSpriteSheetName()));
+	registry.assign<SpriteComponent>(enemy);
 	registry.assign<EnemyComponent>(enemy, enemyInfo, enemyInfo->getID());
+	registry.assign<AnimatableSetComponent>(enemy);
 
 	// Reset level manager's timeSinceLastEnemySpawn
 	registry.get<LevelManagerTag>().setTimeSinceLastEnemySpawn(0);

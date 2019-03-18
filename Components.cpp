@@ -11,6 +11,7 @@
 #include "EntityCreationQueue.h"
 #include "EditorMovablePoint.h"
 #include <math.h>
+#include <tuple>
 
 sf::Vector2f MovementPathComponent::update(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float deltaTime) {
 	time += deltaTime;
@@ -55,13 +56,13 @@ void EnemyComponent::update(EntityCreationQueue& queue, SpriteLoader& spriteLoad
 	checkPhases(queue, spriteLoader, levelPack, registry, entity);
 }
 
-void EnemyComponent::checkPhases(EntityCreationQueue& queue, SpriteLoader& spriteLoader, const LevelPack& levelPack, entt::DefaultRegistry& registry, uint32_t entity) {
+void EnemyComponent::checkPhases(EntityCreationQueue& queue, SpriteLoader& spriteLoader, const LevelPack& levelPack, entt::DefaultRegistry& registry, uint32_t entity) {	
 	// Check if entity can continue to next phase
 	// While loop so that enemy can skip phases
 	while (currentPhaseIndex + 1 < enemyData->getPhasesCount()) {
 		auto nextPhaseData = enemyData->getPhaseData(currentPhaseIndex + 1);
 		// Check if condition for next phase is satisfied
-		if (nextPhaseData.first->satisfied(registry, entity)) {
+		if (std::get<0>(nextPhaseData)->satisfied(registry, entity)) {
 			// Current phase ends, so call its ending EnemyPhaseAction
 			if (currentPhase && currentPhase->getPhaseEndAction()) {
 				currentPhase->getPhaseEndAction()->execute(registry, entity);
@@ -74,13 +75,16 @@ void EnemyComponent::checkPhases(EntityCreationQueue& queue, SpriteLoader& sprit
 			currentAttackPatternIndex = -1;
 			currentAttackIndex = -1;
 
-			currentPhase = levelPack.getEnemyPhase(nextPhaseData.second);
+			currentPhase = levelPack.getEnemyPhase(std::get<1>(nextPhaseData));
 			currentAttackPattern = nullptr;
 
 			// Next phase begins, so call its beginning EnemyPhaseAction
 			if (currentPhase->getPhaseBeginAction()) {
 				currentPhase->getPhaseBeginAction()->execute(registry, entity);
 			}
+
+			// Set entity's animatable set
+			registry.get<AnimatableSetComponent>(entity).setAnimatableSet(std::get<2>(nextPhaseData));
 
 			checkAttackPatterns(queue, spriteLoader, levelPack, registry, entity);
 		} else {
@@ -147,7 +151,7 @@ void SpriteComponent::update(float deltaTime) {
 			// Animation is finished, so revert back to original sprite
 			updateSprite(originalSprite);
 		} else {
-			updateSprite(*newSprite);
+			updateSprite(newSprite);
 		}
 	}
 
@@ -156,13 +160,13 @@ void SpriteComponent::update(float deltaTime) {
 	}
 }
 
-EMPSpawnerComponent::EMPSpawnerComponent(std::vector<std::shared_ptr<EditorMovablePoint>> emps, uint32_t parent, int attackID, int attackPatternID, int enemyID, int enemyPhaseID) : parent(parent), attackID(attackID), attackPatternID(attackPatternID), enemyID(enemyID), enemyPhaseID(enemyPhaseID) {
+EMPSpawnerComponent::EMPSpawnerComponent(std::vector<std::shared_ptr<EditorMovablePoint>> emps, uint32_t parent, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation) : parent(parent), attackID(attackID), attackPatternID(attackPatternID), enemyID(enemyID), enemyPhaseID(enemyPhaseID), playAttackAnimation(playAttackAnimation) {
 	for (auto emp : emps) {
 		this->emps.push(emp);
 	}
 }
 
-EMPSpawnerComponent::EMPSpawnerComponent(std::vector<std::shared_ptr<EditorMovablePoint>> emps, uint32_t parent, int attackID, int attackPatternID) : parent(parent), attackID(attackID), attackPatternID(attackPatternID) {
+EMPSpawnerComponent::EMPSpawnerComponent(std::vector<std::shared_ptr<EditorMovablePoint>> emps, uint32_t parent, int attackID, int attackPatternID, bool playAttackAnimation) : parent(parent), attackID(attackID), attackPatternID(attackPatternID), playAttackAnimation(playAttackAnimation) {
 	for (auto emp : emps) {
 		this->emps.push(emp);
 	}
@@ -175,7 +179,7 @@ void EMPSpawnerComponent::update(entt::DefaultRegistry& registry, SpriteLoader& 
 		while (!emps.empty()) {
 			float t = emps.front()->getSpawnType()->getTime();
 			if (time >= t) {
-				queue.addCommand(std::make_unique<EMPSpawnFromEnemyCommand>(registry, spriteLoader, emps.front(), parent, time - t, attackID, attackPatternID, enemyID, enemyPhaseID));
+				queue.addCommand(std::make_unique<EMPSpawnFromEnemyCommand>(registry, spriteLoader, emps.front(), parent, time - t, attackID, attackPatternID, enemyID, enemyPhaseID, playAttackAnimation));
 				emps.pop();
 			} else {
 				break;
@@ -185,11 +189,61 @@ void EMPSpawnerComponent::update(entt::DefaultRegistry& registry, SpriteLoader& 
 		while (!emps.empty()) {
 			float t = emps.front()->getSpawnType()->getTime();
 			if (time >= t) {
-				queue.addCommand(std::make_unique<EMPSpawnFromPlayerCommand>(registry, spriteLoader, emps.front(), parent, time - t, attackID, attackPatternID));
+				queue.addCommand(std::make_unique<EMPSpawnFromPlayerCommand>(registry, spriteLoader, emps.front(), parent, time - t, attackID, attackPatternID, playAttackAnimation));
 				emps.pop();
 			} else {
 				break;
 			}
 		}
+	}
+}
+
+void AnimatableSetComponent::update(SpriteLoader& spriteLoader, float x, float y, SpriteComponent & spriteComponent, float deltaTime) {
+	if ((x == lastX && y == lastY) || !firstUpdateHasBeenCalled) {
+		changeState(IDLE, spriteLoader, spriteComponent);
+	} else {
+		changeState(MOVEMENT, spriteLoader, spriteComponent);
+	}
+
+	lastX = x;
+	lastY = y;
+	firstUpdateHasBeenCalled = true;
+}
+
+void AnimatableSetComponent::changeState(int newState, SpriteLoader& spriteLoader, SpriteComponent & spriteComponent) {
+	Animatable newAnimatable;
+	bool changeState = false;
+	bool loopNewAnimatable = false;
+	if (newState == IDLE && (currentState == MOVEMENT || (currentState == ATTACK && spriteComponent.animationIsDone()) || currentState == -1)) {
+		// Play idle animatable
+		newAnimatable = animatableSet.getIdleAnimatable();
+		loopNewAnimatable = true;
+		changeState = true;
+	} else if (newState == MOVEMENT && (currentState == IDLE || (currentState == ATTACK && spriteComponent.animationIsDone()) || currentState == -1)) {
+		// Play movement animatable
+		newAnimatable = animatableSet.getMovementAnimatable();
+		loopNewAnimatable = true;
+		changeState = true;
+	} else if (newState == ATTACK && currentState != DEATH) {
+		// Play attack animatable
+		newAnimatable = animatableSet.getAttackAnimatable();
+		loopNewAnimatable = false;
+		changeState = true;
+	} else if (newState == DEATH && currentState != DEATH) {
+		// Play death animatable
+		newAnimatable = animatableSet.getDeathAnimatable();
+		loopNewAnimatable = false;
+		changeState = true;
+	}
+
+	if (changeState) {
+		if (newAnimatable.isSprite()) {
+			// Cancel current animation
+			spriteComponent.setAnimation(nullptr);
+			spriteComponent.updateSprite(spriteLoader.getSprite(newAnimatable.getAnimatableName(), newAnimatable.getSpriteSheetName()));
+		} else {
+			spriteComponent.setAnimation(spriteLoader.getAnimation(newAnimatable.getAnimatableName(), newAnimatable.getSpriteSheetName(), loopNewAnimatable));	
+		}
+		currentState = newState;
 	}
 }

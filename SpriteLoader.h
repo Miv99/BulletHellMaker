@@ -40,15 +40,13 @@ private:
 
 class AnimationData {
 public:
-	inline AnimationData(std::string animationName, std::string animationType, std::vector<std::pair<float, std::string>> spriteNames) : animationName(animationName), animationType(animationType), spriteNames(spriteNames) {}
+	inline AnimationData(std::string animationName, std::vector<std::pair<float, std::string>> spriteNames) : animationName(animationName), spriteNames(spriteNames) {}
 
 	bool operator==(const AnimationData& other) const;
-	inline const std::string getAnimationType() const { return animationType; }
 	inline const std::vector<std::pair<float, std::string>> getSpriteNames() const { return spriteNames; }
 
 private:
 	std::string animationName;
-	std::string animationType;
 	std::vector<std::pair<float, std::string>> spriteNames;
 };
 
@@ -56,7 +54,7 @@ class SpriteSheet {
 public:
 	inline SpriteSheet(std::string name) : name(name) {}
 	std::shared_ptr<sf::Sprite> getSprite(const std::string& spriteName);
-	std::unique_ptr<Animation> getAnimation(const std::string& animationName);
+	std::unique_ptr<Animation> getAnimation(const std::string& animationName, bool loop);
 	void insertSprite(const std::string&, std::shared_ptr<SpriteData>);
 	void insertAnimation(const std::string&, std::shared_ptr<AnimationData>);
 	bool loadImage(const std::string& imageFileName);
@@ -82,7 +80,7 @@ public:
 	SpriteLoader(const std::string& levelPackRelativePath, const std::vector<std::pair<std::string, std::string>>& spriteSheetNamePairs);
 
 	std::shared_ptr<sf::Sprite> getSprite(const std::string& spriteName, const std::string& spriteSheetName);
-	std::unique_ptr<Animation> getAnimation(const std::string& animationName, const std::string& spriteSheetName);
+	std::unique_ptr<Animation> getAnimation(const std::string& animationName, const std::string& spriteSheetName, bool loop);
 	void preloadTextures();
 	void clearSpriteSheets();
 

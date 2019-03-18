@@ -31,6 +31,8 @@ public:
 
 	bool satisfied(entt::DefaultRegistry& registry, uint32_t entity) override;
 
+	inline float getTime() { return time; }
+
 private:
 	// Minimum time since the enemy's spawn for this condition to be satisfied
 	float time;
@@ -42,16 +44,18 @@ EnemyPhaseStartCondition that depends on the enemy's percent health remaining.
 class HPBasedEnemyPhaseStartCondition : public EnemyPhaseStartCondition {
 public:
 	inline HPBasedEnemyPhaseStartCondition() {}
-	inline HPBasedEnemyPhaseStartCondition(float percent) : percent(percent) {}
+	inline HPBasedEnemyPhaseStartCondition(float ratio) : ratio(ratio) {}
 
 	std::string format() override;
 	void load(std::string formattedString) override;
 
 	bool satisfied(entt::DefaultRegistry& registry, uint32_t entity) override;
 
+	inline float getRatio() { return ratio; }
+
 private:
-	// Maximum hp percent of the enemy for this condition to be satisfied
-	float percent;
+	// Maximum hp ratio of the enemy for this condition to be satisfied; range (0, 1]
+	float ratio;
 };
 
 /*

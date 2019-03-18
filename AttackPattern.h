@@ -19,6 +19,8 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 
+	bool legal(std::string& message);
+
 	void changeEntityPathToAttackPatternActions(entt::DefaultRegistry& registry, uint32_t entity, float timeLag);
 
 	inline int getID() { return id; }

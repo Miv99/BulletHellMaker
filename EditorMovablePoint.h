@@ -7,11 +7,12 @@
 #include "TextMarshallable.h"
 #include "EditorMovablePointAction.h"
 #include "EntityCreationQueue.h"
+#include "EntityAnimatableSet.h"
 
 class EMPSpawnType;
 
 /*
-MovablePoint used in the editor to represent bullets.
+MovablePoint used in the editor to represent bullets or bullet references.
 EMP for short.
 */
 class EditorMovablePoint : public TextMarshallable, public std::enable_shared_from_this<EditorMovablePoint> {
@@ -26,9 +27,10 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 
+	bool legal(std::string& message);
+
 	inline int getID() { return id; }
-	inline std::string getSpriteName() { return spriteName; }
-	inline std::string getSpriteSheetName() { return spriteSheetName; }
+	inline Animatable getAnimatable() { return animatable; }
 	inline float getHitboxRadius() { return hitboxRadius; }
 	inline const std::shared_ptr<EMPSpawnType> getSpawnType() { return spawnType; }
 	inline const std::vector<std::shared_ptr<EditorMovablePoint>> getChildren() { return children; }
@@ -36,7 +38,9 @@ public:
 	inline float getShadowTrailInterval() { return shadowTrailInterval; }
 	inline float getShadowTrailLifespan() { return shadowTrailLifespan; }
 
-	inline void setSpriteName(std::string spriteName, std::string spriteSheetName) { this->spriteName = spriteName; this->spriteSheetName = spriteSheetName; }
+	inline void setAnimatable(Animatable animatable) { this->animatable = animatable; }
+	inline void setLoopAnimation(bool loopAnimation) { this->loopAnimation = loopAnimation; }
+	inline void setBaseSprite(Animatable baseSprite) { assert(baseSprite.isSprite()); this->baseSprite = baseSprite; }
 	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; }
 	void setSpawnType(std::shared_ptr<EMPSpawnType> spawnType);
 	// Inserts an EMPAction such that the new action is at the specified index
@@ -89,10 +93,15 @@ private:
 
 	// See ShadowTrailComponent
 	float shadowTrailInterval = 0.15f;
-	// Set to 0 to disable shadow trail
+	// Set to 0 or a negative number to disable shadow trail
 	float shadowTrailLifespan = 0;
 
-	std::string spriteName = "";
-	std::string spriteSheetName = "";
+	Animatable animatable;
+	// Only applicable if animatable is an animation
+	bool loopAnimation;
+	// The sprite that will be used after the animation ends. Only necessary if animatable is an animation and loopAnimation is false
+	Animatable baseSprite;
+
+	// Radius of the EMP's hitbox. Set to 0 if the EMP is not a bullet.
 	float hitboxRadius = 0;
 };

@@ -1,10 +1,6 @@
 #include "EnemyPhase.h"
 
 std::string EditorEnemyPhase::format() {
-	if (contains(name, '(') || contains(name, ')')) {
-		throw "Enemy names cannot have the character '(' or ')'";
-	}
-
 	std::string res = "";
 	res += "(" + std::to_string(id) + ")" + delim;
 	res += "(" + name + ")" + delim;
@@ -25,6 +21,19 @@ void EditorEnemyPhase::load(std::string formattedString) {
 	for (int i = 4; i < items.size(); i += 2) {
 		attackPatternIds.push_back(std::make_pair(std::stof(items[i]), std::stoi(items[i + 1])));
 	}
+}
+
+bool EditorEnemyPhase::legal(std::string & message) {
+	bool good = true;
+	if (contains(name, '(') || contains(name, ')')) {
+		message += "Enemy phase \"" + name + "\" cannot have the character '(' or ')' in its name\n";
+		good = false;
+	}
+	if (attackPatternLoopDelay < 0) {
+		message += "Enemy phase \"" + name + "\" must have a non-negative attack pattern loop delay\n";
+		good = false;
+	}
+	return good;
 }
 
 void EditorEnemyPhase::addAttackPatternID(float time, int id) {

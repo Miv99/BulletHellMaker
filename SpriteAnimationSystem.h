@@ -1,5 +1,6 @@
 #pragma once
 #include <entt/entt.hpp>
+#include "SpriteLoader.h"
 
 /*
 System for updating sprite animations.
@@ -8,9 +9,10 @@ if the game is paused.
 */
 class SpriteAnimationSystem {
 public:
-	SpriteAnimationSystem(entt::DefaultRegistry& registry) : registry(registry) {}
+	SpriteAnimationSystem(SpriteLoader& spriteLoader, entt::DefaultRegistry& registry) : spriteLoader(spriteLoader), registry(registry) {}
 	void update(float deltaTime);
 
 private:
 	entt::DefaultRegistry& registry;
+	SpriteLoader& spriteLoader;
 };

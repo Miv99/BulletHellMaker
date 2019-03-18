@@ -20,18 +20,18 @@ bool TimeBasedEnemyPhaseStartCondition::satisfied(entt::DefaultRegistry & regist
 std::string HPBasedEnemyPhaseStartCondition::format() {
 	std::string res = "";
 	res += "HPBasedEnemyPhaseStartCondition" + delim;
-	res += "(" + tos(percent) + ")";
+	res += "(" + tos(ratio) + ")";
 	return res;
 }
 
 void HPBasedEnemyPhaseStartCondition::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
-	percent = std::stof(items[1]);
+	ratio = std::stof(items[1]);
 }
 
 bool HPBasedEnemyPhaseStartCondition::satisfied(entt::DefaultRegistry & registry, uint32_t entity) {
 	auto& health = registry.get<HealthComponent>(entity);
-	return health.getHealth()/health.getMaxHealth() <= percent;
+	return health.getHealth()/health.getMaxHealth() <= ratio;
 }
 
 std::string EnemyCountBasedEnemyPhaseStartCondition::format() {

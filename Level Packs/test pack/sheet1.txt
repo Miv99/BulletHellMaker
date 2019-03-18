@@ -5,6 +5,27 @@ BoundingRectangleSize = 36,46
 Color = 255,255,255,255
 SpriteSize = 72,92
 
+[Megaman stepping]
+Type = Sprite
+TextureTopLeftCoordinates = 260,93
+BoundingRectangleSize = 35,35
+Color = 255,255,255,255
+SpriteSize = 72,92
+
+[Megaman blink]
+Type = Sprite
+TextureTopLeftCoordinates = 77,4
+BoundingRectangleSize = 33,39
+Color = 255,255,255,255
+SpriteSize = 72,92
+
+[Megaman shooting]
+Type = Sprite
+TextureTopLeftCoordinates = 84,135
+BoundingRectangleSize = 41,41
+Color = 255,255,255,255
+SpriteSize = 72,92
+
 [oh my god he's dead]
 Type = Sprite
 TextureTopLeftCoordinates = 0,46
@@ -20,13 +41,13 @@ Color = 255,255,255,255
 SpriteSize = 40,40
 
 [Megaman idle]
-Type = LoopingAnimation
-FrameData = 0.2|(Megaman standing still)|0.2|(Bullet)
+Type = Animation
+FrameData = 0.3|(Megaman standing still)|0.3|(Megaman blink)
 
-[Megaman moving]
-Type = LoopingAnimation
-FrameData = 0.5|(Megaman standing still)|0.5|(oh my god he's dead)
+[Megaman movement]
+Type = Animation
+FrameData = 0.3|(Megaman standing still)|0.3|(Megaman stepping)
 
 [Megaman attack]
-Type = StandardAnimation
-FrameData = 2|(Megaman standing still)|2|(oh my god he's dead)
+Type = Animation
+FrameData = 0.05|(Megaman standing still)|0.2|(Megaman shooting)

@@ -3,10 +3,6 @@
 #include "EditorMovablePointSpawnType.h"
 
 std::string EditorAttackPattern::format() {
-	if (contains(name, '(') || contains(name, ')')) {
-		throw "Attack names cannot have the character '(' or ')'";
-	}
-
 	std::string res = "";
 	res += "(" + tos(id) + ")" + delim;
 	res += "(" + name + ")" + delim;
@@ -39,6 +35,19 @@ void EditorAttackPattern::load(std::string formattedString) {
 	for (i = last; i < actionsSize + last; i++) {
 		actions.push_back(EMPActionFactory::create(items[i]));
 	}
+}
+
+bool EditorAttackPattern::legal(std::string & message) {
+	bool good = true;
+	if (contains(name, '(') || contains(name, ')')) {
+		message += "Attack pattern \"" + name + "\" cannot have the character '(' or ')' in its name\n";
+		good = false;
+	}
+	if (actions.size() == 0) {
+		message += "Attack pattern \"" + name + "\" cannot have an empty list of actions\n";
+		good = false;
+	}
+	return good;
 }
 
 void EditorAttackPattern::changeEntityPathToAttackPatternActions(entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {

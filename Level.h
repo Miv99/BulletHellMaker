@@ -16,6 +16,8 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 
+	bool legal(std::string& message);
+
 	inline std::string getName() { return name; }
 	inline const std::vector<EnemySpawnInfo>& getEnemyGroupSpawnInfo(int conditionIndex) { return enemyGroups[conditionIndex].second; }
 	inline int getEnemyGroupsCount() { return enemyGroups.size(); }

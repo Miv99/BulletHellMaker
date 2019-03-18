@@ -98,7 +98,7 @@ Command for creating the entity/entities associated with an attack by an enemy.
 */
 class EMPSpawnFromEnemyCommand : public EntityCreationCommand {
 public:
-	EMPSpawnFromEnemyCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, uint32_t entity, float timeLag, int attackID, int attackPatternID, int enemyID, int enemyPhaseID);
+	EMPSpawnFromEnemyCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, uint32_t entity, float timeLag, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation);
 
 	void execute(EntityCreationQueue& queue) override;
 	int getEntitiesQueuedCount() override;
@@ -106,12 +106,14 @@ public:
 private:
 	SpriteLoader& spriteLoader;
 	std::shared_ptr<EditorMovablePoint> emp;
+	// The enemy executing the attack
 	uint32_t entity;
 	float timeLag;
 	int attackID;
 	int attackPatternID;
 	int enemyID;
 	int enemyPhaseID;
+	bool playAttackAnimation;
 };
 
 /*
@@ -119,7 +121,7 @@ Command for creating the entity/entities associated with an attack by a player.
 */
 class EMPSpawnFromPlayerCommand : public EntityCreationCommand {
 public:
-	EMPSpawnFromPlayerCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, uint32_t entity, float timeLag, int attackID, int attackPatternID);
+	EMPSpawnFromPlayerCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, uint32_t entity, float timeLag, int attackID, int attackPatternID, bool playAttackAnimation);
 
 	void execute(EntityCreationQueue& queue) override;
 	int getEntitiesQueuedCount() override;
@@ -127,10 +129,12 @@ public:
 private:
 	SpriteLoader& spriteLoader;
 	std::shared_ptr<EditorMovablePoint> emp;
+	// The player executing the attack
 	uint32_t entity;
 	float timeLag;
 	int attackID;
 	int attackPatternID;
+	bool playAttackAnimation;
 };
 
 /*

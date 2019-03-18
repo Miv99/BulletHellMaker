@@ -2,14 +2,8 @@
 #include "EditorMovablePointSpawnType.h"
 
 std::string EditorMovablePoint::format() {
-	if (contains(spriteName, '(') || contains(spriteName, ')')) {
-		throw "Sprite names cannot have the character '(' or ')'";
-	}
-
 	std::string res = "";
 
-	res += "(" + spriteName + ")" + delim;
-	res += "(" + spriteSheetName + ")" + delim;
 	res += "(" + tos(hitboxRadius) + ")" + delim;
 
 	res += "(" + tos(children.size()) + ")";
@@ -33,12 +27,10 @@ std::string EditorMovablePoint::format() {
 void EditorMovablePoint::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 
-	spriteName = items[0];
-	spriteSheetName = items[1];
-	hitboxRadius = std::stof(items[2]);
+	hitboxRadius = std::stof(items[0]);
 
 	int i;
-	for (i = 4; i < stoi(items[3]) + 4; i++) {
+	for (i = 2; i < stoi(items[1]) + 2; i++) {
 		std::shared_ptr<EditorMovablePoint> emp = std::make_shared<EditorMovablePoint>(nextID, shared_from_this());
 		emp->load(items[i]);
 		children.push_back(emp);
@@ -54,6 +46,33 @@ void EditorMovablePoint::load(std::string formattedString) {
 
 	shadowTrailInterval = stoi(items[i++]);
 	shadowTrailLifespan = stoi(items[i++]);
+}
+
+bool EditorMovablePoint::legal(std::string & message) {
+	bool good = true;
+	if (actions.size() == 0) {
+		// Add a tab to show that this EMP is from the parent attack
+		message += "\tMovablePoint id " + tos(id) + " must not have an empty list of actions\n";
+		good = false;
+	}
+	if (!spawnType) {
+		message += "\tMovablePoint id " + tos(id) + " is missing a spawn type\n";
+		good = false;
+	}
+	if (shadowTrailInterval < 0 && shadowTrailLifespan != 0) {
+		message += "\tMovablePoint id " + tos(id) + " has a negative shadow trail interval\n";
+		good = false;
+	}
+	if (!animatable.isSprite() && !loopAnimation && !baseSprite.isSprite()) {
+		message += "\tMovablePoint id " + tos(id) + " is missing a base sprite\n";
+		good = false;
+	}
+	for (auto child : children) {
+		if (!child->legal(message)) {
+			good = false;
+		}
+	}
+	return good;
 }
 
 void EditorMovablePoint::setSpawnType(std::shared_ptr<EMPSpawnType> spawnType) {

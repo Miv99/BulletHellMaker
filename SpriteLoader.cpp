@@ -14,9 +14,6 @@ static const std::string SPRITE_TEXTURE_BOUNDS_TAG = "BoundingRectangleSize";
 static const std::string SPRITE_COLOR_TAG = "Color";
 static const std::string SPRITE_SIZE_TAG = "SpriteSize";
 
-static const std::string ANIMATION_TYPE_LOOPING = "LoopingAnimation";
-static const std::string ANIMATION_TYPE_STANDARD = "StandardAnimation";
-
 std::vector<int> extractInts(const std::string& str) {	std::vector<int> vect;
 	std::stringstream ss(str);
 
@@ -54,7 +51,7 @@ std::shared_ptr<sf::Sprite> SpriteSheet::getSprite(const std::string& spriteName
 	return sprite;
 }
 
-std::unique_ptr<Animation> SpriteSheet::getAnimation(const std::string& animationName) {
+std::unique_ptr<Animation> SpriteSheet::getAnimation(const std::string& animationName, bool loop) {
 	std::shared_ptr<AnimationData> data = animationData.at(animationName);
 
 	// Animation has not been loaded yet
@@ -66,13 +63,7 @@ std::unique_ptr<Animation> SpriteSheet::getAnimation(const std::string& animatio
 		animationSprites[animationName] = sprites;
 	}
 
-	if (data->getAnimationType() == ANIMATION_TYPE_LOOPING) {
-		return std::make_unique<Animation>(animationName, animationSprites[animationName], true);
-	} else if (data->getAnimationType() == ANIMATION_TYPE_STANDARD) {
-		return std::make_unique<Animation>(animationName, animationSprites[animationName], false);
-	}
-	throw animationName + " has invalid animation type";
-	return nullptr;
+	return std::make_unique<Animation>(animationName, animationSprites[animationName], loop);
 }
 
 void SpriteSheet::insertSprite(const std::string& spriteName, std::shared_ptr<SpriteData> sprite) {
@@ -114,8 +105,8 @@ std::shared_ptr<sf::Sprite> SpriteLoader::getSprite(const std::string& spriteNam
 	return spriteSheets[spriteSheetName]->getSprite(spriteName);
 }
 
-std::unique_ptr<Animation> SpriteLoader::getAnimation(const std::string & animationName, const std::string & spriteSheetName) {
-	return spriteSheets[spriteSheetName]->getAnimation(animationName);
+std::unique_ptr<Animation> SpriteLoader::getAnimation(const std::string & animationName, const std::string & spriteSheetName, bool loop) {
+	return spriteSheets[spriteSheetName]->getAnimation(animationName, loop);
 }
 
 void SpriteLoader::preloadTextures() {
@@ -210,18 +201,20 @@ bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, c
 				sheet->insertSprite(name, dataItem);
 
 				// Also create a looping animation that consists of only that sprite with the same name
+				/*
 				std::vector<std::pair<float, std::string>> spriteNames = { std::make_pair(std::numeric_limits<float>::max(), name) };
 				std::shared_ptr<AnimationData> animation = std::make_shared<AnimationData>(name, ANIMATION_TYPE_LOOPING, spriteNames);
 				sheet->insertAnimation(name, animation);
+				*/
 			}
-			// Type is some animation type
+			// Type is animation
 			else {
 				std::vector<std::pair<float, std::string>> spriteNames;
 				auto strs = split(animationIterator->second->at("FrameData"), '|');
 				for (int i = 0; i < strs.size(); i += 2) {
 					spriteNames.push_back(std::make_pair(std::stof(strs[i]), strs[i + 1]));
 				}
-				std::shared_ptr<AnimationData> animation = std::make_shared<AnimationData>(name, type, spriteNames);
+				std::shared_ptr<AnimationData> animation = std::make_shared<AnimationData>(name, spriteNames);
 				sheet->insertAnimation(name, animation);
 			}
 		}

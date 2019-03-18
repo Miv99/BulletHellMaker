@@ -27,3 +27,9 @@ void Level::load(std::string formattedString) {
 		enemyGroups.push_back(std::make_pair(condition, enemies));
 	}
 }
+
+bool Level::legal(std::string & message) {
+	bool good = true;
+	//TODO
+	return good;
+}

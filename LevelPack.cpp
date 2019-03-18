@@ -4,6 +4,7 @@
 //TODO delete these
 #include "EnemySpawn.h"
 #include "EnemySpawnCondition.h"
+#include "EntityAnimatableSet.h"
 
 LevelPack::LevelPack(std::string name) : name(name) {
 	// Read meta file
@@ -21,28 +22,38 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	
 	auto attack1 = createAttack();
 	auto attack1emp0 = attack1->searchEMP(0);
-	attack1emp0->setSpriteName("Bullet", "sheet1");
+	attack1emp0->setAnimatable(Animatable("Bullet", "sheet1", true));
 	attack1emp0->setHitboxRadius(30);
-	// test: change values
-	//attack1emp0->setSpawnType(std::make_shared<EnemyRelativeEMPSpawn>(0, 0));
 	attack1emp0->setSpawnType(std::make_shared<EnemyAttachedEMPSpawn>(1, 0, 0));
+
 	auto dist = std::make_shared<LinearTFV>(30, 40, 60);
-	//auto angle = std::make_shared<ConstantTFV>(0);
 	auto angle = std::make_shared<LinearTFV>(0, 3.14f * 8, 30);
 	// test: add more actions
 	attack1emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(dist, angle, 60.0f));
-	// test: add more attacks
+
+	auto attack2 = createAttack();
+	auto attack2emp0 = attack2->searchEMP(0);
+	attack2emp0->setAnimatable(Animatable("Bullet", "sheet1", true));
+	attack2emp0->setHitboxRadius(30);
+	attack2emp0->setSpawnType(std::make_shared<EnemyAttachedEMPSpawn>(1, 0, 0));
+	attack2emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(dist, angle, 60.0f));
 
 	auto ap1 = createAttackPattern();
 	ap1->insertAction(0, std::make_shared<StayStillAtLastPositionEMPA>(1.0f));
 	ap1->insertAction(1, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 50, 2), std::make_shared<ConstantTFV>(0), 2));
 	ap1->insertAction(2, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 250, 2), std::make_shared<ConstantTFV>(3.14f/2), 2));
-	ap1->insertAction(3, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 500, 2), std::make_shared<ConstantTFV>(3.14f), 2));
-	ap1->insertAction(4, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 500, 2), std::make_shared<ConstantTFV>(3.14f * 3.0f/2), 2));
+	ap1->insertAction(3, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 300, 2), std::make_shared<ConstantTFV>(3.14f), 2));
+	ap1->insertAction(4, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 300, 2), std::make_shared<ConstantTFV>(3.14f * 3.0f/2), 2));
 	ap1->insertAction(5, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 5, 2), std::make_shared<ConstantTFV>(0), 2));
 
+	bool alt = false;
 	for (float time = 0; time < 5; time += 0.5f) {
-		ap1->addAttackID(time, attack1->getID());
+		if (alt) {
+			ap1->addAttackID(time, attack1->getID());
+		} else {
+			ap1->addAttackID(time, attack2->getID());
+		}
+		alt = !alt;
 	}
 	// test: add more attack patterns
 
@@ -61,12 +72,12 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	ep2->setPhaseEndAction(std::make_shared<NullEPA>());
 
 	auto enemy1 = createEnemy();
-	enemy1->addPhaseID(0, std::make_shared<TimeBasedEnemyPhaseStartCondition>(0), ep1->getID());
-	enemy1->addPhaseID(1, std::make_shared<TimeBasedEnemyPhaseStartCondition>(3), ep2->getID());
+	auto e1set = EntityAnimatableSet(Animatable("Megaman idle", "sheet1", false), Animatable("Megaman movement", "sheet1", false), Animatable("Megaman attack", "sheet1", false), Animatable("oh my god he's dead", "sheet1", true));
+	enemy1->addPhaseID(0, std::make_shared<TimeBasedEnemyPhaseStartCondition>(0), ep1->getID(), e1set);
+	enemy1->addPhaseID(1, std::make_shared<TimeBasedEnemyPhaseStartCondition>(3), ep2->getID(), e1set);
 	enemy1->setHealth(100);
 	enemy1->setHitboxRadius(70);
 	enemy1->setName("test enemy 1");
-	enemy1->setSpriteName("Megaman standing still", "sheet1");
 
 	auto level = std::make_shared<Level>("test level 1");
 	auto v1 = std::vector<EnemySpawnInfo>();
@@ -76,9 +87,12 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	
 
 	
+	// load();
+}
+
+void LevelPack::load() {
 	// First line is always the next ID
 	// Every other line is the data for the object
-	/*
 	// Read levels
 	std::ifstream levelsFile("Level Packs\\" + name + "\\levels.txt");
 	std::string line;
@@ -96,6 +110,7 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	while (std::getline(attacksFile, line)) {
 		std::shared_ptr<EditorAttack> attack = std::make_shared<EditorAttack>();
 		attack->load(line);
+		assert(attacks.find(attack->getID()) != attacks.end() && "Attack ID conflict");
 		attacks[attack->getID()] = attack;
 	}
 	attacksFile.close();
@@ -107,6 +122,7 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	while (std::getline(attackPatternsFile, line)) {
 		std::shared_ptr<EditorAttackPattern> attackPattern = std::make_shared<EditorAttackPattern>();
 		attackPattern->load(line);
+		assert(attackPatterns.find(attackPattern->getID()) != attackPatterns.end() && "Attack pattern ID conflict");
 		attackPatterns[attackPattern->getID()] = attackPattern;
 	}
 	attackPatternsFile.close();
@@ -118,6 +134,7 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	while (std::getline(enemiesFile, line)) {
 		std::shared_ptr<EditorEnemy> enemy = std::make_shared<EditorEnemy>();
 		enemy->load(line);
+		assert(enemies.find(enemy->getID()) != enemies.end() && "Enemy ID conflict");
 		enemies[enemy->getID()] = enemy;
 	}
 	enemiesFile.close();
@@ -129,10 +146,10 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	while (std::getline(enemyPhasesFile, line)) {
 		std::shared_ptr<EditorEnemyPhase> enemyPhase = std::make_shared<EditorEnemyPhase>();
 		enemyPhase->load(line);
+		assert(enemyPhases.find(enemyPhase->getID()) != enemyPhases.end() && "Enemy phase ID conflict");
 		enemyPhases[enemyPhase->getID()] = enemyPhase;
 	}
 	enemyPhasesFile.close();
-	*/
 }
 
 void LevelPack::save() {

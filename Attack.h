@@ -18,6 +18,8 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 
+	bool legal(std::string& message);
+
 	/*
 	Executes the attack as an enemy.
 
@@ -28,6 +30,16 @@ public:
 	enemyPhaseID - the ID of the enemy's current phase 
 	*/
 	void EditorAttack::executeAsEnemy(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, uint32_t entity, float timeLag, int attackPatternID, int enemyID, int enemyPhaseID);
+	/*
+	Executes the attack as a player.
+
+	entity - the enemy that is executing this attack
+	timeLag - the time elapsed since this attack was supposed to execute
+	attackPatternID - the ID of the enemy's current attack pattern
+	enemyID - the ID of the enemy executing this attack
+	enemyPhaseID - the ID of the enemy's current phase
+	*/
+	void EditorAttack::executeAsPlayer(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, uint32_t entity, float timeLag, int attackPatternID, int enemyID, int enemyPhaseID);
 
 	inline void addSoundEffect(float time, std::string fileName) {
 		auto item = std::make_pair(time, fileName);
@@ -37,7 +49,9 @@ public:
 
 	inline int getID() { return id; }
 	inline std::string getName() { return name; }
+	inline bool getPlayAttackAnimation() { return playAttackAnimation; }
 	inline void setName(std::string name) { this->name = name; }
+	inline void setPlayAttackAnimation(bool playAttackAnimation) { this->playAttackAnimation = playAttackAnimation; }
 	
 	float searchLargestHitbox();
 	// Search for the EMP with the ID
@@ -56,4 +70,6 @@ private:
 	std::shared_ptr<EditorMovablePoint> mainEMP;
 	// List of file names of sound effects to be played and when (t=0 is start of the attack)
 	std::vector<std::pair<float, std::string>> soundEffectNames;
+	// Whether or not to play the enemy's attack animation with this attack
+	bool playAttackAnimation;
 };

@@ -14,6 +14,8 @@ public:
 	*/
 	std::shared_ptr<sf::Sprite> update(float deltaTime);
 
+	inline bool isDone() { return done; }
+
 protected:
 	// The name of the animation
 	std::string name;
