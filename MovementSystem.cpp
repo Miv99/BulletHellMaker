@@ -1,5 +1,4 @@
 #include "MovementSystem.h"
-#include <iostream>
 
 void MovementSystem::update(float deltaTime) {
 	auto view = registry.view<PositionComponent, MovementPathComponent>(entt::persistent_t{});

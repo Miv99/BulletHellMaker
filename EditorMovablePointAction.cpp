@@ -98,7 +98,7 @@ std::shared_ptr<MovablePoint> MoveCustomPolarEMPA::execute(EntityCreationQueue& 
 	auto& lastPos = registry.get<PositionComponent>(entity);
 
 	// Queue creation of the reference entity
-	queue.addCommand(std::make_unique<EMPAMoveCustomPolarCommand>(registry, entity, timeLag, lastPos.getX(), lastPos.getY()));
+	queue.addCommand(std::make_unique<CreateMovementRefereceEntityCommand>(registry, entity, timeLag, lastPos.getX(), lastPos.getY()));
 	
 	if (angleOffset == nullptr) {
 		return std::make_shared<PolarMP>(time, distance, angle);
@@ -108,6 +108,37 @@ std::shared_ptr<MovablePoint> MoveCustomPolarEMPA::execute(EntityCreationQueue& 
 
 		return std::make_shared<PolarMP>(time, distance, angleWithOffset);
 	}
+}
+
+std::string MoveCustomBezierEMPA::format() {
+	std::string ret = "MoveCustomBezierEMPA" + delim;
+	ret += "(" + tos(time) + ")";
+	for (auto p : controlPoints) {
+		ret += delim + "(" + tos(p.x) + ")" + delim + "(" + tos(p.y) + ")";
+	}
+	return ret;
+}
+
+void MoveCustomBezierEMPA::load(std::string formattedString) {
+	auto items = split(formattedString, DELIMITER);
+	time = std::stof(items[1]);
+	for (int i = 2; i < items.size() + 2; i += 2) {
+		controlPoints.push_back(sf::Vector2f(std::stof(items[i]), std::stof(items[i + 1])));
+	}
+}
+
+std::shared_ptr<MovablePoint> MoveCustomBezierEMPA::execute(EntityCreationQueue & queue, entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
+	assert(registry.has<EnemyComponent>(entity) && "Bezier movement can only be done by enemies");
+	assert(controlPoints[0] == sf::Vector2f(0, 0) && "Bezier curves must start at (0, 0)");
+	// Since BezierMP can only be used by enemies, the creation of a new reference entity is not necessary because
+	// enemies never have reference entities, and Bezier curves are in the standard basis and can easily be started at any
+	// arbitrary point, unlike with polar coordinates.
+
+	auto& lastPos = registry.get<PositionComponent>(entity);
+	// Queue creation of the reference entity
+	queue.addCommand(std::make_unique<CreateMovementRefereceEntityCommand>(registry, entity, timeLag, lastPos.getX(), lastPos.getY()));
+
+	return std::make_shared<BezierMP>(time, controlPoints);
 }
 
 std::shared_ptr<EMPAction> EMPActionFactory::create(std::string formattedString) {
@@ -121,6 +152,9 @@ std::shared_ptr<EMPAction> EMPActionFactory::create(std::string formattedString)
 	}
 	else if (name == "MoveCustomPolarEMPA") {
 		ptr = std::make_shared<MoveCustomPolarEMPA>();
+	}
+	else if (name == "MoveCustomBezierEMPA") {
+		ptr = std::make_shared<MoveCustomBezierEMPA>();
 	}
 	ptr->load(formattedString);
 	return ptr;

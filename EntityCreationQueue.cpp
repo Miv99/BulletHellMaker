@@ -129,7 +129,7 @@ int EMPADetachFromParentCommand::getEntitiesQueuedCount() {
 	return 1;
 }
 
-void EMPAMoveCustomPolarCommand::execute(EntityCreationQueue& queue) {
+void CreateMovementRefereceEntityCommand::execute(EntityCreationQueue& queue) {
 	auto& mpc = registry.get<MovementPathComponent>(entity);
 
 	// Make new reference entity
@@ -170,7 +170,7 @@ void EMPAMoveCustomPolarCommand::execute(EntityCreationQueue& queue) {
 	registry.get<PositionComponent>(entity).setPosition(mpc.getPath()->compute(sf::Vector2f(lastPosX, lastPosY), mpc.getTime()));
 }
 
-int EMPAMoveCustomPolarCommand::getEntitiesQueuedCount() {
+int CreateMovementRefereceEntityCommand::getEntitiesQueuedCount() {
 	return 1;
 }
 

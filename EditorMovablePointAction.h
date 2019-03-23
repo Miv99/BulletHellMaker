@@ -164,6 +164,27 @@ private:
 	std::shared_ptr<EMPAAngleOffset> angleOffset;
 };
 
+/*
+EMPA for custom movement with Bezier curves.
+This type of EMPA can only be used by enemies.
+The first control point must be at (0, 0) because all movement is done relative to the last known position of the entity.
+*/
+class MoveCustomBezierEMPA : public EMPAction {
+public:
+	inline MoveCustomBezierEMPA() {}
+	inline MoveCustomBezierEMPA(std::vector<sf::Vector2f> controlPoints, float time) : controlPoints(controlPoints), time(time) {}
+
+	std::string format() override;
+	void load(std::string formattedString) override;
+
+	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
+
+private:
+	std::vector<sf::Vector2f> controlPoints;
+	// How long movement will last
+	float time;
+};
+
 class EMPActionFactory {
 public:
 	static std::shared_ptr<EMPAction> create(std::string formattedString);

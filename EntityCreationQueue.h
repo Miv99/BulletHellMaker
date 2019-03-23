@@ -76,12 +76,12 @@ private:
 };
 
 /*
-Command for creating the reference entity for a MoveCustomPolarEMPA and then setting it to
+Command for creating the reference entity at the last position of some entity and then setting it as
 the executor's reference entity.
 */
-class EMPAMoveCustomPolarCommand : public EntityCreationCommand {
+class CreateMovementRefereceEntityCommand : public EntityCreationCommand {
 public:
-	inline EMPAMoveCustomPolarCommand(entt::DefaultRegistry& registry, uint32_t entity, float timeLag, float lastPosX, float lastPosY) : EntityCreationCommand(registry), entity(entity), timeLag(timeLag), lastPosX(lastPosX), lastPosY(lastPosY) {}
+	inline CreateMovementRefereceEntityCommand(entt::DefaultRegistry& registry, uint32_t entity, float timeLag, float lastPosX, float lastPosY) : EntityCreationCommand(registry), entity(entity), timeLag(timeLag), lastPosX(lastPosX), lastPosY(lastPosY) {}
 
 	void execute(EntityCreationQueue& queue) override;
 	int getEntitiesQueuedCount() override;

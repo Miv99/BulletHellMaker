@@ -35,8 +35,6 @@ private:
 /*
 MP that combines multiple MPs into a single MP.
 The order of the MPs in the constructor matters.
-
-std::shared_ptr<MovablePoint>> movablePoints
 */
 class AggregatorMP : public MovablePoint {
 public:
@@ -121,10 +119,6 @@ private:
 
 /*
 MP represented in polar coordinates.
-
-std::shared_ptr<MovablePoint> reference
-std::shared_ptr<TFV> distance
-std::shared_ptr<TFV> angle
 */
 class PolarMP : public MovablePoint {
 public:
@@ -141,5 +135,38 @@ private:
 		auto a = distance->evaluate(time);
 		auto b = angle->evaluate(time);
 		return sf::Vector2f(distance->evaluate(time) * cos(angle->evaluate(time)), distance->evaluate(time) * sin(angle->evaluate(time)));
+	}
+};
+
+/*
+MP represented by a Bezier curve.
+*/
+class BezierMP : public MovablePoint {
+public:
+	/*
+	angle - in radians
+	*/
+	inline BezierMP(float lifespan, std::vector<sf::Vector2f> controlPoints) : MovablePoint(lifespan), controlPoints(controlPoints), numControlPoints(controlPoints.size()) {
+		assert(controlPoints.size() <= 4 && "Maximum number of control points in a Bezier curve limited to 4 because of the computational power required for each evaluation.");
+		assert(controlPoints.size() != 1 && "Number of control points must be greater than 1");
+	}
+
+private:
+	const std::vector<sf::Vector2f> controlPoints;
+	int numControlPoints;
+
+	inline sf::Vector2f evaluate(float time) override {
+		// Scale time to be in range [0, 1]
+		time /= lifespan;
+		
+		if (numControlPoints == 2) {
+			return controlPoints[0] + time * (controlPoints[1] - controlPoints[0]);
+		} else if (numControlPoints == 3) {
+			float a = 1 - time;
+			return a*a*controlPoints[0] + 2.0f*a*time*controlPoints[1] + time*time*controlPoints[2];
+		} else {
+			float a = 1 - time;
+			return (a*a*a*controlPoints[0]) + (3.0f * a*a*time*controlPoints[1]) + (3.0f * a*time*time*controlPoints[2]) + (time*time*time*controlPoints[3]);
+		}
 	}
 };

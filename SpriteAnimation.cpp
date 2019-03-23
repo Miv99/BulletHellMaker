@@ -1,4 +1,4 @@
-#include "SpriteAnimation.h"
+#include "SpriteEffectAnimation.h"
 #include <algorithm>
 
 void FlashWhiteSEA::update(float deltaTime) {

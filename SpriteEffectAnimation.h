@@ -13,11 +13,15 @@ See RenderSystem::loadShaders for the list of shaders that can be used.
 */
 class SpriteEffectAnimation {
 public:
+	/*
+	sprite - the pointer to the sprite that will be modified
+	*/
 	inline SpriteEffectAnimation(std::shared_ptr<sf::Sprite> sprite) : sprite(sprite) {}
 	virtual void update(float deltaTime) = 0;
 
 	bool usesShader() { return useShader; }
 	sf::Shader& getShader() { return shader; }
+	void setSpritePointer(std::shared_ptr<sf::Sprite> sprite) { this->sprite = sprite; }
 
 protected:
 	// Reference to the sprite being modified

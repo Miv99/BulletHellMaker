@@ -7,13 +7,23 @@ Documentation to put in the editor somewhere:
 -When an enemy is killed, all bullets attached to it will despawn
 -Sprite names cannot contain the characters '[' ']'
 -No two sprite/animation can have the same name
+-Idle/movement animatables can be sprites, but attack animatable must be an animation
 
 Notes for me:
 -The mainEMP of an attack is always spawned at the exact same time of an attack; spawnType's time is ignored
 -Remember to call animatableSetComponent.changeState on player when it attacks
+-All sf::Sprite pointers in all Animations point to the same sf::Sprite object (if same name), so sf::Sprites from Animations must never be
+ modified, since it will change all other Animations. On the other hand, all sf::Sprite pointers in each SpriteComponent point to unique sf::Sprite
+ objects, so the sf::Sprite pointer in SpriteEffectAnimation MUST point to a SpriteComponent's pointer (so when setting SpriteEffectAnimation, 
+ spriteComponent.getSprite() must be used) so that other sf::Sprites are not affected.
 
 CURRENT TODO:
 death animation by making new entity
+death animation is a DeathAction; DeathAnimationDeathAction choices:
+	-Play animatable (if sprite, specify duration)
+	-Shrink (sprite shrinks into nothing; specify duration)
+	-FadeAway (specify duration)
+	
 	
 TODO:
 -Despawn time on enemies
