@@ -114,16 +114,16 @@ public:
 
 	inline bool animationIsDone() { assert(animation != nullptr); return animation->isDone(); }
 	inline const std::shared_ptr<sf::Sprite> getSprite() { return sprite; }
-	inline void updateSprite(sf::Sprite newSprite) { *sprite = newSprite; }
 	inline void updateSprite(std::shared_ptr<sf::Sprite> newSprite) {
 		if (!sprite) {
+			// SpriteEffectAnimations can change SpriteComponent's Sprite, so create a new Sprite object to avoid 
+			// accidentally modifying the parameter Sprite pointer's object
 			sprite = std::make_shared<sf::Sprite>(*newSprite);
 			if (effectAnimation != nullptr) {
 				effectAnimation->setSpritePointer(sprite);
 			}
 		} else {
-			*sprite = *newSprite;
-			//updateSprite(*newSprite);
+			updateSprite(*newSprite);
 		}
 	}
 	inline void setAnimation(std::unique_ptr<Animation> animation) {
@@ -156,6 +156,8 @@ private:
 	std::unique_ptr<SpriteEffectAnimation> effectAnimation;
 	// Animation that the sprite is currently undergoing, if any
 	std::unique_ptr<Animation> animation;
+
+	inline void updateSprite(sf::Sprite newSprite) { *sprite = newSprite; }
 };
 
 class PlayerTag {};

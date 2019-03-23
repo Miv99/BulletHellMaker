@@ -1,5 +1,4 @@
 #include "RenderSystem.h"
-#include <iostream>
 
 void RenderSystem::update(float deltaTime) {
 	auto view = registry.view<PositionComponent, SpriteComponent>(entt::persistent_t{});
@@ -12,7 +11,6 @@ void RenderSystem::update(float deltaTime) {
 			window.draw(*spritePtr, &sprite.getShader());
 		}
 		else {
-			std::cout << (*spritePtr).getTextureRect().width << ", " << (*spritePtr).getTextureRect().height << std::endl;
 			window.draw(*spritePtr);
 		}
 	});
