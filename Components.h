@@ -7,7 +7,7 @@
 #include <cassert>
 #include <string>
 #include "SpriteLoader.h"
-#include "SpriteAnimation.h"
+#include "SpriteEffectAnimation.h"
 #include "Animation.h"
 #include "EntityAnimatableSet.h"
 
@@ -115,11 +115,15 @@ public:
 	inline bool animationIsDone() { assert(animation != nullptr); return animation->isDone(); }
 	inline const std::shared_ptr<sf::Sprite> getSprite() { return sprite; }
 	inline void updateSprite(sf::Sprite newSprite) { *sprite = newSprite; }
-	inline void updateSprite(std::shared_ptr<sf::Sprite> newSprite) { 
+	inline void updateSprite(std::shared_ptr<sf::Sprite> newSprite) {
 		if (!sprite) {
-			sprite = newSprite;
+			sprite = std::make_shared<sf::Sprite>(*newSprite);
+			if (effectAnimation != nullptr) {
+				effectAnimation->setSpritePointer(sprite);
+			}
 		} else {
-			updateSprite(*newSprite);
+			*sprite = *newSprite;
+			//updateSprite(*newSprite);
 		}
 	}
 	inline void setAnimation(std::unique_ptr<Animation> animation) {
