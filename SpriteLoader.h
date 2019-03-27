@@ -17,8 +17,6 @@ public:
 	}
 };
 
-//TODO: SpriteSheetData -> SpriteData; create new AnimationData also stored in SpriteSheet; add save() to SpriteLoader; getAnimation() uses AnimationData to generate a new Animation every time it's called
-
 class SpriteData {
 public:
 	inline SpriteData(std::string spriteName, ComparableIntRect area, int spriteWidth, int spriteHeight, sf::Color color = sf::Color(255, 255, 255, 255)) : spriteName(spriteName), area(area), color(color), spriteWidth(spriteWidth), spriteHeight(spriteHeight) {}

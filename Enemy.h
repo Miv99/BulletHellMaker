@@ -8,6 +8,7 @@
 #include "EnemyPhase.h"
 #include "EnemyPhaseStartCondition.h"
 #include "EntityAnimatableSet.h"
+#include "DeathAction.h"
 
 /*
 An enemy in the editor.
@@ -54,4 +55,6 @@ private:
 	// Tuple of: the condition to start the phase, the phase ID, and the animatable set used by the enenemy while in that phase
 	// The first phase must have a TimeBasedEnemyPhaseStartCondition with t=0 to ensure that the phase can start as soon as the enemy spawns
 	std::vector<std::tuple<std::shared_ptr<EnemyPhaseStartCondition>, int, EntityAnimatableSet>> phaseIDs;
+	// Death actions
+	std::vector<std::shared_ptr<DeathAction>> deathActions;
 };

@@ -44,14 +44,23 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 
 void GameInstance::physicsUpdate(float deltaTime) {
 	if (!paused) {
+		registry.get<LevelManagerTag>().update(*queue, *spriteLoader, *levelPack, registry, deltaTime);
 		queue->executeAll();
 
-		registry.get<LevelManagerTag>().update(*queue, *spriteLoader, *levelPack, registry, deltaTime);
 		enemySystem->update(deltaTime);
+		queue->executeAll();
+
 		shadowTrailSystem->update(deltaTime);
+		queue->executeAll();
+
 		movementSystem->update(deltaTime);
+		queue->executeAll();
+
 		despawnSystem->update(deltaTime);
+		queue->executeAll();
+
 		collisionSystem->update(deltaTime);
+		queue->executeAll();
 	}
 }
 

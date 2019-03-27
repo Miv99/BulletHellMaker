@@ -14,7 +14,7 @@ float max(float a, float b) {
 }
 
 CollisionSystem::CollisionSystem(entt::DefaultRegistry & registry, float mapWidth, float mapHeight, const HitboxComponent& largestHitbox) : registry(registry) {
-	defaultTableObjectMaxSize = 2.0 * max(mapWidth, mapHeight) / 10.0;
+	defaultTableObjectMaxSize = 2.0f * max(mapWidth, mapHeight) / 10.0;
 	defaultTable = SpatialHashTable<uint32_t>(mapWidth, mapHeight, defaultTableObjectMaxSize/2.0f);
 	largeObjectsTable = SpatialHashTable<uint32_t>(mapWidth, mapHeight, largestHitbox.getRadius() * 2.0f);
 }
@@ -92,7 +92,16 @@ void CollisionSystem::update(float deltaTime) {
 
 				// TODO: call entity's OnDeath if entity died and if it has an OnDeath
 
-				// The bullet entity is not destroyed in case there are MPs that are using its MP as a reference
+				// The bullet entity is not destroyed in case there are MPs that are using it as a reference
+				// Remove all components except for MovementPathComponent, PositionComponent, and DespawnComponent
+				if (registry.has<ShadowTrailComponent>(bullet)) {
+					registry.remove<ShadowTrailComponent>(bullet);
+				}
+				registry.remove<HitboxComponent>(bullet);
+				registry.remove<PlayerBulletComponent>(bullet);
+				if (registry.has<EMPSpawnerComponent>(bullet)) {
+					registry.remove<EMPSpawnerComponent>(bullet);
+				}
 			}
 		}
 	});

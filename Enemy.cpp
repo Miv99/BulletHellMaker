@@ -2,26 +2,36 @@
 
 std::string EditorEnemy::format() {
 	std::string res = "";
-	res += "(" + std::to_string(id) + ")" + delim;
+	res += "(" + tos(id) + ")" + delim;
 	res += "(" + name + ")" + delim;
-	res += "(" + std::to_string(hitboxRadius) + ")" + delim;
-	res += "(" + std::to_string(health) + ")";
+	res += "(" + tos(hitboxRadius) + ")" + delim;
+	res += "(" + tos(health) + ")" + delim;
+	res += "(" + tos(phaseIDs.size()) + ")";
 	for (auto t : phaseIDs) {
 		res += delim + "(" + std::get<0>(t)->format() + ")" + delim + "(" + tos(std::get<1>(t)) + ")" + delim + "(" + std::get<2>(t).format() + ")";
+	}
+	res += delim + "(" + tos(deathActions.size()) + ")";
+	for (auto action : deathActions) {
+		res += delim + "(" + action->format() + ")";
 	}
 	return res;
 }
 
 void EditorEnemy::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
-	id = stoi(items[0]);
+	id = std::stoi(items[0]);
 	name = items[1];
-	hitboxRadius = stof(items[2]);
-	health = stof(items[3]);
-	for (int i = 4; i < items.size(); i += 3) {
+	hitboxRadius = std::stof(items[2]);
+	health = std::stof(items[3]);
+	int i;
+	for (i = 5; i < std::stoi(items[4]) + 5; i += 3) {
 		EntityAnimatableSet animatableSet;
 		animatableSet.load(items[i + 2]);
 		phaseIDs.push_back(std::make_tuple(EnemyPhaseStartConditionFactory::create(items[i]), std::stoi(items[i + 1]), animatableSet));
+	}
+	int next = i;
+	for (; i < std::stoi(items[next]) + next; i++) {
+		deathActions.push_back(DeathActionFactory::create(items[i]));
 	}
 }
 

@@ -1,6 +1,3 @@
-flyweight for bullets
-state machine for enemy phases
-
 always have a default spritesheet loaded
 
 Documentation to put in the editor somewhere:
@@ -23,9 +20,15 @@ death animation is a DeathAction; DeathAnimationDeathAction choices:
 	-Play animatable (if sprite, specify duration)
 	-Shrink (sprite shrinks into nothing; specify duration)
 	-FadeAway (specify duration)
-	
+
+store all animation Animatables in a std::set in LevelPack; on LevelPack load, load all animation Animatables, find their duration, and then
+do animatable.setDuration(duration)	
 	
 TODO:
+-The reason movement is not deterministic right now is that reference entities are queued and not created instantly, so true positions are not known in large dt's
+-maybe??? Make sure in legal() check that no EMPA duration is shorter than MAX_PHYSICS_DELTA_TIME
+-spawn reference point for CustomMovePolarEMPA (distance.evaluate(0), (angle.evaluate(0) + 180)) away from last known position
+ so that entities can't seemingly teleport
 -Despawn time on enemies
 -Power up tiers for player; each has its own animatableset
 -item drops (see math notes)
