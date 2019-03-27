@@ -18,7 +18,7 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 
-	bool legal(std::string& message);
+	bool legal(SpriteLoader& spriteLoader, std::string& message);
 
 	/*
 	Executes the attack as an enemy.

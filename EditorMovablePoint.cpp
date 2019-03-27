@@ -48,7 +48,7 @@ void EditorMovablePoint::load(std::string formattedString) {
 	shadowTrailLifespan = stoi(items[i++]);
 }
 
-bool EditorMovablePoint::legal(std::string & message) {
+bool EditorMovablePoint::legal(SpriteLoader& spriteLoader, std::string & message) {
 	bool good = true;
 	if (actions.size() == 0) {
 		// Add a tab to show that this EMP is from the parent attack
@@ -63,12 +63,40 @@ bool EditorMovablePoint::legal(std::string & message) {
 		message += "\tMovablePoint id " + tos(id) + " has a negative shadow trail interval\n";
 		good = false;
 	}
-	if (!animatable.isSprite() && !loopAnimation && !baseSprite.isSprite()) {
-		message += "\tMovablePoint id " + tos(id) + " is missing a base sprite\n";
-		good = false;
+	if (hitboxRadius > 0) {
+		if (!animatable.isSprite() && !loopAnimation && !baseSprite.isSprite()) {
+			message += "\tMovablePoint id " + tos(id) + " is missing a base sprite\n";
+			good = false;
+		} else {
+			// Make sure base sprite can be loaded
+			if (!animatable.isSprite() && !loopAnimation) {
+				try {
+					if (baseSprite.isSprite()) {
+						spriteLoader.getSprite(baseSprite.getAnimatableName(), baseSprite.getSpriteSheetName());
+					} else {
+						spriteLoader.getAnimation(baseSprite.getAnimatableName(), baseSprite.getSpriteSheetName(), false);
+					}
+				} catch (const char* str) {
+					message += "\t" + std::string(str) + "\n";
+					good = false;
+				}
+			}
+		}
+
+		// Make sure animatable can be loaded
+		try {
+			if (animatable.isSprite()) {
+				spriteLoader.getSprite(animatable.getAnimatableName(), animatable.getSpriteSheetName());
+			} else {
+				spriteLoader.getAnimation(animatable.getAnimatableName(), animatable.getSpriteSheetName(), false);
+			}
+		} catch (const char* str) {
+			message += "\t" + std::string(str) + "\n";
+			good = false;
+		}
 	}
 	for (auto child : children) {
-		if (!child->legal(message)) {
+		if (!child->legal(spriteLoader, message)) {
 			good = false;
 		}
 	}

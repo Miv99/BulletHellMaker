@@ -8,6 +8,7 @@
 #include "EditorMovablePointAction.h"
 #include "EntityCreationQueue.h"
 #include "EntityAnimatableSet.h"
+#include "SpriteLoader.h"
 
 class EMPSpawnType;
 
@@ -27,7 +28,7 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 
-	bool legal(std::string& message);
+	bool legal(SpriteLoader& spriteLoader, std::string& message);
 
 	inline int getID() { return id; }
 	inline Animatable getAnimatable() { return animatable; }
@@ -96,12 +97,13 @@ private:
 	// Set to 0 or a negative number to disable shadow trail
 	float shadowTrailLifespan = 0;
 
+	// Only applicable if the EMP is not a bullet (hitboxRadius <= 0)
 	Animatable animatable;
 	// Only applicable if animatable is an animation
 	bool loopAnimation;
 	// The sprite that will be used after the animation ends. Only necessary if animatable is an animation and loopAnimation is false
 	Animatable baseSprite;
 
-	// Radius of the EMP's hitbox. Set to 0 if the EMP is not a bullet.
+	// Radius of the EMP's hitbox. Set to <= 0 if the EMP is not a bullet.
 	float hitboxRadius = 0;
 };

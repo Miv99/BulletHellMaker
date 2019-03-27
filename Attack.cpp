@@ -38,7 +38,7 @@ void EditorAttack::load(std::string formattedString) {
 	}
 }
 
-bool EditorAttack::legal(std::string& message) {
+bool EditorAttack::legal(SpriteLoader& spriteLoader, std::string& message) {
 	bool good = true;
 	if (contains(name, '(') || contains(name, ')')) {
 		message += "Attack \"" + name + "\" cannot have the character '(' or ')' in its name\n";
@@ -51,7 +51,7 @@ bool EditorAttack::legal(std::string& message) {
 		}
 	}
 	if (mainEMP) {
-		if (!mainEMP->legal(message)) {
+		if (!mainEMP->legal(spriteLoader, message)) {
 			good = false;
 		}
 	} else {
