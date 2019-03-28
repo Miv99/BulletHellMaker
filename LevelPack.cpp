@@ -39,8 +39,8 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	attack2emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(dist, angle, 60.0f));
 
 	auto ap1 = createAttackPattern();
-	ap1->insertAction(0, std::make_shared<StayStillAtLastPositionEMPA>(1.0f));
-	ap1->insertAction(1, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 50, 2), std::make_shared<ConstantTFV>(0), 2));
+	//ap1->insertAction(0, std::make_shared<StayStillAtLastPositionEMPA>(1.0f));
+	ap1->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 50, 2), std::make_shared<ConstantTFV>(0), 2));
 	/*
 	ap1->insertAction(2, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 250, 2), std::make_shared<ConstantTFV>(3.14f/2), 2));
 	ap1->insertAction(3, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 300, 2), std::make_shared<ConstantTFV>(3.14f), 2));
@@ -48,12 +48,12 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	ap1->insertAction(5, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 5, 2), std::make_shared<ConstantTFV>(0), 2));
 	*/
 	std::vector<sf::Vector2f> cp = {sf::Vector2f(0, 0), sf::Vector2f(-15.0f, -218.2f), sf::Vector2f(-103.0f, -166.2f), sf::Vector2f(-64.7f, -25.5f)};
-	ap1->insertAction(2, std::make_shared<MoveCustomBezierEMPA>(cp, 6.0f));
-	ap1->insertAction(3, std::make_shared<StayStillAtLastPositionEMPA>(1.0f));
+	ap1->insertAction(1, std::make_shared<MoveCustomBezierEMPA>(cp, 6.0f));
+	ap1->insertAction(2, std::make_shared<StayStillAtLastPositionEMPA>(1.0f));
 
 	
 	bool alt = false;
-	for (float time = 0; time < 5; time += 0.5f) {
+	for (float time = 0; time < 5; time += 0.01f) {
 		if (alt) {
 			ap1->addAttackID(time, attack1->getID());
 		} else {

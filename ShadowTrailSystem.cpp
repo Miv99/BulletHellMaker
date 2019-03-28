@@ -7,7 +7,7 @@ void ShadowTrailSystem::update(float deltaTime) {
 	view.each([&](auto entity, auto& position, auto& sprite, auto& trail) {
 		if (trail.update(deltaTime)) {
 			auto spritePtr = sprite.getSprite();
-			queue.addCommand(std::make_unique<SpawnShadowTrailCommand>(registry, *spritePtr, position.getX(), position.getY(), trail.getLifespan()));
+			queue.pushBack(std::make_unique<SpawnShadowTrailCommand>(registry, *spritePtr, position.getX(), position.getY(), trail.getLifespan()));
 		}
 	});
 }

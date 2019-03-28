@@ -34,7 +34,7 @@ public:
 };
 
 /*
-EPA for when an enemy despawns.
+EPA for despawning self.
 */
 class DespawnEPA : public EnemyPhaseAction {
 public:

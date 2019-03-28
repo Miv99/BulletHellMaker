@@ -19,7 +19,7 @@ public:
 };
 
 /*
-EnemyPhaseStartCondition that depends on the time since the enemy's spawn.
+EnemyPhaseStartCondition that depends on the time since the enemy's last phase.
 */
 class TimeBasedEnemyPhaseStartCondition : public EnemyPhaseStartCondition {
 public:
@@ -34,7 +34,7 @@ public:
 	inline float getTime() { return time; }
 
 private:
-	// Minimum time since the enemy's spawn for this condition to be satisfied
+	// Minimum time since the start of the enemy's last phase for this condition to be satisfied
 	float time;
 };
 

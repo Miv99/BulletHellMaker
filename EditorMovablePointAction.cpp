@@ -59,7 +59,7 @@ std::shared_ptr<MovablePoint> DetachFromParentEMPA::execute(EntityCreationQueue&
 	auto& lastPos = registry.get<PositionComponent>(entity);
 
 	// Queue creation of the reference entity
-	queue.addCommand(std::make_unique<EMPADetachFromParentCommand>(registry, entity, lastPos.getX(), lastPos.getY()));
+	queue.pushBack(std::make_unique<EMPADetachFromParentCommand>(registry, entity, lastPos.getX(), lastPos.getY()));
 
 	return std::make_shared<StationaryMP>(sf::Vector2f(lastPos.getX(), lastPos.getY()), 0);
 }
@@ -98,7 +98,7 @@ std::shared_ptr<MovablePoint> MoveCustomPolarEMPA::execute(EntityCreationQueue& 
 	auto& lastPos = registry.get<PositionComponent>(entity);
 
 	// Queue creation of the reference entity
-	queue.addCommand(std::make_unique<CreateMovementRefereceEntityCommand>(registry, entity, timeLag, lastPos.getX(), lastPos.getY()));
+	queue.pushFront(std::make_unique<CreateMovementRefereceEntityCommand>(registry, entity, timeLag, lastPos.getX(), lastPos.getY()));
 	
 	if (angleOffset == nullptr) {
 		return std::make_shared<PolarMP>(time, distance, angle);
@@ -136,7 +136,7 @@ std::shared_ptr<MovablePoint> MoveCustomBezierEMPA::execute(EntityCreationQueue 
 
 	auto& lastPos = registry.get<PositionComponent>(entity);
 	// Queue creation of the reference entity
-	queue.addCommand(std::make_unique<CreateMovementRefereceEntityCommand>(registry, entity, timeLag, lastPos.getX(), lastPos.getY()));
+	queue.pushFront(std::make_unique<CreateMovementRefereceEntityCommand>(registry, entity, timeLag, lastPos.getX(), lastPos.getY()));
 
 	return std::make_shared<BezierMP>(time, controlPoints);
 }

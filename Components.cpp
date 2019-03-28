@@ -13,27 +13,31 @@
 #include <math.h>
 #include <tuple>
 
-sf::Vector2f MovementPathComponent::update(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float deltaTime) {
+void MovementPathComponent::update(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, PositionComponent& entityPosition, float deltaTime) {
 	time += deltaTime;
 	// While loop for actions with lifespan of 0 like DetachFromParent 
 	while (currentActionsIndex < actions.size() && time >= path->getLifespan()) {
+		if (entity == 1) {
+			int a = 5;
+		}
+		// Set this entity's position to last point of the ending MovablePoint to prevent inaccuracies from building up in updates
+		if (useReferenceEntity) {
+			auto& pos = registry.get<PositionComponent>(referenceEntity);
+			entityPosition.setPosition(path->compute(sf::Vector2f(pos.getX(), pos.getY()), path->getLifespan()));
+		} else {
+			entityPosition.setPosition(path->compute(sf::Vector2f(0, 0), path->getLifespan()));
+		}
+		
 		time -= path->getLifespan();
 		path = actions[currentActionsIndex]->execute(queue, registry, entity, time);
 		currentActionsIndex++;
 	}
 	if (useReferenceEntity) {
 		auto& pos = registry.get<PositionComponent>(referenceEntity);
-		return path->compute(sf::Vector2f(pos.getX(), pos.getY()), time);
+		entityPosition.setPosition(path->compute(sf::Vector2f(pos.getX(), pos.getY()), time));
 	} else {
-		return path->compute(sf::Vector2f(0, 0), time);
+		entityPosition.setPosition(path->compute(sf::Vector2f(0, 0), time));
 	}
-}
-
-void MovementPathComponent::setActions(std::vector<std::shared_ptr<EMPAction>> actions) {
-	this->actions = actions;
-
-	currentActionsIndex = 0;
-	time = 0;
 }
 
 void MovementPathComponent::initialSpawn(const entt::DefaultRegistry& registry, uint32_t entity, std::shared_ptr<EMPSpawnType> spawnType, std::vector<std::shared_ptr<EMPAction>>& actions) {
@@ -106,7 +110,7 @@ void EnemyComponent::checkAttackPatterns(EntityCreationQueue& queue, SpriteLoade
 
 			currentAttackPattern = levelPack.getAttackPattern(nextAttackPattern.second);
 
-			currentAttackPattern->changeEntityPathToAttackPatternActions(registry, entity, timeSinceAttackPattern);
+			currentAttackPattern->changeEntityPathToAttackPatternActions(queue, registry, entity, timeSinceAttackPattern);
 			checkAttacks(queue, spriteLoader, levelPack, registry, entity);
 		} else {
 			break;
@@ -179,7 +183,7 @@ void EMPSpawnerComponent::update(entt::DefaultRegistry& registry, SpriteLoader& 
 		while (!emps.empty()) {
 			float t = emps.front()->getSpawnType()->getTime();
 			if (time >= t) {
-				queue.addCommand(std::make_unique<EMPSpawnFromEnemyCommand>(registry, spriteLoader, emps.front(), parent, time - t, attackID, attackPatternID, enemyID, enemyPhaseID, playAttackAnimation));
+				queue.pushBack(std::make_unique<EMPSpawnFromEnemyCommand>(registry, spriteLoader, emps.front(), parent, time - t, attackID, attackPatternID, enemyID, enemyPhaseID, playAttackAnimation));
 				emps.pop();
 			} else {
 				break;
@@ -189,7 +193,7 @@ void EMPSpawnerComponent::update(entt::DefaultRegistry& registry, SpriteLoader& 
 		while (!emps.empty()) {
 			float t = emps.front()->getSpawnType()->getTime();
 			if (time >= t) {
-				queue.addCommand(std::make_unique<EMPSpawnFromPlayerCommand>(registry, spriteLoader, emps.front(), parent, time - t, attackID, attackPatternID, playAttackAnimation));
+				queue.pushBack(std::make_unique<EMPSpawnFromPlayerCommand>(registry, spriteLoader, emps.front(), parent, time - t, attackID, attackPatternID, playAttackAnimation));
 				emps.pop();
 			} else {
 				break;
@@ -224,14 +228,9 @@ void AnimatableSetComponent::changeState(int newState, SpriteLoader& spriteLoade
 		newAnimatable = animatableSet.getMovementAnimatable();
 		loopNewAnimatable = true;
 		changeState = true;
-	} else if (newState == ATTACK && currentState != DEATH) {
+	} else if (newState == ATTACK) {
 		// Play attack animatable
 		newAnimatable = animatableSet.getAttackAnimatable();
-		loopNewAnimatable = false;
-		changeState = true;
-	} else if (newState == DEATH && currentState != DEATH) {
-		// Play death animatable
-		newAnimatable = animatableSet.getDeathAnimatable();
 		loopNewAnimatable = false;
 		changeState = true;
 	}

@@ -43,16 +43,17 @@ public:
 	/*
 	entity - the entity that the entity with this component should be attached to, if any
 	*/
-	inline MovementPathComponent(const entt::DefaultRegistry& registry, uint32_t entity, std::shared_ptr<EMPSpawnType> spawnType, std::vector<std::shared_ptr<EMPAction>> actions, float initalTime) : actions(actions), time(initalTime) {
+	inline MovementPathComponent(EntityCreationQueue& queue, uint32_t self, entt::DefaultRegistry& registry, uint32_t entity, std::shared_ptr<EMPSpawnType> spawnType, std::vector<std::shared_ptr<EMPAction>> actions, float initialTime) : actions(actions), time(initialTime) {
 		initialSpawn(registry, entity, spawnType, actions);
+		update(queue, registry, self, registry.get<PositionComponent>(self), 0);
 	}
 
-	// Update elapsed time and return the entity's new position along its path
-	sf::Vector2f update(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float deltaTime);
+	// Updates elapsed time and updates the entity's position along its path
+	void update(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, PositionComponent& entityPosition, float deltaTime);
 
 	bool usesReferenceEntity() { return useReferenceEntity; }
 	uint32_t getReferenceEntity() const { return referenceEntity; }
-	void setActions(std::vector<std::shared_ptr<EMPAction>> actions);
+	void setActions(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, std::vector<std::shared_ptr<EMPAction>> actions);
 	/*
 	Sets the reference entity of this entity.
 	The PositionComponent of this entity should be updated after this call.
@@ -168,6 +169,7 @@ public:
 	void update(EntityCreationQueue& queue, SpriteLoader& spriteLoader, const LevelPack& levelPack, entt::DefaultRegistry& registry, uint32_t entity, float deltaTime);
 
 	inline float getTimeSinceSpawned() const { return timeSinceSpawned; }
+	inline float getTimeSinceLastPhase() const { return timeSincePhase; }
 
 private:
 	// Time since being spawned

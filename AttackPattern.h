@@ -21,7 +21,7 @@ public:
 
 	bool legal(std::string& message);
 
-	void changeEntityPathToAttackPatternActions(entt::DefaultRegistry& registry, uint32_t entity, float timeLag);
+	void changeEntityPathToAttackPatternActions(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag);
 
 	inline int getID() { return id; }
 	inline std::pair<float, int> getAttackData(int index) { return attackIDs[index]; }

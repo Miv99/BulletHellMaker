@@ -25,7 +25,13 @@ store all animation Animatables in a std::set in LevelPack; on LevelPack load, l
 do animatable.setDuration(duration)	
 	
 TODO:
--The reason movement is not deterministic right now is that reference entities are queued and not created instantly, so true positions are not known in large dt's
+-The reason movement is not deterministic right now is that reference entities are queued and not created instantly, so true positions are not known in large dt's;
+ also game can never truly be deterministic because the way systems work: SystemA may have some actions at times (0, 5, 10, 15) and SystemB (1, 6, 11). With a dt=20,
+ all of SystemA's actions will be executed first, then all of SystemB's. However, the actions of SystemB may have different results depending on some property of the
+ entity that are changed by SystemA. The event at time=1 should occur right after event at time=0, but instead will occur after event at time=15. The closest approximation
+ is limiting the minimum time between all actions that can be executed multiple times in a single system update (eg enemy phases, attack patterns,
+ attacks, movement paths, etc) to MAX_PHYSICS_DELTA_TIME. An exception can be made for actions with 0 time between them.
+	-list of things affected: bullets spawned from attacks at the wrong spot
 -maybe??? Make sure in legal() check that no EMPA duration is shorter than MAX_PHYSICS_DELTA_TIME
 -spawn reference point for CustomMovePolarEMPA (distance.evaluate(0), (angle.evaluate(0) + 180)) away from last known position
  so that entities can't seemingly teleport

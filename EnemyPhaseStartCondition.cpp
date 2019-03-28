@@ -14,7 +14,7 @@ void TimeBasedEnemyPhaseStartCondition::load(std::string formattedString) {
 }
 
 bool TimeBasedEnemyPhaseStartCondition::satisfied(entt::DefaultRegistry & registry, uint32_t entity) {
-	return registry.get<EnemyComponent>(entity).getTimeSinceSpawned() >= time;
+	return registry.get<EnemyComponent>(entity).getTimeSinceLastPhase() >= time;
 }
 
 std::string HPBasedEnemyPhaseStartCondition::format() {

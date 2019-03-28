@@ -1,7 +1,7 @@
 #pragma once
 #include <entt/entt.hpp>
 #include <memory>
-#include <queue>
+#include <deque>
 #include "Components.h"
 
 class EditorMovablePoint;
@@ -78,6 +78,7 @@ private:
 /*
 Command for creating the reference entity at the last position of some entity and then setting it as
 the executor's reference entity.
+This command must be pushed to the front of the EntityCreationQueue.
 */
 class CreateMovementRefereceEntityCommand : public EntityCreationCommand {
 public:
@@ -147,13 +148,16 @@ class EntityCreationQueue {
 public:
 	inline EntityCreationQueue(entt::DefaultRegistry& registry) : registry(registry) {}
 
-	inline void addCommand(std::unique_ptr<EntityCreationCommand> command) {
-		queue.push(std::move(command));
+	inline void pushBack(std::unique_ptr<EntityCreationCommand> command) {
+		queue.push_back(std::move(command));
+	}
+	inline void pushFront(std::unique_ptr<EntityCreationCommand> command) {
+		queue.push_front(std::move(command));
 	}
 	inline void executeAll() {
 		while (!queue.empty()) {
 			std::unique_ptr<EntityCreationCommand> command = std::move(queue.front());
-			queue.pop();
+			queue.pop_front();
 
 			// Reserve space for the entities that will be spawned by the command
 			int reserve = registry.alive() + command->getEntitiesQueuedCount();
@@ -178,5 +182,5 @@ public:
 
 private:
 	entt::DefaultRegistry& registry;
-	std::queue<std::unique_ptr<EntityCreationCommand>> queue;
+	std::deque<std::unique_ptr<EntityCreationCommand>> queue;
 };

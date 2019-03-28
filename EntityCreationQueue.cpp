@@ -5,6 +5,7 @@
 #include "SpriteLoader.h"
 #include "Enemy.h"
 #include "EntityAnimatableSet.h"
+#include <iostream>
 
 EMPSpawnFromEnemyCommand::EMPSpawnFromEnemyCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, uint32_t entity, float timeLag, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation) :
 	EntityCreationCommand(registry), spriteLoader(spriteLoader), emp(emp), playAttackAnimation(playAttackAnimation),
@@ -34,7 +35,7 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 		registry.assign<PositionComponent>(bullet, spawnInfo.position.x, spawnInfo.position.y);
 	}
 
-	registry.assign<MovementPathComponent>(bullet, registry, entity, emp->getSpawnType(), emp->getActions(), timeLag);
+	registry.assign<MovementPathComponent>(bullet, queue, bullet, registry, entity, emp->getSpawnType(), emp->getActions(), timeLag);
 	// If animatable name is not empty, this EMP is a bullet
 	Animatable animatable = emp->getAnimatable();
 	if (animatable.getAnimatableName() != "") {
@@ -87,7 +88,7 @@ void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
 		registry.assign<PositionComponent>(bullet, spawnInfo.position.x, spawnInfo.position.y);
 	}
 
-	registry.assign<MovementPathComponent>(bullet, registry, entity, emp->getSpawnType(), emp->getActions(), timeLag);
+	registry.assign<MovementPathComponent>(bullet, queue, bullet, registry, entity, emp->getSpawnType(), emp->getActions(), timeLag);
 	// If animatable name is not empty, this EMP is a bullet
 	Animatable animatable = emp->getAnimatable();
 	if (animatable.getAnimatableName() != "") {
@@ -158,16 +159,17 @@ void CreateMovementRefereceEntityCommand::execute(EntityCreationQueue& queue) {
 		// Calculate position of new reference
 		auto& brLastPos = registry.get<PositionComponent>(baseReference);
 
-		registry.assign<MovementPathComponent>(reference, registry, baseReference, std::make_shared<EnemyAttachedEMPSpawn>(0, lastPosX - brLastPos.getX(), lastPosY - brLastPos.getY()), std::vector<std::shared_ptr<EMPAction>>(), timeLag);
+		registry.assign<MovementPathComponent>(reference, queue, reference, registry, baseReference, std::make_shared<EnemyAttachedEMPSpawn>(0, lastPosX - brLastPos.getX(), lastPosY - brLastPos.getY()), std::vector<std::shared_ptr<EMPAction>>(), timeLag);
 	} else {
-		registry.assign<MovementPathComponent>(reference, registry, reference, std::make_shared<SpecificGlobalEMPSpawn>(0, lastPosX, lastPosY), std::vector <std::shared_ptr<EMPAction>>(), timeLag);
+		registry.assign<MovementPathComponent>(reference, queue, reference, registry, reference, std::make_shared<SpecificGlobalEMPSpawn>(0, lastPosX, lastPosY), std::vector<std::shared_ptr<EMPAction>>(), timeLag);
 	}
+
 	// Reference despawns when the entity executing this action despawns
 	registry.assign<DespawnComponent>(reference, entity, false);
 
 	mpc.setReferenceEntity(reference);
 	// Update position
-	registry.get<PositionComponent>(entity).setPosition(mpc.getPath()->compute(sf::Vector2f(lastPosX, lastPosY), mpc.getTime()));
+	mpc.update(queue, registry, entity, registry.get<PositionComponent>(entity), 0);
 }
 
 int CreateMovementRefereceEntityCommand::getEntitiesQueuedCount() {
@@ -182,7 +184,7 @@ void SpawnEnemyCommand::execute(EntityCreationQueue & queue) {
 	auto enemy = registry.create();
 	registry.assign<PositionComponent>(enemy, x, y);
 	// EMPActions vector empty because it will be populated in EnemySystem when the enemy begins a phase
-	registry.assign<MovementPathComponent>(enemy, registry, enemy, std::make_shared<SpecificGlobalEMPSpawn>(0, x, y), std::vector<std::shared_ptr<EMPAction>>(), 0);
+	registry.assign<MovementPathComponent>(enemy, queue, enemy, registry, enemy, std::make_shared<SpecificGlobalEMPSpawn>(0, x, y), std::vector<std::shared_ptr<EMPAction>>(), 0);
 	registry.assign<HealthComponent>(enemy, enemyInfo->getHealth(), enemyInfo->getHealth());
 	registry.assign<HitboxComponent>(enemy, enemyInfo->getHitboxRadius());
 	registry.assign<SpriteComponent>(enemy);

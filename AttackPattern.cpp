@@ -50,9 +50,10 @@ bool EditorAttackPattern::legal(std::string & message) {
 	return good;
 }
 
-void EditorAttackPattern::changeEntityPathToAttackPatternActions(entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
+void EditorAttackPattern::changeEntityPathToAttackPatternActions(EntityCreationQueue& queue, entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
 	auto& pos = registry.get<PositionComponent>(entity);
-	registry.replace<MovementPathComponent>(entity, registry, entity, std::make_shared<SpecificGlobalEMPSpawn>(0, pos.getX(), pos.getY()), actions, timeLag);
+	//registry.get<MovementPathComponent>(entity).setActions(queue, registry, entity, actions);
+	registry.replace<MovementPathComponent>(entity, queue, entity, registry, entity, std::make_shared<SpecificGlobalEMPSpawn>(0, pos.getX(), pos.getY()), actions, timeLag);
 }
 
 void EditorAttackPattern::addAttackID(float time, int id) {
