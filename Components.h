@@ -53,7 +53,6 @@ public:
 
 	bool usesReferenceEntity() { return useReferenceEntity; }
 	uint32_t getReferenceEntity() const { return referenceEntity; }
-	void setActions(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, std::vector<std::shared_ptr<EMPAction>> actions);
 	/*
 	Sets the reference entity of this entity.
 	The PositionComponent of this entity should be updated after this call.
