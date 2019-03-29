@@ -186,6 +186,9 @@ void SpawnEnemyCommand::execute(EntityCreationQueue & queue) {
 	// EMPActions vector empty because it will be populated in EnemySystem when the enemy begins a phase
 	registry.assign<MovementPathComponent>(enemy, queue, enemy, registry, enemy, std::make_shared<SpecificGlobalEMPSpawn>(0, x, y), std::vector<std::shared_ptr<EMPAction>>(), 0);
 	registry.assign<HealthComponent>(enemy, enemyInfo->getHealth(), enemyInfo->getHealth());
+	if (enemyInfo->getDespawnTime() > 0) {
+		registry.assign<DespawnComponent>(enemy, enemyInfo->getDespawnTime());
+	}
 	registry.assign<HitboxComponent>(enemy, enemyInfo->getHitboxRadius(), enemyInfo->getHitboxPosX(), enemyInfo->getHitboxPosY());
 	registry.assign<SpriteComponent>(enemy);
 	registry.assign<EnemyComponent>(enemy, enemyInfo, enemyInfo->getID());
