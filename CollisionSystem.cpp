@@ -1,12 +1,12 @@
 #include "Components.h"
 #include "CollisionSystem.h"
 
-float distance(const PositionComponent& p1, const PositionComponent& p2) {
-	return sqrt(pow((p1.getX() - p2.getX()), 2) + pow((p1.getY() - p2.getY()), 2));
+float distance(float x1, float y1, float x2, float y2) {
+	return sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2));
 }
 
 bool collides(const PositionComponent& p1, const HitboxComponent& h1, const PositionComponent& p2, const HitboxComponent& h2) {
-	return distance(p1, p2) <= (h1.getRadius() + h2.getRadius());
+	return distance(p1.getX() + h1.getX(), p1.getY() + h1.getY(), p2.getX() + h2.getX(), p2.getY() + h2.getY()) <= (h1.getRadius() + h2.getRadius());
 }
 
 float max(float a, float b) {

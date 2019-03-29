@@ -35,7 +35,7 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 
 	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
 	renderSystem = std::make_unique<RenderSystem>(registry, window);
-	collisionSystem = std::make_unique<CollisionSystem>(registry, MAP_WIDTH, MAP_HEIGHT, HitboxComponent(levelPack->searchLargestHitbox()));
+	collisionSystem = std::make_unique<CollisionSystem>(registry, MAP_WIDTH, MAP_HEIGHT, HitboxComponent(levelPack->searchLargestHitbox(), 0, 0));
 	despawnSystem = std::make_unique<DespawnSystem>(registry);
 	enemySystem = std::make_unique<EnemySystem>(*queue, *spriteLoader, *levelPack, registry);
 	spriteAnimationSystem = std::make_unique<SpriteAnimationSystem>(*spriteLoader, registry);

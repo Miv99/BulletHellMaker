@@ -24,6 +24,8 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	auto attack1emp0 = attack1->searchEMP(0);
 	attack1emp0->setAnimatable(Animatable("Bullet", "sheet1", true));
 	attack1emp0->setHitboxRadius(30);
+	attack1emp0->setHitboxPosX(20);
+	attack1emp0->setHitboxPosY(20);
 	attack1emp0->setSpawnType(std::make_shared<EnemyAttachedEMPSpawn>(1, 0, 0));
 
 	auto dist = std::make_shared<LinearTFV>(30, 40, 60);
@@ -35,6 +37,8 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	auto attack2emp0 = attack2->searchEMP(0);
 	attack2emp0->setAnimatable(Animatable("Bullet", "sheet1", true));
 	attack2emp0->setHitboxRadius(30);
+	attack2emp0->setHitboxPosX(20);
+	attack2emp0->setHitboxPosY(20);
 	attack2emp0->setSpawnType(std::make_shared<EnemyAttachedEMPSpawn>(1, 0, 0));
 	attack2emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(dist, angle, 60.0f));
 
@@ -84,6 +88,8 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	enemy1->addPhaseID(1, std::make_shared<TimeBasedEnemyPhaseStartCondition>(3), ep2->getID(), e1set);
 	enemy1->setHealth(100);
 	enemy1->setHitboxRadius(70);
+	enemy1->setHitboxPosX(35);
+	enemy1->setHitboxPosY(45);
 	enemy1->setName("test enemy 1");
 
 	auto level = std::make_shared<Level>("test level 1");

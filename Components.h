@@ -96,13 +96,21 @@ Hitbox is a single circle
 */
 class HitboxComponent {
 public:
-	HitboxComponent(float radius) : radius(radius) {}
+	/*
+	radius - hitbox radius
+	x - local offset of hitbox
+	y - local offset of hitbox
+	*/
+	HitboxComponent(float radius, float x, float y) : radius(radius), x(x), y(y) {}
 
 	inline float getRadius() const { return radius; }
+	inline float getX() const { return x; }
+	inline float getY() const { return y; }
 	inline void setRadius(float radius) { this->radius = radius; }
 
 private:
 	float radius;
+	float x, y;
 };
 
 class SpriteComponent {

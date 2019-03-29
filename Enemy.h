@@ -31,10 +31,14 @@ public:
 	inline int getPhasesCount() { return phaseIDs.size(); }
 	inline std::string getName() { return name; }
 	inline float getHitboxRadius() { return hitboxRadius; }
+	inline float getHitboxPosX() { return hitboxPosX; }
+	inline float getHitboxPosY() { return hitboxPosY; }
 	inline float getHealth() { return health; }
 
 	inline void setName(std::string name) { this->name = name; }
 	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; }
+	inline void setHitboxPosX(float hitboxPosX) { this->hitboxPosX = hitboxPosX; }
+	inline void setHitboxPosY(float hitboxPosY) { this->hitboxPosY = hitboxPosY; }
 	inline void setHealth(float health) { this->health = health; }
 	inline void addPhaseID(int index, std::shared_ptr<EnemyPhaseStartCondition> startCondition, int phaseID, EntityAnimatableSet animatableSet) {
 		phaseIDs.insert(phaseIDs.begin() + index, std::make_tuple(startCondition, phaseID, animatableSet));
@@ -50,6 +54,8 @@ private:
 	std::string name;
 	// Radius of the hitbox associated with this enemy
 	float hitboxRadius;
+	// Local position of hitbox
+	float hitboxPosX, hitboxPosY;
 	// Health and maximum health of this enemy
 	float health;
 	// Tuple of: the condition to start the phase, the phase ID, and the animatable set used by the enenemy while in that phase

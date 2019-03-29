@@ -39,7 +39,7 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 	// If animatable name is not empty, this EMP is a bullet
 	Animatable animatable = emp->getAnimatable();
 	if (animatable.getAnimatableName() != "") {
-		registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius());
+		registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), emp->getHitboxPosX(), emp->getHitboxPosY());
 		registry.assign<SpriteComponent>(bullet, spriteLoader.getSprite(animatable.getAnimatableName(), animatable.getSpriteSheetName()));
 
 		registry.assign<EnemyBulletComponent>(bullet, attackID, attackPatternID, enemyID, enemyPhaseID);
@@ -92,7 +92,7 @@ void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
 	// If animatable name is not empty, this EMP is a bullet
 	Animatable animatable = emp->getAnimatable();
 	if (animatable.getAnimatableName() != "") {
-		registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius());
+		registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), emp->getHitboxPosX(), emp->getHitboxPosY());
 		registry.assign<SpriteComponent>(bullet, spriteLoader.getSprite(animatable.getAnimatableName(), animatable.getSpriteSheetName()));
 
 		registry.assign<PlayerBulletComponent>(bullet, attackID, attackPatternID);
@@ -186,7 +186,7 @@ void SpawnEnemyCommand::execute(EntityCreationQueue & queue) {
 	// EMPActions vector empty because it will be populated in EnemySystem when the enemy begins a phase
 	registry.assign<MovementPathComponent>(enemy, queue, enemy, registry, enemy, std::make_shared<SpecificGlobalEMPSpawn>(0, x, y), std::vector<std::shared_ptr<EMPAction>>(), 0);
 	registry.assign<HealthComponent>(enemy, enemyInfo->getHealth(), enemyInfo->getHealth());
-	registry.assign<HitboxComponent>(enemy, enemyInfo->getHitboxRadius());
+	registry.assign<HitboxComponent>(enemy, enemyInfo->getHitboxRadius(), enemyInfo->getHitboxPosX(), enemyInfo->getHitboxPosY());
 	registry.assign<SpriteComponent>(enemy);
 	registry.assign<EnemyComponent>(enemy, enemyInfo, enemyInfo->getID());
 	registry.assign<AnimatableSetComponent>(enemy);

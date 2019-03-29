@@ -33,6 +33,8 @@ public:
 	inline int getID() { return id; }
 	inline Animatable getAnimatable() { return animatable; }
 	inline float getHitboxRadius() { return hitboxRadius; }
+	inline float getHitboxPosX() { return hitboxPosX; }
+	inline float getHitboxPosY() { return hitboxPosY; }
 	inline const std::shared_ptr<EMPSpawnType> getSpawnType() { return spawnType; }
 	inline const std::vector<std::shared_ptr<EditorMovablePoint>> getChildren() { return children; }
 	inline const std::vector<std::shared_ptr<EMPAction>> getActions() { return actions; }
@@ -43,6 +45,8 @@ public:
 	inline void setLoopAnimation(bool loopAnimation) { this->loopAnimation = loopAnimation; }
 	inline void setBaseSprite(Animatable baseSprite) { assert(baseSprite.isSprite()); this->baseSprite = baseSprite; }
 	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; }
+	inline void setHitboxPosX(float hitboxPosX) { this->hitboxPosX = hitboxPosX; }
+	inline void setHitboxPosY(float hitboxPosY) { this->hitboxPosY = hitboxPosY; }
 	void setSpawnType(std::shared_ptr<EMPSpawnType> spawnType);
 	// Inserts an EMPAction such that the new action is at the specified index
 	void insertAction(int index, std::shared_ptr<EMPAction> action);
@@ -106,4 +110,6 @@ private:
 
 	// Radius of the EMP's hitbox. Set to <= 0 if the EMP is not a bullet.
 	float hitboxRadius = 0;
+	// Local position of hitbox
+	float hitboxPosX, hitboxPosY;
 };

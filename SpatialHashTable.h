@@ -31,10 +31,10 @@ public:
 	}
 
 	inline void insert(T object, const HitboxComponent& hitbox, const PositionComponent& position) {
-		int leftmostXCell = std::max(0, (int)((position.getX() - hitbox.getRadius()) / cellSize));
-		int rightmostXCell = std::min(cellsPerMapWidth - 1, (int)((position.getX() + hitbox.getRadius()) / cellSize));
-		int topmostYCell = std::min(cellsPerMapHeight - 1, (int)((position.getY() + hitbox.getRadius()) / cellSize));
-		int bottommostYCell = std::max(0, (int)((position.getY() - hitbox.getRadius()) / cellSize));
+		int leftmostXCell = std::max(0, (int)((position.getX() + hitbox.getX() - hitbox.getRadius()) / cellSize));
+		int rightmostXCell = std::min(cellsPerMapWidth - 1, (int)((position.getX() + hitbox.getX() + hitbox.getRadius()) / cellSize));
+		int topmostYCell = std::min(cellsPerMapHeight - 1, (int)((position.getY() + hitbox.getY() + hitbox.getRadius()) / cellSize));
+		int bottommostYCell = std::max(0, (int)((position.getY() + hitbox.getY() - hitbox.getRadius()) / cellSize));
 		
 		for (int xCell = leftmostXCell; xCell <= rightmostXCell; xCell++) {
 			for (int yCell = bottommostYCell; yCell <= topmostYCell; yCell++) {
@@ -44,10 +44,10 @@ public:
 	}
 
 	inline std::vector<T> getNearbyObjects(const HitboxComponent& hitbox, const PositionComponent& position) {
-		int leftmostXCell = std::max(0, (int)((position.getX() - hitbox.getRadius()) / cellSize));
-		int rightmostXCell = std::min(cellsPerMapWidth - 1, (int)((position.getX() + hitbox.getRadius()) / cellSize));
-		int topmostYCell = std::min(cellsPerMapHeight - 1, (int)((position.getY() + hitbox.getRadius()) / cellSize));
-		int bottommostYCell = std::max(0, (int)((position.getY() - hitbox.getRadius()) / cellSize));
+		int leftmostXCell = std::max(0, (int)((position.getX() + hitbox.getX() - hitbox.getRadius()) / cellSize));
+		int rightmostXCell = std::min(cellsPerMapWidth - 1, (int)((position.getX() + hitbox.getX() + hitbox.getRadius()) / cellSize));
+		int topmostYCell = std::min(cellsPerMapHeight - 1, (int)((position.getY() + hitbox.getY() + hitbox.getRadius()) / cellSize));
+		int bottommostYCell = std::max(0, (int)((position.getY() + hitbox.getY() - hitbox.getRadius()) / cellSize));
 
 		std::vector<T> all;
 		for (int xCell = leftmostXCell; xCell <= rightmostXCell; xCell++) {

@@ -5,6 +5,8 @@ std::string EditorEnemy::format() {
 	res += "(" + tos(id) + ")" + delim;
 	res += "(" + name + ")" + delim;
 	res += "(" + tos(hitboxRadius) + ")" + delim;
+	res += "(" + tos(hitboxPosX) + ")" + delim;
+	res += "(" + tos(hitboxPosY) + ")" + delim;
 	res += "(" + tos(health) + ")" + delim;
 	res += "(" + tos(phaseIDs.size()) + ")";
 	for (auto t : phaseIDs) {
@@ -22,9 +24,11 @@ void EditorEnemy::load(std::string formattedString) {
 	id = std::stoi(items[0]);
 	name = items[1];
 	hitboxRadius = std::stof(items[2]);
-	health = std::stof(items[3]);
+	hitboxPosY = std::stof(items[3]);
+	hitboxPosY = std::stof(items[4]);
+	health = std::stof(items[5]);
 	int i;
-	for (i = 5; i < std::stoi(items[4]) + 5; i += 3) {
+	for (i = 7; i < std::stoi(items[6]) + 7; i += 3) {
 		EntityAnimatableSet animatableSet;
 		animatableSet.load(items[i + 2]);
 		phaseIDs.push_back(std::make_tuple(EnemyPhaseStartConditionFactory::create(items[i]), std::stoi(items[i + 1]), animatableSet));
