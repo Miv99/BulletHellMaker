@@ -7,6 +7,7 @@ std::string EditorMovablePoint::format() {
 	res += "(" + tos(hitboxRadius) + ")" + delim;
 	res += "(" + tos(hitboxPosX) + ")" + delim;
 	res += "(" + tos(hitboxPosY) + ")" + delim;
+	res += "(" + tos(despawnTime) + ")" + delim;
 
 	res += "(" + tos(children.size()) + ")";
 	for (auto emp : children) {
@@ -32,9 +33,10 @@ void EditorMovablePoint::load(std::string formattedString) {
 	hitboxRadius = std::stof(items[0]);
 	hitboxPosX = std::stof(items[1]);
 	hitboxPosY = std::stof(items[2]);
+	despawnTime = std::stof(items[3]);
 
 	int i;
-	for (i = 4; i < stoi(items[3]) + 4; i++) {
+	for (i = 5; i < stoi(items[4]) + 5; i++) {
 		std::shared_ptr<EditorMovablePoint> emp = std::make_shared<EditorMovablePoint>(nextID, shared_from_this());
 		emp->load(items[i]);
 		children.push_back(emp);

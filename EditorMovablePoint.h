@@ -35,11 +35,19 @@ public:
 	inline float getHitboxRadius() { return hitboxRadius; }
 	inline float getHitboxPosX() { return hitboxPosX; }
 	inline float getHitboxPosY() { return hitboxPosY; }
+	inline float getDespawnTime() { return despawnTime; }
 	inline const std::shared_ptr<EMPSpawnType> getSpawnType() { return spawnType; }
 	inline const std::vector<std::shared_ptr<EditorMovablePoint>> getChildren() { return children; }
 	inline const std::vector<std::shared_ptr<EMPAction>> getActions() { return actions; }
 	inline float getShadowTrailInterval() { return shadowTrailInterval; }
 	inline float getShadowTrailLifespan() { return shadowTrailLifespan; }
+	inline float getTotalPathTime() {
+		float total = 0;
+		for (auto action : actions) {
+			total += action->getTime();
+		}
+		return total;
+	}
 
 	inline void setAnimatable(Animatable animatable) { this->animatable = animatable; }
 	inline void setLoopAnimation(bool loopAnimation) { this->loopAnimation = loopAnimation; }
@@ -47,6 +55,7 @@ public:
 	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; }
 	inline void setHitboxPosX(float hitboxPosX) { this->hitboxPosX = hitboxPosX; }
 	inline void setHitboxPosY(float hitboxPosY) { this->hitboxPosY = hitboxPosY; }
+	inline void setDespawnTime(float despawnTime) { this->despawnTime = despawnTime; }
 	void setSpawnType(std::shared_ptr<EMPSpawnType> spawnType);
 	// Inserts an EMPAction such that the new action is at the specified index
 	void insertAction(int index, std::shared_ptr<EMPAction> action);
@@ -112,4 +121,8 @@ private:
 	float hitboxRadius = 0;
 	// Local position of hitbox
 	float hitboxPosX, hitboxPosY;
+
+	// The minimum of this value and the total time to complete all EMPActions is the time until this EMP despawns
+	// Set to < 0 if unused (then the total EMPActions time will be used instead)
+	float despawnTime = -1;
 };

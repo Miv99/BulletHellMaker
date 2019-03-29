@@ -5,6 +5,7 @@
 #include "SpriteLoader.h"
 #include "Enemy.h"
 #include "EntityAnimatableSet.h"
+#include <algorithm>
 #include <iostream>
 
 EMPSpawnFromEnemyCommand::EMPSpawnFromEnemyCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, uint32_t entity, float timeLag, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation) :
@@ -33,6 +34,20 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 		registry.assign<PositionComponent>(bullet, referencePos.getX() + spawnInfo.position.x, referencePos.getY() + spawnInfo.position.y);
 	} else {
 		registry.assign<PositionComponent>(bullet, spawnInfo.position.x, spawnInfo.position.y);
+	}
+
+	if (registry.has<DespawnComponent>(bullet)) {
+		if (emp->getDespawnTime() > 0) {
+			registry.get<DespawnComponent>(bullet).setMaxTime(std::min(emp->getTotalPathTime(), emp->getDespawnTime()));
+		} else {
+			registry.get<DespawnComponent>(bullet).setMaxTime(emp->getTotalPathTime());
+		}
+	} else {
+		if (emp->getDespawnTime() > 0) {
+			registry.assign<DespawnComponent>(bullet, std::min(emp->getTotalPathTime(), emp->getDespawnTime()));
+		} else {
+			registry.assign<DespawnComponent>(bullet, emp->getTotalPathTime());
+		}
 	}
 
 	registry.assign<MovementPathComponent>(bullet, queue, bullet, registry, entity, emp->getSpawnType(), emp->getActions(), timeLag);

@@ -99,6 +99,8 @@ class EMPAction : public TextMarshallable {
 public:
 	virtual std::string format() = 0;
 	virtual void load(std::string formattedString) = 0;
+	// Time for the action to be completed
+	virtual float getTime() = 0;
 
 	/*
 	Generates a new MP from this EMPA.
@@ -120,6 +122,7 @@ public:
 
 	std::string format() override;
 	void load(std::string formattedString) override;
+	inline float getTime() override { return 0; }
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 };
@@ -134,6 +137,7 @@ public:
 
 	std::string format() override;
 	void load(std::string formattedString) override;
+	inline float getTime() override { return duration; }
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 
@@ -152,6 +156,7 @@ public:
 
 	std::string format() override;
 	void load(std::string formattedString) override;
+	inline float getTime() override { return time; }
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 
@@ -176,6 +181,7 @@ public:
 
 	std::string format() override;
 	void load(std::string formattedString) override;
+	inline float getTime() override { return time; }
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 
