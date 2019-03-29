@@ -21,21 +21,19 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 
 	// Create the entity
 	auto bullet = registry.create();
-	MPSpawnInformation spawnInfo = emp->getSpawnType()->getSpawnInfo(registry, entity);
+	MPSpawnInformation spawnInfo = emp->getSpawnType()->getSpawnInfo(registry, entity, timeLag);
 
-	if (spawnInfo.useReferenceEntity) {
-		// If the bullet's MP reference is the entity executing the attack, make sure the bullet despawns along with the entity
-		if (spawnInfo.referenceEntity == entity) {
-			registry.assign<DespawnComponent>(bullet, entity, false);
-		}
-
-		// Spawn at correct position
-		auto referencePos = registry.get<PositionComponent>(spawnInfo.referenceEntity);
-		registry.assign<PositionComponent>(bullet, referencePos.getX() + spawnInfo.position.x, referencePos.getY() + spawnInfo.position.y);
-	} else {
-		registry.assign<PositionComponent>(bullet, spawnInfo.position.x, spawnInfo.position.y);
+	// If the bullet's MP reference is the entity executing the attack, make sure the bullet despawns along with the entity
+	if (spawnInfo.useReferenceEntity && spawnInfo.referenceEntity == entity) {
+		registry.assign<DespawnComponent>(bullet, entity, false);
 	}
 
+	// Spawn at 0, 0 because creation of the MovementPathComponent will just update the position anyway
+	registry.assign<PositionComponent>(bullet, 0, 0);
+
+	registry.assign<MovementPathComponent>(bullet, queue, bullet, registry, entity, emp->getSpawnType(), emp->getActions(), timeLag);
+
+	// Add max time to DespawnComponent
 	if (registry.has<DespawnComponent>(bullet)) {
 		if (emp->getDespawnTime() > 0) {
 			registry.get<DespawnComponent>(bullet).setMaxTime(std::min(emp->getTotalPathTime(), emp->getDespawnTime()));
@@ -50,7 +48,6 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 		}
 	}
 
-	registry.assign<MovementPathComponent>(bullet, queue, bullet, registry, entity, emp->getSpawnType(), emp->getActions(), timeLag);
 	// If animatable name is not empty, this EMP is a bullet
 	Animatable animatable = emp->getAnimatable();
 	if (animatable.getAnimatableName() != "") {
@@ -88,22 +85,33 @@ void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
 	
 	// Create the entity
 	auto bullet = registry.create();
-	MPSpawnInformation spawnInfo = emp->getSpawnType()->getSpawnInfo(registry, entity);
+	MPSpawnInformation spawnInfo = emp->getSpawnType()->getSpawnInfo(registry, entity, timeLag);
 
-	if (spawnInfo.useReferenceEntity) {
-		// If the bullet's MP reference is the entity executing the attack, make sure the bullet despawns along with the entity
-		if (spawnInfo.referenceEntity == entity) {
-			registry.assign<DespawnComponent>(bullet, entity, false);
-		}
-
-		// Spawn at correct position
-		auto referencePos = registry.get<PositionComponent>(spawnInfo.referenceEntity);
-		registry.assign<PositionComponent>(bullet, referencePos.getX() + spawnInfo.position.x, referencePos.getY() + spawnInfo.position.y);
-	} else {
-		registry.assign<PositionComponent>(bullet, spawnInfo.position.x, spawnInfo.position.y);
+	// If the bullet's MP reference is the entity executing the attack, make sure the bullet despawns along with the entity
+	if (spawnInfo.useReferenceEntity && spawnInfo.referenceEntity == entity) {
+		registry.assign<DespawnComponent>(bullet, entity, false);
 	}
 
+	// Spawn at 0, 0 because creation of the MovementPathComponent will just update the position anyway
+	registry.assign<PositionComponent>(bullet, 0, 0);
+
 	registry.assign<MovementPathComponent>(bullet, queue, bullet, registry, entity, emp->getSpawnType(), emp->getActions(), timeLag);
+
+	// Add max time to DespawnComponent
+	if (registry.has<DespawnComponent>(bullet)) {
+		if (emp->getDespawnTime() > 0) {
+			registry.get<DespawnComponent>(bullet).setMaxTime(std::min(emp->getTotalPathTime(), emp->getDespawnTime()));
+		} else {
+			registry.get<DespawnComponent>(bullet).setMaxTime(emp->getTotalPathTime());
+		}
+	} else {
+		if (emp->getDespawnTime() > 0) {
+			registry.assign<DespawnComponent>(bullet, std::min(emp->getTotalPathTime(), emp->getDespawnTime()));
+		} else {
+			registry.assign<DespawnComponent>(bullet, emp->getTotalPathTime());
+		}
+	}
+
 	// If animatable name is not empty, this EMP is a bullet
 	Animatable animatable = emp->getAnimatable();
 	if (animatable.getAnimatableName() != "") {

@@ -33,7 +33,7 @@ public:
 	/*
 	entity - the entity spawning the EMP
 	*/
-	virtual MPSpawnInformation getSpawnInfo(const entt::DefaultRegistry& registry, uint32_t entity) = 0;
+	virtual MPSpawnInformation getSpawnInfo(entt::DefaultRegistry& registry, uint32_t entity, float timeLag) = 0;
 	inline float getTime() { return time; }
 
 protected:
@@ -53,7 +53,7 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 
-	MPSpawnInformation getSpawnInfo(const entt::DefaultRegistry& registry, uint32_t entity) override;
+	MPSpawnInformation getSpawnInfo(entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 
 private:
 	float x;
@@ -71,7 +71,7 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 
-	MPSpawnInformation getSpawnInfo(const entt::DefaultRegistry& registry, uint32_t entity) override;
+	MPSpawnInformation getSpawnInfo(entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 
 private:
 	float x;
@@ -90,7 +90,7 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 
-	MPSpawnInformation getSpawnInfo(const entt::DefaultRegistry& registry, uint32_t entity) override;
+	MPSpawnInformation getSpawnInfo(entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 
 private:
 	float x;

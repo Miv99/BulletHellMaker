@@ -17,9 +17,6 @@ void MovementPathComponent::update(EntityCreationQueue& queue, entt::DefaultRegi
 	time += deltaTime;
 	// While loop for actions with lifespan of 0 like DetachFromParent 
 	while (currentActionsIndex < actions.size() && time >= path->getLifespan()) {
-		if (entity == 1) {
-			int a = 5;
-		}
 		// Set this entity's position to last point of the ending MovablePoint to prevent inaccuracies from building up in updates
 		if (useReferenceEntity) {
 			auto& pos = registry.get<PositionComponent>(referenceEntity);
@@ -29,6 +26,7 @@ void MovementPathComponent::update(EntityCreationQueue& queue, entt::DefaultRegi
 		}
 		
 		time -= path->getLifespan();
+		previousPaths.push_back(path);
 		path = actions[currentActionsIndex]->execute(queue, registry, entity, time);
 		currentActionsIndex++;
 	}
@@ -40,8 +38,48 @@ void MovementPathComponent::update(EntityCreationQueue& queue, entt::DefaultRegi
 	}
 }
 
-void MovementPathComponent::initialSpawn(const entt::DefaultRegistry& registry, uint32_t entity, std::shared_ptr<EMPSpawnType> spawnType, std::vector<std::shared_ptr<EMPAction>>& actions) {
-	auto spawnInfo = spawnType->getSpawnInfo(registry, entity);
+sf::Vector2f MovementPathComponent::getPreviousPosition(entt::DefaultRegistry & registry, float secondsAgo) const {
+	// This function assumes that if a reference entity has no MovementPathComponent, it has stayed in the same position its entire lifespan
+
+	float curTime = time - secondsAgo;
+	if (curTime >= 0) {
+		// This entity was on the same path [secondsAgo] seconds ago
+
+		if (useReferenceEntity) {
+			if (registry.has<MovementPathComponent>(referenceEntity)) {
+				auto pos = registry.get<MovementPathComponent>(referenceEntity).getPreviousPosition(registry, secondsAgo);
+				return path->compute(sf::Vector2f(pos.x, pos.y), curTime);
+			} else {
+				auto& pos = registry.get<PositionComponent>(referenceEntity);
+				return path->compute(sf::Vector2f(pos.getX(), pos.getY()), curTime);
+			}
+		} else {
+			return path->compute(sf::Vector2f(0, 0), curTime);
+		}
+	} else {
+		int curPathIndex = previousPaths.size();
+		while (curTime < 0) {
+			assert(curPathIndex - 1 >= 0 && "Somehow looking back in the past too far");
+			curTime += previousPaths[curPathIndex - 1]->getLifespan();
+			curPathIndex--;
+		}
+
+		if (useReferenceEntity) {
+			if (registry.has<MovementPathComponent>(referenceEntity)) {
+				auto pos = registry.get<MovementPathComponent>(referenceEntity).getPreviousPosition(registry, secondsAgo);
+				return previousPaths[curPathIndex]->compute(sf::Vector2f(pos.x, pos.y), curTime);
+			} else {
+				auto& pos = registry.get<PositionComponent>(referenceEntity);
+				return previousPaths[curPathIndex]->compute(sf::Vector2f(pos.getX(), pos.getY()), curTime);
+			}
+		} else {
+			return previousPaths[curPathIndex]->compute(sf::Vector2f(0, 0), curTime);
+		}
+	}
+}
+
+void MovementPathComponent::initialSpawn(entt::DefaultRegistry& registry, uint32_t entity, std::shared_ptr<EMPSpawnType> spawnType, std::vector<std::shared_ptr<EMPAction>>& actions) {
+	auto spawnInfo = spawnType->getSpawnInfo(registry, entity, time);
 	useReferenceEntity = spawnInfo.useReferenceEntity;
 	referenceEntity = spawnInfo.referenceEntity;
 

@@ -48,8 +48,15 @@ public:
 		update(queue, registry, self, registry.get<PositionComponent>(self), 0);
 	}
 
-	// Updates elapsed time and updates the entity's position along its path
+	/*
+	Updates elapsed time and updates the entity's position along its path
+	*/
 	void update(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, PositionComponent& entityPosition, float deltaTime);
+
+	/*
+	Returns this entity's position some time ago.
+	*/
+	sf::Vector2f getPreviousPosition(entt::DefaultRegistry& registry, float secondsAgo) const;
 
 	bool usesReferenceEntity() { return useReferenceEntity; }
 	uint32_t getReferenceEntity() const { return referenceEntity; }
@@ -70,11 +77,13 @@ private:
 	// Elapsed time since the the last call to setActions
 	float time;
 	std::shared_ptr<MovablePoint> path;
+	// Sorted descending in age (index 0 is the oldest path).
+	std::vector<std::shared_ptr<MovablePoint>> previousPaths;
 	// Actions to be carried out in order; each one changes pushes back an MP to path
 	std::vector<std::shared_ptr<EMPAction>> actions;
 	int currentActionsIndex = 0;
 
-	void initialSpawn(const entt::DefaultRegistry& registry, uint32_t entity, std::shared_ptr<EMPSpawnType> spawnType, std::vector<std::shared_ptr<EMPAction>>& actions);
+	void initialSpawn(entt::DefaultRegistry& registry, uint32_t entity, std::shared_ptr<EMPSpawnType> spawnType, std::vector<std::shared_ptr<EMPAction>>& actions);
 };
 
 class HealthComponent {

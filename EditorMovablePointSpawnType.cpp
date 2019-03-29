@@ -16,7 +16,7 @@ void SpecificGlobalEMPSpawn::load(std::string formattedString) {
 	time = std::stof(items[3]);
 }
 
-MPSpawnInformation SpecificGlobalEMPSpawn::getSpawnInfo(const entt::DefaultRegistry & registry, uint32_t entity) {
+MPSpawnInformation SpecificGlobalEMPSpawn::getSpawnInfo(entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
 	return MPSpawnInformation{ false, NULL, sf::Vector2f(x, y) };
 }
 
@@ -36,9 +36,15 @@ void EnemyRelativeEMPSpawn::load(std::string formattedString) {
 	time = std::stof(items[3]);
 }
 
-MPSpawnInformation EnemyRelativeEMPSpawn::getSpawnInfo(const entt::DefaultRegistry & registry, uint32_t entity) {
-	auto& posComponent = registry.get<PositionComponent>(entity);
-	return MPSpawnInformation{ false, NULL, sf::Vector2f(posComponent.getX() + x, posComponent.getY() + y) };
+MPSpawnInformation EnemyRelativeEMPSpawn::getSpawnInfo(entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
+	// Assume that if the entity spawning this has no MovementPathComponent, it has stayed at the same global position for its entire lifespan
+	if (registry.has<MovementPathComponent>(entity)) {
+		auto& pos = registry.get<MovementPathComponent>(entity).getPreviousPosition(registry, timeLag);
+		return MPSpawnInformation{ false, NULL, sf::Vector2f(pos.x + x, pos.y + y) };
+	} else {
+		auto& pos = registry.get<PositionComponent>(entity);
+		return MPSpawnInformation{ false, NULL, sf::Vector2f(pos.getX() + x, pos.getY() + y) };
+	}
 }
 
 std::string EnemyAttachedEMPSpawn::format() {
@@ -57,7 +63,7 @@ void EnemyAttachedEMPSpawn::load(std::string formattedString) {
 	time = std::stof(items[3]);
 }
 
-MPSpawnInformation EnemyAttachedEMPSpawn::getSpawnInfo(const entt::DefaultRegistry & registry, uint32_t entity) {
+MPSpawnInformation EnemyAttachedEMPSpawn::getSpawnInfo(entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
 	return MPSpawnInformation{ true, entity, sf::Vector2f(x, y) };
 }
 
