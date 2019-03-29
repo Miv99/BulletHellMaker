@@ -19,13 +19,15 @@ public:
 
 class SpriteData {
 public:
-	inline SpriteData(std::string spriteName, ComparableIntRect area, int spriteWidth, int spriteHeight, sf::Color color = sf::Color(255, 255, 255, 255)) : spriteName(spriteName), area(area), color(color), spriteWidth(spriteWidth), spriteHeight(spriteHeight) {}
+	inline SpriteData(std::string spriteName, ComparableIntRect area, int spriteWidth, int spriteHeight, int spriteOriginX, int spriteOriginY, sf::Color color = sf::Color(255, 255, 255, 255)) : spriteName(spriteName), area(area), color(color), spriteWidth(spriteWidth), spriteHeight(spriteHeight), spriteOriginX(spriteOriginX), spriteOriginY(spriteOriginY) {}
 
 	bool operator==(const SpriteData& other) const;
 	inline ComparableIntRect getArea() const { return area; }
 	inline sf::Color getColor() const { return color; }
 	inline int getSpriteWidth() const { return spriteWidth; }
 	inline int getSpriteHeight() const { return spriteHeight; }
+	inline int getSpriteOriginX() const { return spriteOriginX; }
+	inline int getSpriteOriginY() const { return spriteOriginY; }
 
 private:
 	std::string spriteName;
@@ -34,6 +36,9 @@ private:
 	// Size that the sprite will be; not to be confused with the area containing the sprite's texture in the image
 	int spriteWidth;
 	int spriteHeight;
+	// Local position of the sprite's origin
+	int spriteOriginX;
+	int spriteOriginY;
 };
 
 class AnimationData {

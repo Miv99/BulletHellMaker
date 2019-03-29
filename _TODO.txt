@@ -33,21 +33,17 @@ TODO:
  attacks, movement paths, etc) to MAX_PHYSICS_DELTA_TIME. An exception can be made for actions with 0 time between them.
 	-list of things affected: bullets spawned from attacks at the wrong spot
 -maybe??? Make sure in legal() check that no EMPA duration is shorter than MAX_PHYSICS_DELTA_TIME
+-When an entity executes an attack, account for time lag affecting position of entity when attack is executed
 -spawn reference point for CustomMovePolarEMPA (distance.evaluate(0), (angle.evaluate(0) + 180)) away from last known position
  so that entities can't seemingly teleport
 -Despawn time on enemies
 -Power up tiers for player; each has its own animatableset
 -item drops (see math notes)
--Bezier movablepoint
 -Make entity positions be their sprite's center
 -Multiple small shockwave effects 
 -mandatory death effect for each enemy: user chooses a SpriteEffectAnimation (FadeAway, RedFadeAway (tint red + fade away), ...)
 -when an enemy dies, create new entity to play the death animation+effect; if no animation, just do the effect
 -animations
-	-optional death animation (must be standard animation)
-	-//no two sprite/animation can have the same name
-	-use a state machine in SpriteComponent that restarts an animation only if state is changed from attack to attack (only attack anim can be interrupted
-	by another attack anim)
 	-keep track of last known pos of an entity in a map in rendersystem; listener for entity deletion -> delete map entry; use this map to see if an entity
 	is moving to update its SpriteComponent's state machine
 	-sprites/anims have 3 options: rotate with angle of movement, lock rotation, lock rotation and face direction of movement
@@ -55,20 +51,7 @@ TODO:
 -Add to EMP: OnContactAction: TurnIntangible (remove HitboxComponent), DestroyBulletAndAttachedChildren (give children DespawnComponent to this EMP when they spawn),
 	DestroyBulletOnly (remove Sprite and Hitbox)
 -DeathActionComponent (for player + enemies + bullets): does a list of DeathActions: ExecuteAttack (enemies only), ParticleExplosion, PlaySound
-
-
-Entity executes attack --> all soundEffectNames added to a queue in entity's SoundComponent
-Entity with EMPActionManagerComponent is spawned
-	vector<pair<float, EMP*>> spawnTargets = {mainEMP} // time : EMP
-	int attachedEntity = entity_that_executed_the_attack
-EMPActionSystem calls update on every EMPActionManagerComponent
-Entity with the MPActionManagerComponent (call it A) spawns one of its spawnTargets according to its spawnType
-	--> if attachedEntity has an EnemyComponent, make sure the attachedEntity still exists first
-	--> create an entity (call it B) from the spawnTarget with EMPActionManagerComponent: spawnTargets = {all of B's children}, attachedEntity = A
-	--> give B HitboxComponent, SpriteComponent, MovementPathComponent
-	--> if attachedEntity has EnemyComponent, give B EnemyBulletComponent; if has PlayerComponent, give B PlayerBulletComponent
-	--> if using the editor, also give it EditorEnemyBulletComponent if is EnemyBullet
-
+-Sounds are attached to EMPs and are played on spawn
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------
 editable = attack/attack pattern/emp/enemy/enemyphase/player

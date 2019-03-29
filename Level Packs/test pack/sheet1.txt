@@ -39,6 +39,7 @@ TextureTopLeftCoordinates = 218,154
 BoundingRectangleSize = 18,17
 Color = 255,255,255,255
 SpriteSize = 40,40
+Origin = 20,20
 
 [Megaman idle]
 Type = Animation

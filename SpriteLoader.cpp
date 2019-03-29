@@ -13,6 +13,7 @@ static const std::string SPRITE_TOPLEFT_COORDS_TAG = "TextureTopLeftCoordinates"
 static const std::string SPRITE_TEXTURE_BOUNDS_TAG = "BoundingRectangleSize";
 static const std::string SPRITE_COLOR_TAG = "Color";
 static const std::string SPRITE_SIZE_TAG = "SpriteSize";
+static const std::string SPRITE_ORIGIN_TAG = "Origin";
 
 std::vector<int> extractInts(const std::string& str) {	std::vector<int> vect;
 	std::stringstream ss(str);
@@ -48,6 +49,7 @@ std::shared_ptr<sf::Sprite> SpriteSheet::getSprite(const std::string& spriteName
 	sprite->setTexture(*textures[area]);
 	sprite->setColor(data->getColor());
 	sprite->setScale(data->getSpriteWidth() / area.width, data->getSpriteHeight() / area.height);
+	sprite->setOrigin(data->getSpriteOriginX(), data->getSpriteOriginY());
 	return sprite;
 }
 
@@ -195,9 +197,20 @@ bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, c
 				} else {
 					throw "Sprite \"" + name + "\" is missing property " + SPRITE_SIZE_TAG;
 				}
+				// sprite origin
+				float originX = spriteWidth/2.0f, originY = spriteHeight/2.0f;
+				if (animationIterator->second->find(SPRITE_ORIGIN_TAG) != animationIterator->second->end()) {
+					auto temp = extractInts(animationIterator->second->at(SPRITE_ORIGIN_TAG));
+					if (temp.size() != 2) {
+						throw "Sprite \"" + name + "\"'s " + SPRITE_ORIGIN_TAG + " property has an invalid format";
+					} else {
+						originX = temp[0];
+						originY = temp[1];
+					}
+				}
 
 				// Insert SpriteSheetData into SpriteSheet
-				std::shared_ptr<SpriteData> dataItem = std::make_shared<SpriteData>(name, area, spriteWidth, spriteHeight, color);
+				std::shared_ptr<SpriteData> dataItem = std::make_shared<SpriteData>(name, area, spriteWidth, spriteHeight, originX, originY, color);
 				sheet->insertSprite(name, dataItem);
 
 				// Also create a looping animation that consists of only that sprite with the same name
