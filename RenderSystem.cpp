@@ -5,7 +5,7 @@ void RenderSystem::update(float deltaTime) {
 
 	view.each([&](auto entity, auto& position, auto& sprite) {
 		std::shared_ptr<sf::Sprite> spritePtr = sprite.getSprite();
-		spritePtr->setPosition(position.getX(), position.getY());
+		spritePtr->setPosition(position.getX(), -position.getY());
 
 		if (sprite.usesShader()) {
 			window.draw(*spritePtr, &sprite.getShader());

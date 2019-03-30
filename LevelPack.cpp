@@ -45,15 +45,10 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	auto ap1 = createAttackPattern();
 	//ap1->insertAction(0, std::make_shared<StayStillAtLastPositionEMPA>(1.0f));
 	ap1->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 50, 2), std::make_shared<ConstantTFV>(0), 2));
-	/*
-	ap1->insertAction(2, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 250, 2), std::make_shared<ConstantTFV>(3.14f/2), 2));
-	ap1->insertAction(3, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 300, 2), std::make_shared<ConstantTFV>(3.14f), 2));
-	ap1->insertAction(4, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 300, 2), std::make_shared<ConstantTFV>(3.14f * 3.0f/2), 2));
-	ap1->insertAction(5, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 5, 2), std::make_shared<ConstantTFV>(0), 2));
-	*/
-	std::vector<sf::Vector2f> cp = {sf::Vector2f(0, 0), sf::Vector2f(-15.0f, -218.2f), sf::Vector2f(-103.0f, -166.2f), sf::Vector2f(-64.7f, -25.5f)};
-	ap1->insertAction(1, std::make_shared<MoveCustomBezierEMPA>(cp, 6.0f));
-	ap1->insertAction(2, std::make_shared<StayStillAtLastPositionEMPA>(1.0f));
+	ap1->insertAction(1, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<ConstantTFV>(150), std::make_shared<LinearTFV>(-PI/2.0, -PI/2.0 + 2.0*PI, 4), 4));
+	std::vector<sf::Vector2f> cp = {sf::Vector2f(0, 0), sf::Vector2f(-15.0f, 218.2f), sf::Vector2f(-103.0f, 166.2f), sf::Vector2f(-64.7f, 25.5f)};
+	ap1->insertAction(2, std::make_shared<MoveCustomBezierEMPA>(cp, 6.0f));
+	ap1->insertAction(3, std::make_shared<StayStillAtLastPositionEMPA>(1.0f));
 
 	
 	bool alt = false;
@@ -85,7 +80,7 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	auto enemy1 = createEnemy();
 	auto e1set = EntityAnimatableSet(Animatable("Megaman idle", "sheet1", false), Animatable("Megaman movement", "sheet1", false), Animatable("Megaman attack", "sheet1", false), Animatable("oh my god he's dead", "sheet1", true));
 	enemy1->addPhaseID(0, std::make_shared<TimeBasedEnemyPhaseStartCondition>(0), ep1->getID(), e1set);
-	enemy1->addPhaseID(1, std::make_shared<TimeBasedEnemyPhaseStartCondition>(3), ep2->getID(), e1set);
+	enemy1->addPhaseID(1, std::make_shared<TimeBasedEnemyPhaseStartCondition>(10), ep2->getID(), e1set);
 	enemy1->setHealth(100);
 	enemy1->setHitboxRadius(70);
 	enemy1->setHitboxPosX(35);
@@ -94,7 +89,7 @@ LevelPack::LevelPack(std::string name) : name(name) {
 
 	auto level = std::make_shared<Level>("test level 1");
 	auto v1 = std::vector<EnemySpawnInfo>();
-	v1.push_back(EnemySpawnInfo(enemy1->getID(), 300, 300));
+	v1.push_back(EnemySpawnInfo(enemy1->getID(), 300, 350));
 	level->insertEnemySpawns(0, std::make_shared<TimeBasedEnemySpawnCondition>(0), v1);
 	this->insertLevel(0, level);
 	
