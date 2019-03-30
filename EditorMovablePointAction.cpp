@@ -98,7 +98,9 @@ std::shared_ptr<MovablePoint> MoveCustomPolarEMPA::execute(EntityCreationQueue& 
 	auto& lastPos = registry.get<PositionComponent>(entity);
 
 	// Queue creation of the reference entity
-	queue.pushFront(std::make_unique<CreateMovementRefereceEntityCommand>(registry, entity, timeLag, lastPos.getX(), lastPos.getY()));
+	float referenceEntityAngleOffset = angle->evaluate(0);
+	float referenceEntityDistanceOffset = distance->evaluate(0);
+	queue.pushFront(std::make_unique<CreateMovementRefereceEntityCommand>(registry, entity, timeLag, lastPos.getX() + referenceEntityDistanceOffset * std::cos(referenceEntityAngleOffset + PI), lastPos.getY() + referenceEntityDistanceOffset * std::sin(referenceEntityAngleOffset + PI)));
 	
 	if (angleOffset == nullptr) {
 		return std::make_shared<PolarMP>(time, distance, angle);
@@ -128,11 +130,7 @@ void MoveCustomBezierEMPA::load(std::string formattedString) {
 }
 
 std::shared_ptr<MovablePoint> MoveCustomBezierEMPA::execute(EntityCreationQueue & queue, entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
-	assert(registry.has<EnemyComponent>(entity) && "Bezier movement can only be done by enemies");
 	assert(controlPoints[0] == sf::Vector2f(0, 0) && "Bezier curves must start at (0, 0)");
-	// Since BezierMP can only be used by enemies, the creation of a new reference entity is not necessary because
-	// enemies never have reference entities, and Bezier curves are in the standard basis and can easily be started at any
-	// arbitrary point, unlike with polar coordinates.
 
 	auto& lastPos = registry.get<PositionComponent>(entity);
 	// Queue creation of the reference entity
