@@ -20,8 +20,7 @@ void FlashWhiteSEA::update(float deltaTime) {
 	if (t > flashDuration) {
 		// Is not flashing
 		flashIntensity = 0;
-	}
-	else {
+	} else {
 		// Is flashing
 		// Scale flash intensity to have max of 0.7
 		//TODO: put this as a constant somewhere
@@ -38,4 +37,15 @@ void FadeAwaySEA::update(float deltaTime) {
 	time += deltaTime;
 	auto color = sprite->getColor();
 	sprite->setColor(sf::Color(color.r, color.g, color.b, std::max(minOpacity * 255.0f, 255.0f * (-(maxOpacity - minOpacity) / animationDuration * time + maxOpacity))));
+}
+
+
+void ChangeSizeSEA::update(float deltaTime) {
+	if (time > animationDuration) {
+		return;
+	}
+
+	time += deltaTime;
+	float scale = (time / animationDuration)*(endScale - startScale) + startScale;
+	sprite->setScale(scale, scale);
 }

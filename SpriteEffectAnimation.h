@@ -88,3 +88,27 @@ private:
 	float maxOpacity;
 	float animationDuration;
 };
+
+/*
+Causes a sprite to change in size while maintaining aspect ratio.
+Warning: this changes the size of only the sprite, not the hitbox or anything else.
+*/
+class ChangeSizeSEA : public SpriteEffectAnimation {
+public:
+	/*
+	startScale - starting sprite scale with a value of 1 being original size
+	endScale - ending sprite scale
+	animationDuration - total time for the sprite to fade from maxOpacity to minOpacity
+	*/
+	inline ChangeSizeSEA(std::shared_ptr<sf::Sprite> sprite, float minOpacity, float maxOpacity, float animationDuration) : SpriteEffectAnimation(sprite), startScale(startScale),
+		endScale(endScale), animationDuration(animationDuration) {
+		useShader = false;
+	}
+
+	void update(float deltaTime) override;
+
+private:
+	float startScale;
+	float endScale;
+	float animationDuration;
+};
