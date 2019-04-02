@@ -177,7 +177,26 @@ private:
 	inline void updateSprite(sf::Sprite newSprite) { *sprite = newSprite; }
 };
 
-class PlayerTag {};
+class PlayerTag {
+public:
+	PlayerTag(float speed, float focusedSpeed, std::shared_ptr<EditorAttackPattern> attackPattern, float attackPatternLoopDelay, std::shared_ptr<EditorAttackPattern> focusedAttackPattern, float focusedAttackPatternLoopDelay);
+
+	inline float getSpeed() { return speed; }
+	inline float getFocusedSpeed() { return focusedSpeed; }
+	inline std::shared_ptr<EditorAttackPattern> getAttackPattern() { return attackPattern; }
+	inline std::shared_ptr<EditorAttackPattern> getFocusedAttackPattern() { return focusedAttackPattern; }
+	inline float getAttackPatternTotalTime() { return attackPatternTotalTime; }
+	inline float getFocusedAttackPatternTotalTime() { return focusedAttackPatternTotalTime; }
+
+private:
+	float speed;
+	float focusedSpeed;
+	std::shared_ptr<EditorAttackPattern> attackPattern;
+	// Total time for every attack to execute in addition to the loop delay
+	float attackPatternTotalTime;
+	std::shared_ptr<EditorAttackPattern> focusedAttackPattern;
+	float focusedAttackPatternTotalTime;
+};
 
 class EnemyComponent {
 public:
@@ -390,6 +409,9 @@ Component for entities with an EntityAnimatableSet
 */
 class AnimatableSetComponent {
 public:
+	inline AnimatableSetComponent() {}
+	inline AnimatableSetComponent(EntityAnimatableSet animatableSet) : animatableSet(animatableSet) {}
+
 	// States
 	static const int IDLE = 0, MOVEMENT = 1, ATTACK = 2;
 

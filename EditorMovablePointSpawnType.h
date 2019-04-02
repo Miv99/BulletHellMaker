@@ -63,10 +63,10 @@ private:
 /*
 Spawn type for spawning an EMP at some position relative to the entity doing the attack.
 */
-class EnemyRelativeEMPSpawn : public EMPSpawnType {
+class EntityRelativeEMPSpawn : public EMPSpawnType {
 public:
-	inline EnemyRelativeEMPSpawn() {}
-	inline EnemyRelativeEMPSpawn(float time, float x, float y) : EMPSpawnType(time), x(x), y(y) {}
+	inline EntityRelativeEMPSpawn() {}
+	inline EntityRelativeEMPSpawn(float time, float x, float y) : EMPSpawnType(time), x(x), y(y) {}
 
 	std::string format() override;
 	void load(std::string formattedString) override;
@@ -82,10 +82,10 @@ private:
 Spawn type for spawning an EMP at some position relative to the entity and then setting the spawned
 EMP's parent as the MP of the entity.
 */
-class EnemyAttachedEMPSpawn : public EMPSpawnType {
+class EntityAttachedEMPSpawn : public EMPSpawnType {
 public:
-	inline EnemyAttachedEMPSpawn() {}
-	inline EnemyAttachedEMPSpawn(float time, float x, float y) : EMPSpawnType(time), x(x), y(y) {}
+	inline EntityAttachedEMPSpawn() {}
+	inline EntityAttachedEMPSpawn(float time, float x, float y) : EMPSpawnType(time), x(x), y(y) {}
 
 	std::string format() override;
 	void load(std::string formattedString) override;

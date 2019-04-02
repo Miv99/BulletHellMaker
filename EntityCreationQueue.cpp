@@ -182,7 +182,7 @@ void CreateMovementRefereceEntityCommand::execute(EntityCreationQueue& queue) {
 		// Calculate position of new reference
 		auto& brLastPos = registry.get<PositionComponent>(baseReference);
 
-		registry.assign<MovementPathComponent>(reference, queue, reference, registry, baseReference, std::make_shared<EnemyAttachedEMPSpawn>(0, lastPosX - brLastPos.getX(), lastPosY - brLastPos.getY()), std::vector<std::shared_ptr<EMPAction>>(), timeLag);
+		registry.assign<MovementPathComponent>(reference, queue, reference, registry, baseReference, std::make_shared<EntityAttachedEMPSpawn>(0, lastPosX - brLastPos.getX(), lastPosY - brLastPos.getY()), std::vector<std::shared_ptr<EMPAction>>(), timeLag);
 	} else {
 		registry.assign<MovementPathComponent>(reference, queue, reference, registry, reference, std::make_shared<SpecificGlobalEMPSpawn>(0, lastPosX, lastPosY), std::vector<std::shared_ptr<EMPAction>>(), timeLag);
 	}

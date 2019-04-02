@@ -10,8 +10,4 @@ void MovementSystem::update(float deltaTime) {
 	spawnerView.each([&](auto entity, auto& spawner) {
 		spawner.update(registry, spriteLoader, queue, deltaTime);
 	});
-
-	//TODO: player movement stuff somehow
-
-	elapsedTime += deltaTime;
 }

@@ -32,11 +32,11 @@ void PlayAnimatableDeathAction::execute(entt::DefaultRegistry & registry, Sprite
 }
 
 void PlayAnimatableDeathAction::loadEffectAnimation(SpriteComponent & sprite) {
-	if (effect == DEATH_ANIMATION_EFFECT::NONE) {
+	if (effect == NONE) {
 		// Do nothing
-	} else if (effect == DEATH_ANIMATION_EFFECT::SHRINK) {
+	} else if (effect == SHRINK) {
 		sprite.setEffectAnimation(std::make_unique<ChangeSizeSEA>(sprite.getSprite(), 0.0f, 1.0f, duration));
-	} else if (effect == DEATH_ANIMATION_EFFECT::SHRINK) {
+	} else if (effect == SHRINK) {
 		sprite.setEffectAnimation(std::make_unique<ChangeSizeSEA>(sprite.getSprite(), 0.0f, 1.0f, duration));
 	}
 }

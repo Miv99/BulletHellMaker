@@ -10,6 +10,7 @@
 #include "SpriteAnimationSystem.h"
 #include "EntityCreationQueue.h"
 #include "ShadowTrailSystem.h"
+#include "PlayerSystem.h"
 
 class LevelPack;
 class LevelManagerTag;
@@ -25,6 +26,10 @@ public:
 	*/
 	void startLevel(int levelIndex);
 
+	void handleEvent(sf::Event event);
+	void pause();
+	void resume();
+
 private:
 	std::unique_ptr<LevelPack> levelPack;
 	std::unique_ptr<SpriteLoader> spriteLoader;
@@ -39,12 +44,13 @@ private:
 	std::unique_ptr<DespawnSystem> despawnSystem;
 	std::unique_ptr<EnemySystem> enemySystem;
 	std::unique_ptr<SpriteAnimationSystem> spriteAnimationSystem;
-	std::unique_ptr< ShadowTrailSystem> shadowTrailSystem;
+	std::unique_ptr<ShadowTrailSystem> shadowTrailSystem;
+	std::unique_ptr<PlayerSystem> playerSystem;
 
 	bool paused;
 
 	// LevelManager entity
 	uint32_t levelManager;
 
-	void createPlayer();
+	void createPlayer(EditorPlayer params);
 };

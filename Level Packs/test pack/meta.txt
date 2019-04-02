@@ -1,9 +1,3 @@
-[Player]
-InitialHealth = 3
-MaxHealth = 5
-Speed = 50
-FocusedSpeed = 20
-
 [Sprite Sheets]
 sheet1.txt = sheet1.png
 

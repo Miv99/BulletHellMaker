@@ -26,7 +26,7 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	attack1emp0->setHitboxRadius(30);
 	attack1emp0->setHitboxPosX(20);
 	attack1emp0->setHitboxPosY(20);
-	attack1emp0->setSpawnType(std::make_shared<EnemyAttachedEMPSpawn>(1, 0, 0));
+	attack1emp0->setSpawnType(std::make_shared<EntityAttachedEMPSpawn>(1, 0, 0));
 
 	auto dist = std::make_shared<LinearTFV>(30, 40, 60);
 	auto angle = std::make_shared<LinearTFV>(0, 3.14f * 8, 30);
@@ -39,7 +39,7 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	attack2emp0->setHitboxRadius(30);
 	attack2emp0->setHitboxPosX(20);
 	attack2emp0->setHitboxPosY(20);
-	attack2emp0->setSpawnType(std::make_shared<EnemyAttachedEMPSpawn>(1, 0, 0));
+	attack2emp0->setSpawnType(std::make_shared<EntityAttachedEMPSpawn>(1, 0, 0));
 	attack2emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(dist, angle, 60.0f));
 
 	auto ap1 = createAttackPattern();
@@ -52,7 +52,7 @@ LevelPack::LevelPack(std::string name) : name(name) {
 
 	
 	bool alt = false;
-	for (float time = 0; time < 5; time += 0.01f) {
+	for (float time = 0; time < 5; time += 0.1f) {
 		if (alt) {
 			ap1->addAttackID(time, attack1->getID());
 		} else {
@@ -88,13 +88,35 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	enemy1->setName("test enemy 1");
 
 	auto level = std::make_shared<Level>("test level 1");
+	auto playerAP = createAttackPattern();
+	auto playerAttack1 = createAttack();
+	auto pemp0 = playerAttack1->searchEMP(0);
+	pemp0->setAnimatable(Animatable("Bullet", "sheet1", true));
+	pemp0->setHitboxRadius(30);
+	pemp0->setHitboxPosX(20);
+	pemp0->setHitboxPosY(20);
+	pemp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
+	pemp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 2), std::make_shared<ConstantTFV>(PI/2.0f), 2.0f));
+	playerAP->addAttackID(0.1f, playerAttack1->getID());
+
+	auto playerFocusedAP = createAttackPattern();
+	auto playerAttack2 = createAttack();
+	auto p2emp0 = playerAttack2->searchEMP(0);
+	p2emp0->setAnimatable(Animatable("Megaman stepping", "sheet1", true));
+	p2emp0->setHitboxRadius(30);
+	p2emp0->setHitboxPosX(20);
+	p2emp0->setHitboxPosY(20);
+	p2emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
+	p2emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 1.1f), std::make_shared<ConstantTFV>(PI / 2.0f), 1.1f));
+	playerFocusedAP->addAttackID(1.0f, playerAttack2->getID());
+
+	level->setPlayer(EditorPlayer(3, 5, 300, 100, e1set, 5, 0, 0, playerAP, 0.1f, playerFocusedAP, 0.5f));
 	auto v1 = std::vector<EnemySpawnInfo>();
 	v1.push_back(EnemySpawnInfo(enemy1->getID(), 300, 350));
 	level->insertEnemySpawns(0, std::make_shared<TimeBasedEnemySpawnCondition>(0), v1);
 	this->insertLevel(0, level);
 	
-
-	
+	//TODO: uncomment
 	// load();
 }
 

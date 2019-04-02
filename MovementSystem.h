@@ -17,5 +17,4 @@ private:
 	EntityCreationQueue& queue;
 	SpriteLoader& spriteLoader;
 	entt::DefaultRegistry& registry;
-	float elapsedTime = 0;
 };

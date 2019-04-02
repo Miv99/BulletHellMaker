@@ -36,10 +36,8 @@ public:
 	entity - the enemy that is executing this attack
 	timeLag - the time elapsed since this attack was supposed to execute
 	attackPatternID - the ID of the enemy's current attack pattern
-	enemyID - the ID of the enemy executing this attack
-	enemyPhaseID - the ID of the enemy's current phase
 	*/
-	void EditorAttack::executeAsPlayer(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, uint32_t entity, float timeLag, int attackPatternID, int enemyID, int enemyPhaseID);
+	void EditorAttack::executeAsPlayer(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, uint32_t entity, float timeLag, int attackPatternID);
 
 	inline void addSoundEffect(float time, std::string fileName) {
 		auto item = std::make_pair(time, fileName);

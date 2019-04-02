@@ -65,7 +65,7 @@ void EditorAttack::executeAsEnemy(EntityCreationQueue& queue, SpriteLoader& spri
 	queue.pushBack(std::make_unique<EMPSpawnFromEnemyCommand>(registry, spriteLoader, mainEMP, entity, timeLag, id, attackPatternID, enemyID, enemyPhaseID, playAttackAnimation));
 }
 
-void EditorAttack::executeAsPlayer(EntityCreationQueue & queue, SpriteLoader & spriteLoader, entt::DefaultRegistry & registry, uint32_t entity, float timeLag, int attackPatternID, int enemyID, int enemyPhaseID) {
+void EditorAttack::executeAsPlayer(EntityCreationQueue & queue, SpriteLoader & spriteLoader, entt::DefaultRegistry & registry, uint32_t entity, float timeLag, int attackPatternID) {
 	queue.pushBack(std::make_unique<EMPSpawnFromPlayerCommand>(registry, spriteLoader, mainEMP, entity, timeLag, id, attackPatternID, playAttackAnimation));
 }
 

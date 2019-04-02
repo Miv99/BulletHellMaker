@@ -9,11 +9,9 @@
 #include "TimeFunctionVariable.h"
 #include "MovablePoint.h"
 #include "LevelPack.h"
+#include "Constants.h"
 
 #include <iostream>
-
-const static int MAP_WIDTH = 600;
-const static int MAP_HEIGHT = 700;
 
 GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) : window(window) {
 	//TODO have gui thing like touhou + fix aspect ratio
@@ -41,6 +39,7 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 	enemySystem = std::make_unique<EnemySystem>(*queue, *spriteLoader, *levelPack, registry);
 	spriteAnimationSystem = std::make_unique<SpriteAnimationSystem>(*spriteLoader, registry);
 	shadowTrailSystem = std::make_unique<ShadowTrailSystem>(*queue, registry);
+	playerSystem = std::make_unique<PlayerSystem>(*levelPack, *queue, *spriteLoader, registry);
 }
 
 void GameInstance::physicsUpdate(float deltaTime) {
@@ -55,6 +54,9 @@ void GameInstance::physicsUpdate(float deltaTime) {
 		queue->executeAll();
 
 		movementSystem->update(deltaTime);
+		queue->executeAll();
+
+		playerSystem->update(deltaTime);
 		queue->executeAll();
 
 		enemySystem->update(deltaTime);
@@ -79,17 +81,42 @@ void GameInstance::startLevel(int levelIndex) {
 	registry.reset();
 
 	// Create the player
-	createPlayer();
+	createPlayer(levelPack->getLevel(levelIndex)->getPlayer());
 
 	// Create the level manager
 	registry.reserve<LevelManagerTag>(1);
 	registry.reserve(registry.alive() + 1);
 	levelManager = registry.create();
 	registry.assign<LevelManagerTag>(entt::tag_t{}, levelManager, levelPack->getLevel(levelIndex));
+	
+	resume();
 }
 
-void GameInstance::createPlayer() {
-	//TODO: when creating the player, attach PlayerComponent as a Tag
-	// then use registry.get<PlayerTag>(); to get the player entity
-	//TODO: allocate space for components and entity first
+void GameInstance::handleEvent(sf::Event event) {
+	playerSystem->handleEvent(event);
+}
+
+void GameInstance::pause() {
+}
+
+void GameInstance::resume() {
+	playerSystem->onResume();
+}
+
+void GameInstance::createPlayer(EditorPlayer params) {
+	registry.reserve(1);
+	registry.reserve<PlayerTag>(1);
+	registry.reserve<AnimatableSetComponent>(1);
+	registry.reserve<HealthComponent>(1);
+	registry.reserve<HitboxComponent>(1);
+	registry.reserve<PositionComponent>(1);
+	registry.reserve<SpriteComponent>(1);
+
+	auto player = registry.create();
+	registry.assign<PlayerTag>(entt::tag_t{}, player, params.getSpeed(), params.getFocusedSpeed(), params.getAttackPattern(), params.getAttackPatternLoopDelay(), params.getFocusedAttackPattern(), params.getFocusedAttackPatternLoopDelay());
+	registry.assign<AnimatableSetComponent>(player, params.getAnimatableSet());
+	registry.assign<HealthComponent>(player, params.getInitialHealth(), params.getMaxHealth());
+	registry.assign<HitboxComponent>(player, params.getHitboxRadius(), params.getHitboxPosX(), params.getHitboxPosY());
+	registry.assign<PositionComponent>(player, PLAYER_SPAWN_X - params.getHitboxPosX(), PLAYER_SPAWN_Y - params.getHitboxPosY());
+	registry.assign<SpriteComponent>(player);
 }

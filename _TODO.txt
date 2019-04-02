@@ -14,15 +14,8 @@ Notes for me:
  objects, so the sf::Sprite pointer in SpriteEffectAnimation MUST point to a SpriteComponent's pointer (so when setting SpriteEffectAnimation, 
  spriteComponent.getSprite() must be used) so that other sf::Sprites are not affected.
 
-CURRENT TODO:
-death animation by making new entity
-death animation is a DeathAction; DeathAnimationDeathAction choices:
-	-Play animatable (if sprite, specify duration)
-	-Shrink (sprite shrinks into nothing; specify duration)
-	-FadeAway (specify duration)
-
-
 TODO:
+-When an entity rotates, rotate its hitbox too if hitboxPosX and/or Y are not 0
 -Power up tiers for player; each has its own animatableset
 -item drops (see math notes)		
 -Multiple small shockwave effects 

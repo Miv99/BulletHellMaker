@@ -20,23 +20,23 @@ MPSpawnInformation SpecificGlobalEMPSpawn::getSpawnInfo(entt::DefaultRegistry & 
 	return MPSpawnInformation{ false, NULL, sf::Vector2f(x, y) };
 }
 
-std::string EnemyRelativeEMPSpawn::format() {
+std::string EntityRelativeEMPSpawn::format() {
 	std::string res = "";
-	res += "EnemyRelativeEMPSpawn" + delim;
+	res += "EntityRelativeEMPSpawn" + delim;
 	res += tos(x) + delim;
 	res += tos(y) + delim;
 	res += tos(time);
 	return res;
 }
 
-void EnemyRelativeEMPSpawn::load(std::string formattedString) {
+void EntityRelativeEMPSpawn::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	x = std::stof(items[1]);
 	y = std::stof(items[2]);
 	time = std::stof(items[3]);
 }
 
-MPSpawnInformation EnemyRelativeEMPSpawn::getSpawnInfo(entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
+MPSpawnInformation EntityRelativeEMPSpawn::getSpawnInfo(entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
 	// Assume that if the entity spawning this has no MovementPathComponent, it has stayed at the same global position for its entire lifespan
 	if (registry.has<MovementPathComponent>(entity)) {
 		auto& pos = registry.get<MovementPathComponent>(entity).getPreviousPosition(registry, timeLag);
@@ -47,23 +47,23 @@ MPSpawnInformation EnemyRelativeEMPSpawn::getSpawnInfo(entt::DefaultRegistry & r
 	}
 }
 
-std::string EnemyAttachedEMPSpawn::format() {
+std::string EntityAttachedEMPSpawn::format() {
 	std::string res = "";
-	res += "EnemyAttachedEMPSpawn" + delim;
+	res += "EntityAttachedEMPSpawn" + delim;
 	res += tos(x) + delim;
 	res += tos(y) + delim;
 	res += tos(time);
 	return res;
 }
 
-void EnemyAttachedEMPSpawn::load(std::string formattedString) {
+void EntityAttachedEMPSpawn::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	x = std::stof(items[1]);
 	y = std::stof(items[2]);
 	time = std::stof(items[3]);
 }
 
-MPSpawnInformation EnemyAttachedEMPSpawn::getSpawnInfo(entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
+MPSpawnInformation EntityAttachedEMPSpawn::getSpawnInfo(entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
 	return MPSpawnInformation{ true, entity, sf::Vector2f(x, y) };
 }
 
@@ -73,11 +73,11 @@ std::shared_ptr<EMPSpawnType> EMPSpawnTypeFactory::create(std::string formattedS
 	if (name == "SpecificGlobalEMPSpawn") {
 		ptr = std::make_shared<SpecificGlobalEMPSpawn>();
 	}
-	else if (name == "EnemyRelativeEMPSpawn") {
-		ptr = std::make_shared<EnemyRelativeEMPSpawn>();
+	else if (name == "EntityRelativeEMPSpawn") {
+		ptr = std::make_shared<EntityRelativeEMPSpawn>();
 	} 
-	else if (name == "EnemyAttachedEMPSpawn") {
-		ptr = std::make_shared<EnemyAttachedEMPSpawn>();
+	else if (name == "EntityAttachedEMPSpawn") {
+		ptr = std::make_shared<EntityAttachedEMPSpawn>();
 	}
 	ptr->load(formattedString);
 	return ptr;

@@ -284,3 +284,9 @@ void AnimatableSetComponent::changeState(int newState, SpriteLoader& spriteLoade
 		currentState = newState;
 	}
 }
+
+PlayerTag::PlayerTag(float speed, float focusedSpeed, std::shared_ptr<EditorAttackPattern> attackPattern, float attackPatternLoopDelay,
+	std::shared_ptr<EditorAttackPattern> focusedAttackPattern, float focusedAttackPatternLoopDelay) : speed(speed), focusedSpeed(focusedSpeed), attackPattern(attackPattern), focusedAttackPattern(focusedAttackPattern) {
+	attackPatternTotalTime = attackPattern->getAttackData(attackPattern->getAttacksCount() - 1).first + attackPatternLoopDelay;
+	focusedAttackPatternTotalTime = focusedAttackPattern->getAttackData(focusedAttackPattern->getAttacksCount() - 1).first + focusedAttackPatternLoopDelay;
+}

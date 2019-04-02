@@ -7,6 +7,7 @@
 #include "TextMarshallable.h"
 #include "EntityAnimatableSet.h"
 #include "SpriteLoader.h"
+#include "Components.h"
 
 /*
 An action that is executed on the death of an entity.
