@@ -1,6 +1,5 @@
 #include "PlayerSystem.h"
 #include "Constants.h"
-#include <iostream>
 
 void PlayerSystem::update(float deltaTime) {
 	uint32_t playerEntity = registry.attachee<PlayerTag>();
@@ -29,13 +28,11 @@ void PlayerSystem::update(float deltaTime) {
 		auto currentAttackPattern = focused ? playerTag.getFocusedAttackPattern() : playerTag.getAttackPattern();
 		float attackPatternTotalTime = focused ? playerTag.getFocusedAttackPatternTotalTime() : playerTag.getAttackPatternTotalTime();
 		timeSinceNewAttackPattern += deltaTime;
-		//std::cout << currentAttackPattern->getAttackData(0).second << ": " << timeSinceNewAttackPattern << "/" << attackPatternTotalTime << std::endl;
 
 		while (currentAttackIndex + 1 < currentAttackPattern->getAttacksCount()) {
 			auto nextAttack = currentAttackPattern->getAttackData(currentAttackIndex + 1);
 			if (timeSinceNewAttackPattern >= nextAttack.first) {
 				currentAttackIndex++;
-				std::cout << nextAttack.second << std::endl;
 				levelPack.getAttack(nextAttack.second)->executeAsPlayer(queue, spriteLoader, registry, playerEntity, timeSinceNewAttackPattern - nextAttack.first, currentAttackPattern->getID());
 			} else {
 				break;
