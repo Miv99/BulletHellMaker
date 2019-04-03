@@ -79,6 +79,7 @@ void GameInstance::startLevel(int levelIndex) {
 
 	// Remove all existing entities from the registry
 	registry.reset();
+	reserveMemory(registry, INITIAL_ENTITY_RESERVATION);
 
 	// Create the player
 	createPlayer(levelPack->getLevel(levelIndex)->getPlayer());

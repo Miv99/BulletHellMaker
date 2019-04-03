@@ -8,6 +8,28 @@ class EditorMovablePoint;
 class SpriteLoader;
 class EditorEnemy;
 
+static void reserveMemory(entt::DefaultRegistry& registry, int reserve) {
+	// If capacity is reached, increase capacity by a set amount of entities
+	if (reserve > registry.capacity()) {
+		reserve = registry.capacity() + ENTITY_RESERVATION_INCREMENT;
+	}
+
+	registry.reserve(reserve);
+	registry.reserve<DespawnComponent>(reserve);
+	registry.reserve<EnemyBulletComponent>(reserve);
+	registry.reserve<EnemyComponent>(reserve);
+	registry.reserve<HealthComponent>(reserve);
+	registry.reserve<HitboxComponent>(reserve);
+	registry.reserve<MovementPathComponent>(reserve);
+	registry.reserve<PlayerBulletComponent>(reserve);
+	registry.reserve<PositionComponent>(reserve);
+	registry.reserve<SpriteComponent>(reserve);
+	registry.reserve<SimpleEMPReferenceComponent>(reserve);
+	registry.reserve<EMPSpawnerComponent>(reserve);
+	registry.reserve<ShadowTrailComponent>(reserve);
+	// Ignore level manager component since there can only be one
+}
+
 /*
 A command that spawns entity/entities. The amount spawned is always known.
 */
@@ -163,20 +185,7 @@ public:
 
 			// Reserve space for the entities that will be spawned by the command
 			int reserve = registry.alive() + command->getEntitiesQueuedCount();
-			//std::cout << reserve << std::endl;
-			registry.reserve(reserve);
-			registry.reserve<DespawnComponent>(reserve);
-			registry.reserve<EnemyBulletComponent>(reserve);
-			registry.reserve<EnemyComponent>(reserve);
-			registry.reserve<HealthComponent>(reserve);
-			registry.reserve<HitboxComponent>(reserve);
-			registry.reserve<MovementPathComponent>(reserve);
-			registry.reserve<PlayerBulletComponent>(reserve);
-			registry.reserve<PositionComponent>(reserve);
-			registry.reserve<SpriteComponent>(reserve);
-			registry.reserve<SimpleEMPReferenceComponent>(reserve);
-			registry.reserve<EMPSpawnerComponent>(reserve);
-			// Ignore level manager component since there can only be one
+			reserveMemory(registry, reserve);
 
 			command->execute(*this);
 		}

@@ -20,7 +20,6 @@ Notes for me:
 
 TODO:
 -test death animations and death animations with different rotations
--Check if reserve is causing lag; if yes, 2^n growth in addition to whatever currently exists
 -Power up tiers for player; each has its own animatableset
 -item drops (see math notes)		
 -Multiple small shockwave effects 
