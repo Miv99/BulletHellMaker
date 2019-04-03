@@ -23,6 +23,7 @@ std::string EditorMovablePoint::format() {
 
 	res += delim + "(" + tos(shadowTrailInterval) + ")";
 	res += delim + "(" + tos(shadowTrailLifespan) + ")";
+	res += delim + tos((int)rotationType);
 
 	return res;
 }
@@ -52,6 +53,7 @@ void EditorMovablePoint::load(std::string formattedString) {
 
 	shadowTrailInterval = stoi(items[i++]);
 	shadowTrailLifespan = stoi(items[i++]);
+	rotationType = static_cast<ROTATION_TYPE>(std::stoi(items[i++]));
 }
 
 bool EditorMovablePoint::legal(SpriteLoader& spriteLoader, std::string & message) {

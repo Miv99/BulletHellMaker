@@ -5,6 +5,8 @@ Documentation to put in the editor somewhere:
 -Sprite names cannot contain the characters '[' ']'
 -No two sprite/animation can have the same name
 -Idle/movement animatables can be sprites, but attack animatable must be an animation
+-It is highly recommended that all animatables in all EntityAnimatableSets of all enemy phases in the same enemy look similar (have the same hitbox and sprite origin)
+ because hitboxes and origins cannot change
 
 Notes for me:
 -The mainEMP of an attack is always spawned at the exact same time of an attack; spawnType's time is ignored
@@ -13,20 +15,18 @@ Notes for me:
  modified, since it will change all other Animations. On the other hand, all sf::Sprite pointers in each SpriteComponent point to unique sf::Sprite
  objects, so the sf::Sprite pointer in SpriteEffectAnimation MUST point to a SpriteComponent's pointer (so when setting SpriteEffectAnimation, 
  spriteComponent.getSprite() must be used) so that other sf::Sprites are not affected.
+-Sprite origin and hitbox origin must be the same values
+-sf::Sprite's origin is relative to the texture's top-left coordinates and ignores scale/rotation/transformations
 
 TODO:
--When an entity rotates, rotate its hitbox too if hitboxPosX and/or Y are not 0
+-test death animations and death animations with different rotations
+-Check if reserve is causing lag; if yes, 2^n growth in addition to whatever currently exists
 -Power up tiers for player; each has its own animatableset
 -item drops (see math notes)		
 -Multiple small shockwave effects 
 -Player bounded in map by their hitbox, not PositionComponent
 -mandatory death effect for each enemy: user chooses a SpriteEffectAnimation (FadeAway, RedFadeAway (tint red + fade away), ...)
 -when an enemy dies, create new entity to play the death animation+effect; if no animation, just do the effect
--animations
-	-keep track of last known pos of an entity in a map in rendersystem; listener for entity deletion -> delete map entry; use this map to see if an entity
-	is moving to update its SpriteComponent's state machine
-	-sprites/anims have 3 options: rotate with angle of movement, lock rotation, lock rotation and face direction of movement
-		-third option means if entity is moving left, all sprites/anims are mirrored across middle y-axis but do not rotate
 -Add to EMP: OnContactAction: TurnIntangible (remove HitboxComponent), DestroyBulletAndAttachedChildren (give children DespawnComponent to this EMP when they spawn),
 	DestroyBulletOnly (remove Sprite and Hitbox)
 -DeathActionComponent (for player + enemies + bullets): does a list of DeathActions: ExecuteAttack (enemies only), ParticleExplosion, PlaySound

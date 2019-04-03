@@ -16,6 +16,10 @@ std::string EditorAttackPattern::format() {
 	for (auto p : actions) {
 		res += delim + "(" + p->format() + ")";
 	}
+
+	res += delim + tos(shadowTrailInterval);
+	res += delim + tos(shadowTrailLifespan);
+
 	return res;
 }
 
@@ -35,6 +39,9 @@ void EditorAttackPattern::load(std::string formattedString) {
 	for (i = last; i < actionsSize + last; i++) {
 		actions.push_back(EMPActionFactory::create(items[i]));
 	}
+
+	shadowTrailInterval = std::stof(items[i++]);
+	shadowTrailLifespan = std::stof(items[i++]);
 }
 
 bool EditorAttackPattern::legal(std::string & message) {

@@ -14,15 +14,18 @@ void PlayAnimatableDeathAction::load(std::string formattedString) {
 
 void PlayAnimatableDeathAction::execute(entt::DefaultRegistry & registry, SpriteLoader & spriteLoader, uint32_t entity) {
 	uint32_t newEntity = registry.create();
+	auto& inheritedSpriteComponent = registry.get<SpriteComponent>(entity);
 
 	if (animatable.isSprite()) {
 		registry.assign<DespawnComponent>(newEntity, duration);
-		auto& spriteComponent = registry.assign<SpriteComponent>(newEntity, spriteLoader.getSprite(animatable.getAnimatableName(), animatable.getSpriteSheetName()));
+		auto& spriteComponent = registry.assign<SpriteComponent>(newEntity, inheritedSpriteComponent.getRotationType(), spriteLoader.getSprite(animatable.getAnimatableName(), animatable.getSpriteSheetName()));
+		spriteComponent.rotate(inheritedSpriteComponent.getInheritedRotationAngle());
 		loadEffectAnimation(spriteComponent);
 	} else {
 		auto animation = spriteLoader.getAnimation(animatable.getAnimatableName(), animatable.getSpriteSheetName(), false);
 		registry.assign<DespawnComponent>(newEntity, animation->getTotalDuration());
-		auto& spriteComponent = registry.assign<SpriteComponent>(newEntity);
+		auto& spriteComponent = registry.assign<SpriteComponent>(newEntity, inheritedSpriteComponent.getRotationType());
+		spriteComponent.rotate(inheritedSpriteComponent.getInheritedRotationAngle());
 		spriteComponent.setAnimation(std::move(animation));
 		loadEffectAnimation(spriteComponent);
 	}

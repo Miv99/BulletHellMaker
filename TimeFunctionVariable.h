@@ -3,10 +3,8 @@
 #include <string>
 #include <memory>
 #include <cassert>
+#include "Constants.h"
 #include "TextMarshallable.h"
-
-#define PI 3.14159265358979323846f
-#define PI2 6.28318530717958647692
 
 /*
 TimeFuncVar (TFV)

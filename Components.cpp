@@ -12,6 +12,7 @@
 #include "EditorMovablePoint.h"
 #include <math.h>
 #include <tuple>
+#include <iostream>
 
 void MovementPathComponent::update(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, PositionComponent& entityPosition, float deltaTime) {
 	time += deltaTime;
@@ -149,6 +150,12 @@ void EnemyComponent::checkAttackPatterns(EntityCreationQueue& queue, SpriteLoade
 			currentAttackPattern = levelPack.getAttackPattern(nextAttackPattern.second);
 
 			currentAttackPattern->changeEntityPathToAttackPatternActions(queue, registry, entity, timeSinceAttackPattern);
+
+			// Update shadow trail properties
+			auto& shadowTrail = registry.get<ShadowTrailComponent>(entity);
+			shadowTrail.setInterval(currentAttackPattern->getShadowTrailInterval());
+			shadowTrail.setLifespan(currentAttackPattern->getShadowTrailLifespan());
+
 			checkAttacks(queue, spriteLoader, levelPack, registry, entity);
 		} else {
 			break;
@@ -199,6 +206,31 @@ void SpriteComponent::update(float deltaTime) {
 
 	if (effectAnimation != nullptr) {
 		effectAnimation->update(deltaTime);
+	}
+
+	// Rotate sprite
+	if (rotationType == ROTATE_WITH_MOVEMENT) {
+		// Negative because SFML uses clockwise rotation
+		sprite->setRotation(-rotationAngle * 180.0 / PI);
+	} else if (rotationType == LOCK_ROTATION) {
+		// Do nothing
+	} else if (rotationType == LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT) {
+		// Flip across y-axis if facing left
+		auto curScale = sprite->getScale();
+		if (rotationAngle < -PI / 2.0f || rotationAngle > PI / 2.0f) {
+			lastFacedRight = false;
+			if (curScale.x > 0) {
+				sprite->setScale(-1.0f * curScale.x, curScale.y);
+			}
+		} else if (rotationAngle > -PI / 2.0f && rotationAngle < PI / 2.0f) {
+			lastFacedRight = true;
+			if (curScale.x < 0) {
+				sprite->setScale(-1.0f * curScale.x, curScale.y);
+			}
+		} else if ((lastFacedRight && curScale.x < 0) || (!lastFacedRight && curScale.x > 0)) {
+			sprite->setScale(-1.0f * curScale.x, curScale.y);
+		}
+		// Do nothing (maintain last values) if angle is a perfect 90 or -90 degree angle
 	}
 }
 

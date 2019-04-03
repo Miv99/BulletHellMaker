@@ -9,6 +9,7 @@
 #include "EntityCreationQueue.h"
 #include "EntityAnimatableSet.h"
 #include "SpriteLoader.h"
+#include "Components.h"
 
 class EMPSpawnType;
 
@@ -48,7 +49,9 @@ public:
 		}
 		return total;
 	}
+	inline ROTATION_TYPE getRotationType() { return rotationType; }
 
+	inline void setRotationType(ROTATION_TYPE rotationType) { this->rotationType = rotationType; }
 	inline void setAnimatable(Animatable animatable) { this->animatable = animatable; }
 	inline void setLoopAnimation(bool loopAnimation) { this->loopAnimation = loopAnimation; }
 	inline void setBaseSprite(Animatable baseSprite) { assert(baseSprite.isSprite()); this->baseSprite = baseSprite; }
@@ -57,6 +60,8 @@ public:
 	inline void setHitboxPosY(float hitboxPosY) { this->hitboxPosY = hitboxPosY; }
 	inline void setDespawnTime(float despawnTime) { this->despawnTime = despawnTime; }
 	void setSpawnType(std::shared_ptr<EMPSpawnType> spawnType);
+	inline void setShadowTrailInterval(float shadowTrailInterval) { this->shadowTrailInterval = shadowTrailInterval; }
+	inline void setShadowTrailLifespan(float shadowTrailLifespan) { this->shadowTrailLifespan = shadowTrailLifespan; }
 	// Inserts an EMPAction such that the new action is at the specified index
 	void insertAction(int index, std::shared_ptr<EMPAction> action);
 	void removeAction(int index);
@@ -125,4 +130,6 @@ private:
 	// The minimum of this value and the total time to complete all EMPActions is the time until this EMP despawns
 	// Set to < 0 if unused (then the total EMPActions time will be used instead)
 	float despawnTime = -1;
+
+	ROTATION_TYPE rotationType;
 };

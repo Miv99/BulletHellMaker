@@ -4,6 +4,7 @@
 #include "AttackPattern.h"
 #include "TextMarshallable.h"
 #include "EntityAnimatableSet.h"
+#include "Components.h"
 
 class EditorPlayer : public TextMarshallable {
 public:
@@ -28,6 +29,21 @@ public:
 	inline std::shared_ptr<EditorAttackPattern> getFocusedAttackPattern() { return focusedAttackPattern; }
 	inline float getAttackPatternLoopDelay() { return attackPatternLoopDelay; }
 	inline float getFocusedAttackPatternLoopDelay() { return focusedAttackPatternLoopDelay; }
+	inline ROTATION_TYPE getRotationType() { return rotationType; }
+
+	inline void setRotationType(ROTATION_TYPE rotationType) { this->rotationType = rotationType; }
+	inline void setInitialHealth(int initialHealth) { this->initialHealth = initialHealth; }
+	inline void setMaxHealth(int maxHealth) { this->maxHealth = maxHealth; }
+	inline void setSpeed(float speed) { this->speed = speed; }
+	inline void setFocusedSpeed(float focusedSpeed) { this->focusedSpeed = focusedSpeed; }
+	inline void setAnimatableSet(EntityAnimatableSet animatableSet) { this->animatableSet = animatableSet; }
+	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; }
+	inline void setHitboxPosX(float hitboxPosX) { this->hitboxPosX = hitboxPosX; }
+	inline void setHitboxPosY(float hitboxPosY) { this->hitboxPosY = hitboxPosY; }
+	inline void setAttackPattern(std::shared_ptr<EditorAttackPattern> attackPattern) { this->attackPattern = attackPattern; }
+	inline void setFocusedAttackPattern(std::shared_ptr<EditorAttackPattern> focusedAttackPattern) { this->focusedAttackPattern = focusedAttackPattern; }
+	inline float setAttackPatternLoopDelay(float attackPatternLoopDelay) { this->attackPatternLoopDelay = attackPatternLoopDelay; }
+	inline float setFocusedAttackPatternLoopDelay(float focusedAttackPatternLoopDelay) { this->focusedAttackPatternLoopDelay = focusedAttackPatternLoopDelay; }
 
 private:
 	int initialHealth;
@@ -48,4 +64,6 @@ private:
 	float attackPatternLoopDelay;
 	std::shared_ptr<EditorAttackPattern> focusedAttackPattern;
 	float focusedAttackPatternLoopDelay;
+
+	ROTATION_TYPE rotationType;
 };

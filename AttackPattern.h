@@ -29,6 +29,11 @@ public:
 	inline std::shared_ptr<EMPAction> getAction(int index) { return actions[index]; }
 	inline int getAttacksCount() { return attackIDs.size(); }
 	inline int getActionsCount() { return actions.size(); }
+	inline float getShadowTrailInterval() { return shadowTrailInterval; }
+	inline float getShadowTrailLifespan() { return shadowTrailLifespan; }
+
+	inline void setShadowTrailInterval(float shadowTrailInterval) { this->shadowTrailInterval = shadowTrailInterval; }
+	inline void setShadowTrailLifespan(float shadowTrailLifespan) { this->shadowTrailLifespan = shadowTrailLifespan; }
 
 	void addAttackID(float time, int id);
 	// Inserts an EMPAction such that the new action is at the specified index
@@ -45,4 +50,10 @@ private:
 	std::vector<std::pair<float, int>> attackIDs;
 	// EMPActions that will be carried out by the enemy that has this attack pattern as soon as the previous EMPAction ends
 	std::vector<std::shared_ptr<EMPAction>> actions;
+
+	// Shadow trails are only for enemies
+	// See ShadowTrailComponent
+	float shadowTrailInterval = 0.15f;
+	// Set to 0 or a negative number to disable shadow trail
+	float shadowTrailLifespan = 0;
 };

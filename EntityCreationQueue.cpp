@@ -5,6 +5,7 @@
 #include "SpriteLoader.h"
 #include "Enemy.h"
 #include "EntityAnimatableSet.h"
+#include "Constants.h"
 #include <algorithm>
 #include <iostream>
 
@@ -51,8 +52,8 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 	// If animatable name is not empty, this EMP is a bullet
 	Animatable animatable = emp->getAnimatable();
 	if (animatable.getAnimatableName() != "") {
-		registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), emp->getHitboxPosX(), emp->getHitboxPosY());
-		registry.assign<SpriteComponent>(bullet, spriteLoader.getSprite(animatable.getAnimatableName(), animatable.getSpriteSheetName()));
+		registry.assign<HitboxComponent>(bullet, emp->getRotationType(), emp->getHitboxRadius(), emp->getHitboxPosX(), emp->getHitboxPosY());
+		registry.assign<SpriteComponent>(bullet, emp->getRotationType(), spriteLoader.getSprite(animatable.getAnimatableName(), animatable.getSpriteSheetName()));
 
 		registry.assign<EnemyBulletComponent>(bullet, attackID, attackPatternID, enemyID, enemyPhaseID);
 	}
@@ -115,8 +116,8 @@ void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
 	// If animatable name is not empty, this EMP is a bullet
 	Animatable animatable = emp->getAnimatable();
 	if (animatable.getAnimatableName() != "") {
-		registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), emp->getHitboxPosX(), emp->getHitboxPosY());
-		registry.assign<SpriteComponent>(bullet, spriteLoader.getSprite(animatable.getAnimatableName(), animatable.getSpriteSheetName()));
+		registry.assign<HitboxComponent>(bullet, emp->getRotationType(), emp->getHitboxRadius(), emp->getHitboxPosX(), emp->getHitboxPosY());
+		registry.assign<SpriteComponent>(bullet, emp->getRotationType(), spriteLoader.getSprite(animatable.getAnimatableName(), animatable.getSpriteSheetName()));
 
 		registry.assign<PlayerBulletComponent>(bullet, attackID, attackPatternID);
 	}
@@ -212,10 +213,11 @@ void SpawnEnemyCommand::execute(EntityCreationQueue & queue) {
 	if (enemyInfo->getDespawnTime() > 0) {
 		registry.assign<DespawnComponent>(enemy, enemyInfo->getDespawnTime());
 	}
-	registry.assign<HitboxComponent>(enemy, enemyInfo->getHitboxRadius(), enemyInfo->getHitboxPosX(), enemyInfo->getHitboxPosY());
-	registry.assign<SpriteComponent>(enemy);
+	registry.assign<HitboxComponent>(enemy, enemyInfo->getRotationType(), enemyInfo->getHitboxRadius(), enemyInfo->getHitboxPosX(), enemyInfo->getHitboxPosY());
+	registry.assign<SpriteComponent>(enemy, enemyInfo->getRotationType());
 	registry.assign<EnemyComponent>(enemy, enemyInfo, enemyInfo->getID());
 	registry.assign<AnimatableSetComponent>(enemy);
+	registry.assign<ShadowTrailComponent>(enemy, 0, 0);
 
 	// Reset level manager's timeSinceLastEnemySpawn
 	registry.get<LevelManagerTag>().setTimeSinceLastEnemySpawn(0);
@@ -229,9 +231,8 @@ void SpawnShadowTrailCommand::execute(EntityCreationQueue & queue) {
 	auto shadow = registry.create();
 	registry.assign<PositionComponent>(shadow, x, y);
 	// Make a copy of the sprite to be the shadow's sprite
-	auto& spriteComponent = registry.assign<SpriteComponent>(shadow, std::make_shared<sf::Sprite>(sprite));
-	//TODO: make these shadow trail numbers some constants
-	spriteComponent.setEffectAnimation(std::make_unique<FadeAwaySEA>(spriteComponent.getSprite(), 0, 0.75f, shadowLifespan));
+	auto& spriteComponent = registry.assign<SpriteComponent>(shadow, LOCK_ROTATION, std::make_shared<sf::Sprite>(sprite));
+	spriteComponent.setEffectAnimation(std::make_unique<FadeAwaySEA>(spriteComponent.getSprite(), 0, SHADOW_TRAIL_MAX_OPACITY, shadowLifespan));
 	registry.assign<DespawnComponent>(shadow, shadowLifespan);
 }
 

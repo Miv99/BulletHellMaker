@@ -4,11 +4,13 @@
 #include <memory>
 #include <queue>
 #include <vector>
+#include <math.h>
 #include <cassert>
 #include <string>
 #include "SpriteLoader.h"
 #include "SpriteEffectAnimation.h"
 #include "Animation.h"
+#include "Constants.h"
 #include "EntityAnimatableSet.h"
 
 class MovablePoint;
@@ -22,6 +24,12 @@ class EMPSpawnType;
 class Level;
 class EntityCreationQueue;
 class EditorMovablePoint;
+
+static enum ROTATION_TYPE {
+	ROTATE_WITH_MOVEMENT, // Rotate depending on angle from last position to current position
+	LOCK_ROTATION, // Never rotate
+	LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT // Never rotate but flip sprite/hitbox across y-axis depending on angle from last position to current position
+};
 
 class PositionComponent {
 public:
@@ -110,7 +118,31 @@ public:
 	x - local offset of hitbox
 	y - local offset of hitbox
 	*/
-	HitboxComponent(float radius, float x, float y) : radius(radius), x(x), y(y) {}
+	HitboxComponent(ROTATION_TYPE rotationType, float radius, float x, float y) : rotationType(rotationType), radius(radius), x(x), y(y), unrotatedX(x), unrotatedY(y) {}
+
+	/*
+	angle - radians in range [-pi, pi]
+	*/
+	inline void rotate(float angle) {
+		if (unrotatedX == unrotatedY == 0) return;
+
+		if (rotationType == ROTATE_WITH_MOVEMENT) {
+			float sin = std::sin(angle);
+			float cos = std::cos(angle);
+			x = unrotatedX * cos - unrotatedY * sin;
+			y = unrotatedX * sin + unrotatedY * cos;
+		} else if (rotationType == LOCK_ROTATION) {
+			// Do nothing
+		} else if (rotationType == LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT) {
+			// Flip across y-axis if facing left
+			if (angle < -PI / 2.0f || angle > PI / 2.0f) {
+				y = -unrotatedY;
+			} else if (angle > -PI / 2.0f && angle < PI / 2.0f) {
+				y = unrotatedY;
+			}
+			// Do nothing (maintain last value) if angle is a perfect 90 or -90 degree angle
+		}
+	}
 
 	inline float getRadius() const { return radius; }
 	inline float getX() const { return x; }
@@ -118,16 +150,26 @@ public:
 	inline void setRadius(float radius) { this->radius = radius; }
 
 private:
+	// If entity has a SpriteComponent, this rotationType must match its SpriteComponent's rotationType
+	ROTATION_TYPE rotationType;
+
 	float radius;
 	float x, y;
+	// Local offset of hitbox when rotated at angle 0
+	float unrotatedX, unrotatedY;
 };
 
 class SpriteComponent {
 public:
-	inline SpriteComponent() {}
-	inline SpriteComponent(std::shared_ptr<sf::Sprite> sprite) : sprite(sprite), originalSprite(*sprite) {}
+	inline SpriteComponent(ROTATION_TYPE rotationType) : rotationType(rotationType) {}
+	inline SpriteComponent(ROTATION_TYPE rotationType, std::shared_ptr<sf::Sprite> sprite) : rotationType(rotationType), sprite(sprite), originalSprite(*sprite) {}
 
 	void update(float deltaTime);
+
+	/*
+	angle - radians in range [-pi, pi]
+	*/
+	inline void rotate(float angle) { rotationAngle = angle; }
 
 	inline bool animationIsDone() { assert(animation != nullptr); return animation->isDone(); }
 	inline const std::shared_ptr<sf::Sprite> getSprite() { return sprite; }
@@ -164,8 +206,27 @@ public:
 		assert(effectAnimation != nullptr);
 		return effectAnimation->getShader();
 	}
+	inline ROTATION_TYPE getRotationType() { return rotationType; }
+	/*
+	Returns the angle of rotation of the sprite for the purpose of
+	creating sprites with the same rotation angle and type.
+	*/
+	inline float getInheritedRotationAngle() { 
+		if (rotationType == LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT) {
+			if (lastFacedRight) return 0;
+			return -PI;
+		}
+		return rotationAngle;
+	}
 
 private:
+	// If entity has a HitboxComponent, this rotationType must match its HitboxComponent's rotationType
+	ROTATION_TYPE rotationType;
+	// Last faced direction used only for rotation type LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT
+	bool lastFacedRight = true;
+	// In radians
+	float rotationAngle = 0;
+
 	std::shared_ptr<sf::Sprite> sprite;
 	// The original sprite. Used for returning to original appearance after an animation ends.
 	sf::Sprite originalSprite;
@@ -386,6 +447,8 @@ public:
 	Returns true if a shadow should be created at the moment of the update call.
 	*/
 	inline bool update(float deltaTime) {
+		if (lifespan <= 0) return false;
+
 		time += deltaTime;
 		if (time > interval) {
 			time -= interval;
@@ -394,6 +457,9 @@ public:
 		return false;
 	}
 	inline float getLifespan() { return lifespan; }
+
+	inline void setInterval(float interval) { this->interval = interval; time = 0; }
+	inline void setLifespan(float lifespan) { this->lifespan = lifespan; time = 0; }
 
 private:
 	// Time inbetween each shadow's creation

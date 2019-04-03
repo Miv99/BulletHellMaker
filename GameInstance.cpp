@@ -34,7 +34,7 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 
 	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
 	renderSystem = std::make_unique<RenderSystem>(registry, window);
-	collisionSystem = std::make_unique<CollisionSystem>(registry, MAP_WIDTH, MAP_HEIGHT, HitboxComponent(levelPack->searchLargestHitbox(), 0, 0));
+	collisionSystem = std::make_unique<CollisionSystem>(registry, MAP_WIDTH, MAP_HEIGHT, HitboxComponent(LOCK_ROTATION, levelPack->searchLargestHitbox(), 0, 0));
 	despawnSystem = std::make_unique<DespawnSystem>(registry);
 	enemySystem = std::make_unique<EnemySystem>(*queue, *spriteLoader, *levelPack, registry);
 	spriteAnimationSystem = std::make_unique<SpriteAnimationSystem>(*spriteLoader, registry);
@@ -116,7 +116,7 @@ void GameInstance::createPlayer(EditorPlayer params) {
 	registry.assign<PlayerTag>(entt::tag_t{}, player, params.getSpeed(), params.getFocusedSpeed(), params.getAttackPattern(), params.getAttackPatternLoopDelay(), params.getFocusedAttackPattern(), params.getFocusedAttackPatternLoopDelay());
 	registry.assign<AnimatableSetComponent>(player, params.getAnimatableSet());
 	registry.assign<HealthComponent>(player, params.getInitialHealth(), params.getMaxHealth());
-	registry.assign<HitboxComponent>(player, params.getHitboxRadius(), params.getHitboxPosX(), params.getHitboxPosY());
+	registry.assign<HitboxComponent>(player, params.getRotationType(), params.getHitboxRadius(), params.getHitboxPosX(), params.getHitboxPosY());
 	registry.assign<PositionComponent>(player, PLAYER_SPAWN_X - params.getHitboxPosX(), PLAYER_SPAWN_Y - params.getHitboxPosY());
-	registry.assign<SpriteComponent>(player);
+	registry.assign<SpriteComponent>(player, params.getRotationType());
 }

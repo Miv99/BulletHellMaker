@@ -17,6 +17,7 @@ std::string EditorEnemy::format() {
 	for (auto action : deathActions) {
 		res += delim + "(" + action->format() + ")";
 	}
+	res += delim + tos((int)rotationType);
 	return res;
 }
 
@@ -39,6 +40,7 @@ void EditorEnemy::load(std::string formattedString) {
 	for (; i < std::stoi(items[next]) + next; i++) {
 		deathActions.push_back(DeathActionFactory::create(items[i]));
 	}
+	rotationType = static_cast<ROTATION_TYPE>(std::stoi(items[i++]));
 }
 
 bool EditorEnemy::legal(std::string& message) {

@@ -9,6 +9,7 @@
 #include "EnemyPhaseStartCondition.h"
 #include "EntityAnimatableSet.h"
 #include "DeathAction.h"
+#include "Components.h"
 
 /*
 An enemy in the editor.
@@ -35,7 +36,9 @@ public:
 	inline float getHitboxPosY() { return hitboxPosY; }
 	inline float getHealth() { return health; }
 	inline float getDespawnTime() { return despawnTime; }
+	inline ROTATION_TYPE getRotationType() { return rotationType; }
 
+	inline void setRotationType(ROTATION_TYPE rotationType) { this->rotationType = rotationType; }
 	inline void setName(std::string name) { this->name = name; }
 	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; }
 	inline void setHitboxPosX(float hitboxPosX) { this->hitboxPosX = hitboxPosX; }
@@ -67,4 +70,6 @@ private:
 	std::vector<std::tuple<std::shared_ptr<EnemyPhaseStartCondition>, int, EntityAnimatableSet>> phaseIDs;
 	// Death actions
 	std::vector<std::shared_ptr<DeathAction>> deathActions;
+
+	ROTATION_TYPE rotationType;
 };

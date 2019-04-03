@@ -21,6 +21,7 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	*/
 	
 	auto attack1 = createAttack();
+	attack1->setPlayAttackAnimation(false);
 	auto attack1emp0 = attack1->searchEMP(0);
 	attack1emp0->setAnimatable(Animatable("Bullet", "sheet1", true));
 	attack1emp0->setHitboxRadius(30);
@@ -34,6 +35,7 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	attack1emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(dist, angle, 60.0f));
 
 	auto attack2 = createAttack();
+	attack2->setPlayAttackAnimation(false);
 	auto attack2emp0 = attack2->searchEMP(0);
 	attack2emp0->setAnimatable(Animatable("Bullet", "sheet1", true));
 	attack2emp0->setHitboxRadius(30);
@@ -43,13 +45,18 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	attack2emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(dist, angle, 60.0f));
 
 	auto ap1 = createAttackPattern();
+	ap1->setShadowTrailLifespan(3.0f);
 	//ap1->insertAction(0, std::make_shared<StayStillAtLastPositionEMPA>(1.0f));
-	ap1->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 50, 2), std::make_shared<ConstantTFV>(0), 2));
+	ap1->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 100, 2), std::make_shared<ConstantTFV>(0), 2));
+	ap1->insertAction(1, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 100, 2), std::make_shared<ConstantTFV>(PI/2.0), 2));
+	ap1->insertAction(2, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 100, 2), std::make_shared<ConstantTFV>(PI), 2));
+	ap1->insertAction(3, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 100, 2), std::make_shared<ConstantTFV>(3 * PI/2.0), 2));
+	/*
 	ap1->insertAction(1, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<ConstantTFV>(150), std::make_shared<LinearTFV>(-PI/2.0, -PI/2.0 + 2.0*PI, 4), 4));
 	std::vector<sf::Vector2f> cp = {sf::Vector2f(0, 0), sf::Vector2f(-15.0f, 218.2f), sf::Vector2f(-103.0f, 166.2f), sf::Vector2f(-64.7f, 25.5f)};
 	ap1->insertAction(2, std::make_shared<MoveCustomBezierEMPA>(cp, 6.0f));
 	ap1->insertAction(3, std::make_shared<StayStillAtLastPositionEMPA>(1.0f));
-
+	*/
 	
 	bool alt = false;
 	for (float time = 0; time < 5; time += 0.1f) {
@@ -86,6 +93,7 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	enemy1->setHitboxPosX(35);
 	enemy1->setHitboxPosY(45);
 	enemy1->setName("test enemy 1");
+	enemy1->setRotationType(LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT);
 
 	auto level = std::make_shared<Level>("test level 1");
 	auto playerAP = createAttackPattern();
