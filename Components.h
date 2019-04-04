@@ -12,6 +12,7 @@
 #include "Animation.h"
 #include "Constants.h"
 #include "EntityAnimatableSet.h"
+#include "EnemySpawn.h"
 
 class MovablePoint;
 class AggregatorMP;
@@ -97,6 +98,14 @@ private:
 class HealthComponent {
 public:
 	HealthComponent(float health = 0, float maxHealth = 0) : health(health), maxHealth(maxHealth) {}
+
+	/*
+	Take damage and returns true if health goes below 0.
+	*/
+	inline bool takeDamage(float damage) {
+		health -= damage;
+		return health <= 0;
+	}
 
 	inline float getHealth() const { return health; }
 	inline float getMaxHealth() const { return maxHealth; }
@@ -261,11 +270,13 @@ private:
 
 class EnemyComponent {
 public:
-	EnemyComponent(std::shared_ptr<EditorEnemy> enemyData, int enemyID);
+	EnemyComponent(std::shared_ptr<EditorEnemy> enemyData, EnemySpawnInfo spawnInfo, int enemyID);
 	void update(EntityCreationQueue& queue, SpriteLoader& spriteLoader, const LevelPack& levelPack, entt::DefaultRegistry& registry, uint32_t entity, float deltaTime);
 
 	inline float getTimeSinceSpawned() const { return timeSinceSpawned; }
 	inline float getTimeSinceLastPhase() const { return timeSincePhase; }
+	inline std::shared_ptr<EditorEnemy> getEnemyData() const { return enemyData; }
+	inline EnemySpawnInfo getEnemySpawnInfo() const { return spawnInfo; }
 
 private:
 	// Time since being spawned
@@ -274,6 +285,8 @@ private:
 	float timeSincePhase = 0;
 	// Time since start of the current attack pattern
 	float timeSinceAttackPattern = 0;
+
+	EnemySpawnInfo spawnInfo;
 
 	int enemyID;
 	std::shared_ptr<EditorEnemy> enemyData;
@@ -296,14 +309,22 @@ private:
 class DespawnComponent {
 public:
 	/*
+	Empty DespawnComponent that does nothing on updates
+	*/
+	inline DespawnComponent() : attachedToEntity(false), useTime(false) {}
+	/*
 	maxTime - time before entity with this component despawns
 	*/
 	inline DespawnComponent(float maxTime) : maxTime(maxTime), useTime(true) {}
 	/*
-	entity - the entity that, when it despawns, the entity with this component will despawn
-	identifier - for method signature differentiation; value not important
+	entity - the entity that, when it despawns, the entity with this component will despawn. This entity must have a DespawnComponent.
+	self - the entity with this DespawnComponent
 	*/
-	inline DespawnComponent(uint32_t entity, bool identifier) : attachedTo(entity), attachedToEntity(true), useTime(false) {}
+	inline DespawnComponent(entt::DefaultRegistry& registry, uint32_t entity, uint32_t self) : attachedTo(entity), attachedToEntity(true), useTime(false) {
+		assert(registry.has<DespawnComponent>(entity));
+		registry.get<DespawnComponent>(entity).addChild(self);
+	}
+
 	// Returns true if entity with this component should be despawned
 	inline bool update(const entt::DefaultRegistry& registry, float deltaTime) {
 		bool despawn = false;
@@ -316,7 +337,10 @@ public:
 		}
 		return despawn;
 	}
+	
+	inline void addChild(uint32_t child) { children.push_back(child); }
 
+	inline const std::vector<uint32_t> getChildren() { return children; }
 	inline void setMaxTime(float maxTime) {
 		useTime = true;
 		this->maxTime = maxTime;
@@ -326,10 +350,14 @@ private:
 	// Time since the entity with this component spawned
 	float time = 0;
 	float maxTime;
-	bool useTime;
+	bool useTime = false;
 
 	bool attachedToEntity = false;
 	uint32_t attachedTo;
+
+	// Entities that are attached to the entity with this DespawnComponent
+	// When this entity is deleted, so are all its children
+	std::vector<uint32_t> children;
 };
 
 // Component assigned only to a single entity - the level manager
@@ -372,13 +400,17 @@ private:
 
 class PlayerBulletComponent {
 public:
-	PlayerBulletComponent(int attackID, int attackPatternID) : attackID(attackID), attackPatternID(attackPatternID) {}
+	PlayerBulletComponent(int attackID, int attackPatternID, float damage) : attackID(attackID), attackPatternID(attackPatternID), damage(damage) {}
+
+	inline float getDamage() { return damage; }
 
 private:
 	// The attack this bullet belongs to
 	int attackID;
 	// The attack pattern this bullet belongs to
 	int attackPatternID;
+
+	float damage;
 };
 
 /*

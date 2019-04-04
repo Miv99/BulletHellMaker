@@ -1,5 +1,7 @@
 #include "Components.h"
 #include "CollisionSystem.h"
+#include "Enemy.h"
+#include <iostream>
 
 float distance(float x1, float y1, float x2, float y2) {
 	return sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2));
@@ -13,7 +15,7 @@ float max(float a, float b) {
 	return a > b ? a : b;
 }
 
-CollisionSystem::CollisionSystem(entt::DefaultRegistry & registry, float mapWidth, float mapHeight, const HitboxComponent& largestHitbox) : registry(registry) {
+CollisionSystem::CollisionSystem(SpriteLoader& spriteLoader, entt::DefaultRegistry & registry, float mapWidth, float mapHeight, const HitboxComponent& largestHitbox) : spriteLoader(spriteLoader), registry(registry) {
 	defaultTableObjectMaxSize = 2.0f * max(mapWidth, mapHeight) / 10.0;
 	defaultTable = SpatialHashTable<uint32_t>(mapWidth, mapHeight, defaultTableObjectMaxSize/2.0f);
 	largeObjectsTable = SpatialHashTable<uint32_t>(mapWidth, mapHeight, largestHitbox.getRadius() * 2.0f);
@@ -60,7 +62,10 @@ void CollisionSystem::update(float deltaTime) {
 
 	// Collision detection, looping through only players and enemies
 	playerView.each([&](auto entity, auto& player, auto& position, auto& hitbox) {
-		for (auto bullet : defaultTable.getNearbyObjects(hitbox, position), largeObjectsTable.getNearbyObjects(hitbox, position)) {
+		auto all = defaultTable.getNearbyObjects(hitbox, position);
+		auto large = largeObjectsTable.getNearbyObjects(hitbox, position);
+		all.insert(all.end(), large.begin(), large.end());
+		for (auto bullet : all) {
 			// Make sure it's an enemy bullet
 			if (!registry.has<EnemyBulletComponent>(bullet)) {
 				continue;
@@ -79,7 +84,10 @@ void CollisionSystem::update(float deltaTime) {
 	});
 
 	enemyView.each([&](auto entity, auto& enemy, auto& position, auto& hitbox) {
-		for (auto bullet : defaultTable.getNearbyObjects(hitbox, position), largeObjectsTable.getNearbyObjects(hitbox, position)) {
+		auto all = defaultTable.getNearbyObjects(hitbox, position);
+		auto large = largeObjectsTable.getNearbyObjects(hitbox, position);
+		all.insert(all.end(), large.begin(), large.end());
+		for (auto bullet : all) {
 			// Make sure it's a player bullet
 			if (!registry.has<PlayerBulletComponent>(bullet)) {
 				continue;
@@ -90,13 +98,26 @@ void CollisionSystem::update(float deltaTime) {
 			if (collides(position, hitbox, bulletPosition, bulletHitbox)) {
 				// TODO: collision stuff
 
-				// TODO: call entity's OnDeath if entity died and if it has an OnDeath
+				// Enemy takes damage
+				if (registry.has<HealthComponent>(entity) && registry.get<HealthComponent>(entity).takeDamage(registry.get<PlayerBulletComponent>(bullet).getDamage())) {
+					// Enemy is dead
+
+					// Call the enemy's DeathActions
+					for (auto deathAction : enemy.getEnemyData()->getDeathActions()) {
+						deathAction->execute(registry, spriteLoader, entity);
+					}
+					// Drop items, if any TODO
+					
+					// Delete enemy
+					registry.get<DespawnComponent>(entity).setMaxTime(0);
+				}
 
 				// The bullet entity is not destroyed in case there are MPs that are using it as a reference
 				// Remove all components except for MovementPathComponent, PositionComponent, and DespawnComponent
 				if (registry.has<ShadowTrailComponent>(bullet)) {
 					registry.remove<ShadowTrailComponent>(bullet);
 				}
+				registry.remove<SpriteComponent>(bullet);
 				registry.remove<HitboxComponent>(bullet);
 				registry.remove<PlayerBulletComponent>(bullet);
 				if (registry.has<EMPSpawnerComponent>(bullet)) {

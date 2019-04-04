@@ -2,13 +2,15 @@
 #include <entt/entt.hpp>
 #include "SpatialHashTable.h"
 #include "Components.h"
+#include "SpriteLoader.h"
 
 class CollisionSystem {
 public:
-	CollisionSystem(entt::DefaultRegistry& registry, float mapWidth, float mapHeight, const HitboxComponent& largestHitbox);
+	CollisionSystem(SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, float mapWidth, float mapHeight, const HitboxComponent& largestHitbox);
 	void update(float deltaTime);
 
 private:
+	SpriteLoader& spriteLoader;
 	entt::DefaultRegistry& registry;
 	// Spatial hash table with cell size equal to max(mapWidth, mapHeight)/10
 	SpatialHashTable<uint32_t> defaultTable;
