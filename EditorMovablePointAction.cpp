@@ -77,9 +77,12 @@ std::shared_ptr<MovablePoint> StayStillAtLastPositionEMPA::execute(EntityCreatio
 	auto& mpc = registry.get<MovementPathComponent>(entity);
 
 	// Last known position, relative to the entity's reference
-	auto pos = mpc.getPath()->compute(sf::Vector2f(0, 0), mpc.getPath()->getLifespan());
+	//auto pos = mpc.getPath()->compute(sf::Vector2f(0, 0), mpc.getPath()->getLifespan());
+	auto& lastPos = registry.get<PositionComponent>(entity);
+	// Queue creation of the reference entity
+	queue.pushFront(std::make_unique<CreateMovementReferenceEntityCommand>(registry, entity, timeLag, lastPos.getX(), lastPos.getY()));
 
-	return std::make_shared<StationaryMP>(pos, duration);
+	return std::make_shared<StationaryMP>(sf::Vector2f(0, 0), duration);
 }
 
 std::string MoveCustomPolarEMPA::format() {
@@ -100,7 +103,7 @@ std::shared_ptr<MovablePoint> MoveCustomPolarEMPA::execute(EntityCreationQueue& 
 	// Queue creation of the reference entity
 	float referenceEntityAngleOffset = angle->evaluate(0);
 	float referenceEntityDistanceOffset = distance->evaluate(0);
-	queue.pushFront(std::make_unique<CreateMovementRefereceEntityCommand>(registry, entity, timeLag, lastPos.getX() + referenceEntityDistanceOffset * std::cos(referenceEntityAngleOffset + PI), lastPos.getY() + referenceEntityDistanceOffset * std::sin(referenceEntityAngleOffset + PI)));
+	queue.pushFront(std::make_unique<CreateMovementReferenceEntityCommand>(registry, entity, timeLag, lastPos.getX() + referenceEntityDistanceOffset * std::cos(referenceEntityAngleOffset + PI), lastPos.getY() + referenceEntityDistanceOffset * std::sin(referenceEntityAngleOffset + PI)));
 	
 	if (angleOffset == nullptr) {
 		return std::make_shared<PolarMP>(time, distance, angle);
@@ -134,7 +137,7 @@ std::shared_ptr<MovablePoint> MoveCustomBezierEMPA::execute(EntityCreationQueue 
 
 	auto& lastPos = registry.get<PositionComponent>(entity);
 	// Queue creation of the reference entity
-	queue.pushFront(std::make_unique<CreateMovementRefereceEntityCommand>(registry, entity, timeLag, lastPos.getX(), lastPos.getY()));
+	queue.pushFront(std::make_unique<CreateMovementReferenceEntityCommand>(registry, entity, timeLag, lastPos.getX(), lastPos.getY()));
 
 	return std::make_shared<BezierMP>(time, controlPoints);
 }

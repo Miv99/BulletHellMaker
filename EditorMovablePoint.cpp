@@ -113,6 +113,14 @@ bool EditorMovablePoint::legal(SpriteLoader& spriteLoader, std::string & message
 
 void EditorMovablePoint::setSpawnType(std::shared_ptr<EMPSpawnType> spawnType) {
 	this->spawnType = spawnType;
+
+	// If this EMP has a parent, re-insert this EMP into the parent so that
+	// the list of children maintains order, since it is sorted by EMPSpawnType time
+	if (!parent.expired()) {
+		auto parentPtr = parent.lock();
+		parentPtr->removeChild(id);
+		parentPtr->addChild(shared_from_this());
+	}
 }
 
 void EditorMovablePoint::insertAction(int index, std::shared_ptr<EMPAction> action) {
@@ -121,6 +129,23 @@ void EditorMovablePoint::insertAction(int index, std::shared_ptr<EMPAction> acti
 
 void EditorMovablePoint::removeAction(int index) {
 	actions.erase(actions.begin() + index);
+}
+
+void EditorMovablePoint::removeChild(int id) {
+	int pos = 0;
+	for (pos = 0; pos < children.size(); pos++) {
+		if (children[pos]->id == id) {
+			break;
+		}
+	}
+	children.erase(children.begin() + pos);
+}
+
+std::shared_ptr<EditorMovablePoint> EditorMovablePoint::createChild(std::shared_ptr<EMPSpawnType> spawnType) {
+	std::shared_ptr<EditorMovablePoint> child = std::make_shared<EditorMovablePoint>(nextID);
+	child->setSpawnType(spawnType);
+	addChild(child);
+	return child;
 }
 
 void EditorMovablePoint::addChild(std::shared_ptr<EditorMovablePoint> child) {

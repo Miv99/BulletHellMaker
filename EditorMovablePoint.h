@@ -50,7 +50,9 @@ public:
 		return total;
 	}
 	inline ROTATION_TYPE getRotationType() { return rotationType; }
+	inline float getDamage() { return damage; }
 
+	inline void setDamage(float damage) { this->damage = damage; }
 	inline void setRotationType(ROTATION_TYPE rotationType) { this->rotationType = rotationType; }
 	inline void setAnimatable(Animatable animatable) { this->animatable = animatable; }
 	inline void setLoopAnimation(bool loopAnimation) { this->loopAnimation = loopAnimation; }
@@ -65,7 +67,22 @@ public:
 	// Inserts an EMPAction such that the new action is at the specified index
 	void insertAction(int index, std::shared_ptr<EMPAction> action);
 	void removeAction(int index);
-	// Adds a child EMP
+	/*
+	Removes a child.
+
+	id - the ID of the child EMP
+	*/
+	void removeChild(int id);
+	/*
+	Creates a child of this EMP and adds it to the list of children.
+
+	spawnType - spawn type of the child
+	Returns the child EMP
+	*/
+	std::shared_ptr<EditorMovablePoint> createChild(std::shared_ptr<EMPSpawnType> spawnType);
+	/*
+	Adds an existing EMP to the list of children.
+	*/
 	void addChild(std::shared_ptr<EditorMovablePoint> child);
 
 	inline int getTreeSize() {
@@ -132,4 +149,7 @@ private:
 	float despawnTime = -1;
 
 	ROTATION_TYPE rotationType;
+
+	// Only for bullets; the amount of damage this bullet deals
+	float damage = 1;
 };

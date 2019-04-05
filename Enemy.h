@@ -37,6 +37,7 @@ public:
 	inline float getHealth() { return health; }
 	inline float getDespawnTime() { return despawnTime; }
 	inline ROTATION_TYPE getRotationType() { return rotationType; }
+	inline const std::vector<std::shared_ptr<DeathAction>> getDeathActions() { return deathActions; }
 
 	inline void setRotationType(ROTATION_TYPE rotationType) { this->rotationType = rotationType; }
 	inline void setName(std::string name) { this->name = name; }

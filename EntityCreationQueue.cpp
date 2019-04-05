@@ -8,6 +8,7 @@
 #include "Constants.h"
 #include <algorithm>
 #include <iostream>
+#include "MovablePoint.h"
 
 EMPSpawnFromEnemyCommand::EMPSpawnFromEnemyCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, uint32_t entity, float timeLag, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation) :
 	EntityCreationCommand(registry), spriteLoader(spriteLoader), emp(emp), playAttackAnimation(playAttackAnimation),
@@ -26,7 +27,7 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 
 	// If the bullet's MP reference is the entity executing the attack, make sure the bullet despawns along with the entity
 	if (spawnInfo.useReferenceEntity && spawnInfo.referenceEntity == entity) {
-		registry.assign<DespawnComponent>(bullet, entity, false);
+		registry.assign<DespawnComponent>(bullet, registry, entity, bullet);
 	}
 
 	// Spawn at 0, 0 because creation of the MovementPathComponent will just update the position anyway
@@ -67,6 +68,10 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 		// Update in case there are any children that should be spawned instantly
 		empSpawnerComponent.update(registry, spriteLoader, queue, 0);
 	}
+
+	// Create the simple reference entity, since all entities must have one
+	auto& lastPos = registry.get<PositionComponent>(bullet);
+	queue.pushFront(std::make_unique<CreateMovementReferenceEntityCommand>(registry, bullet, timeLag, lastPos.getX(), lastPos.getY()));
 }
 
 int EMPSpawnFromEnemyCommand::getEntitiesQueuedCount() {
@@ -90,7 +95,7 @@ void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
 
 	// If the bullet's MP reference is the entity executing the attack, make sure the bullet despawns along with the entity
 	if (spawnInfo.useReferenceEntity && spawnInfo.referenceEntity == entity) {
-		registry.assign<DespawnComponent>(bullet, entity, false);
+		registry.assign<DespawnComponent>(bullet, registry, entity, bullet);
 	}
 
 	// Spawn at 0, 0 because creation of the MovementPathComponent will just update the position anyway
@@ -119,7 +124,7 @@ void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
 		registry.assign<HitboxComponent>(bullet, emp->getRotationType(), emp->getHitboxRadius(), emp->getHitboxPosX(), emp->getHitboxPosY());
 		registry.assign<SpriteComponent>(bullet, emp->getRotationType(), spriteLoader.getSprite(animatable.getAnimatableName(), animatable.getSpriteSheetName()));
 
-		registry.assign<PlayerBulletComponent>(bullet, attackID, attackPatternID);
+		registry.assign<PlayerBulletComponent>(bullet, attackID, attackPatternID, emp->getDamage());
 	}
 
 	if (emp->getShadowTrailLifespan() > 0) {
@@ -131,6 +136,10 @@ void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
 		// Update in case there are any children that should be spawned instantly
 		empSpawnerComponent.update(registry, spriteLoader, queue, 0);
 	}
+
+	// Create the simple reference entity, since all entities must have one
+	auto& lastPos = registry.get<PositionComponent>(bullet);
+	queue.pushFront(std::make_unique<CreateMovementReferenceEntityCommand>(registry, bullet, timeLag, lastPos.getX(), lastPos.getY()));
 }
 
 int EMPSpawnFromPlayerCommand::getEntitiesQueuedCount() {
@@ -144,7 +153,7 @@ void EMPADetachFromParentCommand::execute(EntityCreationQueue& queue) {
 	auto reference = registry.create();
 	registry.assign<PositionComponent>(reference, lastPosX, lastPosY);
 	// Reference despawns when the entity executing this action despawns
-	registry.assign<DespawnComponent>(reference, entity, false);
+	registry.assign<DespawnComponent>(reference, registry, entity, reference);
 	mpc.setReferenceEntity(reference);
 	// Update position
 	registry.get<PositionComponent>(entity).setPosition(mpc.getPath()->compute(sf::Vector2f(lastPosX, lastPosY), mpc.getTime()));
@@ -154,68 +163,82 @@ int EMPADetachFromParentCommand::getEntitiesQueuedCount() {
 	return 1;
 }
 
-void CreateMovementRefereceEntityCommand::execute(EntityCreationQueue& queue) {
+void CreateMovementReferenceEntityCommand::execute(EntityCreationQueue& queue) {
 	auto& mpc = registry.get<MovementPathComponent>(entity);
+	auto& psss = registry.get<PositionComponent>(entity);
 
-	// Make new reference entity
-	// The new reference entity is attached to [entity executing this action]'s reference
-	// If no reference, it is attached to nothing
-	auto reference = registry.create();
-	registry.assign<SimpleEMPReferenceComponent>(reference);
-	registry.assign<PositionComponent>(reference, lastPosX, lastPosY);
 	if (mpc.usesReferenceEntity()) {
-		// Find base reference (the first entity in the reference chain that does not have a SimpleEMPReferenceComponent or has no reference)
-		uint32_t baseReference = mpc.getReferenceEntity();
-		while (registry.has<SimpleEMPReferenceComponent>(baseReference)) {
-			auto& brMPC = registry.get<MovementPathComponent>(baseReference);
-			if (brMPC.usesReferenceEntity()) {
-				auto temp = brMPC.getReferenceEntity();
+		if (registry.has<SimpleEMPReferenceComponent>(mpc.getReferenceEntity())) {
+			// If the entity's reference is a simple reference, just move it by updating its path
 
-				// Delete current base reference
-				// Each SimpleEMPReference can be a reference for only one entity, so this deletion is safe
-				registry.destroy(baseReference);
+			auto reference = mpc.getReferenceEntity();
+			auto& referenceMPC = registry.get<MovementPathComponent>(reference);
 
-				baseReference = temp;
-			} else {
-				break;
+			// Calculate position of new reference
+			sf::Vector2f brLastPos(0, 0);
+			if (referenceMPC.usesReferenceEntity()) {
+				auto baseReferencePos = registry.get<PositionComponent>(registry.get<MovementPathComponent>(reference).getReferenceEntity());
+				brLastPos.x = baseReferencePos.getX();
+				brLastPos.y = baseReferencePos.getY();
 			}
-		}
-		// Calculate position of new reference
-		auto& brLastPos = registry.get<PositionComponent>(baseReference);
+			referenceMPC.setPath(queue, registry, reference, registry.get<PositionComponent>(reference), std::make_shared<StationaryMP>(sf::Vector2f(lastPosX - brLastPos.x, lastPosY - brLastPos.y), 0), timeLag);
+		} else {
+			// If the entity's reference is not a simple reference, create a new simple reference for it
 
-		registry.assign<MovementPathComponent>(reference, queue, reference, registry, baseReference, std::make_shared<EntityAttachedEMPSpawn>(0, lastPosX - brLastPos.getX(), lastPosY - brLastPos.getY()), std::vector<std::shared_ptr<EMPAction>>(), timeLag);
+			auto baseReference = mpc.getReferenceEntity();
+			auto& brLastPos = registry.get<PositionComponent>(baseReference);
+
+			// Make new reference entity
+			auto reference = registry.create();
+			registry.assign<SimpleEMPReferenceComponent>(reference);
+			registry.assign<PositionComponent>(reference, lastPosX, lastPosY);
+			registry.assign<MovementPathComponent>(reference, queue, reference, registry, baseReference, std::make_shared<EntityAttachedEMPSpawn>(0, lastPosX - brLastPos.getX(), lastPosY - brLastPos.getY()), std::vector<std::shared_ptr<EMPAction>>(), timeLag);
+			// Reference despawns when the entity executing this action despawns
+			registry.assign<DespawnComponent>(reference, registry, entity, reference);
+
+			mpc.setReferenceEntity(reference);
+		}
 	} else {
+		// If the entity has no reference, create a new simple reference for it
+
+		// Make new reference entity
+		auto reference = registry.create();
+		registry.assign<SimpleEMPReferenceComponent>(reference);
+		registry.assign<PositionComponent>(reference, lastPosX, lastPosY);
 		registry.assign<MovementPathComponent>(reference, queue, reference, registry, reference, std::make_shared<SpecificGlobalEMPSpawn>(0, lastPosX, lastPosY), std::vector<std::shared_ptr<EMPAction>>(), timeLag);
+		// Reference despawns when the entity executing this action despawns
+		registry.assign<DespawnComponent>(reference, registry, entity, reference);
+
+		mpc.setReferenceEntity(reference);
 	}
 
-	// Reference despawns when the entity executing this action despawns
-	registry.assign<DespawnComponent>(reference, entity, false);
-
-	mpc.setReferenceEntity(reference);
 	// Update position
 	mpc.update(queue, registry, entity, registry.get<PositionComponent>(entity), 0);
 }
 
-int CreateMovementRefereceEntityCommand::getEntitiesQueuedCount() {
+int CreateMovementReferenceEntityCommand::getEntitiesQueuedCount() {
 	return 1;
 }
 
-SpawnEnemyCommand::SpawnEnemyCommand(entt::DefaultRegistry & registry, SpriteLoader & spriteLoader, std::shared_ptr<EditorEnemy> enemyInfo, float x, float y) : 
-	EntityCreationCommand(registry), spriteLoader(spriteLoader), enemyInfo(enemyInfo), x(x), y(y) {
+SpawnEnemyCommand::SpawnEnemyCommand(entt::DefaultRegistry & registry, SpriteLoader & spriteLoader, std::shared_ptr<EditorEnemy> enemyInfo, EnemySpawnInfo spawnInfo) : 
+	EntityCreationCommand(registry), spriteLoader(spriteLoader), enemyInfo(enemyInfo), spawnInfo(spawnInfo) {
 }
 
 void SpawnEnemyCommand::execute(EntityCreationQueue & queue) {
 	auto enemy = registry.create();
-	registry.assign<PositionComponent>(enemy, x, y);
+	registry.assign<PositionComponent>(enemy, spawnInfo.getX(), spawnInfo.getY());
 	// EMPActions vector empty because it will be populated in EnemySystem when the enemy begins a phase
-	registry.assign<MovementPathComponent>(enemy, queue, enemy, registry, enemy, std::make_shared<SpecificGlobalEMPSpawn>(0, x, y), std::vector<std::shared_ptr<EMPAction>>(), 0);
+	registry.assign<MovementPathComponent>(enemy, queue, enemy, registry, enemy, std::make_shared<SpecificGlobalEMPSpawn>(0, spawnInfo.getX(), spawnInfo.getY()), std::vector<std::shared_ptr<EMPAction>>(), 0);
 	registry.assign<HealthComponent>(enemy, enemyInfo->getHealth(), enemyInfo->getHealth());
 	if (enemyInfo->getDespawnTime() > 0) {
 		registry.assign<DespawnComponent>(enemy, enemyInfo->getDespawnTime());
+	} else {
+		// Assign empty DespawnComponent so that CollisionSystem can use it later without having to assign a DespawnComponent to the enemy
+		registry.assign<DespawnComponent>(enemy);
 	}
 	registry.assign<HitboxComponent>(enemy, enemyInfo->getRotationType(), enemyInfo->getHitboxRadius(), enemyInfo->getHitboxPosX(), enemyInfo->getHitboxPosY());
 	registry.assign<SpriteComponent>(enemy, enemyInfo->getRotationType());
-	registry.assign<EnemyComponent>(enemy, enemyInfo, enemyInfo->getID());
+	registry.assign<EnemyComponent>(enemy, enemyInfo, spawnInfo, enemyInfo->getID());
 	registry.assign<AnimatableSetComponent>(enemy);
 	registry.assign<ShadowTrailComponent>(enemy, 0, 0);
 

@@ -19,6 +19,12 @@ Notes for me:
 -sf::Sprite's origin is relative to the texture's top-left coordinates and ignores scale/rotation/transformations
 
 TODO:
+-To mimic MPs that gravitate towards the player, make a MP that uses a TFV that always evaluates to angle between two entities.
+ This MP will take 2 parameters: float gravity strength (in range (0, 1]; multiplied by the angle evaluation TFV to reduce turning speed) and TFV speed.
+ Since the angle evaluation TFV is time-invariant, the MP is also time-invariant and thus makes no guarantees about determinism.
+ Since MovementPathComponent::getPreviousPosition requires the MP to know its previous positions, something needs to be figured out.
+ Suggestion: since getPreviousPosition's secondsAgo field cannot exceed MAX_PHYSICS_DELTA_TIME, the MP could just cache all positions at times
+ at most MAX_PHYSICS_DELTA_TIME seconds ago. To get the position at some time, find the 2 nearest cached times and use linear interpolation (good enough estimate)
 -test death animations and death animations with different rotations
 -Power up tiers for player; each has its own animatableset
 -item drops (see math notes)		

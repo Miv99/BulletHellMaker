@@ -80,10 +80,17 @@ public:
 	inline std::shared_ptr<MovablePoint> getPath() { return path; }
 	inline float getTime() { return time; }
 
+	/*
+	Change the path of an entity.
+
+	timeLag - number of seconds ago that the path change should have happened
+	*/
+	void setPath(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, PositionComponent& entityPosition, std::shared_ptr<MovablePoint> newPath, float timeLag);
+
 private:
 	bool useReferenceEntity;
 	uint32_t referenceEntity;
-	// Elapsed time since the the last call to setActions
+	// Elapsed time since the the last path change
 	float time;
 	std::shared_ptr<MovablePoint> path;
 	// Sorted descending in age (index 0 is the oldest path).

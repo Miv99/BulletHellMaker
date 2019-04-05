@@ -3,8 +3,10 @@
 
 void dfsInsertChildren(entt::DefaultRegistry& registry, std::set<uint32_t>& dest, const std::vector<uint32_t>& source) {
 	for (uint32_t entity : source) {
-		dfsInsertChildren(registry, dest, registry.get<DespawnComponent>(entity).getChildren());
-		dest.insert(entity);
+		if (registry.valid(entity)) {
+			dfsInsertChildren(registry, dest, registry.get<DespawnComponent>(entity).getChildren());
+			dest.insert(entity);
+		}
 	}
 }
 

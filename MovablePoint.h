@@ -22,6 +22,9 @@ public:
 	inline float getLifespan() {
 		return lifespan;
 	}
+	inline void setLifespan(float lifespan) {
+		this->lifespan = lifespan;
+	}
 
 protected:
 	// Lifespan of the MP in seconds

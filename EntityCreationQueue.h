@@ -3,6 +3,7 @@
 #include <memory>
 #include <deque>
 #include "Components.h"
+#include "EnemySpawn.h"
 
 class EditorMovablePoint;
 class SpriteLoader;
@@ -70,7 +71,7 @@ Command for creating an enemy.
 */
 class SpawnEnemyCommand : public EntityCreationCommand {
 public:
-	SpawnEnemyCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorEnemy> enemyInfo, float x, float y);
+	SpawnEnemyCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorEnemy> enemyInfo, EnemySpawnInfo spawnInfo);
 
 	void execute(EntityCreationQueue& queue) override;
 	int getEntitiesQueuedCount() override;
@@ -78,8 +79,7 @@ public:
 private:
 	SpriteLoader& spriteLoader;
 	std::shared_ptr<EditorEnemy> enemyInfo;
-	float x;
-	float y;
+	EnemySpawnInfo spawnInfo;
 };
 
 /*
@@ -104,9 +104,9 @@ Command for creating the reference entity at the last position of some entity an
 the executor's reference entity.
 This command must be pushed to the front of the EntityCreationQueue.
 */
-class CreateMovementRefereceEntityCommand : public EntityCreationCommand {
+class CreateMovementReferenceEntityCommand : public EntityCreationCommand {
 public:
-	inline CreateMovementRefereceEntityCommand(entt::DefaultRegistry& registry, uint32_t entity, float timeLag, float lastPosX, float lastPosY) : EntityCreationCommand(registry), entity(entity), timeLag(timeLag), lastPosX(lastPosX), lastPosY(lastPosY) {}
+	inline CreateMovementReferenceEntityCommand(entt::DefaultRegistry& registry, uint32_t entity, float timeLag, float lastPosX, float lastPosY) : EntityCreationCommand(registry), entity(entity), timeLag(timeLag), lastPosX(lastPosX), lastPosY(lastPosY) {}
 
 	void execute(EntityCreationQueue& queue) override;
 	int getEntitiesQueuedCount() override;

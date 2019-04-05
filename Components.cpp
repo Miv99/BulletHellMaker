@@ -12,7 +12,6 @@
 #include "EditorMovablePoint.h"
 #include <math.h>
 #include <tuple>
-#include <iostream>
 
 void MovementPathComponent::update(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, PositionComponent& entityPosition, float deltaTime) {
 	time += deltaTime;
@@ -79,6 +78,18 @@ sf::Vector2f MovementPathComponent::getPreviousPosition(entt::DefaultRegistry & 
 	}
 }
 
+void MovementPathComponent::setPath(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, PositionComponent& entityPosition, std::shared_ptr<MovablePoint> newPath, float timeLag) {
+	// Put old path into history
+
+	// Since the old path ended unexpectedly, change its lifespan
+	path->setLifespan(time - timeLag);
+	previousPaths.push_back(path);
+	path = newPath;
+
+	time = timeLag;
+	update(queue, registry, entity, entityPosition, 0);
+}
+
 void MovementPathComponent::initialSpawn(entt::DefaultRegistry& registry, uint32_t entity, std::shared_ptr<EMPSpawnType> spawnType, std::vector<std::shared_ptr<EMPAction>>& actions) {
 	auto spawnInfo = spawnType->getSpawnInfo(registry, entity, time);
 	useReferenceEntity = spawnInfo.useReferenceEntity;
@@ -87,7 +98,7 @@ void MovementPathComponent::initialSpawn(entt::DefaultRegistry& registry, uint32
 	path = std::make_shared<StationaryMP>(spawnInfo.position, 0);
 }
 
-EnemyComponent::EnemyComponent(std::shared_ptr<EditorEnemy> enemyData, int enemyID) : enemyData(enemyData), enemyID(enemyID) {}
+EnemyComponent::EnemyComponent(std::shared_ptr<EditorEnemy> enemyData, EnemySpawnInfo spawnInfo, int enemyID) : enemyData(enemyData), spawnInfo(spawnInfo), enemyID(enemyID) {}
 
 void EnemyComponent::update(EntityCreationQueue& queue, SpriteLoader& spriteLoader, const LevelPack& levelPack, entt::DefaultRegistry& registry, uint32_t entity, float deltaTime) {
 	timeSinceSpawned += deltaTime;

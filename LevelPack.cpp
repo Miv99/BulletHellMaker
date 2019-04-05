@@ -27,12 +27,24 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	attack1emp0->setHitboxRadius(30);
 	attack1emp0->setHitboxPosX(20);
 	attack1emp0->setHitboxPosY(20);
-	attack1emp0->setSpawnType(std::make_shared<EntityAttachedEMPSpawn>(1, 0, 0));
+	attack1emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
+
+	auto attack1emp1 = attack1emp0->createChild(std::make_shared<EntityAttachedEMPSpawn>(1, 0, 0));
+	attack1emp1->setAnimatable(Animatable("Bullet2", "sheet1", true));
+	attack1emp1->setHitboxRadius(30);
+	attack1emp1->setHitboxPosX(20);
+	attack1emp1->setHitboxPosY(20);
+	attack1emp1->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 200, 10), std::make_shared<ConstantTFV>(4.7f), 10));
 
 	auto dist = std::make_shared<LinearTFV>(30, 40, 60);
 	auto angle = std::make_shared<LinearTFV>(0, 3.14f * 8, 30);
 	// test: add more actions
-	attack1emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(dist, angle, 60.0f));
+	attack1emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 200, 2), std::make_shared<ConstantTFV>(0), 2));
+	attack1emp0->insertAction(1, std::make_shared<StayStillAtLastPositionEMPA>(0.5f));
+	attack1emp0->insertAction(2, std::make_shared<DetachFromParentEMPA>());
+	attack1emp0->insertAction(3, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 200, 2), std::make_shared<ConstantTFV>(2.3f), 2));
+	attack1emp0->insertAction(4, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 200, 2), std::make_shared<ConstantTFV>(4.5f), 2));
+	attack1emp0->insertAction(5, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 200, 30), std::make_shared<ConstantTFV>(0), 30));
 
 	auto attack2 = createAttack();
 	attack2->setPlayAttackAnimation(false);
@@ -59,7 +71,7 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	*/
 	
 	bool alt = false;
-	for (float time = 0; time < 5; time += 0.01f) {
+	for (float time = 0; time < 5; time += 0.02f) {
 		if (alt) {
 			ap1->addAttackID(time, attack1->getID());
 		} else {
@@ -88,7 +100,7 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	auto e1set = EntityAnimatableSet(Animatable("Megaman idle", "sheet1", false), Animatable("Megaman movement", "sheet1", false), Animatable("Megaman attack", "sheet1", false), Animatable("oh my god he's dead", "sheet1", true));
 	enemy1->addPhaseID(0, std::make_shared<TimeBasedEnemyPhaseStartCondition>(0), ep1->getID(), e1set);
 	enemy1->addPhaseID(1, std::make_shared<TimeBasedEnemyPhaseStartCondition>(10), ep2->getID(), e1set);
-	enemy1->setHealth(100);
+	enemy1->setHealth(10);
 	enemy1->setHitboxRadius(70);
 	enemy1->setHitboxPosX(35);
 	enemy1->setHitboxPosY(45);

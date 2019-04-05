@@ -44,6 +44,14 @@ Color = 255,255,255,255
 SpriteSize = 40,40
 Origin = 20,20
 
+[Bullet2]
+Type = Sprite
+TextureTopLeftCoordinates = 259,155
+BoundingRectangleSize = 18,17
+Color = 255,50,50,255
+SpriteSize = 40,40
+Origin = 20,20
+
 [Megaman idle]
 Type = Animation
 FrameData = 0.3|(Megaman standing still)|0.3|(Megaman blink)
