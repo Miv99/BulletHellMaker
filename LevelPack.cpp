@@ -57,8 +57,11 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	attack2emp0->setHitboxPosX(20);
 	attack2emp0->setHitboxPosY(20);
 	attack2emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
-	attack2emp0->insertAction(0, std::make_shared<MovePlayerHomingEMPA>(std::make_shared<LinearTFV>(0.005f, 0.025f, 5.0f), std::make_shared<ConstantTFV>(25), 3.0f));
-	attack2emp0->insertAction(1, std::make_shared<MovePlayerHomingEMPA>(std::make_shared<LinearTFV>(0.025f, 0.005f, 5.0f), std::make_shared<ConstantTFV>(25), 30.0f));
+	auto distanceSegments = std::make_shared<PiecewiseContinuousTFV>();
+	distanceSegments->insertSegment(0, std::make_pair(1, std::make_shared<LinearTFV>(0, 100, 1)));
+	distanceSegments->insertSegment(1, std::make_pair(2, std::make_shared<LinearTFV>(100, 200, 2)));
+	distanceSegments->insertSegment(2, std::make_pair(3, std::make_shared<LinearTFV>(200, 300, 3)));
+	attack2emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(distanceSegments, std::make_shared<ConstantTFV>(0), 6));
 
 	auto ap1 = createAttackPattern();
 	ap1->setShadowTrailLifespan(3.0f);
@@ -75,11 +78,12 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	*/
 	
 	bool alt = false;
-	for (float time = 0; time < 5; time += 0.02f) {
+	for (float time = 0; time < 5; time += 5) {
+		ap1->addAttackID(time, attack2->getID());
 		if (alt) {
-			ap1->addAttackID(time, attack1->getID());
+			//ap1->addAttackID(time, attack1->getID());
 		} else {
-			ap1->addAttackID(time, attack2->getID());
+			//ap1->addAttackID(time, attack2->getID());
 		}
 		alt = !alt;
 	}
@@ -89,14 +93,14 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	auto ep1 = createEnemyPhase();
 	ep1->addAttackPatternID(0, ap1->getID());
 	ep1->addAttackPatternID(30, ap1->getID());
-	ep1->setAttackPatternLoopDelay(7);
+	ep1->setAttackPatternLoopDelay(15);
 	ep1->setPhaseBeginAction(std::make_shared<NullEPA>());
 	ep1->setPhaseEndAction(std::make_shared<NullEPA>());
 
 	auto ep2 = createEnemyPhase();
 	ep2->addAttackPatternID(0, ap1->getID());
 	ep2->addAttackPatternID(30, ap1->getID());
-	ep2->setAttackPatternLoopDelay(7);
+	ep2->setAttackPatternLoopDelay(15);
 	ep2->setPhaseBeginAction(std::make_shared<DestroyEnemyBulletsEPA>());
 	ep2->setPhaseEndAction(std::make_shared<NullEPA>());
 

@@ -7,6 +7,7 @@ Documentation to put in the editor somewhere:
 -Idle/movement animatables can be sprites, but attack animatable must be an animation
 -It is highly recommended that all animatables in all EntityAnimatableSets of all enemy phases in the same enemy look similar (have the same hitbox and sprite origin)
  because hitboxes and origins cannot change
+-EMPs with HomingEMPA cannot spawn attached to some parent
 
 Notes for me:
 -The mainEMP of an attack is always spawned at the exact same time of an attack; spawnType's time is ignored
@@ -16,8 +17,8 @@ Notes for me:
  objects, so the sf::Sprite pointer in SpriteEffectAnimation MUST point to a SpriteComponent's pointer (so when setting SpriteEffectAnimation, 
  spriteComponent.getSprite() must be used) so that other sf::Sprites are not affected.
 -Sprite origin and hitbox origin must be the same values
--sf::Sprite's origin is relative to the texture's top-left coordinates and ignores scale/rotation/transformations
--EMPs with HomingEMPA cannot spawn attached to some parent
+-sf::Sprite's origin is relative to the texture's bottom-left coordinates and ignores scale/rotation/transformations
+-All TFVs in the editor are stored internally as PiecewiseContinuousTFVs
 
 TODO:
 -test death animations and death animations with different rotations

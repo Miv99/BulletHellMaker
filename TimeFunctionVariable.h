@@ -3,6 +3,8 @@
 #include <string>
 #include <memory>
 #include <cassert>
+#include <algorithm>
+#include <utility>
 #include "Constants.h"
 #include "TextMarshallable.h"
 #include "Components.h"
@@ -84,7 +86,7 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 	
-	float evaluate(float time) {
+	inline float evaluate(float time) {
 		return amplitude * (float)sin(time * PI2 / period + phaseShift) + valueShift;
 	}
 
@@ -110,7 +112,7 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 	
-	float evaluate(float time) override {
+	inline float evaluate(float time) override {
 		return initialDistance + initialVelocity * time + 0.5f*acceleration*time*time;
 	}
 
@@ -138,7 +140,7 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 	
-	float evaluate(float time) override {
+	inline float evaluate(float time) override {
 		return a * pow(time, 0.08f*dampeningFactor + 1) + startValue;
 	}
 
@@ -167,7 +169,7 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 	
-	float evaluate(float time) override {
+	inline float evaluate(float time) override {
 		return -a * pow(maxTime - time, 0.08f*dampeningFactor + 1) + endValue;
 	}
 
@@ -198,7 +200,7 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 	
-	float evaluate(float time) override {
+	inline float evaluate(float time) override {
 		if (time < maxTime / 2) {
 			return a * pow(time, 0.08f*dampeningFactor + 1) + startValue;
 		} else {
@@ -231,7 +233,7 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 
-	float evaluate(float time) override {
+	inline float evaluate(float time) override {
 		return valueTranslation + wrappedTFV->evaluate(time);
 	}
 
@@ -280,6 +282,60 @@ private:
 	entt::DefaultRegistry& registry;
 	uint32_t from;
 	uint32_t to;
+};
+
+/*
+TFV that connects multiple TFVs together in piecewise continuous fashion.
+*/
+class PiecewiseContinuousTFV : public TFV {
+public:
+	inline PiecewiseContinuousTFV() {}
+
+	std::string format() override;
+	void load(std::string formattedString) override;
+
+	inline float evaluate(float time) override {
+		auto it = std::lower_bound(segments.begin(), segments.end(), time, SegmentComparator());
+		if (it == segments.end()) {
+			return segments.back().second->evaluate(time - segments.back().first);
+		} else {
+			return it->second->evaluate(time - it->first);
+		}
+	}
+
+	/*
+	segment - a pair with the float representing the lifespan of the TFV
+	*/
+	inline void insertSegment(int index, std::pair<float, std::shared_ptr<TFV>> segment) {
+		// Recalculate active times
+		for (int i = index; i < segments.size(); i++) {
+			segments[i].first += segment.first;
+		}
+		if (index != 0) {
+			segment.first += segments[index - 1].first;
+		}
+		segments.insert(segments.begin() + index, segment);
+	}
+
+	inline void removeSegment(int index) {
+		auto erasedActiveTime = (segments.begin() + index)->first;
+		segments.erase(segments.begin() + index);
+		// Recalculate active times
+		for (int i = index; i < segments.size(); i++) {
+			segments[i].first -= erasedActiveTime;
+		}
+	}
+
+private:
+	struct SegmentComparator {
+		int operator()(const std::pair<float, std::shared_ptr<TFV>>& a, float b) {
+			return a.first < b;
+		}
+	};
+
+	// Vector of pairs of when the TFV becomes active and the TFV. The first item should become active at t=0.
+	// Sorted in ascending order
+	std::vector<std::pair<float, std::shared_ptr<TFV>>> segments;
 };
 
 class TFVFactory {
