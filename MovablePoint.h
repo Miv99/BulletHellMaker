@@ -194,12 +194,11 @@ Warning: This MP is time-invariant (see CurrentAngleTFV for more details)
 class HomingMP : public MovablePoint {
 public:
 	/*
-	homingStrength - in range (0, 1]
+	homingStrength - in range (0, 1] always
 	from - the entity homing in on the tartet
 	to - the target
 	*/
-	inline HomingMP(float lifespan, std::shared_ptr<TFV> speed, float homingStrength, uint32_t from, uint32_t to, entt::DefaultRegistry& registry) : MovablePoint(lifespan, true), speed(speed), homingStrength(homingStrength), registry(registry), from(from) {
-		assert(homingStrength > 0 && homingStrength <= 1);
+	inline HomingMP(float lifespan, std::shared_ptr<TFV> speed, std::shared_ptr<TFV> homingStrength, uint32_t from, uint32_t to, entt::DefaultRegistry& registry) : MovablePoint(lifespan, true), speed(speed), homingStrength(homingStrength), registry(registry), from(from) {
 		angle = std::make_shared<CurrentAngleTFV>(registry, from, to);
 		prevAngle = angle->evaluate(0);
 	}
@@ -223,7 +222,7 @@ private:
 	uint32_t from;
 	std::shared_ptr<TFV> angle;
 	std::shared_ptr<TFV> speed;
-	float homingStrength;
+	std::shared_ptr<TFV> homingStrength;
 
 	float lastEvaluatedTime = 0;
 	float prevAngle;

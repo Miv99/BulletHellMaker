@@ -142,12 +142,12 @@ std::shared_ptr<MovablePoint> MoveCustomBezierEMPA::execute(EntityCreationQueue 
 }
 
 std::string MovePlayerHomingEMPA::format() {
-	return "MovePlayerHomingEMPA" + delim + tos(homingStrength) + delim + "(" + speed->format() + ")" + delim + tos(time);
+	return "MovePlayerHomingEMPA" + delim + "(" + homingStrength->format() + ")" + delim + "(" + speed->format() + ")" + delim + tos(time);
 }
 
 void MovePlayerHomingEMPA::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
-	homingStrength = std::stof(items[1]);
+	homingStrength = TFVFactory::create(items[1]);
 	speed = TFVFactory::create(items[2]);
 	time = std::stof(items[3]);
 }

@@ -200,7 +200,7 @@ public:
 	/*
 	homingStrength - determines how quickly the entity homes in on the player; in range (0, 1]. A value of 0.02 is already pretty strong.
 	*/
-	inline MovePlayerHomingEMPA(float homingStrength, std::shared_ptr<TFV> speed, float time) : homingStrength(homingStrength), speed(speed), time(time) {}
+	inline MovePlayerHomingEMPA(std::shared_ptr<TFV> homingStrength, std::shared_ptr<TFV> speed, float time) : homingStrength(homingStrength), speed(speed), time(time) {}
 
 	std::string format() override;
 	void load(std::string formattedString) override;
@@ -210,7 +210,7 @@ public:
 
 private:
 	// In range (0, 1]
-	float homingStrength;
+	std::shared_ptr<TFV> homingStrength;
 	// Speed at any instance in time
 	std::shared_ptr<TFV> speed;
 	// How long movement will last

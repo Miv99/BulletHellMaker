@@ -57,7 +57,7 @@ sf::Vector2f HomingMP::evaluate(float time) {
 		}
 
 		// Calculate new position
-		float radians = lerpRadians(prevAngle, angle->evaluate(time), homingStrength); // angle is time-invariant so really anything can be passed in as the time parameter
+		float radians = lerpRadians(prevAngle, angle->evaluate(time), homingStrength->evaluate(time)); // angle is time-invariant so really anything can be passed in as the time parameter
 		prevAngle = radians;
 		float curSpeed = speed->evaluate(time);
 		auto newPos = sf::Vector2f(fromPos.getX() + std::cos(radians) * curSpeed * deltaTime, fromPos.getY() + std::sin(radians) * curSpeed * deltaTime);
