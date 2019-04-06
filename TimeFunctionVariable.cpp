@@ -86,7 +86,6 @@ std::string TranslationWrapperTFV::format() {
 void TranslationWrapperTFV::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	valueTranslation = std::stof(items[1]);
-	//wrappedTFV = TFVFactory::create(formattedString.substr(formattedString.find('(')));
 	wrappedTFV = TFVFactory::create(items[2]);
 }
 

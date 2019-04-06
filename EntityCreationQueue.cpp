@@ -165,7 +165,6 @@ int EMPADetachFromParentCommand::getEntitiesQueuedCount() {
 
 void CreateMovementReferenceEntityCommand::execute(EntityCreationQueue& queue) {
 	auto& mpc = registry.get<MovementPathComponent>(entity);
-	auto& psss = registry.get<PositionComponent>(entity);
 
 	if (mpc.usesReferenceEntity()) {
 		if (registry.has<SimpleEMPReferenceComponent>(mpc.getReferenceEntity())) {

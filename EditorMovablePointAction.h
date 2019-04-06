@@ -191,6 +191,32 @@ private:
 	float time;
 };
 
+/*
+EMPA for homing movement towards the player.
+*/
+class MovePlayerHomingEMPA : public EMPAction {
+public:
+	inline MovePlayerHomingEMPA() {}
+	/*
+	homingStrength - determines how quickly the entity homes in on the player; in range (0, 1]. A value of 0.02 is already pretty strong.
+	*/
+	inline MovePlayerHomingEMPA(float homingStrength, std::shared_ptr<TFV> speed, float time) : homingStrength(homingStrength), speed(speed), time(time) {}
+
+	std::string format() override;
+	void load(std::string formattedString) override;
+	inline float getTime() override { return time; }
+
+	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
+
+private:
+	// In range (0, 1]
+	float homingStrength;
+	// Speed at any instance in time
+	std::shared_ptr<TFV> speed;
+	// How long movement will last
+	float time;
+};
+
 class EMPActionFactory {
 public:
 	static std::shared_ptr<EMPAction> create(std::string formattedString);

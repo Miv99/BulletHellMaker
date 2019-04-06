@@ -11,8 +11,6 @@
 #include "LevelPack.h"
 #include "Constants.h"
 
-#include <iostream>
-
 GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) : window(window) {
 	//TODO have gui thing like touhou + fix aspect ratio
 	// Centered at negative y because SFML has (0, 0) at the top-left, and RenderSystem negates y-values so that (0, 0) in every other aspect of this game is bottom-left.

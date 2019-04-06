@@ -76,8 +76,7 @@ void StayStillAtLastPositionEMPA::load(std::string formattedString) {
 std::shared_ptr<MovablePoint> StayStillAtLastPositionEMPA::execute(EntityCreationQueue& queue, entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
 	auto& mpc = registry.get<MovementPathComponent>(entity);
 
-	// Last known position, relative to the entity's reference
-	//auto pos = mpc.getPath()->compute(sf::Vector2f(0, 0), mpc.getPath()->getLifespan());
+	// Last known global position
 	auto& lastPos = registry.get<PositionComponent>(entity);
 	// Queue creation of the reference entity
 	queue.pushFront(std::make_unique<CreateMovementReferenceEntityCommand>(registry, entity, timeLag, lastPos.getX(), lastPos.getY()));
@@ -142,6 +141,24 @@ std::shared_ptr<MovablePoint> MoveCustomBezierEMPA::execute(EntityCreationQueue 
 	return std::make_shared<BezierMP>(time, controlPoints);
 }
 
+std::string MovePlayerHomingEMPA::format() {
+	return "MovePlayerHomingEMPA" + delim + tos(homingStrength) + delim + "(" + speed->format() + ")" + delim + tos(time);
+}
+
+void MovePlayerHomingEMPA::load(std::string formattedString) {
+	auto items = split(formattedString, DELIMITER);
+	homingStrength = std::stof(items[1]);
+	speed = TFVFactory::create(items[2]);
+	time = std::stof(items[3]);
+}
+
+std::shared_ptr<MovablePoint> MovePlayerHomingEMPA::execute(EntityCreationQueue & queue, entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
+	// Queue creation of the reference entity
+	queue.pushFront(std::make_unique<CreateMovementReferenceEntityCommand>(registry, entity, timeLag, 0, 0));
+
+	return std::make_shared<HomingMP>(time, speed, homingStrength, entity, registry.attachee<PlayerTag>(), registry);
+}
+
 std::shared_ptr<EMPAction> EMPActionFactory::create(std::string formattedString) {
 	auto name = split(formattedString, DELIMITER)[0];
 	std::shared_ptr<EMPAction> ptr;
@@ -156,6 +173,9 @@ std::shared_ptr<EMPAction> EMPActionFactory::create(std::string formattedString)
 	}
 	else if (name == "MoveCustomBezierEMPA") {
 		ptr = std::make_shared<MoveCustomBezierEMPA>();
+	}
+	else if (name == "MovePlayerHomingEMPA") {
+		ptr = std::make_shared<MovePlayerHomingEMPA>();
 	}
 	ptr->load(formattedString);
 	return ptr;

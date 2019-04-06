@@ -68,6 +68,8 @@ private:
 
 /*
 Command for creating an enemy.
+
+Time lag cannot be accounted for with this command this because the condition for an enemy spawning is not always time-dependent.
 */
 class SpawnEnemyCommand : public EntityCreationCommand {
 public:

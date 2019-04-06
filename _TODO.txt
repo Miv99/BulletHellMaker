@@ -17,6 +17,7 @@ Notes for me:
  spriteComponent.getSprite() must be used) so that other sf::Sprites are not affected.
 -Sprite origin and hitbox origin must be the same values
 -sf::Sprite's origin is relative to the texture's top-left coordinates and ignores scale/rotation/transformations
+-EMPs with HomingEMPA cannot spawn attached to some parent
 
 TODO:
 -To mimic MPs that gravitate towards the player, make a MP that uses a TFV that always evaluates to angle between two entities.

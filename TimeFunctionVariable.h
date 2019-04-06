@@ -5,6 +5,8 @@
 #include <cassert>
 #include "Constants.h"
 #include "TextMarshallable.h"
+#include "Components.h"
+#include <entt/entt.hpp>
 
 /*
 TimeFuncVar (TFV)
@@ -236,6 +238,48 @@ public:
 private:
 	std::shared_ptr<TFV> wrappedTFV;
 	float valueTranslation;
+};
+
+/*
+TFV that always evaluates to the angle from one PositionComponent to another.
+
+Warning: This TFV is time-invariant (meaning evaluate() ignores the time parameter, and the return depends on the positions of the two
+PositionComponents when the function was called). Because of this time-invariance, any MovablePoint that uses this type of TFV will also
+be time-invariant and thus must implement its own mechanism for being able to determine past positions (the future can never
+be determined and this game does not require it).
+
+Another warning: when this TFV is formatted into a string, the PositionComponents are not saved and thus cannot be loaded.
+
+*/
+class CurrentAngleTFV : public TFV {
+public:
+	/*
+	from - the entity acting as the origin
+	to - the entity being pointed to
+	*/
+	inline CurrentAngleTFV(entt::DefaultRegistry& registry, uint32_t from, uint32_t to) : registry(registry), from(from), to(to) {
+		assert(registry.has<PositionComponent>(from) && registry.has<PositionComponent>(to));
+	}
+
+	inline std::string format() override {
+		assert(false && "CurrentAngleTFV cannot be saved.");
+		return "";
+	}
+	inline void load(std::string formattedString) override {
+		assert(false && "CurrentAngleTFV cannot be loaded. If it is ever used by something, that something must know that the TFV it is \
+			using is a CurrentAngleTFV so that the CurrentAngleTFV can be constructed again.");
+	}
+
+	float evaluate(float time) override {
+		auto& fromPos = registry.get<PositionComponent>(from);
+		auto& toPos = registry.get<PositionComponent>(to);
+		return std::atan2(toPos.getY() - fromPos.getY(), toPos.getX() - fromPos.getX());
+	}
+
+private:
+	entt::DefaultRegistry& registry;
+	uint32_t from;
+	uint32_t to;
 };
 
 class TFVFactory {
