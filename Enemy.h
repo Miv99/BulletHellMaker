@@ -34,7 +34,7 @@ public:
 	inline float getHitboxRadius() { return hitboxRadius; }
 	inline float getHitboxPosX() { return hitboxPosX; }
 	inline float getHitboxPosY() { return hitboxPosY; }
-	inline float getHealth() { return health; }
+	inline int getHealth() { return health; }
 	inline float getDespawnTime() { return despawnTime; }
 	inline ROTATION_TYPE getRotationType() { return rotationType; }
 	inline const std::vector<std::shared_ptr<DeathAction>> getDeathActions() { return deathActions; }
@@ -44,7 +44,7 @@ public:
 	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; }
 	inline void setHitboxPosX(float hitboxPosX) { this->hitboxPosX = hitboxPosX; }
 	inline void setHitboxPosY(float hitboxPosY) { this->hitboxPosY = hitboxPosY; }
-	inline void setHealth(float health) { this->health = health; }
+	inline void setHealth(int health) { this->health = health; }
 	inline void setDespawnTime(float despawnTime) { this->despawnTime = despawnTime; }
 	inline void addPhaseID(int index, std::shared_ptr<EnemyPhaseStartCondition> startCondition, int phaseID, EntityAnimatableSet animatableSet) {
 		phaseIDs.insert(phaseIDs.begin() + index, std::make_tuple(startCondition, phaseID, animatableSet));
@@ -63,7 +63,7 @@ private:
 	// Local position of hitbox
 	float hitboxPosX, hitboxPosY;
 	// Health and maximum health of this enemy
-	float health;
+	int health;
 	// Time it takes for this enemy to despawn. Set < 0 if it should not despawn
 	float despawnTime = -1;
 	// Tuple of: the condition to start the phase, the phase ID, and the animatable set used by the enenemy while in that phase

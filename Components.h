@@ -25,6 +25,7 @@ class EMPSpawnType;
 class Level;
 class EntityCreationQueue;
 class EditorMovablePoint;
+class Item;
 
 static enum ROTATION_TYPE {
 	ROTATE_WITH_MOVEMENT, // Rotate depending on angle from last position to current position
@@ -104,24 +105,31 @@ private:
 
 class HealthComponent {
 public:
-	HealthComponent(float health = 0, float maxHealth = 0) : health(health), maxHealth(maxHealth) {}
+	HealthComponent(int health = 0, int maxHealth = 0) : health(health), maxHealth(maxHealth) {}
 
 	/*
 	Take damage and returns true if health goes below 0.
 	*/
-	inline bool takeDamage(float damage) {
+	inline bool takeDamage(int damage) {
 		health -= damage;
 		return health <= 0;
 	}
 
-	inline float getHealth() const { return health; }
-	inline float getMaxHealth() const { return maxHealth; }
-	inline void setHealth(float health) { this->health = health; }
-	inline void setMaxHealth(float maxHealth) { this->maxHealth = maxHealth; }
+	inline void heal(int amount) {
+		health += amount;
+		if (health > maxHealth) {
+			health = maxHealth;
+		}
+	}
+
+	inline int getHealth() const { return health; }
+	inline int getMaxHealth() const { return maxHealth; }
+	inline void setHealth(int health) { this->health = health; }
+	inline void setMaxHealth(int maxHealth) { this->maxHealth = maxHealth; }
 
 private:
-	float health;
-	float maxHealth;
+	int health;
+	int maxHealth;
 };
 
 /*

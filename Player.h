@@ -17,8 +17,8 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 
-	inline float getInitialHealth() { return initialHealth; }
-	inline float getMaxHealth() { return maxHealth; }
+	inline int getInitialHealth() { return initialHealth; }
+	inline int getMaxHealth() { return maxHealth; }
 	inline float getSpeed() { return speed; }
 	inline float getFocusedSpeed() { return focusedSpeed; }
 	inline EntityAnimatableSet getAnimatableSet() { return animatableSet; }
