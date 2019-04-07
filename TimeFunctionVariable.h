@@ -260,7 +260,7 @@ public:
 	to - the entity being pointed to
 	*/
 	inline CurrentAngleTFV(entt::DefaultRegistry& registry, uint32_t from, uint32_t to) : registry(registry), from(from), to(to) {
-		assert(registry.has<PositionComponent>(from) && registry.has<PositionComponent>(to));
+		assert(registry.has<PositionComponent>(from) && registry.has<PositionComponent>(to) && registry.has<HitboxComponent>(to) && registry.has<HitboxComponent>(to));
 	}
 
 	inline std::string format() override {
@@ -275,7 +275,9 @@ public:
 	float evaluate(float time) override {
 		auto& fromPos = registry.get<PositionComponent>(from);
 		auto& toPos = registry.get<PositionComponent>(to);
-		return std::atan2(toPos.getY() - fromPos.getY(), toPos.getX() - fromPos.getX());
+		auto& fromHitbox = registry.get<HitboxComponent>(from);
+		auto& toHitbox = registry.get<HitboxComponent>(to);
+		return std::atan2((toPos.getY() + toHitbox.getY()) - (fromPos.getY() + fromHitbox.getY()), (toPos.getX() + toHitbox.getX()) - (fromPos.getX() + fromHitbox.getX()));
 	}
 
 private:
