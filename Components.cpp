@@ -10,6 +10,7 @@
 #include "EnemySpawn.h"
 #include "EntityCreationQueue.h"
 #include "EditorMovablePoint.h"
+#include "Item.h"
 #include <math.h>
 #include <tuple>
 
@@ -108,6 +109,11 @@ void EnemyComponent::update(EntityCreationQueue& queue, SpriteLoader& spriteLoad
 	checkAttacks(queue, spriteLoader, levelPack, registry, entity);
 	checkAttackPatterns(queue, spriteLoader, levelPack, registry, entity);
 	checkPhases(queue, spriteLoader, levelPack, registry, entity);
+}
+
+std::shared_ptr<DeathAction> EnemyComponent::getCurrentDeathAnimationAction() {
+	assert(currentPhaseIndex != -1);
+	return std::get<2>(enemyData->getPhaseData(currentPhaseIndex)).getDeathAction();
 }
 
 void EnemyComponent::checkPhases(EntityCreationQueue& queue, SpriteLoader& spriteLoader, const LevelPack& levelPack, entt::DefaultRegistry& registry, uint32_t entity) {	
@@ -317,13 +323,7 @@ void AnimatableSetComponent::changeState(int newState, SpriteLoader& spriteLoade
 	}
 
 	if (changeState) {
-		if (newAnimatable.isSprite()) {
-			// Cancel current animation
-			spriteComponent.setAnimation(nullptr);
-			spriteComponent.updateSprite(spriteLoader.getSprite(newAnimatable.getAnimatableName(), newAnimatable.getSpriteSheetName()));
-		} else {
-			spriteComponent.setAnimation(spriteLoader.getAnimation(newAnimatable.getAnimatableName(), newAnimatable.getSpriteSheetName(), loopNewAnimatable));	
-		}
+		spriteComponent.setAnimatable(spriteLoader, newAnimatable, loopNewAnimatable);
 		currentState = newState;
 	}
 }
@@ -332,4 +332,32 @@ PlayerTag::PlayerTag(float speed, float focusedSpeed, std::shared_ptr<EditorAtta
 	std::shared_ptr<EditorAttackPattern> focusedAttackPattern, float focusedAttackPatternLoopDelay) : speed(speed), focusedSpeed(focusedSpeed), attackPattern(attackPattern), focusedAttackPattern(focusedAttackPattern) {
 	attackPatternTotalTime = attackPattern->getAttackData(attackPattern->getAttacksCount() - 1).first + attackPatternLoopDelay;
 	focusedAttackPatternTotalTime = focusedAttackPattern->getAttackData(focusedAttackPattern->getAttacksCount() - 1).first + focusedAttackPatternLoopDelay;
+}
+
+void CollectibleComponent::update(EntityCreationQueue& queue, entt::DefaultRegistry & registry, uint32_t entity, const PositionComponent& entityPos, const HitboxComponent& entityHitbox) {
+	if (!activated && collides(entityPos, entityHitbox, registry.get<PositionComponent>(registry.attachee<PlayerTag>()), registry.get<HitboxComponent>(registry.attachee<PlayerTag>()), activationRadius)) {
+		// Item is activated, so begin moving towards the player
+
+		auto speed = std::make_shared<PiecewiseContinuousTFV>();
+		// Speed starts off quickly at 200 and slows to 50 by t=2
+		speed->insertSegment(0, std::make_pair(2.0f, std::make_shared<DampenedEndTFV>(100.0f, 50.0f, 2.0f, 30)));
+		// Speed then maintains a constant 50 forever
+		speed->insertSegment(1, std::make_pair(std::numeric_limits<float>::max() - 3, std::make_shared<ConstantTFV>(50.0f)));
+		auto newPath = std::make_shared<HomingMP>(std::numeric_limits<float>::max(), speed, std::make_shared<ConstantTFV>(0.03f), entity, registry.attachee<PlayerTag>(), registry);
+		registry.get<MovementPathComponent>(entity).setPath(queue, registry, entity, registry.get<PositionComponent>(entity), newPath, 0);
+		activated = true;
+	}
+	if (activated && collides(entityPos, entityHitbox, registry.get<PositionComponent>(registry.attachee<PlayerTag>()), registry.get<HitboxComponent>(registry.attachee<PlayerTag>()), 0)) {
+		// Player touched the item
+
+		// Execute the item's onPlayerContact
+		item->onPlayerContact(registry, registry.attachee<PlayerTag>());
+
+		// Despawn self
+		if (registry.has<DespawnComponent>(entity)) {
+			registry.get<DespawnComponent>(entity).setMaxTime(0);
+		} else {
+			registry.assign<DespawnComponent>(entity, 0);
+		}
+	}
 }

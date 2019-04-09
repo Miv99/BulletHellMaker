@@ -1,7 +1,7 @@
 #include "Player.h"
 
 std::string EditorPlayer::format() {
-	return tos(initialHealth) + delim + tos(maxHealth) + delim + tos(speed) + delim + tos(focusedSpeed) + delim + "(" + animatableSet.format() + ")" + delim + tos(hitboxRadius) + delim + tos(hitboxPosX) + delim + tos(hitboxPosY) + delim + tos((int)rotationType);
+	return tos(initialHealth) + delim + tos(maxHealth) + delim + tos(speed) + delim + tos(focusedSpeed) + delim + "(" + animatableSet.format() + ")" + delim + tos(hitboxRadius) + delim + tos(hitboxPosX) + delim + tos(hitboxPosY);
 }
 
 void EditorPlayer::load(std::string formattedString) {
@@ -14,5 +14,4 @@ void EditorPlayer::load(std::string formattedString) {
 	hitboxRadius = std::stof(items[5]);
 	hitboxPosX = std::stof(items[6]);
 	hitboxPosY = std::stof(items[7]);
-	rotationType = static_cast<ROTATION_TYPE>(std::stoi(items[8]));
 }

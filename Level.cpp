@@ -11,6 +11,9 @@ std::string Level::format() {
 			res += "(" + info.format() + ")" + delim;
 		}
 	}
+	res += "(" + healthPack->format() + ")" + delim;
+	res += "(" + pointPack->format() + ")" + delim;
+	res += "(" + powerPack->format() + ")";
 	return res;
 }
 
@@ -18,7 +21,8 @@ void Level::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	name = items[0];
 	player.load(items[1]);
-	for (int i = 3; i < std::stoi(items[2]) + 3; i++) {
+	int i;
+	for (i = 3; i < std::stoi(items[2]) + 3; i++) {
 		std::shared_ptr<EnemySpawnCondition> condition = EnemySpawnConditionFactory::create(items[i]);
 		std::vector<EnemySpawnInfo> enemies;
 		for (int a = 0; a < std::stoi(items[i + 1]); a++) {
@@ -28,10 +32,14 @@ void Level::load(std::string formattedString) {
 		}
 		enemyGroups.push_back(std::make_pair(condition, enemies));
 	}
+	healthPack->load(items[i++]);
+	pointPack->load(items[i++]);
+	powerPack->load(items[i++]);
 }
 
 bool Level::legal(std::string & message) {
 	bool good = true;	
 	//TODO
+	//TODO check packs' animatables can be opened
 	return good;
 }

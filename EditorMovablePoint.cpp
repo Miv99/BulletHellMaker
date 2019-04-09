@@ -5,8 +5,6 @@ std::string EditorMovablePoint::format() {
 	std::string res = "";
 
 	res += "(" + tos(hitboxRadius) + ")" + delim;
-	res += "(" + tos(hitboxPosX) + ")" + delim;
-	res += "(" + tos(hitboxPosY) + ")" + delim;
 	res += "(" + tos(despawnTime) + ")" + delim;
 
 	res += "(" + tos(children.size()) + ")";
@@ -23,7 +21,6 @@ std::string EditorMovablePoint::format() {
 
 	res += delim + "(" + tos(shadowTrailInterval) + ")";
 	res += delim + "(" + tos(shadowTrailLifespan) + ")";
-	res += delim + tos((int)rotationType);
 
 	return res;
 }
@@ -32,12 +29,10 @@ void EditorMovablePoint::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 
 	hitboxRadius = std::stof(items[0]);
-	hitboxPosX = std::stof(items[1]);
-	hitboxPosY = std::stof(items[2]);
-	despawnTime = std::stof(items[3]);
+	despawnTime = std::stof(items[1]);
 
 	int i;
-	for (i = 5; i < stoi(items[4]) + 5; i++) {
+	for (i = 3; i < stoi(items[2]) + 2; i++) {
 		std::shared_ptr<EditorMovablePoint> emp = std::make_shared<EditorMovablePoint>(nextID, shared_from_this());
 		emp->load(items[i]);
 		children.push_back(emp);
@@ -53,7 +48,6 @@ void EditorMovablePoint::load(std::string formattedString) {
 
 	shadowTrailInterval = stoi(items[i++]);
 	shadowTrailLifespan = stoi(items[i++]);
-	rotationType = static_cast<ROTATION_TYPE>(std::stoi(items[i++]));
 }
 
 bool EditorMovablePoint::legal(SpriteLoader& spriteLoader, std::string & message) {
@@ -82,7 +76,8 @@ bool EditorMovablePoint::legal(SpriteLoader& spriteLoader, std::string & message
 					if (baseSprite.isSprite()) {
 						spriteLoader.getSprite(baseSprite.getAnimatableName(), baseSprite.getSpriteSheetName());
 					} else {
-						spriteLoader.getAnimation(baseSprite.getAnimatableName(), baseSprite.getSpriteSheetName(), false);
+						message += "\tMovablePoint id " + tos(id) + " has an animation as a base sprite\n";
+						good = false;
 					}
 				} catch (const char* str) {
 					message += "\t" + std::string(str) + "\n";

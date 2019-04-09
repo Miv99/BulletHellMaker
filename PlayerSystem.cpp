@@ -8,10 +8,25 @@ void PlayerSystem::update(float deltaTime) {
 
 	// Movement
 	auto& pos = registry.get<PositionComponent>(playerEntity);
+	float prevX = pos.getX();
+	float prevY = pos.getY();
 	pos.setX(pos.getX() + horizontalInput * speed * deltaTime);
 	pos.setY(pos.getY() + verticalInput * speed * deltaTime);
-	// Make sure player doesn't go out of bounds
+	// Calculate angle of movement
 	auto& hitbox = registry.get<HitboxComponent>(playerEntity);
+	if (horizontalInput != 0 || verticalInput != 0) {
+		float angle = std::atan2(pos.getY() - prevY, pos.getX() - prevX);
+
+		// Rotate sprite and hitbox
+		auto& sprite = registry.get<SpriteComponent>(playerEntity);
+		sprite.rotate(angle);
+		if (sprite.getSprite()) {
+			// Rotate hitbox according to sprite orientation
+			hitbox.rotate(sprite.getSprite());
+		}
+	}
+	
+	// Make sure player doesn't go out of bounds
 	if (pos.getX() + hitbox.getX() < 0) {
 		pos.setX(hitbox.getX());
 	} else if (pos.getX() + hitbox.getX() > MAP_WIDTH) {

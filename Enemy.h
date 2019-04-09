@@ -8,6 +8,7 @@
 #include "EnemyPhase.h"
 #include "EnemyPhaseStartCondition.h"
 #include "EntityAnimatableSet.h"
+#include "Animatable.h"
 #include "DeathAction.h"
 #include "Components.h"
 
@@ -32,18 +33,12 @@ public:
 	inline int getPhasesCount() { return phaseIDs.size(); }
 	inline std::string getName() { return name; }
 	inline float getHitboxRadius() { return hitboxRadius; }
-	inline float getHitboxPosX() { return hitboxPosX; }
-	inline float getHitboxPosY() { return hitboxPosY; }
 	inline int getHealth() { return health; }
 	inline float getDespawnTime() { return despawnTime; }
-	inline ROTATION_TYPE getRotationType() { return rotationType; }
 	inline const std::vector<std::shared_ptr<DeathAction>> getDeathActions() { return deathActions; }
 
-	inline void setRotationType(ROTATION_TYPE rotationType) { this->rotationType = rotationType; }
 	inline void setName(std::string name) { this->name = name; }
 	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; }
-	inline void setHitboxPosX(float hitboxPosX) { this->hitboxPosX = hitboxPosX; }
-	inline void setHitboxPosY(float hitboxPosY) { this->hitboxPosY = hitboxPosY; }
 	inline void setHealth(int health) { this->health = health; }
 	inline void setDespawnTime(float despawnTime) { this->despawnTime = despawnTime; }
 	inline void addPhaseID(int index, std::shared_ptr<EnemyPhaseStartCondition> startCondition, int phaseID, EntityAnimatableSet animatableSet) {
@@ -60,8 +55,6 @@ private:
 	std::string name;
 	// Radius of the hitbox associated with this enemy
 	float hitboxRadius;
-	// Local position of hitbox
-	float hitboxPosX, hitboxPosY;
 	// Health and maximum health of this enemy
 	int health;
 	// Time it takes for this enemy to despawn. Set < 0 if it should not despawn
@@ -69,8 +62,6 @@ private:
 	// Tuple of: the condition to start the phase, the phase ID, and the animatable set used by the enenemy while in that phase
 	// The first phase must have a TimeBasedEnemyPhaseStartCondition with t=0 to ensure that the phase can start as soon as the enemy spawns
 	std::vector<std::tuple<std::shared_ptr<EnemyPhaseStartCondition>, int, EntityAnimatableSet>> phaseIDs;
-	// Death actions
+	// Death actions. This should not include the death animation.
 	std::vector<std::shared_ptr<DeathAction>> deathActions;
-
-	ROTATION_TYPE rotationType;
 };

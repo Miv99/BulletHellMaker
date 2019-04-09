@@ -11,6 +11,7 @@
 #include "EntityCreationQueue.h"
 #include "ShadowTrailSystem.h"
 #include "PlayerSystem.h"
+#include "CollectibleSystem.h"
 
 class LevelPack;
 class LevelManagerTag;
@@ -25,6 +26,11 @@ public:
 	Starts a level.
 	*/
 	void startLevel(int levelIndex);
+
+	/*
+	Ends a level.
+	*/
+	void endLevel();
 
 	void handleEvent(sf::Event event);
 	void pause();
@@ -46,11 +52,13 @@ private:
 	std::unique_ptr<SpriteAnimationSystem> spriteAnimationSystem;
 	std::unique_ptr<ShadowTrailSystem> shadowTrailSystem;
 	std::unique_ptr<PlayerSystem> playerSystem;
+	std::unique_ptr<CollectibleSystem> collectibleSystem;
 
 	bool paused;
 
-	// LevelManager entity
-	uint32_t levelManager;
+	// Total amount of points earned so far across all past levels.
+	// Does not include points from the current level.
+	int points = 0;
 
 	void createPlayer(EditorPlayer params);
 };

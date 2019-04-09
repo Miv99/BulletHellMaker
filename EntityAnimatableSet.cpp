@@ -1,28 +1,11 @@
 #include "EntityAnimatableSet.h"
+#include "DeathAction.h"
 
-std::string Animatable::format() {
-	std::string res = "(" + animatableName + ")" + delim + "(" + spriteSheetName + ")" + delim;
-	if (animatableIsSprite) {
-		res += "1";
-	} else {
-		res += "0";
-	}
-	return res;
-}
-
-void Animatable::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
-	animatableName = items[0];
-	spriteSheetName = items[1];
-	if (std::stoi(items[2])) {
-		animatableIsSprite = true;
-	} else {
-		animatableIsSprite = false;
-	}
+EntityAnimatableSet::EntityAnimatableSet(Animatable idle, Animatable movement, Animatable attack, std::shared_ptr<DeathAction> deathAction) : idleAnimatable(idle), movementAnimatable(movement), attackAnimatable(attack), deathAction(deathAction) {
 }
 
 std::string EntityAnimatableSet::format() {
-	return "(" + idleAnimatable.format() + ")" + delim + "(" + movementAnimatable.format() + ")" + delim + "(" + attackAnimatable.format() + ")" + delim + "(" + deathAnimatable.format() + ")";
+	return "(" + idleAnimatable.format() + ")" + delim + "(" + movementAnimatable.format() + ")" + delim + "(" + attackAnimatable.format() + ")" + delim + "(" + deathAction->format() + ")";
 }
 
 void EntityAnimatableSet::load(std::string formattedString) {
@@ -30,5 +13,9 @@ void EntityAnimatableSet::load(std::string formattedString) {
 	idleAnimatable.load(items[0]);
 	movementAnimatable.load(items[1]);
 	attackAnimatable.load(items[2]);
-	deathAnimatable.load(items[3]);
+	deathAction = DeathActionFactory::create(items[3]);
+}
+
+std::shared_ptr<DeathAction> EntityAnimatableSet::getDeathAction() {
+	return deathAction;
 }

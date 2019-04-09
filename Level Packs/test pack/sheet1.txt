@@ -1,3 +1,27 @@
+[Health]
+Type = Sprite
+TextureTopLeftCoordinates = 302,143
+BoundingRectangleSize = 25,20
+Color = 255,255,255,255
+SpriteSize = 75,75
+Origin = 12,10
+
+[Points]
+Type = Sprite
+TextureTopLeftCoordinates = 323,172
+BoundingRectangleSize = 25,20
+Color = 255,255,255,255
+SpriteSize = 50,50
+Origin = 12,10
+
+[Power]
+Type = Sprite
+TextureTopLeftCoordinates = 340,143
+BoundingRectangleSize = 31,24
+Color = 255,255,255,255
+SpriteSize = 75,75
+Origin = 15,12
+
 [Megaman standing still]
 Type = Sprite
 TextureTopLeftCoordinates = 0,0
@@ -34,7 +58,8 @@ Type = Sprite
 TextureTopLeftCoordinates = 0,46
 BoundingRectangleSize = 36,46
 Color = 255,255,255,122
-SpriteSize = 144,184
+SpriteSize = 72,92
+Origin = 18,23
 
 [Bullet]
 Type = Sprite

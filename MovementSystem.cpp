@@ -9,13 +9,23 @@ void MovementSystem::update(float deltaTime) {
 		path.update(queue, registry, entity, position, deltaTime);
 		// Calculate angle of movement
 		float angle = std::atan2(position.getY() - prevY, position.getX() - prevX);
-		// Rotate hitbox
-		if (registry.has<HitboxComponent>(entity)) {
-			registry.get<HitboxComponent>(entity).rotate(angle);
-		}
-		// Rotate sprite
 		if (registry.has<SpriteComponent>(entity)) {
-			registry.get<SpriteComponent>(entity).rotate(angle);
+			// Rotate sprite
+			auto& sprite = registry.get<SpriteComponent>(entity);
+			sprite.rotate(angle);
+
+			if (registry.has<HitboxComponent>(entity) && sprite.getSprite()) {
+				// Rotate hitbox according to sprite orientation
+				registry.get<HitboxComponent>(entity).rotate(sprite.getSprite());
+			} else {
+				// Rotate hitbox according to angle
+				registry.get<HitboxComponent>(entity).rotate(angle);
+			}
+		} else {
+			// Rotate hitbox
+			if (registry.has<HitboxComponent>(entity)) {
+				registry.get<HitboxComponent>(entity).rotate(angle);
+			}
 		}
 	});
 

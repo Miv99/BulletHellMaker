@@ -2,6 +2,7 @@
 #include <vector>
 #include <utility>
 #include <string>
+#include <memory>
 #include <entt/entt.hpp>
 #include "TextMarshallable.h"
 #include "SpriteLoader.h"
@@ -9,11 +10,12 @@
 
 class LevelPack;
 class EntityCreationQueue;
+class Item;
 
 class EnemySpawnInfo : public TextMarshallable {
 public:
 	inline EnemySpawnInfo() {}
-	inline EnemySpawnInfo(int enemyID, float x, float y) : enemyID(enemyID), x(x), y(y) {}
+	EnemySpawnInfo(int enemyID, float x, float y, std::vector<std::pair<std::shared_ptr<Item>, int>> itemsDroppedOnDeath);
 
 	std::string format() override;
 	void load(std::string formattedString) override;
@@ -22,17 +24,15 @@ public:
 
 	inline float getX() { return x; }
 	inline float getY() { return y; }
-	inline int getHealthPacksOnDeath() { return healthPacksOnDeath; }
-	inline int getPowerPacksOnDeath() { return powerPacksOnDeath; }
-	inline int getPointPacksOnDeath() { return pointPacksOnDeath; }
+	const std::vector<std::pair<std::shared_ptr<Item>, int>> getItemsDroppedOnDeath();
 
+	void addItemDroppedOnDeath(std::pair<std::shared_ptr<Item>, int> itemAndAmount);
+	
 private:
 	int enemyID;
 	float x;
 	float y;
 
-	// Item drops
-	int healthPacksOnDeath = 0;
-	int powerPacksOnDeath = 2;
-	int pointPacksOnDeath = 6;
+	// Items dropped and their amount
+	std::vector<std::pair<std::shared_ptr<Item>, int>> itemsDroppedOnDeath;
 };

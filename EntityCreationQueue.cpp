@@ -5,10 +5,12 @@
 #include "SpriteLoader.h"
 #include "Enemy.h"
 #include "EntityAnimatableSet.h"
+#include "Animatable.h"
 #include "Constants.h"
 #include <algorithm>
 #include <iostream>
 #include "MovablePoint.h"
+#include <random>
 
 EMPSpawnFromEnemyCommand::EMPSpawnFromEnemyCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, uint32_t entity, float timeLag, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation) :
 	EntityCreationCommand(registry), spriteLoader(spriteLoader), emp(emp), playAttackAnimation(playAttackAnimation),
@@ -50,11 +52,20 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 		}
 	}
 
-	// If animatable name is not empty, this EMP is a bullet
-	Animatable animatable = emp->getAnimatable();
-	if (animatable.getAnimatableName() != "") {
-		registry.assign<HitboxComponent>(bullet, emp->getRotationType(), emp->getHitboxRadius(), emp->getHitboxPosX(), emp->getHitboxPosY());
-		registry.assign<SpriteComponent>(bullet, emp->getRotationType(), spriteLoader.getSprite(animatable.getAnimatableName(), animatable.getSpriteSheetName()));
+	// If hitbox radius > 0, this EMP is a bullet
+	if (emp->getHitboxRadius() > 0) {
+		if (emp->requiresBaseSprite()) {
+			Animatable animatable = emp->getAnimatable();
+			// Initialize with base sprite as the original sprite so that the base sprite will be the sprite that is reverted to when
+			// the animation ends
+			auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, emp->getBaseSprite(), true);
+			sprite.setAnimatable(spriteLoader, animatable, emp->getLoopAnimation());
+			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
+		} else {
+			Animatable animatable = emp->getAnimatable();
+			auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, animatable, emp->getLoopAnimation());
+			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
+		}
 
 		registry.assign<EnemyBulletComponent>(bullet, attackID, attackPatternID, enemyID, enemyPhaseID);
 	}
@@ -118,11 +129,20 @@ void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
 		}
 	}
 
-	// If animatable name is not empty, this EMP is a bullet
-	Animatable animatable = emp->getAnimatable();
-	if (animatable.getAnimatableName() != "") {
-		registry.assign<HitboxComponent>(bullet, emp->getRotationType(), emp->getHitboxRadius(), emp->getHitboxPosX(), emp->getHitboxPosY());
-		registry.assign<SpriteComponent>(bullet, emp->getRotationType(), spriteLoader.getSprite(animatable.getAnimatableName(), animatable.getSpriteSheetName()));
+	// If hitbox radius > 0, this EMP is a bullet
+	if (emp->getHitboxRadius() > 0) {
+		if (emp->requiresBaseSprite()) {
+			Animatable animatable = emp->getAnimatable();
+			// Initialize with base sprite as the original sprite so that the base sprite will be the sprite that is reverted to when
+			// the animation ends
+			auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, emp->getBaseSprite(), true);
+			sprite.setAnimatable(spriteLoader, animatable, emp->getLoopAnimation());
+			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
+		} else {
+			Animatable animatable = emp->getAnimatable();
+			auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, animatable, emp->getLoopAnimation());
+			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
+		}
 
 		registry.assign<PlayerBulletComponent>(bullet, attackID, attackPatternID, emp->getDamage());
 	}
@@ -235,8 +255,9 @@ void SpawnEnemyCommand::execute(EntityCreationQueue & queue) {
 		// Assign empty DespawnComponent so that CollisionSystem can use it later without having to assign a DespawnComponent to the enemy
 		registry.assign<DespawnComponent>(enemy);
 	}
-	registry.assign<HitboxComponent>(enemy, enemyInfo->getRotationType(), enemyInfo->getHitboxRadius(), enemyInfo->getHitboxPosX(), enemyInfo->getHitboxPosY());
-	registry.assign<SpriteComponent>(enemy, enemyInfo->getRotationType());
+	// Hitbox temporarily at 0, 0 until an Animatable is assigned to the enemy on phase start
+	registry.assign<HitboxComponent>(enemy, LOCK_ROTATION, enemyInfo->getHitboxRadius(), 0, 0);
+	registry.assign<SpriteComponent>(enemy);
 	registry.assign<EnemyComponent>(enemy, enemyInfo, spawnInfo, enemyInfo->getID());
 	registry.assign<AnimatableSetComponent>(enemy);
 	registry.assign<ShadowTrailComponent>(enemy, 0, 0);
@@ -260,4 +281,43 @@ void SpawnShadowTrailCommand::execute(EntityCreationQueue & queue) {
 
 int SpawnShadowTrailCommand::getEntitiesQueuedCount() {
 	return 1;
+}
+
+EMPDropItemCommand::EMPDropItemCommand(entt::DefaultRegistry & registry, SpriteLoader & spriteLoader, float x, float y, std::shared_ptr<Item> item, int amount) : 
+	EntityCreationCommand(registry), spriteLoader(spriteLoader), x(x), y(y), amount(amount), item(item) {
+}
+
+void EMPDropItemCommand::execute(EntityCreationQueue & queue) {
+	std::mt19937 eng;
+	std::uniform_real_distribution<float> explosionTimeDistribution(1.0f, 2.0f);
+	std::uniform_real_distribution<float> explosionDistanceDistribution(150.0f, 250.0f);
+	std::uniform_real_distribution<float> explosionAngleDistribution(70.0f * PI/180.0f, 110.0f * PI/180.0f);
+
+	for (int i = 0; i < amount; i++) {
+		//TODO: give it some path + EMPActions where it explodes upwards (arc angle of random 70-110 degrees, max distance of random 50-150); DampenedEndTFV for distance
+	// and then EMPAction where it drops straight down (DampenedStartTFV for distance)
+		uint32_t itemEntity = registry.create();
+		registry.assign<CollectibleComponent>(itemEntity, item, ITEM_ACTIVATION_RADIUS);
+		registry.assign<DespawnComponent>(itemEntity, ITEM_DESPAWN_TIME);
+		auto& sprite = registry.assign<SpriteComponent>(itemEntity, spriteLoader, item->getAnimatable(), true);
+		registry.assign<HitboxComponent>(itemEntity, item->getHitboxRadius(), sprite.getSprite());
+		registry.assign<PositionComponent>(itemEntity, x, y);
+
+		// Movement path mimics an explosion upwards (70-110 degrees) and then dropping down
+		std::vector<std::shared_ptr<EMPAction>> actions;
+		// Explosion
+		float explosionTime = explosionTimeDistribution(eng);
+		std::shared_ptr<TFV> explosionDistance = std::make_shared<DampenedEndTFV>(0, explosionDistanceDistribution(eng), explosionTime, 10);
+		std::shared_ptr<TFV> explosionAngle = std::make_shared<ConstantTFV>(explosionAngleDistribution(eng));
+		actions.push_back(std::make_shared<MoveCustomPolarEMPA>(explosionDistance, explosionAngle, explosionTime));
+		// Drop down
+		std::shared_ptr<TFV> dropDistance = std::make_shared<DampenedStartTFV>(0, MAP_HEIGHT + 250 + sprite.getSprite()->getOrigin().y, ITEM_DESPAWN_TIME, 10);
+		std::shared_ptr<TFV> dropAngle = std::make_shared<ConstantTFV>(3.0f * PI/2.0f);
+		actions.push_back(std::make_shared<MoveCustomPolarEMPA>(dropDistance, dropAngle, ITEM_DESPAWN_TIME));
+		registry.assign<MovementPathComponent>(itemEntity, queue, itemEntity, registry, NULL, std::make_shared<SpecificGlobalEMPSpawn>(0, x, y), actions, 0);
+	}
+}
+
+int EMPDropItemCommand::getEntitiesQueuedCount() {
+	return amount;
 }

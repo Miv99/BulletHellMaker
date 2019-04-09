@@ -198,7 +198,7 @@ bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, c
 					throw "Sprite \"" + name + "\" is missing property " + SPRITE_SIZE_TAG;
 				}
 				// sprite origin
-				float originX = spriteWidth/2.0f, originY = spriteHeight/2.0f;
+				float originX = area.width /2.0f, originY = area.height/2.0f;
 				if (animationIterator->second->find(SPRITE_ORIGIN_TAG) != animationIterator->second->end()) {
 					auto temp = extractInts(animationIterator->second->at(SPRITE_ORIGIN_TAG));
 					if (temp.size() != 2) {

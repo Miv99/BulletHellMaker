@@ -7,7 +7,7 @@
 #include "TextMarshallable.h"
 #include "EditorMovablePointAction.h"
 #include "EntityCreationQueue.h"
-#include "EntityAnimatableSet.h"
+#include "Animatable.h"
 #include "SpriteLoader.h"
 #include "Components.h"
 
@@ -31,11 +31,12 @@ public:
 
 	bool legal(SpriteLoader& spriteLoader, std::string& message);
 
+	inline bool requiresBaseSprite() {
+		return !animatable.isSprite() && !loopAnimation;
+	}
 	inline int getID() { return id; }
 	inline Animatable getAnimatable() { return animatable; }
 	inline float getHitboxRadius() { return hitboxRadius; }
-	inline float getHitboxPosX() { return hitboxPosX; }
-	inline float getHitboxPosY() { return hitboxPosY; }
 	inline float getDespawnTime() { return despawnTime; }
 	inline const std::shared_ptr<EMPSpawnType> getSpawnType() { return spawnType; }
 	inline const std::vector<std::shared_ptr<EditorMovablePoint>> getChildren() { return children; }
@@ -49,17 +50,15 @@ public:
 		}
 		return total;
 	}
-	inline ROTATION_TYPE getRotationType() { return rotationType; }
 	inline float getDamage() { return damage; }
+	inline bool getLoopAnimation() { return loopAnimation; }
+	inline Animatable getBaseSprite() { return baseSprite; }
 
 	inline void setDamage(float damage) { this->damage = damage; }
-	inline void setRotationType(ROTATION_TYPE rotationType) { this->rotationType = rotationType; }
 	inline void setAnimatable(Animatable animatable) { this->animatable = animatable; }
 	inline void setLoopAnimation(bool loopAnimation) { this->loopAnimation = loopAnimation; }
 	inline void setBaseSprite(Animatable baseSprite) { assert(baseSprite.isSprite()); this->baseSprite = baseSprite; }
 	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; }
-	inline void setHitboxPosX(float hitboxPosX) { this->hitboxPosX = hitboxPosX; }
-	inline void setHitboxPosY(float hitboxPosY) { this->hitboxPosY = hitboxPosY; }
 	inline void setDespawnTime(float despawnTime) { this->despawnTime = despawnTime; }
 	void setSpawnType(std::shared_ptr<EMPSpawnType> spawnType);
 	inline void setShadowTrailInterval(float shadowTrailInterval) { this->shadowTrailInterval = shadowTrailInterval; }
@@ -136,19 +135,15 @@ private:
 	Animatable animatable;
 	// Only applicable if animatable is an animation
 	bool loopAnimation;
-	// The sprite that will be used after the animation ends. Only necessary if animatable is an animation and loopAnimation is false
+	// The animatable that will be used after the animation ends. Only necessary if animatable is an animation and loopAnimation is false
 	Animatable baseSprite;
 
 	// Radius of the EMP's hitbox. Set to <= 0 if the EMP is not a bullet.
 	float hitboxRadius = 0;
-	// Local position of hitbox
-	float hitboxPosX, hitboxPosY;
 
 	// The minimum of this value and the total time to complete all EMPActions is the time until this EMP despawns
 	// Set to < 0 if unused (then the total EMPActions time will be used instead)
 	float despawnTime = -1;
-
-	ROTATION_TYPE rotationType;
 
 	// Only for bullets; the amount of damage this bullet deals
 	float damage = 1;

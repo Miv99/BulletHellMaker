@@ -1,6 +1,7 @@
 #include "Components.h"
 #include "CollisionSystem.h"
 #include "Enemy.h"
+#include "Level.h"
 
 float distance(float x1, float y1, float x2, float y2) {
 	return sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2));
@@ -14,7 +15,7 @@ float max(float a, float b) {
 	return a > b ? a : b;
 }
 
-CollisionSystem::CollisionSystem(SpriteLoader& spriteLoader, entt::DefaultRegistry & registry, float mapWidth, float mapHeight, const HitboxComponent& largestHitbox) : spriteLoader(spriteLoader), registry(registry) {
+CollisionSystem::CollisionSystem(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry & registry, float mapWidth, float mapHeight, const HitboxComponent& largestHitbox) : queue(queue), spriteLoader(spriteLoader), registry(registry) {
 	defaultTableObjectMaxSize = 2.0f * max(mapWidth, mapHeight) / 10.0;
 	defaultTable = SpatialHashTable<uint32_t>(mapWidth, mapHeight, defaultTableObjectMaxSize/2.0f);
 	largeObjectsTable = SpatialHashTable<uint32_t>(mapWidth, mapHeight, largestHitbox.getRadius() * 2.0f);
@@ -102,10 +103,17 @@ void CollisionSystem::update(float deltaTime) {
 					// Enemy is dead
 
 					// Call the enemy's DeathActions
-					for (auto deathAction : enemy.getEnemyData()->getDeathActions()) {
-						deathAction->execute(registry, spriteLoader, entity);
+					for (std::shared_ptr<DeathAction> deathAction : enemy.getEnemyData()->getDeathActions()) {
+						deathAction->execute(queue, registry, spriteLoader, entity);
 					}
-					// Drop items, if any TODO
+					// Play death animation
+					enemy.getCurrentDeathAnimationAction()->execute(queue, registry, spriteLoader, entity);
+
+					// Drop items, if any
+					auto currentLevel = registry.get<LevelManagerTag>().getLevel();
+					for (auto itemAndAmountPair : enemy.getEnemySpawnInfo().getItemsDroppedOnDeath()) {
+						queue.pushBack(std::make_unique<EMPDropItemCommand>(registry, spriteLoader, position.getX(), position.getY(), itemAndAmountPair.first, itemAndAmountPair.second));
+					}
 					
 					// Delete enemy
 					registry.get<DespawnComponent>(entity).setMaxTime(0);

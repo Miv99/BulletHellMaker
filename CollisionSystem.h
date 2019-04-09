@@ -3,13 +3,15 @@
 #include "SpatialHashTable.h"
 #include "Components.h"
 #include "SpriteLoader.h"
+#include "EntityCreationQueue.h"
 
 class CollisionSystem {
 public:
-	CollisionSystem(SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, float mapWidth, float mapHeight, const HitboxComponent& largestHitbox);
+	CollisionSystem(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, float mapWidth, float mapHeight, const HitboxComponent& largestHitbox);
 	void update(float deltaTime);
 
 private:
+	EntityCreationQueue& queue;
 	SpriteLoader& spriteLoader;
 	entt::DefaultRegistry& registry;
 	// Spatial hash table with cell size equal to max(mapWidth, mapHeight)/10

@@ -3,27 +3,9 @@
 #include <string>
 #include <utility>
 #include "TextMarshallable.h"
+#include "Animatable.h"
 
-class Animatable : public TextMarshallable {
-public:
-	inline Animatable() {}
-	inline Animatable(std::string animatableName, std::string spriteSheetName, bool animatableIsSprite) : animatableName(animatableName), spriteSheetName(spriteSheetName), animatableIsSprite(animatableIsSprite) {}
-
-	std::string format() override;
-	void load(std::string formattedString) override;
-
-	inline std::string getAnimatableName() { return animatableName; }
-	inline std::string getSpriteSheetName() { return spriteSheetName; }
-	inline bool isSprite() { return animatableIsSprite; }
-
-private:
-	// Name of sprite/animation
-	std::string animatableName;
-	// Name of sprite sheet the animatable is in
-	std::string spriteSheetName;
-	// True if the associated animatable is a sprite. False if it's an animation
-	bool animatableIsSprite;
-};
+class DeathAction;
 
 /*
 The set of animatables associated with each enemy phase
@@ -32,7 +14,7 @@ or with each player power tier.
 class EntityAnimatableSet : public TextMarshallable {
 public:
 	inline EntityAnimatableSet() {}
-	inline EntityAnimatableSet(Animatable idle, Animatable movement, Animatable attack, Animatable death) : idleAnimatable(idle), movementAnimatable(movement), attackAnimatable(attack), deathAnimatable(death) {}
+	EntityAnimatableSet(Animatable idle, Animatable movement, Animatable attack, std::shared_ptr<DeathAction> deathAction);
 
 	std::string format() override;
 	void load(std::string formattedString) override;
@@ -40,15 +22,15 @@ public:
 	inline Animatable getIdleAnimatable() { return idleAnimatable; }
 	inline Animatable getMovementAnimatable() { return movementAnimatable; }
 	inline Animatable getAttackAnimatable() { return attackAnimatable; }
-	inline Animatable getDeathAnimatable() { return deathAnimatable; }
+	std::shared_ptr<DeathAction> getDeathAction();
 
 private:
-	// Animatable used when an entity is idle
+	// Animatable used when an entity is idle; always loops
 	Animatable idleAnimatable;
-	// Animatable used when an entity is moving
+	// Animatable used when an entity is moving; always loops
 	Animatable movementAnimatable;
-	// Animatable used when an entity attacks
+	// Animatable used when an entity attacks; never loops
 	Animatable attackAnimatable;
-	// Animatable used when an entity dies
-	Animatable deathAnimatable;
+	// Action performed on death (includes the animatable to be displayed); its animatable never loops
+	std::shared_ptr<DeathAction> deathAction;
 };

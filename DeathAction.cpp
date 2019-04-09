@@ -12,25 +12,20 @@ void PlayAnimatableDeathAction::load(std::string formattedString) {
 	effect = static_cast<DEATH_ANIMATION_EFFECT>(std::stoi(items[3]));
 }
 
-void PlayAnimatableDeathAction::execute(entt::DefaultRegistry & registry, SpriteLoader & spriteLoader, uint32_t entity) {
+void PlayAnimatableDeathAction::execute(EntityCreationQueue& queue, entt::DefaultRegistry & registry, SpriteLoader & spriteLoader, uint32_t entity) {
 	uint32_t newEntity = registry.create();
 	auto& inheritedSpriteComponent = registry.get<SpriteComponent>(entity);
 
+	auto& spriteComponent = registry.assign<SpriteComponent>(newEntity, spriteLoader, animatable, false);
 	if (animatable.isSprite()) {
-		registry.assign<DespawnComponent>(newEntity, duration);
-		auto& spriteComponent = registry.assign<SpriteComponent>(newEntity, inheritedSpriteComponent.getRotationType(), spriteLoader.getSprite(animatable.getAnimatableName(), animatable.getSpriteSheetName()));
-		spriteComponent.rotate(inheritedSpriteComponent.getInheritedRotationAngle());
-		loadEffectAnimation(spriteComponent);
+		registry.assign<DespawnComponent>(newEntity, duration);	
 	} else {
-		auto animation = spriteLoader.getAnimation(animatable.getAnimatableName(), animatable.getSpriteSheetName(), false);
-		registry.assign<DespawnComponent>(newEntity, animation->getTotalDuration());
-		auto& spriteComponent = registry.assign<SpriteComponent>(newEntity, inheritedSpriteComponent.getRotationType());
-		spriteComponent.rotate(inheritedSpriteComponent.getInheritedRotationAngle());
-		spriteComponent.setAnimation(std::move(animation));
-		loadEffectAnimation(spriteComponent);
+		registry.assign<DespawnComponent>(newEntity, spriteLoader.getAnimation(animatable.getAnimatableName(), animatable.getSpriteSheetName(), false)->getTotalDuration());
 	}
+	spriteComponent.rotate(inheritedSpriteComponent.getInheritedRotationAngle());
+	loadEffectAnimation(spriteComponent);
 
-	auto oldPos = registry.get<PositionComponent>(entity);
+	auto& oldPos = registry.get<PositionComponent>(entity);
 	registry.assign<PositionComponent>(newEntity, oldPos.getX(), oldPos.getY());
 }
 

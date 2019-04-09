@@ -32,12 +32,13 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 
 	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
 	renderSystem = std::make_unique<RenderSystem>(registry, window);
-	collisionSystem = std::make_unique<CollisionSystem>(*spriteLoader, registry, MAP_WIDTH, MAP_HEIGHT, HitboxComponent(LOCK_ROTATION, levelPack->searchLargestHitbox(), 0, 0));
+	collisionSystem = std::make_unique<CollisionSystem>(*queue, *spriteLoader, registry, MAP_WIDTH, MAP_HEIGHT, HitboxComponent(LOCK_ROTATION, levelPack->searchLargestHitbox(), 0, 0));
 	despawnSystem = std::make_unique<DespawnSystem>(registry);
 	enemySystem = std::make_unique<EnemySystem>(*queue, *spriteLoader, *levelPack, registry);
 	spriteAnimationSystem = std::make_unique<SpriteAnimationSystem>(*spriteLoader, registry);
 	shadowTrailSystem = std::make_unique<ShadowTrailSystem>(*queue, registry);
 	playerSystem = std::make_unique<PlayerSystem>(*levelPack, *queue, *spriteLoader, registry);
+	collectibleSystem = std::make_unique<CollectibleSystem>(*queue, registry);
 }
 
 void GameInstance::physicsUpdate(float deltaTime) {
@@ -52,6 +53,9 @@ void GameInstance::physicsUpdate(float deltaTime) {
 		queue->executeAll();
 
 		movementSystem->update(deltaTime);
+		queue->executeAll();
+
+		collectibleSystem->update(deltaTime);
 		queue->executeAll();
 
 		playerSystem->update(deltaTime);
@@ -85,10 +89,17 @@ void GameInstance::startLevel(int levelIndex) {
 	// Create the level manager
 	registry.reserve<LevelManagerTag>(1);
 	registry.reserve(registry.alive() + 1);
-	levelManager = registry.create();
+	uint32_t levelManager = registry.create();
 	registry.assign<LevelManagerTag>(entt::tag_t{}, levelManager, levelPack->getLevel(levelIndex));
 	
 	resume();
+}
+
+void GameInstance::endLevel() {
+	//TODO
+
+	// Add points from the level that is ending
+	points += registry.get<LevelManagerTag>().getPoints();
 }
 
 void GameInstance::handleEvent(sf::Event event) {
@@ -115,7 +126,8 @@ void GameInstance::createPlayer(EditorPlayer params) {
 	registry.assign<PlayerTag>(entt::tag_t{}, player, params.getSpeed(), params.getFocusedSpeed(), params.getAttackPattern(), params.getAttackPatternLoopDelay(), params.getFocusedAttackPattern(), params.getFocusedAttackPatternLoopDelay());
 	registry.assign<AnimatableSetComponent>(player, params.getAnimatableSet());
 	registry.assign<HealthComponent>(player, params.getInitialHealth(), params.getMaxHealth());
-	registry.assign<HitboxComponent>(player, params.getRotationType(), params.getHitboxRadius(), params.getHitboxPosX(), params.getHitboxPosY());
+	// Hitbox temporarily at 0, 0 until an Animatable is assigned to the player later
+	registry.assign<HitboxComponent>(player, LOCK_ROTATION, params.getHitboxRadius(), 0, 0);
 	registry.assign<PositionComponent>(player, PLAYER_SPAWN_X - params.getHitboxPosX(), PLAYER_SPAWN_Y - params.getHitboxPosY());
-	registry.assign<SpriteComponent>(player, params.getRotationType());
+	registry.assign<SpriteComponent>(player);
 }

@@ -17,21 +17,26 @@ Notes for me:
  objects, so the sf::Sprite pointer in SpriteEffectAnimation MUST point to a SpriteComponent's pointer (so when setting SpriteEffectAnimation, 
  spriteComponent.getSprite() must be used) so that other sf::Sprites are not affected.
 -Sprite origin and hitbox origin must be the same values
--sf::Sprite's origin is relative to the texture's bottom-left coordinates and ignores scale/rotation/transformations
+-sf::Sprite's origin is relative to the texture's top-left coordinates and ignores scale/rotation/transformations
 -All TFVs in the editor are stored internally as PiecewiseContinuousTFVs
+-To loop an animation x times, copy paste the frame data x times
+
+-current todo: connect rotation_type to the Animatable rather than to the enemy/EMP
+-EMP change to base sprite; or maybe just do it in SpriteComponent's updateSprite()
 
 TODO:
+-sprite layering; suggestion: layer for each type of entity (enemy/player bullets, player, enemies, player/enemy/player bullet/enemy bullet shadow), then in
+ each layer, sort by LevelManagerTag.timeSinceStartOfLevel when the entity was created
+-move loopAnimation into 
 -test death animations and death animations with different rotations
 -Power up tiers for player; each has its own animatableset
 -item drops (see math notes)		
 -Multiple small shockwave effects 
--Player bounded in map by their hitbox, not PositionComponent
--mandatory death effect for each enemy: user chooses a SpriteEffectAnimation (FadeAway, RedFadeAway (tint red + fade away), ...)
--when an enemy dies, create new entity to play the death animation+effect; if no animation, just do the effect
 -Add to EMP: OnContactAction: TurnIntangible (remove HitboxComponent), DestroyBulletAndAttachedChildren (give children DespawnComponent to this EMP when they spawn),
 	DestroyBulletOnly (remove Sprite and Hitbox)
 -DeathActionComponent (for player + enemies + bullets): does a list of DeathActions: ExecuteAttack (enemies only), ParticleExplosion, PlaySound
 -Sounds are attached to EMPs and are played on spawn
+-Change meta file + sprite sheet meta files to use TextMarshallable
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------
 editable = attack/attack pattern/emp/enemy/enemyphase/player

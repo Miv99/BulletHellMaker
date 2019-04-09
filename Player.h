@@ -29,9 +29,7 @@ public:
 	inline std::shared_ptr<EditorAttackPattern> getFocusedAttackPattern() { return focusedAttackPattern; }
 	inline float getAttackPatternLoopDelay() { return attackPatternLoopDelay; }
 	inline float getFocusedAttackPatternLoopDelay() { return focusedAttackPatternLoopDelay; }
-	inline ROTATION_TYPE getRotationType() { return rotationType; }
 
-	inline void setRotationType(ROTATION_TYPE rotationType) { this->rotationType = rotationType; }
 	inline void setInitialHealth(int initialHealth) { this->initialHealth = initialHealth; }
 	inline void setMaxHealth(int maxHealth) { this->maxHealth = maxHealth; }
 	inline void setSpeed(float speed) { this->speed = speed; }
@@ -64,6 +62,4 @@ private:
 	float attackPatternLoopDelay;
 	std::shared_ptr<EditorAttackPattern> focusedAttackPattern;
 	float focusedAttackPatternLoopDelay;
-
-	ROTATION_TYPE rotationType;
 };

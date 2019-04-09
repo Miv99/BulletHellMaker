@@ -4,6 +4,7 @@
 #include <deque>
 #include "Components.h"
 #include "EnemySpawn.h"
+#include "Item.h"
 
 class EditorMovablePoint;
 class SpriteLoader;
@@ -28,6 +29,8 @@ static void reserveMemory(entt::DefaultRegistry& registry, int reserve) {
 	registry.reserve<SimpleEMPReferenceComponent>(reserve);
 	registry.reserve<EMPSpawnerComponent>(reserve);
 	registry.reserve<ShadowTrailComponent>(reserve);
+	registry.reserve<AnimatableSetComponent>(reserve);
+	registry.reserve<CollectibleComponent>(reserve);
 	// Ignore level manager component since there can only be one
 }
 
@@ -125,6 +128,14 @@ Command for creating the entity/entities associated with an attack by an enemy.
 */
 class EMPSpawnFromEnemyCommand : public EntityCreationCommand {
 public:
+	/*
+	emp - the root of the EMP tree of the attack (see EditorAttack's mainEMP)
+	entity - the enemy executing the attack
+	timeLag - time when attack should have occurred minus time when the attack actually occurred
+	attackPatternID - ID of enemy attack pattern that this attack came from
+	enemyPhaseID - ID of enemy phase at the time of attack execution
+	playAttackAnimation - whether the attack executor should play its attack animation
+	*/
 	EMPSpawnFromEnemyCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, uint32_t entity, float timeLag, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation);
 
 	void execute(EntityCreationQueue& queue) override;
@@ -148,6 +159,13 @@ Command for creating the entity/entities associated with an attack by a player.
 */
 class EMPSpawnFromPlayerCommand : public EntityCreationCommand {
 public:
+	/*
+	emp - the root of the EMP tree of the attack (see EditorAttack's mainEMP)
+	entity - the player executing the attack
+	timeLag - time when attack should have occurred minus time when the attack actually occurred
+	attackPatternID - ID of enemy attack pattern that this attack came from
+	playAttackAnimation - whether the attack executor should play its attack animation
+	*/
 	EMPSpawnFromPlayerCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, uint32_t entity, float timeLag, int attackID, int attackPatternID, bool playAttackAnimation);
 
 	void execute(EntityCreationQueue& queue) override;
@@ -162,6 +180,29 @@ private:
 	int attackID;
 	int attackPatternID;
 	bool playAttackAnimation;
+};
+
+/*
+Command for creating a collectible health pack.
+*/
+class EMPDropItemCommand : public EntityCreationCommand {
+public:
+	/*
+	entity - the entity that the item is dropping from
+	x, y - the position the health pack is appearing from
+	amount - the number of items dropping
+	*/
+	EMPDropItemCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, float x, float y, std::shared_ptr<Item> item, int amount);
+
+	void execute(EntityCreationQueue& queue) override;
+	int getEntitiesQueuedCount() override;
+
+private:
+	SpriteLoader& spriteLoader;
+	float x;
+	float y;
+	int amount;
+	std::shared_ptr<Item> item;
 };
 
 /*

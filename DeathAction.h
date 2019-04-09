@@ -5,9 +5,10 @@
 #include <memory>
 #include <entt/entt.hpp>
 #include "TextMarshallable.h"
-#include "EntityAnimatableSet.h"
+#include "Animatable.h"
 #include "SpriteLoader.h"
 #include "Components.h"
+#include "EntityCreationQueue.h"
 
 /*
 An action that is executed on the death of an entity.
@@ -18,7 +19,7 @@ public:
 	std::string format() = 0;
 	void load(std::string formattedString) = 0;
 
-	virtual void execute(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) = 0;
+	virtual void execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) = 0;
 };
 
 class PlayAnimatableDeathAction : public DeathAction {
@@ -40,7 +41,7 @@ public:
 	/*
 	entity - the entity executing this DeathAction
 	*/
-	void execute(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) override;
+	void execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) override;
 
 private:
 	Animatable animatable;

@@ -12,6 +12,7 @@
 #include "Animation.h"
 #include "Constants.h"
 #include "EntityAnimatableSet.h"
+#include "Animatable.h"
 #include "EnemySpawn.h"
 
 class MovablePoint;
@@ -26,12 +27,6 @@ class Level;
 class EntityCreationQueue;
 class EditorMovablePoint;
 class Item;
-
-static enum ROTATION_TYPE {
-	ROTATE_WITH_MOVEMENT, // Rotate depending on angle from last position to current position
-	LOCK_ROTATION, // Never rotate
-	LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT // Never rotate but flip sprite/hitbox across y-axis depending on angle from last position to current position
-};
 
 class PositionComponent {
 public:
@@ -143,6 +138,21 @@ public:
 	y - local offset of hitbox
 	*/
 	HitboxComponent(ROTATION_TYPE rotationType, float radius, float x, float y) : rotationType(rotationType), radius(radius), x(x), y(y), unrotatedX(x), unrotatedY(y) {}
+	/*
+	radius - hitbox radius
+	sprite - this entity's sprite at the time of this HitboxComponent construction
+	*/
+	HitboxComponent(float radius, std::shared_ptr<sf::Sprite> sprite) : radius(radius) {
+		rotate(sprite);
+
+		// Rotate sprite to angle 0 to find unrotatedX/Y, then rotate sprite back
+		auto oldAngle = sprite->getRotation();
+		sprite->setRotation(0);
+		auto transformed = sprite->getTransform().transformPoint(sprite->getOrigin());
+		unrotatedX = transformed.x;
+		unrotatedY = transformed.y;
+		sprite->setRotation(oldAngle);
+	}
 
 	/*
 	angle - radians in range [-pi, pi]
@@ -167,6 +177,19 @@ public:
 			// Do nothing (maintain last value) if angle is a perfect 90 or -90 degree angle
 		}
 	}
+	/*
+	Match origin to sprite's origin.
+	*/
+	inline void rotate(std::shared_ptr<sf::Sprite> sprite) {
+		if (unrotatedX == unrotatedY == 0) return;
+
+		auto oldPos = sprite->getPosition();
+		sprite->setPosition(0, 0);
+		auto transformed = sprite->getTransform().transformPoint(sprite->getOrigin());
+		x = transformed.x;
+		y = transformed.y;
+		sprite->setPosition(oldPos);
+	}
 
 	inline float getRadius() const { return radius; }
 	inline float getX() const { return x; }
@@ -178,14 +201,23 @@ private:
 	ROTATION_TYPE rotationType;
 
 	float radius;
-	float x, y;
+	float x = 0, y = 0;
 	// Local offset of hitbox when rotated at angle 0
 	float unrotatedX, unrotatedY;
 };
 
 class SpriteComponent {
 public:
-	inline SpriteComponent(ROTATION_TYPE rotationType) : rotationType(rotationType) {}
+	inline SpriteComponent() {}
+	/*
+	loopAnimatable - only applicable if animatable is an animation
+	*/
+	inline SpriteComponent(SpriteLoader& spriteLoader, Animatable animatable, bool loopAnimatable) {
+		setAnimatable(spriteLoader, animatable, loopAnimatable);
+		if (animatable.isSprite()) {
+			originalSprite = *sprite;
+		}
+	}
 	inline SpriteComponent(ROTATION_TYPE rotationType, std::shared_ptr<sf::Sprite> sprite) : rotationType(rotationType), sprite(sprite), originalSprite(*sprite) {}
 
 	void update(float deltaTime);
@@ -197,23 +229,19 @@ public:
 
 	inline bool animationIsDone() { assert(animation != nullptr); return animation->isDone(); }
 	inline const std::shared_ptr<sf::Sprite> getSprite() { return sprite; }
-	inline void updateSprite(std::shared_ptr<sf::Sprite> newSprite) {
-		if (!sprite) {
-			// SpriteEffectAnimations can change SpriteComponent's Sprite, so create a new Sprite object to avoid 
-			// accidentally modifying the parameter Sprite pointer's object
-			sprite = std::make_shared<sf::Sprite>(*newSprite);
-			if (effectAnimation != nullptr) {
-				effectAnimation->setSpritePointer(sprite);
-			}
+
+	/*
+	loopAnimatable - only applicable if animatable is an animation
+	*/
+	inline void setAnimatable(SpriteLoader& spriteLoader, Animatable animatable, bool loopAnimatable) {
+		this->rotationType = animatable.getRotationType();
+
+		if (animatable.isSprite()) {
+			// Cancel current animation
+			setAnimation(nullptr);
+			updateSprite(spriteLoader.getSprite(animatable.getAnimatableName(), animatable.getSpriteSheetName()));
 		} else {
-			updateSprite(*newSprite);
-		}
-	}
-	inline void setAnimation(std::unique_ptr<Animation> animation) {
-		if (animation) {
-			this->animation = std::move(animation);
-		} else {
-			this->animation = nullptr;
+			setAnimation(spriteLoader.getAnimation(animatable.getAnimatableName(), animatable.getSpriteSheetName(), loopAnimatable));
 		}
 	}
 	inline void setEffectAnimation(std::unique_ptr<SpriteEffectAnimation> effectAnimation) { this->effectAnimation = std::move(effectAnimation); }
@@ -260,6 +288,25 @@ private:
 	std::unique_ptr<Animation> animation;
 
 	inline void updateSprite(sf::Sprite newSprite) { *sprite = newSprite; }
+	inline void updateSprite(std::shared_ptr<sf::Sprite> newSprite) {
+		if (!sprite) {
+			// SpriteEffectAnimations can change SpriteComponent's Sprite, so create a new Sprite object to avoid 
+			// accidentally modifying the parameter Sprite pointer's object
+			sprite = std::make_shared<sf::Sprite>(*newSprite);
+			if (effectAnimation != nullptr) {
+				effectAnimation->setSpritePointer(sprite);
+			}
+		} else {
+			updateSprite(*newSprite);
+		}
+	}
+	inline void setAnimation(std::unique_ptr<Animation> animation) {
+		if (animation) {
+			this->animation = std::move(animation);
+		} else {
+			this->animation = nullptr;
+		}
+	}
 };
 
 class PlayerTag {
@@ -292,6 +339,10 @@ public:
 	inline float getTimeSinceLastPhase() const { return timeSincePhase; }
 	inline std::shared_ptr<EditorEnemy> getEnemyData() const { return enemyData; }
 	inline EnemySpawnInfo getEnemySpawnInfo() const { return spawnInfo; }
+	/*
+	Returns the PlayAnimatableDeathAction associated with the current phase.
+	*/
+	std::shared_ptr<DeathAction> getCurrentDeathAnimationAction();
 
 private:
 	// Time since being spawned
@@ -375,7 +426,10 @@ private:
 	std::vector<uint32_t> children;
 };
 
-// Component assigned only to a single entity - the level manager
+/*
+Component assigned only to a single entity - the level manager.
+The level manager entity is destroyed and re-created on the start of a new level.
+*/
 class LevelManagerTag {
 public:
 	inline LevelManagerTag(std::shared_ptr<Level> level) : level(level) {}
@@ -383,8 +437,13 @@ public:
 
 	inline float getTimeSinceStartOfLevel() { return timeSinceStartOfLevel; }
 	inline float getTimeSinceLastEnemySpawn() { return timeSinceLastEnemySpawn; }
+	inline int getPoints() { return points; }
+	inline std::shared_ptr<Level> getLevel() { return level; }
 
 	inline void setTimeSinceLastEnemySpawn(float timeSinceLastEnemySpawn) { this->timeSinceLastEnemySpawn = timeSinceLastEnemySpawn; }
+
+	inline void addPoints(int amount) { points += amount; }
+	inline void subtractPoints(int amount) { points -= amount; if (points < 0) points = 0; }
 
 private:
 	// Time since the start of the level
@@ -396,6 +455,9 @@ private:
 	std::shared_ptr<Level> level;
 	// Current index in list of groups of enemies to be spawned from the level
 	int currentEnemyGroupSpawnIndex = -1;
+
+	// Points earned so far
+	int points = 0;
 };
 
 class EnemyBulletComponent {
@@ -545,4 +607,28 @@ private:
 	float lastY;
 	int currentState = -1;
 	bool firstUpdateHasBeenCalled = false;
+};
+
+/*
+Component for items that can be collected by the player.
+Entities with this component must also have HitboxComponent, PositionComponent, and MovementPathComponent (which does not need to have a path).
+*/
+class CollectibleComponent {
+public:
+	inline CollectibleComponent(std::shared_ptr<Item> item, float activationRadius) : item(item), activationRadius(activationRadius) {}
+
+	void update(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, const PositionComponent& entityPos, const HitboxComponent& entityHitbox);
+
+private:
+	bool activated = false;
+	std::shared_ptr<Item> item;
+	float activationRadius;
+
+	float distance(float x1, float y1, float x2, float y2) {
+		return sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2));
+	}
+
+	bool collides(const PositionComponent& p1, const HitboxComponent& h1, const PositionComponent& p2, const HitboxComponent& h2, float hitboxExtension) {
+		return distance(p1.getX() + h1.getX(), p1.getY() + h1.getY(), p2.getX() + h2.getX(), p2.getY() + h2.getY()) <= (h1.getRadius() + h2.getRadius() + hitboxExtension);
+	}
 };
