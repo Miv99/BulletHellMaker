@@ -52,6 +52,7 @@ TextureTopLeftCoordinates = 84,135
 BoundingRectangleSize = 41,41
 Color = 255,255,255,255
 SpriteSize = 72,92
+Origin = 18,23
 
 [oh my god he's dead]
 Type = Sprite
@@ -67,7 +68,7 @@ TextureTopLeftCoordinates = 218,154
 BoundingRectangleSize = 18,17
 Color = 255,255,255,255
 SpriteSize = 40,40
-Origin = 20,20
+Origin = 9,8
 
 [Bullet2]
 Type = Sprite

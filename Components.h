@@ -208,17 +208,22 @@ private:
 
 class SpriteComponent {
 public:
-	inline SpriteComponent() {}
+	/*
+	renderLayer - the layer to render this sprite at. Higher means being drawn on top.
+	sublayerr - determines order of sprite drawing for sprites in the same layer. Higher means being drawn on top.
+	*/
+	inline SpriteComponent(int renderLayer, float subLayer) : renderLayer(renderLayer), subLayer(subLayer) {}
 	/*
 	loopAnimatable - only applicable if animatable is an animation
 	*/
-	inline SpriteComponent(SpriteLoader& spriteLoader, Animatable animatable, bool loopAnimatable) {
+	inline SpriteComponent(SpriteLoader& spriteLoader, Animatable animatable, bool loopAnimatable, int renderLayer, float subLayer) : renderLayer(renderLayer), subLayer(subLayer) {
 		setAnimatable(spriteLoader, animatable, loopAnimatable);
 		if (animatable.isSprite()) {
 			originalSprite = *sprite;
 		}
 	}
-	inline SpriteComponent(ROTATION_TYPE rotationType, std::shared_ptr<sf::Sprite> sprite) : rotationType(rotationType), sprite(sprite), originalSprite(*sprite) {}
+	inline SpriteComponent(ROTATION_TYPE rotationType, std::shared_ptr<sf::Sprite> sprite, int renderLayer, float subLayer) : renderLayer(renderLayer), subLayer(subLayer), 
+		rotationType(rotationType), sprite(sprite), originalSprite(*sprite) {}
 
 	void update(float deltaTime);
 
@@ -227,6 +232,8 @@ public:
 	*/
 	inline void rotate(float angle) { rotationAngle = angle; }
 
+	inline int getRenderLayer() const { return renderLayer; }
+	inline float getSubLayer() const { return subLayer; }
 	inline bool animationIsDone() { assert(animation != nullptr); return animation->isDone(); }
 	inline const std::shared_ptr<sf::Sprite> getSprite() { return sprite; }
 
@@ -272,6 +279,9 @@ public:
 	}
 
 private:
+	int renderLayer;
+	float subLayer;
+
 	// If entity has a HitboxComponent, this rotationType must match its HitboxComponent's rotationType
 	ROTATION_TYPE rotationType;
 	// Last faced direction used only for rotation type LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT

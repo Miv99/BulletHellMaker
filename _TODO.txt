@@ -21,10 +21,9 @@ Notes for me:
 -All TFVs in the editor are stored internally as PiecewiseContinuousTFVs
 -To loop an animation x times, copy paste the frame data x times
 
--current todo: connect rotation_type to the Animatable rather than to the enemy/EMP
--EMP change to base sprite; or maybe just do it in SpriteComponent's updateSprite()
-
 TODO:
+-enemies can be bosses -> GUI displays a health bar; also separate render layer for bosses (above enemy)
+-when reverting from attack state to idle state, there is a frame where spritePtr is null
 -sprite layering; suggestion: layer for each type of entity (enemy/player bullets, player, enemies, player/enemy/player bullet/enemy bullet shadow), then in
  each layer, sort by LevelManagerTag.timeSinceStartOfLevel when the entity was created
 -move loopAnimation into 

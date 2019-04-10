@@ -74,7 +74,7 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	*/
 	
 	bool alt = false;
-	for (float time = 0; time < 5; time += 5) {
+	for (float time = 0; time < 5; time += 0.1f) {
 		ap1->addAttackID(time, attack2->getID());
 		if (alt) {
 			//ap1->addAttackID(time, attack1->getID());

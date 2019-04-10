@@ -129,5 +129,5 @@ void GameInstance::createPlayer(EditorPlayer params) {
 	// Hitbox temporarily at 0, 0 until an Animatable is assigned to the player later
 	registry.assign<HitboxComponent>(player, LOCK_ROTATION, params.getHitboxRadius(), 0, 0);
 	registry.assign<PositionComponent>(player, PLAYER_SPAWN_X - params.getHitboxPosX(), PLAYER_SPAWN_Y - params.getHitboxPosY());
-	registry.assign<SpriteComponent>(player);
+	registry.assign<SpriteComponent>(player, PLAYER_LAYER, 0);
 }

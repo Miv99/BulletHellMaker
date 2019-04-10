@@ -58,12 +58,12 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 			Animatable animatable = emp->getAnimatable();
 			// Initialize with base sprite as the original sprite so that the base sprite will be the sprite that is reverted to when
 			// the animation ends
-			auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, emp->getBaseSprite(), true);
+			auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, emp->getBaseSprite(), true, ENEMY_BULLET_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel() - timeLag);
 			sprite.setAnimatable(spriteLoader, animatable, emp->getLoopAnimation());
 			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
 		} else {
 			Animatable animatable = emp->getAnimatable();
-			auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, animatable, emp->getLoopAnimation());
+			auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, animatable, emp->getLoopAnimation(), ENEMY_BULLET_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel() - timeLag);
 			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
 		}
 
@@ -135,12 +135,12 @@ void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
 			Animatable animatable = emp->getAnimatable();
 			// Initialize with base sprite as the original sprite so that the base sprite will be the sprite that is reverted to when
 			// the animation ends
-			auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, emp->getBaseSprite(), true);
+			auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, emp->getBaseSprite(), true, PLAYER_BULLET_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel() - timeLag);
 			sprite.setAnimatable(spriteLoader, animatable, emp->getLoopAnimation());
 			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
 		} else {
 			Animatable animatable = emp->getAnimatable();
-			auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, animatable, emp->getLoopAnimation());
+			auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, animatable, emp->getLoopAnimation(), PLAYER_BULLET_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel() - timeLag);
 			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
 		}
 
@@ -257,7 +257,7 @@ void SpawnEnemyCommand::execute(EntityCreationQueue & queue) {
 	}
 	// Hitbox temporarily at 0, 0 until an Animatable is assigned to the enemy on phase start
 	registry.assign<HitboxComponent>(enemy, LOCK_ROTATION, enemyInfo->getHitboxRadius(), 0, 0);
-	registry.assign<SpriteComponent>(enemy);
+	registry.assign<SpriteComponent>(enemy, ENEMY_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel());
 	registry.assign<EnemyComponent>(enemy, enemyInfo, spawnInfo, enemyInfo->getID());
 	registry.assign<AnimatableSetComponent>(enemy);
 	registry.assign<ShadowTrailComponent>(enemy, 0, 0);
@@ -274,7 +274,7 @@ void SpawnShadowTrailCommand::execute(EntityCreationQueue & queue) {
 	auto shadow = registry.create();
 	registry.assign<PositionComponent>(shadow, x, y);
 	// Make a copy of the sprite to be the shadow's sprite
-	auto& spriteComponent = registry.assign<SpriteComponent>(shadow, LOCK_ROTATION, std::make_shared<sf::Sprite>(sprite));
+	auto& spriteComponent = registry.assign<SpriteComponent>(shadow, LOCK_ROTATION, std::make_shared<sf::Sprite>(sprite), SHADOW_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel());
 	spriteComponent.setEffectAnimation(std::make_unique<FadeAwaySEA>(spriteComponent.getSprite(), 0, SHADOW_TRAIL_MAX_OPACITY, shadowLifespan));
 	registry.assign<DespawnComponent>(shadow, shadowLifespan);
 }
@@ -299,7 +299,7 @@ void EMPDropItemCommand::execute(EntityCreationQueue & queue) {
 		uint32_t itemEntity = registry.create();
 		registry.assign<CollectibleComponent>(itemEntity, item, ITEM_ACTIVATION_RADIUS);
 		registry.assign<DespawnComponent>(itemEntity, ITEM_DESPAWN_TIME);
-		auto& sprite = registry.assign<SpriteComponent>(itemEntity, spriteLoader, item->getAnimatable(), true);
+		auto& sprite = registry.assign<SpriteComponent>(itemEntity, spriteLoader, item->getAnimatable(), true, ITEM_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel());
 		registry.assign<HitboxComponent>(itemEntity, item->getHitboxRadius(), sprite.getSprite());
 		registry.assign<PositionComponent>(itemEntity, x, y);
 

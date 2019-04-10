@@ -16,7 +16,8 @@ void PlayAnimatableDeathAction::execute(EntityCreationQueue& queue, entt::Defaul
 	uint32_t newEntity = registry.create();
 	auto& inheritedSpriteComponent = registry.get<SpriteComponent>(entity);
 
-	auto& spriteComponent = registry.assign<SpriteComponent>(newEntity, spriteLoader, animatable, false);
+	auto& dyingSprite = registry.get<SpriteComponent>(entity);
+	auto& spriteComponent = registry.assign<SpriteComponent>(newEntity, spriteLoader, animatable, false, dyingSprite.getRenderLayer(), dyingSprite.getSubLayer());
 	if (animatable.isSprite()) {
 		registry.assign<DespawnComponent>(newEntity, duration);	
 	} else {
