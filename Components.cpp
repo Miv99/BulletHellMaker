@@ -219,7 +219,8 @@ void SpriteComponent::update(float deltaTime) {
 		} else {
 			updateSprite(newSprite);
 		}
-	} else if (sprite) {
+	}
+	if (sprite) {
 		if (effectAnimation != nullptr) {
 			effectAnimation->update(deltaTime);
 		}
