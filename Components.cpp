@@ -219,35 +219,35 @@ void SpriteComponent::update(float deltaTime) {
 		} else {
 			updateSprite(newSprite);
 		}
-	}
-
-	if (effectAnimation != nullptr) {
-		effectAnimation->update(deltaTime);
-	}
-
-	// Rotate sprite
-	if (rotationType == ROTATE_WITH_MOVEMENT) {
-		// Negative because SFML uses clockwise rotation
-		sprite->setRotation(-rotationAngle * 180.0 / PI);
-	} else if (rotationType == LOCK_ROTATION) {
-		// Do nothing
-	} else if (rotationType == LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT) {
-		// Flip across y-axis if facing left
-		auto curScale = sprite->getScale();
-		if (rotationAngle < -PI / 2.0f || rotationAngle > PI / 2.0f) {
-			lastFacedRight = false;
-			if (curScale.x > 0) {
-				sprite->setScale(-1.0f * curScale.x, curScale.y);
-			}
-		} else if (rotationAngle > -PI / 2.0f && rotationAngle < PI / 2.0f) {
-			lastFacedRight = true;
-			if (curScale.x < 0) {
-				sprite->setScale(-1.0f * curScale.x, curScale.y);
-			}
-		} else if ((lastFacedRight && curScale.x < 0) || (!lastFacedRight && curScale.x > 0)) {
-			sprite->setScale(-1.0f * curScale.x, curScale.y);
+	} else if (sprite) {
+		if (effectAnimation != nullptr) {
+			effectAnimation->update(deltaTime);
 		}
-		// Do nothing (maintain last values) if angle is a perfect 90 or -90 degree angle
+
+		// Rotate sprite
+		if (rotationType == ROTATE_WITH_MOVEMENT) {
+			// Negative because SFML uses clockwise rotation
+			sprite->setRotation(-rotationAngle * 180.0 / PI);
+		} else if (rotationType == LOCK_ROTATION) {
+			// Do nothing
+		} else if (rotationType == LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT) {
+			// Flip across y-axis if facing left
+			auto curScale = sprite->getScale();
+			if (rotationAngle < -PI / 2.0f || rotationAngle > PI / 2.0f) {
+				lastFacedRight = false;
+				if (curScale.x > 0) {
+					sprite->setScale(-1.0f * curScale.x, curScale.y);
+				}
+			} else if (rotationAngle > -PI / 2.0f && rotationAngle < PI / 2.0f) {
+				lastFacedRight = true;
+				if (curScale.x < 0) {
+					sprite->setScale(-1.0f * curScale.x, curScale.y);
+				}
+			} else if ((lastFacedRight && curScale.x < 0) || (!lastFacedRight && curScale.x > 0)) {
+				sprite->setScale(-1.0f * curScale.x, curScale.y);
+			}
+			// Do nothing (maintain last values) if angle is a perfect 90 or -90 degree angle
+		}
 	}
 }
 
@@ -290,15 +290,19 @@ void EMPSpawnerComponent::update(entt::DefaultRegistry& registry, SpriteLoader& 
 }
 
 void AnimatableSetComponent::update(SpriteLoader& spriteLoader, float x, float y, SpriteComponent & spriteComponent, float deltaTime) {
-	if ((x == lastX && y == lastY) || !firstUpdateHasBeenCalled) {
-		changeState(IDLE, spriteLoader, spriteComponent);
+	if (deltaTime == 0) {
+		changeState(queuedState, spriteLoader, spriteComponent);
 	} else {
-		changeState(MOVEMENT, spriteLoader, spriteComponent);
-	}
+		if ((x == lastX && y == lastY) || !firstUpdateHasBeenCalled) {
+			changeState(IDLE, spriteLoader, spriteComponent);
+		} else {
+			changeState(MOVEMENT, spriteLoader, spriteComponent);
+		}
 
-	lastX = x;
-	lastY = y;
-	firstUpdateHasBeenCalled = true;
+		lastX = x;
+		lastY = y;
+		firstUpdateHasBeenCalled = true;
+	}
 }
 
 void AnimatableSetComponent::changeState(int newState, SpriteLoader& spriteLoader, SpriteComponent & spriteComponent) {
@@ -321,6 +325,7 @@ void AnimatableSetComponent::changeState(int newState, SpriteLoader& spriteLoade
 		loopNewAnimatable = false;
 		changeState = true;
 	}
+	queuedState = newState;
 
 	if (changeState) {
 		spriteComponent.setAnimatable(spriteLoader, newAnimatable, loopNewAnimatable);

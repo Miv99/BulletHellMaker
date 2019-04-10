@@ -13,4 +13,9 @@ void SpriteAnimationSystem::update(float deltaTime) {
 	view.each([&](auto entity, auto& sprite) {
 		sprite.update(deltaTime);
 	});
+
+	animatableSetView.each([&](auto entity, auto& position, auto& set, auto& sprite) {
+		// Update again with 0 delta time in case some state needs to be changed
+		set.update(spriteLoader, position.getX(), position.getY(), sprite, 0);
+	});
 }

@@ -316,6 +316,7 @@ private:
 		} else {
 			this->animation = nullptr;
 		}
+		update(0);
 	}
 };
 
@@ -617,6 +618,7 @@ private:
 	float lastY;
 	int currentState = -1;
 	bool firstUpdateHasBeenCalled = false;
+	int queuedState = -1;
 };
 
 /*
