@@ -12,7 +12,6 @@
 #include "Constants.h"
 
 GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) : window(window) {
-	//TODO have gui thing like touhou + fix aspect ratio
 	// Centered at negative y because SFML has (0, 0) at the top-left, and RenderSystem negates y-values so that (0, 0) in every other aspect of this game is bottom-left.
 	sf::View view(sf::Vector2f(MAP_WIDTH/2.0f, -MAP_HEIGHT/2.0f), sf::Vector2f(MAP_WIDTH, MAP_HEIGHT));
 	window.setView(view);
