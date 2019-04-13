@@ -52,7 +52,9 @@ public:
 	inline FlashWhiteSEA(std::shared_ptr<sf::Sprite> sprite, float flashInterval, float flashDuration, float animationDuration) : SpriteEffectAnimation(sprite),
 		flashInterval(flashInterval), flashDuration(flashDuration), animationDuration(animationDuration) {
 		// Load shader
-		shader.loadFromFile("Shaders/tint.frag", sf::Shader::Fragment);
+		if (!shader.loadFromFile("Shaders/tint.frag", sf::Shader::Fragment)) {
+			throw "Could not load Shaders/tint.frag";
+		}
 		shader.setUniform("flashColor", sf::Glsl::Vec4(1, 1, 1, 0));
 		useShader = true;
 	}
