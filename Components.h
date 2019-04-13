@@ -157,26 +157,7 @@ public:
 	/*
 	angle - radians in range [-pi, pi]
 	*/
-	inline void rotate(float angle) {
-		if (unrotatedX == unrotatedY == 0) return;
-
-		if (rotationType == ROTATE_WITH_MOVEMENT) {
-			float sin = std::sin(angle);
-			float cos = std::cos(angle);
-			x = unrotatedX * cos - unrotatedY * sin;
-			y = unrotatedX * sin + unrotatedY * cos;
-		} else if (rotationType == LOCK_ROTATION) {
-			// Do nothing
-		} else if (rotationType == LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT) {
-			// Flip across y-axis if facing left
-			if (angle < -PI / 2.0f || angle > PI / 2.0f) {
-				y = -unrotatedY;
-			} else if (angle > -PI / 2.0f && angle < PI / 2.0f) {
-				y = unrotatedY;
-			}
-			// Do nothing (maintain last value) if angle is a perfect 90 or -90 degree angle
-		}
-	}
+	void rotate(float angle);
 	/*
 	Match origin to sprite's origin.
 	*/

@@ -14,6 +14,9 @@
 #include <math.h>
 #include <tuple>
 
+// Used to account for float inaccuracies
+const float sigma = 0.00001f;
+
 void MovementPathComponent::update(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, PositionComponent& entityPosition, float deltaTime) {
 	time += deltaTime;
 	// While loop for actions with lifespan of 0 like DetachFromParent 
@@ -234,12 +237,12 @@ void SpriteComponent::update(float deltaTime) {
 		} else if (rotationType == LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT) {
 			// Flip across y-axis if facing left
 			auto curScale = sprite->getScale();
-			if (rotationAngle < -PI / 2.0f || rotationAngle > PI / 2.0f) {
+			if (rotationAngle < -PI / 2.0f - sigma || rotationAngle > PI / 2.0f + sigma) {
 				lastFacedRight = false;
 				if (curScale.x > 0) {
 					sprite->setScale(-1.0f * curScale.x, curScale.y);
 				}
-			} else if (rotationAngle > -PI / 2.0f && rotationAngle < PI / 2.0f) {
+			} else if (rotationAngle > -PI / 2.0f + sigma && rotationAngle < PI / 2.0f - sigma) {
 				lastFacedRight = true;
 				if (curScale.x < 0) {
 					sprite->setScale(-1.0f * curScale.x, curScale.y);
@@ -365,5 +368,26 @@ void CollectibleComponent::update(EntityCreationQueue& queue, entt::DefaultRegis
 		} else {
 			registry.assign<DespawnComponent>(entity, 0);
 		}
+	}
+}
+
+void HitboxComponent::rotate(float angle) {
+	if (unrotatedX == unrotatedY == 0) return;
+
+	if (rotationType == ROTATE_WITH_MOVEMENT) {
+		float sin = std::sin(angle);
+		float cos = std::cos(angle);
+		x = unrotatedX * cos - unrotatedY * sin;
+		y = unrotatedX * sin + unrotatedY * cos;
+	} else if (rotationType == LOCK_ROTATION) {
+		// Do nothing
+	} else if (rotationType == LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT) {
+		// Flip across y-axis if facing left
+		if (angle < -PI / 2.0f - sigma || angle > PI / 2.0f + sigma) {
+			y = -unrotatedY;
+		} else if (angle > -PI / 2.0f + sigma && angle < PI / 2.0f - sigma) {
+			y = unrotatedY;
+		}
+		// Do nothing (maintain last value) if angle is a perfect 90 or -90 degree angle
 	}
 }
