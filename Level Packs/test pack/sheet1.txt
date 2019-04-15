@@ -58,7 +58,7 @@ Origin = 18,23
 Type = Sprite
 TextureTopLeftCoordinates = 0,46
 BoundingRectangleSize = 36,46
-Color = 255,255,255,122
+Color = 255,255,255,255
 SpriteSize = 72,92
 Origin = 18,23
 
@@ -77,6 +77,14 @@ BoundingRectangleSize = 18,17
 Color = 255,50,50,255
 SpriteSize = 40,40
 Origin = 20,20
+
+[Box]
+Type = Sprite
+TextureTopLeftCoordinates = 184,174
+BoundingRectangleSize = 20,20
+Color = 255,255,255,255
+SpriteSize = 40,40
+Origin = 10,10
 
 [Megaman idle]
 Type = Animation
