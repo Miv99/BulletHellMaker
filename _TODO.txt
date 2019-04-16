@@ -23,13 +23,7 @@ Notes for me:
 
 TODO:
 -enemies can be bosses -> GUI displays a health bar; also separate render layer for bosses (above enemy)
--when reverting from attack state to idle state, there is a frame where spritePtr is null
--sprite layering; suggestion: layer for each type of entity (enemy/player bullets, player, enemies, player/enemy/player bullet/enemy bullet shadow), then in
- each layer, sort by LevelManagerTag.timeSinceStartOfLevel when the entity was created
--move loopAnimation into 
--test death animations and death animations with different rotations
 -Power up tiers for player; each has its own animatableset
--item drops (see math notes)		
 -Multiple small shockwave effects 
 -Add to EMP: OnContactAction: TurnIntangible (remove HitboxComponent), DestroyBulletAndAttachedChildren (give children DespawnComponent to this EMP when they spawn),
 	DestroyBulletOnly (remove Sprite and Hitbox)
