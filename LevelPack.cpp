@@ -50,14 +50,15 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	auto attack2 = createAttack();
 	attack2->setPlayAttackAnimation(false);
 	auto attack2emp0 = attack2->searchEMP(0);
-	attack2emp0->setAnimatable(Animatable("Bullet", "sheet1", true, ROTATE_WITH_MOVEMENT));
+	attack2emp0->setAnimatable(Animatable("Bullet", "sheet1", true, LOCK_ROTATION));
 	attack2emp0->setHitboxRadius(30);
 	attack2emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
 	auto distanceSegments = std::make_shared<PiecewiseContinuousTFV>();
 	distanceSegments->insertSegment(0, std::make_pair(1, std::make_shared<LinearTFV>(0, 100, 1)));
 	distanceSegments->insertSegment(1, std::make_pair(2, std::make_shared<LinearTFV>(100, 200, 2)));
 	distanceSegments->insertSegment(2, std::make_pair(3, std::make_shared<LinearTFV>(200, 300, 3)));
-	attack2emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(distanceSegments, std::make_shared<ConstantTFV>(0), 6));
+	attack2emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(distanceSegments, std::make_shared<ConstantTFV>(-PI), 6));
+	attack2emp0->setOnCollisionAction(DESTROY_THIS_BULLET_ONLY);
 
 	auto ap1 = createAttackPattern();
 	ap1->setShadowTrailLifespan(3.0f);
@@ -119,6 +120,7 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	pemp0->setHitboxRadius(30);
 	pemp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
 	pemp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 2), std::make_shared<ConstantTFV>(PI/2.0f), 2.0f));
+	pemp0->setOnCollisionAction(DESTROY_THIS_BULLET_ONLY);
 	playerAP->addAttackID(0.1f, playerAttack1->getID());
 
 	auto playerAP2 = createAttackPattern();

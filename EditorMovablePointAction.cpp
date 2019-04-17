@@ -58,6 +58,10 @@ void DetachFromParentEMPA::load(std::string formattedString) {
 std::shared_ptr<MovablePoint> DetachFromParentEMPA::execute(EntityCreationQueue& queue, entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
 	auto& lastPos = registry.get<PositionComponent>(entity);
 
+	// Since this EMPA is used only by bullets and bullets' DespawnComponents are only ever attached to other bullets or enemies,
+	// when this bullet detaches from its parent, it should no longer despawn with the attached entity.
+	registry.get<DespawnComponent>(entity).removeEntityAttachment(registry, entity);
+
 	// Queue creation of the reference entity
 	queue.pushBack(std::make_unique<EMPADetachFromParentCommand>(registry, entity, lastPos.getX(), lastPos.getY()));
 

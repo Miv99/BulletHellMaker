@@ -3,12 +3,13 @@
 
 EditorAttack::EditorAttack(int id) : id(id) {
 	nextEMPID = 0;
-	mainEMP = std::make_shared<EditorMovablePoint>(nextEMPID);
+	mainEMP = std::make_shared<EditorMovablePoint>(nextEMPID, true);
 }
 
 std::string EditorAttack::format() {
 	std::string res = "";
 	res += "(" + tos(id) + ")" + delim;
+	res += "(" + tos(nextEMPID) + ")" + delim;
 	res += "(" + name + ")" + delim;
 	res += "(" + mainEMP->format() + ")" + delim;
 	if (playAttackAnimation) {
@@ -24,16 +25,17 @@ std::string EditorAttack::format() {
 
 void EditorAttack::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
-	id = stoi(items[0]);
-	name = items[1];
-	mainEMP = std::make_shared<EditorMovablePoint>(nextEMPID);
-	mainEMP->load(items[2]);
-	if (items[3] == "1") {
+	id = std::stoi(items[0]);
+	nextEMPID = std::stoi(items[1]);
+	name = items[2];
+	mainEMP = std::make_shared<EditorMovablePoint>(nextEMPID, false);
+	mainEMP->load(items[3]);
+	if (items[4] == "1") {
 		playAttackAnimation = true;
 	} else {
 		playAttackAnimation = false;
 	}
-	for (int i = 4; i < items.size() + 4; i += 2) {
+	for (int i = 5; i < items.size() + 5; i += 2) {
 		soundEffectNames.push_back(std::make_pair(std::stof(items[i]), items[i + 1]));
 	}
 }

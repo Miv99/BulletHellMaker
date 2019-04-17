@@ -10,6 +10,7 @@
 #include "Animatable.h"
 #include "SpriteLoader.h"
 #include "Components.h"
+#include "CollisionSystem.h"
 
 class EMPSpawnType;
 
@@ -19,8 +20,13 @@ EMP for short.
 */
 class EditorMovablePoint : public TextMarshallable, public std::enable_shared_from_this<EditorMovablePoint> {
 public:
-	inline EditorMovablePoint(int& nextID) : nextID(nextID) {
-		id = nextID++;
+	/*
+	setID - whether the ID of this EMP should be set with this constructor. setID should be false if load() will be called right after.
+	*/
+	inline EditorMovablePoint(int& nextID, bool setID) : nextID(nextID) {
+		if (setID) {
+			id = nextID++;
+		}
 	}
 	inline EditorMovablePoint(int& nextID, std::weak_ptr<EditorMovablePoint> parent) : nextID(nextID), parent(parent) {
 		id = nextID++;
@@ -50,10 +56,12 @@ public:
 		}
 		return total;
 	}
-	inline float getDamage() { return damage; }
+	inline int getDamage() { return damage; }
 	inline bool getLoopAnimation() { return loopAnimation; }
 	inline Animatable getBaseSprite() { return baseSprite; }
+	inline BULLET_ON_COLLISION_ACTION getOnCollisionAction() { return onCollisionAction; }
 
+	inline void setOnCollisionAction(BULLET_ON_COLLISION_ACTION action) { onCollisionAction = action; }
 	inline void setDamage(float damage) { this->damage = damage; }
 	inline void setAnimatable(Animatable animatable) { this->animatable = animatable; }
 	inline void setLoopAnimation(bool loopAnimation) { this->loopAnimation = loopAnimation; }
@@ -117,6 +125,13 @@ private:
 	int id;
 	int& nextID;
 
+	// Radius of the EMP's hitbox. Set to <= 0 if the EMP is not a bullet.
+	float hitboxRadius = 0;
+
+	// The minimum of this value and the total time to complete all EMPActions is the time until this EMP despawns
+	// Set to < 0 if unused (then the total EMPActions time will be used instead)
+	float despawnTime = -1;
+
 	// This EMP's reference. Not saved
 	std::weak_ptr<EditorMovablePoint> parent;
 	// EMPs that have this EMP as a reference; sorted non-descending by the EMP's spawn type's time
@@ -138,13 +153,9 @@ private:
 	// The animatable that will be used after the animation ends. Only necessary if animatable is an animation and loopAnimation is false
 	Animatable baseSprite;
 
-	// Radius of the EMP's hitbox. Set to <= 0 if the EMP is not a bullet.
-	float hitboxRadius = 0;
-
-	// The minimum of this value and the total time to complete all EMPActions is the time until this EMP despawns
-	// Set to < 0 if unused (then the total EMPActions time will be used instead)
-	float despawnTime = -1;
-
 	// Only for bullets; the amount of damage this bullet deals
-	float damage = 1;
+	int damage = 1;
+
+	// Only for bullets; determines what happens when the bullet makes contact with something
+	BULLET_ON_COLLISION_ACTION onCollisionAction = DESTROY_THIS_BULLET_ONLY;
 };

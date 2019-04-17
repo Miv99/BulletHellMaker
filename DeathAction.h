@@ -46,7 +46,7 @@ public:
 private:
 	Animatable animatable;
 	// Type of sprite effect to apply to death animatable
-	DEATH_ANIMATION_EFFECT effect;
+	DEATH_ANIMATION_EFFECT effect = NONE;
 	// Lifespan of the entity playing the death animation. Only applicable if animatable
 	// is a sprite. Otherwise, the entity despawns when its animation is over.
 	float duration;

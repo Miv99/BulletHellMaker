@@ -30,5 +30,5 @@ private:
 	// True if the associated animatable is a sprite. False if it's an animation
 	bool animatableIsSprite;
 
-	ROTATION_TYPE rotationType;
+	ROTATION_TYPE rotationType = LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT;
 };

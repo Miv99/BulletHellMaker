@@ -4,6 +4,7 @@
 std::string EditorMovablePoint::format() {
 	std::string res = "";
 
+	res += "(" + tos(id) + ")" + delim;
 	res += "(" + tos(hitboxRadius) + ")" + delim;
 	res += "(" + tos(despawnTime) + ")" + delim;
 
@@ -21,6 +22,17 @@ std::string EditorMovablePoint::format() {
 
 	res += delim + "(" + tos(shadowTrailInterval) + ")";
 	res += delim + "(" + tos(shadowTrailLifespan) + ")";
+
+	res += delim + "(" + animatable.format() + ")";
+	if (loopAnimation) {
+		res += delim + "1";
+	} else {
+		res += delim + "0";
+	}
+	res += delim + "(" + baseSprite.format() + ")";
+	res += delim + tos(damage);
+
+	res += delim + tos(static_cast<int>(onCollisionAction));
 
 	return res;
 }
@@ -46,8 +58,20 @@ void EditorMovablePoint::load(std::string formattedString) {
 
 	spawnType = EMPSpawnTypeFactory::create(items[i++]);
 
-	shadowTrailInterval = stoi(items[i++]);
-	shadowTrailLifespan = stoi(items[i++]);
+	shadowTrailInterval = std::stoi(items[i++]);
+	shadowTrailLifespan = std::stoi(items[i++]);
+
+	animatable.load(items[i++]);
+	if (std::stoi(items[i++]) == 0) {
+		loopAnimation = false;
+	} else {
+		loopAnimation = true;
+	}
+	baseSprite.load(items[i++]);
+
+	damage = std::stoi(items[i++]);
+
+	onCollisionAction = static_cast<BULLET_ON_COLLISION_ACTION>(std::stoi(items[i++]));
 }
 
 bool EditorMovablePoint::legal(SpriteLoader& spriteLoader, std::string & message) {
@@ -137,7 +161,7 @@ void EditorMovablePoint::removeChild(int id) {
 }
 
 std::shared_ptr<EditorMovablePoint> EditorMovablePoint::createChild(std::shared_ptr<EMPSpawnType> spawnType) {
-	std::shared_ptr<EditorMovablePoint> child = std::make_shared<EditorMovablePoint>(nextID);
+	std::shared_ptr<EditorMovablePoint> child = std::make_shared<EditorMovablePoint>(nextID, true);
 	child->setSpawnType(spawnType);
 	addChild(child);
 	return child;

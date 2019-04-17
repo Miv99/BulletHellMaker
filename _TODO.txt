@@ -9,6 +9,9 @@ Documentation to put in the editor somewhere:
  because hitboxes and origins cannot change
 -EMPs with HomingEMPA cannot spawn attached to some parent
 
+Tips to put in editor somewhere:
+-For a classic bullet hell, all enemy bullets should do 1 damage
+
 Notes for me:
 -The mainEMP of an attack is always spawned at the exact same time of an attack; spawnType's time is ignored
 -Remember to call animatableSetComponent.changeState on player when it attacks

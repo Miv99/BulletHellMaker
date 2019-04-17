@@ -12,6 +12,7 @@
 #include "EditorMovablePoint.h"
 #include "Item.h"
 #include "Player.h"
+#include "CollisionSystem.h"
 #include <math.h>
 #include <tuple>
 
@@ -424,4 +425,12 @@ void HitboxComponent::rotate(float angle) {
 		}
 		// Do nothing (maintain last value) if angle is a perfect 90 or -90 degree angle
 	}
+}
+
+BULLET_ON_COLLISION_ACTION EnemyBulletComponent::getOnCollisionAction() {
+	return onCollisionAction;
+}
+
+BULLET_ON_COLLISION_ACTION PlayerBulletComponent::getOnCollisionAction() {
+	return onCollisionAction;
 }

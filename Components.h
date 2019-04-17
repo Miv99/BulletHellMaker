@@ -28,6 +28,7 @@ class EntityCreationQueue;
 class EditorMovablePoint;
 class Item;
 class PlayerPowerTier;
+enum BULLET_ON_COLLISION_ACTION;
 
 class PositionComponent {
 public:
@@ -420,6 +421,13 @@ public:
 		}
 		return despawn;
 	}
+
+	inline void removeEntityAttachment(entt::DefaultRegistry& registry, uint32_t self) {
+		if (attachedToEntity) {
+			registry.get<DespawnComponent>(attachedTo).removeChild(self);
+			attachedToEntity = false;
+		}
+	}
 	
 	inline void addChild(uint32_t child) { children.push_back(child); }
 
@@ -430,6 +438,15 @@ public:
 	}
 
 private:
+	inline void removeChild(uint32_t child) {
+		for (int i = 0; i < children.size(); i++) {
+			if (children[i] == child) {
+				children.erase(children.begin() + i);
+				return;
+			}
+		}
+	}
+
 	// Time since the entity with this component spawned
 	float time = 0;
 	float maxTime;
@@ -479,7 +496,10 @@ private:
 
 class EnemyBulletComponent {
 public:
-	EnemyBulletComponent(int attackID, int attackPatternID, int enemyID, int enemyPhaseID) : attackID(attackID), attackPatternID(attackPatternID), enemyID(enemyID), enemyPhaseID(enemyPhaseID) {}
+	EnemyBulletComponent(int attackID, int attackPatternID, int enemyID, int enemyPhaseID, int damage, BULLET_ON_COLLISION_ACTION onCollisionAction) : attackID(attackID), attackPatternID(attackPatternID), enemyID(enemyID), enemyPhaseID(enemyPhaseID), damage(damage), onCollisionAction(onCollisionAction) {}
+
+	inline int getDamage() { return damage; }
+	BULLET_ON_COLLISION_ACTION getOnCollisionAction();
 
 private:
 	// The attack this bullet belongs to
@@ -490,13 +510,17 @@ private:
 	int enemyID;
 	// The enemy phase this bullet belongs to
 	int enemyPhaseID;
+
+	int damage;
+	BULLET_ON_COLLISION_ACTION onCollisionAction;
 };
 
 class PlayerBulletComponent {
 public:
-	PlayerBulletComponent(int attackID, int attackPatternID, float damage) : attackID(attackID), attackPatternID(attackPatternID), damage(damage) {}
+	PlayerBulletComponent(int attackID, int attackPatternID, int damage, BULLET_ON_COLLISION_ACTION onCollisionAction) : attackID(attackID), attackPatternID(attackPatternID), damage(damage), onCollisionAction(onCollisionAction) {}
 
-	inline float getDamage() { return damage; }
+	inline int getDamage() { return damage; }
+	BULLET_ON_COLLISION_ACTION getOnCollisionAction();
 
 private:
 	// The attack this bullet belongs to
@@ -504,7 +528,8 @@ private:
 	// The attack pattern this bullet belongs to
 	int attackPatternID;
 
-	float damage;
+	int damage;
+	BULLET_ON_COLLISION_ACTION onCollisionAction;
 };
 
 /*

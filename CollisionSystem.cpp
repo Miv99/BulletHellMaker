@@ -2,6 +2,9 @@
 #include "CollisionSystem.h"
 #include "Enemy.h"
 #include "Level.h"
+#include "Components.h"
+
+#include <iostream>
 
 float distance(float x1, float y1, float x2, float y2) {
 	return sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2));
@@ -27,6 +30,10 @@ void CollisionSystem::update(float deltaTime) {
 	auto playerBulletView = registry.view<PlayerBulletComponent, PositionComponent, HitboxComponent>(entt::persistent_t{});
 	auto enemyBulletView = registry.view<EnemyBulletComponent, PositionComponent, HitboxComponent>(entt::persistent_t{});
 
+	uint32_t player = registry.attachee<PlayerTag>();
+	auto& playerHitbox = registry.get<HitboxComponent>(player);
+	auto& playerPosition = registry.get<PositionComponent>(player);
+
 	// Reinsert all bullets, players, and enemies into tables
 	defaultTable.clear();
 	largeObjectsTable.clear();
@@ -46,13 +53,14 @@ void CollisionSystem::update(float deltaTime) {
 			largeObjectsTable.insert(entity, hitbox, position);
 		}
 	});
+
 	// largeObjectsTable always contains players and enemies
-	playerView.each([&](auto entity, auto& player, auto& position, auto& hitbox) {
-		if (hitbox.getRadius() < defaultTableObjectMaxSize) {
-			defaultTable.insert(entity, hitbox, position);
-		}
-		largeObjectsTable.insert(entity, hitbox, position);
-	});
+	// Insert player
+	if (playerHitbox.getRadius() < defaultTableObjectMaxSize) {
+		defaultTable.insert(player, playerHitbox, playerPosition);
+	}
+	largeObjectsTable.insert(player, playerHitbox, playerPosition);
+	// Insert enemies
 	enemyView.each([&](auto entity, auto& enemy, auto& position, auto& hitbox) {
 		if (hitbox.getRadius() < defaultTableObjectMaxSize) {
 			defaultTable.insert(entity, hitbox, position);
@@ -61,9 +69,11 @@ void CollisionSystem::update(float deltaTime) {
 	});
 
 	// Collision detection, looping through only players and enemies
-	playerView.each([&](auto entity, auto& player, auto& position, auto& hitbox) {
-		auto all = defaultTable.getNearbyObjects(hitbox, position);
-		auto large = largeObjectsTable.getNearbyObjects(hitbox, position);
+	{
+		// Check for player
+
+		auto all = defaultTable.getNearbyObjects(playerHitbox, playerPosition);
+		auto large = largeObjectsTable.getNearbyObjects(playerHitbox, playerPosition);
 		all.insert(all.end(), large.begin(), large.end());
 		for (auto bullet : all) {
 			// Make sure it's an enemy bullet
@@ -71,17 +81,47 @@ void CollisionSystem::update(float deltaTime) {
 				continue;
 			}
 
-			auto& bulletPosition = playerBulletView.get<PositionComponent>(bullet);
-			auto& bulletHitbox = playerBulletView.get<HitboxComponent>(bullet);
-			if (collides(position, hitbox, bulletPosition, bulletHitbox)) {
-				// TODO: collision stuff
+			auto& bulletPosition = enemyBulletView.get<PositionComponent>(bullet);
+			auto& bulletHitbox = enemyBulletView.get<HitboxComponent>(bullet);
+			if (collides(playerPosition, playerHitbox, bulletPosition, bulletHitbox)) {
+				// Player takes damage
+				if (registry.has<HealthComponent>(player) && registry.get<HealthComponent>(player).takeDamage(registry.get<EnemyBulletComponent>(bullet).getDamage())) {
+					// Player is dead
+					//TODO: handle death stuff
+				}
 				
-				// Bullet not deleted
-				// This is mostly because if the enemy bullet will spawn a bunch of other bullets later but it is deleted, 
-				// the player can easily tank this one bullet to avoid having to dodge the bunch of other bullets
+				// Handle OnCollisionAction
+				switch (registry.get<EnemyBulletComponent>(bullet).getOnCollisionAction()) {
+				case TURN_INTANGIBLE:
+					// Remove all components except for MovementPathComponent, PositionComponent, DespawnComponent, and SpriteComponent
+					if (registry.has<ShadowTrailComponent>(bullet)) {
+						registry.remove<ShadowTrailComponent>(bullet);
+					}
+					registry.remove<HitboxComponent>(bullet);
+					registry.remove<EnemyBulletComponent>(bullet);
+					if (registry.has<EMPSpawnerComponent>(bullet)) {
+						registry.remove<EMPSpawnerComponent>(bullet);
+					}
+					break;
+				case DESTROY_THIS_BULLET_AND_ATTACHED_CHILDREN:
+					registry.get<DespawnComponent>(bullet).setMaxTime(0);
+					break;
+				case DESTROY_THIS_BULLET_ONLY:
+					// Remove all components except for MovementPathComponent, PositionComponent, and DespawnComponent
+					if (registry.has<ShadowTrailComponent>(bullet)) {
+						registry.remove<ShadowTrailComponent>(bullet);
+					}
+					registry.remove<SpriteComponent>(bullet);
+					registry.remove<HitboxComponent>(bullet);
+					registry.remove<EnemyBulletComponent>(bullet);
+					if (registry.has<EMPSpawnerComponent>(bullet)) {
+						registry.remove<EMPSpawnerComponent>(bullet);
+					}
+					break;
+				}
 			}
 		}
-	});
+	}
 
 	enemyView.each([&](auto entity, auto& enemy, auto& position, auto& hitbox) {
 		auto all = defaultTable.getNearbyObjects(hitbox, position);
@@ -96,8 +136,6 @@ void CollisionSystem::update(float deltaTime) {
 			auto& bulletPosition = playerBulletView.get<PositionComponent>(bullet);
 			auto& bulletHitbox = playerBulletView.get<HitboxComponent>(bullet);
 			if (collides(position, hitbox, bulletPosition, bulletHitbox)) {
-				// TODO: collision stuff
-
 				// Enemy takes damage
 				if (registry.has<HealthComponent>(entity) && registry.get<HealthComponent>(entity).takeDamage(registry.get<PlayerBulletComponent>(bullet).getDamage())) {
 					// Enemy is dead
@@ -119,16 +157,34 @@ void CollisionSystem::update(float deltaTime) {
 					registry.get<DespawnComponent>(entity).setMaxTime(0);
 				}
 
-				// The bullet entity is not destroyed in case there are MPs that are using it as a reference
-				// Remove all components except for MovementPathComponent, PositionComponent, and DespawnComponent
-				if (registry.has<ShadowTrailComponent>(bullet)) {
-					registry.remove<ShadowTrailComponent>(bullet);
-				}
-				registry.remove<SpriteComponent>(bullet);
-				registry.remove<HitboxComponent>(bullet);
-				registry.remove<PlayerBulletComponent>(bullet);
-				if (registry.has<EMPSpawnerComponent>(bullet)) {
-					registry.remove<EMPSpawnerComponent>(bullet);
+				// Handle OnCollisionAction
+				switch (registry.get<PlayerBulletComponent>(bullet).getOnCollisionAction()) {
+					case TURN_INTANGIBLE:
+						// Remove all components except for MovementPathComponent, PositionComponent, DespawnComponent, and SpriteComponent
+						if (registry.has<ShadowTrailComponent>(bullet)) {
+							registry.remove<ShadowTrailComponent>(bullet);
+						}
+						registry.remove<HitboxComponent>(bullet);
+						registry.remove<PlayerBulletComponent>(bullet);
+						if (registry.has<EMPSpawnerComponent>(bullet)) {
+							registry.remove<EMPSpawnerComponent>(bullet);
+						}
+						break;
+					case DESTROY_THIS_BULLET_AND_ATTACHED_CHILDREN:
+						registry.get<DespawnComponent>(bullet).setMaxTime(0);
+						break;
+					case DESTROY_THIS_BULLET_ONLY:
+						// Remove all components except for MovementPathComponent, PositionComponent, and DespawnComponent
+						if (registry.has<ShadowTrailComponent>(bullet)) {
+							registry.remove<ShadowTrailComponent>(bullet);
+						}
+						registry.remove<SpriteComponent>(bullet);
+						registry.remove<HitboxComponent>(bullet);
+						registry.remove<PlayerBulletComponent>(bullet);
+						if (registry.has<EMPSpawnerComponent>(bullet)) {
+							registry.remove<EMPSpawnerComponent>(bullet);
+						}
+						break;
 				}
 			}
 		}

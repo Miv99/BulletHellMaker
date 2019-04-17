@@ -56,7 +56,7 @@ public:
 	std::shared_ptr<EditorMovablePoint> searchEMP(int id);
 
 private:
-	// The ID of the next EMP created in this attack. Not saved.
+	// The ID of the next EMP created in this attack.
 	int nextEMPID = 0;
 
 	// ID of the attack

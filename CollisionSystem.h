@@ -1,9 +1,16 @@
 #pragma once
 #include <entt/entt.hpp>
 #include "SpatialHashTable.h"
-#include "Components.h"
 #include "SpriteLoader.h"
 #include "EntityCreationQueue.h"
+
+class HitboxComponent;
+
+enum BULLET_ON_COLLISION_ACTION {
+	TURN_INTANGIBLE, // Hitbox is removed but sprite and children remain
+	DESTROY_THIS_BULLET_AND_ATTACHED_CHILDREN, // All attached EMPs and itself are destroyed
+	DESTROY_THIS_BULLET_ONLY // Only itself is destroyed
+};
 
 class CollisionSystem {
 public:

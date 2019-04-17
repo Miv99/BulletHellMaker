@@ -27,9 +27,11 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 	auto bullet = registry.create();
 	MPSpawnInformation spawnInfo = emp->getSpawnType()->getSpawnInfo(registry, entity, timeLag);
 
-	// If the bullet's MP reference is the entity executing the attack, make sure the bullet despawns along with the entity
-	if (spawnInfo.useReferenceEntity && spawnInfo.referenceEntity == entity) {
-		registry.assign<DespawnComponent>(bullet, registry, entity, bullet);
+	// Make sure the bullet despawns along with its reference entity
+	if (spawnInfo.useReferenceEntity) {
+		registry.assign<DespawnComponent>(bullet, registry, spawnInfo.referenceEntity, bullet);
+	} else {
+		registry.assign<DespawnComponent>(bullet);
 	}
 
 	// Spawn at 0, 0 because creation of the MovementPathComponent will just update the position anyway
@@ -38,18 +40,10 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 	registry.assign<MovementPathComponent>(bullet, queue, bullet, registry, entity, emp->getSpawnType(), emp->getActions(), timeLag);
 
 	// Add max time to DespawnComponent
-	if (registry.has<DespawnComponent>(bullet)) {
-		if (emp->getDespawnTime() > 0) {
-			registry.get<DespawnComponent>(bullet).setMaxTime(std::min(emp->getTotalPathTime(), emp->getDespawnTime()));
-		} else {
-			registry.get<DespawnComponent>(bullet).setMaxTime(emp->getTotalPathTime());
-		}
+	if (emp->getDespawnTime() > 0) {
+		registry.get<DespawnComponent>(bullet).setMaxTime(std::min(emp->getTotalPathTime(), emp->getDespawnTime()));
 	} else {
-		if (emp->getDespawnTime() > 0) {
-			registry.assign<DespawnComponent>(bullet, std::min(emp->getTotalPathTime(), emp->getDespawnTime()));
-		} else {
-			registry.assign<DespawnComponent>(bullet, emp->getTotalPathTime());
-		}
+		registry.get<DespawnComponent>(bullet).setMaxTime(emp->getTotalPathTime());
 	}
 
 	// If hitbox radius > 0, this EMP is a bullet
@@ -67,7 +61,7 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
 		}
 
-		registry.assign<EnemyBulletComponent>(bullet, attackID, attackPatternID, enemyID, enemyPhaseID);
+		registry.assign<EnemyBulletComponent>(bullet, attackID, attackPatternID, enemyID, enemyPhaseID, emp->getDamage(), emp->getOnCollisionAction());
 	}
 
 	if (emp->getShadowTrailLifespan() > 0) {
@@ -104,9 +98,11 @@ void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
 	auto bullet = registry.create();
 	MPSpawnInformation spawnInfo = emp->getSpawnType()->getSpawnInfo(registry, entity, timeLag);
 
-	// If the bullet's MP reference is the entity executing the attack, make sure the bullet despawns along with the entity
-	if (spawnInfo.useReferenceEntity && spawnInfo.referenceEntity == entity) {
-		registry.assign<DespawnComponent>(bullet, registry, entity, bullet);
+	// Make sure the bullet despawns along with its reference entity
+	if (spawnInfo.useReferenceEntity) {
+		registry.assign<DespawnComponent>(bullet, registry, spawnInfo.referenceEntity, bullet);
+	} else {
+		registry.assign<DespawnComponent>(bullet);
 	}
 
 	// Spawn at 0, 0 because creation of the MovementPathComponent will just update the position anyway
@@ -115,18 +111,10 @@ void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
 	registry.assign<MovementPathComponent>(bullet, queue, bullet, registry, entity, emp->getSpawnType(), emp->getActions(), timeLag);
 
 	// Add max time to DespawnComponent
-	if (registry.has<DespawnComponent>(bullet)) {
-		if (emp->getDespawnTime() > 0) {
-			registry.get<DespawnComponent>(bullet).setMaxTime(std::min(emp->getTotalPathTime(), emp->getDespawnTime()));
-		} else {
-			registry.get<DespawnComponent>(bullet).setMaxTime(emp->getTotalPathTime());
-		}
+	if (emp->getDespawnTime() > 0) {
+		registry.get<DespawnComponent>(bullet).setMaxTime(std::min(emp->getTotalPathTime(), emp->getDespawnTime()));
 	} else {
-		if (emp->getDespawnTime() > 0) {
-			registry.assign<DespawnComponent>(bullet, std::min(emp->getTotalPathTime(), emp->getDespawnTime()));
-		} else {
-			registry.assign<DespawnComponent>(bullet, emp->getTotalPathTime());
-		}
+		registry.get<DespawnComponent>(bullet).setMaxTime(emp->getTotalPathTime());
 	}
 
 	// If hitbox radius > 0, this EMP is a bullet
@@ -144,7 +132,7 @@ void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
 			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
 		}
 
-		registry.assign<PlayerBulletComponent>(bullet, attackID, attackPatternID, emp->getDamage());
+		registry.assign<PlayerBulletComponent>(bullet, attackID, attackPatternID, emp->getDamage(), emp->getOnCollisionAction());
 	}
 
 	if (emp->getShadowTrailLifespan() > 0) {

@@ -14,12 +14,14 @@ void MovementSystem::update(float deltaTime) {
 			auto& sprite = registry.get<SpriteComponent>(entity);
 			sprite.rotate(angle);
 
-			if (registry.has<HitboxComponent>(entity) && sprite.getSprite()) {
-				// Rotate hitbox according to sprite orientation
-				registry.get<HitboxComponent>(entity).rotate(sprite.getSprite());
-			} else {
-				// Rotate hitbox according to angle
-				registry.get<HitboxComponent>(entity).rotate(angle);
+			if (registry.has<HitboxComponent>(entity)) {
+				if (sprite.getSprite()) {
+					// Rotate hitbox according to sprite orientation
+					registry.get<HitboxComponent>(entity).rotate(sprite.getSprite());
+				} else {
+					// Rotate hitbox according to angle
+					registry.get<HitboxComponent>(entity).rotate(angle);
+				}
 			}
 		} else {
 			// Rotate hitbox
