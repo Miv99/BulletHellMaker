@@ -23,7 +23,6 @@ Notes for me:
 
 TODO:
 -enemies can be bosses -> GUI displays a health bar; also separate render layer for bosses (above enemy)
--Power up tiers for player; each has its own animatableset
 -Multiple small shockwave effects 
 -Add to EMP: OnContactAction: TurnIntangible (remove HitboxComponent), DestroyBulletAndAttachedChildren (give children DespawnComponent to this EMP when they spawn),
 	DestroyBulletOnly (remove Sprite and Hitbox)

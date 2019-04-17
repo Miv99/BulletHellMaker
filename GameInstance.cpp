@@ -10,6 +10,7 @@
 #include "MovablePoint.h"
 #include "LevelPack.h"
 #include "Constants.h"
+#include "Player.h"
 
 GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) : window(window) {
 	// Centered at negative y because SFML has (0, 0) at the top-left, and RenderSystem negates y-values so that (0, 0) in every other aspect of this game is bottom-left.
@@ -122,8 +123,8 @@ void GameInstance::createPlayer(EditorPlayer params) {
 	registry.reserve<SpriteComponent>(1);
 
 	auto player = registry.create();
-	registry.assign<PlayerTag>(entt::tag_t{}, player, params.getSpeed(), params.getFocusedSpeed(), params.getAttackPattern(), params.getAttackPatternLoopDelay(), params.getFocusedAttackPattern(), params.getFocusedAttackPatternLoopDelay());
-	registry.assign<AnimatableSetComponent>(player, params.getAnimatableSet());
+	registry.assign<AnimatableSetComponent>(player);
+	registry.assign<PlayerTag>(entt::tag_t{}, player, registry, *levelPack, player, params.getSpeed(), params.getFocusedSpeed(), params.getPowerTiers());
 	registry.assign<HealthComponent>(player, params.getInitialHealth(), params.getMaxHealth());
 	// Hitbox temporarily at 0, 0 until an Animatable is assigned to the player later
 	registry.assign<HitboxComponent>(player, LOCK_ROTATION, params.getHitboxRadius(), 0, 0);

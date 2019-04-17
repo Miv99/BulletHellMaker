@@ -11,6 +11,7 @@
 #include "EntityCreationQueue.h"
 #include "EditorMovablePoint.h"
 #include "Item.h"
+#include "Player.h"
 #include <math.h>
 #include <tuple>
 
@@ -337,10 +338,43 @@ void AnimatableSetComponent::changeState(int newState, SpriteLoader& spriteLoade
 	}
 }
 
-PlayerTag::PlayerTag(float speed, float focusedSpeed, std::shared_ptr<EditorAttackPattern> attackPattern, float attackPatternLoopDelay,
-	std::shared_ptr<EditorAttackPattern> focusedAttackPattern, float focusedAttackPatternLoopDelay) : speed(speed), focusedSpeed(focusedSpeed), attackPattern(attackPattern), focusedAttackPattern(focusedAttackPattern) {
-	attackPatternTotalTime = attackPattern->getAttackData(attackPattern->getAttacksCount() - 1).first + attackPatternLoopDelay;
-	focusedAttackPatternTotalTime = focusedAttackPattern->getAttackData(focusedAttackPattern->getAttacksCount() - 1).first + focusedAttackPatternLoopDelay;
+PlayerTag::PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack, uint32_t self, float speed, float focusedSpeed, const std::vector<PlayerPowerTier> powerTiers) : speed(speed), focusedSpeed(focusedSpeed), powerTiers(powerTiers) {
+	for (int i = 0; i < powerTiers.size(); i++) {
+		// Load all the attack patterns
+		attackPatterns.push_back(levelPack.getAttackPattern(powerTiers[i].getAttackPatternID()));
+		focusedAttackPatterns.push_back(levelPack.getAttackPattern(powerTiers[i].getFocusedAttackPatternID()));
+
+		// Calculate attack pattern total times
+		attackPatternTotalTimes.push_back(attackPatterns[i]->getAttackData(attackPatterns[i]->getAttacksCount() - 1).first + powerTiers[i].getAttackPatternLoopDelay());
+		focusedAttackPatternTotalTimes.push_back(focusedAttackPatterns[i]->getAttackData(focusedAttackPatterns[i]->getAttacksCount() - 1).first + powerTiers[i].getFocusedAttackPatternLoopDelay());
+	}
+
+	currentPowerTierIndex = 0;
+	registry.get<AnimatableSetComponent>(self).setAnimatableSet(powerTiers[currentPowerTierIndex].getAnimatableSet());
+}
+
+void PlayerTag::increasePower(entt::DefaultRegistry& registry, uint32_t self, int power) {
+	if (currentPower + power >= POWER_PER_POWER_TIER) {
+		if (currentPowerTierIndex + 1 < powerTiers.size()) {
+			// Power tier up
+
+			currentPowerTierIndex++;
+			currentPower += power - POWER_PER_POWER_TIER;
+			increasedPowerTier = true;
+
+			// Update this entity's EntityAnimatableSet
+			registry.get<AnimatableSetComponent>(self).setAnimatableSet(powerTiers[currentPowerTierIndex].getAnimatableSet());
+		} else {
+			// Already reached power cap
+
+			currentPower += power;
+			// Increase points
+			registry.get<LevelManagerTag>().addPoints(POINTS_PER_EXTRA_POWER * (currentPower - POWER_PER_POWER_TIER));
+			currentPower = POWER_PER_POWER_PACK;
+		}
+	} else {
+		currentPower += power;
+	}
 }
 
 void CollectibleComponent::update(EntityCreationQueue& queue, entt::DefaultRegistry & registry, uint32_t entity, const PositionComponent& entityPos, const HitboxComponent& entityHitbox) {

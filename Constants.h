@@ -31,6 +31,11 @@ const static int HEALTH_PER_HEALTH_PACK = 1;
 const static int POINTS_PER_POINTS_PACK = 100;
 const static int POWER_PER_POWER_PACK = 1;
 
+// Points for every power received after reaching the maximum
+const static int POINTS_PER_EXTRA_POWER = POINTS_PER_POINTS_PACK;
+
+const static int POWER_PER_POWER_TIER = 50;
+
 /*
 Render layers
 

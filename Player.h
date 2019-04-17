@@ -1,18 +1,45 @@
 #pragma once
 #include <memory>
+#include <vector>
 #include <string>
-#include "AttackPattern.h"
 #include "TextMarshallable.h"
 #include "EntityAnimatableSet.h"
-#include "Components.h"
+
+class PlayerPowerTier : public TextMarshallable {
+public:
+	inline PlayerPowerTier() {}
+	inline PlayerPowerTier(EntityAnimatableSet animatableSet, int attackPatternID, float attackPatternLoopDelay, int focusedAttackPatternID, float focusedAttackPatternLoopDelay) :
+		animatableSet(animatableSet), attackPatternID(attackPatternID), attackPatternLoopDelay(attackPatternLoopDelay), focusedAttackPatternID(focusedAttackPatternID), focusedAttackPatternLoopDelay(focusedAttackPatternLoopDelay) {}
+
+	std::string format() override;
+	void load(std::string formattedString) override;
+
+	inline const EntityAnimatableSet& getAnimatableSet() const { return animatableSet; }
+	inline int getAttackPatternID() const { return attackPatternID; }
+	inline float getAttackPatternLoopDelay() const { return attackPatternLoopDelay; }
+	inline int getFocusedAttackPatternID() const { return focusedAttackPatternID; }
+	inline float getFocusedAttackPatternLoopDelay() const { return focusedAttackPatternLoopDelay; }
+
+	inline void setAttackPatternID(int id) { attackPatternID = id; }
+	inline void setAttackPatternLoopDelay(float attackPatternLoopDelay) { this->attackPatternLoopDelay = attackPatternLoopDelay; }
+	inline void setFocusedAttackPatternID(int id) { focusedAttackPatternID = id; }
+	inline void setFocusedAttackPatternLoopDelay(float focusedAttackPatternLoopDelay) { this->focusedAttackPatternLoopDelay = focusedAttackPatternLoopDelay; }
+
+private:
+	EntityAnimatableSet animatableSet;
+
+	int attackPatternID;
+	// Time after attack pattern ends until it starts looping again
+	float attackPatternLoopDelay;
+	int focusedAttackPatternID;
+	float focusedAttackPatternLoopDelay;
+};
 
 class EditorPlayer : public TextMarshallable {
 public:
 	inline EditorPlayer() {}
-	inline EditorPlayer(float initialHealth, float maxHealth, float speed, float focusedSpeed, EntityAnimatableSet animatableSet, float hitboxRadius, float hitboxPosX, float hitboxPosY, 
-		std::shared_ptr<EditorAttackPattern> attackPattern, float attackPatternLoopDelay, std::shared_ptr<EditorAttackPattern> focusedAttackPattern, float focusedAttackPatternLoopDelay) :
-		initialHealth(initialHealth), maxHealth(maxHealth), speed(speed), focusedSpeed(focusedSpeed), animatableSet(animatableSet), hitboxRadius(hitboxRadius), hitboxPosX(hitboxPosX), hitboxPosY(hitboxPosY),
-		attackPattern(attackPattern), attackPatternLoopDelay(attackPatternLoopDelay), focusedAttackPattern(focusedAttackPattern), focusedAttackPatternLoopDelay(focusedAttackPatternLoopDelay) {}
+	inline EditorPlayer(float initialHealth, float maxHealth, float speed, float focusedSpeed, float hitboxRadius, float hitboxPosX, float hitboxPosY, std::vector<PlayerPowerTier> powerTiers) : 
+		initialHealth(initialHealth), maxHealth(maxHealth), speed(speed), focusedSpeed(focusedSpeed), hitboxRadius(hitboxRadius), hitboxPosX(hitboxPosX), hitboxPosY(hitboxPosY), powerTiers(powerTiers) {}
 
 	std::string format() override;
 	void load(std::string formattedString) override;
@@ -21,27 +48,25 @@ public:
 	inline int getMaxHealth() { return maxHealth; }
 	inline float getSpeed() { return speed; }
 	inline float getFocusedSpeed() { return focusedSpeed; }
-	inline EntityAnimatableSet getAnimatableSet() { return animatableSet; }
+	inline const std::vector<PlayerPowerTier> getPowerTiers() { return powerTiers; }
 	inline float getHitboxRadius() { return hitboxRadius; }
 	inline float getHitboxPosX() { return hitboxPosX; }
 	inline float getHitboxPosY() { return hitboxPosY; }
-	inline std::shared_ptr<EditorAttackPattern> getAttackPattern() { return attackPattern; }
-	inline std::shared_ptr<EditorAttackPattern> getFocusedAttackPattern() { return focusedAttackPattern; }
-	inline float getAttackPatternLoopDelay() { return attackPatternLoopDelay; }
-	inline float getFocusedAttackPatternLoopDelay() { return focusedAttackPatternLoopDelay; }
+
+	/*
+	Returns a reference to the power tier.
+	*/
+	inline PlayerPowerTier& getPowerTier(int index) { return powerTiers[index]; }
 
 	inline void setInitialHealth(int initialHealth) { this->initialHealth = initialHealth; }
 	inline void setMaxHealth(int maxHealth) { this->maxHealth = maxHealth; }
 	inline void setSpeed(float speed) { this->speed = speed; }
 	inline void setFocusedSpeed(float focusedSpeed) { this->focusedSpeed = focusedSpeed; }
-	inline void setAnimatableSet(EntityAnimatableSet animatableSet) { this->animatableSet = animatableSet; }
 	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; }
 	inline void setHitboxPosX(float hitboxPosX) { this->hitboxPosX = hitboxPosX; }
 	inline void setHitboxPosY(float hitboxPosY) { this->hitboxPosY = hitboxPosY; }
-	inline void setAttackPattern(std::shared_ptr<EditorAttackPattern> attackPattern) { this->attackPattern = attackPattern; }
-	inline void setFocusedAttackPattern(std::shared_ptr<EditorAttackPattern> focusedAttackPattern) { this->focusedAttackPattern = focusedAttackPattern; }
-	inline float setAttackPatternLoopDelay(float attackPatternLoopDelay) { this->attackPatternLoopDelay = attackPatternLoopDelay; }
-	inline float setFocusedAttackPatternLoopDelay(float focusedAttackPatternLoopDelay) { this->focusedAttackPatternLoopDelay = focusedAttackPatternLoopDelay; }
+	inline void insertPowerTier(int index, PlayerPowerTier powerTier) { powerTiers.insert(powerTiers.begin() + index, powerTier); }
+	inline void removePowerTier(int index) { powerTiers.erase(powerTiers.begin() + index); }
 
 private:
 	int initialHealth;
@@ -50,16 +75,14 @@ private:
 	float speed;
 	// Player speed when holding focus key
 	float focusedSpeed;
-	EntityAnimatableSet animatableSet;
 
 	// Radius of the hitbox associated with this enemy
 	float hitboxRadius;
 	// Local position of hitbox
 	float hitboxPosX, hitboxPosY;
-
-	std::shared_ptr<EditorAttackPattern> attackPattern;
-	// Time after attack pattern ends until it starts looping again
-	float attackPatternLoopDelay;
-	std::shared_ptr<EditorAttackPattern> focusedAttackPattern;
-	float focusedAttackPatternLoopDelay;
+	
+	/*
+	The player's power tier increase every POWER_PER_POWER_TIER power, which come from power packs dropped by enemies.
+	*/
+	std::vector<PlayerPowerTier> powerTiers;
 };

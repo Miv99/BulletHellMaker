@@ -4,6 +4,10 @@
 void PlayerSystem::update(float deltaTime) {
 	uint32_t playerEntity = registry.attachee<PlayerTag>();
 	auto& playerTag = registry.get<PlayerTag>();
+	if (playerTag.justIncreasedPowerTier()) {
+		timeSinceNewAttackPattern = 0;
+		currentAttackIndex = -1;
+	}
 	float speed = focused ? playerTag.getFocusedSpeed() : playerTag.getSpeed();
 
 	// Movement

@@ -121,6 +121,9 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	pemp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 2), std::make_shared<ConstantTFV>(PI/2.0f), 2.0f));
 	playerAP->addAttackID(0.1f, playerAttack1->getID());
 
+	auto playerAP2 = createAttackPattern();
+	playerAP2->addAttackID(0.01f, playerAttack1->getID());
+
 	auto playerFocusedAP = createAttackPattern();
 	auto playerAttack2 = createAttack();
 	auto p2emp0 = playerAttack2->searchEMP(0);
@@ -130,11 +133,17 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	p2emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 1.1f), std::make_shared<ConstantTFV>(PI / 2.0f), 1.1f));
 	playerFocusedAP->addAttackID(1.0f, playerAttack2->getID());
 
-	level->setPlayer(EditorPlayer(3, 5, 300, 100, e1set, 5, 0, 0, playerAP, 0.1f, playerFocusedAP, 0.5f));
+	auto pset1 = e1set;
+	auto pset2 = EntityAnimatableSet(Animatable("Megaman idle", "sheet1", false, ROTATE_WITH_MOVEMENT),
+		Animatable("Megaman movement", "sheet1", false, ROTATE_WITH_MOVEMENT),
+		Animatable("Megaman attack", "sheet1", false, ROTATE_WITH_MOVEMENT),
+		std::make_shared<PlayAnimatableDeathAction>(Animatable("oh my god he's dead", "sheet1", true, ROTATE_WITH_MOVEMENT), PlayAnimatableDeathAction::NONE, 3.0f));
+	level->setPlayer(EditorPlayer(3, 5, 300, 100, 5, 0, 0, std::vector<PlayerPowerTier>{ PlayerPowerTier(pset1, playerAP->getID(), 0.1f, playerFocusedAP->getID(), 0.5f), PlayerPowerTier(pset2, playerAP2->getID(), 0.01f, playerFocusedAP->getID(), 0.5f) }));
 	auto v1 = std::vector<EnemySpawnInfo>();
 	std::vector<std::pair<std::shared_ptr<Item>, int>> items;
-	items.push_back(std::make_pair(std::make_shared<HealthPackItem>(Animatable("Health", "sheet1", true, LOCK_ROTATION), 33), 1));
-	items.push_back(std::make_pair(std::make_shared<PointsPackItem>(Animatable("Points", "sheet1", true, LOCK_ROTATION), 25), 6));
+	//items.push_back(std::make_pair(std::make_shared<HealthPackItem>(Animatable("Health", "sheet1", true, LOCK_ROTATION), 33), 1));
+	//items.push_back(std::make_pair(std::make_shared<PointsPackItem>(Animatable("Points", "sheet1", true, LOCK_ROTATION), 25), 6));
+	items.push_back(std::make_pair(std::make_shared<PowerPackItem>(Animatable("Power", "sheet1", true, LOCK_ROTATION), 33), 120));
 	v1.push_back(EnemySpawnInfo(enemy1->getID(), 300, 350, items));
 	level->insertEnemySpawns(0, std::make_shared<TimeBasedEnemySpawnCondition>(0), v1);
 	level->setHealthPack(std::make_shared<HealthPackItem>(Animatable("Health", "sheet1", true, LOCK_ROTATION), 40.0f));

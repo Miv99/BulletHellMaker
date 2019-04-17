@@ -27,6 +27,7 @@ class Level;
 class EntityCreationQueue;
 class EditorMovablePoint;
 class Item;
+class PlayerPowerTier;
 
 class PositionComponent {
 public:
@@ -303,23 +304,47 @@ private:
 
 class PlayerTag {
 public:
-	PlayerTag(float speed, float focusedSpeed, std::shared_ptr<EditorAttackPattern> attackPattern, float attackPatternLoopDelay, std::shared_ptr<EditorAttackPattern> focusedAttackPattern, float focusedAttackPatternLoopDelay);
+	PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack, uint32_t self, float speed, float focusedSpeed, const std::vector<PlayerPowerTier> powerTiers);
 
 	inline float getSpeed() { return speed; }
 	inline float getFocusedSpeed() { return focusedSpeed; }
-	inline std::shared_ptr<EditorAttackPattern> getAttackPattern() { return attackPattern; }
-	inline std::shared_ptr<EditorAttackPattern> getFocusedAttackPattern() { return focusedAttackPattern; }
-	inline float getAttackPatternTotalTime() { return attackPatternTotalTime; }
-	inline float getFocusedAttackPatternTotalTime() { return focusedAttackPatternTotalTime; }
+	inline std::shared_ptr<EditorAttackPattern> getAttackPattern() { return attackPatterns[currentPowerTierIndex]; }
+	inline std::shared_ptr<EditorAttackPattern> getFocusedAttackPattern() { return focusedAttackPatterns[currentPowerTierIndex]; }
+	inline float getAttackPatternTotalTime() { return attackPatternTotalTimes[currentPowerTierIndex]; }
+	inline float getFocusedAttackPatternTotalTime() { return focusedAttackPatternTotalTimes[currentPowerTierIndex]; }
+
+	void increasePower(entt::DefaultRegistry& registry, uint32_t self, int power);
+	/*
+	Returns whether this entity just increased its power tier.
+	The bool value is set back to false by this call.
+	
+	This function should be called every physics update by the system controlling players.
+	*/
+	inline bool justIncreasedPowerTier() { 
+		bool temp = increasedPowerTier;
+		increasedPowerTier = false;
+		return temp;
+	}
 
 private:
 	float speed;
 	float focusedSpeed;
-	std::shared_ptr<EditorAttackPattern> attackPattern;
+
+	std::vector<PlayerPowerTier> powerTiers;
+	int currentPowerTierIndex = 0;
+
 	// Total time for every attack to execute in addition to the loop delay
-	float attackPatternTotalTime;
-	std::shared_ptr<EditorAttackPattern> focusedAttackPattern;
-	float focusedAttackPatternTotalTime;
+	// Index corresponds to powerTiers indexing
+	std::vector<float> attackPatternTotalTimes;
+	std::vector<float> focusedAttackPatternTotalTimes;
+
+	// Index corresponds to powerTiers indexing
+	std::vector<std::shared_ptr<EditorAttackPattern>> attackPatterns;
+	std::vector<std::shared_ptr<EditorAttackPattern>> focusedAttackPatterns;
+
+	int currentPower = 0;
+	// see justIncreasedPowerTier()
+	bool increasedPowerTier = false;
 };
 
 class EnemyComponent {
@@ -582,7 +607,7 @@ public:
 	// States
 	static const int IDLE = 0, MOVEMENT = 1, ATTACK = 2;
 
-	inline EntityAnimatableSet getAnimatableSet() { return animatableSet; }
+	inline const EntityAnimatableSet& getAnimatableSet() { return animatableSet; }
 	inline void setAnimatableSet(EntityAnimatableSet animatableSet) { this->animatableSet = animatableSet; }
 
 	/*

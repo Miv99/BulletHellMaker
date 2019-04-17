@@ -4,6 +4,7 @@
 #include "Components.h"
 #include "Constants.h"
 #include "TextMarshallable.h"
+#include "Player.h"
 
 /*
 An item is something that can be picked up by the player and does something on pickup.
@@ -61,7 +62,7 @@ public:
 	void load(std::string formattedString) override;
 
 	inline void onPlayerContact(entt::DefaultRegistry& registry, uint32_t player) {
-		//TODO
+		registry.get<PlayerTag>().increasePower(registry, player, POWER_PER_POWER_PACK);
 	}
 };
 
