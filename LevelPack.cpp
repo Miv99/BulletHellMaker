@@ -111,6 +111,7 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	enemy1->setHealth(10);
 	enemy1->setHitboxRadius(70);
 	enemy1->setName("test enemy 1");
+	enemy1->addDeathAction(std::make_shared<PlaySoundDeathAction>("test sound.wav", 100));
 
 	auto level = std::make_shared<Level>("test level 1");
 	auto playerAP = createAttackPattern();
@@ -260,6 +261,13 @@ void LevelPack::save() {
 	enemyPhasesFile.close();
 }
 
+void LevelPack::update() {
+	// Check if any sounds are done playing and remove it from the queue of sounds being played
+	while (!currentSounds.empty() && currentSounds.front()->getStatus() == sf::Sound::Status::Stopped) {
+		currentSounds.pop();
+	}
+}
+
 void LevelPack::preloadTextures() {
 	spriteLoader->preloadTextures();
 }
@@ -270,4 +278,25 @@ float LevelPack::searchLargestHitbox() {
 		max = std::max(max, p.second->searchLargestHitbox());
 	}
 	return max;
+}
+
+/*
+fileName - file name with extension
+volume - in range [0, 100], where 100 is full volume
+*/
+void LevelPack::playSound(std::string fileName, float volume) {
+	// Check if the sound's SoundBuffer already exists
+	if (soundBuffers.count(fileName) == 0) {
+		sf::SoundBuffer buffer;
+		if (!buffer.loadFromFile("Level Packs/" + name + "/" + fileName)) {
+			//TODO: handle audio not being able to be loaded
+			return;
+		}
+		soundBuffers[fileName] = std::move(buffer);
+	}
+	std::unique_ptr<sf::Sound> sound = std::make_unique<sf::Sound>();
+	sound->setBuffer(soundBuffers[fileName]);
+	sound->setVolume(volume);
+	sound->play();
+	currentSounds.push(std::move(sound));
 }

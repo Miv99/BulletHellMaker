@@ -18,7 +18,7 @@ float max(float a, float b) {
 	return a > b ? a : b;
 }
 
-CollisionSystem::CollisionSystem(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry & registry, float mapWidth, float mapHeight, const HitboxComponent& largestHitbox) : queue(queue), spriteLoader(spriteLoader), registry(registry) {
+CollisionSystem::CollisionSystem(LevelPack& levelPack, EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry & registry, float mapWidth, float mapHeight, const HitboxComponent& largestHitbox) : levelPack(levelPack), queue(queue), spriteLoader(spriteLoader), registry(registry) {
 	defaultTableObjectMaxSize = 2.0f * max(mapWidth, mapHeight) / 10.0;
 	defaultTable = SpatialHashTable<uint32_t>(mapWidth, mapHeight, defaultTableObjectMaxSize/2.0f);
 	largeObjectsTable = SpatialHashTable<uint32_t>(mapWidth, mapHeight, largestHitbox.getRadius() * 2.0f);
@@ -142,10 +142,10 @@ void CollisionSystem::update(float deltaTime) {
 
 					// Call the enemy's DeathActions
 					for (std::shared_ptr<DeathAction> deathAction : enemy.getEnemyData()->getDeathActions()) {
-						deathAction->execute(queue, registry, spriteLoader, entity);
+						deathAction->execute(levelPack, queue, registry, spriteLoader, entity);
 					}
 					// Play death animation
-					enemy.getCurrentDeathAnimationAction()->execute(queue, registry, spriteLoader, entity);
+					enemy.getCurrentDeathAnimationAction()->execute(levelPack, queue, registry, spriteLoader, entity);
 
 					// Drop items, if any
 					auto currentLevel = registry.get<LevelManagerTag>().getLevel();

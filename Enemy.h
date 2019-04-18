@@ -36,6 +36,8 @@ public:
 	inline int getHealth() { return health; }
 	inline float getDespawnTime() { return despawnTime; }
 	inline const std::vector<std::shared_ptr<DeathAction>> getDeathActions() { return deathActions; }
+	inline void addDeathAction(std::shared_ptr<DeathAction> action) { deathActions.push_back(action); }
+	inline void removeDeathAction(int index) { deathActions.erase(deathActions.begin() + index); }
 
 	inline void setName(std::string name) { this->name = name; }
 	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; }
@@ -62,6 +64,6 @@ private:
 	// Tuple of: the condition to start the phase, the phase ID, and the animatable set used by the enenemy while in that phase
 	// The first phase must have a TimeBasedEnemyPhaseStartCondition with t=0 to ensure that the phase can start as soon as the enemy spawns
 	std::vector<std::tuple<std::shared_ptr<EnemyPhaseStartCondition>, int, EntityAnimatableSet>> phaseIDs;
-	// Death actions. This should not include the death animation.
+	// Death actions. This should not include the death animation because the death animation is dependent on the current phase.
 	std::vector<std::shared_ptr<DeathAction>> deathActions;
 };

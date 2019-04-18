@@ -3,7 +3,9 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <queue>
 #include <algorithm>
+#include <SFML/Audio.hpp>
 #include "MovablePoint.h"
 #include "EnemyPhaseAction.h"
 #include "AttackPattern.h"
@@ -34,6 +36,8 @@ public:
 
 	void load();
 	void save();
+
+	void update();
 
 	void preloadTextures();
 
@@ -75,6 +79,8 @@ public:
 
 	float searchLargestHitbox();
 
+	void playSound(std::string fileName, float volume);
+
 private:
 	std::string name;
 
@@ -95,4 +101,9 @@ private:
 	std::map<int, std::shared_ptr<EditorEnemy>> enemies;
 	// enemy phase id : enemy phase
 	std::map<int, std::shared_ptr<EditorEnemyPhase>> enemyPhases;
+
+	// Maps file names to SoundBuffers. Not saved.
+	std::map<std::string, sf::SoundBuffer> soundBuffers;
+	// Queue of sounds currently playing. Not saved.
+	std::queue<std::unique_ptr<sf::Sound>> currentSounds;
 };

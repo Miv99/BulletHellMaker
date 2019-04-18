@@ -10,6 +10,8 @@
 #include "Components.h"
 #include "EntityCreationQueue.h"
 
+class LevelPack;
+
 /*
 An action that is executed on the death of an entity.
 Entity despawn does not count as death.
@@ -19,7 +21,10 @@ public:
 	std::string format() = 0;
 	void load(std::string formattedString) = 0;
 
-	virtual void execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) = 0;
+	/*
+	entity - the entity executing this DeathAction
+	*/
+	virtual void execute(LevelPack& levelPack, EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) = 0;
 };
 
 class PlayAnimatableDeathAction : public DeathAction {
@@ -38,10 +43,7 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 
-	/*
-	entity - the entity executing this DeathAction
-	*/
-	void execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) override;
+	void execute(LevelPack& levelPack, EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) override;
 
 private:
 	Animatable animatable;
@@ -52,6 +54,25 @@ private:
 	float duration;
 
 	void loadEffectAnimation(SpriteComponent& sprite);
+};
+
+class PlaySoundDeathAction : public DeathAction {
+public:
+	inline PlaySoundDeathAction() {}
+	/*
+	fileName - file name with extension
+	volume - volume multiplier in range [0, 100]
+	*/
+	inline PlaySoundDeathAction(std::string fileName, float volume) : fileName(fileName), volume(volume) {}
+
+	std::string format() override;
+	void load(std::string formattedString) override;
+
+	void execute(LevelPack& levelPack, EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) override;
+
+private:
+	std::string fileName;
+	float volume;
 };
 
 class DeathActionFactory {

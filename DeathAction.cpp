@@ -1,5 +1,6 @@
 #include "DeathAction.h"
 #include "Components.h"
+#include "LevelPack.h"
 
 std::string PlayAnimatableDeathAction::format() {
 	return "PlayAnimatableDeathAction" + delim + "(" + animatable.format() + ")" + delim + tos(duration) + delim + "(" + tos((int)(effect)) + ")";
@@ -12,7 +13,7 @@ void PlayAnimatableDeathAction::load(std::string formattedString) {
 	effect = static_cast<DEATH_ANIMATION_EFFECT>(std::stoi(items[3]));
 }
 
-void PlayAnimatableDeathAction::execute(EntityCreationQueue& queue, entt::DefaultRegistry & registry, SpriteLoader & spriteLoader, uint32_t entity) {
+void PlayAnimatableDeathAction::execute(LevelPack& levelPack, EntityCreationQueue& queue, entt::DefaultRegistry & registry, SpriteLoader & spriteLoader, uint32_t entity) {
 	uint32_t newEntity = registry.create();
 	auto& inheritedSpriteComponent = registry.get<SpriteComponent>(entity);
 
@@ -40,11 +41,28 @@ void PlayAnimatableDeathAction::loadEffectAnimation(SpriteComponent & sprite) {
 	}
 }
 
+
+std::string PlaySoundDeathAction::format() {
+	return "PlaySoundDeathAction" + delim + "(" + fileName + ")" + delim + tos(volume);
+}
+
+void PlaySoundDeathAction::load(std::string formattedString) {
+	auto items = split(formattedString, DELIMITER);
+	fileName = items[1];
+	volume = std::stof(items[2]);
+}
+
+void PlaySoundDeathAction::execute(LevelPack& levelPack, EntityCreationQueue & queue, entt::DefaultRegistry & registry, SpriteLoader & spriteLoader, uint32_t entity) {
+	levelPack.playSound(fileName, volume);
+}
+
 std::shared_ptr<DeathAction> DeathActionFactory::create(std::string formattedString) {
 	auto name = split(formattedString, DELIMITER)[0];
 	std::shared_ptr<DeathAction> ptr;
 	if (name == "PlayAnimatableDeathAction") {
 		ptr = std::make_shared<PlayAnimatableDeathAction>();
+	} else if (name == "PlaySoundDeathAction") {
+		ptr = std::make_shared< PlaySoundDeathAction>();
 	}
 	ptr->load(formattedString);
 	return ptr;

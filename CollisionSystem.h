@@ -14,10 +14,11 @@ enum BULLET_ON_COLLISION_ACTION {
 
 class CollisionSystem {
 public:
-	CollisionSystem(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, float mapWidth, float mapHeight, const HitboxComponent& largestHitbox);
+	CollisionSystem(LevelPack& levelPack, EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, float mapWidth, float mapHeight, const HitboxComponent& largestHitbox);
 	void update(float deltaTime);
 
 private:
+	LevelPack& levelPack;
 	EntityCreationQueue& queue;
 	SpriteLoader& spriteLoader;
 	entt::DefaultRegistry& registry;
