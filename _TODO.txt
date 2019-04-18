@@ -27,10 +27,8 @@ Notes for me:
 TODO:
 -enemies can be bosses -> GUI displays a health bar; also separate render layer for bosses (above enemy)
 -Multiple small shockwave effects 
--Add to EMP: OnContactAction: TurnIntangible (remove HitboxComponent), DestroyBulletAndAttachedChildren (give children DespawnComponent to this EMP when they spawn),
-	DestroyBulletOnly (remove Sprite and Hitbox)
--DeathActionComponent (for player + enemies + bullets): does a list of DeathActions: ExecuteAttack (enemies only), ParticleExplosion, PlaySound
--Sounds are attached to EMPs and are played on spawn
+-DeathActions: ExecuteAttack (enemies only), ParticleExplosion
+-Implement music in levels; level music can be paused by the spawning of a boss (then playing the boss music) and resumed after it dies
 -Change meta file + sprite sheet meta files to use TextMarshallable
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------
