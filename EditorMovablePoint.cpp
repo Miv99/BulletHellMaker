@@ -34,6 +34,8 @@ std::string EditorMovablePoint::format() {
 
 	res += delim + tos(static_cast<int>(onCollisionAction));
 
+	res += delim + soundFileName;
+
 	return res;
 }
 
@@ -72,6 +74,8 @@ void EditorMovablePoint::load(std::string formattedString) {
 	damage = std::stoi(items[i++]);
 
 	onCollisionAction = static_cast<BULLET_ON_COLLISION_ACTION>(std::stoi(items[i++]));
+
+	soundFileName = items[i++];
 }
 
 bool EditorMovablePoint::legal(SpriteLoader& spriteLoader, std::string & message) {

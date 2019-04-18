@@ -466,13 +466,14 @@ The level manager entity is destroyed and re-created on the start of a new level
 */
 class LevelManagerTag {
 public:
-	inline LevelManagerTag(std::shared_ptr<Level> level) : level(level) {}
-	void update(EntityCreationQueue& queue, SpriteLoader& spriteLoader, const LevelPack& levelPack, entt::DefaultRegistry& registry, float deltaTime);
+	LevelManagerTag(LevelPack* levelPack, std::shared_ptr<Level> level);
+	void update(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, float deltaTime);
 
 	inline float getTimeSinceStartOfLevel() { return timeSinceStartOfLevel; }
 	inline float getTimeSinceLastEnemySpawn() { return timeSinceLastEnemySpawn; }
 	inline int getPoints() { return points; }
 	inline std::shared_ptr<Level> getLevel() { return level; }
+	LevelPack* getLevelPack();
 
 	inline void setTimeSinceLastEnemySpawn(float timeSinceLastEnemySpawn) { this->timeSinceLastEnemySpawn = timeSinceLastEnemySpawn; }
 
@@ -480,6 +481,8 @@ public:
 	inline void subtractPoints(int amount) { points -= amount; if (points < 0) points = 0; }
 
 private:
+	LevelPack* levelPack;
+
 	// Time since the start of the level
 	float timeSinceStartOfLevel = 0;
 	// Time since the last enemy spawn

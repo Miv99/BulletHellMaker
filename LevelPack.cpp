@@ -53,6 +53,8 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	attack2emp0->setAnimatable(Animatable("Bullet", "sheet1", true, LOCK_ROTATION));
 	attack2emp0->setHitboxRadius(30);
 	attack2emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
+	attack2emp0->setSoundFileName("test sound.wav");
+	attack2emp0->setSoundVolume(10);
 	auto distanceSegments = std::make_shared<PiecewiseContinuousTFV>();
 	distanceSegments->insertSegment(0, std::make_pair(1, std::make_shared<LinearTFV>(0, 100, 1)));
 	distanceSegments->insertSegment(1, std::make_pair(2, std::make_shared<LinearTFV>(100, 200, 2)));

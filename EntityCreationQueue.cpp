@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <iostream>
 #include "MovablePoint.h"
+#include "LevelPack.h"
 #include <random>
 
 EMPSpawnFromEnemyCommand::EMPSpawnFromEnemyCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, uint32_t entity, float timeLag, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation) :
@@ -77,6 +78,11 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 	// Create the simple reference entity, since all entities must have one
 	auto& lastPos = registry.get<PositionComponent>(bullet);
 	queue.pushFront(std::make_unique<CreateMovementReferenceEntityCommand>(registry, bullet, timeLag, lastPos.getX(), lastPos.getY()));
+
+	// Play the sound associated with the EMP
+	if (emp->getSoundFileName().length() > 0) {
+		registry.get<LevelManagerTag>().getLevelPack()->playSound(emp->getSoundFileName(), emp->getSoundVolume());
+	}
 }
 
 int EMPSpawnFromEnemyCommand::getEntitiesQueuedCount() {
@@ -148,6 +154,11 @@ void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
 	// Create the simple reference entity, since all entities must have one
 	auto& lastPos = registry.get<PositionComponent>(bullet);
 	queue.pushFront(std::make_unique<CreateMovementReferenceEntityCommand>(registry, bullet, timeLag, lastPos.getX(), lastPos.getY()));
+
+	// Play the sound associated with the EMP
+	if (emp->getSoundFileName().length() > 0) {
+		registry.get<LevelManagerTag>().getLevelPack()->playSound(emp->getSoundFileName(), emp->getSoundVolume());
+	}
 }
 
 int EMPSpawnFromPlayerCommand::getEntitiesQueuedCount() {

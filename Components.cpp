@@ -198,14 +198,17 @@ void EnemyComponent::checkAttacks(EntityCreationQueue& queue, SpriteLoader& spri
 	}
 }
 
-void LevelManagerTag::update(EntityCreationQueue& queue, SpriteLoader& spriteLoader, const LevelPack& levelPack, entt::DefaultRegistry& registry, float deltaTime) {
+LevelManagerTag::LevelManagerTag(LevelPack* levelPack, std::shared_ptr<Level> level) : levelPack(levelPack), level(level) {
+}
+
+void LevelManagerTag::update(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, float deltaTime) {
 	timeSinceStartOfLevel += deltaTime;
 	timeSinceLastEnemySpawn += deltaTime;
 
 	while (currentEnemyGroupSpawnIndex + 1 < level->getEnemyGroupsCount()) {
 		if (level->conditionSatisfied(currentEnemyGroupSpawnIndex + 1, registry)) {
 			for (EnemySpawnInfo info : level->getEnemyGroupSpawnInfo(currentEnemyGroupSpawnIndex + 1)) {
-				info.spawnEnemy(spriteLoader, levelPack, registry, queue);
+				info.spawnEnemy(spriteLoader, *levelPack, registry, queue);
 			}
 
 			currentEnemyGroupSpawnIndex++;
@@ -433,4 +436,8 @@ BULLET_ON_COLLISION_ACTION EnemyBulletComponent::getOnCollisionAction() {
 
 BULLET_ON_COLLISION_ACTION PlayerBulletComponent::getOnCollisionAction() {
 	return onCollisionAction;
+}
+
+LevelPack* LevelManagerTag::getLevelPack() {
+	return levelPack;
 }

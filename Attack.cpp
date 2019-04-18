@@ -17,9 +17,6 @@ std::string EditorAttack::format() {
 	} else {
 		res += "0";
 	}
-	for (auto p : soundEffectNames) {
-		res += delim + "(" + tos(p.first) + ")" + delim + "(" + p.second + ")";
-	}
 	return res;
 }
 
@@ -35,9 +32,6 @@ void EditorAttack::load(std::string formattedString) {
 	} else {
 		playAttackAnimation = false;
 	}
-	for (int i = 5; i < items.size() + 5; i += 2) {
-		soundEffectNames.push_back(std::make_pair(std::stof(items[i]), items[i + 1]));
-	}
 }
 
 bool EditorAttack::legal(SpriteLoader& spriteLoader, std::string& message) {
@@ -45,12 +39,6 @@ bool EditorAttack::legal(SpriteLoader& spriteLoader, std::string& message) {
 	if (contains(name, '(') || contains(name, ')')) {
 		message += "Attack \"" + name + "\" cannot have the character '(' or ')' in its name\n";
 		good = false;
-	}
-	for (auto p : soundEffectNames) {
-		if (contains(p.second, '(') || contains(p.second, ')')) {
-			message += "Sound effect \"" + p.second + "\" cannot have the character '(' or ')' in its name\n";
-			good = false;
-		}
 	}
 	if (mainEMP) {
 		if (!mainEMP->legal(spriteLoader, message)) {

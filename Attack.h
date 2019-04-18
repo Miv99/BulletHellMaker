@@ -39,12 +39,6 @@ public:
 	*/
 	void EditorAttack::executeAsPlayer(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, uint32_t entity, float timeLag, int attackPatternID);
 
-	inline void addSoundEffect(float time, std::string fileName) {
-		auto item = std::make_pair(time, fileName);
-		auto it = upper_bound(soundEffectNames.begin(), soundEffectNames.end(), item, [](auto& lhs, auto& rhs)->bool { return lhs.first < rhs.first; });
-		soundEffectNames.insert(it, item);
-	}
-
 	inline int getID() { return id; }
 	inline std::string getName() { return name; }
 	inline bool getPlayAttackAnimation() { return playAttackAnimation; }
@@ -66,8 +60,6 @@ private:
 	// Root of the EMP tree (the main EMP); always has ID 0
 	// When the attack is executed, the mainEMP is spawned instantly. Its spawn type's time is ignored.
 	std::shared_ptr<EditorMovablePoint> mainEMP;
-	// List of file names of sound effects to be played and when (t=0 is start of the attack)
-	std::vector<std::pair<float, std::string>> soundEffectNames;
 	// Whether or not to play the enemy's attack animation with this attack
 	bool playAttackAnimation;
 };

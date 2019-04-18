@@ -60,7 +60,11 @@ public:
 	inline bool getLoopAnimation() { return loopAnimation; }
 	inline Animatable getBaseSprite() { return baseSprite; }
 	inline BULLET_ON_COLLISION_ACTION getOnCollisionAction() { return onCollisionAction; }
+	inline std::string getSoundFileName() { return soundFileName; }
+	inline float getSoundVolume() { return soundVolume; }
 
+	inline void setSoundVolume(float volume) { this->soundVolume = volume; }
+	inline void setSoundFileName(std::string soundFileName) { this->soundFileName = soundFileName; }
 	inline void setOnCollisionAction(BULLET_ON_COLLISION_ACTION action) { onCollisionAction = action; }
 	inline void setDamage(float damage) { this->damage = damage; }
 	inline void setAnimatable(Animatable animatable) { this->animatable = animatable; }
@@ -158,4 +162,8 @@ private:
 
 	// Only for bullets; determines what happens when the bullet makes contact with something
 	BULLET_ON_COLLISION_ACTION onCollisionAction = DESTROY_THIS_BULLET_ONLY;
+	
+	// Sound file name to be played on EMP spawn. Set to "" for no sound.
+	std::string soundFileName = "";
+	float soundVolume = 100;
 };

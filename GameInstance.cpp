@@ -48,7 +48,7 @@ void GameInstance::physicsUpdate(float deltaTime) {
 		collisionSystem->update(deltaTime);
 		queue->executeAll();
 
-		registry.get<LevelManagerTag>().update(*queue, *spriteLoader, *levelPack, registry, deltaTime);
+		registry.get<LevelManagerTag>().update(*queue, *spriteLoader, registry, deltaTime);
 		queue->executeAll();
 
 		shadowTrailSystem->update(deltaTime);
@@ -92,7 +92,7 @@ void GameInstance::startLevel(int levelIndex) {
 	registry.reserve<LevelManagerTag>(1);
 	registry.reserve(registry.alive() + 1);
 	uint32_t levelManager = registry.create();
-	registry.assign<LevelManagerTag>(entt::tag_t{}, levelManager, levelPack->getLevel(levelIndex));
+	registry.assign<LevelManagerTag>(entt::tag_t{}, levelManager, &(*levelPack), levelPack->getLevel(levelIndex));
 	
 	resume();
 }
