@@ -34,7 +34,12 @@ std::string EditorMovablePoint::format() {
 
 	res += delim + tos(static_cast<int>(onCollisionAction));
 
-	res += delim + soundFileName;
+	if (playSoundOnSpawn) {
+		res += delim + "0";
+	} else {
+		res += delim + "1";
+	}
+	res += delim + "(" + soundSettings.format() + ")";
 
 	return res;
 }
@@ -75,7 +80,12 @@ void EditorMovablePoint::load(std::string formattedString) {
 
 	onCollisionAction = static_cast<BULLET_ON_COLLISION_ACTION>(std::stoi(items[i++]));
 
-	soundFileName = items[i++];
+	if (std::stoi(items[i++]) == 1) {
+		playSoundOnSpawn = true;
+	} else {
+		playSoundOnSpawn = false;
+	}
+	soundSettings.load(items[i++]);
 }
 
 bool EditorMovablePoint::legal(SpriteLoader& spriteLoader, std::string & message) {

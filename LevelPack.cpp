@@ -53,8 +53,9 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	attack2emp0->setAnimatable(Animatable("Bullet", "sheet1", true, LOCK_ROTATION));
 	attack2emp0->setHitboxRadius(30);
 	attack2emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
-	attack2emp0->setSoundFileName("test sound.wav");
-	attack2emp0->setSoundVolume(10);
+	attack2emp0->setPlaysSound(true);
+	attack2emp0->getSoundSettings().setFileName("test sound.wav");
+	attack2emp0->getSoundSettings().setVolume(10);
 	auto distanceSegments = std::make_shared<PiecewiseContinuousTFV>();
 	distanceSegments->insertSegment(0, std::make_pair(1, std::make_shared<LinearTFV>(0, 100, 1)));
 	distanceSegments->insertSegment(1, std::make_pair(2, std::make_shared<LinearTFV>(100, 200, 2)));
@@ -113,7 +114,7 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	enemy1->setHealth(10);
 	enemy1->setHitboxRadius(70);
 	enemy1->setName("test enemy 1");
-	enemy1->addDeathAction(std::make_shared<PlaySoundDeathAction>("test sound.wav", 100));
+	enemy1->addDeathAction(std::make_shared<PlaySoundDeathAction>(SoundSettings("test sound.wav", 100)));
 
 	auto level = std::make_shared<Level>("test level 1");
 	auto playerAP = createAttackPattern();
@@ -286,19 +287,20 @@ float LevelPack::searchLargestHitbox() {
 fileName - file name with extension
 volume - in range [0, 100], where 100 is full volume
 */
-void LevelPack::playSound(std::string fileName, float volume) {
+void LevelPack::playSound(const SoundSettings& soundSettings) {
 	// Check if the sound's SoundBuffer already exists
-	if (soundBuffers.count(fileName) == 0) {
+	if (soundBuffers.count(soundSettings.getFileName()) == 0) {
 		sf::SoundBuffer buffer;
-		if (!buffer.loadFromFile("Level Packs/" + name + "/Sounds/" + fileName)) {
+		if (!buffer.loadFromFile("Level Packs/" + name + "/Sounds/" + soundSettings.getFileName())) {
 			//TODO: handle audio not being able to be loaded
 			return;
 		}
-		soundBuffers[fileName] = std::move(buffer);
+		soundBuffers[soundSettings.getFileName()] = std::move(buffer);
 	}
 	std::unique_ptr<sf::Sound> sound = std::make_unique<sf::Sound>();
-	sound->setBuffer(soundBuffers[fileName]);
-	sound->setVolume(volume);
+	sound->setBuffer(soundBuffers[soundSettings.getFileName()]);
+	sound->setVolume(soundSettings.getVolume());
+	sound->setPitch(soundSettings.getPitch());
 	sound->play();
 	currentSounds.push(std::move(sound));
 }

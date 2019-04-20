@@ -8,6 +8,7 @@
 #include "Animatable.h"
 #include "SpriteLoader.h"
 #include "Components.h"
+#include "AudioSettings.h"
 #include "EntityCreationQueue.h"
 
 class LevelPack;
@@ -63,7 +64,7 @@ public:
 	fileName - file name with extension
 	volume - volume multiplier in range [0, 100]
 	*/
-	inline PlaySoundDeathAction(std::string fileName, float volume) : fileName(fileName), volume(volume) {}
+	inline PlaySoundDeathAction(SoundSettings soundSettings) : soundSettings(soundSettings) {}
 
 	std::string format() override;
 	void load(std::string formattedString) override;
@@ -71,8 +72,7 @@ public:
 	void execute(LevelPack& levelPack, EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) override;
 
 private:
-	std::string fileName;
-	float volume;
+	SoundSettings soundSettings;
 };
 
 class DeathActionFactory {

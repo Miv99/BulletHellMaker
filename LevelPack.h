@@ -20,6 +20,7 @@
 #include "TextMarshallable.h"
 #include "Components.h"
 #include "Attack.h"
+#include "AudioSettings.h"
 #include "Level.h"
 
 // REMEMBER: THESE CLASSES ARE NEVER MODIFIED
@@ -79,7 +80,7 @@ public:
 
 	float searchLargestHitbox();
 
-	void playSound(std::string fileName, float volume);
+	void playSound(const SoundSettings& soundSettings);
 
 private:
 	std::string name;

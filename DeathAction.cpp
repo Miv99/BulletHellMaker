@@ -43,17 +43,16 @@ void PlayAnimatableDeathAction::loadEffectAnimation(SpriteComponent & sprite) {
 
 
 std::string PlaySoundDeathAction::format() {
-	return "PlaySoundDeathAction" + delim + "(" + fileName + ")" + delim + tos(volume);
+	return "PlaySoundDeathAction" + delim + "(" + soundSettings.format() + ")";
 }
 
 void PlaySoundDeathAction::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
-	fileName = items[1];
-	volume = std::stof(items[2]);
+	soundSettings.load(items[1]);
 }
 
 void PlaySoundDeathAction::execute(LevelPack& levelPack, EntityCreationQueue & queue, entt::DefaultRegistry & registry, SpriteLoader & spriteLoader, uint32_t entity) {
-	levelPack.playSound(fileName, volume);
+	levelPack.playSound(soundSettings);
 }
 
 std::shared_ptr<DeathAction> DeathActionFactory::create(std::string formattedString) {
