@@ -290,7 +290,7 @@ void LevelPack::playSound(std::string fileName, float volume) {
 	// Check if the sound's SoundBuffer already exists
 	if (soundBuffers.count(fileName) == 0) {
 		sf::SoundBuffer buffer;
-		if (!buffer.loadFromFile("Level Packs/" + name + "/" + fileName)) {
+		if (!buffer.loadFromFile("Level Packs/" + name + "/Sounds/" + fileName)) {
 			//TODO: handle audio not being able to be loaded
 			return;
 		}
