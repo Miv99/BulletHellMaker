@@ -304,3 +304,22 @@ void LevelPack::playSound(const SoundSettings& soundSettings) {
 	sound->play();
 	currentSounds.push(std::move(sound));
 }
+
+
+/*
+fileName - file name with extension
+volume - in range [0, 100], where 100 is full volume
+*/
+void LevelPack::playMusic(const MusicSettings& musicSettings) {
+	sf::Music music;
+	if (!music.openFromFile("Level Packs/" + name + "/Music/" + musicSettings.getFileName())) {
+		//TODO: handle audio not being able to be loaded
+		return;
+	}
+	music.setVolume(musicSettings.getVolume());
+	if (musicSettings.getLoop()) {
+		music.setLoopPoints(sf::Music::TimeSpan(sf::milliseconds(musicSettings.getLoopStartMilliseconds()), sf::milliseconds(musicSettings.getLoopLengthMilliseconds())));
+	}
+	music.setPitch(musicSettings.getPitch());
+	music.play();
+}

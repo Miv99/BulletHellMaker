@@ -81,6 +81,7 @@ public:
 	float searchLargestHitbox();
 
 	void playSound(const SoundSettings& soundSettings);
+	void playMusic(const MusicSettings& musicSettings);
 
 private:
 	std::string name;
