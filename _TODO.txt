@@ -8,6 +8,7 @@ Documentation to put in the editor somewhere:
 -It is highly recommended that all animatables in all EntityAnimatableSets of all enemy phases in the same enemy look similar (have the same hitbox and sprite origin)
  because hitboxes and origins cannot change
 -EMPs with HomingEMPA cannot spawn attached to some parent
+-It is recommended that only bosses are able to play music
 
 Tips to put in editor somewhere:
 -For a classic bullet hell, all enemy bullets should do 1 damage
@@ -23,12 +24,15 @@ Notes for me:
 -sf::Sprite's origin is relative to the texture's top-left coordinates and ignores scale/rotation/transformations
 -All TFVs in the editor are stored internally as PiecewiseContinuousTFVs
 -To loop an animation x times, copy paste the frame data x times
+-Since LevelPack::playSound/Music adds the "Level Packs/level_pack_name/..." to sound/music file names, any sound or music that is located
+ in the level pack folder must be played through LevelPack
+
 
 TODO:
+-player invuln time
 -enemies can be bosses -> GUI displays a health bar; also separate render layer for bosses (above enemy)
 -Multiple small shockwave effects 
 -DeathActions: ExecuteAttack (enemies only), ParticleExplosion
--Implement music in levels; level music can be paused by the spawning of a boss (then playing the boss music) and resumed after it dies
 -Change meta file + sprite sheet meta files to use TextMarshallable
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------

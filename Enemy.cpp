@@ -15,6 +15,11 @@ std::string EditorEnemy::format() {
 	for (auto action : deathActions) {
 		res += delim + "(" + action->format() + ")";
 	}
+	if (isBoss) {
+		res += delim + "1";
+	} else {
+		res += delim + "0";
+	}
 	return res;
 }
 
@@ -34,6 +39,11 @@ void EditorEnemy::load(std::string formattedString) {
 	int next = i;
 	for (; i < std::stoi(items[next]) + next; i++) {
 		deathActions.push_back(DeathActionFactory::create(items[i]));
+	}
+	if (std::stoi(items[next++])) {
+		isBoss = true;
+	} else {
+		isBoss = false;
 	}
 }
 

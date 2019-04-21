@@ -151,6 +151,11 @@ void EnemyComponent::checkPhases(EntityCreationQueue& queue, SpriteLoader& sprit
 			// Set entity's animatable set
 			registry.get<AnimatableSetComponent>(entity).setAnimatableSet(std::get<2>(nextPhaseData));
 
+			// Play the new music, if any
+			if (currentPhase->getPlayMusic()) {
+				levelPack.playMusic(currentPhase->getMusicSettings());
+			}
+
 			checkAttackPatterns(queue, spriteLoader, levelPack, registry, entity);
 		} else {
 			break;

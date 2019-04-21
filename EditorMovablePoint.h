@@ -11,7 +11,7 @@
 #include "SpriteLoader.h"
 #include "Components.h"
 #include "CollisionSystem.h"
-#include "AudioSettings.h"
+#include "AudioPlayer.h"
 
 class EMPSpawnType;
 

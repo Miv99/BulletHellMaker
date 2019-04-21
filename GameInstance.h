@@ -11,6 +11,7 @@
 #include "EntityCreationQueue.h"
 #include "ShadowTrailSystem.h"
 #include "PlayerSystem.h"
+#include "AudioPlayer.h"
 #include "CollectibleSystem.h"
 
 class LevelPack;
@@ -53,6 +54,7 @@ private:
 	std::unique_ptr<ShadowTrailSystem> shadowTrailSystem;
 	std::unique_ptr<PlayerSystem> playerSystem;
 	std::unique_ptr<CollectibleSystem> collectibleSystem;
+	std::unique_ptr<AudioPlayer> audioPlayer;
 
 	bool paused;
 

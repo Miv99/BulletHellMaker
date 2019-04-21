@@ -20,7 +20,7 @@
 #include "TextMarshallable.h"
 #include "Components.h"
 #include "Attack.h"
-#include "AudioSettings.h"
+#include "AudioPlayer.h"
 #include "Level.h"
 
 // REMEMBER: THESE CLASSES ARE NEVER MODIFIED
@@ -33,12 +33,10 @@ Attacks, attack patterns, enemies, and enemy phases can be saved by name.
 
 class LevelPack {
 public:
-	LevelPack(std::string name);
+	LevelPack(AudioPlayer& audioPlayer, std::string name);
 
 	void load();
 	void save();
-
-	void update();
 
 	void preloadTextures();
 
@@ -73,20 +71,21 @@ public:
 	inline void deleteEnemyPhase(int id) { enemyPhases.erase(id); }
 
 	inline std::shared_ptr<Level> getLevel(int levelIndex) const { return levels[levelIndex]; }
-	inline std::shared_ptr<EditorAttack> getAttack(int id) const  { return attacks.at(id); }
-	inline std::shared_ptr<EditorAttackPattern> getAttackPattern(int id) const  { return attackPatterns.at(id); }
-	inline std::shared_ptr<EditorEnemy> getEnemy(int id) const  { return enemies.at(id); }
+	inline std::shared_ptr<EditorAttack> getAttack(int id) const { return attacks.at(id); }
+	inline std::shared_ptr<EditorAttackPattern> getAttackPattern(int id) const { return attackPatterns.at(id); }
+	inline std::shared_ptr<EditorEnemy> getEnemy(int id) const { return enemies.at(id); }
 	inline std::shared_ptr<EditorEnemyPhase> getEnemyPhase(int id) const { return enemyPhases.at(id); }
 
 	float searchLargestHitbox();
 
-	void playSound(const SoundSettings& soundSettings);
-	void playMusic(const MusicSettings& musicSettings);
+	void playSound(const SoundSettings& soundSettings) const;
+	void playMusic(const MusicSettings& musicSettings) const;
 
 private:
 	std::string name;
 
 	std::unique_ptr<SpriteLoader> spriteLoader;
+	AudioPlayer& audioPlayer;
 
 	int nextAttackID = 0;
 	int nextAttackPatternID = 0;
@@ -103,9 +102,4 @@ private:
 	std::map<int, std::shared_ptr<EditorEnemy>> enemies;
 	// enemy phase id : enemy phase
 	std::map<int, std::shared_ptr<EditorEnemyPhase>> enemyPhases;
-
-	// Maps file names to SoundBuffers. Not saved.
-	std::map<std::string, sf::SoundBuffer> soundBuffers;
-	// Queue of sounds currently playing. Not saved.
-	std::queue<std::unique_ptr<sf::Sound>> currentSounds;
 };

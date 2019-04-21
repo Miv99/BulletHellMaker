@@ -1,0 +1,100 @@
+#pragma once
+#include <string>
+#include <map>
+#include <queue>
+#include <memory>
+#include <SFML/Audio.hpp>
+#include "TextMarshallable.h"
+
+class SoundSettings : public TextMarshallable {
+public:
+	inline SoundSettings() {}
+	inline SoundSettings(std::string fileName, float volume = 100, float pitch = 1) : fileName(fileName), volume(volume), pitch(pitch) {}
+	inline SoundSettings(const SoundSettings& copy) {
+		fileName = copy.fileName;
+		volume = copy.volume;
+		pitch = copy.pitch;
+	}
+
+	std::string format() override;
+	void load(std::string formattedString) override;
+
+	inline std::string getFileName() const { return fileName; }
+	inline float getVolume() const { return volume; }
+	inline float getPitch() const { return pitch; }
+
+	inline void setFileName(std::string fileName) { this->fileName = fileName; }
+	inline void setVolume(float volume) { this->volume = volume; }
+	inline void setPitch(float pitch) { this->pitch = pitch; }
+
+private:
+	std::string fileName;
+
+	// in range [0, 100]
+	float volume = 100;
+	// in range [1, inf]
+	float pitch = 1;
+};
+
+class MusicSettings : public TextMarshallable {
+public:
+	inline MusicSettings() {}
+	inline MusicSettings(std::string fileName, bool loops = false, int loopStartMilliseconds = 0, int loopLengthMilliseconds = 0, float volume = 100, float pitch = 1) : fileName(fileName), loops(loops), loopStartMilliseconds(loopStartMilliseconds), loopLengthMilliseconds(loopLengthMilliseconds), volume(volume), pitch(pitch) {}
+	inline MusicSettings(const MusicSettings& copy) {
+		fileName = copy.fileName;
+		loops = copy.loops;
+		loopStartMilliseconds = copy.loopStartMilliseconds;
+		loopLengthMilliseconds = copy.loopLengthMilliseconds;
+		volume = copy.volume;
+		pitch = copy.pitch;
+	}
+
+	std::string format() override;
+	void load(std::string formattedString) override;
+
+	inline std::string getFileName() const { return fileName; }
+	inline bool getLoop() const { return loops; }
+	inline int getLoopStartMilliseconds() const { return loopStartMilliseconds; }
+	inline int getLoopLengthMilliseconds() const { return loopLengthMilliseconds; }
+	inline float getVolume() const { return volume; }
+	inline float getPitch() const { return pitch; }
+
+	inline void setFileName(std::string fileName) { this->fileName = fileName; }
+	inline void setLoop(bool loops) { this->loops = loops; }
+	inline void setLoopStartMilliseconds(int loopStartMilliseconds) { this->loopStartMilliseconds = loopStartMilliseconds; }
+	inline void setLoopLengthMilliseconds(int loopStartMilliseconds) { this->loopLengthMilliseconds = loopLengthMilliseconds; }
+	inline void setVolume(float volume) { this->volume = volume; }
+	inline void setPitch(float pitch) { this->pitch = pitch; }
+
+private:
+	std::string fileName;
+
+	bool loops = false;
+	// only applicable if loops is true; see sf::Music's setLoopPoints() for explanation of these fields
+	int loopStartMilliseconds = 0;
+	int loopLengthMilliseconds = 0;
+
+	// in range [0, 100]
+	float volume = 100;
+	// in range [1, inf]
+	float pitch = 1;
+};
+
+class AudioPlayer {
+public:
+	void update(float deltaTime);
+
+	void playSound(const SoundSettings& soundSettings);
+	void playMusic(const MusicSettings& musicSettings);
+	void playMusic(std::shared_ptr<sf::Music> music);
+
+	std::shared_ptr<sf::Music> loadMusic(const MusicSettings& musicSettings);
+
+private:
+	// Maps file names to SoundBuffers
+	std::map<std::string, sf::SoundBuffer> soundBuffers;
+	// Queue of sounds currently playing
+	std::queue<std::unique_ptr<sf::Sound>> currentSounds;
+
+	std::shared_ptr<sf::Music> currentMusic;
+};

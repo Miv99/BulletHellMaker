@@ -27,7 +27,9 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 	spriteLoader = std::make_unique<SpriteLoader>("Level Packs\\" + levelPackName, namePairs);
 	spriteLoader->preloadTextures();
 
-	levelPack = std::make_unique<LevelPack>(levelPackName);
+	audioPlayer = std::make_unique<AudioPlayer>();
+
+	levelPack = std::make_unique<LevelPack>(*audioPlayer, levelPackName);
 	queue = std::make_unique<EntityCreationQueue>(registry);
 
 	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
@@ -42,7 +44,7 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 }
 
 void GameInstance::physicsUpdate(float deltaTime) {
-	levelPack->update();
+	audioPlayer->update(deltaTime);
 
 	if (!paused) {
 		collisionSystem->update(deltaTime);
@@ -95,6 +97,9 @@ void GameInstance::startLevel(int levelIndex) {
 	registry.assign<LevelManagerTag>(entt::tag_t{}, levelManager, &(*levelPack), levelPack->getLevel(levelIndex));
 	
 	resume();
+
+	// Play level music
+	levelPack->playMusic(levelPack->getLevel(levelIndex)->getMusicSettings());
 }
 
 void GameInstance::endLevel() {

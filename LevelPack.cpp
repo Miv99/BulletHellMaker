@@ -8,7 +8,7 @@
 #include "Animatable.h"
 #include "DeathAction.h"
 
-LevelPack::LevelPack(std::string name) : name(name) {
+LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(audioPlayer), name(name) {
 	// Read meta file
 	std::ifstream metafile("Level Packs\\" + name + "\\meta.txt");
 	std::unique_ptr<std::map<std::string, std::unique_ptr<std::map<std::string, std::string>>>> metadata = TextFileParser(metafile).read('=');
@@ -78,7 +78,7 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	*/
 	
 	bool alt = false;
-	for (float time = 0; time < 5; time += 0.1f) {
+	for (float time = 0; time < 5; time += 1.0f) {
 		ap1->addAttackID(time, attack2->getID());
 		if (alt) {
 			//ap1->addAttackID(time, attack1->getID());
@@ -96,6 +96,9 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	ep1->setAttackPatternLoopDelay(15);
 	ep1->setPhaseBeginAction(std::make_shared<NullEPA>());
 	ep1->setPhaseEndAction(std::make_shared<NullEPA>());
+	ep1->setPlayMusic(true);
+	ep1->getMusicSettings().setFileName("test music.wav");
+	ep1->getMusicSettings().setVolume(10);
 
 	auto ep2 = createEnemyPhase();
 	ep2->addAttackPatternID(0, ap1->getID());
@@ -103,6 +106,9 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	ep2->setAttackPatternLoopDelay(15);
 	ep2->setPhaseBeginAction(std::make_shared<DestroyEnemyBulletsEPA>());
 	ep2->setPhaseEndAction(std::make_shared<NullEPA>());
+	ep2->setPlayMusic(true);
+	ep2->getMusicSettings().setFileName("heaven's fall.wav");
+	ep2->getMusicSettings().setVolume(10);
 
 	auto enemy1 = createEnemy();
 	auto e1set = EntityAnimatableSet(Animatable("Megaman idle", "sheet1", false, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT), 
@@ -155,6 +161,9 @@ LevelPack::LevelPack(std::string name) : name(name) {
 	level->setHealthPack(std::make_shared<HealthPackItem>(Animatable("Health", "sheet1", true, LOCK_ROTATION), 40.0f));
 	level->setPointsPack(std::make_shared<PointsPackItem>(Animatable("Points", "sheet1", true, LOCK_ROTATION), 25.0f));
 	level->setPowerPack(std::make_shared<PowerPackItem>(Animatable("Power", "sheet1", true, LOCK_ROTATION), 40.0f));
+	level->getMusicSettings().setFileName("seashore.wav");
+	level->getMusicSettings().setVolume(10);
+	level->getMusicSettings().setLoop(true);
 	this->insertLevel(0, level);
 	
 	//TODO: uncomment
@@ -264,13 +273,6 @@ void LevelPack::save() {
 	enemyPhasesFile.close();
 }
 
-void LevelPack::update() {
-	// Check if any sounds are done playing and remove it from the queue of sounds being played
-	while (!currentSounds.empty() && currentSounds.front()->getStatus() == sf::Sound::Status::Stopped) {
-		currentSounds.pop();
-	}
-}
-
 void LevelPack::preloadTextures() {
 	spriteLoader->preloadTextures();
 }
@@ -283,43 +285,14 @@ float LevelPack::searchLargestHitbox() {
 	return max;
 }
 
-/*
-fileName - file name with extension
-volume - in range [0, 100], where 100 is full volume
-*/
-void LevelPack::playSound(const SoundSettings& soundSettings) {
-	// Check if the sound's SoundBuffer already exists
-	if (soundBuffers.count(soundSettings.getFileName()) == 0) {
-		sf::SoundBuffer buffer;
-		if (!buffer.loadFromFile("Level Packs/" + name + "/Sounds/" + soundSettings.getFileName())) {
-			//TODO: handle audio not being able to be loaded
-			return;
-		}
-		soundBuffers[soundSettings.getFileName()] = std::move(buffer);
-	}
-	std::unique_ptr<sf::Sound> sound = std::make_unique<sf::Sound>();
-	sound->setBuffer(soundBuffers[soundSettings.getFileName()]);
-	sound->setVolume(soundSettings.getVolume());
-	sound->setPitch(soundSettings.getPitch());
-	sound->play();
-	currentSounds.push(std::move(sound));
+void LevelPack::playSound(const SoundSettings & soundSettings) const {
+	SoundSettings alteredPath = SoundSettings(soundSettings);
+	alteredPath.setFileName("Level Packs/" + name + "/Sounds/" + alteredPath.getFileName());
+	audioPlayer.playSound(alteredPath);
 }
 
-
-/*
-fileName - file name with extension
-volume - in range [0, 100], where 100 is full volume
-*/
-void LevelPack::playMusic(const MusicSettings& musicSettings) {
-	sf::Music music;
-	if (!music.openFromFile("Level Packs/" + name + "/Music/" + musicSettings.getFileName())) {
-		//TODO: handle audio not being able to be loaded
-		return;
-	}
-	music.setVolume(musicSettings.getVolume());
-	if (musicSettings.getLoop()) {
-		music.setLoopPoints(sf::Music::TimeSpan(sf::milliseconds(musicSettings.getLoopStartMilliseconds()), sf::milliseconds(musicSettings.getLoopLengthMilliseconds())));
-	}
-	music.setPitch(musicSettings.getPitch());
-	music.play();
+void LevelPack::playMusic(const MusicSettings & musicSettings) const {
+	MusicSettings alteredPath = MusicSettings(musicSettings);
+	alteredPath.setFileName("Level Packs/" + name + "/Music/" + alteredPath.getFileName());
+	audioPlayer.playMusic(alteredPath);
 }

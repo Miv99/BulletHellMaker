@@ -5,10 +5,17 @@ std::string EditorEnemyPhase::format() {
 	res += "(" + std::to_string(id) + ")" + delim;
 	res += "(" + name + ")" + delim;
 	res += "(" + phaseBeginAction->format() + ")" + delim;
-	res += "(" + phaseEndAction->format() + ")";
+	res += "(" + phaseEndAction->format() + ")" + delim;
+	res += tos(attackPatternIds.size());
 	for (auto p : attackPatternIds) {
 		res += delim + "(" + tos(p.first) + ")" + delim + "(" + tos(p.second) + ")";
 	}
+	if (playMusic) {
+		res += delim + "1";
+	} else {
+		res += delim + "0";
+	}
+	res += delim + "(" + musicSettings.format() + ")";
 	return res;
 }
 
@@ -18,9 +25,16 @@ void EditorEnemyPhase::load(std::string formattedString) {
 	name = items[1];
 	phaseBeginAction = EPAFactory::create(items[2]);
 	phaseEndAction = EPAFactory::create(items[3]);
-	for (int i = 4; i < items.size(); i += 2) {
+	int i;
+	for (i = 5; i < std::stoi(items[4]) + 5; i += 2) {
 		attackPatternIds.push_back(std::make_pair(std::stof(items[i]), std::stoi(items[i + 1])));
 	}
+	if (std::stoi(items[i++]) == 1) {
+		playMusic = true;
+	} else {
+		playMusic = false;
+	}
+	musicSettings.load(items[i++]);
 }
 
 bool EditorEnemyPhase::legal(std::string & message) {

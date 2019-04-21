@@ -9,6 +9,7 @@
 #include "TextMarshallable.h"
 #include "Player.h"
 #include "Item.h"
+#include "AudioPlayer.h"
 
 class Level : public TextMarshallable {
 public:
@@ -27,6 +28,10 @@ public:
 	inline std::shared_ptr<HealthPackItem> getHealthPack() { return healthPack; }
 	inline std::shared_ptr<PointsPackItem> getPointsPack() { return pointPack; }
 	inline std::shared_ptr<PowerPackItem> getPowerPack() { return powerPack; }
+	/*
+	Returns a reference to the music settings.
+	*/
+	inline MusicSettings& getMusicSettings() { return musicSettings; }
 
 	inline void setName(std::string name) { this->name = name; }
 	inline void setPlayer(EditorPlayer player) { this->player = player; }
@@ -60,4 +65,7 @@ private:
 	std::shared_ptr<HealthPackItem> healthPack;
 	std::shared_ptr<PointsPackItem> pointPack;
 	std::shared_ptr<PowerPackItem> powerPack;
+
+	// Music to play on start of level
+	MusicSettings musicSettings;
 };

@@ -8,7 +8,7 @@
 #include "Animatable.h"
 #include "SpriteLoader.h"
 #include "Components.h"
-#include "AudioSettings.h"
+#include "AudioPlayer.h"
 #include "EntityCreationQueue.h"
 
 class LevelPack;

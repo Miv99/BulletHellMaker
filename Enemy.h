@@ -66,4 +66,6 @@ private:
 	std::vector<std::tuple<std::shared_ptr<EnemyPhaseStartCondition>, int, EntityAnimatableSet>> phaseIDs;
 	// Death actions. This should not include the death animation because the death animation is dependent on the current phase.
 	std::vector<std::shared_ptr<DeathAction>> deathActions;
+
+	bool isBoss = false;
 };

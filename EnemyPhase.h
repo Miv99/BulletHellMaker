@@ -6,6 +6,7 @@
 #include <entt/entt.hpp>
 #include "TextMarshallable.h"
 #include "EnemyPhaseAction.h"
+#include "AudioPlayer.h"
 #include "AttackPattern.h"
 
 /*
@@ -24,6 +25,7 @@ public:
 	inline void setAttackPatternLoopDelay(float attackPatternLoopDelay) { this->attackPatternLoopDelay = attackPatternLoopDelay; }
 	inline void setPhaseBeginAction(std::shared_ptr<EnemyPhaseAction> phaseBeginAction) { this->phaseBeginAction = phaseBeginAction; }
 	inline void setPhaseEndAction(std::shared_ptr<EnemyPhaseAction> phaseEndAction) { this->phaseEndAction = phaseEndAction; }
+	inline void setPlayMusic(bool playMusic) { this->playMusic = playMusic; }
 
 	inline int getID() { return id; }
 	inline std::pair<float, int> getAttackPatternData(int index) { 
@@ -37,6 +39,11 @@ public:
 	inline std::shared_ptr<EnemyPhaseAction> getPhaseBeginAction() { return phaseBeginAction; }
 	inline std::shared_ptr<EnemyPhaseAction> getPhaseEndAction() { return phaseEndAction; }
 	inline float getAttackPatternLoopDelay() { return attackPatternLoopDelay; }
+	inline bool getPlayMusic() { return playMusic; }
+	/*
+	Returns a reference to the music settings.
+	*/
+	inline MusicSettings& getMusicSettings() { return musicSettings; }
 
 	void addAttackPatternID(float time, int id);
 
@@ -55,4 +62,8 @@ private:
 	std::shared_ptr<EnemyPhaseAction> phaseBeginAction;
 	// The EnemyPhaseAction that is executed right when this phase ends
 	std::shared_ptr<EnemyPhaseAction> phaseEndAction;
+
+	// Whether to play music on phase start
+	bool playMusic = false;
+	MusicSettings musicSettings;
 };
