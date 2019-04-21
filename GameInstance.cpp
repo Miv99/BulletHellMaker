@@ -44,9 +44,9 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 }
 
 void GameInstance::physicsUpdate(float deltaTime) {
-	audioPlayer->update(deltaTime);
-
 	if (!paused) {
+		audioPlayer->update(deltaTime);
+
 		collisionSystem->update(deltaTime);
 		queue->executeAll();
 

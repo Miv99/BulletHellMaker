@@ -109,6 +109,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	ep2->setPlayMusic(true);
 	ep2->getMusicSettings().setFileName("heaven's fall.wav");
 	ep2->getMusicSettings().setVolume(10);
+	ep2->getMusicSettings().setTransitionTime(5.5f);
 
 	auto enemy1 = createEnemy();
 	auto e1set = EntityAnimatableSet(Animatable("Megaman idle", "sheet1", false, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT), 

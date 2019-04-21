@@ -47,6 +47,7 @@ public:
 		loopLengthMilliseconds = copy.loopLengthMilliseconds;
 		volume = copy.volume;
 		pitch = copy.pitch;
+		transitionTime = copy.transitionTime;
 	}
 
 	std::string format() override;
@@ -58,6 +59,7 @@ public:
 	inline int getLoopLengthMilliseconds() const { return loopLengthMilliseconds; }
 	inline float getVolume() const { return volume; }
 	inline float getPitch() const { return pitch; }
+	inline float getTransitionTime() const { return transitionTime; }
 
 	inline void setFileName(std::string fileName) { this->fileName = fileName; }
 	inline void setLoop(bool loops) { this->loops = loops; }
@@ -65,6 +67,7 @@ public:
 	inline void setLoopLengthMilliseconds(int loopStartMilliseconds) { this->loopLengthMilliseconds = loopLengthMilliseconds; }
 	inline void setVolume(float volume) { this->volume = volume; }
 	inline void setPitch(float pitch) { this->pitch = pitch; }
+	inline void setTransitionTime(float transitionTime) { this->transitionTime = transitionTime; }
 
 private:
 	std::string fileName;
@@ -78,6 +81,9 @@ private:
 	float volume = 100;
 	// in range [1, inf]
 	float pitch = 1;
+
+	// Time in seconds for music's volume to go from 0 to the above volume when the music starts playing
+	float transitionTime = 0;
 };
 
 class AudioPlayer {
@@ -85,10 +91,11 @@ public:
 	void update(float deltaTime);
 
 	void playSound(const SoundSettings& soundSettings);
-	void playMusic(const MusicSettings& musicSettings);
-	void playMusic(std::shared_ptr<sf::Music> music);
-
-	std::shared_ptr<sf::Music> loadMusic(const MusicSettings& musicSettings);
+	/*
+	Plays music.
+	Returns a pointer to the Music object.
+	*/
+	std::shared_ptr<sf::Music> playMusic(const MusicSettings& musicSettings);
 
 private:
 	// Maps file names to SoundBuffers
@@ -97,4 +104,10 @@ private:
 	std::queue<std::unique_ptr<sf::Sound>> currentSounds;
 
 	std::shared_ptr<sf::Music> currentMusic;
+	// The volume the music is transitioning to, in seconds. Volume settings do not affect this value.
+	float musicTransitionFinalVolume;
+	// Time it will take to fully transition, in seconds
+	float musicTransitionTime = 0;
+	// in seconds
+	float timeSinceMusicTransitionStart = 0;
 };

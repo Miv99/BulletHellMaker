@@ -1,4 +1,10 @@
 #include "AudioPlayer.h"
+#include <algorithm>
+
+//TODO: move these into some settings class
+float masterVolume = 0.8f;
+float soundVolume = 0.2f;
+float musicVolume = 0.2f;
 
 std::string SoundSettings::format() {
 	return "(" + fileName + ")" + delim + tos(volume) + delim + tos(pitch);
@@ -44,6 +50,17 @@ void AudioPlayer::update(float deltaTime) {
 	while (!currentSounds.empty() && currentSounds.front()->getStatus() == sf::Sound::Status::Stopped) {
 		currentSounds.pop();
 	}
+
+	// Update music transitioning
+	if (currentMusic && timeSinceMusicTransitionStart < musicTransitionTime) {
+		currentMusic->setVolume((timeSinceMusicTransitionStart/musicTransitionTime) * musicTransitionFinalVolume * masterVolume * musicVolume);
+
+		timeSinceMusicTransitionStart += deltaTime;
+		if (timeSinceMusicTransitionStart >= musicTransitionTime) {
+			// Prevent volume over/undershoot
+			currentMusic->setVolume(musicTransitionFinalVolume * masterVolume * musicVolume);
+		}
+	}
 }
 
 /*
@@ -62,7 +79,7 @@ void AudioPlayer::playSound(const SoundSettings& soundSettings) {
 	}
 	std::unique_ptr<sf::Sound> sound = std::make_unique<sf::Sound>();
 	sound->setBuffer(soundBuffers[soundSettings.getFileName()]);
-	sound->setVolume(soundSettings.getVolume());
+	sound->setVolume(soundSettings.getVolume() * masterVolume * soundVolume);
 	sound->setPitch(soundSettings.getPitch());
 	sound->play();
 	currentSounds.push(std::move(sound));
@@ -73,27 +90,24 @@ void AudioPlayer::playSound(const SoundSettings& soundSettings) {
 fileName - file name with extension
 volume - in range [0, 100], where 100 is full volume
 */
-void AudioPlayer::playMusic(const MusicSettings& musicSettings) {
-	std::shared_ptr<sf::Music> music = loadMusic(musicSettings);
-	music->play();
-	currentMusic = music;
-}
-
-void AudioPlayer::playMusic(std::shared_ptr<sf::Music> music) {
-	music->play();
-	currentMusic = music;
-}
-
-std::shared_ptr<sf::Music> AudioPlayer::loadMusic(const MusicSettings & musicSettings) {
+std::shared_ptr<sf::Music> AudioPlayer::playMusic(const MusicSettings& musicSettings) {
 	std::shared_ptr<sf::Music> music = std::make_shared<sf::Music>();
 	if (!music->openFromFile(musicSettings.getFileName())) {
 		//TODO: handle audio not being able to be loaded
 		return nullptr;
 	}
-	music->setVolume(musicSettings.getVolume());
+	music->setVolume(musicSettings.getVolume() * masterVolume * musicVolume);
 	if (musicSettings.getLoop()) {
 		music->setLoopPoints(sf::Music::TimeSpan(sf::milliseconds(musicSettings.getLoopStartMilliseconds()), sf::milliseconds(musicSettings.getLoopLengthMilliseconds())));
 	}
 	music->setPitch(musicSettings.getPitch());
+	music->play();
+	currentMusic = music;
+	update(0);
+
+	musicTransitionFinalVolume = musicSettings.getVolume();
+	musicTransitionTime = musicSettings.getTransitionTime();
+	timeSinceMusicTransitionStart = 0;
+
 	return music;
 }
