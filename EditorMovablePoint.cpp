@@ -36,11 +36,22 @@ std::string EditorMovablePoint::format() {
 	res += delim + tos(static_cast<int>(onCollisionAction));
 
 	if (playSoundOnSpawn) {
-		res += delim + "0";
-	} else {
 		res += delim + "1";
+	} else {
+		res += delim + "0";
 	}
 	res += delim + "(" + soundSettings.format() + ")";
+	
+	res += delim + tos(bulletModelID);
+	res += delim + (inheritRadius ? "1" : "0");
+	res += delim + (inheritDespawnTime ? "1" : "0");
+	res += delim + (inheritShadowTrailInterval ? "1" : "0");
+	res += delim + (inheritShadowTrailLifespan ? "1" : "0");
+	res += delim + (inheritAnimatables ? "1" : "0");
+	res += delim + (inheritDamage ? "1" : "0");
+	res += delim + (inheritOnCollisionAction ? "1" : "0");
+	res += delim + (inheritSoundSettings ? "1" : "0");
+
 
 	return res;
 }
@@ -48,19 +59,20 @@ std::string EditorMovablePoint::format() {
 void EditorMovablePoint::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 
-	hitboxRadius = std::stof(items[0]);
-	despawnTime = std::stof(items[1]);
+	id = std::stoi(items[0]);
+	hitboxRadius = std::stof(items[1]);
+	despawnTime = std::stof(items[2]);
 
 	int i;
-	for (i = 3; i < stoi(items[2]) + 2; i++) {
+	for (i = 4; i < stoi(items[3]) + 4; i++) {
 		std::shared_ptr<EditorMovablePoint> emp = std::make_shared<EditorMovablePoint>(nextID, shared_from_this());
 		emp->load(items[i]);
 		children.push_back(emp);
 	}
 
-	int last = i + 1;
-	int actionsSize = stoi(items[i]);
-	for (i = last; i < actionsSize + last; i++) {
+	int last = i;
+	int actionsSize = stoi(items[i++]);
+	for (i = last + 1; i < actionsSize + last + 1; i++) {
 		actions.push_back(EMPActionFactory::create(items[i]));
 	}
 
@@ -87,6 +99,16 @@ void EditorMovablePoint::load(std::string formattedString) {
 		playSoundOnSpawn = false;
 	}
 	soundSettings.load(items[i++]);
+
+	bulletModelID = std::stoi(items[i++]);
+	inheritRadius = (std::stoi(items[i++]) == 1);
+	inheritDespawnTime = (std::stoi(items[i++]) == 1);
+	inheritShadowTrailInterval = (std::stoi(items[i++]) == 1);
+	inheritShadowTrailLifespan = (std::stoi(items[i++]) == 1);
+	inheritAnimatables = (std::stoi(items[i++]) == 1);
+	inheritDamage = (std::stoi(items[i++]) == 1);
+	inheritOnCollisionAction = (std::stoi(items[i++]) == 1);
+	inheritSoundSettings = (std::stoi(items[i++]) == 1);
 }
 
 bool EditorMovablePoint::legal(SpriteLoader& spriteLoader, std::string & message) {
@@ -255,26 +277,26 @@ std::string BulletModel::format() {
 	res += "(" + tos(hitboxRadius) + ")" + delim;
 	res += "(" + tos(despawnTime) + ")" + delim;
 
-	res += delim + "(" + tos(shadowTrailInterval) + ")";
-	res += delim + "(" + tos(shadowTrailLifespan) + ")";
+	res += "(" + tos(shadowTrailInterval) + ")" + delim;
+	res += "(" + tos(shadowTrailLifespan) + ")" + delim;
 
-	res += delim + "(" + animatable.format() + ")";
+	res += "(" + animatable.format() + ")" + delim;
 	if (loopAnimation) {
-		res += delim + "1";
+		res += "1" + delim;
 	} else {
-		res += delim + "0";
+		res += "0" + delim;
 	}
-	res += delim + "(" + baseSprite.format() + ")";
-	res += delim + tos(damage);
+	res += "(" + baseSprite.format() + ")" + delim;
+	res += tos(damage) + delim;
 
-	res += delim + tos(static_cast<int>(onCollisionAction));
+	res += tos(static_cast<int>(onCollisionAction)) + delim;
 
 	if (playSoundOnSpawn) {
-		res += delim + "0";
+		res += "1" + delim;
 	} else {
-		res += delim + "1";
+		res += "0" + delim;
 	}
-	res += delim + "(" + soundSettings.format() + ")";
+	res += "(" + soundSettings.format() + ")";
 
 	return res;
 }

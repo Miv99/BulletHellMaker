@@ -17,20 +17,13 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 	sf::View view(sf::Vector2f(MAP_WIDTH/2.0f, -MAP_HEIGHT/2.0f), sf::Vector2f(MAP_WIDTH, MAP_HEIGHT));
 	window.setView(view);
 
-	// Read meta file
-	std::ifstream metafile("Level Packs\\" + levelPackName + "\\meta.txt");
-	std::unique_ptr<std::map<std::string, std::unique_ptr<std::map<std::string, std::string>>>> metadata = TextFileParser(metafile).read('=');
-	std::vector<std::pair<std::string, std::string>> namePairs;
-	for (auto it = metadata->at("Sprite Sheets")->begin(); it != metadata->at("Sprite Sheets")->end(); it++) {
-		namePairs.push_back(std::make_pair(it->first, it->second));
-	}
-	spriteLoader = std::make_unique<SpriteLoader>("Level Packs\\" + levelPackName, namePairs);
-	spriteLoader->preloadTextures();
-
 	audioPlayer = std::make_unique<AudioPlayer>();
 
 	levelPack = std::make_unique<LevelPack>(*audioPlayer, levelPackName);
 	queue = std::make_unique<EntityCreationQueue>(registry);
+
+	spriteLoader = levelPack->createSpriteLoader();
+	spriteLoader->preloadTextures();
 
 	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
 	renderSystem = std::make_unique<RenderSystem>(registry, window);
@@ -88,7 +81,7 @@ void GameInstance::startLevel(int levelIndex) {
 	reserveMemory(registry, INITIAL_ENTITY_RESERVATION);
 
 	// Create the player
-	createPlayer(levelPack->getLevel(levelIndex)->getPlayer());
+	createPlayer(levelPack->getPlayer());
 
 	// Create the level manager
 	registry.reserve<LevelManagerTag>(1);

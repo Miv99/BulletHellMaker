@@ -14,10 +14,10 @@ void EditorPlayer::load(std::string formattedString) {
 	maxHealth = std::stoi(items[1]);
 	speed = std::stof(items[2]);
 	focusedSpeed = std::stof(items[3]);
-	hitboxRadius = std::stof(items[5]);
-	hitboxPosX = std::stof(items[6]);
-	hitboxPosY = std::stof(items[7]);
-	for (int i = 8; i < items.size(); i++) {
+	hitboxRadius = std::stof(items[4]);
+	hitboxPosX = std::stof(items[5]);
+	hitboxPosY = std::stof(items[6]);
+	for (int i = 7; i < items.size(); i++) {
 		PlayerPowerTier tier;
 		tier.load(items[i]);
 		powerTiers.push_back(tier);

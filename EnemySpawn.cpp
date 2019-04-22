@@ -24,7 +24,7 @@ void EnemySpawnInfo::load(std::string formattedString) {
 	x = std::stof(items[0]);
 	y = std::stof(items[1]);
 	enemyID = std::stoi(items[2]);
-	for (int i = 3; i < items.size() + 3; i += 2) {
+	for (int i = 3; i < items.size(); i += 2) {
 		itemsDroppedOnDeath.push_back(std::make_pair(ItemFactory::create(items[i]), std::stoi(items[i + 1])));
 	}
 }

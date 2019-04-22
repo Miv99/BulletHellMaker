@@ -3,10 +3,11 @@
 std::string Animatable::format() {
 	std::string res = "(" + animatableName + ")" + delim + "(" + spriteSheetName + ")" + delim;
 	if (animatableIsSprite) {
-		res += "1";
+		res += "1" + delim;
 	} else {
-		res += "0";
+		res += "0" + delim;
 	}
+	res += tos(static_cast<int>(rotationType));
 	return res;
 }
 
@@ -19,4 +20,5 @@ void Animatable::load(std::string formattedString) {
 	} else {
 		animatableIsSprite = false;
 	}
+	rotationType = static_cast<ROTATION_TYPE>(std::stoi(items[3]));
 }

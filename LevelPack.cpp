@@ -9,19 +9,10 @@
 #include "DeathAction.h"
 
 LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(audioPlayer), name(name) {
-	// Read meta file
-	std::ifstream metafile("Level Packs\\" + name + "\\meta.txt");
-	std::unique_ptr<std::map<std::string, std::unique_ptr<std::map<std::string, std::string>>>> metadata = TextFileParser(metafile).read('=');
-	std::vector<std::pair<std::string, std::string>> namePairs;
-	for (auto it = metadata->at("Sprite Sheets")->begin(); it != metadata->at("Sprite Sheets")->end(); it++) {
-		namePairs.push_back(std::make_pair(it->first, it->second));
-	}
-	spriteLoader = std::make_unique<SpriteLoader>("Level Packs\\" + name, namePairs);
-
 	/*
 	testing
 	*/
-
+	
 	auto model1 = createBulletModel();
 	model1->setAnimatable(Animatable("Bullet", "sheet1", true, LOCK_ROTATION));
 	model1->setDamage(1);
@@ -43,15 +34,6 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 
 	auto dist = std::make_shared<LinearTFV>(30, 40, 60);
 	auto angle = std::make_shared<LinearTFV>(0, 3.14f * 8, 30);
-	// test: add more actions
-	/*
-	attack1emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 200, 2), std::make_shared<ConstantTFV>(0), 2));
-	attack1emp0->insertAction(1, std::make_shared<StayStillAtLastPositionEMPA>(0.5f));
-	attack1emp0->insertAction(2, std::make_shared<DetachFromParentEMPA>());
-	attack1emp0->insertAction(3, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 200, 2), std::make_shared<ConstantTFV>(2.3f), 2));
-	attack1emp0->insertAction(4, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 200, 2), std::make_shared<ConstantTFV>(4.5f), 2));
-	attack1emp0->insertAction(5, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 200, 30), std::make_shared<ConstantTFV>(0), 30));
-	*/
 	attack1emp0->insertAction(0, std::make_shared<MovePlayerHomingEMPA>(std::make_shared<LinearTFV>(0.005f, 0.025f, 5.0f), std::make_shared<ConstantTFV>(25), 30.0f));
 
 	auto attack2 = createAttack();
@@ -73,12 +55,6 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	ap1->insertAction(1, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 100, 2), std::make_shared<ConstantTFV>(PI/2.0), 2));
 	ap1->insertAction(2, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 100, 2), std::make_shared<ConstantTFV>(PI), 2));
 	ap1->insertAction(3, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 100, 2), std::make_shared<ConstantTFV>(3 * PI/2.0), 2));
-	/*
-	ap1->insertAction(1, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<ConstantTFV>(150), std::make_shared<LinearTFV>(-PI/2.0, -PI/2.0 + 2.0*PI, 4), 4));
-	std::vector<sf::Vector2f> cp = {sf::Vector2f(0, 0), sf::Vector2f(-15.0f, 218.2f), sf::Vector2f(-103.0f, 166.2f), sf::Vector2f(-64.7f, 25.5f)};
-	ap1->insertAction(2, std::make_shared<MoveCustomBezierEMPA>(cp, 6.0f));
-	ap1->insertAction(3, std::make_shared<StayStillAtLastPositionEMPA>(1.0f));
-	*/
 	
 	bool alt = false;
 	for (float time = 0; time < 5; time += 1.0f) {
@@ -154,7 +130,6 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 		Animatable("Megaman movement", "sheet1", false, ROTATE_WITH_MOVEMENT),
 		Animatable("Megaman attack", "sheet1", false, ROTATE_WITH_MOVEMENT),
 		std::make_shared<PlayAnimatableDeathAction>(Animatable("oh my god he's dead", "sheet1", true, ROTATE_WITH_MOVEMENT), PlayAnimatableDeathAction::NONE, 3.0f));
-	level->setPlayer(EditorPlayer(3, 5, 300, 100, 5, 0, 0, std::vector<PlayerPowerTier>{ PlayerPowerTier(pset1, playerAP->getID(), 0.1f, playerFocusedAP->getID(), 0.5f), PlayerPowerTier(pset2, playerAP2->getID(), 0.01f, playerFocusedAP->getID(), 0.5f) }));
 	auto v1 = std::vector<EnemySpawnInfo>();
 	std::vector<std::pair<std::shared_ptr<Item>, int>> items;
 	//items.push_back(std::make_pair(std::make_shared<HealthPackItem>(Animatable("Health", "sheet1", true, LOCK_ROTATION), 33), 1));
@@ -169,14 +144,24 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	level->getMusicSettings().setVolume(10);
 	level->getMusicSettings().setLoop(true);
 	this->insertLevel(0, level);
-	
+	this->setPlayer(EditorPlayer(3, 5, 300, 100, 5, 0, 0, std::vector<PlayerPowerTier>{ PlayerPowerTier(pset1, playerAP->getID(), 0.1f, playerFocusedAP->getID(), 0.5f), PlayerPowerTier(pset2, playerAP2->getID(), 0.01f, playerFocusedAP->getID(), 0.5f) }));
+	metadata.addSpriteSheet("sheet1.txt", "sheet1.png");
+
 	//TODO: uncomment
-	// load();
+	//load();
 }
 
 void LevelPack::load() {
 	// First line is always the next ID
 	// Every other line is the data for the object
+
+	// Read metafile
+	{
+		std::ifstream metafile("Level Packs\\" + name + "\\meta.txt");
+		std::string line;
+		std::getline(metafile, line);
+		metadata.load(line);
+	}
 
 	// Read levels
 	std::ifstream levelsFile("Level Packs\\" + name + "\\levels.txt");
@@ -195,7 +180,7 @@ void LevelPack::load() {
 	while (std::getline(bulletModelsFile, line)) {
 		std::shared_ptr<BulletModel> bulletModel = std::make_shared<BulletModel>();
 		bulletModel->load(line);
-		assert(bulletModels.find(bulletModel->getID()) != bulletModels.end() && "Bullet model ID conflict");
+		assert(bulletModels.count(bulletModel->getID()) == 0 && "Bullet model ID conflict");
 		bulletModels[bulletModel->getID()] = bulletModel;
 	}
 	bulletModelsFile.close();
@@ -209,7 +194,7 @@ void LevelPack::load() {
 		attack->load(line);
 		// Load bullet models for every EMP
 		attack->loadEMPBulletModels(*this);
-		assert(attacks.find(attack->getID()) != attacks.end() && "Attack ID conflict");
+		assert(attacks.count(attack->getID()) == 0 && "Attack ID conflict");
 		attacks[attack->getID()] = attack;
 	}
 	attacksFile.close();
@@ -221,7 +206,7 @@ void LevelPack::load() {
 	while (std::getline(attackPatternsFile, line)) {
 		std::shared_ptr<EditorAttackPattern> attackPattern = std::make_shared<EditorAttackPattern>();
 		attackPattern->load(line);
-		assert(attackPatterns.find(attackPattern->getID()) != attackPatterns.end() && "Attack pattern ID conflict");
+		assert(attackPatterns.count(attackPattern->getID()) == 0 && "Attack pattern ID conflict");
 		attackPatterns[attackPattern->getID()] = attackPattern;
 	}
 	attackPatternsFile.close();
@@ -233,7 +218,7 @@ void LevelPack::load() {
 	while (std::getline(enemiesFile, line)) {
 		std::shared_ptr<EditorEnemy> enemy = std::make_shared<EditorEnemy>();
 		enemy->load(line);
-		assert(enemies.find(enemy->getID()) != enemies.end() && "Enemy ID conflict");
+		assert(enemies.count(enemy->getID()) == 0 && "Enemy ID conflict");
 		enemies[enemy->getID()] = enemy;
 	}
 	enemiesFile.close();
@@ -245,13 +230,17 @@ void LevelPack::load() {
 	while (std::getline(enemyPhasesFile, line)) {
 		std::shared_ptr<EditorEnemyPhase> enemyPhase = std::make_shared<EditorEnemyPhase>();
 		enemyPhase->load(line);
-		assert(enemyPhases.find(enemyPhase->getID()) != enemyPhases.end() && "Enemy phase ID conflict");
+		assert(enemyPhases.count(enemyPhase->getID()) == 0 && "Enemy phase ID conflict");
 		enemyPhases[enemyPhase->getID()] = enemyPhase;
 	}
 	enemyPhasesFile.close();
 }
 
 void LevelPack::save() {
+	// Save metafile
+	std::ofstream metafile("Level Packs\\" + name + "\\meta.txt");
+	metafile << metadata.format() << std::endl;
+
 	// Save levels
 	std::ofstream levelsFile("Level Packs\\" + name + "\\levels.txt");
 	for (auto level : levels) {
@@ -300,8 +289,9 @@ void LevelPack::save() {
 	enemyPhasesFile.close();
 }
 
-void LevelPack::preloadTextures() {
-	spriteLoader->preloadTextures();
+std::unique_ptr<SpriteLoader> LevelPack::createSpriteLoader() {
+	std::unique_ptr<SpriteLoader> spriteLoader = std::make_unique<SpriteLoader>("Level Packs\\" + name, metadata.getSpriteSheets());
+	return std::move(spriteLoader);
 }
 
 float LevelPack::searchLargestHitbox() {
@@ -322,4 +312,22 @@ void LevelPack::playMusic(const MusicSettings & musicSettings) const {
 	MusicSettings alteredPath = MusicSettings(musicSettings);
 	alteredPath.setFileName("Level Packs/" + name + "/Music/" + alteredPath.getFileName());
 	audioPlayer.playMusic(alteredPath);
+}
+
+std::string LevelPackMetadata::format() {
+	std::string ret = "(" + player.format() + ")" + delim;
+	ret += tos(spriteSheets.size());
+	for (auto p : spriteSheets) {
+		ret += delim + "(" + p.first + ")" + delim + "(" + p.second + ")";
+	}
+	return ret;
+}
+
+void LevelPackMetadata::load(std::string formattedString) {
+	auto items = split(formattedString, DELIMITER);
+	player.load(items[0]);
+	int i;
+	for (i = 2; i < std::stoi(items[1]) + 2; i++) {
+		addSpriteSheet(items[i], items[i + 1]);
+	}
 }

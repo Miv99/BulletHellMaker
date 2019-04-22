@@ -21,6 +21,7 @@
 #include "Components.h"
 #include "Attack.h"
 #include "AudioPlayer.h"
+#include "Player.h"
 #include "Level.h"
 
 // REMEMBER: THESE CLASSES ARE NEVER MODIFIED
@@ -31,6 +32,29 @@
 Attacks, attack patterns, enemies, and enemy phases can be saved by name.
 */
 
+class LevelPackMetadata : public TextMarshallable {
+public:
+	std::string format() override;
+	void load(std::string formattedString) override;
+
+	inline EditorPlayer getPlayer() { return player; }
+	inline const std::vector<std::pair<std::string, std::string>>& getSpriteSheets() { return spriteSheets; }
+
+	inline void setPlayer(EditorPlayer player) { this->player = player; }
+
+	inline void addSpriteSheet(std::string spriteSheetMetadataFileName, std::string spriteSheetImageFileName) {
+		spriteSheets.push_back(std::make_pair(spriteSheetMetadataFileName, spriteSheetImageFileName));
+	}
+	inline void removeSpriteSheet(int index) {
+		spriteSheets.erase(spriteSheets.begin() + index);
+	}
+
+private:
+	EditorPlayer player;
+	// Maps sprite sheet metadata file names to sprite sheet image file names
+	std::vector<std::pair<std::string, std::string>> spriteSheets;
+};
+
 class LevelPack {
 public:
 	LevelPack(AudioPlayer& audioPlayer, std::string name);
@@ -38,7 +62,10 @@ public:
 	void load();
 	void save();
 
-	void preloadTextures();
+	/*
+	Creates the sprite loader that contains info for all animatables that are used in this level pack.
+	*/
+	std::unique_ptr<SpriteLoader> createSpriteLoader();
 
 	inline void insertLevel(int index, std::shared_ptr<Level> level) {
 		levels.insert(levels.begin() + index, level);
@@ -81,6 +108,9 @@ public:
 	inline std::shared_ptr<EditorEnemy> getEnemy(int id) const { return enemies.at(id); }
 	inline std::shared_ptr<EditorEnemyPhase> getEnemyPhase(int id) const { return enemyPhases.at(id); }
 	inline std::shared_ptr<BulletModel> getBulletModel(int id) const { return bulletModels.at(id); }
+	inline EditorPlayer getPlayer() { return metadata.getPlayer(); }
+
+	inline void setPlayer(EditorPlayer player) { metadata.setPlayer(player); }
 
 	float searchLargestHitbox();
 
@@ -90,8 +120,9 @@ public:
 private:
 	std::string name;
 
-	std::unique_ptr<SpriteLoader> spriteLoader;
 	AudioPlayer& audioPlayer;
+
+	LevelPackMetadata metadata;
 
 	int nextAttackID = 0;
 	int nextAttackPatternID = 0;

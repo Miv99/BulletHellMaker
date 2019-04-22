@@ -30,17 +30,18 @@ void EditorEnemy::load(std::string formattedString) {
 	hitboxRadius = std::stof(items[2]);
 	health = std::stof(items[3]);
 	despawnTime = std::stof(items[4]);
-	int i;
-	for (i = 6; i < std::stoi(items[5]) + 6; i += 3) {
+	int i = 6;
+	for (int a = 0; a < std::stoi(items[5]); a++) {
 		EntityAnimatableSet animatableSet;
 		animatableSet.load(items[i + 2]);
 		phaseIDs.push_back(std::make_tuple(EnemyPhaseStartConditionFactory::create(items[i]), std::stoi(items[i + 1]), animatableSet));
+		i += 3;
 	}
 	int next = i;
-	for (; i < std::stoi(items[next]) + next; i++) {
+	for (i = next + 1; i < std::stoi(items[next]) + next + 1; i++) {
 		deathActions.push_back(DeathActionFactory::create(items[i]));
 	}
-	if (std::stoi(items[next++])) {
+	if (std::stoi(items[i++])) {
 		isBoss = true;
 	} else {
 		isBoss = false;

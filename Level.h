@@ -7,7 +7,6 @@
 #include "EnemySpawnCondition.h"
 #include "EnemySpawn.h"
 #include "TextMarshallable.h"
-#include "Player.h"
 #include "Item.h"
 #include "AudioPlayer.h"
 
@@ -22,7 +21,6 @@ public:
 	bool legal(std::string& message);
 
 	inline std::string getName() { return name; }
-	inline EditorPlayer getPlayer() { return player; }
 	inline const std::vector<EnemySpawnInfo>& getEnemyGroupSpawnInfo(int conditionIndex) { return enemyGroups[conditionIndex].second; }
 	inline int getEnemyGroupsCount() { return enemyGroups.size(); }
 	inline std::shared_ptr<HealthPackItem> getHealthPack() { return healthPack; }
@@ -34,7 +32,6 @@ public:
 	inline MusicSettings& getMusicSettings() { return musicSettings; }
 
 	inline void setName(std::string name) { this->name = name; }
-	inline void setPlayer(EditorPlayer player) { this->player = player; }
 	inline void setHealthPack(std::shared_ptr<HealthPackItem> healthPack) { this->healthPack = healthPack; }
 	inline void setPointsPack(std::shared_ptr<PointsPackItem> pointPack) { this->pointPack = pointPack; }
 	inline void setPowerPack(std::shared_ptr<PowerPackItem> powerPack) { this->powerPack = powerPack; }
@@ -53,8 +50,6 @@ public:
 private:
 	// Name of the level
 	std::string name;
-
-	EditorPlayer player;
 
 	// Enemy spawns and when they appear (t=0 is start of level)
 	// Multiple enemy spawns can depend on a single enemy spawn condition (eg spawn 5 enemies if enemyCount == 0) 

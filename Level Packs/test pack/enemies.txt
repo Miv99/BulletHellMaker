@@ -1,2 +1,2 @@
 1
-(0)|(test enemy 1)|(Megaman standing still)|(sheet1)|(70.000000)|(100.000000)|(TimeBasedEnemyPhaseStartCondition|(0.000000))|(0)
+(0)|(test enemy 1)|(70.000000)|(10)|(-1.000000)|(2)|(TimeBasedEnemyPhaseStartCondition|(0.000000))|(0)|(((Megaman idle)|(sheet1)|0|2)|((Megaman movement)|(sheet1)|0|2)|((Megaman attack)|(sheet1)|0|2)|(PlayAnimatableDeathAction|((oh my god he's dead)|(sheet1)|1|2)|3.000000|(0)))|(TimeBasedEnemyPhaseStartCondition|(10.000000))|(1)|(((Megaman idle)|(sheet1)|0|2)|((Megaman movement)|(sheet1)|0|2)|((Megaman attack)|(sheet1)|0|2)|(PlayAnimatableDeathAction|((oh my god he's dead)|(sheet1)|1|2)|3.000000|(0)))|(1)|(PlaySoundDeathAction|((test sound.wav)|100.000000|1.000000))|0

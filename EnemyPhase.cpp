@@ -25,9 +25,10 @@ void EditorEnemyPhase::load(std::string formattedString) {
 	name = items[1];
 	phaseBeginAction = EPAFactory::create(items[2]);
 	phaseEndAction = EPAFactory::create(items[3]);
-	int i;
-	for (i = 5; i < std::stoi(items[4]) + 5; i += 2) {
+	int i = 5;
+	for (int a = 0; a < std::stoi(items[4]); a++) {
 		attackPatternIds.push_back(std::make_pair(std::stof(items[i]), std::stoi(items[i + 1])));
+		i += 2;
 	}
 	if (std::stoi(items[i++]) == 1) {
 		playMusic = true;
