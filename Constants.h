@@ -25,7 +25,7 @@ const static int ENTITY_RESERVATION_INCREMENT = 50000;
 // Minimum distance between an item and player before the item begins moving towards the player
 const static float ITEM_ACTIVATION_RADIUS = 75.0f;
 // Time before an item despawns
-const static float ITEM_DESPAWN_TIME = 8.0f;
+const static float ITEM_DESPAWN_TIME = 11.0f;
 
 const static int HEALTH_PER_HEALTH_PACK = 1;
 const static int POINTS_PER_POINTS_PACK = 100;

@@ -30,12 +30,11 @@ Notes for me:
 
 TODO:
 -flatten layers PLAYER_BULLET_LAYER through PLAYER_LAYER and then apply bloom to that single squished texture for more efficiency
--adjust item stuff
 -player invuln time
 -enemies can be bosses -> GUI displays a health bar
 -Multiple small shockwave effects 
 -DeathActions: ExecuteAttack (enemies only), ParticleExplosion
--Change meta file + sprite sheet meta files to use TextMarshallable
+-Change sprite sheet meta files to use TextMarshallable
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------
 editable = attack/attack pattern/emp/enemy/enemyphase/player

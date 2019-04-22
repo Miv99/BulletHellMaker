@@ -294,8 +294,6 @@ void EMPDropItemCommand::execute(EntityCreationQueue & queue) {
 	std::uniform_real_distribution<float> explosionAngleDistribution(70.0f * PI/180.0f, 110.0f * PI/180.0f);
 
 	for (int i = 0; i < amount; i++) {
-		//TODO: give it some path + EMPActions where it explodes upwards (arc angle of random 70-110 degrees, max distance of random 50-150); DampenedEndTFV for distance
-	// and then EMPAction where it drops straight down (DampenedStartTFV for distance)
 		uint32_t itemEntity = registry.create();
 		registry.assign<CollectibleComponent>(itemEntity, item, ITEM_ACTIVATION_RADIUS);
 		registry.assign<DespawnComponent>(itemEntity, ITEM_DESPAWN_TIME);
@@ -311,7 +309,7 @@ void EMPDropItemCommand::execute(EntityCreationQueue & queue) {
 		std::shared_ptr<TFV> explosionAngle = std::make_shared<ConstantTFV>(explosionAngleDistribution(eng));
 		actions.push_back(std::make_shared<MoveCustomPolarEMPA>(explosionDistance, explosionAngle, explosionTime));
 		// Drop down
-		std::shared_ptr<TFV> dropDistance = std::make_shared<DampenedStartTFV>(0, MAP_HEIGHT + 250 + sprite.getSprite()->getOrigin().y, ITEM_DESPAWN_TIME, 10);
+		std::shared_ptr<TFV> dropDistance = std::make_shared<DampenedStartTFV>(0, MAP_HEIGHT + 250 + sprite.getSprite()->getOrigin().y, ITEM_DESPAWN_TIME - explosionTime, 10);
 		std::shared_ptr<TFV> dropAngle = std::make_shared<ConstantTFV>(3.0f * PI/2.0f);
 		actions.push_back(std::make_shared<MoveCustomPolarEMPA>(dropDistance, dropAngle, ITEM_DESPAWN_TIME));
 		registry.assign<MovementPathComponent>(itemEntity, queue, itemEntity, registry, NULL, std::make_shared<SpecificGlobalEMPSpawn>(0, x, y), actions, 0);

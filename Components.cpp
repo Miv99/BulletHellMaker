@@ -391,12 +391,14 @@ void CollectibleComponent::update(EntityCreationQueue& queue, entt::DefaultRegis
 		// Item is activated, so begin moving towards the player
 
 		auto speed = std::make_shared<PiecewiseContinuousTFV>();
-		// Speed starts off quickly at 200 and slows to 50 by t=2
-		speed->insertSegment(0, std::make_pair(2.0f, std::make_shared<DampenedEndTFV>(100.0f, 50.0f, 2.0f, 30)));
-		// Speed then maintains a constant 50 forever
-		speed->insertSegment(1, std::make_pair(std::numeric_limits<float>::max() - 3, std::make_shared<ConstantTFV>(50.0f)));
+		// Speed starts off quickly at 250 and slows to 150 by t=2
+		speed->insertSegment(0, std::make_pair(2.0f, std::make_shared<DampenedEndTFV>(250.0f, 150.0f, 2.0f, 2)));
+		// Speed then maintains a constant 150 forever
+		speed->insertSegment(1, std::make_pair(std::numeric_limits<float>::max() - 3, std::make_shared<ConstantTFV>(150.0f)));
 		auto newPath = std::make_shared<HomingMP>(std::numeric_limits<float>::max(), speed, std::make_shared<ConstantTFV>(0.03f), entity, registry.attachee<PlayerTag>(), registry);
 		registry.get<MovementPathComponent>(entity).setPath(queue, registry, entity, registry.get<PositionComponent>(entity), newPath, 0);
+		// Make sure item can't despawn
+		registry.get<DespawnComponent>(entity).setMaxTime(std::numeric_limits<float>::max());
 		activated = true;
 	}
 	if (activated && collides(entityPos, entityHitbox, registry.get<PositionComponent>(registry.attachee<PlayerTag>()), registry.get<HitboxComponent>(registry.attachee<PlayerTag>()), 0)) {
