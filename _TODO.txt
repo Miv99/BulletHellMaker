@@ -26,11 +26,14 @@ Notes for me:
 -To loop an animation x times, copy paste the frame data x times
 -Since LevelPack::playSound/Music adds the "Level Packs/level_pack_name/..." to sound/music file names, any sound or music that is located
  in the level pack folder must be played through LevelPack
+-Since HitboxComponent's update is only for updating hitbox disable time and only the player's hitbox can be disabled, only the player's hitbox is updated
+ in CollisionSystem. Change to update all HitboxComponents if this changes.
 
+-Item path is in Components::CollectibleComponent::update and EntityCreationQueue::EMPDropItemCommand::execute
+-Player invulnerability sprite effect animation is in CollisionSystem
 
 TODO:
 -flatten layers PLAYER_BULLET_LAYER through PLAYER_LAYER and then apply bloom to that single squished texture for more efficiency
--player invuln time
 -enemies can be bosses -> GUI displays a health bar
 -Multiple small shockwave effects 
 -DeathActions: ExecuteAttack (enemies only), ParticleExplosion

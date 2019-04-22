@@ -3,6 +3,7 @@
 #include "Enemy.h"
 #include "Level.h"
 #include "Components.h"
+#include "SpriteEffectAnimation.h"
 
 #include <iostream>
 
@@ -33,6 +34,10 @@ void CollisionSystem::update(float deltaTime) {
 	uint32_t player = registry.attachee<PlayerTag>();
 	auto& playerHitbox = registry.get<HitboxComponent>(player);
 	auto& playerPosition = registry.get<PositionComponent>(player);
+
+	// Since HitboxComponent's update is only for updating hitbox disable time and only the player's hitbox can be disabled,
+	// only update the player's hitbox
+	playerHitbox.update(deltaTime);
 
 	// Reinsert all bullets, players, and enemies into tables
 	defaultTable.clear();
@@ -71,94 +76,104 @@ void CollisionSystem::update(float deltaTime) {
 	// Collision detection, looping through only players and enemies
 	{
 		// Check for player
-
-		auto all = defaultTable.getNearbyObjects(playerHitbox, playerPosition);
-		auto large = largeObjectsTable.getNearbyObjects(playerHitbox, playerPosition);
-		all.insert(all.end(), large.begin(), large.end());
-		for (auto bullet : all) {
-			// Make sure it's an enemy bullet
-			if (!registry.has<EnemyBulletComponent>(bullet)) {
-				continue;
-			}
-
-			auto& bulletPosition = enemyBulletView.get<PositionComponent>(bullet);
-			auto& bulletHitbox = enemyBulletView.get<HitboxComponent>(bullet);
-			if (collides(playerPosition, playerHitbox, bulletPosition, bulletHitbox)) {
-				// Player takes damage
-				if (registry.has<HealthComponent>(player) && registry.get<HealthComponent>(player).takeDamage(registry.get<EnemyBulletComponent>(bullet).getDamage())) {
-					// Player is dead
-					//TODO: handle death stuff
+		
+		if (!playerHitbox.isDisabled()) {
+			auto all = defaultTable.getNearbyObjects(playerHitbox, playerPosition);
+			auto large = largeObjectsTable.getNearbyObjects(playerHitbox, playerPosition);
+			all.insert(all.end(), large.begin(), large.end());
+			for (auto bullet : all) {
+				// Make sure it's an enemy bullet
+				if (!registry.has<EnemyBulletComponent>(bullet)) {
+					continue;
 				}
-				
-				// Handle OnCollisionAction
-				switch (registry.get<EnemyBulletComponent>(bullet).getOnCollisionAction()) {
-				case TURN_INTANGIBLE:
-					// Remove all components except for MovementPathComponent, PositionComponent, DespawnComponent, and SpriteComponent
-					if (registry.has<ShadowTrailComponent>(bullet)) {
-						registry.remove<ShadowTrailComponent>(bullet);
+
+				auto& bulletPosition = enemyBulletView.get<PositionComponent>(bullet);
+				auto& bulletHitbox = enemyBulletView.get<HitboxComponent>(bullet);
+				if (collides(playerPosition, playerHitbox, bulletPosition, bulletHitbox)) {
+					// Player takes damage
+					// Disable hitbox for invulnerability time
+					float invulnTime = registry.get<PlayerTag>().getInvulnerabilityTime();
+					if (invulnTime > 0) {
+						playerHitbox.disable(invulnTime);
+						// Player flashes white
+						registry.get<SpriteComponent>(player).setEffectAnimation(std::make_unique<FlashWhiteSEA>(registry.get<SpriteComponent>(player).getSprite(), invulnTime));
 					}
-					registry.remove<HitboxComponent>(bullet);
-					registry.remove<EnemyBulletComponent>(bullet);
-					if (registry.has<EMPSpawnerComponent>(bullet)) {
-						registry.remove<EMPSpawnerComponent>(bullet);
+					if (registry.has<HealthComponent>(player) && registry.get<HealthComponent>(player).takeDamage(registry.get<EnemyBulletComponent>(bullet).getDamage())) {
+						// Player is dead
+						//TODO: handle death stuff
 					}
-					break;
-				case DESTROY_THIS_BULLET_AND_ATTACHED_CHILDREN:
-					registry.get<DespawnComponent>(bullet).setMaxTime(0);
-					break;
-				case DESTROY_THIS_BULLET_ONLY:
-					// Remove all components except for MovementPathComponent, PositionComponent, and DespawnComponent
-					if (registry.has<ShadowTrailComponent>(bullet)) {
-						registry.remove<ShadowTrailComponent>(bullet);
+
+					// Handle OnCollisionAction
+					switch (registry.get<EnemyBulletComponent>(bullet).getOnCollisionAction()) {
+					case TURN_INTANGIBLE:
+						// Remove all components except for MovementPathComponent, PositionComponent, DespawnComponent, and SpriteComponent
+						if (registry.has<ShadowTrailComponent>(bullet)) {
+							registry.remove<ShadowTrailComponent>(bullet);
+						}
+						registry.remove<HitboxComponent>(bullet);
+						registry.remove<EnemyBulletComponent>(bullet);
+						if (registry.has<EMPSpawnerComponent>(bullet)) {
+							registry.remove<EMPSpawnerComponent>(bullet);
+						}
+						break;
+					case DESTROY_THIS_BULLET_AND_ATTACHED_CHILDREN:
+						registry.get<DespawnComponent>(bullet).setMaxTime(0);
+						break;
+					case DESTROY_THIS_BULLET_ONLY:
+						// Remove all components except for MovementPathComponent, PositionComponent, and DespawnComponent
+						if (registry.has<ShadowTrailComponent>(bullet)) {
+							registry.remove<ShadowTrailComponent>(bullet);
+						}
+						registry.remove<SpriteComponent>(bullet);
+						registry.remove<HitboxComponent>(bullet);
+						registry.remove<EnemyBulletComponent>(bullet);
+						if (registry.has<EMPSpawnerComponent>(bullet)) {
+							registry.remove<EMPSpawnerComponent>(bullet);
+						}
+						break;
 					}
-					registry.remove<SpriteComponent>(bullet);
-					registry.remove<HitboxComponent>(bullet);
-					registry.remove<EnemyBulletComponent>(bullet);
-					if (registry.has<EMPSpawnerComponent>(bullet)) {
-						registry.remove<EMPSpawnerComponent>(bullet);
-					}
-					break;
 				}
 			}
 		}
 	}
 
 	enemyView.each([&](auto entity, auto& enemy, auto& position, auto& hitbox) {
-		auto all = defaultTable.getNearbyObjects(hitbox, position);
-		auto large = largeObjectsTable.getNearbyObjects(hitbox, position);
-		all.insert(all.end(), large.begin(), large.end());
-		for (auto bullet : all) {
-			// Make sure it's a player bullet
-			if (!registry.has<PlayerBulletComponent>(bullet)) {
-				continue;
-			}
-
-			auto& bulletPosition = playerBulletView.get<PositionComponent>(bullet);
-			auto& bulletHitbox = playerBulletView.get<HitboxComponent>(bullet);
-			if (collides(position, hitbox, bulletPosition, bulletHitbox)) {
-				// Enemy takes damage
-				if (registry.has<HealthComponent>(entity) && registry.get<HealthComponent>(entity).takeDamage(registry.get<PlayerBulletComponent>(bullet).getDamage())) {
-					// Enemy is dead
-
-					// Call the enemy's DeathActions
-					for (std::shared_ptr<DeathAction> deathAction : enemy.getEnemyData()->getDeathActions()) {
-						deathAction->execute(levelPack, queue, registry, spriteLoader, entity);
-					}
-					// Play death animation
-					enemy.getCurrentDeathAnimationAction()->execute(levelPack, queue, registry, spriteLoader, entity);
-
-					// Drop items, if any
-					auto currentLevel = registry.get<LevelManagerTag>().getLevel();
-					for (auto itemAndAmountPair : enemy.getEnemySpawnInfo().getItemsDroppedOnDeath()) {
-						queue.pushBack(std::make_unique<EMPDropItemCommand>(registry, spriteLoader, position.getX(), position.getY(), itemAndAmountPair.first, itemAndAmountPair.second));
-					}
-					
-					// Delete enemy
-					registry.get<DespawnComponent>(entity).setMaxTime(0);
+		if (!hitbox.isDisabled()) {
+			auto all = defaultTable.getNearbyObjects(hitbox, position);
+			auto large = largeObjectsTable.getNearbyObjects(hitbox, position);
+			all.insert(all.end(), large.begin(), large.end());
+			for (auto bullet : all) {
+				// Make sure it's a player bullet
+				if (!registry.has<PlayerBulletComponent>(bullet)) {
+					continue;
 				}
 
-				// Handle OnCollisionAction
-				switch (registry.get<PlayerBulletComponent>(bullet).getOnCollisionAction()) {
+				auto& bulletPosition = playerBulletView.get<PositionComponent>(bullet);
+				auto& bulletHitbox = playerBulletView.get<HitboxComponent>(bullet);
+				if (collides(position, hitbox, bulletPosition, bulletHitbox)) {
+					// Enemy takes damage
+					if (registry.has<HealthComponent>(entity) && registry.get<HealthComponent>(entity).takeDamage(registry.get<PlayerBulletComponent>(bullet).getDamage())) {
+						// Enemy is dead
+
+						// Call the enemy's DeathActions
+						for (std::shared_ptr<DeathAction> deathAction : enemy.getEnemyData()->getDeathActions()) {
+							deathAction->execute(levelPack, queue, registry, spriteLoader, entity);
+						}
+						// Play death animation
+						enemy.getCurrentDeathAnimationAction()->execute(levelPack, queue, registry, spriteLoader, entity);
+
+						// Drop items, if any
+						auto currentLevel = registry.get<LevelManagerTag>().getLevel();
+						for (auto itemAndAmountPair : enemy.getEnemySpawnInfo().getItemsDroppedOnDeath()) {
+							queue.pushBack(std::make_unique<EMPDropItemCommand>(registry, spriteLoader, position.getX(), position.getY(), itemAndAmountPair.first, itemAndAmountPair.second));
+						}
+
+						// Delete enemy
+						registry.get<DespawnComponent>(entity).setMaxTime(0);
+					}
+
+					// Handle OnCollisionAction
+					switch (registry.get<PlayerBulletComponent>(bullet).getOnCollisionAction()) {
 					case TURN_INTANGIBLE:
 						// Remove all components except for MovementPathComponent, PositionComponent, DespawnComponent, and SpriteComponent
 						if (registry.has<ShadowTrailComponent>(bullet)) {
@@ -185,6 +200,7 @@ void CollisionSystem::update(float deltaTime) {
 							registry.remove<EMPSpawnerComponent>(bullet);
 						}
 						break;
+					}
 				}
 			}
 		}

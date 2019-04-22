@@ -38,8 +38,8 @@ private:
 class EditorPlayer : public TextMarshallable {
 public:
 	inline EditorPlayer() {}
-	inline EditorPlayer(float initialHealth, float maxHealth, float speed, float focusedSpeed, float hitboxRadius, float hitboxPosX, float hitboxPosY, std::vector<PlayerPowerTier> powerTiers) : 
-		initialHealth(initialHealth), maxHealth(maxHealth), speed(speed), focusedSpeed(focusedSpeed), hitboxRadius(hitboxRadius), hitboxPosX(hitboxPosX), hitboxPosY(hitboxPosY), powerTiers(powerTiers) {}
+	inline EditorPlayer(float initialHealth, float maxHealth, float speed, float focusedSpeed, float hitboxRadius, float hitboxPosX, float hitboxPosY, float invulnerabilityTime, std::vector<PlayerPowerTier> powerTiers) : 
+		initialHealth(initialHealth), maxHealth(maxHealth), speed(speed), focusedSpeed(focusedSpeed), hitboxRadius(hitboxRadius), hitboxPosX(hitboxPosX), hitboxPosY(hitboxPosY), invulnerabilityTime(invulnerabilityTime), powerTiers(powerTiers) {}
 
 	std::string format() override;
 	void load(std::string formattedString) override;
@@ -52,6 +52,7 @@ public:
 	inline float getHitboxRadius() { return hitboxRadius; }
 	inline float getHitboxPosX() { return hitboxPosX; }
 	inline float getHitboxPosY() { return hitboxPosY; }
+	inline float getInvulnerabilityTime() { return invulnerabilityTime; }
 
 	/*
 	Returns a reference to the power tier.
@@ -65,6 +66,7 @@ public:
 	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; }
 	inline void setHitboxPosX(float hitboxPosX) { this->hitboxPosX = hitboxPosX; }
 	inline void setHitboxPosY(float hitboxPosY) { this->hitboxPosY = hitboxPosY; }
+	inline void setInvulnerabilityTime(float invulnerabilityTime) { this->invulnerabilityTime = invulnerabilityTime; }
 	inline void insertPowerTier(int index, PlayerPowerTier powerTier) { powerTiers.insert(powerTiers.begin() + index, powerTier); }
 	inline void removePowerTier(int index) { powerTiers.erase(powerTiers.begin() + index); }
 
@@ -80,6 +82,9 @@ private:
 	float hitboxRadius;
 	// Local position of hitbox
 	float hitboxPosX, hitboxPosY;
+
+	// Time player is invulnerable for when hit by an enemy bullet
+	float invulnerabilityTime = 2.0f;
 	
 	/*
 	The player's power tier increase every POWER_PER_POWER_TIER power, which come from power packs dropped by enemies.

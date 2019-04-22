@@ -144,7 +144,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	level->getMusicSettings().setVolume(10);
 	level->getMusicSettings().setLoop(true);
 	this->insertLevel(0, level);
-	this->setPlayer(EditorPlayer(3, 5, 300, 100, 5, 0, 0, std::vector<PlayerPowerTier>{ PlayerPowerTier(pset1, playerAP->getID(), 0.1f, playerFocusedAP->getID(), 0.5f), PlayerPowerTier(pset2, playerAP2->getID(), 0.01f, playerFocusedAP->getID(), 0.5f) }));
+	this->setPlayer(EditorPlayer(3, 5, 300, 100, 5, 0, 0, 2.0f, std::vector<PlayerPowerTier>{ PlayerPowerTier(pset1, playerAP->getID(), 0.1f, playerFocusedAP->getID(), 0.5f), PlayerPowerTier(pset2, playerAP2->getID(), 0.01f, playerFocusedAP->getID(), 0.5f) }));
 	metadata.addSpriteSheet("sheet1.txt", "sheet1.png");
 
 	//TODO: uncomment

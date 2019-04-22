@@ -6,6 +6,7 @@
 #include <vector>
 #include <math.h>
 #include <cassert>
+#include <limits>
 #include <string>
 #include "SpriteLoader.h"
 #include "SpriteEffectAnimation.h"
@@ -156,6 +157,23 @@ public:
 		sprite->setRotation(oldAngle);
 	}
 
+	inline void update(float deltaTime) {
+		hitboxDisabledTimeLeft -= deltaTime;
+	}
+
+	/*
+	Disable the hitbox for some amount of seconds. If the hitbox is already disabled, the new disabled time is the
+	higher of this disable time and the current time left.
+
+	Disabling a hitbox doesn't actually do anything besides make isDisabled() return true. It is up to the system to
+	make use of the boolean value.
+	*/
+	inline void disable(float time) {
+		hitboxDisabledTimeLeft = std::max(time, hitboxDisabledTimeLeft);
+	}
+
+	inline bool isDisabled() { return hitboxDisabledTimeLeft > 0; }
+
 	/*
 	angle - radians in range [-pi, pi]
 	*/
@@ -177,7 +195,6 @@ public:
 	inline float getRadius() const { return radius; }
 	inline float getX() const { return x; }
 	inline float getY() const { return y; }
-	inline void setRadius(float radius) { this->radius = radius; }
 
 private:
 	// If entity has a SpriteComponent, this rotationType must match its SpriteComponent's rotationType
@@ -187,6 +204,8 @@ private:
 	float x = 0, y = 0;
 	// Local offset of hitbox when rotated at angle 0
 	float unrotatedX, unrotatedY;
+
+	float hitboxDisabledTimeLeft = 0;
 };
 
 class SpriteComponent {
@@ -305,7 +324,7 @@ private:
 
 class PlayerTag {
 public:
-	PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack, uint32_t self, float speed, float focusedSpeed, const std::vector<PlayerPowerTier> powerTiers);
+	PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack, uint32_t self, float speed, float focusedSpeed, float invulnerabilityTime, const std::vector<PlayerPowerTier> powerTiers);
 
 	inline float getSpeed() { return speed; }
 	inline float getFocusedSpeed() { return focusedSpeed; }
@@ -313,6 +332,7 @@ public:
 	inline std::shared_ptr<EditorAttackPattern> getFocusedAttackPattern() { return focusedAttackPatterns[currentPowerTierIndex]; }
 	inline float getAttackPatternTotalTime() { return attackPatternTotalTimes[currentPowerTierIndex]; }
 	inline float getFocusedAttackPatternTotalTime() { return focusedAttackPatternTotalTimes[currentPowerTierIndex]; }
+	inline float getInvulnerabilityTime() { return invulnerabilityTime; }
 
 	void increasePower(entt::DefaultRegistry& registry, uint32_t self, int power);
 	/*
@@ -346,6 +366,9 @@ private:
 	int currentPower = 0;
 	// see justIncreasedPowerTier()
 	bool increasedPowerTier = false;
+
+	// Time player is invulnerable for when hit by an enemy bullet
+	float invulnerabilityTime;
 };
 
 class EnemyComponent {

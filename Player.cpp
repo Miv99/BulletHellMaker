@@ -1,7 +1,7 @@
 #include "Player.h"
 
 std::string EditorPlayer::format() {
-	std::string ret = tos(initialHealth) + delim + tos(maxHealth) + delim + tos(speed) + delim + tos(focusedSpeed) + delim + tos(hitboxRadius) + delim + tos(hitboxPosX) + delim + tos(hitboxPosY);
+	std::string ret = tos(initialHealth) + delim + tos(maxHealth) + delim + tos(speed) + delim + tos(focusedSpeed) + delim + tos(hitboxRadius) + delim + tos(hitboxPosX) + delim + tos(hitboxPosY) + delim + tos(invulnerabilityTime);
 	for (PlayerPowerTier tier : powerTiers) {
 		ret += delim + "(" + tier.format() + ")";
 	}
@@ -17,7 +17,8 @@ void EditorPlayer::load(std::string formattedString) {
 	hitboxRadius = std::stof(items[4]);
 	hitboxPosX = std::stof(items[5]);
 	hitboxPosY = std::stof(items[6]);
-	for (int i = 7; i < items.size(); i++) {
+	invulnerabilityTime = std::stof(items[7]);
+	for (int i = 8; i < items.size(); i++) {
 		PlayerPowerTier tier;
 		tier.load(items[i]);
 		powerTiers.push_back(tier);

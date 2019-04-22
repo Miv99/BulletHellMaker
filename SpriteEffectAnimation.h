@@ -49,7 +49,7 @@ public:
 
 	The total interval between each entire flash animation is (flashInterval + flashDuration)
 	*/
-	inline FlashWhiteSEA(std::shared_ptr<sf::Sprite> sprite, float flashInterval, float flashDuration, float animationDuration) : SpriteEffectAnimation(sprite),
+	inline FlashWhiteSEA(std::shared_ptr<sf::Sprite> sprite, float animationDuration, float flashInterval = 0.3f, float flashDuration = 0.2f) : SpriteEffectAnimation(sprite),
 		flashInterval(flashInterval), flashDuration(flashDuration), animationDuration(animationDuration) {
 		// Load shader
 		if (!shader.loadFromFile("Shaders/tint.frag", sf::Shader::Fragment)) {
