@@ -36,6 +36,8 @@ public:
 	inline int getHealth() { return health; }
 	inline float getDespawnTime() { return despawnTime; }
 	inline const std::vector<std::shared_ptr<DeathAction>> getDeathActions() { return deathActions; }
+	inline bool getIsBoss() { return isBoss; }
+
 	inline void addDeathAction(std::shared_ptr<DeathAction> action) { deathActions.push_back(action); }
 	inline void removeDeathAction(int index) { deathActions.erase(deathActions.begin() + index); }
 
@@ -43,6 +45,8 @@ public:
 	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; }
 	inline void setHealth(int health) { this->health = health; }
 	inline void setDespawnTime(float despawnTime) { this->despawnTime = despawnTime; }
+	inline void setIsBoss(bool isBoss) { this->isBoss = isBoss; }
+
 	inline void addPhaseID(int index, std::shared_ptr<EnemyPhaseStartCondition> startCondition, int phaseID, EntityAnimatableSet animatableSet) {
 		phaseIDs.insert(phaseIDs.begin() + index, std::make_tuple(startCondition, phaseID, animatableSet));
 	}

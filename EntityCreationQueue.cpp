@@ -256,7 +256,8 @@ void SpawnEnemyCommand::execute(EntityCreationQueue & queue) {
 	}
 	// Hitbox temporarily at 0, 0 until an Animatable is assigned to the enemy on phase start
 	registry.assign<HitboxComponent>(enemy, LOCK_ROTATION, enemyInfo->getHitboxRadius(), 0, 0);
-	registry.assign<SpriteComponent>(enemy, ENEMY_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel());
+	int layer = enemyInfo->getIsBoss() ? ENEMY_BOSS_LAYER : ENEMY_LAYER;
+	registry.assign<SpriteComponent>(enemy, layer, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel());
 	registry.assign<EnemyComponent>(enemy, enemyInfo, spawnInfo, enemyInfo->getID());
 	registry.assign<AnimatableSetComponent>(enemy);
 	registry.assign<ShadowTrailComponent>(enemy, 0, 0);
