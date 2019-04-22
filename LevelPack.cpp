@@ -21,12 +21,19 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	/*
 	testing
 	*/
+
+	auto model1 = createBulletModel();
+	model1->setAnimatable(Animatable("Bullet", "sheet1", true, LOCK_ROTATION));
+	model1->setDamage(1);
+	model1->setHitboxRadius(30);
+	model1->setPlaysSound(true);
+	model1->getSoundSettings().setFileName("test sound.wav");
+	model1->getSoundSettings().setVolume(10);
 	
 	auto attack1 = createAttack();
 	attack1->setPlayAttackAnimation(false);
 	auto attack1emp0 = attack1->searchEMP(0);
-	attack1emp0->setAnimatable(Animatable("Bullet", "sheet1", true, LOCK_ROTATION));
-	attack1emp0->setHitboxRadius(30);
+	attack1emp0->setBulletModel(model1);
 	attack1emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
 
 	auto attack1emp1 = attack1emp0->createChild(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
@@ -50,12 +57,8 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	auto attack2 = createAttack();
 	attack2->setPlayAttackAnimation(false);
 	auto attack2emp0 = attack2->searchEMP(0);
-	attack2emp0->setAnimatable(Animatable("Bullet", "sheet1", true, LOCK_ROTATION));
-	attack2emp0->setHitboxRadius(30);
+	attack2emp0->setBulletModel(model1);
 	attack2emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
-	attack2emp0->setPlaysSound(true);
-	attack2emp0->getSoundSettings().setFileName("test sound.wav");
-	attack2emp0->getSoundSettings().setVolume(10);
 	auto distanceSegments = std::make_shared<PiecewiseContinuousTFV>();
 	distanceSegments->insertSegment(0, std::make_pair(1, std::make_shared<LinearTFV>(0, 100, 1)));
 	distanceSegments->insertSegment(1, std::make_pair(2, std::make_shared<LinearTFV>(100, 200, 2)));
@@ -174,6 +177,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 void LevelPack::load() {
 	// First line is always the next ID
 	// Every other line is the data for the object
+
 	// Read levels
 	std::ifstream levelsFile("Level Packs\\" + name + "\\levels.txt");
 	std::string line;
@@ -184,6 +188,18 @@ void LevelPack::load() {
 	}
 	levelsFile.close();
 
+	// Read bullet models
+	std::ifstream bulletModelsFile("Level Packs\\" + name + "\\bullet_models.txt");
+	std::getline(bulletModelsFile, line);
+	nextBulletModelID = std::stoi(line);
+	while (std::getline(bulletModelsFile, line)) {
+		std::shared_ptr<BulletModel> bulletModel = std::make_shared<BulletModel>();
+		bulletModel->load(line);
+		assert(bulletModels.find(bulletModel->getID()) != bulletModels.end() && "Bullet model ID conflict");
+		bulletModels[bulletModel->getID()] = bulletModel;
+	}
+	bulletModelsFile.close();
+
 	// Read attacks
 	std::ifstream attacksFile("Level Packs\\" + name + "\\attacks.txt");
 	std::getline(attacksFile, line);
@@ -191,6 +207,8 @@ void LevelPack::load() {
 	while (std::getline(attacksFile, line)) {
 		std::shared_ptr<EditorAttack> attack = std::make_shared<EditorAttack>();
 		attack->load(line);
+		// Load bullet models for every EMP
+		attack->loadEMPBulletModels(*this);
 		assert(attacks.find(attack->getID()) != attacks.end() && "Attack ID conflict");
 		attacks[attack->getID()] = attack;
 	}
@@ -240,6 +258,14 @@ void LevelPack::save() {
 		levelsFile << level->format() << std::endl;
 	}
 	levelsFile.close();
+
+	// Save bullet models
+	std::ofstream bulletModelsFile("Level Packs\\" + name + "\\bullet_models.txt");
+	bulletModelsFile << nextBulletModelID << std::endl;
+	for (auto p : bulletModels) {
+		bulletModelsFile << p.second->format() << std::endl;
+	}
+	bulletModelsFile.close();
 
 	// Save attacks
 	std::ofstream attacksFile("Level Packs\\" + name + "\\attacks.txt");

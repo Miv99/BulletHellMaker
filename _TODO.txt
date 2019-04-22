@@ -29,6 +29,10 @@ Notes for me:
 
 
 TODO:
+-user can save a "bullet model" and load it into EMPs via a setter; bullet model would have hitbox radius, shadow trail stuff, animatable stuff, damage,
+ onCollisionAction, sound stuff; save the list of bullet models by id; 
+	-EMPs can use a bullet model or use their own unique values; if using a bullet model, when user makes a change to the model, all EMPs using that model are updated
+	-todo: think of some way to do the above
 -player invuln time
 -enemies can be bosses -> GUI displays a health bar; also separate render layer for bosses (above enemy)
 -Multiple small shockwave effects 

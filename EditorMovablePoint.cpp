@@ -1,5 +1,6 @@
 #include "EditorMovablePoint.h"
 #include "EditorMovablePointSpawnType.h"
+#include "LevelPack.h"
 
 std::string EditorMovablePoint::format() {
 	std::string res = "";
@@ -65,8 +66,8 @@ void EditorMovablePoint::load(std::string formattedString) {
 
 	spawnType = EMPSpawnTypeFactory::create(items[i++]);
 
-	shadowTrailInterval = std::stoi(items[i++]);
-	shadowTrailLifespan = std::stoi(items[i++]);
+	shadowTrailInterval = std::stof(items[i++]);
+	shadowTrailLifespan = std::stof(items[i++]);
 
 	animatable.load(items[i++]);
 	if (std::stoi(items[i++]) == 0) {
@@ -144,6 +145,60 @@ bool EditorMovablePoint::legal(SpriteLoader& spriteLoader, std::string & message
 	return good;
 }
 
+void EditorMovablePoint::dfsLoadBulletModel(const LevelPack & levelPack) {
+	loadBulletModel(levelPack);
+	for (auto emp : children) {
+		emp->dfsLoadBulletModel(levelPack);
+	}
+}
+
+void EditorMovablePoint::loadBulletModel(const LevelPack & levelPack) {
+	if (bulletModelID < 0) return;
+
+	std::shared_ptr<BulletModel> model = levelPack.getBulletModel(bulletModelID);
+	// Add this EMP to the model's set of model users
+	model->addModelUser(shared_from_this());
+
+	if (inheritRadius) hitboxRadius = model->getHitboxRadius();
+	if (inheritDespawnTime) despawnTime = model->getDespawnTime();
+	if (inheritShadowTrailInterval) shadowTrailInterval = model->getShadowTrailInterval();
+	if (inheritShadowTrailLifespan) shadowTrailLifespan = model->getShadowTrailLifespan();
+	if (inheritAnimatables) {
+		animatable = model->getAnimatable();
+		loopAnimation = model->getLoopAnimation();
+		baseSprite = model->getBaseSprite();
+	}
+	if (inheritDamage) damage = model->getDamage();
+	if (inheritOnCollisionAction) onCollisionAction = model->getOnCollisionAction();
+	if (inheritSoundSettings) {
+		playSoundOnSpawn = model->getPlaysSound();
+		soundSettings = model->getSoundSettings();
+	}
+}
+
+void EditorMovablePoint::setBulletModel(std::shared_ptr<BulletModel> model) {
+	bulletModelID = model->getID();
+
+	// Add this EMP to the model's set of model users
+	model->addModelUser(shared_from_this());
+
+	if (inheritRadius) hitboxRadius = model->getHitboxRadius();
+	if (inheritDespawnTime) despawnTime = model->getDespawnTime();
+	if (inheritShadowTrailInterval) shadowTrailInterval = model->getShadowTrailInterval();
+	if (inheritShadowTrailLifespan) shadowTrailLifespan = model->getShadowTrailLifespan();
+	if (inheritAnimatables) {
+		animatable = model->getAnimatable();
+		loopAnimation = model->getLoopAnimation();
+		baseSprite = model->getBaseSprite();
+	}
+	if (inheritDamage) damage = model->getDamage();
+	if (inheritOnCollisionAction) onCollisionAction = model->getOnCollisionAction();
+	if (inheritSoundSettings) {
+		playSoundOnSpawn = model->getPlaysSound();
+		soundSettings = model->getSoundSettings();
+	}
+}
+
 void EditorMovablePoint::setSpawnType(std::shared_ptr<EMPSpawnType> spawnType) {
 	this->spawnType = spawnType;
 
@@ -191,4 +246,72 @@ void EditorMovablePoint::addChild(std::shared_ptr<EditorMovablePoint> child) {
 		}
 	}
 	children.insert(children.begin() + indexToInsert, child);
+}
+
+std::string BulletModel::format() {
+	std::string res = "";
+
+	res += "(" + tos(id) + ")" + delim;
+	res += "(" + tos(hitboxRadius) + ")" + delim;
+	res += "(" + tos(despawnTime) + ")" + delim;
+
+	res += delim + "(" + tos(shadowTrailInterval) + ")";
+	res += delim + "(" + tos(shadowTrailLifespan) + ")";
+
+	res += delim + "(" + animatable.format() + ")";
+	if (loopAnimation) {
+		res += delim + "1";
+	} else {
+		res += delim + "0";
+	}
+	res += delim + "(" + baseSprite.format() + ")";
+	res += delim + tos(damage);
+
+	res += delim + tos(static_cast<int>(onCollisionAction));
+
+	if (playSoundOnSpawn) {
+		res += delim + "0";
+	} else {
+		res += delim + "1";
+	}
+	res += delim + "(" + soundSettings.format() + ")";
+
+	return res;
+}
+
+void BulletModel::load(std::string formattedString) {
+	auto items = split(formattedString, DELIMITER);
+
+	id = std::stoi(items[0]);
+	hitboxRadius = std::stof(items[1]);
+	despawnTime = std::stof(items[2]);
+
+	shadowTrailInterval = std::stof(items[3]);
+	shadowTrailLifespan = std::stof(items[4]);
+
+	animatable.load(items[5]);
+	if (std::stoi(items[6]) == 0) {
+		loopAnimation = false;
+	} else {
+		loopAnimation = true;
+	}
+	baseSprite.load(items[7]);
+
+	damage = std::stoi(items[8]);
+
+	onCollisionAction = static_cast<BULLET_ON_COLLISION_ACTION>(std::stoi(items[9]));
+
+	if (std::stoi(items[10]) == 1) {
+		playSoundOnSpawn = true;
+	} else {
+		playSoundOnSpawn = false;
+	}
+	soundSettings.load(items[11]);
+}
+
+void BulletModel::onModelChange() {
+	// Update all users' fields
+	for (std::shared_ptr<EditorMovablePoint> emp : modelUsers) {
+		emp->setBulletModel(shared_from_this());
+	}
 }

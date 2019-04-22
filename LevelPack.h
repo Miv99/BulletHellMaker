@@ -63,6 +63,11 @@ public:
 		enemyPhases[enemyPhase->getID()] = enemyPhase;
 		return enemyPhase; 
 	}
+	inline std::shared_ptr<BulletModel> createBulletModel() {
+		auto bulletModel = std::make_shared<BulletModel>(nextBulletModelID++);
+		bulletModels[bulletModel->getID()] = bulletModel;
+		return bulletModel;
+	}
 
 	inline void deleteLevel(int levelIndex) { levels.erase(levels.begin() + levelIndex); }
 	inline void deleteAttack(int id) { attacks.erase(id); }
@@ -75,6 +80,7 @@ public:
 	inline std::shared_ptr<EditorAttackPattern> getAttackPattern(int id) const { return attackPatterns.at(id); }
 	inline std::shared_ptr<EditorEnemy> getEnemy(int id) const { return enemies.at(id); }
 	inline std::shared_ptr<EditorEnemyPhase> getEnemyPhase(int id) const { return enemyPhases.at(id); }
+	inline std::shared_ptr<BulletModel> getBulletModel(int id) const { return bulletModels.at(id); }
 
 	float searchLargestHitbox();
 
@@ -91,6 +97,7 @@ private:
 	int nextAttackPatternID = 0;
 	int nextEnemyID = 0;
 	int nextEnemyPhaseID = 0;
+	int nextBulletModelID = 0;
 
 	// ordered levels
 	std::vector<std::shared_ptr<Level>> levels;
@@ -102,4 +109,6 @@ private:
 	std::map<int, std::shared_ptr<EditorEnemy>> enemies;
 	// enemy phase id : enemy phase
 	std::map<int, std::shared_ptr<EditorEnemyPhase>> enemyPhases;
+	// bullet model id : bullet model
+	std::map<int, std::shared_ptr<BulletModel>> bulletModels;
 };

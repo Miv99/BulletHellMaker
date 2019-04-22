@@ -20,6 +20,8 @@ public:
 
 	bool legal(SpriteLoader& spriteLoader, std::string& message);
 
+	void loadEMPBulletModels(const LevelPack& levelPack);
+
 	/*
 	Executes the attack as an enemy.
 

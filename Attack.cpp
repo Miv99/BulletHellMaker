@@ -51,6 +51,10 @@ bool EditorAttack::legal(SpriteLoader& spriteLoader, std::string& message) {
 	return good;
 }
 
+void EditorAttack::loadEMPBulletModels(const LevelPack & levelPack) {
+	mainEMP->dfsLoadBulletModel(levelPack);
+}
+
 void EditorAttack::executeAsEnemy(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, uint32_t entity, float timeLag, int attackPatternID, int enemyID, int enemyPhaseID) {
 	queue.pushBack(std::make_unique<EMPSpawnFromEnemyCommand>(registry, spriteLoader, mainEMP, entity, timeLag, id, attackPatternID, enemyID, enemyPhaseID, playAttackAnimation));
 }
