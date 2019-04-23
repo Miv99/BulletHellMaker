@@ -75,6 +75,7 @@ void GameInstance::render(float deltaTime) {
 
 void GameInstance::startLevel(int levelIndex) {
 	paused = false;
+	std::shared_ptr<Level> level = levelPack->getLevel(levelIndex);
 
 	// Remove all existing entities from the registry
 	registry.reset();
@@ -87,12 +88,23 @@ void GameInstance::startLevel(int levelIndex) {
 	registry.reserve<LevelManagerTag>(1);
 	registry.reserve(registry.alive() + 1);
 	uint32_t levelManager = registry.create();
-	registry.assign<LevelManagerTag>(entt::tag_t{}, levelManager, &(*levelPack), levelPack->getLevel(levelIndex));
+	registry.assign<LevelManagerTag>(entt::tag_t{}, levelManager, &(*levelPack), level);
 	
-	resume();
-
 	// Play level music
-	levelPack->playMusic(levelPack->getLevel(levelIndex)->getMusicSettings());
+	levelPack->playMusic(level->getMusicSettings());
+
+	// Set the background
+	std::string backgroundFileName = level->getBackgroundFileName();
+	sf::Texture background;
+	if (!background.loadFromFile("Level Packs\\" + levelPack->getName() + "\\Backgrounds\\" + backgroundFileName)) {
+		//TODO: load a default background
+	}
+	background.setRepeated(true);
+	renderSystem->setBackground(std::move(background));
+	renderSystem->setBackgroundScrollSpeedX(level->getBackgroundScrollSpeedX());
+	renderSystem->setBackgroundScrollSpeedY(level->getBackgroundScrollSpeedY());
+
+	resume();
 }
 
 void GameInstance::endLevel() {

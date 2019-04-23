@@ -102,6 +102,7 @@ public:
 	inline void deleteEnemy(int id) { enemies.erase(id); }
 	inline void deleteEnemyPhase(int id) { enemyPhases.erase(id); }
 
+	inline std::string getName() { return name; }
 	inline std::shared_ptr<Level> getLevel(int levelIndex) const { return levels[levelIndex]; }
 	inline std::shared_ptr<EditorAttack> getAttack(int id) const { return attacks.at(id); }
 	inline std::shared_ptr<EditorAttackPattern> getAttackPattern(int id) const { return attackPatterns.at(id); }

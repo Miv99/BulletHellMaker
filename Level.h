@@ -30,11 +30,17 @@ public:
 	Returns a reference to the music settings.
 	*/
 	inline MusicSettings& getMusicSettings() { return musicSettings; }
+	inline std::string getBackgroundFileName() { return backgroundFileName; }
+	inline float getBackgroundScrollSpeedX() { return backgroundScrollSpeedX; }
+	inline float getBackgroundScrollSpeedY() { return backgroundScrollSpeedY; }
 
 	inline void setName(std::string name) { this->name = name; }
 	inline void setHealthPack(std::shared_ptr<HealthPackItem> healthPack) { this->healthPack = healthPack; }
 	inline void setPointsPack(std::shared_ptr<PointsPackItem> pointPack) { this->pointPack = pointPack; }
 	inline void setPowerPack(std::shared_ptr<PowerPackItem> powerPack) { this->powerPack = powerPack; }
+	inline void setBackgroundFileName(std::string backgroundFileName) { this->backgroundFileName = backgroundFileName; }
+	inline void setBackgroundScrollSpeedX(float backgroundScrollSpeedX) { this->backgroundScrollSpeedX = backgroundScrollSpeedX; }
+	inline void setBackgroundScrollSpeedY(float backgroundScrollSpeedY) { this->backgroundScrollSpeedY = backgroundScrollSpeedY; }
 
 	// Inserts a spawn condition and enemies such that the new condition and enemies are at the specified index
 	inline void insertEnemySpawns(int conditionIndex, std::shared_ptr<EnemySpawnCondition> spawnCondition, std::vector<EnemySpawnInfo> enemies) {
@@ -63,4 +69,8 @@ private:
 
 	// Music to play on start of level
 	MusicSettings musicSettings;
+
+	std::string backgroundFileName;
+	float backgroundScrollSpeedX = 0;
+	float backgroundScrollSpeedY = 0;
 };

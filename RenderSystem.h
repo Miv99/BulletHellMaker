@@ -23,9 +23,15 @@ class RenderSystem {
 public:
 	/*
 	Window's view should already be set and should not be changed.
+
+	background - the background of the map
 	*/
 	RenderSystem(entt::DefaultRegistry& registry, sf::RenderWindow& window);
 	void update(float deltaTime);
+
+	void setBackground(sf::Texture background);
+	inline void setBackgroundScrollSpeedX(float backgroundScrollSpeedX) { this->backgroundScrollSpeedX = backgroundScrollSpeedX; }
+	inline void setBackgroundScrollSpeedY(float backgroundScrollSpeedY) { this->backgroundScrollSpeedY = backgroundScrollSpeedY; }
 
 private:
 	entt::DefaultRegistry& registry;
@@ -66,4 +72,12 @@ private:
 
 	// Default blend mode
 	sf::BlendMode blendMode = sf::BlendMode(sf::BlendMode::Factor::SrcAlpha, sf::BlendMode::Factor::OneMinusSrcAlpha, sf::BlendMode::Equation::Add, sf::BlendMode::Factor::SrcAlpha, sf::BlendMode::Factor::OneMinusSrcAlpha, sf::BlendMode::Equation::Add);
+
+	sf::Texture background;
+	// The background as a sprite
+	sf::Sprite backgroundSprite;
+	float backgroundScrollSpeedX, backgroundScrollSpeedY;
+	// Current position of top-left corner of the screen relative to the top-left corner of the background
+	float backgroundX = 0, backgroundY = 0;
+	float backgroundTextureSizeX, backgroundTextureSizeY;
 };

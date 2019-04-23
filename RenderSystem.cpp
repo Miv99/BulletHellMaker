@@ -1,6 +1,7 @@
 #include "RenderSystem.h"
 #include <algorithm>
 #include <string>
+#include <cmath>
 
 RenderSystem::RenderSystem(entt::DefaultRegistry & registry, sf::RenderWindow & window) : registry(registry), window(window) {
 	// Initialize layers to be size of the max layer
@@ -116,15 +117,21 @@ void RenderSystem::update(float deltaTime) {
 		std::sort(pair.second.begin(), pair.second.end(), SubLayerComparator());
 	}
 
-	// Background
-	/*
-	tempLayerTexture.clear(sf::Color(0, 0, 0, 255));
-	sf::Sprite aaa(sf::Sprite(tempLayerTexture.getTexture()));
-	aaa.setPosition(0, -(float)tempLayerTexture.getSize().y);
-	sf::RenderStates asd;
-	asd.blendMode = blendMode;
-	window.draw(aaa, asd);
-	*/
+	// Move background
+	backgroundX = std::fmod((backgroundX + backgroundScrollSpeedX * deltaTime), backgroundTextureSizeX);
+	backgroundY = std::fmod((backgroundY + backgroundScrollSpeedY * deltaTime), backgroundTextureSizeY);
+	backgroundSprite.setTextureRect(sf::IntRect(backgroundX, backgroundY, MAP_WIDTH, MAP_HEIGHT));
+
+	// Draw background by drawing onto the temp layer first to limit the visible part of the background to the play area
+	tempLayerTexture.clear(sf::Color::Transparent);
+	backgroundSprite.setPosition(0, -MAP_HEIGHT);
+	tempLayerTexture.draw(backgroundSprite);
+	tempLayerTexture.display();
+	sf::Sprite backgroundAsSprite(tempLayerTexture.getTexture());
+	backgroundAsSprite.setPosition(0, -(float)tempLayerTexture.getSize().y);
+	sf::RenderStates backgroundStates;
+	backgroundStates.blendMode = blendMode;
+	window.draw(backgroundAsSprite, backgroundStates);
 
 	for (int i = 0; i < layers.size(); i++) {
 		for (SpriteComponent& sprite : layers[i].second) {
@@ -443,4 +450,17 @@ void RenderSystem::update(float deltaTime) {
 			}
 		}
 	}
+}
+
+void RenderSystem::setBackground(sf::Texture background) {
+	this->background = background;
+	backgroundTextureSizeX = background.getSize().x;
+	backgroundTextureSizeY = background.getSize().y;
+	// Start the initial background view such that the bottom-left corner of the view is
+	// the bottom-left corner of the background texture
+	backgroundX = 0;
+	backgroundY = backgroundTextureSizeY - MAP_HEIGHT;
+
+	// Create the sprite
+	backgroundSprite.setTexture(this->background);
 }

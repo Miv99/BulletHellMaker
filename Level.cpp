@@ -13,7 +13,8 @@ std::string Level::format() {
 	res += "(" + healthPack->format() + ")" + delim;
 	res += "(" + pointPack->format() + ")" + delim;
 	res += "(" + powerPack->format() + ")" + delim;
-	res += "(" + musicSettings.format() + ")";
+	res += "(" + musicSettings.format() + ")" + delim;
+	res += "(" + backgroundFileName + ")" + delim + tos(backgroundScrollSpeedX) + delim + tos(backgroundScrollSpeedY);
 	return res;
 }
 
@@ -39,6 +40,9 @@ void Level::load(std::string formattedString) {
 	powerPack = std::make_shared<PowerPackItem>();
 	powerPack->load(items[i++]);
 	musicSettings.load(items[i++]);
+	backgroundFileName = items[i++];
+	backgroundScrollSpeedX = std::stof(items[i++]);
+	backgroundScrollSpeedY = std::stof(items[i++]);
 }
 
 bool Level::legal(std::string & message) {
