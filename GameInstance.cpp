@@ -100,6 +100,7 @@ void GameInstance::startLevel(int levelIndex) {
 		//TODO: load a default background
 	}
 	background.setRepeated(true);
+	background.setSmooth(true);
 	renderSystem->setBackground(std::move(background));
 	renderSystem->setBackgroundScrollSpeedX(level->getBackgroundScrollSpeedX());
 	renderSystem->setBackgroundScrollSpeedY(level->getBackgroundScrollSpeedY());

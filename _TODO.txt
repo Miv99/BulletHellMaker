@@ -9,6 +9,7 @@ Documentation to put in the editor somewhere:
  because hitboxes and origins cannot change
 -EMPs with HomingEMPA cannot spawn attached to some parent
 -It is recommended that only bosses are able to play music
+-The background view is 1:1. That is, the user will see a MAP_WIDTH x MAP_HEIGHT pixel rectangle of the background at any time
 
 Tips to put in editor somewhere:
 -For a classic bullet hell, all enemy bullets should do 1 damage
