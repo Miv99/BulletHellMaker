@@ -15,6 +15,7 @@
 #include "EntityAnimatableSet.h"
 #include "Animatable.h"
 #include "EnemySpawn.h"
+#include "AudioPlayer.h"
 
 class MovablePoint;
 class AggregatorMP;
@@ -324,7 +325,7 @@ private:
 
 class PlayerTag {
 public:
-	PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack, uint32_t self, float speed, float focusedSpeed, float invulnerabilityTime, const std::vector<PlayerPowerTier> powerTiers);
+	PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack, uint32_t self, float speed, float focusedSpeed, float invulnerabilityTime, const std::vector<PlayerPowerTier> powerTiers, SoundSettings hurtSound, SoundSettings deathSound);
 
 	inline float getSpeed() { return speed; }
 	inline float getFocusedSpeed() { return focusedSpeed; }
@@ -333,6 +334,8 @@ public:
 	inline float getAttackPatternTotalTime() { return attackPatternTotalTimes[currentPowerTierIndex]; }
 	inline float getFocusedAttackPatternTotalTime() { return focusedAttackPatternTotalTimes[currentPowerTierIndex]; }
 	inline float getInvulnerabilityTime() { return invulnerabilityTime; }
+	inline const SoundSettings& getHurtSound() { return hurtSound; }
+	inline const SoundSettings& getDeathSound() { return deathSound; }
 
 	void increasePower(entt::DefaultRegistry& registry, uint32_t self, int power);
 	/*
@@ -369,6 +372,9 @@ private:
 
 	// Time player is invulnerable for when hit by an enemy bullet
 	float invulnerabilityTime;
+
+	SoundSettings hurtSound;
+	SoundSettings deathSound;
 };
 
 class EnemyComponent {

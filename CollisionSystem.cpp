@@ -4,8 +4,7 @@
 #include "Level.h"
 #include "Components.h"
 #include "SpriteEffectAnimation.h"
-
-#include <iostream>
+#include "LevelPack.h"
 
 float distance(float x1, float y1, float x2, float y2) {
 	return sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2));
@@ -100,7 +99,14 @@ void CollisionSystem::update(float deltaTime) {
 					}
 					if (registry.has<HealthComponent>(player) && registry.get<HealthComponent>(player).takeDamage(registry.get<EnemyBulletComponent>(bullet).getDamage())) {
 						// Player is dead
+
+						// Play death sound
+						registry.get<LevelManagerTag>().getLevelPack()->playSound(registry.get<PlayerTag>().getDeathSound());
+
 						//TODO: handle death stuff
+					} else {
+						// Play death sound
+						registry.get<LevelManagerTag>().getLevelPack()->playSound(registry.get<PlayerTag>().getHurtSound());
 					}
 
 					// Handle OnCollisionAction
@@ -155,6 +161,9 @@ void CollisionSystem::update(float deltaTime) {
 					if (registry.has<HealthComponent>(entity) && registry.get<HealthComponent>(entity).takeDamage(registry.get<PlayerBulletComponent>(bullet).getDamage())) {
 						// Enemy is dead
 
+						// Play death sound
+						registry.get<LevelManagerTag>().getLevelPack()->playSound(enemy.getEnemyData()->getDeathSound());
+
 						// Call the enemy's DeathActions
 						for (std::shared_ptr<DeathAction> deathAction : enemy.getEnemyData()->getDeathActions()) {
 							deathAction->execute(levelPack, queue, registry, spriteLoader, entity);
@@ -170,6 +179,9 @@ void CollisionSystem::update(float deltaTime) {
 
 						// Delete enemy
 						registry.get<DespawnComponent>(entity).setMaxTime(0);
+					} else {
+						// Play hurt sound
+						registry.get<LevelManagerTag>().getLevelPack()->playSound(enemy.getEnemyData()->getHurtSound());
 					}
 
 					// Handle OnCollisionAction

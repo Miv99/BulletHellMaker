@@ -20,6 +20,8 @@ std::string EditorEnemy::format() {
 	} else {
 		res += delim + "0";
 	}
+	res += delim + "(" + hurtSound.format() + ")";
+	res += delim + "(" + deathSound.format() + ")";
 	return res;
 }
 
@@ -46,6 +48,8 @@ void EditorEnemy::load(std::string formattedString) {
 	} else {
 		isBoss = false;
 	}
+	hurtSound.load(items[i++]);
+	deathSound.load(items[i++]);
 }
 
 bool EditorEnemy::legal(std::string& message) {

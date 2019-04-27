@@ -34,11 +34,15 @@ Notes for me:
 -Player invulnerability sprite effect animation is in CollisionSystem
 
 TODO:
+-disable sound in SoundSettings/MusicSettings (doesn't play a sound/music)
 -flatten layers PLAYER_BULLET_LAYER through PLAYER_LAYER and then apply bloom to that single squished texture for more efficiency
 -enemies can be bosses -> GUI displays a health bar
 -Multiple small shockwave effects 
 -DeathActions: ExecuteAttack (enemies only), ParticleExplosion
 -Change sprite sheet meta files to use TextMarshallable
+	-Due to the user-unfriendliness of text-marshalled files, this should only be done if an image viewer can be implemented in the editor
+	 that can zoom in and make rectangles so that the user has full control of 
+	  setting origin/rectangle_coords/everything_field_in_sprite_sheet_metadata in the editor
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------
 editable = attack/attack pattern/emp/enemy/enemyphase/player

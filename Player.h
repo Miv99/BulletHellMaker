@@ -4,6 +4,7 @@
 #include <string>
 #include "TextMarshallable.h"
 #include "EntityAnimatableSet.h"
+#include "AudioPlayer.h"
 
 class PlayerPowerTier : public TextMarshallable {
 public:
@@ -38,8 +39,8 @@ private:
 class EditorPlayer : public TextMarshallable {
 public:
 	inline EditorPlayer() {}
-	inline EditorPlayer(float initialHealth, float maxHealth, float speed, float focusedSpeed, float hitboxRadius, float hitboxPosX, float hitboxPosY, float invulnerabilityTime, std::vector<PlayerPowerTier> powerTiers) : 
-		initialHealth(initialHealth), maxHealth(maxHealth), speed(speed), focusedSpeed(focusedSpeed), hitboxRadius(hitboxRadius), hitboxPosX(hitboxPosX), hitboxPosY(hitboxPosY), invulnerabilityTime(invulnerabilityTime), powerTiers(powerTiers) {}
+	inline EditorPlayer(float initialHealth, float maxHealth, float speed, float focusedSpeed, float hitboxRadius, float hitboxPosX, float hitboxPosY, float invulnerabilityTime, std::vector<PlayerPowerTier> powerTiers, SoundSettings hurtSound, SoundSettings deathSound) : 
+		initialHealth(initialHealth), maxHealth(maxHealth), speed(speed), focusedSpeed(focusedSpeed), hitboxRadius(hitboxRadius), hitboxPosX(hitboxPosX), hitboxPosY(hitboxPosY), invulnerabilityTime(invulnerabilityTime), powerTiers(powerTiers), hurtSound(hurtSound), deathSound(deathSound) {}
 
 	std::string format() override;
 	void load(std::string formattedString) override;
@@ -53,6 +54,10 @@ public:
 	inline float getHitboxPosX() { return hitboxPosX; }
 	inline float getHitboxPosY() { return hitboxPosY; }
 	inline float getInvulnerabilityTime() { return invulnerabilityTime; }
+	// Returns a reference
+	inline SoundSettings& getHurtSound() { return hurtSound; }
+	// Returns a reference
+	inline SoundSettings& getDeathSound() { return deathSound; }
 
 	/*
 	Returns a reference to the power tier.
@@ -90,4 +95,7 @@ private:
 	The player's power tier increase every POWER_PER_POWER_TIER power, which come from power packs dropped by enemies.
 	*/
 	std::vector<PlayerPowerTier> powerTiers;
+
+	SoundSettings hurtSound;
+	SoundSettings deathSound;
 };

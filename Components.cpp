@@ -347,7 +347,8 @@ void AnimatableSetComponent::changeState(int newState, SpriteLoader& spriteLoade
 	}
 }
 
-PlayerTag::PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack, uint32_t self, float speed, float focusedSpeed, float invulnerabilityTime, const std::vector<PlayerPowerTier> powerTiers) : speed(speed), focusedSpeed(focusedSpeed), invulnerabilityTime(invulnerabilityTime), powerTiers(powerTiers) {
+PlayerTag::PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack, uint32_t self, float speed, float focusedSpeed, float invulnerabilityTime, const std::vector<PlayerPowerTier> powerTiers, SoundSettings hurtSound, SoundSettings deathSound) :
+	speed(speed), focusedSpeed(focusedSpeed), invulnerabilityTime(invulnerabilityTime), powerTiers(powerTiers), hurtSound(hurtSound), deathSound(deathSound) {
 	for (int i = 0; i < powerTiers.size(); i++) {
 		// Load all the attack patterns
 		attackPatterns.push_back(levelPack.getAttackPattern(powerTiers[i].getAttackPatternID()));

@@ -46,6 +46,10 @@ public:
 	inline void setHealth(int health) { this->health = health; }
 	inline void setDespawnTime(float despawnTime) { this->despawnTime = despawnTime; }
 	inline void setIsBoss(bool isBoss) { this->isBoss = isBoss; }
+	// Returns a reference
+	inline SoundSettings& getHurtSound() { return hurtSound; }
+	// Returns a reference
+	inline SoundSettings& getDeathSound() { return deathSound; }
 
 	inline void addPhaseID(int index, std::shared_ptr<EnemyPhaseStartCondition> startCondition, int phaseID, EntityAnimatableSet animatableSet) {
 		phaseIDs.insert(phaseIDs.begin() + index, std::make_tuple(startCondition, phaseID, animatableSet));
@@ -72,4 +76,7 @@ private:
 	std::vector<std::shared_ptr<DeathAction>> deathActions;
 
 	bool isBoss = false;
+
+	SoundSettings hurtSound;
+	SoundSettings deathSound;
 };

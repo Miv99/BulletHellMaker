@@ -5,6 +5,8 @@ std::string EditorPlayer::format() {
 	for (PlayerPowerTier tier : powerTiers) {
 		ret += delim + "(" + tier.format() + ")";
 	}
+	ret += delim + "(" + hurtSound.format() + ")";
+	ret += delim + "(" + deathSound.format() + ")";
 	return ret;
 }
 
@@ -18,11 +20,14 @@ void EditorPlayer::load(std::string formattedString) {
 	hitboxPosX = std::stof(items[5]);
 	hitboxPosY = std::stof(items[6]);
 	invulnerabilityTime = std::stof(items[7]);
-	for (int i = 8; i < items.size(); i++) {
+	int i;
+	for (i = 8; i < items.size(); i++) {
 		PlayerPowerTier tier;
 		tier.load(items[i]);
 		powerTiers.push_back(tier);
 	}
+	hurtSound.load(items[i++]);
+	deathSound.load(items[i++]);
 }
 
 std::string PlayerPowerTier::format() {

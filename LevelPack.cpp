@@ -100,6 +100,8 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	enemy1->setHealth(10);
 	enemy1->setHitboxRadius(70);
 	enemy1->setName("test enemy 1");
+	enemy1->getHurtSound().setFileName("oof.wav");
+	enemy1->getDeathSound().setFileName("death.ogg");
 	enemy1->addDeathAction(std::make_shared<PlaySoundDeathAction>(SoundSettings("test sound.wav", 100)));
 
 	auto level = std::make_shared<Level>("test level 1");
@@ -147,7 +149,8 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	level->setBackgroundScrollSpeedX(50);
 	level->setBackgroundScrollSpeedY(-100);
 	this->insertLevel(0, level);
-	this->setPlayer(EditorPlayer(3, 5, 300, 100, 5, 0, 0, 2.0f, std::vector<PlayerPowerTier>{ PlayerPowerTier(pset1, playerAP->getID(), 0.1f, playerFocusedAP->getID(), 0.5f), PlayerPowerTier(pset2, playerAP2->getID(), 0.01f, playerFocusedAP->getID(), 0.5f) }));
+	this->setPlayer(EditorPlayer(3, 5, 300, 100, 5, 0, 0, 2.0f, std::vector<PlayerPowerTier>{ PlayerPowerTier(pset1, playerAP->getID(), 0.1f, playerFocusedAP->getID(), 0.5f), 
+		PlayerPowerTier(pset2, playerAP2->getID(), 0.01f, playerFocusedAP->getID(), 0.5f) }, SoundSettings("oof.wav"), SoundSettings("death.ogg") ));
 	metadata.addSpriteSheet("sheet1.txt", "sheet1.png");
 
 	//TODO: uncomment
