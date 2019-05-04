@@ -295,7 +295,7 @@ void EMPDropItemCommand::execute(EntityCreationQueue & queue) {
 
 	for (int i = 0; i < amount; i++) {
 		uint32_t itemEntity = registry.create();
-		registry.assign<CollectibleComponent>(itemEntity, item, ITEM_ACTIVATION_RADIUS);
+		registry.assign<CollectibleComponent>(itemEntity, item, item->getActivationRadius());
 		registry.assign<DespawnComponent>(itemEntity, ITEM_DESPAWN_TIME);
 		auto& sprite = registry.assign<SpriteComponent>(itemEntity, spriteLoader, item->getAnimatable(), true, ITEM_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel());
 		registry.assign<HitboxComponent>(itemEntity, item->getHitboxRadius(), sprite.getSprite());

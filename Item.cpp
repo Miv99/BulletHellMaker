@@ -15,31 +15,34 @@ std::shared_ptr<Item> ItemFactory::create(std::string formattedString) {
 }
 
 std::string HealthPackItem::format() {
-	return "HealthPackItem" + delim + "(" + animatable.format() + ")" + delim + tos(hitboxRadius);
+	return "HealthPackItem" + delim + "(" + animatable.format() + ")" + delim + tos(hitboxRadius) + delim + tos(activationRadius);
 }
 
 void HealthPackItem::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	animatable.load(items[1]);
 	hitboxRadius = std::stof(items[2]);
+	activationRadius = std::stof(items[3]);
 }
 
 std::string PowerPackItem::format() {
-	return "PowerPackItem" + delim + "(" + animatable.format() + ")" + delim + tos(hitboxRadius);
+	return "PowerPackItem" + delim + "(" + animatable.format() + ")" + delim + tos(hitboxRadius) + delim + tos(activationRadius);
 }
 
 void PowerPackItem::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	animatable.load(items[1]);
 	hitboxRadius = std::stof(items[2]);
+	activationRadius = std::stof(items[3]);
 }
 
 std::string PointsPackItem::format() {
-	return "PointsPackItem" + delim + "(" + animatable.format() + ")" + delim + tos(hitboxRadius);
+	return "PointsPackItem" + delim + "(" + animatable.format() + ")" + delim + tos(hitboxRadius) + delim + tos(activationRadius);
 }
 
 void PointsPackItem::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	animatable.load(items[1]);
 	hitboxRadius = std::stof(items[2]);
+	activationRadius = std::stof(items[3]);
 }

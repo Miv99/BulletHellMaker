@@ -14,7 +14,7 @@ for multiple item entities.
 class Item : public TextMarshallable {
 public:
 	inline Item() {}
-	inline Item(Animatable animatable, float hitboxRadius) : animatable(animatable), hitboxRadius(hitboxRadius) {}
+	inline Item(Animatable animatable, float hitboxRadius, float activationRadius = 75.0f) : animatable(animatable), hitboxRadius(hitboxRadius), activationRadius(activationRadius) {}
 
 	std::string format() = 0;
 	void load(std::string formattedString) = 0;
@@ -24,14 +24,18 @@ public:
 
 	inline Animatable getAnimatable() { return animatable; }
 	inline float getHitboxRadius() { return hitboxRadius; }
+	inline float getActivationRadius() { return activationRadius; }
 
 	inline void setAnimatable(Animatable animatable) { this->animatable = animatable; }
 	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; }
+	inline void setActivationRadius(float activationRadius) { this->activationRadius = activationRadius; }
 
 protected:
 	// If this is an animation, it always loops
 	Animatable animatable;
 	float hitboxRadius;
+	// Minimum distance between an item and player before the item begins moving towards the player
+	float activationRadius;
 };
 
 /*
@@ -40,7 +44,7 @@ Item that heals the player.
 class HealthPackItem : public Item {
 public:
 	inline HealthPackItem() : Item() {}
-	inline HealthPackItem(Animatable animatable, float hitboxRadius) : Item(animatable, hitboxRadius) {}
+	inline HealthPackItem(Animatable animatable, float hitboxRadius, float activationRadius = 75.0f) : Item(animatable, hitboxRadius, activationRadius) {}
 
 	std::string format() override;
 	void load(std::string formattedString) override;
@@ -56,7 +60,7 @@ Item that powers up the player.
 class PowerPackItem : public Item {
 public:
 	inline PowerPackItem() : Item() {}
-	inline PowerPackItem(Animatable animatable, float hitboxRadius) : Item(animatable, hitboxRadius) {}
+	inline PowerPackItem(Animatable animatable, float hitboxRadius, float activationRadius = 75.0f) : Item(animatable, hitboxRadius, activationRadius) {}
 
 	std::string format() override;
 	void load(std::string formattedString) override;
@@ -72,7 +76,7 @@ Item that adds to total points.
 class PointsPackItem : public Item {
 public:
 	inline PointsPackItem() : Item() {}
-	inline PointsPackItem(Animatable animatable, float hitboxRadius) : Item(animatable, hitboxRadius) {}
+	inline PointsPackItem(Animatable animatable, float hitboxRadius, float activationRadius = 150.0f) : Item(animatable, hitboxRadius, activationRadius) {}
 
 	std::string format() override;
 	void load(std::string formattedString) override;

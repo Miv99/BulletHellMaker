@@ -22,8 +22,6 @@ const static int INITIAL_ENTITY_RESERVATION = 500000;
 // Additional amount of entities to reserve space for when current limit is exceeded
 const static int ENTITY_RESERVATION_INCREMENT = 50000;
 
-// Minimum distance between an item and player before the item begins moving towards the player
-const static float ITEM_ACTIVATION_RADIUS = 75.0f;
 // Time before an item despawns
 const static float ITEM_DESPAWN_TIME = 11.0f;
 

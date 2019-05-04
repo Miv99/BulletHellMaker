@@ -34,7 +34,6 @@ Notes for me:
 -Player invulnerability sprite effect animation is in CollisionSystem
 
 TODO:
--make item activation radius customizable
 -all default stuff (font, spritesheet, sounds, etc) are copied into every new level pack that is created so that no special code is needed to load
  from a default resource 
 -player hp bar can be smooth (similar to a progress bar; since it fills from middle out, must use 2 tgui::ProgressBars with LeftToRight and RightToLeft FillDirections)
