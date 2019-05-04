@@ -2,6 +2,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <SFML/Graphics.hpp>
 #include "TextMarshallable.h"
 #include "EntityAnimatableSet.h"
 #include "AudioPlayer.h"
@@ -58,6 +59,9 @@ public:
 	inline SoundSettings& getHurtSound() { return hurtSound; }
 	// Returns a reference
 	inline SoundSettings& getDeathSound() { return deathSound; }
+	inline bool getSmoothPlayerHPBar() { return smoothPlayerHPBar; }
+	inline sf::Color getPlayerHPBarColor() { return playerHPBarColor; }
+	inline Animatable getDiscretePlayerHPSprite() { return discretePlayerHPSprite; }
 
 	/*
 	Returns a reference to the power tier.
@@ -74,6 +78,9 @@ public:
 	inline void setInvulnerabilityTime(float invulnerabilityTime) { this->invulnerabilityTime = invulnerabilityTime; }
 	inline void insertPowerTier(int index, PlayerPowerTier powerTier) { powerTiers.insert(powerTiers.begin() + index, powerTier); }
 	inline void removePowerTier(int index) { powerTiers.erase(powerTiers.begin() + index); }
+	inline void setSmoothPlayerHPBar(bool smoothPlayerHPBar) { this->smoothPlayerHPBar = smoothPlayerHPBar; }
+	inline void setPlayerHPBarColor(sf::Color playerHPBarColor) { this->playerHPBarColor = playerHPBarColor; }
+	inline void setDiscretePlayerHPSprite(Animatable discretePlayerHPSprite) { this->discretePlayerHPSprite = discretePlayerHPSprite; }
 
 private:
 	int initialHealth;
@@ -98,4 +105,10 @@ private:
 
 	SoundSettings hurtSound;
 	SoundSettings deathSound;
+
+	// If this is true, the HP bar will be a progress bar. If false, there will be a discretePlayerHPSprite displayed for each health the player has. 
+	bool smoothPlayerHPBar = false;
+	sf::Color playerHPBarColor = sf::Color::Red;
+	// Must be a sprite. Only used if smoothPlayerHPBar is false.
+	Animatable discretePlayerHPSprite;
 };

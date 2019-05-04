@@ -1,6 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <entt/entt.hpp>
+#include <TGUI/TGUI.hpp>
 #include <memory>
 #include "MovementSystem.h"
 #include "RenderSystem.h"
@@ -61,6 +62,11 @@ private:
 	// Total amount of points earned so far across all past levels.
 	// Does not include points from the current level.
 	int points = 0;
+
+	std::shared_ptr<tgui::Gui> gui;
+	std::shared_ptr<tgui::Label> levelNameLabel;
+	std::shared_ptr<tgui::Label> scoreLabel;
+	std::shared_ptr<tgui::Label> powerLabel;
 
 	void createPlayer(EditorPlayer params);
 };

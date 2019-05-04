@@ -37,6 +37,11 @@ public:
 	inline float getDespawnTime() { return despawnTime; }
 	inline const std::vector<std::shared_ptr<DeathAction>> getDeathActions() { return deathActions; }
 	inline bool getIsBoss() { return isBoss; }
+	inline std::string getBossName() { return bossName; }
+	// Returns a reference
+	inline SoundSettings& getHurtSound() { return hurtSound; }
+	// Returns a reference
+	inline SoundSettings& getDeathSound() { return deathSound; }
 
 	inline void addDeathAction(std::shared_ptr<DeathAction> action) { deathActions.push_back(action); }
 	inline void removeDeathAction(int index) { deathActions.erase(deathActions.begin() + index); }
@@ -46,10 +51,7 @@ public:
 	inline void setHealth(int health) { this->health = health; }
 	inline void setDespawnTime(float despawnTime) { this->despawnTime = despawnTime; }
 	inline void setIsBoss(bool isBoss) { this->isBoss = isBoss; }
-	// Returns a reference
-	inline SoundSettings& getHurtSound() { return hurtSound; }
-	// Returns a reference
-	inline SoundSettings& getDeathSound() { return deathSound; }
+	inline void setBossName(std::string bossName) { this->bossName = bossName; }
 
 	inline void addPhaseID(int index, std::shared_ptr<EnemyPhaseStartCondition> startCondition, int phaseID, EntityAnimatableSet animatableSet) {
 		phaseIDs.insert(phaseIDs.begin() + index, std::make_tuple(startCondition, phaseID, animatableSet));
@@ -76,6 +78,7 @@ private:
 	std::vector<std::shared_ptr<DeathAction>> deathActions;
 
 	bool isBoss = false;
+	std::string bossName;
 
 	SoundSettings hurtSound;
 	SoundSettings deathSound;

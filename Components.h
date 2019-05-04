@@ -336,6 +336,9 @@ public:
 	inline float getInvulnerabilityTime() { return invulnerabilityTime; }
 	inline const SoundSettings& getHurtSound() { return hurtSound; }
 	inline const SoundSettings& getDeathSound() { return deathSound; }
+	inline int getCurrentPowerTierIndex() { return currentPowerTierIndex; }
+	int getPowerTierCount();
+	inline int getCurrentPower() { return currentPower; }
 
 	void increasePower(entt::DefaultRegistry& registry, uint32_t self, int power);
 	/*

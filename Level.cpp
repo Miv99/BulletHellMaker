@@ -14,7 +14,9 @@ std::string Level::format() {
 	res += "(" + pointPack->format() + ")" + delim;
 	res += "(" + powerPack->format() + ")" + delim;
 	res += "(" + musicSettings.format() + ")" + delim;
-	res += "(" + backgroundFileName + ")" + delim + tos(backgroundScrollSpeedX) + delim + tos(backgroundScrollSpeedY);
+	res += "(" + backgroundFileName + ")" + delim + tos(backgroundScrollSpeedX) + delim + tos(backgroundScrollSpeedY) + delim;
+	res += tos(bossNameColor.r) + delim + tos(bossNameColor.g) + delim + tos(bossNameColor.b) + delim + tos(bossNameColor.a);
+	res += tos(bossHPBarColor.r) + delim + tos(bossHPBarColor.g) + delim + tos(bossHPBarColor.b) + delim + tos(bossHPBarColor.a);
 	return res;
 }
 
@@ -43,6 +45,8 @@ void Level::load(std::string formattedString) {
 	backgroundFileName = items[i++];
 	backgroundScrollSpeedX = std::stof(items[i++]);
 	backgroundScrollSpeedY = std::stof(items[i++]);
+	bossNameColor = sf::Color(std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]));
+	bossHPBarColor = sf::Color(std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]));
 }
 
 bool Level::legal(std::string & message) {

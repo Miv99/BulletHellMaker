@@ -22,6 +22,7 @@ std::string EditorEnemy::format() {
 	}
 	res += delim + "(" + hurtSound.format() + ")";
 	res += delim + "(" + deathSound.format() + ")";
+	res += delim + "(" + bossName + ")";
 	return res;
 }
 
@@ -50,6 +51,7 @@ void EditorEnemy::load(std::string formattedString) {
 	}
 	hurtSound.load(items[i++]);
 	deathSound.load(items[i++]);
+	bossName = items[i++];
 }
 
 bool EditorEnemy::legal(std::string& message) {

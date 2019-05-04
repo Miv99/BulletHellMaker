@@ -3,6 +3,7 @@
 #include <utility>
 #include <string>
 #include <entt/entt.hpp>
+#include <SFML/Graphics.hpp>
 #include <memory>
 #include "EnemySpawnCondition.h"
 #include "EnemySpawn.h"
@@ -33,6 +34,8 @@ public:
 	inline std::string getBackgroundFileName() { return backgroundFileName; }
 	inline float getBackgroundScrollSpeedX() { return backgroundScrollSpeedX; }
 	inline float getBackgroundScrollSpeedY() { return backgroundScrollSpeedY; }
+	inline sf::Color getBossNameColor() { return bossNameColor; }
+	inline sf::Color getBossHPBarColor() { return bossHPBarColor; }
 
 	inline void setName(std::string name) { this->name = name; }
 	inline void setHealthPack(std::shared_ptr<HealthPackItem> healthPack) { this->healthPack = healthPack; }
@@ -41,6 +44,8 @@ public:
 	inline void setBackgroundFileName(std::string backgroundFileName) { this->backgroundFileName = backgroundFileName; }
 	inline void setBackgroundScrollSpeedX(float backgroundScrollSpeedX) { this->backgroundScrollSpeedX = backgroundScrollSpeedX; }
 	inline void setBackgroundScrollSpeedY(float backgroundScrollSpeedY) { this->backgroundScrollSpeedY = backgroundScrollSpeedY; }
+	inline void setBossNameColor(sf::Color bossNameColor) { this->bossNameColor = bossNameColor; }
+	inline void setBossHPBarColor(sf::Color bossHPBarColor) { this->bossHPBarColor = bossHPBarColor; }
 
 	// Inserts a spawn condition and enemies such that the new condition and enemies are at the specified index
 	inline void insertEnemySpawns(int conditionIndex, std::shared_ptr<EnemySpawnCondition> spawnCondition, std::vector<EnemySpawnInfo> enemies) {
@@ -73,4 +78,9 @@ private:
 	std::string backgroundFileName;
 	float backgroundScrollSpeedX = 0;
 	float backgroundScrollSpeedY = 0;
+
+	// Boss name and hp bar colors are in Level instead of in Enemy because they are drawn in the playing area, 
+	// on top of the background, so they should be up to Level to decide
+	sf::Color bossNameColor = sf::Color::White;
+	sf::Color bossHPBarColor = sf::Color::Red;
 };

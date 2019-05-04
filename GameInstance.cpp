@@ -3,6 +3,7 @@
 #include <map>
 #include <fstream>
 #include <vector>
+#include <boost/format.hpp>
 #include "SpriteLoader.h"
 #include "TextFileParser.h"
 #include "Components.h"
@@ -34,6 +35,39 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 	shadowTrailSystem = std::make_unique<ShadowTrailSystem>(*queue, registry);
 	playerSystem = std::make_unique<PlayerSystem>(*levelPack, *queue, *spriteLoader, registry);
 	collectibleSystem = std::make_unique<CollectibleSystem>(*queue, registry);
+
+	// GUI stuff
+	// Note: "GUI region" refers to the right side of the window that doesn't contain the stuff from RenderSystem
+	gui = std::make_shared<tgui::Gui>(window);
+	gui->setFont(tgui::Font("Level Packs\\" + levelPack->getName() + "\\" + levelPack->getFontFileName()));
+	float guiRegionWidth = window.getSize().x * (MAP_HEIGHT - MAP_WIDTH) / view.getSize().x;
+	float guiRegionHeight = window.getSize().y;
+	// x-coord of left side of GUI region
+	float guiRegionX = window.getSize().x - guiRegionWidth;
+	float guiPaddingX = guiRegionWidth * 0.05f;
+	float guiPaddingY = guiRegionHeight * 0.03f;
+
+	// Level name label
+	levelNameLabel = tgui::Label::create();
+	levelNameLabel->setTextSize(26);
+	levelNameLabel->setAutoSize(true);
+	levelNameLabel->setMaximumTextWidth(guiRegionWidth - guiPaddingX * 2.0f);
+	levelNameLabel->setPosition({guiRegionX + guiPaddingX, guiPaddingY});
+	gui->add(levelNameLabel);
+
+	// Score label
+	scoreLabel = tgui::Label::create();
+	scoreLabel->setTextSize(24);
+	scoreLabel->setMaximumTextWidth(0);
+	scoreLabel->setPosition({ tgui::bindLeft(levelNameLabel), tgui::bindBottom(levelNameLabel) + guiPaddingY });
+	gui->add(scoreLabel);
+
+	// Power label
+	powerLabel = tgui::Label::create();
+	powerLabel->setTextSize(24);
+	powerLabel->setMaximumTextWidth(0);
+	powerLabel->setPosition({ tgui::bindLeft(scoreLabel), tgui::bindBottom(scoreLabel) + guiPaddingY });
+	gui->add(powerLabel);
 }
 
 void GameInstance::physicsUpdate(float deltaTime) {
@@ -71,11 +105,23 @@ void GameInstance::render(float deltaTime) {
 		spriteAnimationSystem->update(deltaTime);
 	}
 	renderSystem->update(deltaTime);
+	
+	scoreLabel->setText((boost::format("Score\n%010d") % (points + registry.get<LevelManagerTag>().getPoints())).str());
+	auto& playerTag = registry.get<PlayerTag>();
+	if (playerTag.getCurrentPower() == POWER_PER_POWER_PACK) {
+		powerLabel->setText("Power (Lv. " + std::to_string(playerTag.getPowerTierCount()) + ")\nMAX");
+	} else {
+		powerLabel->setText("Power (Lv. " + std::to_string(playerTag.getPowerTierCount()) + ")\n" + std::to_string(playerTag.getCurrentPower()) + "/" + std::to_string(POWER_PER_POWER_PACK));
+	}
+	gui->draw();
 }
 
 void GameInstance::startLevel(int levelIndex) {
 	paused = false;
 	std::shared_ptr<Level> level = levelPack->getLevel(levelIndex);
+
+	// Update relevant gui elements
+	levelNameLabel->setText(level->getName());
 
 	// Remove all existing entities from the registry
 	registry.reset();

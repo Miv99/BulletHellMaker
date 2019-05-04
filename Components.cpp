@@ -363,6 +363,10 @@ PlayerTag::PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack
 	registry.get<AnimatableSetComponent>(self).setAnimatableSet(powerTiers[currentPowerTierIndex].getAnimatableSet());
 }
 
+int PlayerTag::getPowerTierCount() {
+	return powerTiers.size();
+}
+
 void PlayerTag::increasePower(entt::DefaultRegistry& registry, uint32_t self, int power) {
 	if (currentPower + power >= POWER_PER_POWER_TIER) {
 		if (currentPowerTierIndex + 1 < powerTiers.size()) {

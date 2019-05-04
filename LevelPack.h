@@ -110,8 +110,10 @@ public:
 	inline std::shared_ptr<EditorEnemyPhase> getEnemyPhase(int id) const { return enemyPhases.at(id); }
 	inline std::shared_ptr<BulletModel> getBulletModel(int id) const { return bulletModels.at(id); }
 	inline EditorPlayer getPlayer() { return metadata.getPlayer(); }
+	inline std::string getFontFileName() { return fontFileName; }
 
 	inline void setPlayer(EditorPlayer player) { metadata.setPlayer(player); }
+	inline void setFontFileName(std::string fontFileName) { this->fontFileName = fontFileName; }
 
 	float searchLargestHitbox();
 
@@ -143,4 +145,6 @@ private:
 	std::map<int, std::shared_ptr<EditorEnemyPhase>> enemyPhases;
 	// bullet model id : bullet model
 	std::map<int, std::shared_ptr<BulletModel>> bulletModels;
+
+	std::string fontFileName = "font.ttf";
 };

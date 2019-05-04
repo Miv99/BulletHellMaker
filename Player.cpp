@@ -7,6 +7,13 @@ std::string EditorPlayer::format() {
 	}
 	ret += delim + "(" + hurtSound.format() + ")";
 	ret += delim + "(" + deathSound.format() + ")";
+	if (smoothPlayerHPBar) {
+		ret += "1" + delim;
+	} else {
+		ret += "0" + delim;
+	}
+	ret += tos(playerHPBarColor.r) + delim + tos(playerHPBarColor.g) + delim + tos(playerHPBarColor.b) + delim + tos(playerHPBarColor.a);
+	ret += "(" + discretePlayerHPSprite.format() + ")";
 	return ret;
 }
 
@@ -28,6 +35,13 @@ void EditorPlayer::load(std::string formattedString) {
 	}
 	hurtSound.load(items[i++]);
 	deathSound.load(items[i++]);
+	if (std::stoi(items[i++]) == 1) {
+		smoothPlayerHPBar = true;
+	} else {
+		smoothPlayerHPBar = false;
+	}
+	playerHPBarColor = sf::Color(std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]));
+	discretePlayerHPSprite.load(items[i++]);
 }
 
 std::string PlayerPowerTier::format() {
