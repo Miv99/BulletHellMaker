@@ -108,10 +108,10 @@ void GameInstance::render(float deltaTime) {
 	
 	scoreLabel->setText((boost::format("Score\n%010d") % (points + registry.get<LevelManagerTag>().getPoints())).str());
 	auto& playerTag = registry.get<PlayerTag>();
-	if (playerTag.getCurrentPower() == POWER_PER_POWER_PACK) {
+	if (playerTag.getCurrentPowerTierIndex() == playerTag.getPowerTierCount() - 1) {
 		powerLabel->setText("Power (Lv. " + std::to_string(playerTag.getPowerTierCount()) + ")\nMAX");
 	} else {
-		powerLabel->setText("Power (Lv. " + std::to_string(playerTag.getPowerTierCount()) + ")\n" + std::to_string(playerTag.getCurrentPower()) + "/" + std::to_string(POWER_PER_POWER_PACK));
+		powerLabel->setText("Power (Lv. " + std::to_string(playerTag.getCurrentPowerTierIndex() + 1) + ")\n" + std::to_string(playerTag.getCurrentPower()) + "/" + std::to_string(POWER_PER_POWER_TIER));
 	}
 	gui->draw();
 }
