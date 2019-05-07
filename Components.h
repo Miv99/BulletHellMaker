@@ -5,6 +5,7 @@
 #include <queue>
 #include <vector>
 #include <math.h>
+#include <tuple>
 #include <cassert>
 #include <limits>
 #include <string>
@@ -109,17 +110,11 @@ public:
 	/*
 	Take damage and returns true if health goes below 0.
 	*/
-	inline bool takeDamage(int damage) {
-		health -= damage;
-		return health <= 0;
-	}
+	bool takeDamage(int damage);
 
-	inline void heal(int amount) {
-		health += amount;
-		if (health > maxHealth) {
-			health = maxHealth;
-		}
-	}
+	void heal(int amount);
+
+	std::shared_ptr<entt::SigH<void(int, int)>> getHPChangeSignal();
 
 	inline int getHealth() const { return health; }
 	inline int getMaxHealth() const { return maxHealth; }
@@ -129,6 +124,13 @@ public:
 private:
 	int health;
 	int maxHealth;
+
+	std::shared_ptr<entt::SigH<void(int, int)>> onHealthChangeSignal;
+
+	/*
+	Should be called whenever health or max health changes.
+	*/
+	void onHealthChange();
 };
 
 /*
@@ -353,6 +355,8 @@ public:
 		return temp;
 	}
 
+	std::shared_ptr<entt::SigH<void(int, int, int)>> getPowerChangeSignal();
+
 private:
 	float speed;
 	float focusedSpeed;
@@ -378,6 +382,12 @@ private:
 
 	SoundSettings hurtSound;
 	SoundSettings deathSound;
+
+	/*
+	Should be called whenever anything related to power or power tiers changes.
+	*/
+	void onPowerChange();
+	std::shared_ptr<entt::SigH<void(int, int, int)>> powerChangeSignal;
 };
 
 class EnemyComponent {
@@ -506,11 +516,20 @@ public:
 	inline int getPoints() { return points; }
 	inline std::shared_ptr<Level> getLevel() { return level; }
 	LevelPack* getLevelPack();
+	std::shared_ptr<entt::SigH<void(int)>> getPointsChangeSignal();
 
 	inline void setTimeSinceLastEnemySpawn(float timeSinceLastEnemySpawn) { this->timeSinceLastEnemySpawn = timeSinceLastEnemySpawn; }
 
-	inline void addPoints(int amount) { points += amount; }
-	inline void subtractPoints(int amount) { points -= amount; if (points < 0) points = 0; }
+	inline void addPoints(int amount) { 
+		points += amount;
+		onPointsChange();
+	}
+	inline void subtractPoints(int amount) {
+		points -= amount; 
+		if (points < 0) points = 0; 
+		onPointsChange();
+	}
+	void onPointsChange();
 
 private:
 	LevelPack* levelPack;
@@ -527,6 +546,8 @@ private:
 
 	// Points earned so far
 	int points = 0;
+
+	std::shared_ptr<entt::SigH<void(int)>> pointsChangeSignal;
 };
 
 class EnemyBulletComponent {

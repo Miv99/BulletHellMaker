@@ -389,6 +389,21 @@ void PlayerTag::increasePower(entt::DefaultRegistry& registry, uint32_t self, in
 	} else {
 		currentPower += power;
 	}
+	onPowerChange();
+}
+
+void PlayerTag::onPowerChange() {
+	if (powerChangeSignal) {
+		powerChangeSignal->publish(currentPowerTierIndex, powerTiers.size(), currentPower);
+	}
+}
+
+std::shared_ptr<entt::SigH<void(int, int, int)>> PlayerTag::getPowerChangeSignal() {
+	if (powerChangeSignal) {
+		return powerChangeSignal;
+	}
+	powerChangeSignal = std::make_shared<entt::SigH<void(int, int, int)>>();
+	return powerChangeSignal;
 }
 
 void CollectibleComponent::update(EntityCreationQueue& queue, entt::DefaultRegistry & registry, uint32_t entity, const PositionComponent& entityPos, const HitboxComponent& entityHitbox) {
@@ -452,4 +467,46 @@ BULLET_ON_COLLISION_ACTION PlayerBulletComponent::getOnCollisionAction() {
 
 LevelPack* LevelManagerTag::getLevelPack() {
 	return levelPack;
+}
+
+std::shared_ptr<entt::SigH<void(int)>> LevelManagerTag::getPointsChangeSignal() {
+	if (pointsChangeSignal) {
+		return pointsChangeSignal;
+	}
+	pointsChangeSignal = std::make_shared<entt::SigH<void(int)>>();
+	return pointsChangeSignal;
+}
+
+void LevelManagerTag::onPointsChange() {
+	if (pointsChangeSignal) {
+		pointsChangeSignal->publish(points);
+	}
+}
+
+bool HealthComponent::takeDamage(int damage) {
+	health -= damage;
+	onHealthChange();
+	return health <= 0;
+}
+
+void HealthComponent::heal(int amount) {
+	health += amount;
+	if (health > maxHealth) {
+		health = maxHealth;
+	}
+	onHealthChange();
+}
+
+std::shared_ptr<entt::SigH<void(int, int)>> HealthComponent::getHPChangeSignal() {
+	if (onHealthChangeSignal) {
+		return onHealthChangeSignal;
+	}
+	onHealthChangeSignal = std::make_shared<entt::SigH<void(int, int)>>();
+	return onHealthChangeSignal;
+}
+
+void HealthComponent::onHealthChange() {
+	if (onHealthChangeSignal) {
+		onHealthChangeSignal->publish(health, maxHealth);
+	}
 }

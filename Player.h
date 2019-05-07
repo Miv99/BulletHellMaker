@@ -41,7 +41,10 @@ class EditorPlayer : public TextMarshallable {
 public:
 	inline EditorPlayer() {}
 	inline EditorPlayer(float initialHealth, float maxHealth, float speed, float focusedSpeed, float hitboxRadius, float hitboxPosX, float hitboxPosY, float invulnerabilityTime, std::vector<PlayerPowerTier> powerTiers, SoundSettings hurtSound, SoundSettings deathSound) : 
-		initialHealth(initialHealth), maxHealth(maxHealth), speed(speed), focusedSpeed(focusedSpeed), hitboxRadius(hitboxRadius), hitboxPosX(hitboxPosX), hitboxPosY(hitboxPosY), invulnerabilityTime(invulnerabilityTime), powerTiers(powerTiers), hurtSound(hurtSound), deathSound(deathSound) {}
+		initialHealth(initialHealth), maxHealth(maxHealth), speed(speed), focusedSpeed(focusedSpeed), hitboxRadius(hitboxRadius), hitboxPosX(hitboxPosX), hitboxPosY(hitboxPosY), invulnerabilityTime(invulnerabilityTime), powerTiers(powerTiers), hurtSound(hurtSound), deathSound(deathSound), smoothPlayerHPBar(true) {}
+	inline EditorPlayer(float initialHealth, float maxHealth, float speed, float focusedSpeed, float hitboxRadius, float hitboxPosX, float hitboxPosY, float invulnerabilityTime, std::vector<PlayerPowerTier> powerTiers, SoundSettings hurtSound, SoundSettings deathSound, Animatable discretePlayerHPSprite) :
+		initialHealth(initialHealth), maxHealth(maxHealth), speed(speed), focusedSpeed(focusedSpeed), hitboxRadius(hitboxRadius), hitboxPosX(hitboxPosX), hitboxPosY(hitboxPosY), invulnerabilityTime(invulnerabilityTime), powerTiers(powerTiers), hurtSound(hurtSound), deathSound(deathSound), smoothPlayerHPBar(false), discretePlayerHPSprite(discretePlayerHPSprite) {
+	}
 
 	std::string format() override;
 	void load(std::string formattedString) override;

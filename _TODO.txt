@@ -36,8 +36,6 @@ Notes for me:
 TODO:
 -all default stuff (font, spritesheet, sounds, etc) are copied into every new level pack that is created so that no special code is needed to load
  from a default resource 
--player hp bar can be smooth (similar to a progress bar; since it fills from middle out, must use 2 tgui::ProgressBars with LeftToRight and RightToLeft FillDirections)
- or discrete (draw an image for each life player has; limit its width and height; tgui::Picture)
 -boss name color, boss hp bar color, player hp bar color (health image if using discrete player hp bar) are options in Level
 -draw all GUI related text to a tgui::Canvas, using a shader that creates a text border
 -bosses can only be spawned if the condition is that there are 0 enemies so that there can only be 1 boss at a time
