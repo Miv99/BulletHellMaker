@@ -94,6 +94,14 @@ private:
 	// Label for player HP
 	std::shared_ptr<tgui::Label> playerHPLabel;
 
+	// Same as discrete player HP bar, but for bombs
+	float bombPictureSize;
+	std::vector<std::shared_ptr<tgui::Picture>> bombPictures;
+	int bombPicturesInGrid = 0;
+	std::shared_ptr<tgui::Grid> bombPictureGrid;
+	const float bombGridPadding = playerHPGridPadding;
+	std::shared_ptr<tgui::Label> bombLabel;
+
 	/*
 	newHP - the player's new health
 	*/
@@ -106,6 +114,10 @@ private:
 	info - a tuple of player's current power tier index, player's total power tier count, and player's current power, in that order
 	*/
 	void onPlayerPowerLevelChange(int powerLevelIndex, int powerLevelMaxTierCount, int powerLevel);
+	/*
+	bombs - the player's new amount of bombs
+	*/
+	void onPlayerBombCountChange(int newBombCount);
 
 	void createPlayer(EditorPlayer params);
 };

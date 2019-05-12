@@ -2,15 +2,39 @@
 #include "Constants.h"
 
 void PlayerSystem::update(float deltaTime) {
-	uint32_t playerEntity = registry.attachee<PlayerTag>();
 	auto& playerTag = registry.get<PlayerTag>();
-	if (playerTag.justIncreasedPowerTier()) {
-		timeSinceNewAttackPattern = 0;
-		currentAttackIndex = -1;
+
+	int verticalInput = 0;
+	int horizontalInput = 0;
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
+		verticalInput++;
 	}
-	float speed = focused ? playerTag.getFocusedSpeed() : playerTag.getSpeed();
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
+		verticalInput--;
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
+		horizontalInput--;
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
+		horizontalInput++;
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
+		playerTag.setFocused(true);
+	} else {
+		playerTag.setFocused(false);
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z)) {
+		playerTag.setAttacking(true);
+	} else {
+		playerTag.setAttacking(false);
+	}
+
+	uint32_t playerEntity = registry.attachee<PlayerTag>();
+
+	playerTag.update(deltaTime, levelPack, queue, spriteLoader, registry, playerEntity);
 
 	// Movement
+	float speed = playerTag.getFocused() ? playerTag.getFocusedSpeed() : playerTag.getSpeed();
 	auto& pos = registry.get<PositionComponent>(playerEntity);
 	float prevX = pos.getX();
 	float prevY = pos.getY();
@@ -41,93 +65,16 @@ void PlayerSystem::update(float deltaTime) {
 	} else if (pos.getY() + hitbox.getY() > MAP_HEIGHT) {
 		pos.setY(MAP_HEIGHT);
 	}
-
-	// Attack
-	if (attacking) {
-		auto currentAttackPattern = focused ? playerTag.getFocusedAttackPattern() : playerTag.getAttackPattern();
-		float attackPatternTotalTime = focused ? playerTag.getFocusedAttackPatternTotalTime() : playerTag.getAttackPatternTotalTime();
-		timeSinceNewAttackPattern += deltaTime;
-
-		while (currentAttackIndex + 1 < currentAttackPattern->getAttacksCount()) {
-			auto nextAttack = currentAttackPattern->getAttackData(currentAttackIndex + 1);
-			if (timeSinceNewAttackPattern >= nextAttack.first) {
-				currentAttackIndex++;
-				levelPack.getAttack(nextAttack.second)->executeAsPlayer(queue, spriteLoader, registry, playerEntity, timeSinceNewAttackPattern - nextAttack.first, currentAttackPattern->getID());
-			} else {
-				break;
-			}
-		}
-		if (currentAttackIndex + 1 == currentAttackPattern->getAttacksCount()) {
-			while (timeSinceNewAttackPattern >= attackPatternTotalTime) {
-				timeSinceNewAttackPattern -= attackPatternTotalTime;
-				currentAttackIndex = -1;
-			}
-		}
-	}
 }
 
 void PlayerSystem::handleEvent(sf::Event event) {
 	if (event.type == sf::Event::KeyPressed) {
-		if (event.key.code == sf::Keyboard::Up) {
-			verticalInput++;
-		} else if (event.key.code == sf::Keyboard::Down) {
-			verticalInput--;
-		} else if (event.key.code == sf::Keyboard::Left) {
-			horizontalInput--;
-		} else if (event.key.code == sf::Keyboard::Right) {
-			horizontalInput++;
-		} else if (event.key.code == sf::Keyboard::LShift) {
-			focused = true;
-			timeSinceNewAttackPattern = 0;
-			currentAttackIndex = -1;
-		} else if (event.key.code == sf::Keyboard::Z) {
-			attacking = true;
-			timeSinceNewAttackPattern = 0;
-			currentAttackIndex = -1;
-		}
-	} else if (event.type == sf::Event::KeyReleased) {
-		if (event.key.code == sf::Keyboard::Up) {
-			verticalInput--;
-		} else if (event.key.code == sf::Keyboard::Down) {
-			verticalInput++;
-		} else if (event.key.code == sf::Keyboard::Left) {
-			horizontalInput++;
-		} else if (event.key.code == sf::Keyboard::Right) {
-			horizontalInput--;
-		} else if (event.key.code == sf::Keyboard::LShift) {
-			focused = false;
-			timeSinceNewAttackPattern = 0;
-			currentAttackIndex = -1;
-		} else if (event.key.code == sf::Keyboard::Z) {
-			attacking = false;
-			timeSinceNewAttackPattern = 0;
-			currentAttackIndex = -1;
+		if (event.key.code == sf::Keyboard::X) {
+			registry.get<PlayerTag>().activateBomb();
 		}
 	}
 }
 
 void PlayerSystem::onResume() {
-	verticalInput = 0;
-	horizontalInput = 0;
-	focused = false;
-	attacking = false;
-
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-		verticalInput++;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-		verticalInput--;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-		horizontalInput--;
-	} 
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-		horizontalInput++;
-	} 
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
-		focused = true;
-	} 
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z)) {
-		attacking = true;
-	}
+	
 }

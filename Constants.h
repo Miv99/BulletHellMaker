@@ -31,6 +31,8 @@ const static int POWER_PER_POWER_PACK = 1;
 
 // Points for every power received after reaching the maximum
 const static int POINTS_PER_EXTRA_POWER = POINTS_PER_POINTS_PACK;
+// Points for every bomb received after reaching the maximum
+const static int POINTS_PER_EXTRA_BOMB = POINTS_PER_POINTS_PACK * 20;
 
 const static int POWER_PER_POWER_TIER = 50;
 

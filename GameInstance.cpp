@@ -71,6 +71,33 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 	powerLabel->setPosition({ tgui::bindLeft(scoreLabel), tgui::bindBottom(scoreLabel) + guiPaddingY });
 	gui->add(powerLabel);
 
+	// Bomb grid
+	sf::Texture bombTexture;
+	if (!bombTexture.loadFromFile("Level Packs\\" + levelPack->getName() + "\\" + levelPack->getPlayer().getBombSprite().getAnimatableName())) {
+		//TODO: error handling
+	}
+	// Bomb picture can be a maximum size of 3% of guiRegionHeight
+	bombPictureSize = std::min(guiRegionHeight * 0.03f, (guiRegionWidth - guiPaddingX * 2) / levelPack->getPlayer().getMaxBombs());
+
+	bombPictures.clear();
+	for (int i = 0; i < levelPack->getPlayer().getMaxHealth(); i++) {
+		auto bombPicture = tgui::Picture::create(bombTexture);
+		bombPicture->setSize(bombPictureSize, bombPictureSize);
+		bombPictures.push_back(bombPicture);
+	}
+	bombPictureGrid = tgui::Grid::create();
+	bombPictureGrid->setPosition(guiRegionX + guiPaddingX, guiRegionHeight - bombPictureSize - guiPaddingY);
+	gui->add(bombPictureGrid);
+	bombPicturesInGrid = 0;
+
+	// Bomb label
+	bombLabel = tgui::Label::create();
+	bombLabel->setTextSize(24);
+	bombLabel->setMaximumTextWidth(0);
+	bombLabel->setText("Bombs");
+	bombLabel->setPosition({ tgui::bindLeft(bombPictureGrid), tgui::bindTop(bombPictureGrid) - bombLabel->getSize().y });
+	gui->add(bombLabel);
+
 	if (smoothPlayerHPBar) {
 		// Progress bar for player HP
 		playerHPProgressBar = tgui::ProgressBar::create();
@@ -99,7 +126,7 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 			playerHPPictures.push_back(playerHPPicture);
 		}
 		playerHPPictureGrid = tgui::Grid::create();
-		playerHPPictureGrid->setPosition(guiRegionX + guiPaddingX, guiRegionHeight - playerHPPictureSize - guiPaddingY);
+		playerHPPictureGrid->setPosition({ tgui::bindLeft(bombPictureGrid), tgui::bindTop(bombLabel) - guiPaddingY - playerHPPictureGrid->getSize().y });
 		gui->add(playerHPPictureGrid);
 		hpPicturesInGrid = 0;
 
@@ -147,6 +174,7 @@ void GameInstance::render(float deltaTime) {
 		spriteAnimationSystem->update(deltaTime);
 	}
 	renderSystem->update(deltaTime);
+
 	gui->draw();
 }
 
@@ -192,6 +220,7 @@ void GameInstance::startLevel(int levelIndex) {
 	onPlayerHPChange(registry.get<HealthComponent>(registry.attachee<PlayerTag>()).getHealth(), registry.get<HealthComponent>(registry.attachee<PlayerTag>()).getMaxHealth());
 	onPlayerPowerLevelChange(registry.get<PlayerTag>().getCurrentPowerTierIndex(), registry.get<PlayerTag>().getPowerTierCount(), registry.get<PlayerTag>().getCurrentPower());
 	onPointsChange(levelManagerTag.getPoints());
+	onPlayerBombCountChange(registry.get<PlayerTag>().getBombCount());
 
 	resume();
 }
@@ -220,7 +249,7 @@ void GameInstance::onPlayerHPChange(int newHP, int maxHP) {
 		playerHPProgressBar->setText(std::to_string(newHP) + "/" + std::to_string(maxHP));
 	} else {
 		if (hpPicturesInGrid < newHP) {
-			for (int i = hpPicturesInGrid; i < newHP + hpPicturesInGrid; i++) {
+			for (int i = hpPicturesInGrid; i < newHP; i++) {
 				playerHPPictureGrid->addWidget(playerHPPictures[i], 0, i);
 				playerHPPictureGrid->setWidgetPadding(0, i, tgui::Padding(playerHPGridPadding, playerHPGridPadding, playerHPGridPadding, playerHPGridPadding));
 			}
@@ -247,6 +276,22 @@ void GameInstance::onPlayerPowerLevelChange(int powerLevelIndex, int powerLevelM
 	}
 }
 
+void GameInstance::onPlayerBombCountChange(int newBombCount) {
+	if (bombPicturesInGrid < newBombCount) {
+		for (int i = bombPicturesInGrid; i < newBombCount; i++) {
+			bombPictureGrid->addWidget(bombPictures[i], 0, i);
+			bombPictureGrid->setWidgetPadding(0, i, tgui::Padding(bombGridPadding, bombGridPadding, bombGridPadding, bombGridPadding));
+		}
+	} else {
+		bombPictureGrid->removeAllWidgets();
+		for (int i = 0; i < newBombCount; i++) {
+			bombPictureGrid->addWidget(bombPictures[i], 0, i);
+			bombPictureGrid->setWidgetPadding(0, i, tgui::Padding(bombGridPadding, bombGridPadding, bombGridPadding, bombGridPadding));
+		}
+	}
+	bombPicturesInGrid = newBombCount;
+}
+
 void GameInstance::createPlayer(EditorPlayer params) {
 	registry.reserve(1);
 	registry.reserve<PlayerTag>(1);
@@ -258,7 +303,8 @@ void GameInstance::createPlayer(EditorPlayer params) {
 
 	auto player = registry.create();
 	registry.assign<AnimatableSetComponent>(player);
-	auto& playerTag = registry.assign<PlayerTag>(entt::tag_t{}, player, registry, *levelPack, player, params.getSpeed(), params.getFocusedSpeed(), params.getInvulnerabilityTime(), params.getPowerTiers(), params.getHurtSound(), params.getDeathSound());
+	auto& playerTag = registry.assign<PlayerTag>(entt::tag_t{}, player, registry, *levelPack, player, params.getSpeed(), params.getFocusedSpeed(), params.getInvulnerabilityTime(),
+		params.getPowerTiers(), params.getHurtSound(), params.getDeathSound(), params.getInitialBombs(), params.getMaxBombs());
 	auto& health = registry.assign<HealthComponent>(player, params.getInitialHealth(), params.getMaxHealth());
 	// Hitbox temporarily at 0, 0 until an Animatable is assigned to the player later
 	registry.assign<HitboxComponent>(player, LOCK_ROTATION, params.getHitboxRadius(), 0, 0);
@@ -267,4 +313,5 @@ void GameInstance::createPlayer(EditorPlayer params) {
 
 	health.getHPChangeSignal()->sink().connect<GameInstance, &GameInstance::onPlayerHPChange>(this);
 	playerTag.getPowerChangeSignal()->sink().connect<GameInstance, &GameInstance::onPlayerPowerLevelChange>(this);
+	playerTag.getBombCountChangeSignal()->sink().connect<GameInstance, &GameInstance::onPlayerBombCountChange>(this);
 }

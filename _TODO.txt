@@ -33,7 +33,15 @@ Notes for me:
 -Item path is in Components::CollectibleComponent::update and EntityCreationQueue::EMPDropItemCommand::execute
 -Player invulnerability sprite effect animation is in CollisionSystem
 
+bomb gui
+
 TODO:
+-EMPAngleOffset that evaluates to the angle of the player's hitbox (used for attacks that face some direction)
+-BULLET_ON_COLLISION_ACTION that pierces entities but cannot hit the same entity twice
+-make EMPAngleOffset also work with bezier curves by rotating all points around 0,0 by that evaluated angle
+-bombs are just attack patterns whose bullets can delete enemy bullets (some special DeathAction)
+	-bomb sprites in GUI turn from 0->100 opacity as bomb goes off cooldown; play some sound when completely off cooldown and >0 bombs remaining
+-have some default attack patterns (https://www.youtube.com/watch?v=xbQ9e0zYuj4)
 -all default stuff (font, spritesheet, sounds, etc) are copied into every new level pack that is created so that no special code is needed to load
  from a default resource 
 -boss name color, boss hp bar color, player hp bar color (health image if using discrete player hp bar) are options in Level
@@ -49,7 +57,13 @@ TODO:
 	-Due to the user-unfriendliness of text-marshalled files, this should only be done if an image viewer can be implemented in the editor
 	 that can zoom in and make rectangles so that the user has full control of 
 	  setting origin/rectangle_coords/everything_field_in_sprite_sheet_metadata in the editor
-
+-Editor features
+	-"Rotate bullet path": user can select multiple EMPActions (even across different bullets) and rotate them
+		-for MoveCustomPolarEMPA, this just wraps the angle TFV in a TranslationWrapperTFV (remember to combine the TFVs if the angle TFV is already a TranslationWrapperTFV)
+		-for MoveCustomBezierEMPA, this rotates all control points about (0, 0)
+		-for all other EMPAs, do nothing
+	-"Set bullet model": user can select multiple EMPs and set their bullet models
+	  
 // ------------------------------------------------------------------------------------------------------------------------------------------------
 editable = attack/attack pattern/emp/enemy/enemyphase/player
 id-editable = attack/attack pattern/enemy/enemyphase

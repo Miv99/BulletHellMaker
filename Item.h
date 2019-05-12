@@ -71,6 +71,22 @@ public:
 };
 
 /*
+Item that gives the player a bomb.
+*/
+class BombItem : public Item {
+public:
+	inline BombItem() : Item() {}
+	inline BombItem(Animatable animatable, float hitboxRadius, float activationRadius = 75.0f) : Item(animatable, hitboxRadius, activationRadius) {}
+
+	std::string format() override;
+	void load(std::string formattedString) override;
+
+	inline void onPlayerContact(entt::DefaultRegistry& registry, uint32_t player) {
+		registry.get<PlayerTag>().gainBombs(registry, 1);
+	}
+};
+
+/*
 Item that adds to total points.
 */
 class PointsPackItem : public Item {

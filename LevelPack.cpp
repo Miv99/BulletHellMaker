@@ -127,6 +127,19 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	p2emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 1.1f), std::make_shared<ConstantTFV>(PI / 2.0f), 1.1f));
 	playerFocusedAP->addAttackID(1.0f, playerAttack2->getID());
 
+	auto bombAP = createAttackPattern();
+	for (int i = 0; i < 10; i++) {
+		auto bombAttack1 = createAttack();
+		auto b1emp0 = bombAttack1->searchEMP(0);
+		b1emp0->setAnimatable(Animatable("Bullet", "sheet1", true, LOCK_ROTATION));
+		b1emp0->setHitboxRadius(30);
+		b1emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
+		b1emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 1000, 2), std::make_shared<ConstantTFV>(1.0f + i*0.13f), 2.0f));
+		//TODO change this to piercing
+		b1emp0->setOnCollisionAction(DESTROY_THIS_BULLET_ONLY);
+		bombAP->addAttackID(0, bombAttack1->getID());
+	}
+
 	auto pset1 = e1set;
 	auto pset2 = EntityAnimatableSet(Animatable("Megaman idle", "sheet1", false, ROTATE_WITH_MOVEMENT),
 		Animatable("Megaman movement", "sheet1", false, ROTATE_WITH_MOVEMENT),
@@ -138,6 +151,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	//items.push_back(std::make_pair(std::make_shared<PointsPackItem>(Animatable("Points", "sheet1", true, LOCK_ROTATION), 25), 6));
 	items.push_back(std::make_pair(std::make_shared<PointsPackItem>(Animatable("Points", "sheet1", true, LOCK_ROTATION), 33, 150.0f), 30));
 	items.push_back(std::make_pair(std::make_shared<PowerPackItem>(Animatable("Power", "sheet1", true, LOCK_ROTATION), 33, 75.0f), 60));
+	items.push_back(std::make_pair(std::make_shared<BombItem>(Animatable("Bomb", "sheet1", true, LOCK_ROTATION), 33, 75.0f), 2));
 	v1.push_back(EnemySpawnInfo(enemy1->getID(), 300, 350, items));
 	level->insertEnemySpawns(0, std::make_shared<TimeBasedEnemySpawnCondition>(0), v1);
 	level->setHealthPack(std::make_shared<HealthPackItem>(Animatable("Health", "sheet1", true, LOCK_ROTATION), 40.0f));
@@ -150,8 +164,9 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	level->setBackgroundScrollSpeedX(50);
 	level->setBackgroundScrollSpeedY(-100);
 	this->insertLevel(0, level);
-	this->setPlayer(EditorPlayer(3, 5, 300, 100, 5, 0, 0, 2.0f, std::vector<PlayerPowerTier>{ PlayerPowerTier(pset1, playerAP->getID(), 0.1f, playerFocusedAP->getID(), 0.5f),
-		PlayerPowerTier(pset2, playerAP2->getID(), 0.01f, playerFocusedAP->getID(), 0.5f) }, SoundSettings("oof.wav"), SoundSettings("death.ogg"), Animatable("heart.png", "", true, LOCK_ROTATION) ));
+	this->setPlayer(EditorPlayer(3, 5, 300, 100, 5, 0, 0, 2.0f, std::vector<PlayerPowerTier>{ PlayerPowerTier(pset1, playerAP->getID(), 0.1f, playerFocusedAP->getID(), 0.5f, bombAP->getID(), 5.0f),
+		PlayerPowerTier(pset2, playerAP2->getID(), 0.01f, playerFocusedAP->getID(), 0.5f, bombAP->getID(), 5.0f) }, SoundSettings("oof.wav"), SoundSettings("death.ogg"), Animatable("heart.png", "", true, LOCK_ROTATION),
+		3, 10, Animatable("bomb.png", "", true, LOCK_ROTATION)));
 	metadata.addSpriteSheet("sheet1.txt", "sheet1.png");
 
 	//TODO: uncomment

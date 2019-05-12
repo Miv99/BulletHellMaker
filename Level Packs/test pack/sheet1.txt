@@ -22,6 +22,14 @@ Color = 255,255,255,255
 SpriteSize = 75,75
 Origin = 15,12
 
+[Bomb]
+Type = Sprite
+TextureTopLeftCoordinates = 280,168
+BoundingRectangleSize = 27,22
+Color = 255,255,255,255
+SpriteSize = 50,50
+Origin = 13,11
+
 [Megaman standing still]
 Type = Sprite
 TextureTopLeftCoordinates = 0,0

@@ -186,6 +186,7 @@ public:
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 
 private:
+	// The first contorl point must be at (0, 0)
 	std::vector<sf::Vector2f> controlPoints;
 	// How long movement will last
 	float time;

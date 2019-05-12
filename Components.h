@@ -5,6 +5,7 @@
 #include <queue>
 #include <vector>
 #include <math.h>
+#include <algorithm>
 #include <tuple>
 #include <cassert>
 #include <limits>
@@ -125,12 +126,12 @@ private:
 	int health;
 	int maxHealth;
 
-	std::shared_ptr<entt::SigH<void(int, int)>> onHealthChangeSignal;
-
 	/*
 	Should be called whenever health or max health changes.
 	*/
 	void onHealthChange();
+	// function accepts 2 ints: health and max health
+	std::shared_ptr<entt::SigH<void(int, int)>> onHealthChangeSignal;
 };
 
 /*
@@ -327,39 +328,58 @@ private:
 
 class PlayerTag {
 public:
-	PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack, uint32_t self, float speed, float focusedSpeed, float invulnerabilityTime, const std::vector<PlayerPowerTier> powerTiers, SoundSettings hurtSound, SoundSettings deathSound);
+	PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack, uint32_t self, float speed, float focusedSpeed, float invulnerabilityTime, const std::vector<PlayerPowerTier> powerTiers,
+		SoundSettings hurtSound, SoundSettings deathSound, int initialBombs, int maxBombs);
+
+	void update(float deltaTime, const LevelPack& levelPack, EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, uint32_t self);
+
+	inline void activateBomb() {
+		if (timeSinceLastBombActivation >= bombCooldowns[currentPowerTierIndex] && bombs > 0) {
+			timeSinceLastBombActivation = 0;
+			isBombing = true;
+			currentBombAttackIndex = -1;
+			bombAttackPattern = bombAttackPatterns[currentPowerTierIndex];
+
+			bombs--;
+			onBombCountChange();
+		}
+	}
 
 	inline float getSpeed() { return speed; }
 	inline float getFocusedSpeed() { return focusedSpeed; }
-	inline std::shared_ptr<EditorAttackPattern> getAttackPattern() { return attackPatterns[currentPowerTierIndex]; }
-	inline std::shared_ptr<EditorAttackPattern> getFocusedAttackPattern() { return focusedAttackPatterns[currentPowerTierIndex]; }
-	inline float getAttackPatternTotalTime() { return attackPatternTotalTimes[currentPowerTierIndex]; }
-	inline float getFocusedAttackPatternTotalTime() { return focusedAttackPatternTotalTimes[currentPowerTierIndex]; }
 	inline float getInvulnerabilityTime() { return invulnerabilityTime; }
 	inline const SoundSettings& getHurtSound() { return hurtSound; }
 	inline const SoundSettings& getDeathSound() { return deathSound; }
 	inline int getCurrentPowerTierIndex() { return currentPowerTierIndex; }
 	int getPowerTierCount();
 	inline int getCurrentPower() { return currentPower; }
+	inline float getTimeSinceLastBombActivation() { return timeSinceLastBombActivation; }
+	inline bool getFocused() { return focused; }
+	inline int getBombCount() { return bombs; }
 
+	void setFocused(bool focused);
+	inline void setAttacking(bool attacking) { this->attacking = attacking; }
+
+	/*
+	power - power to increase by
+	*/
 	void increasePower(entt::DefaultRegistry& registry, uint32_t self, int power);
 	/*
-	Returns whether this entity just increased its power tier.
-	The bool value is set back to false by this call.
-	
-	This function should be called every physics update by the system controlling players.
+	amount - amount of bombs to increase by
 	*/
-	inline bool justIncreasedPowerTier() { 
-		bool temp = increasedPowerTier;
-		increasedPowerTier = false;
-		return temp;
-	}
+	void gainBombs(entt::DefaultRegistry& registry, int amount);
+
+	void switchToAttackPattern(std::shared_ptr<EditorAttackPattern> newAttackPattern, float newAttackPatternTotalTime);
 
 	std::shared_ptr<entt::SigH<void(int, int, int)>> getPowerChangeSignal();
+	std::shared_ptr<entt::SigH<void(int)>> getBombCountChangeSignal();
 
 private:
 	float speed;
 	float focusedSpeed;
+
+	int bombs;
+	int maxBombs;
 
 	std::vector<PlayerPowerTier> powerTiers;
 	int currentPowerTierIndex = 0;
@@ -372,10 +392,20 @@ private:
 	// Index corresponds to powerTiers indexing
 	std::vector<std::shared_ptr<EditorAttackPattern>> attackPatterns;
 	std::vector<std::shared_ptr<EditorAttackPattern>> focusedAttackPatterns;
+	std::vector<std::shared_ptr<EditorAttackPattern>> bombAttackPatterns;
+	std::vector<float> bombCooldowns;
+
+	std::shared_ptr<EditorAttackPattern> currentAttackPattern;
+	float currentAttackPatternTotalTime;
+	float timeSinceNewAttackPattern = 0;
+	int currentAttackIndex = -1;
+
+	// If player is currently focused (user is holding focus button)
+	bool focused = false;
+	// If player is currently attacking
+	bool attacking = false;
 
 	int currentPower = 0;
-	// see justIncreasedPowerTier()
-	bool increasedPowerTier = false;
 
 	// Time player is invulnerable for when hit by an enemy bullet
 	float invulnerabilityTime;
@@ -383,11 +413,25 @@ private:
 	SoundSettings hurtSound;
 	SoundSettings deathSound;
 
+	bool isBombing = false;
+	int currentBombAttackIndex = -1;
+	float timeSinceLastBombActivation;
+	// The attack pattern of the current bomb
+	std::shared_ptr<EditorAttackPattern> bombAttackPattern;
+
 	/*
 	Should be called whenever anything related to power or power tiers changes.
 	*/
 	void onPowerChange();
+	// function accepts 3 ints: currentPowerTierIndex, number of power tiers, and currentPower
 	std::shared_ptr<entt::SigH<void(int, int, int)>> powerChangeSignal;
+
+	/*
+	Should be called whenever number of bombs changes
+	*/
+	void onBombCountChange();
+	// function accepts 1 int: bomb count
+	std::shared_ptr<entt::SigH<void(int)>> bombCountChangeSignal;
 };
 
 class EnemyComponent {
@@ -547,6 +591,7 @@ private:
 	// Points earned so far
 	int points = 0;
 
+	// function accepts 1 int: number of points from the current level so far
 	std::shared_ptr<entt::SigH<void(int)>> pointsChangeSignal;
 };
 

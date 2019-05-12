@@ -12,8 +12,10 @@ std::string EditorPlayer::format() {
 	} else {
 		ret += "0" + delim;
 	}
-	ret += tos(playerHPBarColor.r) + delim + tos(playerHPBarColor.g) + delim + tos(playerHPBarColor.b) + delim + tos(playerHPBarColor.a);
-	ret += "(" + discretePlayerHPSprite.format() + ")";
+	ret += tos(playerHPBarColor.r) + delim + tos(playerHPBarColor.g) + delim + tos(playerHPBarColor.b) + delim + tos(playerHPBarColor.a) + delim;
+	ret += "(" + discretePlayerHPSprite.format() + ")" + delim;
+	ret += tos(initialBombs) + delim + tos(maxBombs) + delim;
+	ret += "(" + bombSprite.format() + ")";
 	return ret;
 }
 
@@ -42,10 +44,14 @@ void EditorPlayer::load(std::string formattedString) {
 	}
 	playerHPBarColor = sf::Color(std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]));
 	discretePlayerHPSprite.load(items[i++]);
+	initialBombs = std::stoi(items[i++]);
+	maxBombs = std::stoi(items[i++]);
+	bombSprite.load(items[i++]);
 }
 
 std::string PlayerPowerTier::format() {
-	return "(" + animatableSet.format() + ")" + delim + tos(attackPatternID) + delim + tos(attackPatternLoopDelay) + delim + tos(focusedAttackPatternID) + delim + tos(focusedAttackPatternLoopDelay);
+	return "(" + animatableSet.format() + ")" + delim + tos(attackPatternID) + delim + tos(attackPatternLoopDelay) + delim + tos(focusedAttackPatternID) + delim + tos(focusedAttackPatternLoopDelay) + delim + tos(bombAttackPatternID) + delim + tos(bombCooldown);
+
 }
 
 void PlayerPowerTier::load(std::string formattedString) {
@@ -55,4 +61,6 @@ void PlayerPowerTier::load(std::string formattedString) {
 	attackPatternLoopDelay = std::stof(items[2]);
 	focusedAttackPatternID = std::stoi(items[3]);
 	focusedAttackPatternLoopDelay = std::stof(items[4]);
+	bombAttackPatternID = std::stoi(items[5]);
+	bombCooldown = std::stof(items[6]);
 }

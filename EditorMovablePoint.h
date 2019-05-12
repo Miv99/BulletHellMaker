@@ -271,6 +271,7 @@ private:
 	BULLET_ON_COLLISION_ACTION onCollisionAction = DESTROY_THIS_BULLET_ONLY;
 	
 	bool playSoundOnSpawn = false;
+	// Sound played on this EMP spawn, if playSoundOnSpawn is true
 	SoundSettings soundSettings;
 
 	// ID of the bullet model to use; when a bullet model changes, all EMPs using that model also change

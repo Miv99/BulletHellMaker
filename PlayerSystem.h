@@ -24,13 +24,4 @@ private:
 	EntityCreationQueue& queue;
 	SpriteLoader& spriteLoader;
 	entt::DefaultRegistry& registry;
-
-	int verticalInput = 0;
-	int horizontalInput = 0;
-
-	bool focused = false;
-
-	bool attacking = false;
-	float timeSinceNewAttackPattern = 0;
-	int currentAttackIndex = -1;
 };

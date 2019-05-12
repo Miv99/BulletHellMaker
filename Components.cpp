@@ -347,12 +347,16 @@ void AnimatableSetComponent::changeState(int newState, SpriteLoader& spriteLoade
 	}
 }
 
-PlayerTag::PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack, uint32_t self, float speed, float focusedSpeed, float invulnerabilityTime, const std::vector<PlayerPowerTier> powerTiers, SoundSettings hurtSound, SoundSettings deathSound) :
-	speed(speed), focusedSpeed(focusedSpeed), invulnerabilityTime(invulnerabilityTime), powerTiers(powerTiers), hurtSound(hurtSound), deathSound(deathSound) {
+PlayerTag::PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack, uint32_t self, float speed, float focusedSpeed, float invulnerabilityTime, const std::vector<PlayerPowerTier> powerTiers,
+	SoundSettings hurtSound, SoundSettings deathSound, int initialBombs, int maxBombs) :
+	speed(speed), focusedSpeed(focusedSpeed), invulnerabilityTime(invulnerabilityTime), powerTiers(powerTiers), hurtSound(hurtSound), deathSound(deathSound), bombAttackPattern(bombAttackPattern), bombs(initialBombs), maxBombs(maxBombs) {
 	for (int i = 0; i < powerTiers.size(); i++) {
+		bombCooldowns.push_back(powerTiers[i].getBombCooldown());
+
 		// Load all the attack patterns
 		attackPatterns.push_back(levelPack.getAttackPattern(powerTiers[i].getAttackPatternID()));
 		focusedAttackPatterns.push_back(levelPack.getAttackPattern(powerTiers[i].getFocusedAttackPatternID()));
+		bombAttackPatterns.push_back(levelPack.getAttackPattern(powerTiers[i].getBombAttackPatternID()));
 
 		// Calculate attack pattern total times
 		attackPatternTotalTimes.push_back(attackPatterns[i]->getAttackData(attackPatterns[i]->getAttacksCount() - 1).first + powerTiers[i].getAttackPatternLoopDelay());
@@ -361,10 +365,73 @@ PlayerTag::PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack
 
 	currentPowerTierIndex = 0;
 	registry.get<AnimatableSetComponent>(self).setAnimatableSet(powerTiers[currentPowerTierIndex].getAnimatableSet());
+
+	// Initialize time since last bomb activation such that user can attack/bomb at t=0
+	timeSinceLastBombActivation = bombCooldowns[0];
+
+	// Set current attack pattern
+	switchToAttackPattern(attackPatterns[currentPowerTierIndex], attackPatternTotalTimes[0]);
+}
+
+void PlayerTag::update(float deltaTime, const LevelPack & levelPack, EntityCreationQueue & queue, SpriteLoader & spriteLoader, entt::DefaultRegistry & registry, uint32_t self) {
+	timeSinceLastBombActivation += deltaTime;
+
+	if (isBombing) {
+		// In the process of using a bomb
+
+		while (currentBombAttackIndex + 1 < bombAttackPattern->getAttacksCount()) {
+			auto nextAttack = bombAttackPattern->getAttackData(currentBombAttackIndex + 1);
+			if (timeSinceLastBombActivation >= nextAttack.first) {
+				currentBombAttackIndex++;
+				levelPack.getAttack(nextAttack.second)->executeAsPlayer(queue, spriteLoader, registry, self, timeSinceLastBombActivation - nextAttack.first, bombAttackPattern->getID());
+			} else {
+				break;
+			}
+		}
+		// Do not loop the bomb attack pattern
+		// Instead, switch back to the normal attack pattern
+		if (currentBombAttackIndex + 1 == bombAttackPattern->getAttacksCount()) {
+			if (focused) {
+				switchToAttackPattern(focusedAttackPatterns[currentPowerTierIndex], focusedAttackPatternTotalTimes[currentPowerTierIndex]);
+			} else {
+				switchToAttackPattern(attackPatterns[currentPowerTierIndex], attackPatternTotalTimes[currentPowerTierIndex]);
+			}
+			isBombing = false;
+		}
+	}
+	if (attacking) {
+		timeSinceNewAttackPattern += deltaTime;
+
+		while (currentAttackIndex + 1 < currentAttackPattern->getAttacksCount()) {
+			auto nextAttack = currentAttackPattern->getAttackData(currentAttackIndex + 1);
+			if (timeSinceNewAttackPattern >= nextAttack.first) {
+				currentAttackIndex++;
+				levelPack.getAttack(nextAttack.second)->executeAsPlayer(queue, spriteLoader, registry, self, timeSinceNewAttackPattern - nextAttack.first, currentAttackPattern->getID());
+			} else {
+				break;
+			}
+		}
+		// Loop the current attack pattern
+		if (currentAttackIndex + 1 == currentAttackPattern->getAttacksCount()) {
+			while (timeSinceNewAttackPattern >= currentAttackPatternTotalTime) {
+				timeSinceNewAttackPattern -= currentAttackPatternTotalTime;
+				currentAttackIndex = -1;
+			}
+		}
+	}
 }
 
 int PlayerTag::getPowerTierCount() {
 	return powerTiers.size();
+}
+
+void PlayerTag::setFocused(bool focused) {
+	if (!this->focused && focused) {
+		switchToAttackPattern(focusedAttackPatterns[currentPowerTierIndex], focusedAttackPatternTotalTimes[currentPowerTierIndex]);
+	} else if (this->focused && !focused) {
+		switchToAttackPattern(attackPatterns[currentPowerTierIndex], attackPatternTotalTimes[currentPowerTierIndex]);
+	}
+	this->focused = focused;
 }
 
 void PlayerTag::increasePower(entt::DefaultRegistry& registry, uint32_t self, int power) {
@@ -374,7 +441,12 @@ void PlayerTag::increasePower(entt::DefaultRegistry& registry, uint32_t self, in
 
 			currentPowerTierIndex++;
 			currentPower += power - POWER_PER_POWER_TIER;
-			increasedPowerTier = true;
+			// Change attack pattern
+			if (focused) {
+				switchToAttackPattern(focusedAttackPatterns[currentPowerTierIndex], focusedAttackPatternTotalTimes[currentPowerTierIndex]);
+			} else {
+				switchToAttackPattern(attackPatterns[currentPowerTierIndex], attackPatternTotalTimes[currentPowerTierIndex]);
+			}
 
 			// Update this entity's EntityAnimatableSet
 			registry.get<AnimatableSetComponent>(self).setAnimatableSet(powerTiers[currentPowerTierIndex].getAnimatableSet());
@@ -392,9 +464,34 @@ void PlayerTag::increasePower(entt::DefaultRegistry& registry, uint32_t self, in
 	onPowerChange();
 }
 
+void PlayerTag::gainBombs(entt::DefaultRegistry& registry, int amount) {
+	if (bombs + amount > maxBombs) {
+		// Increase points depending on number of extra bombs
+		registry.get<LevelManagerTag>().addPoints(POINTS_PER_EXTRA_BOMB * (bombs + amount - maxBombs));
+
+		bombs = maxBombs;
+	} else {
+		bombs += amount;
+	}
+	onBombCountChange();
+}
+
+void PlayerTag::switchToAttackPattern(std::shared_ptr<EditorAttackPattern> newAttackPattern, float newAttackPatternTotalTime) {
+	timeSinceNewAttackPattern = 0;
+	currentAttackIndex = -1;
+	currentAttackPattern = newAttackPattern;
+	currentAttackPatternTotalTime = newAttackPatternTotalTime;
+}
+
 void PlayerTag::onPowerChange() {
 	if (powerChangeSignal) {
 		powerChangeSignal->publish(currentPowerTierIndex, powerTiers.size(), currentPower);
+	}
+}
+
+void PlayerTag::onBombCountChange() {
+	if (bombCountChangeSignal) {
+		bombCountChangeSignal->publish(bombs);
 	}
 }
 
@@ -404,6 +501,14 @@ std::shared_ptr<entt::SigH<void(int, int, int)>> PlayerTag::getPowerChangeSignal
 	}
 	powerChangeSignal = std::make_shared<entt::SigH<void(int, int, int)>>();
 	return powerChangeSignal;
+}
+
+std::shared_ptr<entt::SigH<void(int)>> PlayerTag::getBombCountChangeSignal() {
+	if (bombCountChangeSignal) {
+		return bombCountChangeSignal;
+	}
+	bombCountChangeSignal = std::make_shared<entt::SigH<void(int)>>();
+	return bombCountChangeSignal;
 }
 
 void CollectibleComponent::update(EntityCreationQueue& queue, entt::DefaultRegistry & registry, uint32_t entity, const PositionComponent& entityPos, const HitboxComponent& entityHitbox) {
