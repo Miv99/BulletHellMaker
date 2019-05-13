@@ -348,8 +348,9 @@ void AnimatableSetComponent::changeState(int newState, SpriteLoader& spriteLoade
 }
 
 PlayerTag::PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack, uint32_t self, float speed, float focusedSpeed, float invulnerabilityTime, const std::vector<PlayerPowerTier> powerTiers,
-	SoundSettings hurtSound, SoundSettings deathSound, int initialBombs, int maxBombs) :
-	speed(speed), focusedSpeed(focusedSpeed), invulnerabilityTime(invulnerabilityTime), powerTiers(powerTiers), hurtSound(hurtSound), deathSound(deathSound), bombAttackPattern(bombAttackPattern), bombs(initialBombs), maxBombs(maxBombs) {
+	SoundSettings hurtSound, SoundSettings deathSound, int initialBombs, int maxBombs, float bombInvincibilityTime) :
+	speed(speed), focusedSpeed(focusedSpeed), invulnerabilityTime(invulnerabilityTime), powerTiers(powerTiers), hurtSound(hurtSound), deathSound(deathSound), bombAttackPattern(bombAttackPattern), 
+	bombs(initialBombs), maxBombs(maxBombs), bombInvincibilityTime(bombInvincibilityTime) {
 	for (int i = 0; i < powerTiers.size(); i++) {
 		bombCooldowns.push_back(powerTiers[i].getBombCooldown());
 
@@ -424,6 +425,23 @@ bool PlayerTag::update(float deltaTime, const LevelPack & levelPack, EntityCreat
 		return true;
 	}
 	return false;
+}
+
+void PlayerTag::activateBomb(entt::DefaultRegistry& registry, uint32_t self) {
+	if (timeSinceLastBombActivation >= bombCooldowns[currentPowerTierIndex] && bombs > 0) {
+		timeSinceLastBombActivation = 0;
+		isBombing = true;
+		currentBombAttackIndex = -1;
+		bombAttackPattern = bombAttackPatterns[currentPowerTierIndex];
+
+		bombs--;
+		onBombCountChange();
+
+		// Make player invincible for some time
+		registry.get<HitboxComponent>(self).disable(bombInvincibilityTime);
+		auto& sprite = registry.get<SpriteComponent>(self);
+		sprite.setEffectAnimation(std::make_unique<FlashWhiteSEA>(sprite.getSprite(), bombInvincibilityTime));
+	}
 }
 
 int PlayerTag::getPowerTierCount() {
@@ -518,18 +536,7 @@ std::shared_ptr<entt::SigH<void(int)>> PlayerTag::getBombCountChangeSignal() {
 
 void CollectibleComponent::update(EntityCreationQueue& queue, entt::DefaultRegistry & registry, uint32_t entity, const PositionComponent& entityPos, const HitboxComponent& entityHitbox) {
 	if (!activated && collides(entityPos, entityHitbox, registry.get<PositionComponent>(registry.attachee<PlayerTag>()), registry.get<HitboxComponent>(registry.attachee<PlayerTag>()), activationRadius)) {
-		// Item is activated, so begin moving towards the player
-
-		auto speed = std::make_shared<PiecewiseContinuousTFV>();
-		// Speed starts off quickly at 450 and slows to 350 by t=2
-		speed->insertSegment(0, std::make_pair(2.0f, std::make_shared<DampenedEndTFV>(450.0f, 350.0f, 2.0f, 2)));
-		// Speed then maintains a constant 350 forever
-		speed->insertSegment(1, std::make_pair(std::numeric_limits<float>::max() - 3, std::make_shared<ConstantTFV>(350.0f)));
-		auto newPath = std::make_shared<HomingMP>(std::numeric_limits<float>::max(), speed, std::make_shared<ConstantTFV>(0.12f), entity, registry.attachee<PlayerTag>(), registry);
-		registry.get<MovementPathComponent>(entity).setPath(queue, registry, entity, registry.get<PositionComponent>(entity), newPath, 0);
-		// Make sure item can't despawn
-		registry.get<DespawnComponent>(entity).setMaxTime(std::numeric_limits<float>::max());
-		activated = true;
+		activate(queue, registry, entity);
 	}
 	if (activated && collides(entityPos, entityHitbox, registry.get<PositionComponent>(registry.attachee<PlayerTag>()), registry.get<HitboxComponent>(registry.attachee<PlayerTag>()), 0)) {
 		// Player touched the item
@@ -544,6 +551,21 @@ void CollectibleComponent::update(EntityCreationQueue& queue, entt::DefaultRegis
 			registry.assign<DespawnComponent>(entity, 0);
 		}
 	}
+}
+
+void CollectibleComponent::activate(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t self) {
+	// Item is activated, so begin moving towards the player
+
+	auto speed = std::make_shared<PiecewiseContinuousTFV>();
+	// Speed starts off quickly at 450 and slows to 350 by t=2
+	speed->insertSegment(0, std::make_pair(2.0f, std::make_shared<DampenedEndTFV>(450.0f, 350.0f, 2.0f, 2)));
+	// Speed then maintains a constant 350 forever
+	speed->insertSegment(1, std::make_pair(std::numeric_limits<float>::max() - 3, std::make_shared<ConstantTFV>(350.0f)));
+	auto newPath = std::make_shared<HomingMP>(std::numeric_limits<float>::max(), speed, std::make_shared<ConstantTFV>(0.12f), self, registry.attachee<PlayerTag>(), registry);
+	registry.get<MovementPathComponent>(self).setPath(queue, registry, self, registry.get<PositionComponent>(self), newPath, 0);
+	// Make sure item can't despawn
+	registry.get<DespawnComponent>(self).setMaxTime(std::numeric_limits<float>::max());
+	activated = true;
 }
 
 void HitboxComponent::rotate(float angle) {

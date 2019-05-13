@@ -15,7 +15,7 @@ class LevelPack;
 
 /*
 An action that is executed on the death of an entity.
-Entity despawn does not count as death.
+Entity despawn does not count as death, unless the entity is a bullet.
 */
 class DeathAction : public TextMarshallable {
 public:

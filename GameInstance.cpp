@@ -310,7 +310,7 @@ void GameInstance::createPlayer(EditorPlayer params) {
 	auto player = registry.create();
 	registry.assign<AnimatableSetComponent>(player);
 	auto& playerTag = registry.assign<PlayerTag>(entt::tag_t{}, player, registry, *levelPack, player, params.getSpeed(), params.getFocusedSpeed(), params.getInvulnerabilityTime(),
-		params.getPowerTiers(), params.getHurtSound(), params.getDeathSound(), params.getInitialBombs(), params.getMaxBombs());
+		params.getPowerTiers(), params.getHurtSound(), params.getDeathSound(), params.getInitialBombs(), params.getMaxBombs(), params.getBombInvincibilityTime());
 	auto& health = registry.assign<HealthComponent>(player, params.getInitialHealth(), params.getMaxHealth());
 	// Hitbox temporarily at 0, 0 until an Animatable is assigned to the player later
 	registry.assign<HitboxComponent>(player, LOCK_ROTATION, params.getHitboxRadius(), 0, 0);

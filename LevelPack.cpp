@@ -166,7 +166,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	this->insertLevel(0, level);
 	this->setPlayer(EditorPlayer(3, 5, 300, 100, 5, 0, 0, 2.0f, std::vector<PlayerPowerTier>{ PlayerPowerTier(pset1, playerAP->getID(), 0.1f, playerFocusedAP->getID(), 0.5f, bombAP->getID(), 5.0f),
 		PlayerPowerTier(pset2, playerAP2->getID(), 0.01f, playerFocusedAP->getID(), 0.5f, bombAP->getID(), 5.0f) }, SoundSettings("oof.wav"), SoundSettings("death.ogg"), Animatable("heart.png", "", true, LOCK_ROTATION),
-		3, 10, Animatable("bomb.png", "", true, LOCK_ROTATION), SoundSettings("bomb_ready.wav")));
+		3, 10, Animatable("bomb.png", "", true, LOCK_ROTATION), SoundSettings("bomb_ready.wav"), 5.0f));
 	metadata.addSpriteSheet("sheet1.txt", "sheet1.png");
 
 	//TODO: uncomment

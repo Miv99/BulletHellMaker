@@ -31,7 +31,7 @@ void PlayerSystem::update(float deltaTime) {
 
 	uint32_t playerEntity = registry.attachee<PlayerTag>();
 
-	if (playerTag.update(deltaTime, levelPack, queue, spriteLoader, registry, playerEntity)) {
+	if (playerTag.update(deltaTime, levelPack, queue, spriteLoader, registry, playerEntity) && playerTag.getBombCount() > 0) {
 		// Play bomb ready sound
 		levelPack.playSound(levelPack.getPlayer().getBombReadySound());
 	}
@@ -73,7 +73,7 @@ void PlayerSystem::update(float deltaTime) {
 void PlayerSystem::handleEvent(sf::Event event) {
 	if (event.type == sf::Event::KeyPressed) {
 		if (event.key.code == sf::Keyboard::X) {
-			registry.get<PlayerTag>().activateBomb();
+			registry.get<PlayerTag>().activateBomb(registry, registry.attachee<PlayerTag>());
 		}
 	}
 }

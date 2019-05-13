@@ -329,24 +329,14 @@ private:
 class PlayerTag {
 public:
 	PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack, uint32_t self, float speed, float focusedSpeed, float invulnerabilityTime, const std::vector<PlayerPowerTier> powerTiers,
-		SoundSettings hurtSound, SoundSettings deathSound, int initialBombs, int maxBombs);
+		SoundSettings hurtSound, SoundSettings deathSound, int initialBombs, int maxBombs, float bombInvincibilityTime);
 
 	/*
 	Returns true if bomb went off cooldown on this update call.
 	*/
 	bool update(float deltaTime, const LevelPack& levelPack, EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, uint32_t self);
 
-	inline void activateBomb() {
-		if (timeSinceLastBombActivation >= bombCooldowns[currentPowerTierIndex] && bombs > 0) {
-			timeSinceLastBombActivation = 0;
-			isBombing = true;
-			currentBombAttackIndex = -1;
-			bombAttackPattern = bombAttackPatterns[currentPowerTierIndex];
-
-			bombs--;
-			onBombCountChange();
-		}
-	}
+	void activateBomb(entt::DefaultRegistry& registry, uint32_t self);
 
 	inline float getSpeed() { return speed; }
 	inline float getFocusedSpeed() { return focusedSpeed; }
@@ -384,6 +374,9 @@ private:
 
 	int bombs;
 	int maxBombs;
+
+	// Amount of time the player becomes invinicible for when they activate a bomb
+	float bombInvincibilityTime;
 
 	std::vector<PlayerPowerTier> powerTiers;
 	int currentPowerTierIndex = 0;
@@ -766,6 +759,8 @@ public:
 	inline CollectibleComponent(std::shared_ptr<Item> item, float activationRadius) : item(item), activationRadius(activationRadius) {}
 
 	void update(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, const PositionComponent& entityPos, const HitboxComponent& entityHitbox);
+
+	void activate(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t self);
 
 private:
 	bool activated = false;

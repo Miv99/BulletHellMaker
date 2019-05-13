@@ -39,8 +39,6 @@ TODO:
 -EMPAngleOffset that evaluates to the angle of the player's hitbox (used for attacks that face some direction)
 -BULLET_ON_COLLISION_ACTION that pierces entities but cannot hit the same entity twice
 -make EMPAngleOffset also work with bezier curves by rotating all points around 0,0 by that evaluated angle
--bombs are just attack patterns whose bullets can delete enemy bullets (some special DeathAction)
-	-bomb sprites in GUI turn from 0->100 opacity as bomb goes off cooldown; play some sound when completely off cooldown and >0 bombs remaining
 -have some default attack patterns (https://www.youtube.com/watch?v=xbQ9e0zYuj4)
 -all default stuff (font, spritesheet, sounds, etc) are copied into every new level pack that is created so that no special code is needed to load
  from a default resource 
