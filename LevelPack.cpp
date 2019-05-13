@@ -111,7 +111,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	pemp0->setAnimatable(Animatable("Bullet", "sheet1", true, LOCK_ROTATION));
 	pemp0->setHitboxRadius(30);
 	pemp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
-	pemp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 2), std::make_shared<ConstantTFV>(PI/2.0f), 2.0f));
+	pemp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 2), std::make_shared<ConstantTFV>(0), 2.0f, std::make_shared<EMPAngleOffsetPlayerSpriteAngle>()));
 	pemp0->setOnCollisionAction(DESTROY_THIS_BULLET_ONLY);
 	playerAP->addAttackID(0.1f, playerAttack1->getID());
 

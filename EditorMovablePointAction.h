@@ -79,6 +79,19 @@ public:
 
 	// Returns 0
 	inline float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override { return 0; }
+};
+
+/*
+Angle offset that always returns the angle that the player's sprite is facing.
+*/
+class EMPAngleOffsetPlayerSpriteAngle : public EMPAAngleOffset {
+public:
+	inline EMPAngleOffsetPlayerSpriteAngle() {}
+
+	std::string format() override;
+	void load(std::string formattedString) override;
+
+	float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override;
 
 private:
 	float x;

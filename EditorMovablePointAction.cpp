@@ -48,6 +48,18 @@ void EMPAAngleOffsetZero::load(std::string formattedString) {
 }
 
 
+std::string EMPAngleOffsetPlayerSpriteAngle::format() {
+	return "EMPAngleOffsetPlayerSpriteAngle";
+}
+
+void EMPAngleOffsetPlayerSpriteAngle::load(std::string formattedString) {
+}
+
+float EMPAngleOffsetPlayerSpriteAngle::evaluate(const entt::DefaultRegistry & registry, float xFrom, float yFrom) {
+	return registry.get<SpriteComponent>(registry.attachee<PlayerTag>()).getInheritedRotationAngle();
+}
+
+
 std::string DetachFromParentEMPA::format() {
 	return "DetachFromParentEMPA";
 }
@@ -196,6 +208,9 @@ std::shared_ptr<EMPAAngleOffset> EMPAngleOffsetFactory::create(std::string forma
 	}
 	else if (name == "EMPAAngleOffsetZero") {
 		ptr = std::make_shared<EMPAAngleOffsetZero>();
+	}
+	else if (name == "EMPAngleOffsetPlayerSpriteAngle") {
+		ptr = std::make_shared<EMPAngleOffsetPlayerSpriteAngle>();
 	}
 	ptr->load(formattedString);
 	return ptr;

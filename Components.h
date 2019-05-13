@@ -276,7 +276,7 @@ public:
 	Returns the angle of rotation of the sprite for the purpose of
 	creating sprites with the same rotation angle and type.
 	*/
-	inline float getInheritedRotationAngle() { 
+	inline float getInheritedRotationAngle() const { 
 		if (rotationType == LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT) {
 			if (lastFacedRight) return 0;
 			return -PI;

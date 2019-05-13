@@ -36,7 +36,6 @@ Notes for me:
 bomb gui
 
 TODO:
--EMPAngleOffset that evaluates to the angle of the player's hitbox (used for attacks that face some direction)
 -BULLET_ON_COLLISION_ACTION that pierces entities but cannot hit the same entity twice
 -make EMPAngleOffset also work with bezier curves by rotating all points around 0,0 by that evaluated angle
 -have some default attack patterns (https://www.youtube.com/watch?v=xbQ9e0zYuj4)
