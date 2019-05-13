@@ -331,7 +331,10 @@ public:
 	PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack, uint32_t self, float speed, float focusedSpeed, float invulnerabilityTime, const std::vector<PlayerPowerTier> powerTiers,
 		SoundSettings hurtSound, SoundSettings deathSound, int initialBombs, int maxBombs);
 
-	void update(float deltaTime, const LevelPack& levelPack, EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, uint32_t self);
+	/*
+	Returns true if bomb went off cooldown on this update call.
+	*/
+	bool update(float deltaTime, const LevelPack& levelPack, EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, uint32_t self);
 
 	inline void activateBomb() {
 		if (timeSinceLastBombActivation >= bombCooldowns[currentPowerTierIndex] && bombs > 0) {
@@ -356,6 +359,7 @@ public:
 	inline float getTimeSinceLastBombActivation() { return timeSinceLastBombActivation; }
 	inline bool getFocused() { return focused; }
 	inline int getBombCount() { return bombs; }
+	inline float getBombCooldown() { return bombCooldowns[currentPowerTierIndex]; }
 
 	void setFocused(bool focused);
 	inline void setAttacking(bool attacking) { this->attacking = attacking; }

@@ -7,6 +7,7 @@
 #include "EntityCreationQueue.h"
 #include "SpriteLoader.h"
 #include "LevelPack.h"
+#include "AudioPlayer.h"
 
 /*
 Handles all things related to the player.

@@ -15,7 +15,8 @@ std::string EditorPlayer::format() {
 	ret += tos(playerHPBarColor.r) + delim + tos(playerHPBarColor.g) + delim + tos(playerHPBarColor.b) + delim + tos(playerHPBarColor.a) + delim;
 	ret += "(" + discretePlayerHPSprite.format() + ")" + delim;
 	ret += tos(initialBombs) + delim + tos(maxBombs) + delim;
-	ret += "(" + bombSprite.format() + ")";
+	ret += "(" + bombSprite.format() + ")" + delim;
+	ret += "(" + bombReadySound.format() + ")";
 	return ret;
 }
 
@@ -47,6 +48,7 @@ void EditorPlayer::load(std::string formattedString) {
 	initialBombs = std::stoi(items[i++]);
 	maxBombs = std::stoi(items[i++]);
 	bombSprite.load(items[i++]);
+	bombReadySound.load(items[i++]);
 }
 
 std::string PlayerPowerTier::format() {

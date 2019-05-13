@@ -373,7 +373,7 @@ PlayerTag::PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack
 	switchToAttackPattern(attackPatterns[currentPowerTierIndex], attackPatternTotalTimes[0]);
 }
 
-void PlayerTag::update(float deltaTime, const LevelPack & levelPack, EntityCreationQueue & queue, SpriteLoader & spriteLoader, entt::DefaultRegistry & registry, uint32_t self) {
+bool PlayerTag::update(float deltaTime, const LevelPack & levelPack, EntityCreationQueue & queue, SpriteLoader & spriteLoader, entt::DefaultRegistry & registry, uint32_t self) {
 	timeSinceLastBombActivation += deltaTime;
 
 	if (isBombing) {
@@ -419,6 +419,11 @@ void PlayerTag::update(float deltaTime, const LevelPack & levelPack, EntityCreat
 			}
 		}
 	}
+
+	if (timeSinceLastBombActivation - deltaTime < bombCooldowns[currentPowerTierIndex] && timeSinceLastBombActivation >= bombCooldowns[currentPowerTierIndex] && deltaTime != 0) {
+		return true;
+	}
+	return false;
 }
 
 int PlayerTag::getPowerTierCount() {

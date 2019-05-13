@@ -31,7 +31,10 @@ void PlayerSystem::update(float deltaTime) {
 
 	uint32_t playerEntity = registry.attachee<PlayerTag>();
 
-	playerTag.update(deltaTime, levelPack, queue, spriteLoader, registry, playerEntity);
+	if (playerTag.update(deltaTime, levelPack, queue, spriteLoader, registry, playerEntity)) {
+		// Play bomb ready sound
+		levelPack.playSound(levelPack.getPlayer().getBombReadySound());
+	}
 
 	// Movement
 	float speed = playerTag.getFocused() ? playerTag.getFocusedSpeed() : playerTag.getSpeed();

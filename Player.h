@@ -50,15 +50,15 @@ class EditorPlayer : public TextMarshallable {
 public:
 	inline EditorPlayer() {}
 	inline EditorPlayer(float initialHealth, float maxHealth, float speed, float focusedSpeed, float hitboxRadius, float hitboxPosX, float hitboxPosY, float invulnerabilityTime, 
-		std::vector<PlayerPowerTier> powerTiers, SoundSettings hurtSound, SoundSettings deathSound, int initialBombs, int maxBombs, Animatable bombSprite) :
+		std::vector<PlayerPowerTier> powerTiers, SoundSettings hurtSound, SoundSettings deathSound, int initialBombs, int maxBombs, Animatable bombSprite, SoundSettings bombReadySound) :
 		initialHealth(initialHealth), maxHealth(maxHealth), speed(speed), focusedSpeed(focusedSpeed), hitboxRadius(hitboxRadius), hitboxPosX(hitboxPosX), hitboxPosY(hitboxPosY), 
 		invulnerabilityTime(invulnerabilityTime), powerTiers(powerTiers), hurtSound(hurtSound), deathSound(deathSound), smoothPlayerHPBar(true),
-		initialBombs(initialBombs), maxBombs(maxBombs), bombSprite(bombSprite) {}
+		initialBombs(initialBombs), maxBombs(maxBombs), bombSprite(bombSprite), bombReadySound(bombReadySound) {}
 	inline EditorPlayer(float initialHealth, float maxHealth, float speed, float focusedSpeed, float hitboxRadius, float hitboxPosX, float hitboxPosY, float invulnerabilityTime, 
-		std::vector<PlayerPowerTier> powerTiers, SoundSettings hurtSound, SoundSettings deathSound, Animatable discretePlayerHPSprite, int initialBombs, int maxBombs, Animatable bombSprite) :
+		std::vector<PlayerPowerTier> powerTiers, SoundSettings hurtSound, SoundSettings deathSound, Animatable discretePlayerHPSprite, int initialBombs, int maxBombs, Animatable bombSprite, SoundSettings bombReadySound) :
 		initialHealth(initialHealth), maxHealth(maxHealth), speed(speed), focusedSpeed(focusedSpeed), hitboxRadius(hitboxRadius), hitboxPosX(hitboxPosX), hitboxPosY(hitboxPosY), 
 		invulnerabilityTime(invulnerabilityTime), powerTiers(powerTiers), hurtSound(hurtSound), deathSound(deathSound), smoothPlayerHPBar(false), discretePlayerHPSprite(discretePlayerHPSprite),
-		initialBombs(initialBombs), maxBombs(maxBombs), bombSprite(bombSprite) {}
+		initialBombs(initialBombs), maxBombs(maxBombs), bombSprite(bombSprite), bombReadySound(bombReadySound) {}
 
 	std::string format() override;
 	void load(std::string formattedString) override;
@@ -82,6 +82,8 @@ public:
 	inline int getInitialBombs() { return initialBombs; }
 	inline int getMaxBombs() { return maxBombs; }
 	inline Animatable getBombSprite() { return bombSprite; }
+	// Returns a reference
+	inline SoundSettings& getBombReadySound() { return bombReadySound; }
 
 	/*
 	Returns a reference to the power tier.
@@ -140,4 +142,7 @@ private:
 
 	int initialBombs = 2;
 	int maxBombs = 6;
+
+	// Sound played when bomb is off cooldown
+	SoundSettings bombReadySound;
 };

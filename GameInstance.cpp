@@ -3,6 +3,7 @@
 #include <map>
 #include <fstream>
 #include <vector>
+#include <algorithm>
 #include <boost/format.hpp>
 #include "SpriteLoader.h"
 #include "TextFileParser.h"
@@ -174,6 +175,11 @@ void GameInstance::render(float deltaTime) {
 		spriteAnimationSystem->update(deltaTime);
 	}
 	renderSystem->update(deltaTime);
+
+	// Update bomb opacity depending on time left until cooldown is over
+	auto& playerTag = registry.get<PlayerTag>();
+	float opacity = std::min(playerTag.getTimeSinceLastBombActivation()/playerTag.getBombCooldown(), 1.0f);
+	bombPictureGrid->setInheritedOpacity(opacity);
 
 	gui->draw();
 }
