@@ -7,6 +7,8 @@ std::shared_ptr<Item> ItemFactory::create(std::string formattedString) {
 		ptr = std::make_shared<HealthPackItem>();
 	} else if (name == "PowerPackItem") {
 		ptr = std::make_shared<PowerPackItem>();
+	} else if (name == "BombItem") {
+		ptr = std::make_shared<BombItem>();
 	} else if (name == "PointsPackItem") {
 		ptr = std::make_shared<PointsPackItem>();
 	}
