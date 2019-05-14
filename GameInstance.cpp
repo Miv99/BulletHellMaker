@@ -81,7 +81,7 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 	bombPictureSize = std::min(guiRegionHeight * 0.03f, (guiRegionWidth - guiPaddingX * 2) / levelPack->getPlayer().getMaxBombs());
 
 	bombPictures.clear();
-	for (int i = 0; i < levelPack->getPlayer().getMaxHealth(); i++) {
+	for (int i = 0; i < levelPack->getPlayer().getMaxBombs(); i++) {
 		auto bombPicture = tgui::Picture::create(bombTexture);
 		bombPicture->setSize(bombPictureSize, bombPictureSize);
 		bombPictures.push_back(bombPicture);
