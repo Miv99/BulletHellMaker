@@ -92,6 +92,7 @@ void CollisionSystem::update(float deltaTime) {
 
 				auto& bulletPosition = enemyBulletView.get<PositionComponent>(bullet);
 				auto& bulletHitbox = enemyBulletView.get<HitboxComponent>(bullet);
+				// Note: No DeathComponent::isMarkedForDeath() check here because player does not despawn on death
 				if (registry.get<EnemyBulletComponent>(bullet).isValidCollision(player) && collides(playerPosition, playerHitbox, bulletPosition, bulletHitbox)) {
 					// Player takes damage
 					// Disable hitbox for invulnerability time
@@ -108,6 +109,7 @@ void CollisionSystem::update(float deltaTime) {
 						registry.get<LevelManagerTag>().getLevelPack()->playSound(registry.get<PlayerTag>().getDeathSound());
 
 						//TODO: handle death stuff
+						// if player despawns, make sure to add isMarkedForDeath() check (see above comment)
 					} else {
 						registry.get<EnemyBulletComponent>(bullet).onCollision(player);
 
@@ -166,7 +168,7 @@ void CollisionSystem::update(float deltaTime) {
 
 				auto& bulletPosition = playerBulletView.get<PositionComponent>(bullet);
 				auto& bulletHitbox = playerBulletView.get<HitboxComponent>(bullet);
-				if (registry.get<PlayerBulletComponent>(bullet).isValidCollision(entity) && collides(position, hitbox, bulletPosition, bulletHitbox)) {
+				if (!registry.get<DespawnComponent>(entity).isMarkedForDespawn() && registry.get<PlayerBulletComponent>(bullet).isValidCollision(entity) && collides(position, hitbox, bulletPosition, bulletHitbox)) {
 					// Enemy takes damage
 					if (registry.has<HealthComponent>(entity) && registry.get<HealthComponent>(entity).takeDamage(registry.get<PlayerBulletComponent>(bullet).getDamage())) {
 						// Enemy is dead

@@ -519,7 +519,19 @@ public:
 	inline void setMaxTime(float maxTime) {
 		useTime = true;
 		this->maxTime = maxTime;
+		if (maxTime <= 0) {
+			markedForDespawn = true;
+		} else {
+			markedForDespawn = false;
+		}
 	}
+
+	/*
+	Returns true if this entity will be despawned in the next update call.
+	This is used to make sure entities do not trigger death events multiple times
+	in the same frame.
+	*/
+	inline bool isMarkedForDespawn() { return markedForDespawn; }
 
 private:
 	inline void removeChild(uint32_t child) {
@@ -542,6 +554,8 @@ private:
 	// Entities that are attached to the entity with this DespawnComponent
 	// When this entity is deleted, so are all its children
 	std::vector<uint32_t> children;
+
+	bool markedForDespawn = false;
 };
 
 /*
