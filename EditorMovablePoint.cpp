@@ -34,6 +34,7 @@ std::string EditorMovablePoint::format() {
 	res += delim + tos(damage);
 
 	res += delim + tos(static_cast<int>(onCollisionAction));
+	res += delim + tos(pierceResetTime);
 
 	if (playSoundOnSpawn) {
 		res += delim + "1";
@@ -92,6 +93,7 @@ void EditorMovablePoint::load(std::string formattedString) {
 	damage = std::stoi(items[i++]);
 
 	onCollisionAction = static_cast<BULLET_ON_COLLISION_ACTION>(std::stoi(items[i++]));
+	pierceResetTime = std::stof(items[i++]);
 
 	if (std::stoi(items[i++]) == 1) {
 		playSoundOnSpawn = true;

@@ -36,7 +36,13 @@ Notes for me:
 bomb gui
 
 TODO:
+-insert items into spatial hash tables in collectiblesystem with radius=max(activation_radius, hitbox) and do collision checks for activation in the system
+ instead of in the component; update() probably not even needed at all
 -BULLET_ON_COLLISION_ACTION that pierces entities but cannot hit the same entity twice
+	-only insert into map if collision doesn't kill the entity
+-change all flashwhitesea to flashtransparentsea
+-play sound when item is collected; different for each item but default is the same sound
+-items not despawning fast enough? if enemy is killed on top of player, number of item pickups is multiplied arbitrarily because of lag
 -make EMPAngleOffset also work with bezier curves by rotating all points around 0,0 by that evaluated angle
 -have some default attack patterns (https://www.youtube.com/watch?v=xbQ9e0zYuj4)
 -all default stuff (font, spritesheet, sounds, etc) are copied into every new level pack that is created so that no special code is needed to load

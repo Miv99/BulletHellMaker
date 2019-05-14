@@ -9,7 +9,8 @@ class HitboxComponent;
 enum BULLET_ON_COLLISION_ACTION {
 	TURN_INTANGIBLE, // Hitbox is removed but sprite and children remain
 	DESTROY_THIS_BULLET_AND_ATTACHED_CHILDREN, // All attached EMPs and itself are destroyed
-	DESTROY_THIS_BULLET_ONLY // Only itself is destroyed
+	DESTROY_THIS_BULLET_ONLY, // Only itself is destroyed
+	PIERCE_ENTITY // Do nothing on hitting an entity but bullet is unable to hit the same entity twice in some time frame (a property of the EMP)
 };
 
 class CollisionSystem {

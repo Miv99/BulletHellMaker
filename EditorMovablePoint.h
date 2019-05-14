@@ -162,7 +162,9 @@ public:
 	inline bool getInheritDamage() { return inheritDamage; }
 	inline bool getInheritOnCollisionAction() { return inheritOnCollisionAction; }
 	inline bool getInheritSoundSettings() { return inheritSoundSettings; }
+	inline float getPierceResetTime() { return pierceResetTime; }
 
+	inline void setPierceResetTime(float pierceResetTime) { this->pierceResetTime = pierceResetTime; }
 	inline void setPlaysSound(bool playsSound) { playSoundOnSpawn = playsSound; }
 	inline void setOnCollisionAction(BULLET_ON_COLLISION_ACTION action) { onCollisionAction = action; }
 	inline void setDamage(float damage) { this->damage = damage; }
@@ -269,6 +271,8 @@ private:
 
 	// Only for bullets; determines what happens when the bullet makes contact with something
 	BULLET_ON_COLLISION_ACTION onCollisionAction = DESTROY_THIS_BULLET_ONLY;
+	// Time after hitting an enemy that the entity is able to be hit by this same bullet again; only for PIERCE_ENTITY onCollisionAction
+	float pierceResetTime = 2.0f;
 	
 	bool playSoundOnSpawn = false;
 	// Sound played on this EMP spawn, if playSoundOnSpawn is true

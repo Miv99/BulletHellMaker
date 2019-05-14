@@ -42,6 +42,8 @@ void CollisionSystem::update(float deltaTime) {
 	defaultTable.clear();
 	largeObjectsTable.clear();
 	playerBulletView.each([&](auto entity, auto& playerBullet, auto& position, auto& hitbox) {
+		playerBullet.update(deltaTime);
+
 		// Check hitbox size for insertion into correct table
 		if (hitbox.getRadius() < defaultTableObjectMaxSize) {
 			defaultTable.insert(entity, hitbox, position);
@@ -50,6 +52,8 @@ void CollisionSystem::update(float deltaTime) {
 		}
 	});
 	enemyBulletView.each([&](auto entity, auto& enemyBullet, auto& position, auto& hitbox) {
+		enemyBullet.update(deltaTime);
+
 		// Check hitbox size for insertion into correct table
 		if (hitbox.getRadius() < defaultTableObjectMaxSize) {
 			defaultTable.insert(entity, hitbox, position);
@@ -88,7 +92,7 @@ void CollisionSystem::update(float deltaTime) {
 
 				auto& bulletPosition = enemyBulletView.get<PositionComponent>(bullet);
 				auto& bulletHitbox = enemyBulletView.get<HitboxComponent>(bullet);
-				if (collides(playerPosition, playerHitbox, bulletPosition, bulletHitbox)) {
+				if (registry.get<EnemyBulletComponent>(bullet).isValidCollision(player) && collides(playerPosition, playerHitbox, bulletPosition, bulletHitbox)) {
 					// Player takes damage
 					// Disable hitbox for invulnerability time
 					float invulnTime = registry.get<PlayerTag>().getInvulnerabilityTime();
@@ -105,6 +109,8 @@ void CollisionSystem::update(float deltaTime) {
 
 						//TODO: handle death stuff
 					} else {
+						registry.get<EnemyBulletComponent>(bullet).onCollision(player);
+
 						// Play death sound
 						registry.get<LevelManagerTag>().getLevelPack()->playSound(registry.get<PlayerTag>().getHurtSound());
 					}
@@ -137,6 +143,10 @@ void CollisionSystem::update(float deltaTime) {
 							registry.remove<EMPSpawnerComponent>(bullet);
 						}
 						break;
+					case PIERCE_ENTITY:
+						// Flash bullet
+						auto& sprite = registry.get<SpriteComponent>(bullet);
+						sprite.setEffectAnimation(std::make_unique<FlashWhiteSEA>(sprite.getSprite(), registry.get<EnemyBulletComponent>(bullet).getPierceResetTime()));
 					}
 				}
 			}
@@ -156,7 +166,7 @@ void CollisionSystem::update(float deltaTime) {
 
 				auto& bulletPosition = playerBulletView.get<PositionComponent>(bullet);
 				auto& bulletHitbox = playerBulletView.get<HitboxComponent>(bullet);
-				if (collides(position, hitbox, bulletPosition, bulletHitbox)) {
+				if (registry.get<PlayerBulletComponent>(bullet).isValidCollision(entity) && collides(position, hitbox, bulletPosition, bulletHitbox)) {
 					// Enemy takes damage
 					if (registry.has<HealthComponent>(entity) && registry.get<HealthComponent>(entity).takeDamage(registry.get<PlayerBulletComponent>(bullet).getDamage())) {
 						// Enemy is dead
@@ -180,6 +190,8 @@ void CollisionSystem::update(float deltaTime) {
 						// Delete enemy
 						registry.get<DespawnComponent>(entity).setMaxTime(0);
 					} else {
+						registry.get<PlayerBulletComponent>(bullet).onCollision(entity);
+
 						// Play hurt sound
 						registry.get<LevelManagerTag>().getLevelPack()->playSound(enemy.getEnemyData()->getHurtSound());
 					}
@@ -211,6 +223,9 @@ void CollisionSystem::update(float deltaTime) {
 						if (registry.has<EMPSpawnerComponent>(bullet)) {
 							registry.remove<EMPSpawnerComponent>(bullet);
 						}
+						break;
+					case PIERCE_ENTITY:
+						// Do nothing
 						break;
 					}
 				}

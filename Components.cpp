@@ -589,8 +589,50 @@ void HitboxComponent::rotate(float angle) {
 	}
 }
 
+void EnemyBulletComponent::update(float deltaTime) {
+	for (auto& it = ignoredEntities.begin(); it != ignoredEntities.end(); it++) {
+		it->second -= deltaTime;
+	}
+}
+
+void EnemyBulletComponent::onCollision(uint32_t collidedWith) {
+	if (onCollisionAction != PIERCE_ENTITY) return;
+
+	if (ignoredEntities.find(collidedWith) == ignoredEntities.end()) {
+		ignoredEntities.insert(std::make_pair(collidedWith, pierceResetTime));
+	} else {
+		ignoredEntities[collidedWith] = pierceResetTime;
+	}
+}
+
+bool EnemyBulletComponent::isValidCollision(uint32_t collidingWith) {
+	if (onCollisionAction != PIERCE_ENTITY) return true;
+	return ignoredEntities.find(collidingWith) == ignoredEntities.end() || ignoredEntities[collidingWith] <= 0;
+}
+
 BULLET_ON_COLLISION_ACTION EnemyBulletComponent::getOnCollisionAction() {
 	return onCollisionAction;
+}
+
+void PlayerBulletComponent::update(float deltaTime) {
+	for (auto& it = ignoredEntities.begin(); it != ignoredEntities.end(); it++) {
+		it->second -= deltaTime;
+	}
+}
+
+void PlayerBulletComponent::onCollision(uint32_t collidedWith) {
+	if (onCollisionAction != PIERCE_ENTITY) return;
+
+	if (ignoredEntities.find(collidedWith) == ignoredEntities.end()) {
+		ignoredEntities.insert(std::make_pair(collidedWith, pierceResetTime));
+	} else {
+		ignoredEntities[collidedWith] = pierceResetTime;
+	}
+}
+
+bool PlayerBulletComponent::isValidCollision(uint32_t collidingWith) {
+	if (onCollisionAction != PIERCE_ENTITY) return true;
+	return ignoredEntities.find(collidingWith) == ignoredEntities.end() || ignoredEntities[collidingWith] <= 0;
 }
 
 BULLET_ON_COLLISION_ACTION PlayerBulletComponent::getOnCollisionAction() {

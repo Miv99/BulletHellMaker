@@ -6,6 +6,7 @@
 #include <vector>
 #include <math.h>
 #include <algorithm>
+#include <map>
 #include <tuple>
 #include <cassert>
 #include <limits>
@@ -594,10 +595,21 @@ private:
 
 class EnemyBulletComponent {
 public:
-	EnemyBulletComponent(int attackID, int attackPatternID, int enemyID, int enemyPhaseID, int damage, BULLET_ON_COLLISION_ACTION onCollisionAction) : attackID(attackID), attackPatternID(attackPatternID), enemyID(enemyID), enemyPhaseID(enemyPhaseID), damage(damage), onCollisionAction(onCollisionAction) {}
+	EnemyBulletComponent(int attackID, int attackPatternID, int enemyID, int enemyPhaseID, int damage, BULLET_ON_COLLISION_ACTION onCollisionAction, float pierceResetTime) : attackID(attackID), attackPatternID(attackPatternID), 
+		enemyID(enemyID), enemyPhaseID(enemyPhaseID), damage(damage), onCollisionAction(onCollisionAction), pierceResetTime(pierceResetTime) {}
+
+	void update(float deltaTime);
+
+	/*
+	Should be called whenever this bullet collides with an entity and the entity does not die.
+	*/
+	void onCollision(uint32_t collidedWith);
+
+	bool isValidCollision(uint32_t collidingWith);
 
 	inline int getDamage() { return damage; }
 	BULLET_ON_COLLISION_ACTION getOnCollisionAction();
+	inline float getPierceResetTime() { return pierceResetTime; }
 
 private:
 	// The attack this bullet belongs to
@@ -611,14 +623,31 @@ private:
 
 	int damage;
 	BULLET_ON_COLLISION_ACTION onCollisionAction;
+	// Used only when onCollisionAction is PIERCE_ENTITY
+	// Map of entity to time remaining until that entity is able to be hit by this same bullet again
+	// If an entity in the map dies, it is not removed from the map because the chances of the same entity id being spawned to another hittable entity
+	// is so small that it's not worth the computational time
+	std::map<uint32_t, float> ignoredEntities;
+	// Time after hitting an enemy that the entity is able to be hit by this same bullet again; only for PIERCE_ENTITY onCollisionAction
+	float pierceResetTime;
 };
 
 class PlayerBulletComponent {
 public:
-	PlayerBulletComponent(int attackID, int attackPatternID, int damage, BULLET_ON_COLLISION_ACTION onCollisionAction) : attackID(attackID), attackPatternID(attackPatternID), damage(damage), onCollisionAction(onCollisionAction) {}
+	PlayerBulletComponent(int attackID, int attackPatternID, int damage, BULLET_ON_COLLISION_ACTION onCollisionAction, float pierceResetTime) : attackID(attackID), attackPatternID(attackPatternID), damage(damage), onCollisionAction(onCollisionAction), pierceResetTime(pierceResetTime) {}
+
+	void update(float deltaTime);
+
+	/*
+	Should be called whenever this bullet collides with an entity and the entity does not die.
+	*/
+	void onCollision(uint32_t collidedWith);
+
+	bool isValidCollision(uint32_t collidingWith);
 
 	inline int getDamage() { return damage; }
 	BULLET_ON_COLLISION_ACTION getOnCollisionAction();
+	inline float getPierceResetTime() { return pierceResetTime; }
 
 private:
 	// The attack this bullet belongs to
@@ -628,6 +657,13 @@ private:
 
 	int damage;
 	BULLET_ON_COLLISION_ACTION onCollisionAction;
+	// Used only when onCollisionAction is PIERCE_ENTITY
+	// Map of entity to time remaining until that entity is able to be hit by this same bullet again
+	// If an entity in the map dies, it is not removed from the map because the chances of the same entity id being spawned to another hittable entity
+	// is so small that it's not worth the computational time
+	std::map<uint32_t, float> ignoredEntities;
+	// Time after hitting an enemy that the entity is able to be hit by this same bullet again; only for PIERCE_ENTITY onCollisionAction
+	float pierceResetTime;
 };
 
 /*

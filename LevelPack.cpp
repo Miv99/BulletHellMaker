@@ -46,7 +46,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	distanceSegments->insertSegment(1, std::make_pair(2, std::make_shared<LinearTFV>(100, 200, 2)));
 	distanceSegments->insertSegment(2, std::make_pair(3, std::make_shared<LinearTFV>(200, 300, 3)));
 	attack2emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(distanceSegments, std::make_shared<ConstantTFV>(-PI), 6));
-	attack2emp0->setOnCollisionAction(DESTROY_THIS_BULLET_ONLY);
+	attack2emp0->setOnCollisionAction(PIERCE_ENTITY);
 
 	auto ap1 = createAttackPattern();
 	ap1->setShadowTrailLifespan(3.0f);
@@ -75,7 +75,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	ep1->setAttackPatternLoopDelay(15);
 	ep1->setPhaseBeginAction(std::make_shared<NullEPA>());
 	ep1->setPhaseEndAction(std::make_shared<NullEPA>());
-	ep1->setPlayMusic(true);
+	ep1->setPlayMusic(false);
 	ep1->getMusicSettings().setFileName("test music.wav");
 	ep1->getMusicSettings().setVolume(10);
 
@@ -85,7 +85,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	ep2->setAttackPatternLoopDelay(15);
 	ep2->setPhaseBeginAction(std::make_shared<DestroyEnemyBulletsEPA>());
 	ep2->setPhaseEndAction(std::make_shared<NullEPA>());
-	ep2->setPlayMusic(true);
+	ep2->setPlayMusic(false);
 	ep2->getMusicSettings().setFileName("heaven's fall.wav");
 	ep2->getMusicSettings().setVolume(10);
 	ep2->getMusicSettings().setTransitionTime(5.5f);
@@ -111,8 +111,8 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	pemp0->setAnimatable(Animatable("Bullet", "sheet1", true, LOCK_ROTATION));
 	pemp0->setHitboxRadius(30);
 	pemp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
-	pemp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 2), std::make_shared<ConstantTFV>(0), 2.0f, std::make_shared<EMPAngleOffsetPlayerSpriteAngle>()));
-	pemp0->setOnCollisionAction(DESTROY_THIS_BULLET_ONLY);
+	pemp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 2), std::make_shared<ConstantTFV>(PI/2.0f), 2.0f));
+	pemp0->setOnCollisionAction(PIERCE_ENTITY);
 	playerAP->addAttackID(0.1f, playerAttack1->getID());
 
 	auto playerAP2 = createAttackPattern();
@@ -136,7 +136,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 		b1emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
 		b1emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 1000, 2), std::make_shared<ConstantTFV>(1.0f + i*0.13f), 2.0f));
 		//TODO change this to piercing
-		b1emp0->setOnCollisionAction(DESTROY_THIS_BULLET_ONLY);
+		b1emp0->setOnCollisionAction(PIERCE_ENTITY);
 		bombAP->addAttackID(0, bombAttack1->getID());
 	}
 

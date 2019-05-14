@@ -62,7 +62,7 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
 		}
 
-		registry.assign<EnemyBulletComponent>(bullet, attackID, attackPatternID, enemyID, enemyPhaseID, emp->getDamage(), emp->getOnCollisionAction());
+		registry.assign<EnemyBulletComponent>(bullet, attackID, attackPatternID, enemyID, enemyPhaseID, emp->getDamage(), emp->getOnCollisionAction(), emp->getPierceResetTime());
 	}
 
 	if (emp->getShadowTrailLifespan() > 0) {
@@ -138,7 +138,7 @@ void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
 			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
 		}
 
-		registry.assign<PlayerBulletComponent>(bullet, attackID, attackPatternID, emp->getDamage(), emp->getOnCollisionAction());
+		registry.assign<PlayerBulletComponent>(bullet, attackID, attackPatternID, emp->getDamage(), emp->getOnCollisionAction(), emp->getPierceResetTime());
 	}
 
 	if (emp->getShadowTrailLifespan() > 0) {
