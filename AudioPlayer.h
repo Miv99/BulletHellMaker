@@ -14,6 +14,7 @@ public:
 		fileName = copy.fileName;
 		volume = copy.volume;
 		pitch = copy.pitch;
+		disabled = copy.disabled;
 	}
 
 	std::string format() override;
@@ -22,18 +23,23 @@ public:
 	inline std::string getFileName() const { return fileName; }
 	inline float getVolume() const { return volume; }
 	inline float getPitch() const { return pitch; }
+	inline bool isDisabled() const { return disabled || fileName == ""; }
 
 	inline void setFileName(std::string fileName) { this->fileName = fileName; }
 	inline void setVolume(float volume) { this->volume = volume; }
 	inline void setPitch(float pitch) { this->pitch = pitch; }
+	inline void setDisabled(bool disabled) { this->disabled = disabled; }
 
 private:
-	std::string fileName;
+	std::string fileName = "";
 
 	// in range [0, 100]
 	float volume = 100;
 	// in range [1, inf]
 	float pitch = 1;
+
+	// If true, sound will not play
+	bool disabled = false;
 };
 
 class MusicSettings : public TextMarshallable {
@@ -48,6 +54,7 @@ public:
 		volume = copy.volume;
 		pitch = copy.pitch;
 		transitionTime = copy.transitionTime;
+		disabled = copy.disabled;
 	}
 
 	std::string format() override;
@@ -60,6 +67,7 @@ public:
 	inline float getVolume() const { return volume; }
 	inline float getPitch() const { return pitch; }
 	inline float getTransitionTime() const { return transitionTime; }
+	inline bool isDisabled() const { return disabled || fileName == ""; }
 
 	inline void setFileName(std::string fileName) { this->fileName = fileName; }
 	inline void setLoop(bool loops) { this->loops = loops; }
@@ -68,9 +76,10 @@ public:
 	inline void setVolume(float volume) { this->volume = volume; }
 	inline void setPitch(float pitch) { this->pitch = pitch; }
 	inline void setTransitionTime(float transitionTime) { this->transitionTime = transitionTime; }
+	inline void setDisabled(bool disabled) { this->disabled = disabled; }
 
 private:
-	std::string fileName;
+	std::string fileName = "";
 
 	bool loops = false;
 	// only applicable if loops is true; see sf::Music's setLoopPoints() for explanation of these fields
@@ -84,6 +93,9 @@ private:
 
 	// Time in seconds for music's volume to go from 0 to the above volume when the music starts playing
 	float transitionTime = 0;
+
+	// If true, sound will not play
+	bool disabled = false;
 };
 
 class AudioPlayer {

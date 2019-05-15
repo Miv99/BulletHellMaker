@@ -7,7 +7,13 @@ float soundVolume = 0.2f;
 float musicVolume = 0.2f;
 
 std::string SoundSettings::format() {
-	return "(" + fileName + ")" + delim + tos(volume) + delim + tos(pitch);
+	std::string ret = "(" + fileName + ")" + delim + tos(volume) + delim + tos(pitch) + delim;
+	if (disabled) {
+		ret += "1";
+	} else {
+		ret += "0";
+	}
+	return ret;
 }
 
 void SoundSettings::load(std::string formattedString) {
@@ -15,6 +21,11 @@ void SoundSettings::load(std::string formattedString) {
 	fileName = items[0];
 	volume = std::stof(items[1]);
 	pitch = std::stof(items[2]);
+	if (std::stoi(items[3]) == 1) {
+		disabled = true;
+	} else {
+		disabled = false;
+	}
 }
 
 std::string MusicSettings::format() {
@@ -27,7 +38,12 @@ std::string MusicSettings::format() {
 	}
 	ret += delim + tos(loopStartMilliseconds);
 	ret += delim + tos(loopLengthMilliseconds);
-	ret += delim + tos(volume) + delim + tos(pitch);
+	ret += delim + tos(volume) + delim + tos(pitch) + delim;
+	if (disabled) {
+		ret += "1";
+	} else {
+		ret += "0";
+	}
 	return ret;
 }
 
@@ -43,6 +59,11 @@ void MusicSettings::load(std::string formattedString) {
 	loopLengthMilliseconds = std::stoi(items[3]);
 	volume = std::stof(items[4]);
 	pitch = std::stof(items[5]);
+	if (std::stoi(items[6]) == 1) {
+		disabled = true;
+	} else {
+		disabled = false;
+	}
 }
 
 void AudioPlayer::update(float deltaTime) {
@@ -68,6 +89,8 @@ fileName - file name with extension
 volume - in range [0, 100], where 100 is full volume
 */
 void AudioPlayer::playSound(const SoundSettings& soundSettings) {
+	if (soundSettings.isDisabled()) return;
+
 	// Check if the sound's SoundBuffer already exists
 	if (soundBuffers.count(soundSettings.getFileName()) == 0) {
 		sf::SoundBuffer buffer;
@@ -91,6 +114,8 @@ fileName - file name with extension
 volume - in range [0, 100], where 100 is full volume
 */
 std::shared_ptr<sf::Music> AudioPlayer::playMusic(const MusicSettings& musicSettings) {
+	if (musicSettings.isDisabled()) return nullptr;
+
 	std::shared_ptr<sf::Music> music = std::make_shared<sf::Music>();
 	if (!music->openFromFile(musicSettings.getFileName())) {
 		//TODO: handle audio not being able to be loaded
