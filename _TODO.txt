@@ -46,7 +46,6 @@ TODO:
 -draw all GUI related text to a tgui::Canvas, using a shader that creates a text border
 -bosses can only be spawned if the condition is that there are 0 enemies so that there can only be 1 boss at a time
 -default bloom settings are part of the level. they can be lowered by the user playing it (checkbox 
--disable sound in SoundSettings/MusicSettings (doesn't play a sound/music)
 -flatten layers PLAYER_BULLET_LAYER through PLAYER_LAYER and then apply bloom to that single squished texture for more efficiency
 -enemies can be bosses -> GUI displays a health bar
 -Multiple small shockwave effects 

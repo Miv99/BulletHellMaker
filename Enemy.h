@@ -37,7 +37,6 @@ public:
 	inline float getDespawnTime() { return despawnTime; }
 	inline const std::vector<std::shared_ptr<DeathAction>> getDeathActions() { return deathActions; }
 	inline bool getIsBoss() { return isBoss; }
-	inline std::string getBossName() { return bossName; }
 	// Returns a reference
 	inline SoundSettings& getHurtSound() { return hurtSound; }
 	// Returns a reference
@@ -78,7 +77,6 @@ private:
 	std::vector<std::shared_ptr<DeathAction>> deathActions;
 
 	bool isBoss = false;
-	std::string bossName;
 
 	SoundSettings hurtSound;
 	SoundSettings deathSound;
