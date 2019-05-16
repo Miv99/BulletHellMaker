@@ -42,8 +42,6 @@ TODO:
 -have some default attack patterns (https://www.youtube.com/watch?v=xbQ9e0zYuj4)
 -all default stuff (font, spritesheet, sounds, etc) are copied into every new level pack that is created so that no special code is needed to load
  from a default resource 
--boss name color, boss hp bar color, player hp bar color (health image if using discrete player hp bar) are options in Level
--draw all GUI related text to a tgui::Canvas, using a shader that creates a text border
 -bosses can only be spawned if the condition is that there are 0 enemies so that there can only be 1 boss at a time
 -default bloom settings are part of the level. they can be lowered by the user playing it (checkbox 
 -flatten layers PLAYER_BULLET_LAYER through PLAYER_LAYER and then apply bloom to that single squished texture for more efficiency

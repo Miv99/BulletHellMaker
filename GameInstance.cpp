@@ -99,6 +99,10 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 	bombLabel->setPosition({ tgui::bindLeft(bombPictureGrid), tgui::bindTop(bombPictureGrid) - bombLabel->getSize().y });
 	gui->add(bombLabel);
 
+	bombCountLabel = tgui::Label::create();
+	bombCountLabel->setTextSize(24);
+	bombCountLabel->setMaximumTextWidth(0);
+
 	if (smoothPlayerHPBar) {
 		// Progress bar for player HP
 		playerHPProgressBar = tgui::ProgressBar::create();
@@ -137,7 +141,13 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 		playerHPLabel->setText("Health");
 		playerHPLabel->setPosition({ tgui::bindLeft(playerHPPictureGrid), tgui::bindTop(playerHPPictureGrid) - playerHPLabel->getSize().y });
 		gui->add(playerHPLabel);
+
+		playerDiscreteHPCountLabel = tgui::Label::create();
+		playerDiscreteHPCountLabel->setTextSize(24);
+		playerDiscreteHPCountLabel->setMaximumTextWidth(0);
 	}
+
+
 }
 
 void GameInstance::physicsUpdate(float deltaTime) {
@@ -254,13 +264,12 @@ void GameInstance::onPlayerHPChange(int newHP, int maxHP) {
 		playerHPProgressBar->setValue(newHP);
 		playerHPProgressBar->setText(std::to_string(newHP) + "/" + std::to_string(maxHP));
 	} else {
-		if (hpPicturesInGrid < newHP) {
-			for (int i = hpPicturesInGrid; i < newHP; i++) {
-				playerHPPictureGrid->addWidget(playerHPPictures[i], 0, i);
-				playerHPPictureGrid->setWidgetPadding(0, i, tgui::Padding(playerHPGridPadding, playerHPGridPadding, playerHPGridPadding, playerHPGridPadding));
-			}
+		playerHPPictureGrid->removeAllWidgets();
+		if (newHP >= 10) {
+			playerHPPictureGrid->addWidget(playerHPPictures[0], 0, 0);
+			playerDiscreteHPCountLabel->setText("x" + std::to_string(newHP));
+			playerHPPictureGrid->addWidget(playerDiscreteHPCountLabel, 0, 1);
 		} else {
-			playerHPPictureGrid->removeAllWidgets();
 			for (int i = 0; i < newHP; i++) {
 				playerHPPictureGrid->addWidget(playerHPPictures[i], 0, i);
 				playerHPPictureGrid->setWidgetPadding(0, i, tgui::Padding(playerHPGridPadding, playerHPGridPadding, playerHPGridPadding, playerHPGridPadding));
@@ -290,9 +299,15 @@ void GameInstance::onPlayerBombCountChange(int newBombCount) {
 		}
 	} else {
 		bombPictureGrid->removeAllWidgets();
-		for (int i = 0; i < newBombCount; i++) {
-			bombPictureGrid->addWidget(bombPictures[i], 0, i);
-			bombPictureGrid->setWidgetPadding(0, i, tgui::Padding(bombGridPadding, bombGridPadding, bombGridPadding, bombGridPadding));
+		if (newBombCount >= 10) {
+			bombPictureGrid->addWidget(bombPictures[0], 0, 0);
+			bombCountLabel->setText("x" + std::to_string(newBombCount));
+			bombPictureGrid->addWidget(playerDiscreteHPCountLabel, 0, 1);
+		} else {
+			for (int i = 0; i < newBombCount; i++) {
+				bombPictureGrid->addWidget(bombPictures[i], 0, i);
+				bombPictureGrid->setWidgetPadding(0, i, tgui::Padding(bombGridPadding, bombGridPadding, bombGridPadding, bombGridPadding));
+			}
 		}
 	}
 	bombPicturesInGrid = newBombCount;

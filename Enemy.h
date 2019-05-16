@@ -50,7 +50,6 @@ public:
 	inline void setHealth(int health) { this->health = health; }
 	inline void setDespawnTime(float despawnTime) { this->despawnTime = despawnTime; }
 	inline void setIsBoss(bool isBoss) { this->isBoss = isBoss; }
-	inline void setBossName(std::string bossName) { this->bossName = bossName; }
 
 	inline void addPhaseID(int index, std::shared_ptr<EnemyPhaseStartCondition> startCondition, int phaseID, EntityAnimatableSet animatableSet) {
 		phaseIDs.insert(phaseIDs.begin() + index, std::make_tuple(startCondition, phaseID, animatableSet));

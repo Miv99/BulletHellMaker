@@ -93,6 +93,8 @@ private:
 	const float playerHPGridPadding = 1.2f;
 	// Label for player HP
 	std::shared_ptr<tgui::Label> playerHPLabel;
+	// Label for discrete player HP when >= 10
+	std::shared_ptr<tgui::Label> playerDiscreteHPCountLabel;
 
 	// Same as discrete player HP bar, but for bombs
 	float bombPictureSize;
@@ -101,6 +103,8 @@ private:
 	std::shared_ptr<tgui::Grid> bombPictureGrid;
 	const float bombGridPadding = playerHPGridPadding;
 	std::shared_ptr<tgui::Label> bombLabel;
+	// Label for when bombs >= 10
+	std::shared_ptr<tgui::Label> bombCountLabel;
 
 	/*
 	newHP - the player's new health

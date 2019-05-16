@@ -149,7 +149,8 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	std::vector<std::pair<std::shared_ptr<Item>, int>> items;
 	//items.push_back(std::make_pair(std::make_shared<HealthPackItem>(Animatable("Health", "sheet1", true, LOCK_ROTATION), 33), 1));
 	//items.push_back(std::make_pair(std::make_shared<PointsPackItem>(Animatable("Points", "sheet1", true, LOCK_ROTATION), 25), 6));
-	items.push_back(std::make_pair(std::make_shared<PointsPackItem>(Animatable("Points", "sheet1", true, LOCK_ROTATION), 33, SoundSettings("item.wav"), 150.0f), 30));
+	items.push_back(std::make_pair(std::make_shared<HealthPackItem>(Animatable("Health", "sheet1", true, LOCK_ROTATION), 33, SoundSettings("item.wav"), 150.0f), 3));
+	items.push_back(std::make_pair(std::make_shared<PointsPackItem>(Animatable("Points", "sheet1", true, LOCK_ROTATION), 33, SoundSettings("item.wav"), 150.0f), 2));
 	items.push_back(std::make_pair(std::make_shared<PowerPackItem>(Animatable("Power", "sheet1", true, LOCK_ROTATION), 33, SoundSettings("item.wav"), 75.0f), 60));
 	items.push_back(std::make_pair(std::make_shared<BombItem>(Animatable("Bomb", "sheet1", true, LOCK_ROTATION), 33, SoundSettings("item.wav"), 75.0f), 2));
 	v1.push_back(EnemySpawnInfo(enemy1->getID(), 300, 350, items));
@@ -164,7 +165,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	level->setBackgroundScrollSpeedX(50);
 	level->setBackgroundScrollSpeedY(-100);
 	this->insertLevel(0, level);
-	this->setPlayer(EditorPlayer(3, 5, 300, 100, 5, 0, 0, 2.0f, std::vector<PlayerPowerTier>{ PlayerPowerTier(pset1, playerAP->getID(), 0.1f, playerFocusedAP->getID(), 0.5f, bombAP->getID(), 5.0f),
+	this->setPlayer(EditorPlayer(10, 11, 300, 100, 5, 0, 0, 2.0f, std::vector<PlayerPowerTier>{ PlayerPowerTier(pset1, playerAP->getID(), 0.1f, playerFocusedAP->getID(), 0.5f, bombAP->getID(), 5.0f),
 		PlayerPowerTier(pset2, playerAP2->getID(), 0.01f, playerFocusedAP->getID(), 0.5f, bombAP->getID(), 5.0f) }, SoundSettings("oof.wav"), SoundSettings("death.ogg"), Animatable("heart.png", "", true, LOCK_ROTATION),
 		3, 10, Animatable("bomb.png", "", true, LOCK_ROTATION), SoundSettings("bomb_ready.wav"), 5.0f));
 	metadata.addSpriteSheet("sheet1.txt", "sheet1.png");
