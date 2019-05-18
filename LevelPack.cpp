@@ -103,8 +103,9 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	enemy1->getHurtSound().setFileName("oof.wav");
 	enemy1->getDeathSound().setFileName("death.ogg");
 	enemy1->addDeathAction(std::make_shared<PlaySoundDeathAction>(SoundSettings("test sound.wav", 100)));
+	enemy1->setIsBoss(true);
 
-	auto level = std::make_shared<Level>("test level 1");
+	auto level = std::make_shared<Level>("test level 1 with a really long name");
 	auto playerAP = createAttackPattern();
 	auto playerAttack1 = createAttack();
 	auto pemp0 = playerAttack1->searchEMP(0);

@@ -262,8 +262,7 @@ void SpawnEnemyCommand::execute(EntityCreationQueue & queue) {
 	registry.assign<AnimatableSetComponent>(enemy);
 	registry.assign<ShadowTrailComponent>(enemy, 0, 0);
 
-	// Reset level manager's timeSinceLastEnemySpawn
-	registry.get<LevelManagerTag>().setTimeSinceLastEnemySpawn(0);
+	registry.get<LevelManagerTag>().onEnemySpawn(enemy);
 }
 
 int SpawnEnemyCommand::getEntitiesQueuedCount() {

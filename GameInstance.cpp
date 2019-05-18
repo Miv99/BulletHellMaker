@@ -19,6 +19,8 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 	sf::View view(sf::Vector2f(MAP_WIDTH/2.0f, -MAP_HEIGHT/2.0f), sf::Vector2f(MAP_WIDTH, MAP_HEIGHT));
 	window.setView(view);
 
+	windowHeight = window.getSize().y;
+
 	audioPlayer = std::make_unique<AudioPlayer>();
 
 	levelPack = std::make_unique<LevelPack>(*audioPlayer, levelPackName);
@@ -69,7 +71,7 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 	powerLabel = tgui::Label::create();
 	powerLabel->setTextSize(24);
 	powerLabel->setMaximumTextWidth(0);
-	powerLabel->setPosition({ tgui::bindLeft(scoreLabel), tgui::bindBottom(scoreLabel) + guiPaddingY });
+	powerLabel->setPosition({ tgui::bindLeft(levelNameLabel), tgui::bindBottom(scoreLabel) + guiPaddingY });
 	gui->add(powerLabel);
 
 	// Bomb grid
@@ -87,7 +89,7 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 		bombPictures.push_back(bombPicture);
 	}
 	bombPictureGrid = tgui::Grid::create();
-	bombPictureGrid->setPosition(guiRegionX + guiPaddingX, guiRegionHeight - bombPictureSize - guiPaddingY);
+	bombPictureGrid->setPosition({ tgui::bindLeft(levelNameLabel), guiRegionHeight - bombPictureSize - guiPaddingY });
 	gui->add(bombPictureGrid);
 	bombPicturesInGrid = 0;
 
@@ -110,7 +112,7 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 		playerHPProgressBar->setMinimum(0);
 		playerHPProgressBar->setMaximum(levelPack->getPlayer().getMaxHealth());
 		playerHPProgressBar->setSize(guiRegionWidth - guiPaddingX * 2.0f, 22);
-		playerHPProgressBar->setPosition({ guiRegionX + guiPaddingX, guiRegionHeight - playerHPProgressBar->getSize().y - guiPaddingY });
+		playerHPProgressBar->setPosition({ tgui::bindLeft(levelNameLabel), guiRegionHeight - playerHPProgressBar->getSize().y - guiPaddingY });
 		playerHPProgressBar->getRenderer()->setBackgroundColor(tgui::Color(sf::Color(255, 170, 170, 255)));
 		playerHPProgressBar->getRenderer()->setFillColor(tgui::Color::Red);
 		playerHPProgressBar->getRenderer()->setTextColor(tgui::Color::White);
@@ -147,7 +149,30 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 		playerDiscreteHPCountLabel->setMaximumTextWidth(0);
 	}
 
+	// Boss stuff
+	bossLabel = tgui::Label::create();
+	bossLabel->setTextSize(26);
+	bossLabel->setMaximumTextWidth(window.getSize().x - guiRegionWidth);
+	bossLabel->setPosition(0, 0);
+	bossLabel->setVisible(false);
+	gui->add(bossLabel);
 
+	bossPhaseTimeLeft = tgui::Label::create();
+	bossPhaseTimeLeft->setTextSize(26);
+	bossPhaseTimeLeft->setMaximumTextWidth(0);
+	bossPhaseTimeLeft->setVisible(false);
+	gui->add(bossPhaseTimeLeft);
+
+	bossPhaseHealthBar = tgui::ProgressBar::create();
+	bossPhaseHealthBar->setFillDirection(tgui::ProgressBar::FillDirection::LeftToRight);
+	bossPhaseHealthBar->setSize(window.getSize().x - guiRegionWidth, bossPhaseHealthBarHeight);
+	bossPhaseHealthBar->setPosition({ 0, 0 });
+	bossPhaseHealthBar->getRenderer()->setBackgroundColor(tgui::Color::Transparent);
+	bossPhaseHealthBar->getRenderer()->setFillColor(tgui::Color::Red);
+	bossPhaseHealthBar->getRenderer()->setTextColor(tgui::Color::White);
+	bossPhaseHealthBar->getRenderer()->setBorderColor(tgui::Color::Transparent);
+	bossPhaseHealthBar->setVisible(false);
+	gui->add(bossPhaseHealthBar);
 }
 
 void GameInstance::physicsUpdate(float deltaTime) {
@@ -191,6 +216,25 @@ void GameInstance::render(float deltaTime) {
 	float opacity = std::min(playerTag.getTimeSinceLastBombActivation()/playerTag.getBombCooldown(), 1.0f);
 	bombPictureGrid->setInheritedOpacity(opacity);
 
+	if (bossPhaseHealthBar->isVisible()) {
+		bossPhaseHealthBar->setValue(registry.get<HealthComponent>(currentBoss).getHealth());
+	}
+	if (bossPhaseTimeLeft->isVisible()) {
+		bossPhaseTimeLeft->setText((boost::format("%.2f") % (bossNextPhaseStartTime - registry.get<EnemyComponent>(currentBoss).getTimeSinceLastPhase())).str());
+
+		// Move timer based on player position so that the user's vision isn't obstructed
+		uint32_t player = registry.attachee<PlayerTag>();
+		auto& playerHitbox = registry.get<HitboxComponent>(player);
+		auto& pos = registry.get<PositionComponent>(player);
+		if (pos.getY() + playerHitbox.getY() - playerHitbox.getRadius() < MAP_HEIGHT / 4.0f) {
+			if (pos.getX() + playerHitbox.getX() - playerHitbox.getRadius() < MAP_WIDTH / 3.0f) {
+				bossPhaseTimeLeft->setPosition(guiRegionX - bossPhaseTimeLeft->getSize().x, windowHeight - bossPhaseTimeLeft->getSize().y);
+			} else if (pos.getX() + playerHitbox.getX() + playerHitbox.getRadius() > MAP_WIDTH * 2 / 3.0f) {
+				bossPhaseTimeLeft->setPosition(0, windowHeight - bossPhaseTimeLeft->getSize().y);
+			}
+		}
+	}
+
 	gui->draw();
 }
 
@@ -205,14 +249,14 @@ void GameInstance::startLevel(int levelIndex) {
 	registry.reset();
 	reserveMemory(registry, INITIAL_ENTITY_RESERVATION);
 
-	// Create the player
-	createPlayer(levelPack->getPlayer());
-
 	// Create the level manager
 	registry.reserve<LevelManagerTag>(1);
 	registry.reserve(registry.alive() + 1);
 	uint32_t levelManager = registry.create();
 	auto& levelManagerTag = registry.assign<LevelManagerTag>(entt::tag_t{}, levelManager, &(*levelPack), level);
+
+	// Create the player
+	createPlayer(levelPack->getPlayer());
 
 	// Create the points change listener
 	levelManagerTag.getPointsChangeSignal()->sink().connect<GameInstance, &GameInstance::onPointsChange>(this);
@@ -313,6 +357,64 @@ void GameInstance::onPlayerBombCountChange(int newBombCount) {
 	bombPicturesInGrid = newBombCount;
 }
 
+void GameInstance::onEnemySpawn(uint32_t enemy) {
+	auto& enemyComponent = registry.get<EnemyComponent>(enemy);
+	const std::shared_ptr<EditorEnemy> data = enemyComponent.getEnemyData();
+	if (!data->getIsBoss()) {
+		return;
+	}
+	
+	bossLabel->setVisible(true);
+	bossLabel->setText(data->getName());
+
+	currentBoss = enemy;
+	enemyComponent.getEnemyPhaseChangeSignal()->sink().connect<GameInstance, &GameInstance::onBossPhaseChange>(this);
+	registry.get<DespawnComponent>(enemy).getDespawnSignal()->sink().connect<GameInstance, &GameInstance::onBossDespawn>(this);
+}
+
+void GameInstance::onBossPhaseChange(uint32_t boss, std::shared_ptr<EditorEnemyPhase> newPhase, std::shared_ptr<EnemyPhaseStartCondition> previousPhaseStartCondition, std::shared_ptr<EnemyPhaseStartCondition> nextPhaseStartCondition) {
+	auto& enemyComponent = registry.get<EnemyComponent>(boss);
+	const std::shared_ptr<EditorEnemy> data = enemyComponent.getEnemyData();
+	if (!nextPhaseStartCondition || std::dynamic_pointer_cast<HPBasedEnemyPhaseStartCondition>(nextPhaseStartCondition)) {
+		// Show phase HP bar
+		bossPhaseTimeLeft->setVisible(false);
+		bossPhaseHealthBar->setVisible(true);
+		// No need to push boss name label down to make room for HP bar because the label already has enough space on top for the bar
+
+		if (!nextPhaseStartCondition) {
+			bossPhaseHealthBar->setMinimum(0);
+		} else {
+			bossPhaseHealthBar->setMinimum(registry.get<HealthComponent>(boss).getMaxHealth() * std::dynamic_pointer_cast<HPBasedEnemyPhaseStartCondition>(nextPhaseStartCondition)->getRatio());
+		}
+		if (std::dynamic_pointer_cast<HPBasedEnemyPhaseStartCondition>(previousPhaseStartCondition)) {
+			bossPhaseHealthBar->setMaximum(registry.get<HealthComponent>(boss).getMaxHealth() * std::dynamic_pointer_cast<HPBasedEnemyPhaseStartCondition>(previousPhaseStartCondition)->getRatio());
+		} else {
+			// If previous phase start condition was not HP based, set the maximum of the progress bar to be whatever the last known health is
+			bossPhaseHealthBar->setMaximum(registry.get<HealthComponent>(boss).getHealth());
+		}
+	} else {
+		// Show timer
+		bossPhaseTimeLeft->setVisible(true);
+		bossPhaseHealthBar->setVisible(false);
+		bossPhaseTimeLeft->setText((boost::format("%.2f") % (bossNextPhaseStartTime - registry.get<EnemyComponent>(boss).getTimeSinceLastPhase())).str());
+
+		bossNextPhaseStartTime = std::dynamic_pointer_cast<TimeBasedEnemyPhaseStartCondition>(nextPhaseStartCondition)->getTime();
+
+		// Set timer position depending on location of player
+		if (registry.get<PositionComponent>(registry.attachee<PlayerTag>()).getX() + registry.get<HitboxComponent>(registry.attachee<PlayerTag>()).getX() < MAP_WIDTH/2.0f) {
+			bossPhaseTimeLeft->setPosition(0, windowHeight - bossPhaseTimeLeft->getSize().y);
+		} else {
+			bossPhaseTimeLeft->setPosition(guiRegionX - bossPhaseTimeLeft->getSize().x, windowHeight - bossPhaseTimeLeft->getSize().y);
+		}
+	}
+}
+
+void GameInstance::onBossDespawn(uint32_t boss) {
+	bossLabel->setVisible(false);
+	bossPhaseTimeLeft->setVisible(false);
+	bossPhaseHealthBar->setVisible(false);
+}
+
 void GameInstance::createPlayer(EditorPlayer params) {
 	registry.reserve(1);
 	registry.reserve<PlayerTag>(1);
@@ -335,4 +437,5 @@ void GameInstance::createPlayer(EditorPlayer params) {
 	health.getHPChangeSignal()->sink().connect<GameInstance, &GameInstance::onPlayerHPChange>(this);
 	playerTag.getPowerChangeSignal()->sink().connect<GameInstance, &GameInstance::onPlayerPowerLevelChange>(this);
 	playerTag.getBombCountChangeSignal()->sink().connect<GameInstance, &GameInstance::onPlayerBombCountChange>(this);
+	registry.get<LevelManagerTag>().getEnemySpawnSignal()->sink().connect<GameInstance, &GameInstance::onEnemySpawn>(this);
 }

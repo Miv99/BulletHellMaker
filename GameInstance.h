@@ -72,6 +72,7 @@ private:
 	float guiPaddingX;
 	float guiPaddingY;
 
+	float windowHeight;
 	std::shared_ptr<tgui::Gui> gui;
 	std::shared_ptr<tgui::Label> levelNameLabel;
 	std::shared_ptr<tgui::Label> scoreLabel;
@@ -106,6 +107,19 @@ private:
 	// Label for when bombs >= 10
 	std::shared_ptr<tgui::Label> bombCountLabel;
 
+	// Boss stuff
+	// Displays boss name
+	std::shared_ptr<tgui::Label> bossLabel;
+	// Time until next phase
+	std::shared_ptr<tgui::Label> bossPhaseTimeLeft;
+	// Health bar for current phase
+	std::shared_ptr<tgui::ProgressBar> bossPhaseHealthBar;
+	uint32_t currentBoss;
+	// Time after last phase change for next boss phase to start
+	float bossNextPhaseStartTime;
+	const float bossPhaseHealthBarHeight = 12;
+
+
 	/*
 	newHP - the player's new health
 	*/
@@ -122,6 +136,14 @@ private:
 	bombs - the player's new amount of bombs
 	*/
 	void onPlayerBombCountChange(int newBombCount);
+	void onEnemySpawn(uint32_t enemy);
+	/*
+	previousPhaseStartCondition - nullptr if the new phase is the first phase; otherwise, this is the start condition of the phase that just ended
+	nextPhaseStartCondition - nullptr if the new phase is the last phase
+	*/
+	void onBossPhaseChange(uint32_t boss, std::shared_ptr<EditorEnemyPhase> newPhase, std::shared_ptr<EnemyPhaseStartCondition> previousPhaseStartCondition, std::shared_ptr<EnemyPhaseStartCondition> nextPhaseStartCondition);
+	// Death is the same thing as despawn
+	void onBossDespawn(uint32_t boss);
 
 	void createPlayer(EditorPlayer params);
 };

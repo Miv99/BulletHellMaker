@@ -121,6 +121,14 @@ std::shared_ptr<DeathAction> EnemyComponent::getCurrentDeathAnimationAction() {
 	return std::get<2>(enemyData->getPhaseData(currentPhaseIndex)).getDeathAction();
 }
 
+std::shared_ptr<entt::SigH<void(uint32_t, std::shared_ptr<EditorEnemyPhase>, std::shared_ptr<EnemyPhaseStartCondition>, std::shared_ptr<EnemyPhaseStartCondition>)>> EnemyComponent::getEnemyPhaseChangeSignal() {
+	if (enemyPhaseChangeSignal) {
+		return enemyPhaseChangeSignal;
+	}
+	enemyPhaseChangeSignal = std::make_shared<entt::SigH<void(uint32_t, std::shared_ptr<EditorEnemyPhase>, std::shared_ptr<EnemyPhaseStartCondition>, std::shared_ptr<EnemyPhaseStartCondition>)>>();
+	return enemyPhaseChangeSignal;
+}
+
 void EnemyComponent::checkPhases(EntityCreationQueue& queue, SpriteLoader& spriteLoader, const LevelPack& levelPack, entt::DefaultRegistry& registry, uint32_t entity) {	
 	// Check if entity can continue to next phase
 	// While loop so that enemy can skip phases
@@ -142,6 +150,23 @@ void EnemyComponent::checkPhases(EntityCreationQueue& queue, SpriteLoader& sprit
 
 			currentPhase = levelPack.getEnemyPhase(std::get<1>(nextPhaseData));
 			currentAttackPattern = nullptr;
+
+			// Send phase change signal
+			if (enemyPhaseChangeSignal) {
+				if (currentPhaseIndex == 0) {
+					if (currentPhaseIndex + 1 == enemyData->getPhasesCount()) {
+						enemyPhaseChangeSignal->publish(entity, currentPhase, nullptr, nullptr);
+					} else {
+						enemyPhaseChangeSignal->publish(entity, currentPhase, nullptr, std::get<0>(enemyData->getPhaseData(currentPhaseIndex + 1)));
+					}
+				} else {
+					if (currentPhaseIndex + 1 == enemyData->getPhasesCount()) {
+						enemyPhaseChangeSignal->publish(entity, currentPhase, std::get<0>(enemyData->getPhaseData(currentPhaseIndex - 1)), nullptr);
+					} else {
+						enemyPhaseChangeSignal->publish(entity, currentPhase, std::get<0>(enemyData->getPhaseData(currentPhaseIndex - 1)), std::get<0>(enemyData->getPhaseData(currentPhaseIndex + 1)));
+					}
+				}
+			}
 
 			// Next phase begins, so call its beginning EnemyPhaseAction
 			if (currentPhase->getPhaseBeginAction()) {
@@ -651,6 +676,21 @@ std::shared_ptr<entt::SigH<void(int)>> LevelManagerTag::getPointsChangeSignal() 
 	return pointsChangeSignal;
 }
 
+std::shared_ptr<entt::SigH<void(uint32_t)>> LevelManagerTag::getEnemySpawnSignal() {
+	if (enemySpawnSignal) {
+		return enemySpawnSignal;
+	}
+	enemySpawnSignal = std::make_shared<entt::SigH<void(uint32_t)>>();
+	return enemySpawnSignal;
+}
+
+void LevelManagerTag::onEnemySpawn(uint32_t enemy) {
+	timeSinceLastEnemySpawn = 0;
+	if (enemySpawnSignal) {
+		enemySpawnSignal->publish(enemy);
+	}
+}
+
 void LevelManagerTag::onPointsChange() {
 	if (pointsChangeSignal) {
 		pointsChangeSignal->publish(points);
@@ -682,5 +722,19 @@ std::shared_ptr<entt::SigH<void(int, int)>> HealthComponent::getHPChangeSignal()
 void HealthComponent::onHealthChange() {
 	if (onHealthChangeSignal) {
 		onHealthChangeSignal->publish(health, maxHealth);
+	}
+}
+
+std::shared_ptr<entt::SigH<void(uint32_t)>> DespawnComponent::getDespawnSignal() {
+	if (despawnSignal) {
+		return despawnSignal;
+	}
+	despawnSignal = std::make_shared<entt::SigH<void(uint32_t)>>();
+	return despawnSignal;
+}
+
+void DespawnComponent::onDespawn(uint32_t self) {
+	if (despawnSignal) {
+		despawnSignal->publish(self);
 	}
 }

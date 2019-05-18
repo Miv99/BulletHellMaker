@@ -34,6 +34,7 @@ class EditorMovablePoint;
 class Item;
 class PlayerPowerTier;
 enum BULLET_ON_COLLISION_ACTION;
+class EnemyPhaseStartCondition;
 
 class PositionComponent {
 public:
@@ -445,6 +446,7 @@ public:
 	Returns the PlayAnimatableDeathAction associated with the current phase.
 	*/
 	std::shared_ptr<DeathAction> getCurrentDeathAnimationAction();
+	std::shared_ptr<entt::SigH<void(uint32_t, std::shared_ptr<EditorEnemyPhase>, std::shared_ptr<EnemyPhaseStartCondition>, std::shared_ptr<EnemyPhaseStartCondition>)>> getEnemyPhaseChangeSignal();
 
 private:
 	// Time since being spawned
@@ -467,6 +469,10 @@ private:
 	int currentAttackPatternIndex = -1;
 	// Current attack index in list of attacks in current EditorAttackPattern
 	int currentAttackIndex = -1;
+
+	// function accepts 4 arguments: this entity, pointer to the new phase, pointer to the just-ending phase's start condition (nullptr if new phase is the first phase),
+	// and pointer to the next phase's start condition (nullptr if next phase is the last phase)
+	std::shared_ptr<entt::SigH<void(uint32_t, std::shared_ptr<EditorEnemyPhase>, std::shared_ptr<EnemyPhaseStartCondition>, std::shared_ptr<EnemyPhaseStartCondition>)>> enemyPhaseChangeSignal;
 
 	// Check for any missed phases/attack patterns/attacks since the last update and then executes their relevant actions
 	void checkPhases(EntityCreationQueue& queue, SpriteLoader& spriteLoader, const LevelPack& levelPack, entt::DefaultRegistry& registry, uint32_t entity);
@@ -532,6 +538,10 @@ public:
 	in the same frame.
 	*/
 	inline bool isMarkedForDespawn() { return markedForDespawn; }
+	std::shared_ptr<entt::SigH<void(uint32_t)>> getDespawnSignal();
+	
+	// Should be called right before this entity is removed from the registry
+	void onDespawn(uint32_t self);
 
 private:
 	inline void removeChild(uint32_t child) {
@@ -556,6 +566,9 @@ private:
 	std::vector<uint32_t> children;
 
 	bool markedForDespawn = false;
+
+	// function takes 1 int: the entity being despawned
+	std::shared_ptr<entt::SigH<void(uint32_t)>> despawnSignal;
 };
 
 /*
@@ -573,8 +586,9 @@ public:
 	inline std::shared_ptr<Level> getLevel() { return level; }
 	LevelPack* getLevelPack();
 	std::shared_ptr<entt::SigH<void(int)>> getPointsChangeSignal();
+	std::shared_ptr<entt::SigH<void(uint32_t)>> getEnemySpawnSignal();
 
-	inline void setTimeSinceLastEnemySpawn(float timeSinceLastEnemySpawn) { this->timeSinceLastEnemySpawn = timeSinceLastEnemySpawn; }
+	void onEnemySpawn(uint32_t enemy);
 
 	inline void addPoints(int amount) { 
 		points += amount;
@@ -605,6 +619,8 @@ private:
 
 	// function accepts 1 int: number of points from the current level so far
 	std::shared_ptr<entt::SigH<void(int)>> pointsChangeSignal;
+	// function accepts 1 int: the enemy entity id that just spawned
+	std::shared_ptr<entt::SigH<void(uint32_t)>> enemySpawnSignal;
 };
 
 class EnemyBulletComponent {
