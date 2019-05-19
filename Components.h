@@ -180,6 +180,8 @@ public:
 
 	inline bool isDisabled() { return hitboxDisabledTimeLeft > 0; }
 
+	inline void setRadius(float radius) { this->radius = radius; }
+
 	/*
 	angle - radians in range [-pi, pi]
 	*/
@@ -824,9 +826,9 @@ class CollectibleComponent {
 public:
 	inline CollectibleComponent(std::shared_ptr<Item> item, float activationRadius) : item(item), activationRadius(activationRadius) {}
 
-	void update(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, const PositionComponent& entityPos, const HitboxComponent& entityHitbox);
-
 	void activate(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t self);
+	std::shared_ptr<Item> getItem();
+	inline bool isActivated() { return activated; }
 
 private:
 	bool activated = false;

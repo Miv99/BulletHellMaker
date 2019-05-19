@@ -63,7 +63,7 @@ void EditorAttack::executeAsPlayer(EntityCreationQueue & queue, SpriteLoader & s
 	queue.pushBack(std::make_unique<EMPSpawnFromPlayerCommand>(registry, spriteLoader, mainEMP, entity, timeLag, id, attackPatternID, playAttackAnimation));
 }
 
-float EditorAttack::searchLargestHitbox() {
+float EditorAttack::searchLargestHitbox() const {
 	return mainEMP->searchLargestHitbox();
 }
 

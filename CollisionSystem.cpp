@@ -5,23 +5,12 @@
 #include "Components.h"
 #include "SpriteEffectAnimation.h"
 #include "LevelPack.h"
+#include <algorithm>
 
-float distance(float x1, float y1, float x2, float y2) {
-	return sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2));
-}
-
-bool collides(const PositionComponent& p1, const HitboxComponent& h1, const PositionComponent& p2, const HitboxComponent& h2) {
-	return distance(p1.getX() + h1.getX(), p1.getY() + h1.getY(), p2.getX() + h2.getX(), p2.getY() + h2.getY()) <= (h1.getRadius() + h2.getRadius());
-}
-
-float max(float a, float b) {
-	return a > b ? a : b;
-}
-
-CollisionSystem::CollisionSystem(LevelPack& levelPack, EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry & registry, float mapWidth, float mapHeight, const HitboxComponent& largestHitbox) : levelPack(levelPack), queue(queue), spriteLoader(spriteLoader), registry(registry) {
-	defaultTableObjectMaxSize = 2.0f * max(mapWidth, mapHeight) / 10.0;
+CollisionSystem::CollisionSystem(LevelPack& levelPack, EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry & registry, float mapWidth, float mapHeight) : levelPack(levelPack), queue(queue), spriteLoader(spriteLoader), registry(registry) {
+	defaultTableObjectMaxSize = 2.0f * std::max(mapWidth, mapHeight) / 10.0;
 	defaultTable = SpatialHashTable<uint32_t>(mapWidth, mapHeight, defaultTableObjectMaxSize/2.0f);
-	largeObjectsTable = SpatialHashTable<uint32_t>(mapWidth, mapHeight, largestHitbox.getRadius() * 2.0f);
+	largeObjectsTable = SpatialHashTable<uint32_t>(mapWidth, mapHeight, levelPack.searchLargestBulletHitbox() * 2.0f);
 }
 
 void CollisionSystem::update(float deltaTime) {

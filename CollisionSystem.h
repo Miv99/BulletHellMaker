@@ -15,7 +15,7 @@ enum BULLET_ON_COLLISION_ACTION {
 
 class CollisionSystem {
 public:
-	CollisionSystem(LevelPack& levelPack, EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, float mapWidth, float mapHeight, const HitboxComponent& largestHitbox);
+	CollisionSystem(LevelPack& levelPack, EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, float mapWidth, float mapHeight);
 	void update(float deltaTime);
 
 private:
@@ -29,4 +29,12 @@ private:
 	SpatialHashTable<uint32_t> largeObjectsTable;
 	// Cutoff size for insertion into default table; 2 * max(mapWidth, mapHeight)/10 since hitbox size is 2*radius
 	float defaultTableObjectMaxSize;
+
+	inline float distance(float x1, float y1, float x2, float y2) {
+		return sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2));
+	}
+
+	inline bool collides(const PositionComponent& p1, const HitboxComponent& h1, const PositionComponent& p2, const HitboxComponent& h2) {
+		return distance(p1.getX() + h1.getX(), p1.getY() + h1.getY(), p2.getX() + h2.getX(), p2.getY() + h2.getY()) <= (h1.getRadius() + h2.getRadius());
+	}
 };

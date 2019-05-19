@@ -31,13 +31,13 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 
 	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
 	renderSystem = std::make_unique<RenderSystem>(registry, window);
-	collisionSystem = std::make_unique<CollisionSystem>(*levelPack, *queue, *spriteLoader, registry, MAP_WIDTH, MAP_HEIGHT, HitboxComponent(LOCK_ROTATION, levelPack->searchLargestHitbox(), 0, 0));
+	collisionSystem = std::make_unique<CollisionSystem>(*levelPack, *queue, *spriteLoader, registry, MAP_WIDTH, MAP_HEIGHT);
 	despawnSystem = std::make_unique<DespawnSystem>(registry);
 	enemySystem = std::make_unique<EnemySystem>(*queue, *spriteLoader, *levelPack, registry);
 	spriteAnimationSystem = std::make_unique<SpriteAnimationSystem>(*spriteLoader, registry);
 	shadowTrailSystem = std::make_unique<ShadowTrailSystem>(*queue, registry);
 	playerSystem = std::make_unique<PlayerSystem>(*levelPack, *queue, *spriteLoader, registry);
-	collectibleSystem = std::make_unique<CollectibleSystem>(*queue, registry);
+	collectibleSystem = std::make_unique<CollectibleSystem>(*queue, registry, *levelPack, MAP_WIDTH, MAP_HEIGHT);
 
 	// GUI stuff
 	// Note: "GUI region" refers to the right side of the window that doesn't contain the stuff from RenderSystem

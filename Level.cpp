@@ -13,6 +13,7 @@ std::string Level::format() {
 	res += "(" + healthPack->format() + ")" + delim;
 	res += "(" + pointPack->format() + ")" + delim;
 	res += "(" + powerPack->format() + ")" + delim;
+	res += "(" + bombItem->format() + ")" + delim;
 	res += "(" + musicSettings.format() + ")" + delim;
 	res += "(" + backgroundFileName + ")" + delim + tos(backgroundScrollSpeedX) + delim + tos(backgroundScrollSpeedY) + delim;
 	res += tos(bossNameColor.r) + delim + tos(bossNameColor.g) + delim + tos(bossNameColor.b) + delim + tos(bossNameColor.a);
@@ -35,12 +36,14 @@ void Level::load(std::string formattedString) {
 		}
 		enemyGroups.push_back(std::make_pair(condition, enemies));
 	}
-	healthPack = std::make_shared<HealthPackItem>();
+	if (!healthPack) healthPack = std::make_shared<HealthPackItem>();
 	healthPack->load(items[i++]);
-	pointPack = std::make_shared<PointsPackItem>();
+	if (!pointPack) pointPack = std::make_shared<PointsPackItem>();
 	pointPack->load(items[i++]);
-	powerPack = std::make_shared<PowerPackItem>();
+	if (!powerPack) powerPack = std::make_shared<PowerPackItem>();
 	powerPack->load(items[i++]);
+	if (!bombItem) bombItem = std::make_shared<BombItem>();
+	bombItem->load(items[i++]);
 	musicSettings.load(items[i++]);
 	backgroundFileName = items[i++];
 	backgroundScrollSpeedX = std::stof(items[i++]);

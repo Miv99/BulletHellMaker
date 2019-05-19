@@ -30,17 +30,21 @@ public:
 		}
 	}
 
-	inline void insert(T object, const HitboxComponent& hitbox, const PositionComponent& position) {
-		int leftmostXCell = std::max(0, (int)((position.getX() + hitbox.getX() - hitbox.getRadius()) / cellSize));
-		int rightmostXCell = std::min(cellsPerMapWidth, (int)((position.getX() + hitbox.getX() + hitbox.getRadius()) / cellSize));
-		int topmostYCell = std::min(cellsPerMapHeight, (int)((position.getY() + hitbox.getY() + hitbox.getRadius()) / cellSize));
-		int bottommostYCell = std::max(0, (int)((position.getY() + hitbox.getY() - hitbox.getRadius()) / cellSize));
+	inline void insert(T object, float hitboxX, float hitboxY, float hitboxRadius, const PositionComponent& position) {
+		int leftmostXCell = std::max(0, (int)((position.getX() + hitboxX - hitboxRadius) / cellSize));
+		int rightmostXCell = std::min(cellsPerMapWidth, (int)((position.getX() + hitboxX + hitboxRadius) / cellSize));
+		int topmostYCell = std::min(cellsPerMapHeight, (int)((position.getY() + hitboxY + hitboxRadius) / cellSize));
+		int bottommostYCell = std::max(0, (int)((position.getY() + hitboxY - hitboxRadius) / cellSize));
 		
 		for (int xCell = leftmostXCell; xCell <= rightmostXCell; xCell++) {
 			for (int yCell = bottommostYCell; yCell <= topmostYCell; yCell++) {
 				buckets[xCell + yCell * cellsPerMapWidth].push_back(object);
 			}
 		}
+	}
+
+	inline void insert(T object, const HitboxComponent& hitbox, const PositionComponent& position) {
+		insert(object, hitbox.getX(), hitbox.getY(), hitbox.getRadius(), position);
 	}
 
 	inline std::vector<T> getNearbyObjects(const HitboxComponent& hitbox, const PositionComponent& position) {

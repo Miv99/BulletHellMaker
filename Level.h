@@ -24,9 +24,30 @@ public:
 	inline std::string getName() { return name; }
 	inline const std::vector<EnemySpawnInfo>& getEnemyGroupSpawnInfo(int conditionIndex) { return enemyGroups[conditionIndex].second; }
 	inline int getEnemyGroupsCount() { return enemyGroups.size(); }
-	inline std::shared_ptr<HealthPackItem> getHealthPack() { return healthPack; }
-	inline std::shared_ptr<PointsPackItem> getPointsPack() { return pointPack; }
-	inline std::shared_ptr<PowerPackItem> getPowerPack() { return powerPack; }
+	inline std::shared_ptr<HealthPackItem> getHealthPack() {
+		if (!healthPack) {
+			healthPack = std::make_shared<HealthPackItem>();
+		}
+		return healthPack;
+	}
+	inline std::shared_ptr<PointsPackItem> getPointsPack() {
+		if (!pointPack) {
+			pointPack = std::make_shared<PointsPackItem>();
+		}
+		return pointPack; 
+	}
+	inline std::shared_ptr<PowerPackItem> getPowerPack() { 
+		if (!powerPack) {
+			powerPack = std::make_shared<PowerPackItem>();
+		}
+		return powerPack; 
+	}
+	inline std::shared_ptr<BombItem> getBombItem() {
+		if (!bombItem) {
+			bombItem = std::make_shared<BombItem>();
+		}
+		return bombItem; 
+	}
 	/*
 	Returns a reference to the music settings.
 	*/
@@ -38,9 +59,6 @@ public:
 	inline sf::Color getBossHPBarColor() { return bossHPBarColor; }
 
 	inline void setName(std::string name) { this->name = name; }
-	inline void setHealthPack(std::shared_ptr<HealthPackItem> healthPack) { this->healthPack = healthPack; }
-	inline void setPointsPack(std::shared_ptr<PointsPackItem> pointPack) { this->pointPack = pointPack; }
-	inline void setPowerPack(std::shared_ptr<PowerPackItem> powerPack) { this->powerPack = powerPack; }
 	inline void setBackgroundFileName(std::string backgroundFileName) { this->backgroundFileName = backgroundFileName; }
 	inline void setBackgroundScrollSpeedX(float backgroundScrollSpeedX) { this->backgroundScrollSpeedX = backgroundScrollSpeedX; }
 	inline void setBackgroundScrollSpeedY(float backgroundScrollSpeedY) { this->backgroundScrollSpeedY = backgroundScrollSpeedY; }
@@ -71,6 +89,7 @@ private:
 	std::shared_ptr<HealthPackItem> healthPack;
 	std::shared_ptr<PointsPackItem> pointPack;
 	std::shared_ptr<PowerPackItem> powerPack;
+	std::shared_ptr<BombItem> bombItem;
 
 	// Music to play on start of level
 	MusicSettings musicSettings;

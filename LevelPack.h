@@ -115,7 +115,12 @@ public:
 	inline void setPlayer(EditorPlayer player) { metadata.setPlayer(player); }
 	inline void setFontFileName(std::string fontFileName) { this->fontFileName = fontFileName; }
 
-	float searchLargestHitbox();
+	// Returns the radius of the largest bullet in the level pack
+	float searchLargestBulletHitbox() const;
+	// Returns the radius of the largest item activation radius in the level pack
+	float searchLargestItemActivationHitbox() const;
+	// Returns the radius of the largest item hitbox radius in the level pack
+	float searchLargestItemCollectionHitbox() const;
 
 	void playSound(const SoundSettings& soundSettings) const;
 	void playMusic(const MusicSettings& musicSettings) const;

@@ -148,17 +148,33 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 		std::make_shared<PlayAnimatableDeathAction>(Animatable("oh my god he's dead", "sheet1", true, ROTATE_WITH_MOVEMENT), PlayAnimatableDeathAction::NONE, 3.0f));
 	auto v1 = std::vector<EnemySpawnInfo>();
 	std::vector<std::pair<std::shared_ptr<Item>, int>> items;
-	//items.push_back(std::make_pair(std::make_shared<HealthPackItem>(Animatable("Health", "sheet1", true, LOCK_ROTATION), 33), 1));
-	//items.push_back(std::make_pair(std::make_shared<PointsPackItem>(Animatable("Points", "sheet1", true, LOCK_ROTATION), 25), 6));
-	items.push_back(std::make_pair(std::make_shared<HealthPackItem>(Animatable("Health", "sheet1", true, LOCK_ROTATION), 33, SoundSettings("item.wav"), 150.0f), 3));
-	items.push_back(std::make_pair(std::make_shared<PointsPackItem>(Animatable("Points", "sheet1", true, LOCK_ROTATION), 33, SoundSettings("item.wav"), 150.0f), 2));
-	items.push_back(std::make_pair(std::make_shared<PowerPackItem>(Animatable("Power", "sheet1", true, LOCK_ROTATION), 33, SoundSettings("item.wav"), 75.0f), 60));
-	items.push_back(std::make_pair(std::make_shared<BombItem>(Animatable("Bomb", "sheet1", true, LOCK_ROTATION), 33, SoundSettings("item.wav"), 75.0f), 2));
+	items.push_back(std::make_pair(level->getHealthPack(), 3));
+	items.push_back(std::make_pair(level->getPointsPack(), 2));
+	items.push_back(std::make_pair(level->getPowerPack(), 60));
+	items.push_back(std::make_pair(level->getBombItem(), 2));
 	v1.push_back(EnemySpawnInfo(enemy1->getID(), 300, 350, items));
 	level->insertEnemySpawns(0, std::make_shared<TimeBasedEnemySpawnCondition>(0), v1);
-	level->setHealthPack(std::make_shared<HealthPackItem>(Animatable("Health", "sheet1", true, LOCK_ROTATION), 40.0f, SoundSettings("item.wav")));
-	level->setPointsPack(std::make_shared<PointsPackItem>(Animatable("Points", "sheet1", true, LOCK_ROTATION), 25.0f, SoundSettings("item.wav")));
-	level->setPowerPack(std::make_shared<PowerPackItem>(Animatable("Power", "sheet1", true, LOCK_ROTATION), 40.0f, SoundSettings("item.wav")));
+
+	level->getHealthPack()->setActivationRadius(150);
+	level->getHealthPack()->setAnimatable(Animatable("Health", "sheet1", true, LOCK_ROTATION));
+	level->getHealthPack()->setHitboxRadius(40);
+	level->getHealthPack()->getOnCollectSound().setFileName("item.wav");
+
+	level->getPointsPack()->setActivationRadius(75);
+	level->getPointsPack()->setAnimatable(Animatable("Points", "sheet1", true, LOCK_ROTATION));
+	level->getPointsPack()->setHitboxRadius(40);
+	level->getPointsPack()->getOnCollectSound().setFileName("item.wav");
+
+	level->getPowerPack()->setActivationRadius(75);
+	level->getPowerPack()->setAnimatable(Animatable("Power", "sheet1", true, LOCK_ROTATION));
+	level->getPowerPack()->setHitboxRadius(40);
+	level->getPowerPack()->getOnCollectSound().setFileName("item.wav");
+
+	level->getBombItem()->setActivationRadius(75);
+	level->getBombItem()->setAnimatable(Animatable("Bomb", "sheet1", true, LOCK_ROTATION));
+	level->getBombItem()->setHitboxRadius(40);
+	level->getBombItem()->getOnCollectSound().setFileName("item.wav");
+
 	level->getMusicSettings().setFileName("seashore.wav");
 	level->getMusicSettings().setVolume(10);
 	level->getMusicSettings().setLoop(true);
@@ -321,10 +337,32 @@ std::unique_ptr<SpriteLoader> LevelPack::createSpriteLoader() {
 	return std::move(spriteLoader);
 }
 
-float LevelPack::searchLargestHitbox() {
+float LevelPack::searchLargestBulletHitbox() const {
 	float max = 0;
 	for (auto p : attacks) {
 		max = std::max(max, p.second->searchLargestHitbox());
+	}
+	return max;
+}
+
+float LevelPack::searchLargestItemActivationHitbox() const {
+	float max = 0;
+	for (auto level : levels) {
+		max = std::max(max, level->getHealthPack()->getActivationRadius());
+		max = std::max(max, level->getPointsPack()->getActivationRadius());
+		max = std::max(max, level->getPowerPack()->getActivationRadius());
+		max = std::max(max, level->getBombItem()->getActivationRadius());
+	}
+	return max;
+}
+
+float LevelPack::searchLargestItemCollectionHitbox() const {
+	float max = 0;
+	for (auto level : levels) {
+		max = std::max(max, level->getHealthPack()->getHitboxRadius());
+		max = std::max(max, level->getPointsPack()->getHitboxRadius());
+		max = std::max(max, level->getPowerPack()->getHitboxRadius());
+		max = std::max(max, level->getBombItem()->getHitboxRadius());
 	}
 	return max;
 }

@@ -212,7 +212,7 @@ public:
 		}
 		return count;
 	}
-	inline float searchLargestHitbox() {
+	inline float searchLargestHitbox() const {
 		float childrenMax = 0;
 		for (auto emp : children) {
 			childrenMax = std::max(childrenMax, emp->searchLargestHitbox());

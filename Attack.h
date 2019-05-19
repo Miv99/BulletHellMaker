@@ -47,7 +47,7 @@ public:
 	inline void setName(std::string name) { this->name = name; }
 	inline void setPlayAttackAnimation(bool playAttackAnimation) { this->playAttackAnimation = playAttackAnimation; }
 	
-	float searchLargestHitbox();
+	float searchLargestHitbox() const;
 	// Search for the EMP with the ID
 	std::shared_ptr<EditorMovablePoint> searchEMP(int id);
 

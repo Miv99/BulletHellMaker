@@ -559,25 +559,6 @@ std::shared_ptr<entt::SigH<void(int)>> PlayerTag::getBombCountChangeSignal() {
 	return bombCountChangeSignal;
 }
 
-void CollectibleComponent::update(EntityCreationQueue& queue, entt::DefaultRegistry & registry, uint32_t entity, const PositionComponent& entityPos, const HitboxComponent& entityHitbox) {
-	if (!activated && collides(entityPos, entityHitbox, registry.get<PositionComponent>(registry.attachee<PlayerTag>()), registry.get<HitboxComponent>(registry.attachee<PlayerTag>()), activationRadius)) {
-		activate(queue, registry, entity);
-	}
-	if (activated && collides(entityPos, entityHitbox, registry.get<PositionComponent>(registry.attachee<PlayerTag>()), registry.get<HitboxComponent>(registry.attachee<PlayerTag>()), 0)) {
-		// Player touched the item
-
-		// Execute the item's onPlayerContact
-		item->onPlayerContact(registry, registry.attachee<PlayerTag>());
-
-		// Despawn self
-		if (registry.has<DespawnComponent>(entity)) {
-			registry.get<DespawnComponent>(entity).setMaxTime(0);
-		} else {
-			registry.assign<DespawnComponent>(entity, 0);
-		}
-	}
-}
-
 void CollectibleComponent::activate(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t self) {
 	// Item is activated, so begin moving towards the player
 
@@ -591,6 +572,10 @@ void CollectibleComponent::activate(EntityCreationQueue& queue, entt::DefaultReg
 	// Make sure item can't despawn
 	registry.get<DespawnComponent>(self).setMaxTime(std::numeric_limits<float>::max());
 	activated = true;
+}
+
+std::shared_ptr<Item> CollectibleComponent::getItem() {
+	return item;
 }
 
 void HitboxComponent::rotate(float angle) {
