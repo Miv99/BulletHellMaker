@@ -31,7 +31,7 @@ void CollectibleSystem::update(float deltaTime) {
 	}
 	// Check if player makes contact with any collectibles
 	for (uint32_t entity : itemHitboxTable.getNearbyObjects(playerHitbox, playerPosition)) {
-		if (collides(playerPosition, playerHitbox, registry.get<PositionComponent>(entity), registry.get<HitboxComponent>(entity))) {
+		if (!registry.get<DespawnComponent>(entity).isMarkedForDespawn() && collides(playerPosition, playerHitbox, registry.get<PositionComponent>(entity), registry.get<HitboxComponent>(entity))) {
 			registry.get<CollectibleComponent>(entity).getItem()->onPlayerContact(registry, player);
 
 			// Despawn the collectible
