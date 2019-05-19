@@ -10,6 +10,7 @@ RenderSystem::RenderSystem(entt::DefaultRegistry & registry, sf::RenderWindow & 
 	layers[SHADOW_LAYER] = std::make_pair(SHADOW_LAYER, std::vector<std::reference_wrapper<SpriteComponent>>());
 	layers[PLAYER_BULLET_LAYER] = std::make_pair(PLAYER_BULLET_LAYER, std::vector<std::reference_wrapper<SpriteComponent>>());
 	layers[ENEMY_LAYER] = std::make_pair(ENEMY_LAYER, std::vector<std::reference_wrapper<SpriteComponent>>());
+	layers[ENEMY_BOSS_LAYER] = std::make_pair(ENEMY_BOSS_LAYER, std::vector<std::reference_wrapper<SpriteComponent>>());
 	layers[PLAYER_LAYER] = std::make_pair(PLAYER_LAYER, std::vector<std::reference_wrapper<SpriteComponent>>());
 	layers[ITEM_LAYER] = std::make_pair(ITEM_LAYER, std::vector<std::reference_wrapper<SpriteComponent>>());
 	layers[ENEMY_BULLET_LAYER] = std::make_pair(ENEMY_BULLET_LAYER, std::vector<std::reference_wrapper<SpriteComponent>>());
@@ -17,6 +18,7 @@ RenderSystem::RenderSystem(entt::DefaultRegistry & registry, sf::RenderWindow & 
 	bloom = std::vector<BloomSettings>(highestLayer + 1, BloomSettings{ false });
 	bloom[PLAYER_LAYER] = BloomSettings{ true, 1.3f, 0.0f, blendMode };
 	bloom[ENEMY_LAYER] = BloomSettings{ true, 1.3f, 0.0f, blendMode };
+	bloom[ENEMY_BOSS_LAYER] = BloomSettings{ true, 1.3f, 0.0f, blendMode };
 	bloom[PLAYER_BULLET_LAYER] = BloomSettings{ true, 1.2f, 0.05f, blendMode };
 	bloom[ENEMY_BULLET_LAYER] = BloomSettings{ true, 1.2f, 0.05f, blendMode };
 
