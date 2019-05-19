@@ -51,11 +51,14 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	auto ap1 = createAttackPattern();
 	ap1->setShadowTrailLifespan(3.0f);
 	//ap1->insertAction(0, std::make_shared<StayStillAtLastPositionEMPA>(1.0f));
+	/*
 	ap1->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 100, 2), std::make_shared<ConstantTFV>(0), 2));
 	ap1->insertAction(1, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 100, 2), std::make_shared<ConstantTFV>(PI/2.0), 2));
 	ap1->insertAction(2, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 100, 2), std::make_shared<ConstantTFV>(PI), 2));
 	ap1->insertAction(3, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 100, 2), std::make_shared<ConstantTFV>(3 * PI/2.0), 2));
-	
+	*/
+	ap1->insertAction(0, std::make_shared<MoveCustomBezierEMPA>(std::vector<sf::Vector2f>{ sf::Vector2f(0, 0), sf::Vector2f(142, 18), sf::Vector2f(189, 340), sf::Vector2f(190, 1) }, 2.5f, std::make_shared<EMPAAngleOffsetToPlayer>(0, 0)));
+
 	bool alt = false;
 	for (float time = 0; time < 5; time += 1.0f) {
 		ap1->addAttackID(time, attack2->getID());

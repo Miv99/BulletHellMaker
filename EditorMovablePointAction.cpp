@@ -154,7 +154,20 @@ std::shared_ptr<MovablePoint> MoveCustomBezierEMPA::execute(EntityCreationQueue 
 	// Queue creation of the reference entity
 	queue.pushFront(std::make_unique<CreateMovementReferenceEntityCommand>(registry, entity, timeLag, lastPos.getX(), lastPos.getY()));
 
-	return std::make_shared<BezierMP>(time, controlPoints);
+	if (rotationAngle) {
+		// Rotate all control points around (0, 0)
+		float radians = rotationAngle->evaluate(registry, lastPos.getX(), lastPos.getY());
+		float cos = std::cos(radians);
+		float sin = std::sin(radians);
+		// Skip the first control point since it's always going to be (0, 0)
+		for (int i = 1; i < controlPoints.size(); i++) {
+			controlPoints[i].x = unrotatedControlPoints[i].x * cos - unrotatedControlPoints[i].y * sin;
+			controlPoints[i].y = unrotatedControlPoints[i].x * sin + unrotatedControlPoints[i].y * cos;
+		}
+		return std::make_shared<BezierMP>(time, controlPoints);
+	} else {
+		return std::make_shared<BezierMP>(time, controlPoints);
+	}
 }
 
 std::string MovePlayerHomingEMPA::format() {

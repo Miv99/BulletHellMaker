@@ -191,6 +191,7 @@ class MoveCustomBezierEMPA : public EMPAction {
 public:
 	inline MoveCustomBezierEMPA() {}
 	inline MoveCustomBezierEMPA(std::vector<sf::Vector2f> controlPoints, float time) : controlPoints(controlPoints), time(time) {}
+	inline MoveCustomBezierEMPA(std::vector<sf::Vector2f> controlPoints, float time, std::shared_ptr<EMPAAngleOffset> rotationAngle) : controlPoints(controlPoints), unrotatedControlPoints(controlPoints), time(time), rotationAngle(rotationAngle) {}
 
 	std::string format() override;
 	void load(std::string formattedString) override;
@@ -199,10 +200,14 @@ public:
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 
 private:
-	// The first contorl point must be at (0, 0)
+	// The first control point must be at (0, 0)
 	std::vector<sf::Vector2f> controlPoints;
 	// How long movement will last
 	float time;
+	// Evaluates to the angle in radians that every control point will be rotated by (pivot at (0, 0))
+	std::shared_ptr<EMPAAngleOffset> rotationAngle;
+	// Only used if rotationAngle is not nullptr
+	std::vector<sf::Vector2f> unrotatedControlPoints;
 };
 
 /*

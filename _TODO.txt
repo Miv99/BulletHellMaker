@@ -34,9 +34,6 @@ Notes for me:
 -Player invulnerability sprite effect animation is in CollisionSystem
 
 TODO:
--insert items into spatial hash tables in collectiblesystem with radius=max(activation_radius, hitbox) and do collision checks for activation in the system
- instead of in the component; update() probably not even needed at all
--make EMPAngleOffset also work with bezier curves by rotating all points around 0,0 by that evaluated angle
 -have some default attack patterns (https://www.youtube.com/watch?v=xbQ9e0zYuj4)
 -all default stuff (font, spritesheet, sounds, etc) are copied into every new level pack that is created so that no special code is needed to load
  from a default resource 
