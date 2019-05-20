@@ -11,6 +11,7 @@ Documentation to put in the editor somewhere:
 -It is recommended that only bosses are able to play music
 -The background view is 1:1. That is, the user will see a MAP_WIDTH x MAP_HEIGHT pixel rectangle of the background at any time
 -BlendMode in BloomSettings should be left at default unless the user really knows what they're doing
+-Attacks in ExecuteAttacksDeathAction cannot have EntityAttachedEMPSpawn
 
 Tips to put in editor somewhere:
 -For a classic bullet hell, all enemy bullets should do 1 damage
@@ -30,6 +31,7 @@ Notes for me:
  in the level pack folder must be played through LevelPack
 -Since HitboxComponent's update is only for updating hitbox disable time and only the player's hitbox can be disabled, only the player's hitbox is updated
  in CollisionSystem. Change to update all HitboxComponents if this changes.
+-A bullet's attack pattern id of -1 means that the bullet came from a DeathAction; for enemy bullets, an enemy phase ID of -1 also means the same thing
 
 -Item path is in Components::CollectibleComponent::update and EntityCreationQueue::EMPDropItemCommand::execute
 -Player invulnerability sprite effect animation is in CollisionSystem
@@ -42,7 +44,7 @@ TODO:
 -Make a global bloom settings thing where the user can disable bloom for a certain layer (or all layers) across all LevelPacks they play
  if there's too much lag or something
 -Multiple small shockwave effects 
--DeathActions: ExecuteAttack (enemies only), ParticleExplosion
+-DeathActions: ParticleExplosion
 -Change sprite sheet meta files to use TextMarshallable
 	-Due to the user-unfriendliness of text-marshalled files, this should only be done if an image viewer can be implemented in the editor
 	 that can zoom in and make rectangles so that the user has full control of 

@@ -9,6 +9,7 @@
 #include "DeathAction.h"
 #include "RenderSystem.h"
 #include "Constants.h"
+#include "EditorMovablePointAction.h"
 
 LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(audioPlayer), name(name) {
 	/*
@@ -107,8 +108,20 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	enemy1->setName("test enemy 1");
 	enemy1->getHurtSound().setFileName("oof.wav");
 	enemy1->getDeathSound().setFileName("death.ogg");
-	enemy1->addDeathAction(std::make_shared<PlaySoundDeathAction>(SoundSettings("test sound.wav", 100)));
 	enemy1->setIsBoss(true);
+
+	std::vector<int> e1DeathAttacks;
+	for (int i = 0; i < 10; i++) {
+		auto atk = createAttack();
+		auto emp = atk->searchEMP(0);
+		emp->setAnimatable(Animatable("Bullet", "sheet1", true, ROTATE_WITH_MOVEMENT));
+		emp->setHitboxRadius(30);
+		emp->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(0, 0, 0));
+		emp->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 2.0f + (i * 0.3f)), std::make_shared<ConstantTFV>(0), 2.0f, std::make_shared<EMPAAngleOffsetToPlayer>()));
+		emp->setOnCollisionAction(DESTROY_THIS_BULLET_ONLY);
+		e1DeathAttacks.push_back(atk->getID());
+	}
+	enemy1->addDeathAction(std::make_shared<ExecuteAttacksDeathAction>(e1DeathAttacks));
 
 	auto level = std::make_shared<Level>("test level 1 with a really long name");
 	auto playerAP = createAttackPattern();
@@ -141,7 +154,6 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 		b1emp0->setHitboxRadius(30);
 		b1emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
 		b1emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 1000, 2), std::make_shared<ConstantTFV>(1.0f + i*0.13f), 2.0f));
-		//TODO change this to piercing
 		b1emp0->setOnCollisionAction(PIERCE_ENTITY);
 		bombAP->addAttackID(0, bombAttack1->getID());
 	}

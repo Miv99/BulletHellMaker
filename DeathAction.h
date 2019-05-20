@@ -28,6 +28,9 @@ public:
 	virtual void execute(LevelPack& levelPack, EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) = 0;
 };
 
+/*
+Death action for spawning some entity that displays an Animatable.
+*/
 class PlayAnimatableDeathAction : public DeathAction {
 public:
 	static enum DEATH_ANIMATION_EFFECT {
@@ -57,6 +60,10 @@ private:
 	void loadEffectAnimation(SpriteComponent& sprite);
 };
 
+/*
+Death action for playing a sound.
+This is separate from a player/enemy's death sound.
+*/
 class PlaySoundDeathAction : public DeathAction {
 public:
 	inline PlaySoundDeathAction() {}
@@ -73,6 +80,24 @@ public:
 
 private:
 	SoundSettings soundSettings;
+};
+
+/*
+Death action for executing attacks.
+Note that this executes a number of attacks, not an attack pattern, meaning all EMPs will be spawned at t=0.
+*/
+class ExecuteAttacksDeathAction : public DeathAction {
+public:
+	inline ExecuteAttacksDeathAction() {}
+	inline ExecuteAttacksDeathAction(std::vector<int> attackIDs) : attackIDs(attackIDs) {}
+
+	std::string format() override;
+	void load(std::string formattedString) override;
+
+	void execute(LevelPack& levelPack, EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) override;
+
+private:
+	std::vector<int> attackIDs;
 };
 
 class DeathActionFactory {

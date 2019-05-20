@@ -34,8 +34,7 @@ Angle in radians to the player.
 */
 class EMPAAngleOffsetToPlayer : public EMPAAngleOffset {
 public:
-	inline EMPAAngleOffsetToPlayer() {}
-	inline EMPAAngleOffsetToPlayer(float xOffset, float yOffset) : xOffset(xOffset), yOffset(yOffset) {}
+	inline EMPAAngleOffsetToPlayer(float xOffset = 0, float yOffset = 0) : xOffset(xOffset), yOffset(yOffset) {}
 
 	std::string format() override;
 	void load(std::string formattedString) override;
@@ -44,8 +43,8 @@ public:
 	float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override;
 
 private:
-	float xOffset;
-	float yOffset;
+	float xOffset = 0;
+	float yOffset = 0;
 };
 
 /*

@@ -55,13 +55,52 @@ void PlaySoundDeathAction::execute(LevelPack& levelPack, EntityCreationQueue & q
 	levelPack.playSound(soundSettings);
 }
 
+std::string ExecuteAttacksDeathAction::format() {
+	std::string ret = "ExecuteAttacksDeathAction" + delim;
+	ret += tos(attackIDs.size());
+	for (auto id : attackIDs) {
+		ret += delim + tos(id);
+	}
+	return ret;
+}
+
+void ExecuteAttacksDeathAction::load(std::string formattedString) {
+	auto items = split(formattedString, DELIMITER);
+	for (int i = 2; i < std::stoi(items[1]) + 2; i++) {
+		attackIDs.push_back(std::stoi(items[i]));
+	}
+}
+
+void ExecuteAttacksDeathAction::execute(LevelPack & levelPack, EntityCreationQueue & queue, entt::DefaultRegistry & registry, SpriteLoader & spriteLoader, uint32_t entity) {
+	// Bullets from death actions have an attack pattern origin id of -1.
+	// Enemy bullets also have an enemy phase origin id of -1.
+
+	if (registry.has<PlayerTag>(entity)) {
+		// Execute attacks as player
+		for (auto attackID : attackIDs) {
+			levelPack.getAttack(attackID)->executeAsPlayer(queue, spriteLoader, registry, entity, 0, -1);
+		}
+	} else {
+		// Execute attacks as enemy
+		int enemyID = -1;
+		if (registry.has<EnemyComponent>(entity)) {
+			enemyID = registry.get<EnemyComponent>(entity).getEnemyData()->getID();
+		}
+		for (auto attackID : attackIDs) {
+			levelPack.getAttack(attackID)->executeAsEnemy(queue, spriteLoader, registry, entity, 0, -1, enemyID, -1);
+		}
+	}
+}
+
 std::shared_ptr<DeathAction> DeathActionFactory::create(std::string formattedString) {
 	auto name = split(formattedString, DELIMITER)[0];
 	std::shared_ptr<DeathAction> ptr;
 	if (name == "PlayAnimatableDeathAction") {
 		ptr = std::make_shared<PlayAnimatableDeathAction>();
 	} else if (name == "PlaySoundDeathAction") {
-		ptr = std::make_shared< PlaySoundDeathAction>();
+		ptr = std::make_shared<PlaySoundDeathAction>();
+	} else if (name == "ExecuteAttacksDeathAction") {
+		ptr = std::make_shared<ExecuteAttacksDeathAction>();
 	}
 	ptr->load(formattedString);
 	return ptr;
