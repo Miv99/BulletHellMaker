@@ -2,11 +2,11 @@
 #include <algorithm>
 #include <string>
 #include <cmath>
+#include "Level.h"
 
 RenderSystem::RenderSystem(entt::DefaultRegistry & registry, sf::RenderWindow & window) : registry(registry), window(window) {
 	// Initialize layers to be size of the max layer
-	int highestLayer = ENEMY_BULLET_LAYER;
-	layers = std::vector<std::pair<int, std::vector<std::reference_wrapper<SpriteComponent>>>>(highestLayer + 1);
+	layers = std::vector<std::pair<int, std::vector<std::reference_wrapper<SpriteComponent>>>>(HIGHEST_RENDER_LAYER + 1);
 	layers[SHADOW_LAYER] = std::make_pair(SHADOW_LAYER, std::vector<std::reference_wrapper<SpriteComponent>>());
 	layers[PLAYER_BULLET_LAYER] = std::make_pair(PLAYER_BULLET_LAYER, std::vector<std::reference_wrapper<SpriteComponent>>());
 	layers[ENEMY_LAYER] = std::make_pair(ENEMY_LAYER, std::vector<std::reference_wrapper<SpriteComponent>>());
@@ -15,15 +15,8 @@ RenderSystem::RenderSystem(entt::DefaultRegistry & registry, sf::RenderWindow & 
 	layers[ITEM_LAYER] = std::make_pair(ITEM_LAYER, std::vector<std::reference_wrapper<SpriteComponent>>());
 	layers[ENEMY_BULLET_LAYER] = std::make_pair(ENEMY_BULLET_LAYER, std::vector<std::reference_wrapper<SpriteComponent>>());
 
-	bloom = std::vector<BloomSettings>(highestLayer + 1, BloomSettings{ false });
-	bloom[PLAYER_LAYER] = BloomSettings{ true, 1.3f, 0.0f, blendMode };
-	bloom[ENEMY_LAYER] = BloomSettings{ true, 1.3f, 0.0f, blendMode };
-	bloom[ENEMY_BOSS_LAYER] = BloomSettings{ true, 1.3f, 0.0f, blendMode };
-	bloom[PLAYER_BULLET_LAYER] = BloomSettings{ true, 1.2f, 0.05f, blendMode };
-	bloom[ENEMY_BULLET_LAYER] = BloomSettings{ true, 1.2f, 0.05f, blendMode };
-
 	// Initialize layer textures
-	for (int i = 0; i < highestLayer + 1; i++) {
+	for (int i = 0; i < HIGHEST_RENDER_LAYER + 1; i++) {
 		sf::View view = window.getView();
 		layerTextures[i].create(view.getSize().x - (MAP_HEIGHT - MAP_WIDTH), view.getSize().y);
 		view.setSize(MAP_WIDTH, MAP_HEIGHT);
@@ -132,7 +125,7 @@ void RenderSystem::update(float deltaTime) {
 	sf::Sprite backgroundAsSprite(tempLayerTexture.getTexture());
 	backgroundAsSprite.setPosition(0, -(float)tempLayerTexture.getSize().y);
 	sf::RenderStates backgroundStates;
-	backgroundStates.blendMode = blendMode;
+	backgroundStates.blendMode = DEFAULT_BLEND_MODE;
 	window.draw(backgroundAsSprite, backgroundStates);
 
 	for (int i = 0; i < layers.size(); i++) {
@@ -147,7 +140,7 @@ void RenderSystem::update(float deltaTime) {
 		}
 		layerTextures[i].display();
 
-		if (bloom[i].useBloom) {
+		if (bloom[i].usesBloom()) {
 			if (globalShaders.count(i) > 0) {
 				bool alt = false;
 				for (int a = 0; a < globalShaders[i].size(); a++) {
@@ -161,7 +154,7 @@ void RenderSystem::update(float deltaTime) {
 						tempLayerTexture.clear(sf::Color::Transparent);
 						sf::RenderStates states;
 						states.shader = &(*globalShaders[i][a]);
-						states.blendMode = blendMode;
+						states.blendMode = DEFAULT_BLEND_MODE;
 						tempLayerTexture.draw(textureAsSprite, states);
 						tempLayerTexture.display();
 					} else {
@@ -173,7 +166,7 @@ void RenderSystem::update(float deltaTime) {
 						layerTextures[i].clear(sf::Color::Transparent);
 						sf::RenderStates states;
 						states.shader = &(*globalShaders[i][a]);
-						states.blendMode = blendMode;
+						states.blendMode = DEFAULT_BLEND_MODE;
 						layerTextures[i].draw(textureAsSprite, states);
 						layerTextures[i].display();
 					}
@@ -181,7 +174,7 @@ void RenderSystem::update(float deltaTime) {
 
 				if (alt) {
 					sf::Texture nonblurredTexture = sf::Texture(tempLayerTexture.getTexture());
-					bloomGlowShader.setUniform("strength", bloom[i].glowStrength);
+					bloomGlowShader.setUniform("strength", bloom[i].getGlowStrength());
 
 					// Apply blur shaders
 					alt = false;
@@ -190,8 +183,8 @@ void RenderSystem::update(float deltaTime) {
 						auto mode = sf::BlendAdd;
 						if (a == 0) {
 							shader = &bloomDarkShader;
-							shader->setUniform("minBright", bloom[i].minBright);
-							mode = blendMode;
+							shader->setUniform("minBright", bloom[i].getMinBright());
+							mode = DEFAULT_BLEND_MODE;
 						} else {
 							shader = &*bloomBlurShaders[a - 1];
 						}
@@ -246,11 +239,11 @@ void RenderSystem::update(float deltaTime) {
 					textureAsSprite2.setPosition(0, -(float)tempLayerTexture.getSize().y);
 					sf::RenderStates states;
 					states.shader = &bloomGlowShader;
-					states.blendMode = bloom[i].blendMode;
+					states.blendMode = bloom[i].getBlendMode();
 					window.draw(textureAsSprite2, states);
 				} else {
 					sf::Texture nonblurredTexture = sf::Texture(layerTextures[i].getTexture());
-					bloomGlowShader.setUniform("strength", bloom[i].glowStrength);
+					bloomGlowShader.setUniform("strength", bloom[i].getGlowStrength());
 
 					// Apply blur shaders
 					alt = false;
@@ -259,8 +252,8 @@ void RenderSystem::update(float deltaTime) {
 						auto mode = sf::BlendAdd;
 						if (a == 0) {
 							shader = &bloomDarkShader;
-							shader->setUniform("minBright", bloom[i].minBright);
-							mode = blendMode;
+							shader->setUniform("minBright", bloom[i].getMinBright());
+							mode = DEFAULT_BLEND_MODE;
 						} else {
 							shader = &*bloomBlurShaders[a - 1];
 						}
@@ -315,12 +308,12 @@ void RenderSystem::update(float deltaTime) {
 					textureAsSprite2.setPosition(0, -(float)tempLayerTexture.getSize().y);
 					sf::RenderStates states;
 					states.shader = &bloomGlowShader;
-					states.blendMode = bloom[i].blendMode;
+					states.blendMode = bloom[i].getBlendMode();
 					window.draw(textureAsSprite2, states);
 				}
 			} else {
 				sf::Texture nonblurredTexture = sf::Texture(layerTextures[i].getTexture());
-				bloomGlowShader.setUniform("strength", bloom[i].glowStrength);
+				bloomGlowShader.setUniform("strength", bloom[i].getGlowStrength());
 
 				// Apply blur shaders
 				bool alt = false;
@@ -329,8 +322,8 @@ void RenderSystem::update(float deltaTime) {
 					auto mode = sf::BlendAdd;
 					if (a == 0) {
 						shader = &bloomDarkShader;
-						shader->setUniform("minBright", bloom[i].minBright);
-						mode = blendMode;
+						shader->setUniform("minBright", bloom[i].getMinBright());
+						mode = DEFAULT_BLEND_MODE;
 					} else {
 						shader = &*bloomBlurShaders[a - 1];
 					}
@@ -386,7 +379,7 @@ void RenderSystem::update(float deltaTime) {
 				textureAsSprite2.setPosition(0, -(float)tempLayerTexture.getSize().y);
 				sf::RenderStates states;
 				states.shader = &bloomGlowShader;
-				states.blendMode = bloom[i].blendMode;
+				states.blendMode = bloom[i].getBlendMode();
 				window.draw(textureAsSprite2, states);
 			}
 		} else {
@@ -397,7 +390,7 @@ void RenderSystem::update(float deltaTime) {
 
 					sf::RenderStates states;
 					states.shader = &(*globalShaders[i][0]);
-					states.blendMode = blendMode;
+					states.blendMode = DEFAULT_BLEND_MODE;
 					window.draw(textureAsSprite, states);
 				} else {
 					bool alt = false;
@@ -412,7 +405,7 @@ void RenderSystem::update(float deltaTime) {
 							tempLayerTexture.clear(sf::Color::Transparent);
 							sf::RenderStates states;
 							states.shader = &(*globalShaders[i][a]);
-							states.blendMode = blendMode;
+							states.blendMode = DEFAULT_BLEND_MODE;
 							tempLayerTexture.draw(textureAsSprite, states);
 							tempLayerTexture.display();
 						} else {
@@ -424,7 +417,7 @@ void RenderSystem::update(float deltaTime) {
 							layerTextures[i].clear(sf::Color::Transparent);
 							sf::RenderStates states;
 							states.shader = &(*globalShaders[i][a]);
-							states.blendMode = blendMode;
+							states.blendMode = DEFAULT_BLEND_MODE;
 							layerTextures[i].draw(textureAsSprite, states);
 							layerTextures[i].display();
 						}
@@ -438,7 +431,7 @@ void RenderSystem::update(float deltaTime) {
 						textureAsSprite.setPosition(0, -(float)layerTextures[i].getSize().y);
 
 						sf::RenderStates states;
-						states.blendMode = blendMode;
+						states.blendMode = DEFAULT_BLEND_MODE;
 						window.draw(textureAsSprite, states);
 					}
 				}
@@ -447,10 +440,18 @@ void RenderSystem::update(float deltaTime) {
 				textureAsSprite.setPosition(0, -(float)layerTextures[i].getSize().y);
 
 				sf::RenderStates states;
-				states.blendMode = blendMode;
+				states.blendMode = DEFAULT_BLEND_MODE;
 				window.draw(textureAsSprite, states);
 			}
 		}
+	}
+}
+
+void RenderSystem::loadLevelRenderSettings(std::shared_ptr<Level> level) {
+	bloom = std::vector<BloomSettings>(HIGHEST_RENDER_LAYER + 1, BloomSettings());
+	auto levelBloomSettings = level->getBloomLayerSettings();
+	for (int i = 0; i < levelBloomSettings.size(); i++) {
+		bloom[i] = levelBloomSettings[i];
 	}
 }
 
@@ -465,4 +466,35 @@ void RenderSystem::setBackground(sf::Texture background) {
 
 	// Create the sprite
 	backgroundSprite.setTexture(this->background);
+}
+
+std::string BloomSettings::format() {
+	std::string ret = "";
+	if (useBloom) {
+		ret += "1" + delim;
+	} else {
+		ret += "0" + delim;
+	}
+	ret += tos(glowStrength) + delim;
+	ret += tos(minBright) + delim;
+	ret += tos(static_cast<int>(blendMode.colorSrcFactor)) + delim + tos(static_cast<int>(blendMode.colorDstFactor)) + delim + tos(static_cast<int>(blendMode.colorEquation)) + delim + tos(static_cast<int>(blendMode.alphaSrcFactor));
+	ret += tos(static_cast<int>(blendMode.alphaDstFactor)) + delim + tos(static_cast<int>(blendMode.alphaEquation));
+	return ret;
+}
+
+void BloomSettings::load(std::string formattedString) {
+	auto items = split(formattedString, DELIMITER);
+	if (std::stoi(items[0]) == 1) {
+		useBloom = true;
+	} else {
+		useBloom = false;
+	}
+	glowStrength = std::stof(items[1]);
+	minBright = std::stof(items[2]);
+	blendMode.colorSrcFactor = static_cast<sf::BlendMode::Factor>(std::stoi(items[3]));
+	blendMode.colorDstFactor = static_cast<sf::BlendMode::Factor>(std::stoi(items[4]));
+	blendMode.colorEquation = static_cast<sf::BlendMode::Equation>(std::stoi(items[5]));
+	blendMode.alphaSrcFactor = static_cast<sf::BlendMode::Factor>(std::stoi(items[6]));
+	blendMode.alphaDstFactor = static_cast<sf::BlendMode::Factor>(std::stoi(items[7]));
+	blendMode.alphaEquation = static_cast<sf::BlendMode::Equation>(std::stoi(items[8]));
 }

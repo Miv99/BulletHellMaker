@@ -7,6 +7,8 @@
 #include "EntityAnimatableSet.h"
 #include "Animatable.h"
 #include "DeathAction.h"
+#include "RenderSystem.h"
+#include "Constants.h"
 
 LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(audioPlayer), name(name) {
 	/*
@@ -51,13 +53,13 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	auto ap1 = createAttackPattern();
 	ap1->setShadowTrailLifespan(3.0f);
 	//ap1->insertAction(0, std::make_shared<StayStillAtLastPositionEMPA>(1.0f));
-	/*
+	
 	ap1->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 100, 2), std::make_shared<ConstantTFV>(0), 2));
 	ap1->insertAction(1, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 100, 2), std::make_shared<ConstantTFV>(PI/2.0), 2));
 	ap1->insertAction(2, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 100, 2), std::make_shared<ConstantTFV>(PI), 2));
 	ap1->insertAction(3, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 100, 2), std::make_shared<ConstantTFV>(3 * PI/2.0), 2));
-	*/
-	ap1->insertAction(0, std::make_shared<MoveCustomBezierEMPA>(std::vector<sf::Vector2f>{ sf::Vector2f(0, 0), sf::Vector2f(142, 18), sf::Vector2f(189, 340), sf::Vector2f(190, 1) }, 2.5f, std::make_shared<EMPAAngleOffsetToPlayer>(0, 0)));
+	
+	//ap1->insertAction(0, std::make_shared<MoveCustomBezierEMPA>(std::vector<sf::Vector2f>{ sf::Vector2f(0, 0), sf::Vector2f(142, 18), sf::Vector2f(189, 340), sf::Vector2f(190, 1) }, 2.5f, std::make_shared<EMPAAngleOffsetToPlayer>(0, 0)));
 
 	bool alt = false;
 	for (float time = 0; time < 5; time += 1.0f) {
@@ -184,6 +186,14 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	level->setBackgroundFileName("space1.png");
 	level->setBackgroundScrollSpeedX(50);
 	level->setBackgroundScrollSpeedY(-100);
+
+	level->getBloomLayerSettings()[PLAYER_LAYER] = BloomSettings(1.3f, 0.0f);
+	level->getBloomLayerSettings()[ENEMY_LAYER] = BloomSettings(1.3f, 0.0f);
+	level->getBloomLayerSettings()[ENEMY_BOSS_LAYER] = BloomSettings(1.3f, 0.0f);
+	level->getBloomLayerSettings()[PLAYER_BULLET_LAYER] = BloomSettings(1.2f, 0.05f);
+	level->getBloomLayerSettings()[ENEMY_BULLET_LAYER] = BloomSettings(1.2f, 0.05f);
+	level->getBloomLayerSettings()[ITEM_LAYER] = BloomSettings(1.3f, 0.0f);
+
 	this->insertLevel(0, level);
 	this->setPlayer(EditorPlayer(10, 11, 300, 100, 5, 0, 0, 2.0f, std::vector<PlayerPowerTier>{ PlayerPowerTier(pset1, playerAP->getID(), 0.1f, playerFocusedAP->getID(), 0.5f, bombAP->getID(), 5.0f),
 		PlayerPowerTier(pset2, playerAP2->getID(), 0.01f, playerFocusedAP->getID(), 0.5f, bombAP->getID(), 5.0f) }, SoundSettings("oof.wav"), SoundSettings("death.ogg"), Animatable("heart.png", "", true, LOCK_ROTATION),

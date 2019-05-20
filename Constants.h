@@ -49,3 +49,5 @@ const static int ENEMY_BOSS_LAYER = 3;
 const static int PLAYER_LAYER = 4;
 const static int ITEM_LAYER = 5;
 const static int ENEMY_BULLET_LAYER = 6;
+
+const static int HIGHEST_RENDER_LAYER = ENEMY_BULLET_LAYER;

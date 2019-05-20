@@ -242,6 +242,9 @@ void GameInstance::startLevel(int levelIndex) {
 	paused = false;
 	std::shared_ptr<Level> level = levelPack->getLevel(levelIndex);
 
+	// Load bloom settings
+	renderSystem->loadLevelRenderSettings(level);
+
 	// Update relevant gui elements
 	levelNameLabel->setText(level->getName());
 

@@ -16,8 +16,12 @@ std::string Level::format() {
 	res += "(" + bombItem->format() + ")" + delim;
 	res += "(" + musicSettings.format() + ")" + delim;
 	res += "(" + backgroundFileName + ")" + delim + tos(backgroundScrollSpeedX) + delim + tos(backgroundScrollSpeedY) + delim;
-	res += tos(bossNameColor.r) + delim + tos(bossNameColor.g) + delim + tos(bossNameColor.b) + delim + tos(bossNameColor.a);
-	res += tos(bossHPBarColor.r) + delim + tos(bossHPBarColor.g) + delim + tos(bossHPBarColor.b) + delim + tos(bossHPBarColor.a);
+	res += tos(bossNameColor.r) + delim + tos(bossNameColor.g) + delim + tos(bossNameColor.b) + delim + tos(bossNameColor.a) + delim;
+	res += tos(bossHPBarColor.r) + delim + tos(bossHPBarColor.g) + delim + tos(bossHPBarColor.b) + delim + tos(bossHPBarColor.a) = delim;
+	res += tos(bloomLayerSettings.size());
+	for (auto settings : bloomLayerSettings) {
+		res += delim + "(" + settings.format() + ")";
+	}
 	return res;
 }
 
@@ -50,6 +54,12 @@ void Level::load(std::string formattedString) {
 	backgroundScrollSpeedY = std::stof(items[i++]);
 	bossNameColor = sf::Color(std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]));
 	bossHPBarColor = sf::Color(std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]));
+	bloomLayerSettings = std::vector<BloomSettings>(HIGHEST_RENDER_LAYER + 1, BloomSettings());
+	for (int a = 0; a < std::stoi(items[i++]); a++) {
+		BloomSettings settings;
+		settings.load(items[i++]);
+		bloomLayerSettings.push_back(settings);
+	}
 }
 
 bool Level::legal(std::string & message) {

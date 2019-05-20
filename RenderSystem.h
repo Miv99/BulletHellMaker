@@ -6,13 +6,41 @@
 #include <vector>
 #include <functional>
 #include <memory>
+#include "TextMarshallable.h"
 
-struct BloomSettings {
+class Level;
+
+// Default blend mode
+static sf::BlendMode DEFAULT_BLEND_MODE = sf::BlendMode(sf::BlendMode::Factor::SrcAlpha, sf::BlendMode::Factor::OneMinusSrcAlpha, sf::BlendMode::Equation::Add, sf::BlendMode::Factor::SrcAlpha, sf::BlendMode::Factor::OneMinusSrcAlpha, sf::BlendMode::Equation::Add);
+
+class BloomSettings : public TextMarshallable {
+public:
+	inline BloomSettings() {}
+	// For debug only
+	inline BloomSettings(float glowStrength, float minBright, sf::BlendMode blendMode = DEFAULT_BLEND_MODE) : useBloom(true), glowStrength(glowStrength), minBright(minBright), blendMode(blendMode) {}
+
+	std::string format();
+	void load(std::string formattedString);
+
+	inline bool usesBloom() { return useBloom; }
+	inline float getGlowStrength() { return glowStrength; }
+	inline float getMinBright() { return minBright; }
+	inline sf::BlendMode getBlendMode() { return blendMode; }
+
+	inline void setUsesBloom(bool useBloom) { this->useBloom = useBloom; }
+	inline float setGlowStrength(float glowStrength) { this->glowStrength = glowStrength; }
+	inline float setMinBright(float minBright) { this->minBright = minBright; }
+	inline sf::BlendMode setBlendMode(sf::BlendMode blendMode) { this->blendMode = blendMode; }
+
+private:
 	bool useBloom = false;
 
-	float glowStrength; // [1, inf]; determines how much the sprite and its "bloom shadow" glows
-	float minBright; // [0, 1]; determines how much to darken only the sprite
-	sf::BlendMode blendMode; // blend mode used when drawing the unblurred texture
+	// [1, inf]; determines how much the sprite and its "bloom shadow" glows
+	float glowStrength;
+	// [0, 1]; determines how much to darken only the sprite
+	float minBright; 
+	// blend mode used when drawing the unblurred texture; saved as an int
+	sf::BlendMode blendMode = DEFAULT_BLEND_MODE;
 };
 
 /*
@@ -28,6 +56,8 @@ public:
 	*/
 	RenderSystem(entt::DefaultRegistry& registry, sf::RenderWindow& window);
 	void update(float deltaTime);
+
+	void loadLevelRenderSettings(std::shared_ptr<Level> level);
 
 	void setBackground(sf::Texture background);
 	inline void setBackgroundScrollSpeedX(float backgroundScrollSpeedX) { this->backgroundScrollSpeedX = backgroundScrollSpeedX; }
@@ -69,9 +99,6 @@ private:
 	// I actually don't know why this is needed only when using 2 or more global shaders on a texture
 	float spriteHorizontalScale;
 	float spriteVerticalScale;
-
-	// Default blend mode
-	sf::BlendMode blendMode = sf::BlendMode(sf::BlendMode::Factor::SrcAlpha, sf::BlendMode::Factor::OneMinusSrcAlpha, sf::BlendMode::Equation::Add, sf::BlendMode::Factor::SrcAlpha, sf::BlendMode::Factor::OneMinusSrcAlpha, sf::BlendMode::Equation::Add);
 
 	sf::Texture background;
 	// The background as a sprite

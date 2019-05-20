@@ -10,6 +10,7 @@ Documentation to put in the editor somewhere:
 -EMPs with HomingEMPA cannot spawn attached to some parent
 -It is recommended that only bosses are able to play music
 -The background view is 1:1. That is, the user will see a MAP_WIDTH x MAP_HEIGHT pixel rectangle of the background at any time
+-BlendMode in BloomSettings should be left at default unless the user really knows what they're doing
 
 Tips to put in editor somewhere:
 -For a classic bullet hell, all enemy bullets should do 1 damage
@@ -38,8 +39,8 @@ TODO:
 -all default stuff (font, spritesheet, sounds, etc) are copied into every new level pack that is created so that no special code is needed to load
  from a default resource 
 -bosses can only be spawned if the condition is that there are 0 enemies so that there can only be 1 boss at a time
--default bloom settings are part of the level. they can be lowered by the user playing it (checkbox 
--flatten layers PLAYER_BULLET_LAYER through PLAYER_LAYER and then apply bloom to that single squished texture for more efficiency
+-Make a global bloom settings thing where the user can disable bloom for a certain layer (or all layers) across all LevelPacks they play
+ if there's too much lag or something
 -Multiple small shockwave effects 
 -DeathActions: ExecuteAttack (enemies only), ParticleExplosion
 -Change sprite sheet meta files to use TextMarshallable

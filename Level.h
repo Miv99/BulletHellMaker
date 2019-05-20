@@ -9,6 +9,7 @@
 #include "EnemySpawn.h"
 #include "TextMarshallable.h"
 #include "Item.h"
+#include "RenderSystem.h"
 #include "AudioPlayer.h"
 
 class Level : public TextMarshallable {
@@ -57,6 +58,8 @@ public:
 	inline float getBackgroundScrollSpeedY() { return backgroundScrollSpeedY; }
 	inline sf::Color getBossNameColor() { return bossNameColor; }
 	inline sf::Color getBossHPBarColor() { return bossHPBarColor; }
+	// Returns a reference
+	inline std::vector<BloomSettings>& getBloomLayerSettings() { return bloomLayerSettings; }
 
 	inline void setName(std::string name) { this->name = name; }
 	inline void setBackgroundFileName(std::string backgroundFileName) { this->backgroundFileName = backgroundFileName; }
@@ -102,4 +105,7 @@ private:
 	// on top of the background, so they should be up to Level to decide
 	sf::Color bossNameColor = sf::Color::White;
 	sf::Color bossHPBarColor = sf::Color::Red;
+
+	// Bloom settings for the level; each index is a separate layer
+	std::vector<BloomSettings> bloomLayerSettings = std::vector<BloomSettings>(HIGHEST_RENDER_LAYER + 1, BloomSettings());
 };
