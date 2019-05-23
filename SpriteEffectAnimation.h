@@ -102,7 +102,7 @@ public:
 	endScale - ending sprite scale
 	animationDuration - total time for the sprite to fade from maxOpacity to minOpacity
 	*/
-	inline ChangeSizeSEA(std::shared_ptr<sf::Sprite> sprite, float minOpacity, float maxOpacity, float animationDuration) : SpriteEffectAnimation(sprite), startScale(startScale),
+	inline ChangeSizeSEA(std::shared_ptr<sf::Sprite> sprite, float startScale, float endScale, float animationDuration) : SpriteEffectAnimation(sprite), startScale(startScale),
 		endScale(endScale), animationDuration(animationDuration) {
 		useShader = false;
 	}
