@@ -1,6 +1,7 @@
 #include "DeathAction.h"
 #include "Components.h"
 #include "LevelPack.h"
+#include "EntityCreationQueue.h"
 
 std::string PlayAnimatableDeathAction::format() {
 	return "PlayAnimatableDeathAction" + delim + "(" + animatable.format() + ")" + delim + tos(duration) + delim + "(" + tos((int)(effect)) + ")";
@@ -14,33 +15,8 @@ void PlayAnimatableDeathAction::load(std::string formattedString) {
 }
 
 void PlayAnimatableDeathAction::execute(LevelPack& levelPack, EntityCreationQueue& queue, entt::DefaultRegistry & registry, SpriteLoader & spriteLoader, uint32_t entity) {
-	uint32_t newEntity = registry.create();
-	auto& inheritedSpriteComponent = registry.get<SpriteComponent>(entity);
-
-	auto& dyingSprite = registry.get<SpriteComponent>(entity);
-	auto& spriteComponent = registry.assign<SpriteComponent>(newEntity, spriteLoader, animatable, false, dyingSprite.getRenderLayer(), dyingSprite.getSubLayer());
-	if (animatable.isSprite()) {
-		registry.assign<DespawnComponent>(newEntity, duration);	
-	} else {
-		registry.assign<DespawnComponent>(newEntity, spriteLoader.getAnimation(animatable.getAnimatableName(), animatable.getSpriteSheetName(), false)->getTotalDuration());
-	}
-	spriteComponent.rotate(inheritedSpriteComponent.getInheritedRotationAngle());
-	loadEffectAnimation(spriteComponent);
-
-	auto& oldPos = registry.get<PositionComponent>(entity);
-	registry.assign<PositionComponent>(newEntity, oldPos.getX(), oldPos.getY());
+	queue.pushBack(std::make_unique<PlayDeathAnimatableCommand>(registry, spriteLoader, entity, animatable, effect, duration));
 }
-
-void PlayAnimatableDeathAction::loadEffectAnimation(SpriteComponent & sprite) {
-	if (effect == NONE) {
-		// Do nothing
-	} else if (effect == SHRINK) {
-		sprite.setEffectAnimation(std::make_unique<ChangeSizeSEA>(sprite.getSprite(), 0.0f, 1.0f, duration));
-	} else if (effect == SHRINK) {
-		sprite.setEffectAnimation(std::make_unique<ChangeSizeSEA>(sprite.getSprite(), 0.0f, 1.0f, duration));
-	}
-}
-
 
 std::string PlaySoundDeathAction::format() {
 	return "PlaySoundDeathAction" + delim + "(" + soundSettings.format() + ")";

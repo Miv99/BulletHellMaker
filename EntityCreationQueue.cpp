@@ -11,7 +11,6 @@
 #include <iostream>
 #include "MovablePoint.h"
 #include "LevelPack.h"
-#include "DeathAction.h"
 #include <random>
 
 EMPSpawnFromEnemyCommand::EMPSpawnFromEnemyCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, uint32_t entity, float timeLag, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation) :
@@ -323,7 +322,7 @@ int EMPDropItemCommand::getEntitiesQueuedCount() {
 }
 
 ParticleExplosionCommand::ParticleExplosionCommand(entt::DefaultRegistry & registry, SpriteLoader& spriteLoader, float sourceX, float sourceY, Animatable animatable, bool loopAnimatable,
-	PARTICLE_EFFECT effect, sf::Color color, int minParticles, int maxParticles, float minDistance, float maxDistance, float minLifespan, float maxLifespan) :
+	ParticleExplosionDeathAction::PARTICLE_EFFECT effect, sf::Color color, int minParticles, int maxParticles, float minDistance, float maxDistance, float minLifespan, float maxLifespan) :
 	EntityCreationCommand(registry), spriteLoader(spriteLoader), sourceX(sourceX), sourceY(sourceY), animatable(animatable), loopAnimatable(loopAnimatable), effect(effect),
 	color(color), minParticles(minParticles), maxParticles(maxParticles), minDistance(minDistance), maxDistance(maxDistance), minLifespan(minLifespan), maxLifespan(maxLifespan) {
 }
@@ -350,11 +349,11 @@ void ParticleExplosionCommand::execute(EntityCreationQueue & queue) {
 		std::vector<std::shared_ptr<EMPAction>> path = { std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, distance(eng), particleLifespan), std::make_shared<ConstantTFV>(angle(eng)), particleLifespan) };
 		registry.assign<MovementPathComponent>(particle, queue, particle, registry, particle, std::make_shared<SpecificGlobalEMPSpawn>(0, sourceX, sourceY), path, 0);
 
-		if (effect == NONE) {
+		if (effect == ParticleExplosionDeathAction::NONE) {
 			// Do nothing
-		} else if (effect == FADE_AWAY) {
+		} else if (effect == ParticleExplosionDeathAction::FADE_AWAY) {
 			sprite.setEffectAnimation(std::make_unique<FadeAwaySEA>(sprite.getSprite(), 0, color.a/255.0f, particleLifespan));
-		} else if (effect == SHRINK) {
+		} else if (effect == ParticleExplosionDeathAction::SHRINK) {
 			sprite.setEffectAnimation(std::make_unique<ChangeSizeSEA>(sprite.getSprite(), 1, 0, particleLifespan));
 		}
 	}
@@ -363,4 +362,36 @@ void ParticleExplosionCommand::execute(EntityCreationQueue & queue) {
 int ParticleExplosionCommand::getEntitiesQueuedCount() {
 	// Return the max, since it's the worst-case scenario and a too-high estimate won't affect performance
 	return maxParticles;
+}
+
+PlayDeathAnimatableCommand::PlayDeathAnimatableCommand(entt::DefaultRegistry & registry, SpriteLoader & spriteLoader, uint32_t dyingEntity, Animatable animatable, PlayAnimatableDeathAction::DEATH_ANIMATION_EFFECT effect, float duration) :
+EntityCreationCommand(registry), spriteLoader(spriteLoader), dyingEntity(dyingEntity), animatable(animatable), effect(effect), duration(duration) {
+}
+
+void PlayDeathAnimatableCommand::execute(EntityCreationQueue & queue) {
+	uint32_t newEntity = registry.create();
+	auto& inheritedSpriteComponent = registry.get<SpriteComponent>(dyingEntity);
+
+	auto& dyingSprite = registry.get<SpriteComponent>(dyingEntity);
+	auto& spriteComponent = registry.assign<SpriteComponent>(newEntity, spriteLoader, animatable, false, dyingSprite.getRenderLayer(), dyingSprite.getSubLayer());
+	if (animatable.isSprite()) {
+		registry.assign<DespawnComponent>(newEntity, duration);
+	} else {
+		registry.assign<DespawnComponent>(newEntity, spriteLoader.getAnimation(animatable.getAnimatableName(), animatable.getSpriteSheetName(), false)->getTotalDuration());
+	}
+	spriteComponent.rotate(inheritedSpriteComponent.getInheritedRotationAngle());
+	if (effect == PlayAnimatableDeathAction::NONE) {
+		// Do nothing
+	} else if (effect == PlayAnimatableDeathAction::SHRINK) {
+		spriteComponent.setEffectAnimation(std::make_unique<ChangeSizeSEA>(spriteComponent.getSprite(), 0.0f, 1.0f, duration));
+	} else if (effect == PlayAnimatableDeathAction::SHRINK) {
+		spriteComponent.setEffectAnimation(std::make_unique<ChangeSizeSEA>(spriteComponent.getSprite(), 0.0f, 1.0f, duration));
+	}
+
+	auto& oldPos = registry.get<PositionComponent>(dyingEntity);
+	registry.assign<PositionComponent>(newEntity, oldPos.getX(), oldPos.getY());
+}
+
+int PlayDeathAnimatableCommand::getEntitiesQueuedCount() {
+	return 1;
 }

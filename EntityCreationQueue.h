@@ -5,11 +5,11 @@
 #include "Components.h"
 #include "EnemySpawn.h"
 #include "Item.h"
+#include "DeathAction.h"
 
 class EditorMovablePoint;
 class SpriteLoader;
 class EditorEnemy;
-enum PARTICLE_EFFECT;
 
 static void reserveMemory(entt::DefaultRegistry& registry, int reserve) {
 	// If capacity is reached, increase capacity by a set amount of entities
@@ -212,7 +212,7 @@ Command for creating an explosion of purely visual particles.
 class ParticleExplosionCommand : public EntityCreationCommand {
 public:
 	ParticleExplosionCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, float sourceX, float sourceY, Animatable animatable, bool loopAnimatable,
-		PARTICLE_EFFECT effect, sf::Color color, int minParticles, int maxParticles, float minDistance, float maxDistance, float minLifespan, float maxLifespan);
+		ParticleExplosionDeathAction::PARTICLE_EFFECT effect, sf::Color color, int minParticles, int maxParticles, float minDistance, float maxDistance, float minLifespan, float maxLifespan);
 
 	void execute(EntityCreationQueue& queue) override;
 	int getEntitiesQueuedCount() override;
@@ -228,7 +228,7 @@ private:
 	// Only used if animatable is an animation
 	bool loopAnimatable;
 	// Effect on each particle
-	PARTICLE_EFFECT effect;
+	ParticleExplosionDeathAction::PARTICLE_EFFECT effect;
 	// Particle color. Note: this will overwrite the animatable's color as specified in its sprite sheet entry.
 	sf::Color color;
 	// Min/max number of particles
@@ -237,6 +237,29 @@ private:
 	float minDistance, maxDistance;
 	// Min/max lifespan of a particle
 	float minLifespan, maxLifespan;
+};
+
+/*
+Command for spawning some entity that displays an Animatable from a dying entity.
+*/
+class PlayDeathAnimatableCommand : public EntityCreationCommand {
+public:
+	PlayDeathAnimatableCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t dyingEntity, Animatable animatable, PlayAnimatableDeathAction::DEATH_ANIMATION_EFFECT effect, float duration);
+
+	void execute(EntityCreationQueue& queue) override;
+	int getEntitiesQueuedCount() override;
+
+private:
+	SpriteLoader& spriteLoader;
+
+	// The entity that is dying
+	uint32_t dyingEntity;
+	Animatable animatable;
+	// Type of sprite effect to apply to death animatable
+	PlayAnimatableDeathAction::DEATH_ANIMATION_EFFECT effect;
+	// Lifespan of the entity playing the death animation. Only applicable if animatable
+	// is a sprite. Otherwise, the entity despawns when its animation is over.
+	float duration;
 };
 
 /*

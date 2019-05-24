@@ -10,9 +10,9 @@
 #include "Components.h"
 #include "AudioPlayer.h"
 #include "SpriteEffectAnimation.h"
-#include "EntityCreationQueue.h"
 
 class LevelPack;
+class EntityCreationQueue;
 
 /*
 An action that is executed on the death of an entity.
@@ -34,12 +34,12 @@ Death action for spawning some entity that displays an Animatable.
 */
 class PlayAnimatableDeathAction : public DeathAction {
 public:
-	static enum DEATH_ANIMATION_EFFECT {
+	enum DEATH_ANIMATION_EFFECT {
 		NONE,
 		// Animatable shrinks in size until it disappears
 		SHRINK,
 		// Animatable fades (alpha decreases) until it disappears
-		FADE
+		FADE_AWAY
 	};
 
 	inline PlayAnimatableDeathAction() {}
@@ -52,9 +52,11 @@ public:
 
 	// Returns a reference
 	inline Animatable& getAnimatable() { return animatable; }
+	inline DEATH_ANIMATION_EFFECT getEffect() { return effect; }
 	inline float getDuration() { return duration; }
 
 	inline void setDuration(float duration) { this->duration = duration; }
+	inline void setEffect(DEATH_ANIMATION_EFFECT effect) { this->effect = effect; }
 
 private:
 	Animatable animatable;
@@ -63,8 +65,6 @@ private:
 	// Lifespan of the entity playing the death animation. Only applicable if animatable
 	// is a sprite. Otherwise, the entity despawns when its animation is over.
 	float duration;
-
-	void loadEffectAnimation(SpriteComponent& sprite);
 };
 
 /*
@@ -113,19 +113,21 @@ private:
 	std::vector<int> attackIDs;
 };
 
-// Used in ParticleExplosionDeathAction
-static enum PARTICLE_EFFECT {
-	NONE,
-	FADE_AWAY,
-	SHRINK
-};
 /*
 Death action for an explosion of purely visual particles.
 */
 class ParticleExplosionDeathAction : public DeathAction {
 public:
+	enum PARTICLE_EFFECT {
+		NONE,
+		// Particle fades in opacity
+		FADE_AWAY,
+		// Particle shrinks until it disappears
+		SHRINK
+	};
+
 	inline ParticleExplosionDeathAction() {}
-	inline ParticleExplosionDeathAction(PARTICLE_EFFECT effect, Animatable animatable, bool loopAnimatable, sf::Color color, int minParticles = 20, int maxParticles = 30, float minDistance = 20, float maxDistance = 500, float minLifespan = 0.75f, float maxLifespan = 2.5f) : 
+	inline ParticleExplosionDeathAction(PARTICLE_EFFECT effect, Animatable animatable, bool loopAnimatable, sf::Color color, int minParticles = 20, int maxParticles = 30, float minDistance = 20, float maxDistance = 500, float minLifespan = 0.75f, float maxLifespan = 2.5f) :
 		effect(effect), animatable(animatable), color(color), minParticles(minParticles), maxParticles(maxParticles), minDistance(minDistance), maxDistance(maxDistance), minLifespan(minLifespan), maxLifespan(maxLifespan) {}
 
 	std::string format() override;
@@ -140,13 +142,13 @@ public:
 	inline void setEffect(PARTICLE_EFFECT effect) { this->effect = effect; }
 
 private:
-	PARTICLE_EFFECT effect;
+	PARTICLE_EFFECT effect = FADE_AWAY;
 	// Animatable used for the particle
 	Animatable animatable;
 	// Only applicable if animatable is an animation
 	bool loopAnimatable;
 	// Particle color. Note: this will overwrite the animatable's color as specified in its sprite sheet entry.
-	sf::Color color = sf::Color::Yellow;
+	sf::Color color;
 	// Number of particles
 	int minParticles = 20, maxParticles = 30;
 	// Min/max distance a particle can travel

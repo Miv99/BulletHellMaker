@@ -10,6 +10,7 @@
 #include "RenderSystem.h"
 #include "Constants.h"
 #include "EditorMovablePointAction.h"
+#include "EntityCreationQueue.h"
 
 LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(audioPlayer), name(name) {
 	/*
@@ -122,7 +123,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 		e1DeathAttacks.push_back(atk->getID());
 	}
 	enemy1->addDeathAction(std::make_shared<ExecuteAttacksDeathAction>(e1DeathAttacks));
-	enemy1->addDeathAction(std::make_shared<ParticleExplosionDeathAction>(FADE_AWAY, Animatable("Bomb", "sheet1", true, LOCK_ROTATION), false, sf::Color::Yellow));
+	enemy1->addDeathAction(std::make_shared<ParticleExplosionDeathAction>(ParticleExplosionDeathAction::FADE_AWAY, Animatable("Bomb", "sheet1", true, LOCK_ROTATION), false, sf::Color::Yellow));
 
 	auto level = std::make_shared<Level>("test level 1 with a really long name");
 	auto playerAP = createAttackPattern();
