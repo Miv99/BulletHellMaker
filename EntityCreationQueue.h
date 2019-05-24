@@ -9,6 +9,7 @@
 class EditorMovablePoint;
 class SpriteLoader;
 class EditorEnemy;
+enum PARTICLE_EFFECT;
 
 static void reserveMemory(entt::DefaultRegistry& registry, int reserve) {
 	// If capacity is reached, increase capacity by a set amount of entities
@@ -203,6 +204,39 @@ private:
 	float y;
 	int amount;
 	std::shared_ptr<Item> item;
+};
+
+/*
+Command for creating an explosion of purely visual particles.
+*/
+class ParticleExplosionCommand : public EntityCreationCommand {
+public:
+	ParticleExplosionCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, float sourceX, float sourceY, Animatable animatable, bool loopAnimatable,
+		PARTICLE_EFFECT effect, sf::Color color, int minParticles, int maxParticles, float minDistance, float maxDistance, float minLifespan, float maxLifespan);
+
+	void execute(EntityCreationQueue& queue) override;
+	int getEntitiesQueuedCount() override;
+
+private:
+	SpriteLoader& spriteLoader;
+
+	// Source of particles
+	float sourceX, sourceY;
+
+	// Animatable used for the particle
+	Animatable animatable;
+	// Only used if animatable is an animation
+	bool loopAnimatable;
+	// Effect on each particle
+	PARTICLE_EFFECT effect;
+	// Particle color. Note: this will overwrite the animatable's color as specified in its sprite sheet entry.
+	sf::Color color;
+	// Min/max number of particles
+	int minParticles, maxParticles;
+	// Min/max distance a particle can travel
+	float minDistance, maxDistance;
+	// Min/max lifespan of a particle
+	float minLifespan, maxLifespan;
 };
 
 /*

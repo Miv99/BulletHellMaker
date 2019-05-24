@@ -12,6 +12,8 @@ Documentation to put in the editor somewhere:
 -The background view is 1:1. That is, the user will see a MAP_WIDTH x MAP_HEIGHT pixel rectangle of the background at any time
 -BlendMode in BloomSettings should be left at default unless the user really knows what they're doing
 -Attacks in ExecuteAttacksDeathAction cannot have EntityAttachedEMPSpawn
+-The particle animatable in ParticleExplosionDeathAction is meant to be colored by the color field. 
+ Meaning, the color specified in the Animatable's sprite sheet entry will be ignored.
 
 Tips to put in editor somewhere:
 -For a classic bullet hell, all enemy bullets should do 1 damage
@@ -37,6 +39,7 @@ Notes for me:
 -Player invulnerability sprite effect animation is in CollisionSystem
 
 TODO:
+-PlayAnimatableDeathAction has a registry.create(); move it to EntityCreationQueue
 -have some default attack patterns (https://www.youtube.com/watch?v=xbQ9e0zYuj4)
 -all default stuff (font, spritesheet, sounds, etc) are copied into every new level pack that is created so that no special code is needed to load
  from a default resource 
@@ -44,7 +47,6 @@ TODO:
 -Make a global bloom settings thing where the user can disable bloom for a certain layer (or all layers) across all LevelPacks they play
  if there's too much lag or something
 -Multiple small shockwave effects 
--DeathActions: ParticleExplosion
 -Change sprite sheet meta files to use TextMarshallable
 	-Due to the user-unfriendliness of text-marshalled files, this should only be done if an image viewer can be implemented in the editor
 	 that can zoom in and make rectangles so that the user has full control of 

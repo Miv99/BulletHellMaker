@@ -43,11 +43,12 @@ Highest layer is drawn on top.
 Must go from 0 to some number without skipping any.
 */
 const static int SHADOW_LAYER = 0;
-const static int PLAYER_BULLET_LAYER = 1;
-const static int ENEMY_LAYER = 2;
-const static int ENEMY_BOSS_LAYER = 3;
-const static int PLAYER_LAYER = 4;
-const static int ITEM_LAYER = 5;
-const static int ENEMY_BULLET_LAYER = 6;
+const static int PARTICLE_LAYER = 1;
+const static int PLAYER_BULLET_LAYER = 2;
+const static int ENEMY_LAYER = 3;
+const static int ENEMY_BOSS_LAYER = 4;
+const static int PLAYER_LAYER = 5;
+const static int ITEM_LAYER = 6;
+const static int ENEMY_BULLET_LAYER = 7;
 
 const static int HIGHEST_RENDER_LAYER = ENEMY_BULLET_LAYER;

@@ -92,6 +92,27 @@ void ExecuteAttacksDeathAction::execute(LevelPack & levelPack, EntityCreationQue
 	}
 }
 
+std::string ParticleExplosionDeathAction::format() {
+	std::string ret = "ParticleExplosionDeathAction" + delim;
+	ret += tos(static_cast<int>(effect)) + delim;
+	ret += tos(color.r) + delim + tos(color.g) + delim + tos(color.b) + delim + tos(color.a);
+	return ret;
+}
+
+void ParticleExplosionDeathAction::load(std::string formattedString) {
+	auto items = split(formattedString, DELIMITER);
+	effect = static_cast<PARTICLE_EFFECT>(std::stoi(items[1]));
+	color.r = std::stoi(items[2]);
+	color.g = std::stoi(items[3]);
+	color.b = std::stoi(items[4]);
+	color.a = std::stoi(items[5]);
+}
+
+void ParticleExplosionDeathAction::execute(LevelPack & levelPack, EntityCreationQueue & queue, entt::DefaultRegistry & registry, SpriteLoader & spriteLoader, uint32_t entity) {
+	auto& pos = registry.get<PositionComponent>(entity);
+	queue.pushBack(std::make_unique<ParticleExplosionCommand>(registry, spriteLoader, pos.getX(), pos.getY(), animatable, loopAnimatable, effect, color, minParticles, maxParticles, minDistance, maxDistance, minLifespan, maxLifespan));
+}
+
 std::shared_ptr<DeathAction> DeathActionFactory::create(std::string formattedString) {
 	auto name = split(formattedString, DELIMITER)[0];
 	std::shared_ptr<DeathAction> ptr;
@@ -101,6 +122,8 @@ std::shared_ptr<DeathAction> DeathActionFactory::create(std::string formattedStr
 		ptr = std::make_shared<PlaySoundDeathAction>();
 	} else if (name == "ExecuteAttacksDeathAction") {
 		ptr = std::make_shared<ExecuteAttacksDeathAction>();
+	} else if (name == "ParticleExplosionDeathAction") {
+		ptr = std::make_shared<ParticleExplosionDeathAction>();
 	}
 	ptr->load(formattedString);
 	return ptr;

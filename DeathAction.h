@@ -9,6 +9,7 @@
 #include "SpriteLoader.h"
 #include "Components.h"
 #include "AudioPlayer.h"
+#include "SpriteEffectAnimation.h"
 #include "EntityCreationQueue.h"
 
 class LevelPack;
@@ -49,6 +50,12 @@ public:
 
 	void execute(LevelPack& levelPack, EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) override;
 
+	// Returns a reference
+	inline Animatable& getAnimatable() { return animatable; }
+	inline float getDuration() { return duration; }
+
+	inline void setDuration(float duration) { this->duration = duration; }
+
 private:
 	Animatable animatable;
 	// Type of sprite effect to apply to death animatable
@@ -78,6 +85,9 @@ public:
 
 	void execute(LevelPack& levelPack, EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) override;
 
+	// Returns a reference
+	inline SoundSettings& getSoundSettings() { return soundSettings; }
+
 private:
 	SoundSettings soundSettings;
 };
@@ -96,8 +106,53 @@ public:
 
 	void execute(LevelPack& levelPack, EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) override;
 
+	// Returns a reference
+	inline std::vector<int>& getAttackIDs() { return attackIDs; }
+
 private:
 	std::vector<int> attackIDs;
+};
+
+// Used in ParticleExplosionDeathAction
+static enum PARTICLE_EFFECT {
+	NONE,
+	FADE_AWAY,
+	SHRINK
+};
+/*
+Death action for an explosion of purely visual particles.
+*/
+class ParticleExplosionDeathAction : public DeathAction {
+public:
+	inline ParticleExplosionDeathAction() {}
+	inline ParticleExplosionDeathAction(PARTICLE_EFFECT effect, Animatable animatable, bool loopAnimatable, sf::Color color, int minParticles = 20, int maxParticles = 30, float minDistance = 20, float maxDistance = 500, float minLifespan = 0.75f, float maxLifespan = 2.5f) : 
+		effect(effect), animatable(animatable), color(color), minParticles(minParticles), maxParticles(maxParticles), minDistance(minDistance), maxDistance(maxDistance), minLifespan(minLifespan), maxLifespan(maxLifespan) {}
+
+	std::string format() override;
+	void load(std::string formattedString) override;
+
+	void execute(LevelPack& levelPack, EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) override;
+
+	inline PARTICLE_EFFECT getEffect() { return effect; }
+	// Returns a reference
+	inline sf::Color& getColor() { return color; }
+
+	inline void setEffect(PARTICLE_EFFECT effect) { this->effect = effect; }
+
+private:
+	PARTICLE_EFFECT effect;
+	// Animatable used for the particle
+	Animatable animatable;
+	// Only applicable if animatable is an animation
+	bool loopAnimatable;
+	// Particle color. Note: this will overwrite the animatable's color as specified in its sprite sheet entry.
+	sf::Color color = sf::Color::Yellow;
+	// Number of particles
+	int minParticles = 20, maxParticles = 30;
+	// Min/max distance a particle can travel
+	float minDistance = 20, maxDistance = 500;
+	// Min/max lifespan of a particle
+	float minLifespan = 0.75f, maxLifespan = 2.5f;
 };
 
 class DeathActionFactory {

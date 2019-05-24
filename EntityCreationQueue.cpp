@@ -11,6 +11,7 @@
 #include <iostream>
 #include "MovablePoint.h"
 #include "LevelPack.h"
+#include "DeathAction.h"
 #include <random>
 
 EMPSpawnFromEnemyCommand::EMPSpawnFromEnemyCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, uint32_t entity, float timeLag, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation) :
@@ -292,11 +293,13 @@ void EMPDropItemCommand::execute(EntityCreationQueue & queue) {
 	std::uniform_real_distribution<float> explosionDistanceDistribution(150.0f, 250.0f);
 	std::uniform_real_distribution<float> explosionAngleDistribution(70.0f * PI/180.0f, 110.0f * PI/180.0f);
 
+	float spriteSublayer = registry.get<LevelManagerTag>().getTimeSinceStartOfLevel();
+
 	for (int i = 0; i < amount; i++) {
 		uint32_t itemEntity = registry.create();
 		registry.assign<CollectibleComponent>(itemEntity, item, item->getActivationRadius());
 		registry.assign<DespawnComponent>(itemEntity, ITEM_DESPAWN_TIME);
-		auto& sprite = registry.assign<SpriteComponent>(itemEntity, spriteLoader, item->getAnimatable(), true, ITEM_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel());
+		auto& sprite = registry.assign<SpriteComponent>(itemEntity, spriteLoader, item->getAnimatable(), true, ITEM_LAYER, spriteSublayer);
 		registry.assign<HitboxComponent>(itemEntity, item->getHitboxRadius(), sprite.getSprite());
 		registry.assign<PositionComponent>(itemEntity, x, y);
 
@@ -317,4 +320,47 @@ void EMPDropItemCommand::execute(EntityCreationQueue & queue) {
 
 int EMPDropItemCommand::getEntitiesQueuedCount() {
 	return amount;
+}
+
+ParticleExplosionCommand::ParticleExplosionCommand(entt::DefaultRegistry & registry, SpriteLoader& spriteLoader, float sourceX, float sourceY, Animatable animatable, bool loopAnimatable,
+	PARTICLE_EFFECT effect, sf::Color color, int minParticles, int maxParticles, float minDistance, float maxDistance, float minLifespan, float maxLifespan) :
+	EntityCreationCommand(registry), spriteLoader(spriteLoader), sourceX(sourceX), sourceY(sourceY), animatable(animatable), loopAnimatable(loopAnimatable), effect(effect),
+	color(color), minParticles(minParticles), maxParticles(maxParticles), minDistance(minDistance), maxDistance(maxDistance), minLifespan(minLifespan), maxLifespan(maxLifespan) {
+}
+
+void ParticleExplosionCommand::execute(EntityCreationQueue & queue) {
+	std::mt19937 eng;
+	std::uniform_int_distribution<int> particlesCount(minParticles, maxParticles);
+	std::uniform_real_distribution<float> lifespan(minLifespan, maxLifespan);
+	std::uniform_real_distribution<float> distance(minDistance, maxDistance);
+	std::uniform_real_distribution<float> angle(0.0f, PI2);
+
+	float spriteSublayer = registry.get<LevelManagerTag>().getTimeSinceStartOfLevel();
+
+	for (int i = 0; i < particlesCount(eng); i++) {
+		float particleLifespan = lifespan(eng);
+
+		uint32_t particle = registry.create();
+		registry.assign<DespawnComponent>(particle, particleLifespan);
+		registry.assign<PositionComponent>(particle, sourceX, sourceY);
+		auto& sprite = registry.assign<SpriteComponent>(particle, spriteLoader, animatable, loopAnimatable, PARTICLE_LAYER, spriteSublayer);
+		// Overwrite sprite sheet entry's color
+		sprite.getSprite()->setColor(color);
+
+		std::vector<std::shared_ptr<EMPAction>> path = { std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, distance(eng), particleLifespan), std::make_shared<ConstantTFV>(angle(eng)), particleLifespan) };
+		registry.assign<MovementPathComponent>(particle, queue, particle, registry, particle, std::make_shared<SpecificGlobalEMPSpawn>(0, sourceX, sourceY), path, 0);
+
+		if (effect == NONE) {
+			// Do nothing
+		} else if (effect == FADE_AWAY) {
+			sprite.setEffectAnimation(std::make_unique<FadeAwaySEA>(sprite.getSprite(), 0, color.a/255.0f, particleLifespan));
+		} else if (effect == SHRINK) {
+			sprite.setEffectAnimation(std::make_unique<ChangeSizeSEA>(sprite.getSprite(), 1, 0, particleLifespan));
+		}
+	}
+}
+
+int ParticleExplosionCommand::getEntitiesQueuedCount() {
+	// Return the max, since it's the worst-case scenario and a too-high estimate won't affect performance
+	return maxParticles;
 }

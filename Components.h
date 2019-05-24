@@ -220,7 +220,7 @@ class SpriteComponent {
 public:
 	/*
 	renderLayer - the layer to render this sprite at. Higher means being drawn on top.
-	sublayerr - determines order of sprite drawing for sprites in the same layer. Higher means being drawn on top.
+	sublayer - determines order of sprite drawing for sprites in the same layer. Higher means being drawn on top.
 	*/
 	inline SpriteComponent(int renderLayer, float subLayer) : renderLayer(renderLayer), subLayer(subLayer) {}
 	/*
