@@ -21,14 +21,23 @@ class LevelManagerTag;
 
 class GameInstance {
 public:
-	GameInstance(sf::RenderWindow& window, std::string levelPackName);
-	void physicsUpdate(float deltaTime);
-	void render(float deltaTime);
+	GameInstance(std::string levelPackName);
 
 	/*
-	Starts a level.
+	Starts the game instance with the loaded level.
+
+	This function will block the current thread until the game instance is closed.
 	*/
-	void startLevel(int levelIndex);
+	void start();
+	/*
+	Closes the game instance.
+	*/
+	void close();
+
+	/*
+	Loads a level.
+	*/
+	void loadLevel(int levelIndex);
 
 	/*
 	Ends a level.
@@ -40,12 +49,17 @@ public:
 	void resume();
 
 private:
+	void physicsUpdate(float deltaTime);
+	void render(float deltaTime);
+
+	bool gameInstanceCloseQueued = false;
+
 	std::unique_ptr<LevelPack> levelPack;
 	std::unique_ptr<SpriteLoader> spriteLoader;
 	std::unique_ptr<EntityCreationQueue> queue;
 
 	entt::DefaultRegistry registry;
-	sf::RenderWindow& window;
+	std::unique_ptr<sf::RenderWindow> window;
 
 	std::unique_ptr<MovementSystem> movementSystem;
 	std::unique_ptr<RenderSystem> renderSystem;

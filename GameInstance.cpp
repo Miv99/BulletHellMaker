@@ -14,12 +14,15 @@
 #include "Constants.h"
 #include "Player.h"
 
-GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) : window(window) {
+GameInstance::GameInstance(std::string levelPackName) {
+	window = std::make_unique<sf::RenderWindow>(sf::VideoMode(1024, 768), "SFML works!");
+	window->setKeyRepeatEnabled(false);
+
 	// Centered at negative y because SFML has (0, 0) at the top-left, and RenderSystem negates y-values so that (0, 0) in every other aspect of this game is bottom-left.
 	sf::View view(sf::Vector2f(MAP_WIDTH/2.0f, -MAP_HEIGHT/2.0f), sf::Vector2f(MAP_WIDTH, MAP_HEIGHT));
-	window.setView(view);
+	window->setView(view);
 
-	windowHeight = window.getSize().y;
+	windowHeight = window->getSize().y;
 
 	audioPlayer = std::make_unique<AudioPlayer>();
 
@@ -30,7 +33,7 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 	spriteLoader->preloadTextures();
 
 	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
-	renderSystem = std::make_unique<RenderSystem>(registry, window);
+	renderSystem = std::make_unique<RenderSystem>(registry, *window);
 	collisionSystem = std::make_unique<CollisionSystem>(*levelPack, *queue, *spriteLoader, registry, MAP_WIDTH, MAP_HEIGHT);
 	despawnSystem = std::make_unique<DespawnSystem>(registry);
 	enemySystem = std::make_unique<EnemySystem>(*queue, *spriteLoader, *levelPack, registry);
@@ -43,12 +46,12 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 	// Note: "GUI region" refers to the right side of the window that doesn't contain the stuff from RenderSystem
 	smoothPlayerHPBar = levelPack->getPlayer().getSmoothPlayerHPBar();
 
-	gui = std::make_shared<tgui::Gui>(window);
+	gui = std::make_shared<tgui::Gui>(*window);
 	gui->setFont(tgui::Font("Level Packs\\" + levelPack->getName() + "\\" + levelPack->getFontFileName()));
-	guiRegionWidth = window.getSize().x * (MAP_HEIGHT - MAP_WIDTH) / view.getSize().x;
-	guiRegionHeight = window.getSize().y;
+	guiRegionWidth = window->getSize().x * (MAP_HEIGHT - MAP_WIDTH) / view.getSize().x;
+	guiRegionHeight = window->getSize().y;
 	// x-coord of left side of GUI region
-	guiRegionX = window.getSize().x - guiRegionWidth;
+	guiRegionX = window->getSize().x - guiRegionWidth;
 	guiPaddingX = guiRegionWidth * 0.05f;
 	guiPaddingY = guiRegionHeight * 0.03f;
 
@@ -152,7 +155,7 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 	// Boss stuff
 	bossLabel = tgui::Label::create();
 	bossLabel->setTextSize(26);
-	bossLabel->setMaximumTextWidth(window.getSize().x - guiRegionWidth);
+	bossLabel->setMaximumTextWidth(window->getSize().x - guiRegionWidth);
 	bossLabel->setPosition(0, 0);
 	bossLabel->setVisible(false);
 	gui->add(bossLabel);
@@ -165,7 +168,7 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 
 	bossPhaseHealthBar = tgui::ProgressBar::create();
 	bossPhaseHealthBar->setFillDirection(tgui::ProgressBar::FillDirection::LeftToRight);
-	bossPhaseHealthBar->setSize(window.getSize().x - guiRegionWidth, bossPhaseHealthBarHeight);
+	bossPhaseHealthBar->setSize(window->getSize().x - guiRegionWidth, bossPhaseHealthBarHeight);
 	bossPhaseHealthBar->setPosition({ 0, 0 });
 	bossPhaseHealthBar->getRenderer()->setBackgroundColor(tgui::Color::Transparent);
 	bossPhaseHealthBar->getRenderer()->setFillColor(tgui::Color::Red);
@@ -173,6 +176,45 @@ GameInstance::GameInstance(sf::RenderWindow& window, std::string levelPackName) 
 	bossPhaseHealthBar->getRenderer()->setBorderColor(tgui::Color::Transparent);
 	bossPhaseHealthBar->setVisible(false);
 	gui->add(bossPhaseHealthBar);
+}
+
+void GameInstance::start() {
+	sf::Clock deltaClock;
+
+	// Game loop
+	while (window->isOpen() && !gameInstanceCloseQueued) {
+		// While behind in render updates, do physics updates
+		float timeSinceLastRender = 0;
+		while (timeSinceLastRender < RENDER_INTERVAL) {
+			sf::Event event;
+			while (window->pollEvent(event)) {
+				if (event.type == sf::Event::Closed) {
+					window->close();
+				} else {
+					handleEvent(event);
+				}
+			}
+
+			if (paused) {
+				break;
+			}
+
+			float dt = std::min(MAX_PHYSICS_DELTA_TIME, deltaClock.restart().asSeconds());
+			//std::cout << dt << std::endl;
+			//float dt = 1 / 120.0f;
+			physicsUpdate(dt);
+
+			timeSinceLastRender += dt;
+		}
+
+		window->clear();
+		render(timeSinceLastRender);
+		window->display();
+	}
+}
+
+void GameInstance::close() {
+	gameInstanceCloseQueued = true;
 }
 
 void GameInstance::physicsUpdate(float deltaTime) {
@@ -238,8 +280,7 @@ void GameInstance::render(float deltaTime) {
 	gui->draw();
 }
 
-void GameInstance::startLevel(int levelIndex) {
-	paused = false;
+void GameInstance::loadLevel(int levelIndex) {
 	std::shared_ptr<Level> level = levelPack->getLevel(levelIndex);
 
 	// Load bloom settings
@@ -284,8 +325,6 @@ void GameInstance::startLevel(int levelIndex) {
 	onPlayerPowerLevelChange(registry.get<PlayerTag>().getCurrentPowerTierIndex(), registry.get<PlayerTag>().getPowerTierCount(), registry.get<PlayerTag>().getCurrentPower());
 	onPointsChange(levelManagerTag.getPoints());
 	onPlayerBombCountChange(registry.get<PlayerTag>().getBombCount());
-
-	resume();
 }
 
 void GameInstance::endLevel() {
@@ -300,9 +339,11 @@ void GameInstance::handleEvent(sf::Event event) {
 }
 
 void GameInstance::pause() {
+	paused = true;
 }
 
 void GameInstance::resume() {
+	paused = false;
 	playerSystem->onResume();
 }
 

@@ -39,14 +39,13 @@ Notes for me:
 -Player invulnerability sprite effect animation is in CollisionSystem
 
 TODO:
--PlayAnimatableDeathAction has a registry.create(); move it to EntityCreationQueue
 -have some default attack patterns (https://www.youtube.com/watch?v=xbQ9e0zYuj4)
 -all default stuff (font, spritesheet, sounds, etc) are copied into every new level pack that is created so that no special code is needed to load
  from a default resource 
 -bosses can only be spawned if the condition is that there are 0 enemies so that there can only be 1 boss at a time
+-Settings class; textmarshallable
 -Make a global bloom settings thing where the user can disable bloom for a certain layer (or all layers) across all LevelPacks they play
  if there's too much lag or something
--Multiple small shockwave effects 
 -Change sprite sheet meta files to use TextMarshallable
 	-Due to the user-unfriendliness of text-marshalled files, this should only be done if an image viewer can be implemented in the editor
 	 that can zoom in and make rectangles so that the user has full control of 
