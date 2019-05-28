@@ -199,7 +199,7 @@ public:
 	spawnType - spawn type of the child
 	Returns the child EMP
 	*/
-	std::shared_ptr<EditorMovablePoint> createChild(std::shared_ptr<EMPSpawnType> spawnType);
+	std::shared_ptr<EditorMovablePoint> createChild();
 	/*
 	Adds an existing EMP to the list of children.
 	*/

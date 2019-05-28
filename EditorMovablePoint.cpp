@@ -253,9 +253,8 @@ void EditorMovablePoint::removeChild(int id) {
 	children.erase(children.begin() + pos);
 }
 
-std::shared_ptr<EditorMovablePoint> EditorMovablePoint::createChild(std::shared_ptr<EMPSpawnType> spawnType) {
+std::shared_ptr<EditorMovablePoint> EditorMovablePoint::createChild() {
 	std::shared_ptr<EditorMovablePoint> child = std::make_shared<EditorMovablePoint>(nextID, true);
-	child->setSpawnType(spawnType);
 	addChild(child);
 	return child;
 }

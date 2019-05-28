@@ -79,10 +79,16 @@ void CollisionSystem::update(float deltaTime) {
 					continue;
 				}
 
+				// This is to prevent the player from taking multiple hits in the same frame
+				// We can break instead of continuing because if player hitbox is disabled, no other bullet can hit the player so just stop collision checking
+				if (playerHitbox.isDisabled()) {
+					break;
+				}
+
 				auto& bulletPosition = enemyBulletView.get<PositionComponent>(bullet);
 				auto& bulletHitbox = enemyBulletView.get<HitboxComponent>(bullet);
 				// Note: No DeathComponent::isMarkedForDeath() check here because player does not despawn on death
-				if (registry.get<EnemyBulletComponent>(bullet).isValidCollision(player) && collides(playerPosition, playerHitbox, bulletPosition, bulletHitbox)) {
+				if (registry.get<EnemyBulletComponent>(bullet).isValidCollision(player) && !bulletHitbox.isDisabled() && collides(playerPosition, playerHitbox, bulletPosition, bulletHitbox)) {
 					// Player takes damage
 					// Disable hitbox for invulnerability time
 					float invulnTime = registry.get<PlayerTag>().getInvulnerabilityTime();
@@ -108,27 +114,18 @@ void CollisionSystem::update(float deltaTime) {
 
 					// Handle OnCollisionAction
 					switch (registry.get<EnemyBulletComponent>(bullet).getOnCollisionAction()) {
-					case TURN_INTANGIBLE:
-						// Remove all components except for MovementPathComponent, PositionComponent, DespawnComponent, and SpriteComponent
-						if (registry.has<ShadowTrailComponent>(bullet)) {
-							registry.remove<ShadowTrailComponent>(bullet);
-						}
-						registry.remove<HitboxComponent>(bullet);
-						registry.remove<EnemyBulletComponent>(bullet);
-						if (registry.has<EMPSpawnerComponent>(bullet)) {
-							registry.remove<EMPSpawnerComponent>(bullet);
-						}
-						break;
 					case DESTROY_THIS_BULLET_AND_ATTACHED_CHILDREN:
 						registry.get<DespawnComponent>(bullet).setMaxTime(0);
 						break;
 					case DESTROY_THIS_BULLET_ONLY:
 						// Remove all components except for MovementPathComponent, PositionComponent, and DespawnComponent
+						// Hitbox is simply disabled indefinitely in case other stuff uses its hitbox
+						registry.get<HitboxComponent>(bullet).disable(9999999999);
+
 						if (registry.has<ShadowTrailComponent>(bullet)) {
 							registry.remove<ShadowTrailComponent>(bullet);
 						}
 						registry.remove<SpriteComponent>(bullet);
-						registry.remove<HitboxComponent>(bullet);
 						registry.remove<EnemyBulletComponent>(bullet);
 						if (registry.has<EMPSpawnerComponent>(bullet)) {
 							registry.remove<EMPSpawnerComponent>(bullet);
@@ -157,7 +154,7 @@ void CollisionSystem::update(float deltaTime) {
 
 				auto& bulletPosition = playerBulletView.get<PositionComponent>(bullet);
 				auto& bulletHitbox = playerBulletView.get<HitboxComponent>(bullet);
-				if (!registry.get<DespawnComponent>(entity).isMarkedForDespawn() && registry.get<PlayerBulletComponent>(bullet).isValidCollision(entity) && collides(position, hitbox, bulletPosition, bulletHitbox)) {
+				if (!registry.get<DespawnComponent>(entity).isMarkedForDespawn() && registry.get<PlayerBulletComponent>(bullet).isValidCollision(entity) && !bulletHitbox.isDisabled() && collides(position, hitbox, bulletPosition, bulletHitbox)) {
 					// Enemy takes damage
 					if (registry.has<HealthComponent>(entity) && registry.get<HealthComponent>(entity).takeDamage(registry.get<PlayerBulletComponent>(bullet).getDamage())) {
 						// Enemy is dead
@@ -189,27 +186,18 @@ void CollisionSystem::update(float deltaTime) {
 
 					// Handle OnCollisionAction
 					switch (registry.get<PlayerBulletComponent>(bullet).getOnCollisionAction()) {
-					case TURN_INTANGIBLE:
-						// Remove all components except for MovementPathComponent, PositionComponent, DespawnComponent, and SpriteComponent
-						if (registry.has<ShadowTrailComponent>(bullet)) {
-							registry.remove<ShadowTrailComponent>(bullet);
-						}
-						registry.remove<HitboxComponent>(bullet);
-						registry.remove<PlayerBulletComponent>(bullet);
-						if (registry.has<EMPSpawnerComponent>(bullet)) {
-							registry.remove<EMPSpawnerComponent>(bullet);
-						}
-						break;
 					case DESTROY_THIS_BULLET_AND_ATTACHED_CHILDREN:
 						registry.get<DespawnComponent>(bullet).setMaxTime(0);
 						break;
 					case DESTROY_THIS_BULLET_ONLY:
 						// Remove all components except for MovementPathComponent, PositionComponent, and DespawnComponent
+						// Hitbox is simply disabled indefinitely in case other stuff uses its hitbox
+						registry.get<HitboxComponent>(bullet).disable(9999999999);
+
 						if (registry.has<ShadowTrailComponent>(bullet)) {
 							registry.remove<ShadowTrailComponent>(bullet);
 						}
 						registry.remove<SpriteComponent>(bullet);
-						registry.remove<HitboxComponent>(bullet);
 						registry.remove<PlayerBulletComponent>(bullet);
 						if (registry.has<EMPSpawnerComponent>(bullet)) {
 							registry.remove<EMPSpawnerComponent>(bullet);

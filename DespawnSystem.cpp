@@ -26,7 +26,10 @@ void DespawnSystem::update(float deltaTime) {
 	for (uint32_t entity : deletionQueue) {
 		if (registry.valid(entity)) {
 			if (registry.has<DespawnComponent>(entity)) {
-				registry.get<DespawnComponent>(entity).onDespawn(entity);
+				auto& despawn = registry.get<DespawnComponent>(entity);
+				// Remove attachment in case its parent is supposed to despawn when all its children despawn
+				despawn.removeEntityAttachment(registry, entity);
+				despawn.onDespawn(entity);
 			}
 			registry.destroy(entity);
 		}

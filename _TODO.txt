@@ -39,6 +39,7 @@ Notes for me:
 -Player invulnerability sprite effect animation is in CollisionSystem
 
 TODO:
+-all editor windows have the same LevelPack open such that when some attack changes or something, all open windows are notified and refreshed
 -have some default attack patterns (https://www.youtube.com/watch?v=xbQ9e0zYuj4)
 -all default stuff (font, spritesheet, sounds, etc) are copied into every new level pack that is created so that no special code is needed to load
  from a default resource 

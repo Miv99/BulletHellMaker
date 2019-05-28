@@ -14,6 +14,8 @@
 #include "Constants.h"
 #include "Player.h"
 
+#include <iostream>
+
 GameInstance::GameInstance(std::string levelPackName) {
 	window = std::make_unique<sf::RenderWindow>(sf::VideoMode(1024, 768), "SFML works!");
 	window->setKeyRepeatEnabled(false);
@@ -202,6 +204,7 @@ void GameInstance::start() {
 			float dt = std::min(MAX_PHYSICS_DELTA_TIME, deltaClock.restart().asSeconds());
 			//std::cout << dt << std::endl;
 			//float dt = 1 / 120.0f;
+			std::cout << registry.alive() << std::endl;
 			physicsUpdate(dt);
 
 			timeSinceLastRender += dt;
@@ -227,6 +230,9 @@ void GameInstance::physicsUpdate(float deltaTime) {
 		registry.get<LevelManagerTag>().update(*queue, *spriteLoader, registry, deltaTime);
 		queue->executeAll();
 
+		despawnSystem->update(deltaTime);
+		queue->executeAll();
+
 		shadowTrailSystem->update(deltaTime);
 		queue->executeAll();
 
@@ -240,9 +246,6 @@ void GameInstance::physicsUpdate(float deltaTime) {
 		queue->executeAll();
 
 		enemySystem->update(deltaTime);
-		queue->executeAll();
-
-		despawnSystem->update(deltaTime);
 		queue->executeAll();
 	}
 }

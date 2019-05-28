@@ -290,13 +290,13 @@ void SpriteComponent::update(float deltaTime) {
 	}
 }
 
-EMPSpawnerComponent::EMPSpawnerComponent(std::vector<std::shared_ptr<EditorMovablePoint>> emps, uint32_t parent, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation) : parent(parent), attackID(attackID), attackPatternID(attackPatternID), enemyID(enemyID), enemyPhaseID(enemyPhaseID), playAttackAnimation(playAttackAnimation) {
+EMPSpawnerComponent::EMPSpawnerComponent(std::vector<std::shared_ptr<EditorMovablePoint>> emps, uint32_t parent, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation) : parent(parent), attackID(attackID), attackPatternID(attackPatternID), enemyID(enemyID), enemyPhaseID(enemyPhaseID), playAttackAnimation(playAttackAnimation), isEnemyBulletSpawner(true) {
 	for (auto emp : emps) {
 		this->emps.push(emp);
 	}
 }
 
-EMPSpawnerComponent::EMPSpawnerComponent(std::vector<std::shared_ptr<EditorMovablePoint>> emps, uint32_t parent, int attackID, int attackPatternID, bool playAttackAnimation) : parent(parent), attackID(attackID), attackPatternID(attackPatternID), playAttackAnimation(playAttackAnimation) {
+EMPSpawnerComponent::EMPSpawnerComponent(std::vector<std::shared_ptr<EditorMovablePoint>> emps, uint32_t parent, int attackID, int attackPatternID, bool playAttackAnimation) : parent(parent), attackID(attackID), attackPatternID(attackPatternID), playAttackAnimation(playAttackAnimation), isEnemyBulletSpawner(false) {
 	for (auto emp : emps) {
 		this->emps.push(emp);
 	}
@@ -309,7 +309,7 @@ void EMPSpawnerComponent::update(entt::DefaultRegistry& registry, SpriteLoader& 
 		while (!emps.empty()) {
 			float t = emps.front()->getSpawnType()->getTime();
 			if (time >= t) {
-				queue.pushBack(std::make_unique<EMPSpawnFromEnemyCommand>(registry, spriteLoader, emps.front(), parent, time - t, attackID, attackPatternID, enemyID, enemyPhaseID, playAttackAnimation));
+				queue.pushBack(std::make_unique<EMPSpawnFromEnemyCommand>(registry, spriteLoader, emps.front(), false, parent, time - t, attackID, attackPatternID, enemyID, enemyPhaseID, playAttackAnimation));
 				emps.pop();
 			} else {
 				break;
@@ -319,7 +319,7 @@ void EMPSpawnerComponent::update(entt::DefaultRegistry& registry, SpriteLoader& 
 		while (!emps.empty()) {
 			float t = emps.front()->getSpawnType()->getTime();
 			if (time >= t) {
-				queue.pushBack(std::make_unique<EMPSpawnFromPlayerCommand>(registry, spriteLoader, emps.front(), parent, time - t, attackID, attackPatternID, playAttackAnimation));
+				queue.pushBack(std::make_unique<EMPSpawnFromPlayerCommand>(registry, spriteLoader, emps.front(), false, parent, time - t, attackID, attackPatternID, playAttackAnimation));
 				emps.pop();
 			} else {
 				break;

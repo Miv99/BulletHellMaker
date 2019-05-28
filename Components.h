@@ -493,7 +493,7 @@ public:
 	*/
 	inline DespawnComponent(float maxTime) : maxTime(maxTime), useTime(true) {}
 	/*
-	entity - the entity that, when it despawns, the entity with this component will despawn. This entity must have a DespawnComponent.
+	entity - the entity that, when it despawns, the entity with this component will despawn. entity must have a DespawnComponent.
 	self - the entity with this DespawnComponent
 	*/
 	inline DespawnComponent(entt::DefaultRegistry& registry, uint32_t entity, uint32_t self) : attachedTo(entity), attachedToEntity(true), useTime(false) {
@@ -503,22 +503,26 @@ public:
 
 	// Returns true if entity with this component should be despawned
 	inline bool update(const entt::DefaultRegistry& registry, float deltaTime) {
-		bool despawn = false;
-		if (attachedToEntity) {
-			if (!registry.valid(attachedTo)) despawn = true;
+		if (despawnWhenNoChildren && children.size() == 0) {
+			return true;
+		}
+		if (attachedToEntity && !registry.valid(attachedTo)) {
+			return true;
 		}
 		if (useTime) {
 			time += deltaTime;
-			if (time >= maxTime) despawn = true;
+			if (time >= maxTime) {
+				return true;
+			}
 		}
-		return despawn;
+		return false;
 	}
 
 	inline void removeEntityAttachment(entt::DefaultRegistry& registry, uint32_t self) {
-		if (attachedToEntity) {
+		if (attachedToEntity && registry.valid(attachedTo)) {
 			registry.get<DespawnComponent>(attachedTo).removeChild(self);
-			attachedToEntity = false;
 		}
+		attachedToEntity = false;
 	}
 	
 	inline void addChild(uint32_t child) { children.push_back(child); }
@@ -533,6 +537,7 @@ public:
 			markedForDespawn = false;
 		}
 	}
+	inline void setDespawnWhenNoChildren() { despawnWhenNoChildren = true; }
 
 	/*
 	Returns true if this entity will be despawned in the next update call.
@@ -562,6 +567,9 @@ private:
 
 	bool attachedToEntity = false;
 	uint32_t attachedTo;
+
+	// If this is true, when list of children is empty, the entity with this component will despawn
+	bool despawnWhenNoChildren = false;
 
 	// Entities that are attached to the entity with this DespawnComponent
 	// When this entity is deleted, so are all its children

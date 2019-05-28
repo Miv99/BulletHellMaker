@@ -30,8 +30,11 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	auto attack1emp0 = attack1->searchEMP(0);
 	attack1emp0->setBulletModel(model1);
 	attack1emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
+	attack1emp0->setOnCollisionAction(PIERCE_ENTITY);
+	attack1emp0->setPierceResetTime(999999);
 
-	auto attack1emp1 = attack1emp0->createChild(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
+	auto attack1emp1 = attack1emp0->createChild();
+	attack1emp1->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
 	attack1emp1->setAnimatable(Animatable("Bullet2", "sheet1", true, LOCK_ROTATION));
 	attack1emp1->setHitboxRadius(30);
 	attack1emp1->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 200, 10), std::make_shared<ConstantTFV>(4.7f), 10));
@@ -65,11 +68,11 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 
 	bool alt = false;
 	for (float time = 0; time < 5; time += 1.0f) {
-		ap1->addAttackID(time, attack2->getID());
+		//ap1->addAttackID(time, attack2->getID());
 		if (alt) {
-			//ap1->addAttackID(time, attack1->getID());
+			ap1->addAttackID(time, attack1->getID());
 		} else {
-			//ap1->addAttackID(time, attack2->getID());
+			ap1->addAttackID(time, attack2->getID());
 		}
 		alt = !alt;
 	}
@@ -142,11 +145,12 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	auto playerFocusedAP = createAttackPattern();
 	auto playerAttack2 = createAttack();
 	auto p2emp0 = playerAttack2->searchEMP(0);
-	p2emp0->setAnimatable(Animatable("Megaman stepping", "sheet1", true, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT));
-	p2emp0->setHitboxRadius(30);
-	p2emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
-	p2emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 1.1f), std::make_shared<ConstantTFV>(PI / 2.0f), 1.1f));
-	playerFocusedAP->addAttackID(1.0f, playerAttack2->getID());
+	auto p2emp1 = p2emp0->createChild();
+	p2emp1->setAnimatable(Animatable("Megaman stepping", "sheet1", true, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT));
+	p2emp1->setHitboxRadius(30);
+	p2emp1->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
+	p2emp1->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 1.1f), std::make_shared<ConstantTFV>(PI / 2.0f), 1.1f));
+	playerFocusedAP->addAttackID(1.0f, attack1->getID());
 
 	auto bombAP = createAttackPattern();
 	for (int i = 0; i < 10; i++) {

@@ -56,11 +56,11 @@ void EditorAttack::loadEMPBulletModels(const LevelPack & levelPack) {
 }
 
 void EditorAttack::executeAsEnemy(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, uint32_t entity, float timeLag, int attackPatternID, int enemyID, int enemyPhaseID) {
-	queue.pushBack(std::make_unique<EMPSpawnFromEnemyCommand>(registry, spriteLoader, mainEMP, entity, timeLag, id, attackPatternID, enemyID, enemyPhaseID, playAttackAnimation));
+	queue.pushBack(std::make_unique<EMPSpawnFromEnemyCommand>(registry, spriteLoader, mainEMP, true, entity, timeLag, id, attackPatternID, enemyID, enemyPhaseID, playAttackAnimation));
 }
 
 void EditorAttack::executeAsPlayer(EntityCreationQueue & queue, SpriteLoader & spriteLoader, entt::DefaultRegistry & registry, uint32_t entity, float timeLag, int attackPatternID) {
-	queue.pushBack(std::make_unique<EMPSpawnFromPlayerCommand>(registry, spriteLoader, mainEMP, entity, timeLag, id, attackPatternID, playAttackAnimation));
+	queue.pushBack(std::make_unique<EMPSpawnFromPlayerCommand>(registry, spriteLoader, mainEMP, true, entity, timeLag, id, attackPatternID, playAttackAnimation));
 }
 
 float EditorAttack::searchLargestHitbox() const {

@@ -13,8 +13,8 @@
 #include "LevelPack.h"
 #include <random>
 
-EMPSpawnFromEnemyCommand::EMPSpawnFromEnemyCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, uint32_t entity, float timeLag, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation) :
-	EntityCreationCommand(registry), spriteLoader(spriteLoader), emp(emp), playAttackAnimation(playAttackAnimation),
+EMPSpawnFromEnemyCommand::EMPSpawnFromEnemyCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, bool isMainEMP, uint32_t entity, float timeLag, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation) :
+	EntityCreationCommand(registry), spriteLoader(spriteLoader), emp(emp), isMainEMP(isMainEMP), playAttackAnimation(playAttackAnimation),
 	entity(entity), timeLag(timeLag), attackID(attackID), attackPatternID(attackPatternID), enemyID(enemyID), enemyPhaseID(enemyPhaseID) {
 }
 
@@ -38,13 +38,18 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 	// Spawn at 0, 0 because creation of the MovementPathComponent will just update the position anyway
 	registry.assign<PositionComponent>(bullet, 0, 0);
 
-	registry.assign<MovementPathComponent>(bullet, queue, bullet, registry, entity, emp->getSpawnType(), emp->getActions(), timeLag);
+	auto& despawn = registry.get<DespawnComponent>(bullet);
+	if (isMainEMP && emp->getHitboxRadius() < 0) {
+		// The main EMP of an attack, if the EMP is not a bullet, despawns when all its children despawn
 
-	// Add max time to DespawnComponent
-	if (emp->getDespawnTime() > 0) {
-		registry.get<DespawnComponent>(bullet).setMaxTime(std::min(emp->getTotalPathTime(), emp->getDespawnTime()));
+		despawn.setDespawnWhenNoChildren();
 	} else {
-		registry.get<DespawnComponent>(bullet).setMaxTime(emp->getTotalPathTime());
+		// Add max time to DespawnComponent despawn conditions
+		if (emp->getDespawnTime() > 0) {
+			despawn.setMaxTime(std::min(emp->getTotalPathTime(), emp->getDespawnTime()));
+		} else {
+			despawn.setMaxTime(emp->getTotalPathTime());
+		}
 	}
 
 	// If hitbox radius > 0, this EMP is a bullet
@@ -64,6 +69,8 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 
 		registry.assign<EnemyBulletComponent>(bullet, attackID, attackPatternID, enemyID, enemyPhaseID, emp->getDamage(), emp->getOnCollisionAction(), emp->getPierceResetTime());
 	}
+
+	registry.assign<MovementPathComponent>(bullet, queue, bullet, registry, entity, emp->getSpawnType(), emp->getActions(), timeLag);
 
 	if (emp->getShadowTrailLifespan() > 0) {
 		registry.assign<ShadowTrailComponent>(bullet, emp->getShadowTrailInterval(), emp->getShadowTrailLifespan());
@@ -89,8 +96,8 @@ int EMPSpawnFromEnemyCommand::getEntitiesQueuedCount() {
 	return emp->getTreeSize();
 }
 
-EMPSpawnFromPlayerCommand::EMPSpawnFromPlayerCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, uint32_t entity, float timeLag, int attackID, int attackPatternID, bool playAttackAnimation) :
-	EntityCreationCommand(registry), spriteLoader(spriteLoader), emp(emp), playAttackAnimation(playAttackAnimation),
+EMPSpawnFromPlayerCommand::EMPSpawnFromPlayerCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, bool isMainEMP, uint32_t entity, float timeLag, int attackID, int attackPatternID, bool playAttackAnimation) :
+	EntityCreationCommand(registry), spriteLoader(spriteLoader), emp(emp), isMainEMP(isMainEMP), playAttackAnimation(playAttackAnimation),
 	entity(entity), timeLag(timeLag), attackID(attackID), attackPatternID(attackPatternID) {
 }
 
@@ -114,13 +121,18 @@ void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
 	// Spawn at 0, 0 because creation of the MovementPathComponent will just update the position anyway
 	registry.assign<PositionComponent>(bullet, 0, 0);
 
-	registry.assign<MovementPathComponent>(bullet, queue, bullet, registry, entity, emp->getSpawnType(), emp->getActions(), timeLag);
+	auto& despawn = registry.get<DespawnComponent>(bullet);
+	if (isMainEMP && emp->getHitboxRadius() < 0) {
+		// The main EMP of an attack, if the EMP is not a bullet, despawns when all its children despawn
 
-	// Add max time to DespawnComponent
-	if (emp->getDespawnTime() > 0) {
-		registry.get<DespawnComponent>(bullet).setMaxTime(std::min(emp->getTotalPathTime(), emp->getDespawnTime()));
+		despawn.setDespawnWhenNoChildren();
 	} else {
-		registry.get<DespawnComponent>(bullet).setMaxTime(emp->getTotalPathTime());
+		// Add max time to DespawnComponent despawn conditions
+		if (emp->getDespawnTime() > 0) {
+			despawn.setMaxTime(std::min(emp->getTotalPathTime(), emp->getDespawnTime()));
+		} else {
+			despawn.setMaxTime(emp->getTotalPathTime());
+		}
 	}
 
 	// If hitbox radius > 0, this EMP is a bullet
@@ -140,6 +152,8 @@ void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
 
 		registry.assign<PlayerBulletComponent>(bullet, attackID, attackPatternID, emp->getDamage(), emp->getOnCollisionAction(), emp->getPierceResetTime());
 	}
+
+	registry.assign<MovementPathComponent>(bullet, queue, bullet, registry, entity, emp->getSpawnType(), emp->getActions(), timeLag);
 
 	if (emp->getShadowTrailLifespan() > 0) {
 		registry.assign<ShadowTrailComponent>(bullet, emp->getShadowTrailInterval(), emp->getShadowTrailLifespan());

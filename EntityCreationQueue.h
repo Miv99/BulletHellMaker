@@ -130,14 +130,15 @@ Command for creating the entity/entities associated with an attack by an enemy.
 class EMPSpawnFromEnemyCommand : public EntityCreationCommand {
 public:
 	/*
-	emp - the root of the EMP tree of the attack (see EditorAttack's mainEMP)
+	emp - the EMP whose data will be used for the bullet
+	isMainEMP - whether emp is the mainEMP of its EditorAttack
 	entity - the enemy executing the attack
 	timeLag - time when attack should have occurred minus time when the attack actually occurred
 	attackPatternID - ID of enemy attack pattern that this attack came from
 	enemyPhaseID - ID of enemy phase at the time of attack execution
 	playAttackAnimation - whether the attack executor should play its attack animation
 	*/
-	EMPSpawnFromEnemyCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, uint32_t entity, float timeLag, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation);
+	EMPSpawnFromEnemyCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, bool isMainEMP, uint32_t entity, float timeLag, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation);
 
 	void execute(EntityCreationQueue& queue) override;
 	int getEntitiesQueuedCount() override;
@@ -145,6 +146,7 @@ public:
 private:
 	SpriteLoader& spriteLoader;
 	std::shared_ptr<EditorMovablePoint> emp;
+	bool isMainEMP;
 	// The enemy executing the attack
 	uint32_t entity;
 	float timeLag;
@@ -161,13 +163,14 @@ Command for creating the entity/entities associated with an attack by a player.
 class EMPSpawnFromPlayerCommand : public EntityCreationCommand {
 public:
 	/*
-	emp - the root of the EMP tree of the attack (see EditorAttack's mainEMP)
+	emp - the EMP whose data will be used for the bullet
+	isMainEMP - whether emp is the mainEMP of its EditorAttack
 	entity - the player executing the attack
 	timeLag - time when attack should have occurred minus time when the attack actually occurred
 	attackPatternID - ID of enemy attack pattern that this attack came from
 	playAttackAnimation - whether the attack executor should play its attack animation
 	*/
-	EMPSpawnFromPlayerCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, uint32_t entity, float timeLag, int attackID, int attackPatternID, bool playAttackAnimation);
+	EMPSpawnFromPlayerCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, bool isMainMP, uint32_t entity, float timeLag, int attackID, int attackPatternID, bool playAttackAnimation);
 
 	void execute(EntityCreationQueue& queue) override;
 	int getEntitiesQueuedCount() override;
@@ -175,6 +178,7 @@ public:
 private:
 	SpriteLoader& spriteLoader;
 	std::shared_ptr<EditorMovablePoint> emp;
+	bool isMainEMP;
 	// The player executing the attack
 	uint32_t entity;
 	float timeLag;
