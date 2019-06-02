@@ -54,11 +54,17 @@ public:
 
 	background - the background of the map
 	*/
-	RenderSystem(entt::DefaultRegistry& registry, sf::RenderWindow& window);
+	RenderSystem(entt::DefaultRegistry& registry, sf::RenderWindow& window, float playAreaWidth, float playAreaHeight);
 	void update(float deltaTime);
 
 	void loadLevelRenderSettings(std::shared_ptr<Level> level);
 
+	/*
+	Sets the resolution of the game.
+	This doesn't change the size of the window. It only affects the gameplay quality.
+	Resolutions that are too small won't work. 1600x900, 1024x768, and anything higher will work.
+	*/
+	void setResolution(int newPlayAreaWidth, int newPlayAreaHeight);
 	void setBackground(sf::Texture background);
 	inline void setBackgroundScrollSpeedX(float backgroundScrollSpeedX) { this->backgroundScrollSpeedX = backgroundScrollSpeedX; }
 	inline void setBackgroundScrollSpeedY(float backgroundScrollSpeedY) { this->backgroundScrollSpeedY = backgroundScrollSpeedY; }

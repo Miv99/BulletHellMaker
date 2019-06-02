@@ -14,12 +14,14 @@
 // testing
 #include "TGUI/TGUI.hpp"
 #include "TextMarshallable.h"
+#include "EditorInstance.h"
 
 int main() {
 	// testing
 	GameInstance game("test pack");
 	game.loadLevel(0);
 	game.start();
+	//EditorInstance a;
 
 	std::system("pause");
 	return 0;

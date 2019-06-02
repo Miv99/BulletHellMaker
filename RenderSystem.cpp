@@ -4,7 +4,7 @@
 #include <cmath>
 #include "Level.h"
 
-RenderSystem::RenderSystem(entt::DefaultRegistry & registry, sf::RenderWindow & window) : registry(registry), window(window) {
+RenderSystem::RenderSystem(entt::DefaultRegistry & registry, sf::RenderWindow & window, float playAreaWidth, float playAreaHeight) : registry(registry), window(window) {
 	// Initialize layers to be size of the max layer
 	layers = std::vector<std::pair<int, std::vector<std::reference_wrapper<SpriteComponent>>>>(HIGHEST_RENDER_LAYER + 1);
 	layers[SHADOW_LAYER] = std::make_pair(SHADOW_LAYER, std::vector<std::reference_wrapper<SpriteComponent>>());
@@ -15,25 +15,7 @@ RenderSystem::RenderSystem(entt::DefaultRegistry & registry, sf::RenderWindow & 
 	layers[ITEM_LAYER] = std::make_pair(ITEM_LAYER, std::vector<std::reference_wrapper<SpriteComponent>>());
 	layers[ENEMY_BULLET_LAYER] = std::make_pair(ENEMY_BULLET_LAYER, std::vector<std::reference_wrapper<SpriteComponent>>());
 
-	// Initialize layer textures
-	for (int i = 0; i < HIGHEST_RENDER_LAYER + 1; i++) {
-		sf::View view = window.getView();
-		layerTextures[i].create(view.getSize().x - (MAP_HEIGHT - MAP_WIDTH), view.getSize().y);
-		view.setSize(MAP_WIDTH, MAP_HEIGHT);
-		view.setCenter(view.getSize().x / 2.0f, -view.getSize().y / 2.0f);
-		layerTextures[i].setView(view);
-	}
-	sf::View view = window.getView();
-	tempLayerTexture.create(view.getSize().x - (MAP_HEIGHT - MAP_WIDTH), view.getSize().y);
-	view.setSize(MAP_WIDTH, MAP_HEIGHT);
-	view.setCenter(view.getSize().x / 2.0f, -view.getSize().y / 2.0f);
-	tempLayerTexture.setView(view);
-	tempLayerTexture2.create(view.getSize().x - (MAP_HEIGHT - MAP_WIDTH), view.getSize().y);
-	tempLayerTexture2.setView(view);
-
-	// Calculate sprite scaling
-	spriteHorizontalScale = view.getSize().x / tempLayerTexture.getSize().x;
-	spriteVerticalScale = view.getSize().y / tempLayerTexture.getSize().y;
+	setResolution(playAreaWidth, playAreaHeight);
 
 	// Initialize global shaders
 
@@ -444,6 +426,30 @@ void RenderSystem::update(float deltaTime) {
 				window.draw(textureAsSprite, states);
 			}
 		}
+	}
+}
+
+void RenderSystem::setResolution(int newPlayAreaWidth, int newPlayAreaHeight) {
+	sf::View view(sf::FloatRect(0, -newPlayAreaHeight, newPlayAreaWidth, newPlayAreaHeight));
+	for (int i = 0; i < HIGHEST_RENDER_LAYER + 1; i++) {
+		layerTextures[i].create(newPlayAreaWidth, newPlayAreaHeight);
+		layerTextures[i].setView(view);
+	}
+	tempLayerTexture.create(newPlayAreaWidth, newPlayAreaHeight);
+	tempLayerTexture.setView(view);
+	tempLayerTexture2.create(newPlayAreaWidth, newPlayAreaHeight);		
+	tempLayerTexture2.setView(view);
+
+	spriteHorizontalScale = view.getSize().x / tempLayerTexture.getSize().x;
+	spriteVerticalScale = view.getSize().y / tempLayerTexture.getSize().y;
+
+	for (auto& it = globalShaders.begin(); it != globalShaders.end(); it++) {
+		for (auto& shader : it->second) {
+			shader->setUniform("resolution", sf::Vector2f(newPlayAreaWidth, newPlayAreaHeight));
+		}
+	}
+	for (auto& shader : bloomBlurShaders) {
+		shader->setUniform("resolution", sf::Vector2f(newPlayAreaWidth, newPlayAreaHeight));
 	}
 }
 

@@ -49,6 +49,8 @@ public:
 	void resume();
 
 private:
+	void updateWindowView(int windowWidth, int windowHeight);
+
 	void physicsUpdate(float deltaTime);
 	void render(float deltaTime);
 
@@ -82,12 +84,24 @@ private:
 
 	float guiRegionWidth;
 	float guiRegionHeight;
+	// screen x-coordinate of the leftmost part of the play area
+	// playAreaYLow and playAreaYHigh are unnecessary since GUI is always aligned
+	// vertically with the play area, so playAreaY____ == guiRegionY____
+	float playAreaX;
+	float playAreaWidth;
+	float playAreaHeight;
+	// The screen x-coordinate of the leftmost section of the GUI
 	float guiRegionX;
-	float guiPaddingX;
-	float guiPaddingY;
+	// The upper/lower y-axis bounds of the GUI region
+	float guiRegionYLow, guiRegionYHigh;
+	const float guiPaddingX = 20;
+	const float guiPaddingY = 10;
 
 	float windowHeight;
 	std::shared_ptr<tgui::Gui> gui;
+
+	// levelNameLabel is also used to locate the right border of the play area (same as left border of the gui region)
+	// It is always guiPaddingX to the right of the right border of the play area
 	std::shared_ptr<tgui::Label> levelNameLabel;
 	std::shared_ptr<tgui::Label> scoreLabel;
 	std::shared_ptr<tgui::Label> powerLabel;
@@ -98,6 +112,7 @@ private:
 	// For discrete player HP bar
 	// Player HP picture is a square
 	float playerHPPictureSize;
+	const float playerHPPictureSizeMax = 30;
 	// Player HP picture objects; one for each health the player can have, up to player's max health amount
 	std::vector<std::shared_ptr<tgui::Picture>> playerHPPictures;
 	// Current number of player HP pictures in the grid
@@ -108,18 +123,22 @@ private:
 	const float playerHPGridPadding = 1.2f;
 	// Label for player HP
 	std::shared_ptr<tgui::Label> playerHPLabel;
-	// Label for discrete player HP when >= 10
+	// Label for discrete player HP when >= playerHPPictureDisplayMax
 	std::shared_ptr<tgui::Label> playerDiscreteHPCountLabel;
+	// Maximum number of pictures before playerDiscreteHPCountLabel starts saying "x10" or something
+	int playerHPPictureDisplayMax;
 
 	// Same as discrete player HP bar, but for bombs
 	float bombPictureSize;
+	const float bombPictureSizeMax = playerHPPictureSizeMax;
 	std::vector<std::shared_ptr<tgui::Picture>> bombPictures;
 	int bombPicturesInGrid = 0;
 	std::shared_ptr<tgui::Grid> bombPictureGrid;
 	const float bombGridPadding = playerHPGridPadding;
 	std::shared_ptr<tgui::Label> bombLabel;
-	// Label for when bombs >= 10
+	// Label for when bombs >= bombPictureDisplayMax
 	std::shared_ptr<tgui::Label> bombCountLabel;
+	int bombPictureDisplayMax;
 
 	// Boss stuff
 	// Displays boss name

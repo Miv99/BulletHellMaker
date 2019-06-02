@@ -16,26 +16,159 @@
 
 #include <iostream>
 
+void GameInstance::updateWindowView(int windowWidth, int windowHeight) {
+	sf::View view = window->getView();
+
+	// Compares the aspect ratio of the window to the aspect ratio of the view,
+	// and sets the view's viewport accordingly in order to archieve a letterbox effect.
+	// A new view (with a new viewport set) is returned.
+	float windowRatio = windowWidth / (float)windowHeight;
+	float playAreaViewRatio = view.getSize().x / (float)view.getSize().y;
+	// size of play area + gui region
+	float playAreaSizeX = 1;
+	float playAreaSizeY = 1;
+	float guiAreaSizeX = 1;
+	float posX = 0;
+	float posY = 0;
+
+	bool horizontalSpacing = true;
+	if (windowRatio < playAreaViewRatio)
+		horizontalSpacing = false;
+
+	// If horizontalSpacing is true, the black bars will appear on the left and right side.
+	// Otherwise, the black bars will appear on the top and bottom.
+	if (horizontalSpacing) {
+		playAreaSizeX = playAreaViewRatio / windowRatio;
+		guiAreaSizeX = std::max(playAreaSizeX * 0.5f, (float)scoreLabel->getSize().x/windowWidth);
+		posX = (1 - playAreaSizeX - guiAreaSizeX) / 2.f;
+	} else {
+		playAreaSizeY = windowRatio / playAreaViewRatio;
+		posY = (1 - playAreaSizeY) / 2.f;
+	}
+
+	view.setViewport(sf::FloatRect(posX, posY, playAreaSizeX, playAreaSizeY));
+	// Make sure nothing in the gui autoscales
+	gui->setView(sf::View(sf::Vector2f(windowWidth/2.0f, windowHeight/2.0f), sf::Vector2f(windowWidth, windowHeight)));
+
+	// Recalculate widths/positions of gui elements
+	//TODO: redo this entire part; what do sizeX and sizeY really represent????
+	guiRegionX = (playAreaSizeX + posX) * windowWidth;
+	guiRegionYLow = posY * windowHeight;
+	guiRegionYHigh = (playAreaSizeY + posY) * windowHeight;
+	guiRegionWidth = guiAreaSizeX * windowWidth;
+	guiRegionHeight = guiRegionYHigh - guiRegionYLow;
+	playAreaX = posX * windowWidth;
+	playAreaWidth = playAreaSizeX * windowWidth;
+	playAreaHeight = playAreaSizeY * windowHeight;
+	// Since everything in the gui is bound to levelNameLabel's x position, only levelNameLabel's position needs to be updated 
+	levelNameLabel->setPosition({ guiRegionX + guiPaddingX, guiPaddingY });
+
+	levelNameLabel->setMaximumTextWidth(guiRegionWidth - guiPaddingX * 2.0f);
+
+	bombPictureSize = std::min(bombPictureSizeMax, (guiRegionWidth - guiPaddingX * 2) / levelPack->getPlayer().getMaxBombs());
+	bombPictureDisplayMax = (int)guiRegionWidth / bombPictureSize;
+	for (int i = 0; i < bombPictures.size(); i++) {
+		bombPictures[i]->setSize(bombPictureSize, bombPictureSize);
+	}
+	if (registry.valid(registry.attachee<PlayerTag>())) {
+		onPlayerBombCountChange(registry.get<PlayerTag>().getBombCount());
+	}
+
+	bombPictureGrid->setPosition({ tgui::bindLeft(levelNameLabel), guiRegionHeight - bombPictureSize - guiPaddingY });
+
+	if (playerHPProgressBar) {
+		playerHPProgressBar->setSize(guiRegionWidth - guiPaddingX * 2.0f, 22);
+	} else {
+		playerHPPictureSize = std::min(playerHPPictureSizeMax, (guiRegionWidth - guiPaddingX * 2) / levelPack->getPlayer().getMaxHealth());
+		playerHPPictureDisplayMax = (int)guiRegionWidth / playerHPPictureSize;
+		for (int i = 0; i < playerHPPictures.size(); i++) {
+			playerHPPictures[i]->setSize(playerHPPictureSize, playerHPPictureSize);
+		}
+		playerHPPictureGrid->setPosition({ tgui::bindLeft(bombPictureGrid), tgui::bindTop(bombLabel) - guiPaddingY - playerHPPictureSize });
+		if (registry.valid(registry.attachee<PlayerTag>())) {
+			onPlayerHPChange(registry.get<HealthComponent>(registry.attachee<PlayerTag>()).getHealth(), registry.get<HealthComponent>(registry.attachee<PlayerTag>()).getMaxHealth());
+		}
+	}
+
+	bossLabel->setPosition(playAreaX, guiRegionYLow);
+
+	bossPhaseHealthBar->setSize(playAreaWidth, bossPhaseHealthBarHeight);
+	bossPhaseHealthBar->setPosition(playAreaX, guiRegionYLow);
+
+	if (bossPhaseTimeLeft->isVisible() && registry.valid(registry.attachee<PlayerTag>())) {
+		uint32_t player = registry.attachee<PlayerTag>();
+		auto& playerHitbox = registry.get<HitboxComponent>(player);
+		auto& pos = registry.get<PositionComponent>(player);
+		if (pos.getX() + playerHitbox.getX() - playerHitbox.getRadius() < MAP_WIDTH / 2.0f) {
+			bossPhaseTimeLeft->setHorizontalAlignment(tgui::Label::HorizontalAlignment::Right);
+			bossPhaseTimeLeft->setPosition(guiRegionX - bossPhaseTimeLeft->getSize().x, guiRegionYHigh - bossPhaseTimeLeft->getSize().y);
+		} else {
+			bossPhaseTimeLeft->setHorizontalAlignment(tgui::Label::HorizontalAlignment::Left);
+			bossPhaseTimeLeft->setPosition(playAreaX, guiRegionYHigh - bossPhaseTimeLeft->getSize().y);
+		}
+	}
+
+	window->setView(view);
+}
+
 GameInstance::GameInstance(std::string levelPackName) {
-	window = std::make_unique<sf::RenderWindow>(sf::VideoMode(1024, 768), "SFML works!");
+	audioPlayer = std::make_unique<AudioPlayer>();
+	levelPack = std::make_unique<LevelPack>(*audioPlayer, levelPackName);
+
+	window = std::make_unique<sf::RenderWindow>(sf::VideoMode(1600, 900), "Bullet Hell Maker");
 	window->setKeyRepeatEnabled(false);
 
 	// Centered at negative y because SFML has (0, 0) at the top-left, and RenderSystem negates y-values so that (0, 0) in every other aspect of this game is bottom-left.
-	sf::View view(sf::Vector2f(MAP_WIDTH/2.0f, -MAP_HEIGHT/2.0f), sf::Vector2f(MAP_WIDTH, MAP_HEIGHT));
+	sf::View view(sf::FloatRect(0, -MAP_HEIGHT, MAP_WIDTH, MAP_HEIGHT));
 	window->setView(view);
+
+	// Create these first because updateWindowView uses them
+	gui = std::make_shared<tgui::Gui>(*window);
+	levelNameLabel = tgui::Label::create();
+	bossPhaseTimeLeft = tgui::Label::create();
+	bossPhaseHealthBar = tgui::ProgressBar::create();
+	bombPictureGrid = tgui::Grid::create();
+	bombLabel = tgui::Label::create();
+	bossLabel = tgui::Label::create();
+	sf::Texture bombTexture;
+	if (!bombTexture.loadFromFile("Level Packs\\" + levelPack->getName() + "\\" + levelPack->getPlayer().getBombSprite().getAnimatableName())) {
+		//TODO: error handling
+	}
+	for (int i = 0; i < levelPack->getPlayer().getMaxBombs(); i++) {
+		auto bombPicture = tgui::Picture::create(bombTexture);
+		bombPicture->setSize(bombPictureSize, bombPictureSize);
+		bombPictures.push_back(bombPicture);
+	}
+	if (!smoothPlayerHPBar) {
+		playerHPPictureGrid = tgui::Grid::create();
+
+		sf::Texture playerHPTexture;
+		if (!playerHPTexture.loadFromFile("Level Packs\\" + levelPack->getName() + "\\" + levelPack->getPlayer().getDiscretePlayerHPSprite().getAnimatableName())) {
+			//TODO: error handling
+		}
+
+		for (int i = 0; i < levelPack->getPlayer().getMaxHealth(); i++) {
+			auto playerHPPicture = tgui::Picture::create(playerHPTexture);
+			playerHPPicture->setSize(playerHPPictureSize, playerHPPictureSize);
+			playerHPPictures.push_back(playerHPPicture);
+		}
+	}
+	scoreLabel = tgui::Label::create();
+	scoreLabel->setTextSize(24);
+	scoreLabel->setMaximumTextWidth(0);
+	scoreLabel->setText((boost::format("Score\n%010d") % 0).str());
+
+	updateWindowView(window->getSize().x, window->getSize().y);
 
 	windowHeight = window->getSize().y;
 
-	audioPlayer = std::make_unique<AudioPlayer>();
-
-	levelPack = std::make_unique<LevelPack>(*audioPlayer, levelPackName);
 	queue = std::make_unique<EntityCreationQueue>(registry);
 
 	spriteLoader = levelPack->createSpriteLoader();
 	spriteLoader->preloadTextures();
 
 	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
-	renderSystem = std::make_unique<RenderSystem>(registry, *window);
+	renderSystem = std::make_unique<RenderSystem>(registry, *window, 1024, 768);
 	collisionSystem = std::make_unique<CollisionSystem>(*levelPack, *queue, *spriteLoader, registry, MAP_WIDTH, MAP_HEIGHT);
 	despawnSystem = std::make_unique<DespawnSystem>(registry);
 	enemySystem = std::make_unique<EnemySystem>(*queue, *spriteLoader, *levelPack, registry);
@@ -45,20 +178,13 @@ GameInstance::GameInstance(std::string levelPackName) {
 	collectibleSystem = std::make_unique<CollectibleSystem>(*queue, registry, *levelPack, MAP_WIDTH, MAP_HEIGHT);
 
 	// GUI stuff
+
 	// Note: "GUI region" refers to the right side of the window that doesn't contain the stuff from RenderSystem
 	smoothPlayerHPBar = levelPack->getPlayer().getSmoothPlayerHPBar();
 
-	gui = std::make_shared<tgui::Gui>(*window);
 	gui->setFont(tgui::Font("Level Packs\\" + levelPack->getName() + "\\" + levelPack->getFontFileName()));
-	guiRegionWidth = window->getSize().x * (MAP_HEIGHT - MAP_WIDTH) / view.getSize().x;
-	guiRegionHeight = window->getSize().y;
-	// x-coord of left side of GUI region
-	guiRegionX = window->getSize().x - guiRegionWidth;
-	guiPaddingX = guiRegionWidth * 0.05f;
-	guiPaddingY = guiRegionHeight * 0.03f;
 
 	// Level name label
-	levelNameLabel = tgui::Label::create();
 	levelNameLabel->setTextSize(26);
 	levelNameLabel->setAutoSize(true);
 	levelNameLabel->setMaximumTextWidth(guiRegionWidth - guiPaddingX * 2.0f);
@@ -66,9 +192,6 @@ GameInstance::GameInstance(std::string levelPackName) {
 	gui->add(levelNameLabel);
 
 	// Score label
-	scoreLabel = tgui::Label::create();
-	scoreLabel->setTextSize(24);
-	scoreLabel->setMaximumTextWidth(0);
 	scoreLabel->setPosition({ tgui::bindLeft(levelNameLabel), tgui::bindBottom(levelNameLabel) + guiPaddingY });
 	gui->add(scoreLabel);
 
@@ -80,26 +203,11 @@ GameInstance::GameInstance(std::string levelPackName) {
 	gui->add(powerLabel);
 
 	// Bomb grid
-	sf::Texture bombTexture;
-	if (!bombTexture.loadFromFile("Level Packs\\" + levelPack->getName() + "\\" + levelPack->getPlayer().getBombSprite().getAnimatableName())) {
-		//TODO: error handling
-	}
-	// Bomb picture can be a maximum size of 3% of guiRegionHeight
-	bombPictureSize = std::min(guiRegionHeight * 0.03f, (guiRegionWidth - guiPaddingX * 2) / levelPack->getPlayer().getMaxBombs());
-
-	bombPictures.clear();
-	for (int i = 0; i < levelPack->getPlayer().getMaxBombs(); i++) {
-		auto bombPicture = tgui::Picture::create(bombTexture);
-		bombPicture->setSize(bombPictureSize, bombPictureSize);
-		bombPictures.push_back(bombPicture);
-	}
-	bombPictureGrid = tgui::Grid::create();
 	bombPictureGrid->setPosition({ tgui::bindLeft(levelNameLabel), guiRegionHeight - bombPictureSize - guiPaddingY });
 	gui->add(bombPictureGrid);
 	bombPicturesInGrid = 0;
 
 	// Bomb label
-	bombLabel = tgui::Label::create();
 	bombLabel->setTextSize(24);
 	bombLabel->setMaximumTextWidth(0);
 	bombLabel->setText("Bombs");
@@ -124,21 +232,7 @@ GameInstance::GameInstance(std::string levelPackName) {
 		playerHPProgressBar->getRenderer()->setBorderColor(tgui::Color::White);
 		gui->add(playerHPProgressBar);
 	} else {
-		sf::Texture playerHPTexture;
-		if (!playerHPTexture.loadFromFile("Level Packs\\" + levelPack->getName() + "\\" + levelPack->getPlayer().getDiscretePlayerHPSprite().getAnimatableName())) {
-			//TODO: error handling
-		}
-		// Player HP picture can be a maximum size of 3% of guiRegionHeight
-		playerHPPictureSize = std::min(guiRegionHeight * 0.03f, (guiRegionWidth - guiPaddingX * 2) / levelPack->getPlayer().getMaxHealth());
-
-		playerHPPictures.clear();
-		for (int i = 0; i < levelPack->getPlayer().getMaxHealth(); i++) {
-			auto playerHPPicture = tgui::Picture::create(playerHPTexture);
-			playerHPPicture->setSize(playerHPPictureSize, playerHPPictureSize);
-			playerHPPictures.push_back(playerHPPicture);
-		}
-		playerHPPictureGrid = tgui::Grid::create();
-		playerHPPictureGrid->setPosition({ tgui::bindLeft(bombPictureGrid), tgui::bindTop(bombLabel) - guiPaddingY - playerHPPictureGrid->getSize().y });
+		playerHPPictureGrid->setPosition({ tgui::bindLeft(bombPictureGrid), tgui::bindTop(bombLabel) - guiPaddingY - playerHPPictureSize });
 		gui->add(playerHPPictureGrid);
 		hpPicturesInGrid = 0;
 
@@ -155,23 +249,17 @@ GameInstance::GameInstance(std::string levelPackName) {
 	}
 
 	// Boss stuff
-	bossLabel = tgui::Label::create();
 	bossLabel->setTextSize(26);
 	bossLabel->setMaximumTextWidth(window->getSize().x - guiRegionWidth);
-	bossLabel->setPosition(0, 0);
 	bossLabel->setVisible(false);
 	gui->add(bossLabel);
 
-	bossPhaseTimeLeft = tgui::Label::create();
 	bossPhaseTimeLeft->setTextSize(26);
 	bossPhaseTimeLeft->setMaximumTextWidth(0);
 	bossPhaseTimeLeft->setVisible(false);
 	gui->add(bossPhaseTimeLeft);
 
-	bossPhaseHealthBar = tgui::ProgressBar::create();
 	bossPhaseHealthBar->setFillDirection(tgui::ProgressBar::FillDirection::LeftToRight);
-	bossPhaseHealthBar->setSize(window->getSize().x - guiRegionWidth, bossPhaseHealthBarHeight);
-	bossPhaseHealthBar->setPosition({ 0, 0 });
 	bossPhaseHealthBar->getRenderer()->setBackgroundColor(tgui::Color::Transparent);
 	bossPhaseHealthBar->getRenderer()->setFillColor(tgui::Color::Red);
 	bossPhaseHealthBar->getRenderer()->setTextColor(tgui::Color::White);
@@ -192,6 +280,8 @@ void GameInstance::start() {
 			while (window->pollEvent(event)) {
 				if (event.type == sf::Event::Closed) {
 					window->close();
+				} else if (event.type == sf::Event::Resized) {
+					updateWindowView(event.size.width, event.size.height);
 				} else {
 					handleEvent(event);
 				}
@@ -202,9 +292,9 @@ void GameInstance::start() {
 			}
 
 			float dt = std::min(MAX_PHYSICS_DELTA_TIME, deltaClock.restart().asSeconds());
-			//std::cout << dt << std::endl;
+			std::cout << dt << std::endl;
 			//float dt = 1 / 120.0f;
-			std::cout << registry.alive() << std::endl;
+			//std::cout << registry.alive() << std::endl;
 			physicsUpdate(dt);
 
 			timeSinceLastRender += dt;
@@ -273,9 +363,11 @@ void GameInstance::render(float deltaTime) {
 		auto& pos = registry.get<PositionComponent>(player);
 		if (pos.getY() + playerHitbox.getY() - playerHitbox.getRadius() < MAP_HEIGHT / 4.0f) {
 			if (pos.getX() + playerHitbox.getX() - playerHitbox.getRadius() < MAP_WIDTH / 3.0f) {
-				bossPhaseTimeLeft->setPosition(guiRegionX - bossPhaseTimeLeft->getSize().x, windowHeight - bossPhaseTimeLeft->getSize().y);
+				bossPhaseTimeLeft->setHorizontalAlignment(tgui::Label::HorizontalAlignment::Right);
+				bossPhaseTimeLeft->setPosition(guiRegionX - bossPhaseTimeLeft->getSize().x, guiRegionYHigh - bossPhaseTimeLeft->getSize().y);
 			} else if (pos.getX() + playerHitbox.getX() + playerHitbox.getRadius() > MAP_WIDTH * 2 / 3.0f) {
-				bossPhaseTimeLeft->setPosition(0, windowHeight - bossPhaseTimeLeft->getSize().y);
+				bossPhaseTimeLeft->setHorizontalAlignment(tgui::Label::HorizontalAlignment::Left);
+				bossPhaseTimeLeft->setPosition(playAreaX, guiRegionYHigh - bossPhaseTimeLeft->getSize().y);
 			}
 		}
 	}
@@ -356,7 +448,7 @@ void GameInstance::onPlayerHPChange(int newHP, int maxHP) {
 		playerHPProgressBar->setText(std::to_string(newHP) + "/" + std::to_string(maxHP));
 	} else {
 		playerHPPictureGrid->removeAllWidgets();
-		if (newHP >= 10) {
+		if (newHP >= playerHPPictureDisplayMax) {
 			playerHPPictureGrid->addWidget(playerHPPictures[0], 0, 0);
 			playerDiscreteHPCountLabel->setText("x" + std::to_string(newHP));
 			playerHPPictureGrid->addWidget(playerDiscreteHPCountLabel, 0, 1);
@@ -390,7 +482,7 @@ void GameInstance::onPlayerBombCountChange(int newBombCount) {
 		}
 	} else {
 		bombPictureGrid->removeAllWidgets();
-		if (newBombCount >= 10) {
+		if (newBombCount >= bombPictureDisplayMax) {
 			bombPictureGrid->addWidget(bombPictures[0], 0, 0);
 			bombCountLabel->setText("x" + std::to_string(newBombCount));
 			bombPictureGrid->addWidget(playerDiscreteHPCountLabel, 0, 1);

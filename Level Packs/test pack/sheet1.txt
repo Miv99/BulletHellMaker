@@ -73,7 +73,7 @@ Origin = 18,23
 [Bullet]
 Type = Sprite
 TextureTopLeftCoordinates = 218,154
-BoundingRectangleSize = 18,17
+BoundingRectangleSize = 17,17
 Color = 255,255,255,255
 SpriteSize = 40,40
 Origin = 9,8
