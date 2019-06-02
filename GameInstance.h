@@ -88,8 +88,6 @@ private:
 	// playAreaYLow and playAreaYHigh are unnecessary since GUI is always aligned
 	// vertically with the play area, so playAreaY____ == guiRegionY____
 	float playAreaX;
-	float playAreaWidth;
-	float playAreaHeight;
 	// The screen x-coordinate of the leftmost section of the GUI
 	float guiRegionX;
 	// The upper/lower y-axis bounds of the GUI region
@@ -113,6 +111,7 @@ private:
 	// Player HP picture is a square
 	float playerHPPictureSize;
 	const float playerHPPictureSizeMax = 30;
+	const float playerHPPictureSizeMin = 10;
 	// Player HP picture objects; one for each health the player can have, up to player's max health amount
 	std::vector<std::shared_ptr<tgui::Picture>> playerHPPictures;
 	// Current number of player HP pictures in the grid
@@ -131,6 +130,7 @@ private:
 	// Same as discrete player HP bar, but for bombs
 	float bombPictureSize;
 	const float bombPictureSizeMax = playerHPPictureSizeMax;
+	const float bombPictureSizeMin = playerHPPictureSizeMin;
 	std::vector<std::shared_ptr<tgui::Picture>> bombPictures;
 	int bombPicturesInGrid = 0;
 	std::shared_ptr<tgui::Grid> bombPictureGrid;

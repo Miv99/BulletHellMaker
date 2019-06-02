@@ -39,7 +39,7 @@ void GameInstance::updateWindowView(int windowWidth, int windowHeight) {
 	// Otherwise, the black bars will appear on the top and bottom.
 	if (horizontalSpacing) {
 		playAreaSizeX = playAreaViewRatio / windowRatio;
-		guiAreaSizeX = std::max(playAreaSizeX * 0.5f, (float)scoreLabel->getSize().x/windowWidth);
+		guiAreaSizeX = std::min(1 - playAreaSizeX, std::max(playAreaSizeX * 0.5f, (float)scoreLabel->getSize().x/windowWidth));
 		posX = (1 - playAreaSizeX - guiAreaSizeX) / 2.f;
 	} else {
 		playAreaSizeY = windowRatio / playAreaViewRatio;
@@ -58,15 +58,14 @@ void GameInstance::updateWindowView(int windowWidth, int windowHeight) {
 	guiRegionWidth = guiAreaSizeX * windowWidth;
 	guiRegionHeight = guiRegionYHigh - guiRegionYLow;
 	playAreaX = posX * windowWidth;
-	playAreaWidth = playAreaSizeX * windowWidth;
-	playAreaHeight = playAreaSizeY * windowHeight;
+	float playAreaWidth = playAreaSizeX * windowWidth;
 	// Since everything in the gui is bound to levelNameLabel's x position, only levelNameLabel's position needs to be updated 
 	levelNameLabel->setPosition({ guiRegionX + guiPaddingX, guiPaddingY });
 
 	levelNameLabel->setMaximumTextWidth(guiRegionWidth - guiPaddingX * 2.0f);
 
-	bombPictureSize = std::min(bombPictureSizeMax, (guiRegionWidth - guiPaddingX * 2) / levelPack->getPlayer().getMaxBombs());
-	bombPictureDisplayMax = (int)guiRegionWidth / bombPictureSize;
+	bombPictureSize = std::max(bombPictureSizeMin, std::min(bombPictureSizeMax, (guiRegionWidth - guiPaddingX * 2) / levelPack->getPlayer().getMaxBombs()));
+	bombPictureDisplayMax = (int)(guiRegionWidth - 2 * guiPaddingX) / (bombPictureSize + guiPaddingX);
 	for (int i = 0; i < bombPictures.size(); i++) {
 		bombPictures[i]->setSize(bombPictureSize, bombPictureSize);
 	}
@@ -79,8 +78,8 @@ void GameInstance::updateWindowView(int windowWidth, int windowHeight) {
 	if (playerHPProgressBar) {
 		playerHPProgressBar->setSize(guiRegionWidth - guiPaddingX * 2.0f, 22);
 	} else {
-		playerHPPictureSize = std::min(playerHPPictureSizeMax, (guiRegionWidth - guiPaddingX * 2) / levelPack->getPlayer().getMaxHealth());
-		playerHPPictureDisplayMax = (int)guiRegionWidth / playerHPPictureSize;
+		playerHPPictureSize = std::max(playerHPPictureSizeMin, std::min(playerHPPictureSizeMax, (guiRegionWidth - guiPaddingX * 2) / levelPack->getPlayer().getMaxHealth()));
+		playerHPPictureDisplayMax = (int)(guiRegionWidth - 2 * guiPaddingX) / (playerHPPictureSize + guiPaddingX);
 		for (int i = 0; i < playerHPPictures.size(); i++) {
 			playerHPPictures[i]->setSize(playerHPPictureSize, playerHPPictureSize);
 		}
@@ -115,6 +114,7 @@ GameInstance::GameInstance(std::string levelPackName) {
 	audioPlayer = std::make_unique<AudioPlayer>();
 	levelPack = std::make_unique<LevelPack>(*audioPlayer, levelPackName);
 
+	//TODO: these numbers should come from settings
 	window = std::make_unique<sf::RenderWindow>(sf::VideoMode(1600, 900), "Bullet Hell Maker");
 	window->setKeyRepeatEnabled(false);
 
@@ -168,6 +168,7 @@ GameInstance::GameInstance(std::string levelPackName) {
 	spriteLoader->preloadTextures();
 
 	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
+	//TODO: these numbers should come from settings
 	renderSystem = std::make_unique<RenderSystem>(registry, *window, 1024, 768);
 	collisionSystem = std::make_unique<CollisionSystem>(*levelPack, *queue, *spriteLoader, registry, MAP_WIDTH, MAP_HEIGHT);
 	despawnSystem = std::make_unique<DespawnSystem>(registry);
