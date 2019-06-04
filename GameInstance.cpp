@@ -431,6 +431,7 @@ void GameInstance::endLevel() {
 }
 
 void GameInstance::handleEvent(sf::Event event) {
+	gui->handleEvent(event);
 	playerSystem->handleEvent(event);
 }
 

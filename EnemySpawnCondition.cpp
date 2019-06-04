@@ -3,7 +3,7 @@
 
 std::string GlobalTimeBasedEnemySpawnCondition::format() {
 	std::string res = "";
-	res += "GlobalTimeBasedEnemySpawnCondition" + delim;
+	res += "GlobalTimeBasedEnemySpawnCondition" + tm_delim;
 	res += "(" + tos(time) + ")";
 	return res;
 }
@@ -19,7 +19,7 @@ bool GlobalTimeBasedEnemySpawnCondition::satisfied(entt::DefaultRegistry & regis
 
 std::string EnemyCountBasedEnemySpawnCondition::format() {
 	std::string res = "";
-	res += "EnemyCountBasedEnemySpawnCondition" + delim;
+	res += "EnemyCountBasedEnemySpawnCondition" + tm_delim;
 	res += "(" + tos(enemyCount) + ")";
 	return res;
 }
@@ -35,7 +35,7 @@ bool EnemyCountBasedEnemySpawnCondition::satisfied(entt::DefaultRegistry & regis
 
 std::string TimeBasedEnemySpawnCondition::format() {
 	std::string res = "";
-	res += "TimeBasedEnemySpawnCondition" + delim;
+	res += "TimeBasedEnemySpawnCondition" + tm_delim;
 	res += "(" + tos(time) + ")";
 	return res;
 }

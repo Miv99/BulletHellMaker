@@ -4,8 +4,8 @@
 
 std::string EMPAAngleOffsetToPlayer::format() {
 	std::string res = "";
-	res += "EMPAAngleOffsetToPlayer" + delim;
-	res += "(" + tos(xOffset) + ")" + delim;
+	res += "EMPAAngleOffsetToPlayer" + tm_delim;
+	res += "(" + tos(xOffset) + ")" + tm_delim;
 	res += "(" + tos(yOffset) + ")";
 	return res;
 }
@@ -24,8 +24,8 @@ float EMPAAngleOffsetToPlayer::evaluate(const entt::DefaultRegistry & registry, 
 
 std::string EMPAAngleOffsetToGlobalPosition::format() {
 	std::string res = "";
-	res += "EMPAAngleOffsetToGlobalPosition" + delim;
-	res += "(" + tos(x) + ")" + delim;
+	res += "EMPAAngleOffsetToGlobalPosition" + tm_delim;
+	res += "(" + tos(x) + ")" + tm_delim;
 	res += "(" + tos(y) + ")";
 	return res;
 }
@@ -81,7 +81,7 @@ std::shared_ptr<MovablePoint> DetachFromParentEMPA::execute(EntityCreationQueue&
 }
 
 std::string StayStillAtLastPositionEMPA::format() {
-	return "StayStillAtLastPositionEMPA" + delim + tos(duration);
+	return "StayStillAtLastPositionEMPA" + tm_delim + tos(duration);
 }
 
 void StayStillAtLastPositionEMPA::load(std::string formattedString) {
@@ -101,7 +101,7 @@ std::shared_ptr<MovablePoint> StayStillAtLastPositionEMPA::execute(EntityCreatio
 }
 
 std::string MoveCustomPolarEMPA::format() {
-	return "MoveCustomPolarEMPA" + delim + "(" + distance->format() + ")" + delim + "(" + angle->format() + ")" + delim + "(" + tos(time) + ")";
+	return "MoveCustomPolarEMPA" + tm_delim + "(" + distance->format() + ")" + tm_delim + "(" + angle->format() + ")" + tm_delim + "(" + tos(time) + ")";
 }
 
 void MoveCustomPolarEMPA::load(std::string formattedString) {
@@ -131,10 +131,10 @@ std::shared_ptr<MovablePoint> MoveCustomPolarEMPA::execute(EntityCreationQueue& 
 }
 
 std::string MoveCustomBezierEMPA::format() {
-	std::string ret = "MoveCustomBezierEMPA" + delim;
+	std::string ret = "MoveCustomBezierEMPA" + tm_delim;
 	ret += "(" + tos(time) + ")";
 	for (auto p : controlPoints) {
-		ret += delim + "(" + tos(p.x) + ")" + delim + "(" + tos(p.y) + ")";
+		ret += tm_delim + "(" + tos(p.x) + ")" + tm_delim + "(" + tos(p.y) + ")";
 	}
 	return ret;
 }
@@ -171,7 +171,7 @@ std::shared_ptr<MovablePoint> MoveCustomBezierEMPA::execute(EntityCreationQueue 
 }
 
 std::string MovePlayerHomingEMPA::format() {
-	return "MovePlayerHomingEMPA" + delim + "(" + homingStrength->format() + ")" + delim + "(" + speed->format() + ")" + delim + tos(time);
+	return "MovePlayerHomingEMPA" + tm_delim + "(" + homingStrength->format() + ")" + tm_delim + "(" + speed->format() + ")" + tm_delim + tos(time);
 }
 
 void MovePlayerHomingEMPA::load(std::string formattedString) {

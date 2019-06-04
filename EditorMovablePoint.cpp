@@ -5,53 +5,53 @@
 std::string EditorMovablePoint::format() {
 	std::string res = "";
 
-	res += "(" + tos(id) + ")" + delim;
-	res += "(" + tos(hitboxRadius) + ")" + delim;
-	res += "(" + tos(despawnTime) + ")" + delim;
+	res += "(" + tos(id) + ")" + tm_delim;
+	res += "(" + tos(hitboxRadius) + ")" + tm_delim;
+	res += "(" + tos(despawnTime) + ")" + tm_delim;
 
 	res += "(" + tos(children.size()) + ")";
 	for (auto emp : children) {
-		res += delim + "(" + emp->format() + ")";
+		res += tm_delim + "(" + emp->format() + ")";
 	}
 
-	res += delim + "(" + tos(actions.size()) + ")";
+	res += tm_delim + "(" + tos(actions.size()) + ")";
 	for (auto action : actions) {
-		res += delim + "(" + action->format() + ")";
+		res += tm_delim + "(" + action->format() + ")";
 	}
 
-	res += delim + "(" + spawnType->format() + ")";
+	res += tm_delim + "(" + spawnType->format() + ")";
 
-	res += delim + "(" + tos(shadowTrailInterval) + ")";
-	res += delim + "(" + tos(shadowTrailLifespan) + ")";
+	res += tm_delim + "(" + tos(shadowTrailInterval) + ")";
+	res += tm_delim + "(" + tos(shadowTrailLifespan) + ")";
 
-	res += delim + "(" + animatable.format() + ")";
+	res += tm_delim + "(" + animatable.format() + ")";
 	if (loopAnimation) {
-		res += delim + "1";
+		res += tm_delim + "1";
 	} else {
-		res += delim + "0";
+		res += tm_delim + "0";
 	}
-	res += delim + "(" + baseSprite.format() + ")";
-	res += delim + tos(damage);
+	res += tm_delim + "(" + baseSprite.format() + ")";
+	res += tm_delim + tos(damage);
 
-	res += delim + tos(static_cast<int>(onCollisionAction));
-	res += delim + tos(pierceResetTime);
+	res += tm_delim + tos(static_cast<int>(onCollisionAction));
+	res += tm_delim + tos(pierceResetTime);
 
 	if (playSoundOnSpawn) {
-		res += delim + "1";
+		res += tm_delim + "1";
 	} else {
-		res += delim + "0";
+		res += tm_delim + "0";
 	}
-	res += delim + "(" + soundSettings.format() + ")";
+	res += tm_delim + "(" + soundSettings.format() + ")";
 	
-	res += delim + tos(bulletModelID);
-	res += delim + (inheritRadius ? "1" : "0");
-	res += delim + (inheritDespawnTime ? "1" : "0");
-	res += delim + (inheritShadowTrailInterval ? "1" : "0");
-	res += delim + (inheritShadowTrailLifespan ? "1" : "0");
-	res += delim + (inheritAnimatables ? "1" : "0");
-	res += delim + (inheritDamage ? "1" : "0");
-	res += delim + (inheritOnCollisionAction ? "1" : "0");
-	res += delim + (inheritSoundSettings ? "1" : "0");
+	res += tm_delim + tos(bulletModelID);
+	res += tm_delim + (inheritRadius ? "1" : "0");
+	res += tm_delim + (inheritDespawnTime ? "1" : "0");
+	res += tm_delim + (inheritShadowTrailInterval ? "1" : "0");
+	res += tm_delim + (inheritShadowTrailLifespan ? "1" : "0");
+	res += tm_delim + (inheritAnimatables ? "1" : "0");
+	res += tm_delim + (inheritDamage ? "1" : "0");
+	res += tm_delim + (inheritOnCollisionAction ? "1" : "0");
+	res += tm_delim + (inheritSoundSettings ? "1" : "0");
 
 
 	return res;
@@ -274,28 +274,28 @@ void EditorMovablePoint::addChild(std::shared_ptr<EditorMovablePoint> child) {
 std::string BulletModel::format() {
 	std::string res = "";
 
-	res += "(" + tos(id) + ")" + delim;
-	res += "(" + tos(hitboxRadius) + ")" + delim;
-	res += "(" + tos(despawnTime) + ")" + delim;
+	res += "(" + tos(id) + ")" + tm_delim;
+	res += "(" + tos(hitboxRadius) + ")" + tm_delim;
+	res += "(" + tos(despawnTime) + ")" + tm_delim;
 
-	res += "(" + tos(shadowTrailInterval) + ")" + delim;
-	res += "(" + tos(shadowTrailLifespan) + ")" + delim;
+	res += "(" + tos(shadowTrailInterval) + ")" + tm_delim;
+	res += "(" + tos(shadowTrailLifespan) + ")" + tm_delim;
 
-	res += "(" + animatable.format() + ")" + delim;
+	res += "(" + animatable.format() + ")" + tm_delim;
 	if (loopAnimation) {
-		res += "1" + delim;
+		res += "1" + tm_delim;
 	} else {
-		res += "0" + delim;
+		res += "0" + tm_delim;
 	}
-	res += "(" + baseSprite.format() + ")" + delim;
-	res += tos(damage) + delim;
+	res += "(" + baseSprite.format() + ")" + tm_delim;
+	res += tos(damage) + tm_delim;
 
-	res += tos(static_cast<int>(onCollisionAction)) + delim;
+	res += tos(static_cast<int>(onCollisionAction)) + tm_delim;
 
 	if (playSoundOnSpawn) {
-		res += "1" + delim;
+		res += "1" + tm_delim;
 	} else {
-		res += "0" + delim;
+		res += "0" + tm_delim;
 	}
 	res += "(" + soundSettings.format() + ")";
 

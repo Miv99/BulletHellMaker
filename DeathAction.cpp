@@ -4,7 +4,7 @@
 #include "EntityCreationQueue.h"
 
 std::string PlayAnimatableDeathAction::format() {
-	return "PlayAnimatableDeathAction" + delim + "(" + animatable.format() + ")" + delim + tos(duration) + delim + "(" + tos((int)(effect)) + ")";
+	return "PlayAnimatableDeathAction" + tm_delim + "(" + animatable.format() + ")" + tm_delim + tos(duration) + tm_delim + "(" + tos((int)(effect)) + ")";
 }
 
 void PlayAnimatableDeathAction::load(std::string formattedString) {
@@ -19,7 +19,7 @@ void PlayAnimatableDeathAction::execute(LevelPack& levelPack, EntityCreationQueu
 }
 
 std::string PlaySoundDeathAction::format() {
-	return "PlaySoundDeathAction" + delim + "(" + soundSettings.format() + ")";
+	return "PlaySoundDeathAction" + tm_delim + "(" + soundSettings.format() + ")";
 }
 
 void PlaySoundDeathAction::load(std::string formattedString) {
@@ -32,10 +32,10 @@ void PlaySoundDeathAction::execute(LevelPack& levelPack, EntityCreationQueue & q
 }
 
 std::string ExecuteAttacksDeathAction::format() {
-	std::string ret = "ExecuteAttacksDeathAction" + delim;
+	std::string ret = "ExecuteAttacksDeathAction" + tm_delim;
 	ret += tos(attackIDs.size());
 	for (auto id : attackIDs) {
-		ret += delim + tos(id);
+		ret += tm_delim + tos(id);
 	}
 	return ret;
 }
@@ -69,9 +69,9 @@ void ExecuteAttacksDeathAction::execute(LevelPack & levelPack, EntityCreationQue
 }
 
 std::string ParticleExplosionDeathAction::format() {
-	std::string ret = "ParticleExplosionDeathAction" + delim;
-	ret += tos(static_cast<int>(effect)) + delim;
-	ret += tos(color.r) + delim + tos(color.g) + delim + tos(color.b) + delim + tos(color.a);
+	std::string ret = "ParticleExplosionDeathAction" + tm_delim;
+	ret += tos(static_cast<int>(effect)) + tm_delim;
+	ret += tos(color.r) + tm_delim + tos(color.g) + tm_delim + tos(color.b) + tm_delim + tos(color.a);
 	return ret;
 }
 

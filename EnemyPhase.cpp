@@ -2,20 +2,20 @@
 
 std::string EditorEnemyPhase::format() {
 	std::string res = "";
-	res += "(" + std::to_string(id) + ")" + delim;
-	res += "(" + name + ")" + delim;
-	res += "(" + phaseBeginAction->format() + ")" + delim;
-	res += "(" + phaseEndAction->format() + ")" + delim;
+	res += "(" + std::to_string(id) + ")" + tm_delim;
+	res += "(" + name + ")" + tm_delim;
+	res += "(" + phaseBeginAction->format() + ")" + tm_delim;
+	res += "(" + phaseEndAction->format() + ")" + tm_delim;
 	res += tos(attackPatternIds.size());
 	for (auto p : attackPatternIds) {
-		res += delim + "(" + tos(p.first) + ")" + delim + "(" + tos(p.second) + ")";
+		res += tm_delim + "(" + tos(p.first) + ")" + tm_delim + "(" + tos(p.second) + ")";
 	}
 	if (playMusic) {
-		res += delim + "1";
+		res += tm_delim + "1";
 	} else {
-		res += delim + "0";
+		res += tm_delim + "0";
 	}
-	res += delim + "(" + musicSettings.format() + ")";
+	res += tm_delim + "(" + musicSettings.format() + ")";
 	return res;
 }
 

@@ -1,21 +1,21 @@
 #include "Player.h"
 
 std::string EditorPlayer::format() {
-	std::string ret = tos(initialHealth) + delim + tos(maxHealth) + delim + tos(speed) + delim + tos(focusedSpeed) + delim + tos(hitboxRadius) + delim + tos(hitboxPosX) + delim + tos(hitboxPosY) + delim + tos(invulnerabilityTime);
+	std::string ret = tos(initialHealth) + tm_delim + tos(maxHealth) + tm_delim + tos(speed) + tm_delim + tos(focusedSpeed) + tm_delim + tos(hitboxRadius) + tm_delim + tos(hitboxPosX) + tm_delim + tos(hitboxPosY) + tm_delim + tos(invulnerabilityTime);
 	for (PlayerPowerTier tier : powerTiers) {
-		ret += delim + "(" + tier.format() + ")";
+		ret += tm_delim + "(" + tier.format() + ")";
 	}
-	ret += delim + "(" + hurtSound.format() + ")";
-	ret += delim + "(" + deathSound.format() + ")";
+	ret += tm_delim + "(" + hurtSound.format() + ")";
+	ret += tm_delim + "(" + deathSound.format() + ")";
 	if (smoothPlayerHPBar) {
-		ret += "1" + delim;
+		ret += "1" + tm_delim;
 	} else {
-		ret += "0" + delim;
+		ret += "0" + tm_delim;
 	}
-	ret += tos(playerHPBarColor.r) + delim + tos(playerHPBarColor.g) + delim + tos(playerHPBarColor.b) + delim + tos(playerHPBarColor.a) + delim;
-	ret += "(" + discretePlayerHPSprite.format() + ")" + delim;
-	ret += tos(initialBombs) + delim + tos(maxBombs) + delim;
-	ret += "(" + bombSprite.format() + ")" + delim;
+	ret += tos(playerHPBarColor.r) + tm_delim + tos(playerHPBarColor.g) + tm_delim + tos(playerHPBarColor.b) + tm_delim + tos(playerHPBarColor.a) + tm_delim;
+	ret += "(" + discretePlayerHPSprite.format() + ")" + tm_delim;
+	ret += tos(initialBombs) + tm_delim + tos(maxBombs) + tm_delim;
+	ret += "(" + bombSprite.format() + ")" + tm_delim;
 	ret += "(" + bombReadySound.format() + ")";
 	return ret;
 }
@@ -52,7 +52,7 @@ void EditorPlayer::load(std::string formattedString) {
 }
 
 std::string PlayerPowerTier::format() {
-	return "(" + animatableSet.format() + ")" + delim + tos(attackPatternID) + delim + tos(attackPatternLoopDelay) + delim + tos(focusedAttackPatternID) + delim + tos(focusedAttackPatternLoopDelay) + delim + tos(bombAttackPatternID) + delim + tos(bombCooldown);
+	return "(" + animatableSet.format() + ")" + tm_delim + tos(attackPatternID) + tm_delim + tos(attackPatternLoopDelay) + tm_delim + tos(focusedAttackPatternID) + tm_delim + tos(focusedAttackPatternLoopDelay) + tm_delim + tos(bombAttackPatternID) + tm_delim + tos(bombCooldown);
 
 }
 

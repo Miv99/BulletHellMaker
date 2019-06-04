@@ -2,25 +2,25 @@
 
 std::string Level::format() {
 	std::string res = "";
-	res += name + delim;
-	res += tos(enemyGroups.size()) + delim;
+	res += name + tm_delim;
+	res += tos(enemyGroups.size()) + tm_delim;
 	for (std::pair<std::shared_ptr<EnemySpawnCondition>, std::vector<EnemySpawnInfo>> p : enemyGroups) {
-		res += "(" + p.first->format() + ")" + delim + tos(p.second.size()) + delim;
+		res += "(" + p.first->format() + ")" + tm_delim + tos(p.second.size()) + tm_delim;
 		for (EnemySpawnInfo info : p.second) {
-			res += "(" + info.format() + ")" + delim;
+			res += "(" + info.format() + ")" + tm_delim;
 		}
 	}
-	res += "(" + healthPack->format() + ")" + delim;
-	res += "(" + pointPack->format() + ")" + delim;
-	res += "(" + powerPack->format() + ")" + delim;
-	res += "(" + bombItem->format() + ")" + delim;
-	res += "(" + musicSettings.format() + ")" + delim;
-	res += "(" + backgroundFileName + ")" + delim + tos(backgroundScrollSpeedX) + delim + tos(backgroundScrollSpeedY) + delim;
-	res += tos(bossNameColor.r) + delim + tos(bossNameColor.g) + delim + tos(bossNameColor.b) + delim + tos(bossNameColor.a) + delim;
-	res += tos(bossHPBarColor.r) + delim + tos(bossHPBarColor.g) + delim + tos(bossHPBarColor.b) + delim + tos(bossHPBarColor.a) = delim;
+	res += "(" + healthPack->format() + ")" + tm_delim;
+	res += "(" + pointPack->format() + ")" + tm_delim;
+	res += "(" + powerPack->format() + ")" + tm_delim;
+	res += "(" + bombItem->format() + ")" + tm_delim;
+	res += "(" + musicSettings.format() + ")" + tm_delim;
+	res += "(" + backgroundFileName + ")" + tm_delim + tos(backgroundScrollSpeedX) + tm_delim + tos(backgroundScrollSpeedY) + tm_delim;
+	res += tos(bossNameColor.r) + tm_delim + tos(bossNameColor.g) + tm_delim + tos(bossNameColor.b) + tm_delim + tos(bossNameColor.a) + tm_delim;
+	res += tos(bossHPBarColor.r) + tm_delim + tos(bossHPBarColor.g) + tm_delim + tos(bossHPBarColor.b) + tm_delim + tos(bossHPBarColor.a) = tm_delim;
 	res += tos(bloomLayerSettings.size());
 	for (auto settings : bloomLayerSettings) {
-		res += delim + "(" + settings.format() + ")";
+		res += tm_delim + "(" + settings.format() + ")";
 	}
 	return res;
 }

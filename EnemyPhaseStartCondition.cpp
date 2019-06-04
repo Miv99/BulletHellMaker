@@ -3,7 +3,7 @@
 
 std::string TimeBasedEnemyPhaseStartCondition::format() {
 	std::string res = "";
-	res += "TimeBasedEnemyPhaseStartCondition" + delim;
+	res += "TimeBasedEnemyPhaseStartCondition" + tm_delim;
 	res += "(" + tos(time) + ")";
 	return res;
 }
@@ -19,7 +19,7 @@ bool TimeBasedEnemyPhaseStartCondition::satisfied(entt::DefaultRegistry & regist
 
 std::string HPBasedEnemyPhaseStartCondition::format() {
 	std::string res = "";
-	res += "HPBasedEnemyPhaseStartCondition" + delim;
+	res += "HPBasedEnemyPhaseStartCondition" + tm_delim;
 	res += "(" + tos(ratio) + ")";
 	return res;
 }
@@ -36,7 +36,7 @@ bool HPBasedEnemyPhaseStartCondition::satisfied(entt::DefaultRegistry & registry
 
 std::string EnemyCountBasedEnemyPhaseStartCondition::format() {
 	std::string res = "";
-	res += "EnemyCountBasedEnemyPhaseStartCondition" + delim;
+	res += "EnemyCountBasedEnemyPhaseStartCondition" + tm_delim;
 	res += "(" + tos(enemyCount) + ")";
 	return res;
 }

@@ -4,7 +4,7 @@
 #include <sstream>
 
 #define tos(T) std::to_string(T)
-#define delim std::string(1, DELIMITER)
+#define tm_delim std::string(1, DELIMITER)
 
 const static char DELIMITER = '|';
 

@@ -2,9 +2,9 @@
 
 std::string SpecificGlobalEMPSpawn::format() {
 	std::string res = "";
-	res += "SpecificGlobalEMPSpawn" + delim;
-	res += tos(x) + delim;
-	res += tos(y) + delim;
+	res += "SpecificGlobalEMPSpawn" + tm_delim;
+	res += tos(x) + tm_delim;
+	res += tos(y) + tm_delim;
 	res += tos(time);
 	return res;
 }
@@ -22,9 +22,9 @@ MPSpawnInformation SpecificGlobalEMPSpawn::getSpawnInfo(entt::DefaultRegistry & 
 
 std::string EntityRelativeEMPSpawn::format() {
 	std::string res = "";
-	res += "EntityRelativeEMPSpawn" + delim;
-	res += tos(x) + delim;
-	res += tos(y) + delim;
+	res += "EntityRelativeEMPSpawn" + tm_delim;
+	res += tos(x) + tm_delim;
+	res += tos(y) + tm_delim;
 	res += tos(time);
 	return res;
 }
@@ -49,9 +49,9 @@ MPSpawnInformation EntityRelativeEMPSpawn::getSpawnInfo(entt::DefaultRegistry & 
 
 std::string EntityAttachedEMPSpawn::format() {
 	std::string res = "";
-	res += "EntityAttachedEMPSpawn" + delim;
-	res += tos(x) + delim;
-	res += tos(y) + delim;
+	res += "EntityAttachedEMPSpawn" + tm_delim;
+	res += tos(x) + tm_delim;
+	res += tos(y) + tm_delim;
 	res += tos(time);
 	return res;
 }

@@ -1,8 +1,10 @@
 #include "EditorInstance.h"
 
-EditorInstance::EditorInstance() {
+EditorInstance::EditorInstance(std::string levelPackName) {
+	audioPlayer = std::make_shared<AudioPlayer>();
+	levelPack = std::make_shared<LevelPack>(*audioPlayer, levelPackName);
+
 	// testing
-	attackEditorWindow = std::make_shared<AttackEditorWindow>(1024, 768);
-	attackEditorThread = std::thread(&AttackEditorWindow::start, attackEditorWindow);
-	attackEditorThread.join();
+	attackEditor = std::make_shared<AttackEditor>(*levelPack);
+	attackEditor->start();
 }

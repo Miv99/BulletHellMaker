@@ -18,7 +18,7 @@ std::shared_ptr<Item> ItemFactory::create(std::string formattedString) {
 }
 
 std::string HealthPackItem::format() {
-	return "HealthPackItem" + delim + "(" + animatable.format() + ")" + delim + tos(hitboxRadius) + delim + tos(activationRadius) + delim + "(" + onCollectSound.format() + ")";
+	return "HealthPackItem" + tm_delim + "(" + animatable.format() + ")" + tm_delim + tos(hitboxRadius) + tm_delim + tos(activationRadius) + tm_delim + "(" + onCollectSound.format() + ")";
 }
 
 void HealthPackItem::load(std::string formattedString) {
@@ -35,7 +35,7 @@ void HealthPackItem::onPlayerContact(entt::DefaultRegistry & registry, uint32_t 
 }
 
 std::string PowerPackItem::format() {
-	return "PowerPackItem" + delim + "(" + animatable.format() + ")" + delim + tos(hitboxRadius) + delim + tos(activationRadius) + delim + "(" + onCollectSound.format() + ")";
+	return "PowerPackItem" + tm_delim + "(" + animatable.format() + ")" + tm_delim + tos(hitboxRadius) + tm_delim + tos(activationRadius) + tm_delim + "(" + onCollectSound.format() + ")";
 }
 
 void PowerPackItem::load(std::string formattedString) {
@@ -52,7 +52,7 @@ void PowerPackItem::onPlayerContact(entt::DefaultRegistry & registry, uint32_t p
 }
 
 std::string PointsPackItem::format() {
-	return "PointsPackItem" + delim + "(" + animatable.format() + ")" + delim + tos(hitboxRadius) + delim + tos(activationRadius) + delim + "(" + onCollectSound.format() + ")";
+	return "PointsPackItem" + tm_delim + "(" + animatable.format() + ")" + tm_delim + tos(hitboxRadius) + tm_delim + tos(activationRadius) + tm_delim + "(" + onCollectSound.format() + ")";
 }
 
 void PointsPackItem::load(std::string formattedString) {
@@ -69,7 +69,7 @@ void PointsPackItem::onPlayerContact(entt::DefaultRegistry & registry, uint32_t 
 }
 
 std::string BombItem::format() {
-	return "BombItem" + delim + "(" + animatable.format() + ")" + delim + tos(hitboxRadius) + delim + tos(activationRadius) + delim + "(" + onCollectSound.format() + ")";
+	return "BombItem" + tm_delim + "(" + animatable.format() + ")" + tm_delim + tos(hitboxRadius) + tm_delim + tos(activationRadius) + tm_delim + "(" + onCollectSound.format() + ")";
 }
 
 void BombItem::load(std::string formattedString) {

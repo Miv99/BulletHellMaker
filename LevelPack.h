@@ -112,6 +112,17 @@ public:
 	inline EditorPlayer getPlayer() { return metadata.getPlayer(); }
 	inline std::string getFontFileName() { return fontFileName; }
 
+	inline std::map<int, std::shared_ptr<EditorAttack>>::iterator getAttackIteratorBegin() { return attacks.begin(); }
+	inline std::map<int, std::shared_ptr<EditorAttack>>::iterator getAttackIteratorEnd() { return attacks.end(); }
+	inline std::map<int, std::shared_ptr<EditorAttackPattern>>::iterator getAttackPatternIteratorBegin() { return attackPatterns.begin(); }
+	inline std::map<int, std::shared_ptr<EditorAttackPattern>>::iterator getAttackPatternIteratorEnd() { return attackPatterns.end(); }
+	inline std::map<int, std::shared_ptr<EditorEnemy>>::iterator getEnemyIteratorBegin() { return enemies.begin(); }
+	inline std::map<int, std::shared_ptr<EditorEnemy>>::iterator getEnemyIteratorEnd() { return enemies.end(); }
+	inline std::map<int, std::shared_ptr<EditorEnemyPhase>>::iterator getEnemyPhaseIteratorBegin() { return enemyPhases.begin(); }
+	inline std::map<int, std::shared_ptr<EditorEnemyPhase>>::iterator getEnemyPhaseIteratorEnd() { return enemyPhases.end(); }
+	inline std::map<int, std::shared_ptr<BulletModel>>::iterator getBulletModelIteratorBegin() { return bulletModels.begin(); }
+	inline std::map<int, std::shared_ptr<BulletModel>>::iterator getBulletModelIteratorEnd() { return bulletModels.end(); }
+
 	inline void setPlayer(EditorPlayer player) { metadata.setPlayer(player); }
 	inline void setFontFileName(std::string fontFileName) { this->fontFileName = fontFileName; }
 

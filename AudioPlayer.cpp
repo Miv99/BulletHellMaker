@@ -7,7 +7,7 @@ float soundVolume = 0.2f;
 float musicVolume = 0.2f;
 
 std::string SoundSettings::format() {
-	std::string ret = "(" + fileName + ")" + delim + tos(volume) + delim + tos(pitch) + delim;
+	std::string ret = "(" + fileName + ")" + tm_delim + tos(volume) + tm_delim + tos(pitch) + tm_delim;
 	if (disabled) {
 		ret += "1";
 	} else {
@@ -30,15 +30,15 @@ void SoundSettings::load(std::string formattedString) {
 
 std::string MusicSettings::format() {
 	std::string ret = "";
-	ret += "(" + fileName + ")" + delim;
+	ret += "(" + fileName + ")" + tm_delim;
 	if (loops) {
 		ret += "1";
 	} else {
 		ret += "0";
 	}
-	ret += delim + tos(loopStartMilliseconds);
-	ret += delim + tos(loopLengthMilliseconds);
-	ret += delim + tos(volume) + delim + tos(pitch) + delim;
+	ret += tm_delim + tos(loopStartMilliseconds);
+	ret += tm_delim + tos(loopLengthMilliseconds);
+	ret += tm_delim + tos(volume) + tm_delim + tos(pitch) + tm_delim;
 	if (disabled) {
 		ret += "1";
 	} else {

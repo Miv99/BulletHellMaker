@@ -5,7 +5,7 @@ EntityAnimatableSet::EntityAnimatableSet(Animatable idle, Animatable movement, A
 }
 
 std::string EntityAnimatableSet::format() {
-	return "(" + idleAnimatable.format() + ")" + delim + "(" + movementAnimatable.format() + ")" + delim + "(" + attackAnimatable.format() + ")" + delim + "(" + deathAction->format() + ")";
+	return "(" + idleAnimatable.format() + ")" + tm_delim + "(" + movementAnimatable.format() + ")" + tm_delim + "(" + attackAnimatable.format() + ")" + tm_delim + "(" + deathAction->format() + ")";
 }
 
 void EntityAnimatableSet::load(std::string formattedString) {

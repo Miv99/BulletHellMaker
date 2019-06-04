@@ -412,10 +412,10 @@ void LevelPack::playMusic(const MusicSettings & musicSettings) const {
 }
 
 std::string LevelPackMetadata::format() {
-	std::string ret = "(" + player.format() + ")" + delim;
+	std::string ret = "(" + player.format() + ")" + tm_delim;
 	ret += tos(spriteSheets.size());
 	for (auto p : spriteSheets) {
-		ret += delim + "(" + p.first + ")" + delim + "(" + p.second + ")";
+		ret += tm_delim + "(" + p.first + ")" + tm_delim + "(" + p.second + ")";
 	}
 	return ret;
 }

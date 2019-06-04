@@ -4,21 +4,21 @@
 
 std::string EditorAttackPattern::format() {
 	std::string res = "";
-	res += "(" + tos(id) + ")" + delim;
-	res += "(" + name + ")" + delim;
+	res += "(" + tos(id) + ")" + tm_delim;
+	res += "(" + name + ")" + tm_delim;
 
-	res += "(" + tos(attackIDs.size()) + ")" + delim;
+	res += "(" + tos(attackIDs.size()) + ")" + tm_delim;
 	for (auto p : attackIDs) {
-		res += "(" + tos(p.first) + ")" + delim + "(" + tos(p.second) + ")" + delim;
+		res += "(" + tos(p.first) + ")" + tm_delim + "(" + tos(p.second) + ")" + tm_delim;
 	}
 
 	res += "(" + tos(actions.size()) + ")";
 	for (auto p : actions) {
-		res += delim + "(" + p->format() + ")";
+		res += tm_delim + "(" + p->format() + ")";
 	}
 
-	res += delim + tos(shadowTrailInterval);
-	res += delim + tos(shadowTrailLifespan);
+	res += tm_delim + tos(shadowTrailInterval);
+	res += tm_delim + tos(shadowTrailLifespan);
 
 	return res;
 }

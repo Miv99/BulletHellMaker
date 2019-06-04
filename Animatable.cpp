@@ -1,11 +1,11 @@
 #include "Animatable.h"
 
 std::string Animatable::format() {
-	std::string res = "(" + animatableName + ")" + delim + "(" + spriteSheetName + ")" + delim;
+	std::string res = "(" + animatableName + ")" + tm_delim + "(" + spriteSheetName + ")" + tm_delim;
 	if (animatableIsSprite) {
-		res += "1" + delim;
+		res += "1" + tm_delim;
 	} else {
-		res += "0" + delim;
+		res += "0" + tm_delim;
 	}
 	res += tos(static_cast<int>(rotationType));
 	return res;

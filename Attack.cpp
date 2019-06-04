@@ -6,12 +6,19 @@ EditorAttack::EditorAttack(int id) : id(id) {
 	mainEMP = std::make_shared<EditorMovablePoint>(nextEMPID, true);
 }
 
+EditorAttack::EditorAttack(std::shared_ptr<EditorAttack> copy) {
+	// Since EMPs are unique to the EditorAttack and new EMP objects
+	// are created in load(), we can just load from the copy's format
+	// and there won't be any object conflicts
+	load(copy->format());
+}
+
 std::string EditorAttack::format() {
 	std::string res = "";
-	res += "(" + tos(id) + ")" + delim;
-	res += "(" + tos(nextEMPID) + ")" + delim;
-	res += "(" + name + ")" + delim;
-	res += "(" + mainEMP->format() + ")" + delim;
+	res += "(" + tos(id) + ")" + tm_delim;
+	res += "(" + tos(nextEMPID) + ")" + tm_delim;
+	res += "(" + name + ")" + tm_delim;
+	res += "(" + mainEMP->format() + ")" + tm_delim;
 	if (playAttackAnimation) {
 		res += "1";
 	} else {

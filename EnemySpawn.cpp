@@ -10,11 +10,11 @@ EnemySpawnInfo::EnemySpawnInfo(int enemyID, float x, float y, std::vector<std::p
 
 std::string EnemySpawnInfo::format() {
 	std::string res = "";
-	res += tos(x) + delim;
-	res += tos(y) + delim;
+	res += tos(x) + tm_delim;
+	res += tos(y) + tm_delim;
 	res += tos(enemyID);
 	for (auto pair : itemsDroppedOnDeath) {
-		res += delim + "(" + pair.first->format() + ")" + delim + tos(pair.second);
+		res += tm_delim + "(" + pair.first->format() + ")" + tm_delim + tos(pair.second);
 	}
 	return res;
 }

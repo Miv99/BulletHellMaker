@@ -477,14 +477,14 @@ void RenderSystem::setBackground(sf::Texture background) {
 std::string BloomSettings::format() {
 	std::string ret = "";
 	if (useBloom) {
-		ret += "1" + delim;
+		ret += "1" + tm_delim;
 	} else {
-		ret += "0" + delim;
+		ret += "0" + tm_delim;
 	}
-	ret += tos(glowStrength) + delim;
-	ret += tos(minBright) + delim;
-	ret += tos(static_cast<int>(blendMode.colorSrcFactor)) + delim + tos(static_cast<int>(blendMode.colorDstFactor)) + delim + tos(static_cast<int>(blendMode.colorEquation)) + delim + tos(static_cast<int>(blendMode.alphaSrcFactor));
-	ret += tos(static_cast<int>(blendMode.alphaDstFactor)) + delim + tos(static_cast<int>(blendMode.alphaEquation));
+	ret += tos(glowStrength) + tm_delim;
+	ret += tos(minBright) + tm_delim;
+	ret += tos(static_cast<int>(blendMode.colorSrcFactor)) + tm_delim + tos(static_cast<int>(blendMode.colorDstFactor)) + tm_delim + tos(static_cast<int>(blendMode.colorEquation)) + tm_delim + tos(static_cast<int>(blendMode.alphaSrcFactor));
+	ret += tos(static_cast<int>(blendMode.alphaDstFactor)) + tm_delim + tos(static_cast<int>(blendMode.alphaEquation));
 	return ret;
 }
 

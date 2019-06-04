@@ -2,26 +2,26 @@
 
 std::string EditorEnemy::format() {
 	std::string res = "";
-	res += "(" + tos(id) + ")" + delim;
-	res += "(" + name + ")" + delim;
-	res += "(" + tos(hitboxRadius) + ")" + delim;
-	res += "(" + tos(health) + ")" + delim;
-	res += "(" + tos(despawnTime) + ")" + delim;
+	res += "(" + tos(id) + ")" + tm_delim;
+	res += "(" + name + ")" + tm_delim;
+	res += "(" + tos(hitboxRadius) + ")" + tm_delim;
+	res += "(" + tos(health) + ")" + tm_delim;
+	res += "(" + tos(despawnTime) + ")" + tm_delim;
 	res += "(" + tos(phaseIDs.size()) + ")";
 	for (auto t : phaseIDs) {
-		res += delim + "(" + std::get<0>(t)->format() + ")" + delim + "(" + tos(std::get<1>(t)) + ")" + delim + "(" + std::get<2>(t).format() + ")";
+		res += tm_delim + "(" + std::get<0>(t)->format() + ")" + tm_delim + "(" + tos(std::get<1>(t)) + ")" + tm_delim + "(" + std::get<2>(t).format() + ")";
 	}
-	res += delim + "(" + tos(deathActions.size()) + ")";
+	res += tm_delim + "(" + tos(deathActions.size()) + ")";
 	for (auto action : deathActions) {
-		res += delim + "(" + action->format() + ")";
+		res += tm_delim + "(" + action->format() + ")";
 	}
 	if (isBoss) {
-		res += delim + "1";
+		res += tm_delim + "1";
 	} else {
-		res += delim + "0";
+		res += tm_delim + "0";
 	}
-	res += delim + "(" + hurtSound.format() + ")";
-	res += delim + "(" + deathSound.format() + ")";
+	res += tm_delim + "(" + hurtSound.format() + ")";
+	res += tm_delim + "(" + deathSound.format() + ")";
 	return res;
 }
 
