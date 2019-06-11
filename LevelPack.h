@@ -75,6 +75,14 @@ public:
 		attacks[attack->getID()] = attack;
 		return attack;
 	}
+	/*
+	Updates an attack.
+	If the attack ID is already in the LevelPack, overwrite the attack.
+	If the attack ID is not in the LevelPack, add in the attack.
+	*/
+	inline void updateAttack(std::shared_ptr<EditorAttack> attack) {
+		attacks[attack->getID()] = attack;
+	}
 	inline std::shared_ptr<EditorAttackPattern> createAttackPattern() {
 		auto attackPattern = std::make_shared<EditorAttackPattern>(nextAttackPatternID++);
 		attackPatterns[attackPattern->getID()] = attackPattern;

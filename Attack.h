@@ -51,12 +51,21 @@ public:
 	inline int getID() { return id; }
 	inline std::string getName() { return name; }
 	inline bool getPlayAttackAnimation() { return playAttackAnimation; }
+	inline std::shared_ptr<EditorMovablePoint> getMainEMP() { return mainEMP; }
 	inline void setName(std::string name) { this->name = name; }
 	inline void setPlayAttackAnimation(bool playAttackAnimation) { this->playAttackAnimation = playAttackAnimation; }
 	
 	float searchLargestHitbox() const;
 	// Search for the EMP with the ID
 	std::shared_ptr<EditorMovablePoint> searchEMP(int id);
+
+	/*
+	Generates a list of string vectors such that, when each all the string vectors are added to a tgui::TreeView,
+	the tree hierarchy of the EMPs of this attack is created. Each entry is an EMP's ID.
+
+	nodeText - a function that takes an EMP and returns a string -- the text in the tgui::TreeView for the node for that EMP
+	*/
+	std::vector<std::vector<sf::String>> generateTreeViewEmpHierarchy(std::function<sf::String(const EditorMovablePoint&)> nodeText);
 
 private:
 	// The ID of the next EMP created in this attack.

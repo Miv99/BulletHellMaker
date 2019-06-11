@@ -52,21 +52,25 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 		}
 	}
 
-	// If hitbox radius > 0, this EMP is a bullet
-	if (emp->getHitboxRadius() > 0) {
-		if (emp->requiresBaseSprite()) {
-			Animatable animatable = emp->getAnimatable();
-			// Initialize with base sprite as the original sprite so that the base sprite will be the sprite that is reverted to when
-			// the animation ends
-			auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, emp->getBaseSprite(), true, ENEMY_BULLET_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel() - timeLag);
-			sprite.setAnimatable(spriteLoader, animatable, emp->getLoopAnimation());
-			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
-		} else {
-			Animatable animatable = emp->getAnimatable();
-			auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, animatable, emp->getLoopAnimation(), ENEMY_BULLET_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel() - timeLag);
+	if (emp->requiresBaseSprite()) {
+		Animatable animatable = emp->getAnimatable();
+		// Initialize with base sprite as the original sprite so that the base sprite will be the sprite that is reverted to when
+		// the animation ends
+		auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, emp->getBaseSprite(), true, ENEMY_BULLET_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel() - timeLag);
+		sprite.setAnimatable(spriteLoader, animatable, emp->getLoopAnimation());
+		if (emp->isBullet()) {
 			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
 		}
+	}
+	else {
+		Animatable animatable = emp->getAnimatable();
+		auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, animatable, emp->getLoopAnimation(), ENEMY_BULLET_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel() - timeLag);
+		if (emp->isBullet()) {
+			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
+		}
+	}
 
+	if (emp->isBullet()) {
 		registry.assign<EnemyBulletComponent>(bullet, attackID, attackPatternID, enemyID, enemyPhaseID, emp->getDamage(), emp->getOnCollisionAction(), emp->getPierceResetTime());
 	}
 
@@ -135,21 +139,25 @@ void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
 		}
 	}
 
-	// If hitbox radius > 0, this EMP is a bullet
-	if (emp->getHitboxRadius() > 0) {
-		if (emp->requiresBaseSprite()) {
-			Animatable animatable = emp->getAnimatable();
-			// Initialize with base sprite as the original sprite so that the base sprite will be the sprite that is reverted to when
-			// the animation ends
-			auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, emp->getBaseSprite(), true, PLAYER_BULLET_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel() - timeLag);
-			sprite.setAnimatable(spriteLoader, animatable, emp->getLoopAnimation());
-			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
-		} else {
-			Animatable animatable = emp->getAnimatable();
-			auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, animatable, emp->getLoopAnimation(), PLAYER_BULLET_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel() - timeLag);
+	if (emp->requiresBaseSprite()) {
+		Animatable animatable = emp->getAnimatable();
+		// Initialize with base sprite as the original sprite so that the base sprite will be the sprite that is reverted to when
+		// the animation ends
+		auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, emp->getBaseSprite(), true, PLAYER_BULLET_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel() - timeLag);
+		sprite.setAnimatable(spriteLoader, animatable, emp->getLoopAnimation());
+		if (emp->isBullet()) {
 			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
 		}
+	}
+	else {
+		Animatable animatable = emp->getAnimatable();
+		auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, animatable, emp->getLoopAnimation(), PLAYER_BULLET_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel() - timeLag);
+		if (emp->isBullet()) {
+			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
+		}
+	}
 
+	if (emp->isBullet()) {
 		registry.assign<PlayerBulletComponent>(bullet, attackID, attackPatternID, emp->getDamage(), emp->getOnCollisionAction(), emp->getPierceResetTime());
 	}
 

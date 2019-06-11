@@ -1,6 +1,8 @@
 *.dll
 Debug
 Release
+Debug dev
+*.pdb
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user

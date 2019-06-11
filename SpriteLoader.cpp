@@ -2,8 +2,9 @@
 #include "TextFileParser.h"
 #include "TextMarshallable.h"
 #include <fstream>
-#include <sys/stat.h>
-#include <boost/log/trivial.hpp>
+//--TODO--
+//#include <sys/stat.h>
+//#include <boost/log/trivial.hpp>
 #include <regex>
 #include <sstream>
 #include <limits>
@@ -239,7 +240,8 @@ bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, c
 
 		spriteSheets[spriteSheetName] = sheet;
 	} catch (std::exception e) {
-		BOOST_LOG_TRIVIAL(error) << "Invalid format in \"" + spriteSheetMetaFileName + "\"; " + e.what();
+		//--TODO--
+		//BOOST_LOG_TRIVIAL(error) << "Invalid format in \"" + spriteSheetMetaFileName + "\"; " + e.what();
 		metafile.close();
 		return false;
 	}

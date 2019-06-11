@@ -7,6 +7,7 @@
 #include <mutex>
 #include <SFML/Graphics.hpp>
 #include <TGUI/TGUI.hpp>
+#include <entt/entt.hpp>
 
 class EditorWindow {
 public:
@@ -38,6 +39,7 @@ public:
 	std::shared_ptr<tgui::Gui> getGui() { return gui; }
 	inline int getWindowWidth() { return windowWidth; }
 	inline int getWindowHeight() { return windowHeight; }
+	std::shared_ptr<entt::SigH<void(float)>> getRenderSignal();
 
 protected:
 	virtual void physicsUpdate(float deltaTime);
@@ -60,4 +62,7 @@ private:
 	std::shared_ptr<std::mutex> tguiMutex;
 
 	float renderInterval;
+	// Signal that's emitted every time a render call is made
+	// function accepts 1 argument: the time since the last render
+	std::shared_ptr<entt::SigH<void(float)>> renderSignal;
 };

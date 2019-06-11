@@ -44,6 +44,9 @@ void EditorWindow::start() {
 
 		window->clear();
 		render(timeSinceLastRender);
+		if (renderSignal) {
+			renderSignal->publish(timeSinceLastRender);
+		}
 		window->display();
 	}
 }
@@ -91,6 +94,13 @@ void EditorWindow::updateWindowView(int windowWidth, int windowHeight) {
 	}
 }
 
+std::shared_ptr<entt::SigH<void(float)>> EditorWindow::getRenderSignal() {
+	if (!renderSignal) {
+		renderSignal = std::make_shared<entt::SigH<void(float)>>();
+	}
+	return renderSignal;
+}
+
 void EditorWindow::physicsUpdate(float deltaTime) {
 }
 
@@ -100,5 +110,6 @@ void EditorWindow::render(float deltaTime) {
 }
 
 void EditorWindow::handleEvent(sf::Event event) {
+	std::lock_guard<std::mutex> lock(*tguiMutex);
 	gui->handleEvent(event);
 }

@@ -14,6 +14,7 @@ Documentation to put in the editor somewhere:
 -Attacks in ExecuteAttacksDeathAction cannot have EntityAttachedEMPSpawn
 -The particle animatable in ParticleExplosionDeathAction is meant to be colored by the color field. 
  Meaning, the color specified in the Animatable's sprite sheet entry will be ignored.
+-Due to limitations with the GUI library, animations with differing sprite sizes will always scale to fit the preview
 
 Tips to put in editor somewhere:
 -For a classic bullet hell, all enemy bullets should do 1 damage
@@ -38,7 +39,15 @@ Notes for me:
 -Item path is in Components::CollectibleComponent::update and EntityCreationQueue::EMPDropItemCommand::execute
 -Player invulnerability sprite effect animation is in CollisionSystem
 
+-TreeView double click on emptiness --> crash
+-TreeView node icon hitbox only in upper half
+-TreeView default (when there are no textures) icon bounds incorrect size if setItemHeight is called after setSize
+-attack ID 13 is messed up
+
 TODO:
+-SpriteSheetLoader emits some signal every time a change is made (sprite/spritesheet added/deleted)
+-LevelPack emits signals for Attack/AttackPattern/Enemy/EnemyPhase every time one is changed (unique signal for each)
+-Animatables can't have backslashes in name
 -somehow downsample before bloom shaders
 -all editor windows have the same LevelPack open such that when some attack changes or something, all open windows are notified and refreshed
 -have some default attack patterns (https://www.youtube.com/watch?v=xbQ9e0zYuj4)

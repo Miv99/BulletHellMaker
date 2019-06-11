@@ -25,17 +25,17 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 
-	inline int getID() { return id; }
-	inline Animatable getAnimatable() { return animatable; }
-	inline float getHitboxRadius() { return hitboxRadius; }
-	inline float getDespawnTime() { return despawnTime; }
-	inline float getShadowTrailInterval() { return shadowTrailInterval; }
-	inline float getShadowTrailLifespan() { return shadowTrailLifespan; }
-	inline int getDamage() { return damage; }
-	inline bool getLoopAnimation() { return loopAnimation; }
-	inline Animatable getBaseSprite() { return baseSprite; }
-	inline BULLET_ON_COLLISION_ACTION getOnCollisionAction() { return onCollisionAction; }
-	inline bool getPlaysSound() { return playSoundOnSpawn; }
+	inline int getID() const { return id; }
+	inline Animatable getAnimatable() const { return animatable; }
+	inline float getHitboxRadius() const { return hitboxRadius; }
+	inline float getDespawnTime() const { return despawnTime; }
+	inline float getShadowTrailInterval() const { return shadowTrailInterval; }
+	inline float getShadowTrailLifespan() const { return shadowTrailLifespan; }
+	inline int getDamage() const { return damage; }
+	inline bool getLoopAnimation() const { return loopAnimation; }
+	inline Animatable getBaseSprite() const { return baseSprite; }
+	inline BULLET_ON_COLLISION_ACTION getOnCollisionAction() const { return onCollisionAction; }
+	inline bool getPlaysSound() const { return playSoundOnSpawn; }
 	inline SoundSettings& getSoundSettings() { return soundSettings; }
 
 	inline void setPlaysSound(bool playsSound) { playSoundOnSpawn = playsSound; }
@@ -100,14 +100,8 @@ public:
 	/*
 	setID - whether the ID of this EMP should be set with this constructor. setID should be false if load() will be called right after.
 	*/
-	inline EditorMovablePoint(int& nextID, bool setID) : nextID(nextID) {
-		if (setID) {
-			id = nextID++;
-		}
-	}
-	inline EditorMovablePoint(int& nextID, std::weak_ptr<EditorMovablePoint> parent) : nextID(nextID), parent(parent) {
-		id = nextID++;
-	}
+	EditorMovablePoint(int& nextID, bool setID);
+	EditorMovablePoint(int& nextID, std::weak_ptr<EditorMovablePoint> parent);
 
 	std::string format() override;
 	void load(std::string formattedString) override;
@@ -131,38 +125,39 @@ public:
 	inline bool requiresBaseSprite() {
 		return !animatable.isSprite() && !loopAnimation;
 	}
-	inline int getID() { return id; }
-	inline Animatable getAnimatable() { return animatable; }
-	inline float getHitboxRadius() { return hitboxRadius; }
-	inline float getDespawnTime() { return despawnTime; }
+	inline int getID() const { return id; }
+	inline Animatable getAnimatable() const { return animatable; }
+	inline float getHitboxRadius() const { return hitboxRadius; }
+	inline float getDespawnTime() const { return despawnTime; }
 	inline const std::shared_ptr<EMPSpawnType> getSpawnType() { return spawnType; }
 	inline const std::vector<std::shared_ptr<EditorMovablePoint>> getChildren() { return children; }
 	inline const std::vector<std::shared_ptr<EMPAction>> getActions() { return actions; }
-	inline float getShadowTrailInterval() { return shadowTrailInterval; }
-	inline float getShadowTrailLifespan() { return shadowTrailLifespan; }
-	inline float getTotalPathTime() {
+	inline float getShadowTrailInterval() const { return shadowTrailInterval; }
+	inline float getShadowTrailLifespan() const { return shadowTrailLifespan; }
+	inline float getTotalPathTime() const {
 		float total = 0;
 		for (auto action : actions) {
 			total += action->getTime();
 		}
 		return total;
 	}
-	inline int getDamage() { return damage; }
-	inline bool getLoopAnimation() { return loopAnimation; }
-	inline Animatable getBaseSprite() { return baseSprite; }
-	inline BULLET_ON_COLLISION_ACTION getOnCollisionAction() { return onCollisionAction; }
-	inline bool getPlaysSound() { return playSoundOnSpawn; }
+	inline int getDamage() const { return damage; }
+	inline bool getLoopAnimation() const { return loopAnimation; }
+	inline Animatable getBaseSprite() const { return baseSprite; }
+	inline BULLET_ON_COLLISION_ACTION getOnCollisionAction() const { return onCollisionAction; }
+	inline bool getPlaysSound() const { return playSoundOnSpawn; }
 	inline SoundSettings& getSoundSettings() { return soundSettings; }
-	inline int getBulletModelID() { return bulletModelID; }
-	inline bool getInheritRadius() { return inheritRadius; }
-	inline bool getInheritDespawnTime() { return inheritDespawnTime; }
-	inline bool getInheritShadowTrailInterval() { return inheritShadowTrailInterval; }
-	inline bool getInheritShadowTrailLifespan() { return inheritShadowTrailLifespan; }
-	inline bool getInheritAnimatables() { return inheritAnimatables; }
-	inline bool getInheritDamage() { return inheritDamage; }
-	inline bool getInheritOnCollisionAction() { return inheritOnCollisionAction; }
-	inline bool getInheritSoundSettings() { return inheritSoundSettings; }
-	inline float getPierceResetTime() { return pierceResetTime; }
+	inline int getBulletModelID() const { return bulletModelID; }
+	inline bool getInheritRadius() const { return inheritRadius; }
+	inline bool getInheritDespawnTime() const { return inheritDespawnTime; }
+	inline bool getInheritShadowTrailInterval() const { return inheritShadowTrailInterval; }
+	inline bool getInheritShadowTrailLifespan() const { return inheritShadowTrailLifespan; }
+	inline bool getInheritAnimatables() const { return inheritAnimatables; }
+	inline bool getInheritDamage() const { return inheritDamage; }
+	inline bool getInheritOnCollisionAction() const { return inheritOnCollisionAction; }
+	inline bool getInheritSoundSettings() const { return inheritSoundSettings; }
+	inline float getPierceResetTime() const { return pierceResetTime; }
+	inline bool isBullet() const { return damage > 0; }
 
 	inline void setPierceResetTime(float pierceResetTime) { this->pierceResetTime = pierceResetTime; }
 	inline void setPlaysSound(bool playsSound) { playSoundOnSpawn = playsSound; }
@@ -194,6 +189,10 @@ public:
 	*/
 	void removeChild(int id);
 	/*
+	Detaches this EMP from its parent, if it has one.
+	*/
+	void detachFromParent();
+	/*
 	Creates a child of this EMP and adds it to the list of children.
 
 	spawnType - spawn type of the child
@@ -204,6 +203,27 @@ public:
 	Adds an existing EMP to the list of children.
 	*/
 	void addChild(std::shared_ptr<EditorMovablePoint> child);
+
+
+	/*
+	Generates a list of string vectors such that, when each all the string vectors are added to a tgui::TreeView,
+	the tree hierarchy of the EMPs of this attack is created. Each entry is an EMP's ID.
+
+	nodeText - a function that takes an EMP and returns a string -- the text in the tgui::TreeView for the node for that EMP
+	pathToThisEmp - the ordered series of strings from the root of the tree this EMP is part of, to this EMP.
+		For example, if this EMP has id 3 and its tree looks like
+		      0
+			1   2
+			      3
+		then pathToThisEmp will be { nodeText(emp0), nodeText(emp2) }
+	*/
+	std::vector<std::vector<sf::String>> generateTreeViewEmpHierarchy(std::function<sf::String(const EditorMovablePoint&)> nodeText, std::vector<sf::String> pathToThisEmp);
+	/*
+	Generates the path to this EMP such that it can be inserted as an item into a tgui::TreeView
+
+	nodeText - a function that takes an EMP and returns a string -- the text in the tgui::TreeView for the node for that EMP
+	*/
+	std::vector<sf::String> generatePathToThisEmp(std::function<sf::String(const EditorMovablePoint&)> nodeText);
 
 	inline int getTreeSize() {
 		int count = 1;
@@ -238,7 +258,7 @@ private:
 	int id;
 	int& nextID;
 
-	// Radius of the EMP's hitbox. Set to <= 0 if the EMP is not a bullet.
+	// Radius of the EMP's hitbox
 	float hitboxRadius = 0;
 
 	// The minimum of this value and the total time to complete all EMPActions is the time until this EMP despawns
@@ -266,7 +286,7 @@ private:
 	// The animatable that will be used after the animation ends. Only necessary if animatable is an animation and loopAnimation is false
 	Animatable baseSprite;
 
-	// Only for bullets; the amount of damage this bullet deals
+	// Set to <= 0 if the EMP is not a bullet. The amount of damage this bullet deals
 	int damage = 1;
 
 	// Only for bullets; determines what happens when the bullet makes contact with something

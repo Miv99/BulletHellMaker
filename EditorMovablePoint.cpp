@@ -2,6 +2,18 @@
 #include "EditorMovablePointSpawnType.h"
 #include "LevelPack.h"
 
+EditorMovablePoint::EditorMovablePoint(int & nextID, bool setID) : nextID(nextID) {
+	if (setID) {
+		id = nextID++;
+	}
+	spawnType = std::make_shared<EntityRelativeEMPSpawn>(0.0f, 0.0f, 0.0f);
+}
+
+EditorMovablePoint::EditorMovablePoint(int & nextID, std::weak_ptr<EditorMovablePoint> parent) : nextID(nextID), parent(parent) {
+	id = nextID++;
+	spawnType = std::make_shared<EntityRelativeEMPSpawn>(0.0f, 0.0f, 0.0f);
+}
+
 std::string EditorMovablePoint::format() {
 	std::string res = "";
 
@@ -253,8 +265,14 @@ void EditorMovablePoint::removeChild(int id) {
 	children.erase(children.begin() + pos);
 }
 
+void EditorMovablePoint::detachFromParent() {
+	if (!parent.expired()) {
+		parent.lock()->removeChild(id);
+	}
+}
+
 std::shared_ptr<EditorMovablePoint> EditorMovablePoint::createChild() {
-	std::shared_ptr<EditorMovablePoint> child = std::make_shared<EditorMovablePoint>(nextID, true);
+	std::shared_ptr<EditorMovablePoint> child = std::make_shared<EditorMovablePoint>(nextID, shared_from_this());
 	addChild(child);
 	return child;
 }
@@ -269,6 +287,32 @@ void EditorMovablePoint::addChild(std::shared_ptr<EditorMovablePoint> child) {
 		}
 	}
 	children.insert(children.begin() + indexToInsert, child);
+}
+
+std::vector<std::vector<sf::String>> EditorMovablePoint::generateTreeViewEmpHierarchy(std::function<sf::String(const EditorMovablePoint&)> nodeText, std::vector<sf::String> pathToThisEmp) {
+	pathToThisEmp.push_back(nodeText(*this));
+	if (children.size() == 0) {
+		return {pathToThisEmp};
+	} else {
+		std::vector<std::vector<sf::String>> ret;
+		for (auto child : children) {
+			std::vector<std::vector<sf::String>> childTree = child->generateTreeViewEmpHierarchy(nodeText, pathToThisEmp);
+			ret.insert(ret.end(), childTree.begin(), childTree.end());
+		}
+		return ret;
+	}
+}
+
+std::vector<sf::String> EditorMovablePoint::generatePathToThisEmp(std::function<sf::String(const EditorMovablePoint&)> nodeText) {
+	std::vector<sf::String> ret;
+	ret.push_back(nodeText(*this));
+	std::shared_ptr<EditorMovablePoint> cur = parent.lock();
+	while (cur) {
+		ret.insert(ret.begin(), nodeText(*cur));
+		cur = cur->parent.lock();
+	}
+
+	return ret;
 }
 
 std::string BulletModel::format() {

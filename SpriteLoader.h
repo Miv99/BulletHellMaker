@@ -47,6 +47,13 @@ public:
 
 	bool operator==(const AnimationData& other) const;
 	inline const std::vector<std::pair<float, std::string>> getSpriteNames() const { return spriteNames; }
+	inline float getTotalTime() {
+		float total = 0;
+		for (auto p : spriteNames) {
+			total += p.first;
+		}
+		return total;
+	}
 
 private:
 	std::string animationName;
@@ -62,6 +69,9 @@ public:
 	void insertAnimation(const std::string&, std::shared_ptr<AnimationData>);
 	bool loadImage(const std::string& imageFileName);
 	void preloadTextures();
+
+	inline const std::map<std::string, std::shared_ptr<SpriteData>> getSpriteData() { return spriteData; }
+	inline const std::map<std::string, std::shared_ptr<AnimationData>> getAnimationData() { return animationData; }
 
 private:
 	// Name of the sprite sheet
@@ -84,6 +94,7 @@ public:
 
 	std::shared_ptr<sf::Sprite> getSprite(const std::string& spriteName, const std::string& spriteSheetName);
 	std::unique_ptr<Animation> getAnimation(const std::string& animationName, const std::string& spriteSheetName, bool loop);
+	inline const std::map<std::string, std::shared_ptr<SpriteSheet>> getSpriteSheets() { return spriteSheets; }
 	void preloadTextures();
 	void clearSpriteSheets();
 

@@ -5,6 +5,7 @@
 #include "AttackEditor.h"
 #include "LevelPack.h"
 #include "AudioPlayer.h"
+#include "SpriteLoader.h"
 
 class EditorInstance {
 public:
@@ -14,6 +15,7 @@ public:
 private:
 	std::shared_ptr<LevelPack> levelPack;
 	std::shared_ptr<AudioPlayer> audioPlayer;
+	std::shared_ptr<SpriteLoader> spriteLoader;
 
 	std::shared_ptr<AttackEditor> attackEditor;
 };

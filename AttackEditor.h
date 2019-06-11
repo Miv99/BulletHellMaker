@@ -3,8 +3,10 @@
 #include "Attack.h"
 #include "EditorMovablePoint.h"
 #include "LevelPack.h"
+#include "EditorUtilities.h"
 #include <thread>
 #include <TGUI/TGUI.hpp>
+#include <vector>
 #include <map>
 #include <mutex>
 
@@ -23,20 +25,25 @@ Notes:
 */
 class AttackEditor {
 public:
-	AttackEditor(LevelPack& levelPack);
+	AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> spriteLoader);
+
 	void start();
 	void close();
 
-	void selectAttack(int id);
-	void deselectAttack();
-	void deselectEMP();
+private:
+	const float GUI_PADDING_X = 20;
+	const float GUI_PADDING_Y = 10;
 
 	/*
-	Creates a new EditorMovablePoint. 
-	Its parent is determined by which EMP is currently selected.
-	If no EMP is currently selected, the new EMP will be a child of the currently open EditorAttack's mainEMP.
+	id - id of the EditorAttack
 	*/
-	void createNewMovablePoint();
+	void selectAttack(int id);
+	void deselectAttack();
+	/*
+	id - id of the EditorMovablePoint in the currently selected EditorAttack
+	*/
+	void selectEMP(int id);
+	void deselectEMP();
 
 	/*
 	Begin editing an EditorMovablePoint that is part of the currently open EditorAttack.
@@ -47,49 +54,85 @@ public:
 	*/
 	void endMovablePointEditing();
 
-private:
-	const float GUI_PADDING_X = 20;
-	const float GUI_PADDING_Y = 10;
+	void createAttack();
+	void deleteAttack(std::shared_ptr<EditorAttack> attack);
+	void saveAttack(std::shared_ptr<EditorAttack> attack);
+	void discardAttackChanges(std::shared_ptr<EditorAttack> attack);
+
+	/*
+	Creates a new EMP as a child of parent.
+
+	empOwner - the EditorAttack the parent is from
+	*/
+	void createEMP(std::shared_ptr<EditorAttack> empOwner, std::shared_ptr<EditorMovablePoint> parent);
+	/*
+	empOwner - the EditorAttack the emp is from
+	*/
+	void deleteEMP(std::shared_ptr<EditorAttack> empOwner, std::shared_ptr<EditorMovablePoint> emp);
 
 	/*
 	Should be called when a change is made to any EditorAttack.
 	*/
 	void onAttackChange(std::shared_ptr<EditorAttack> attackWithUnsavedChanges);
 
+	void buildEMPTree();
+	static sf::String getEMPTreeNodeText(const EditorMovablePoint& emp);
+
+	void onMainWindowRender(float deltaTime);
+
 	LevelPack& levelPack;
 
-	// Window that shows info about the currently selected attack
-	std::shared_ptr<EditorWindow> attackInfoWindow;
-	// Window that shows info about the currently selected EMP
-	std::shared_ptr<EditorWindow> empInfoWindow;
-	// Window that shows a list of all EditorAttacks in the LevelPack
-	std::shared_ptr<EditorWindow> attackListWindow;
-	// Window that shows a tree view of all EMPs in the currently selected attack
-	std::shared_ptr<EditorWindow> empListWindow;
+	std::shared_ptr<EditorWindow> mainWindow;
 	// Window to view the play area
 	std::shared_ptr<EditorWindow> playAreaWindow;
 
-	//------------------ Attack info window widgets (ai__) ---------------------	
-	const float AI_WINDOW_WIDTH = 400;
-	const float AI_WINDOW_HEIGHT = 200;
-	
-	std::shared_ptr<tgui::Label> aiId;
+	const float MAIN_WINDOW_WIDTH = 1024;
+	const float MAIN_WINDOW_HEIGHT = 768;
+
+	//------------------ Attack info widgets (ai__) ---------------------	
+	std::shared_ptr<tgui::ScrollablePanel> aiPanel;
+
+	std::shared_ptr<tgui::Label> aiID;
 	std::shared_ptr<tgui::EditBox> aiName;
 	std::shared_ptr<tgui::CheckBox> aiPlayAttackAnimation;
-	//------------------ EMP info window widgets --------------------------------
-	//------------------ Attack list window widgets --------------------------------
+	//------------------ EMP info widgets (empi__) --------------------------------
+	std::shared_ptr<tgui::ScrollablePanel> empiPanel;
+
+	std::shared_ptr<tgui::Label> empiID;
+	std::shared_ptr<SliderWithEditBox> empiHitboxRadius;
+	std::shared_ptr<tgui::EditBox> empiDespawnTime;
+	std::shared_ptr<tgui::ListBox> empiActions;
+	//TODO: different widgets depending on the EMPAction being edited
+	std::shared_ptr<tgui::ListBox> empiSpawnType;
+	//TODO: different widgets depending on the type of EMPSpawnType chosen
+	std::shared_ptr<SliderWithEditBox> empiShadowTrailLifespan;
+	std::shared_ptr<SliderWithEditBox> empiShadowTrailInterval;
+	std::shared_ptr<tgui::Label> empiAnimatableLabel;
+	std::shared_ptr<AnimatableChooser> empiAnimatable;
+	std::shared_ptr<tgui::CheckBox> empiLoopAnimation;
+	std::shared_ptr<AnimatableChooser> empiBaseSprite;
+	//------------------ Attack list widgets (al__) --------------------------------
+	std::shared_ptr<tgui::ScrollablePanel> alPanel;
+
 	std::shared_ptr<tgui::ListBox> alList;
 	std::shared_ptr<tgui::Button> alSaveAll;
 	std::shared_ptr<tgui::Button> alDiscardAll;
-	//------------------ EMP list window widgets --------------------------------
-	//------------------ Play area window widgets --------------------------------
+	std::shared_ptr<tgui::Button> alCreateAttack;
+	std::shared_ptr<tgui::Button> alDeleteAttack;
+	//------------------ EMP list widgets (empl__) --------------------------------
+	std::shared_ptr<tgui::ScrollablePanel> emplPanel;
+
+	std::shared_ptr<tgui::Label> emplLabel;
+	std::shared_ptr<tgui::TreeView> emplTree;
+	std::shared_ptr<tgui::Button> emplCreateEMP;
+	std::shared_ptr<tgui::Button> emplDeleteEMP;
+	//------------------ Play area window widgets (paw__) --------------------------------
 
 	// Threads for the above windows
-	std::thread attackInfoWindowThread;
-	std::thread empInfoWindowThread;
-	std::thread attackListWindowThread;
-	std::thread empListWindowThread;
+	std::thread mainWindowThread;
 	std::thread playAreaWindowThread;
+
+	std::shared_ptr<SpriteLoader> spriteLoader;
 
 	// nullptr if none selected
 	std::shared_ptr<EditorAttack> selectedAttack;
@@ -98,7 +141,7 @@ private:
 
 	// Maps EditorAttack ID to the EditorAttack copy, but with those changes.
 	// If an entry does not exist for some ID, the attack with that ID has no unsaved changes.
-	std::map<int, std::shared_ptr<EditorAttack>> attackHasUnsavedChanges;
+	std::map<int, std::shared_ptr<EditorAttack>> unsavedAttacks;
 
 	// Mutex used to make sure multiple tgui widgets aren't being instantiated at the same time in different threads.
 	// tgui::Gui draw() calls also can't be done at the same time.
