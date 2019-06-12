@@ -91,7 +91,7 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 	queue.pushFront(std::make_unique<CreateMovementReferenceEntityCommand>(registry, bullet, timeLag, lastPos.getX(), lastPos.getY()));
 
 	// Play the sound associated with the EMP
-	if (emp->getPlaysSound()) {
+	if (!emp->getSoundSettings().isDisabled()) {
 		registry.get<LevelManagerTag>().getLevelPack()->playSound(emp->getSoundSettings());
 	}
 }
@@ -178,7 +178,7 @@ void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
 	queue.pushFront(std::make_unique<CreateMovementReferenceEntityCommand>(registry, bullet, timeLag, lastPos.getX(), lastPos.getY()));
 
 	// Play the sound associated with the EMP
-	if (emp->getPlaysSound()) {
+	if (!emp->getSoundSettings().isDisabled()) {
 		registry.get<LevelManagerTag>().getLevelPack()->playSound(emp->getSoundSettings());
 	}
 }

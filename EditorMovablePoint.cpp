@@ -48,11 +48,6 @@ std::string EditorMovablePoint::format() {
 	res += tm_delim + tos(static_cast<int>(onCollisionAction));
 	res += tm_delim + tos(pierceResetTime);
 
-	if (playSoundOnSpawn) {
-		res += tm_delim + "1";
-	} else {
-		res += tm_delim + "0";
-	}
 	res += tm_delim + "(" + soundSettings.format() + ")";
 	
 	res += tm_delim + tos(bulletModelID);
@@ -107,11 +102,6 @@ void EditorMovablePoint::load(std::string formattedString) {
 	onCollisionAction = static_cast<BULLET_ON_COLLISION_ACTION>(std::stoi(items[i++]));
 	pierceResetTime = std::stof(items[i++]);
 
-	if (std::stoi(items[i++]) == 1) {
-		playSoundOnSpawn = true;
-	} else {
-		playSoundOnSpawn = false;
-	}
 	soundSettings.load(items[i++]);
 
 	bulletModelID = std::stoi(items[i++]);
@@ -207,7 +197,6 @@ void EditorMovablePoint::loadBulletModel(const LevelPack & levelPack) {
 	if (inheritDamage) damage = model->getDamage();
 	if (inheritOnCollisionAction) onCollisionAction = model->getOnCollisionAction();
 	if (inheritSoundSettings) {
-		playSoundOnSpawn = model->getPlaysSound();
 		soundSettings = model->getSoundSettings();
 	}
 }
@@ -230,7 +219,6 @@ void EditorMovablePoint::setBulletModel(std::shared_ptr<BulletModel> model) {
 	if (inheritDamage) damage = model->getDamage();
 	if (inheritOnCollisionAction) onCollisionAction = model->getOnCollisionAction();
 	if (inheritSoundSettings) {
-		playSoundOnSpawn = model->getPlaysSound();
 		soundSettings = model->getSoundSettings();
 	}
 }

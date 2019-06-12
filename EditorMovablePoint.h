@@ -145,7 +145,6 @@ public:
 	inline bool getLoopAnimation() const { return loopAnimation; }
 	inline Animatable getBaseSprite() const { return baseSprite; }
 	inline BULLET_ON_COLLISION_ACTION getOnCollisionAction() const { return onCollisionAction; }
-	inline bool getPlaysSound() const { return playSoundOnSpawn; }
 	inline SoundSettings& getSoundSettings() { return soundSettings; }
 	inline int getBulletModelID() const { return bulletModelID; }
 	inline bool getInheritRadius() const { return inheritRadius; }
@@ -160,7 +159,6 @@ public:
 	inline bool isBullet() const { return damage > 0; }
 
 	inline void setPierceResetTime(float pierceResetTime) { this->pierceResetTime = pierceResetTime; }
-	inline void setPlaysSound(bool playsSound) { playSoundOnSpawn = playsSound; }
 	inline void setOnCollisionAction(BULLET_ON_COLLISION_ACTION action) { onCollisionAction = action; }
 	inline void setDamage(float damage) { this->damage = damage; }
 	inline void setAnimatable(Animatable animatable) { this->animatable = animatable; }
@@ -294,8 +292,7 @@ private:
 	// Time after hitting an enemy that the entity is able to be hit by this same bullet again; only for PIERCE_ENTITY onCollisionAction
 	float pierceResetTime = 2.0f;
 	
-	bool playSoundOnSpawn = false;
-	// Sound played on this EMP spawn, if playSoundOnSpawn is true
+	// Sound played on this EMP spawn
 	SoundSettings soundSettings;
 
 	// ID of the bullet model to use; when a bullet model changes, all EMPs using that model also change
