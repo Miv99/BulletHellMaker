@@ -34,12 +34,10 @@ public:
 	inline int getDamage() const { return damage; }
 	inline bool getLoopAnimation() const { return loopAnimation; }
 	inline Animatable getBaseSprite() const { return baseSprite; }
-	inline BULLET_ON_COLLISION_ACTION getOnCollisionAction() const { return onCollisionAction; }
 	inline bool getPlaysSound() const { return playSoundOnSpawn; }
 	inline SoundSettings& getSoundSettings() { return soundSettings; }
 
 	inline void setPlaysSound(bool playsSound) { playSoundOnSpawn = playsSound; }
-	inline void setOnCollisionAction(BULLET_ON_COLLISION_ACTION action) { onCollisionAction = action; }
 	inline void setDamage(float damage) { this->damage = damage; }
 	inline void setAnimatable(Animatable animatable) { this->animatable = animatable; }
 	inline void setLoopAnimation(bool loopAnimation) { this->loopAnimation = loopAnimation; }
@@ -79,9 +77,6 @@ private:
 	// Only for bullets; the amount of damage this bullet deals
 	int damage = 1;
 
-	// Only for bullets; determines what happens when the bullet makes contact with something
-	BULLET_ON_COLLISION_ACTION onCollisionAction = DESTROY_THIS_BULLET_ONLY;
-	
 	bool playSoundOnSpawn = false;
 	SoundSettings soundSettings;
 
@@ -156,7 +151,8 @@ public:
 	inline bool getInheritOnCollisionAction() const { return inheritOnCollisionAction; }
 	inline bool getInheritSoundSettings() const { return inheritSoundSettings; }
 	inline float getPierceResetTime() const { return pierceResetTime; }
-	inline bool isBullet() const { return damage > 0; }
+	inline bool getIsBullet() const { return isBullet; }
+	inline bool usesBulletModel() const { return bulletModelID >= 0; }
 
 	inline void setPierceResetTime(float pierceResetTime) { this->pierceResetTime = pierceResetTime; }
 	inline void setOnCollisionAction(BULLET_ON_COLLISION_ACTION action) { onCollisionAction = action; }
@@ -169,14 +165,15 @@ public:
 	void setSpawnType(std::shared_ptr<EMPSpawnType> spawnType);
 	inline void setShadowTrailInterval(float shadowTrailInterval) { this->shadowTrailInterval = shadowTrailInterval; }
 	inline void setShadowTrailLifespan(float shadowTrailLifespan) { this->shadowTrailLifespan = shadowTrailLifespan; }
-	inline bool setInheritRadius(bool inheritRadius) { this->inheritRadius = inheritRadius; }
-	inline bool setInheritDespawnTime(bool inheritDespawnTime) { this->inheritDespawnTime = inheritDespawnTime; }
-	inline bool setInheritShadowTrailInterval(bool inheritShadowTrailInterval) { this->inheritShadowTrailInterval = inheritShadowTrailInterval; }
-	inline bool setInheritShadowTrailLifespan(bool inheritShadowTrailLifespan) { this->inheritShadowTrailLifespan = inheritShadowTrailLifespan; }
-	inline bool setInheritAnimatables(bool inheritAnimatables) { this->inheritAnimatables = inheritAnimatables; }
-	inline bool setInheritDamage(bool inheritDamage) { this->inheritDamage = inheritDamage; }
-	inline bool setInheritOnCollisionAction(bool inheritOnCollisionAction) { this->inheritOnCollisionAction = inheritOnCollisionAction; }
-	inline bool setInheritSoundSettings(bool inheritSoundSettings) { this->inheritSoundSettings = inheritSoundSettings; }
+	inline void setInheritRadius(bool inheritRadius) { this->inheritRadius = inheritRadius; }
+	inline void setInheritDespawnTime(bool inheritDespawnTime) { this->inheritDespawnTime = inheritDespawnTime; }
+	inline void setInheritShadowTrailInterval(bool inheritShadowTrailInterval) { this->inheritShadowTrailInterval = inheritShadowTrailInterval; }
+	inline void setInheritShadowTrailLifespan(bool inheritShadowTrailLifespan) { this->inheritShadowTrailLifespan = inheritShadowTrailLifespan; }
+	inline void setInheritAnimatables(bool inheritAnimatables) { this->inheritAnimatables = inheritAnimatables; }
+	inline void setInheritDamage(bool inheritDamage) { this->inheritDamage = inheritDamage; }
+	inline void setInheritOnCollisionAction(bool inheritOnCollisionAction) { this->inheritOnCollisionAction = inheritOnCollisionAction; }
+	inline void setInheritSoundSettings(bool inheritSoundSettings) { this->inheritSoundSettings = inheritSoundSettings; }
+	inline void setIsBullet(bool isBullet) { this->isBullet = isBullet; }
 	// Inserts an EMPAction such that the new action is at the specified index
 	void insertAction(int index, std::shared_ptr<EMPAction> action);
 	void removeAction(int index);
@@ -256,11 +253,13 @@ private:
 	int id;
 	int& nextID;
 
+	bool isBullet = true;
+
 	// Radius of the EMP's hitbox
 	float hitboxRadius = 0;
 
 	// The minimum of this value and the total time to complete all EMPActions is the time until this EMP despawns
-	// Set to < 0 if unused (then the total EMPActions time will be used instead)
+	// Set to <= 0 if unused (then the total EMPActions time will be used instead; calculated with getTotalPathTime())
 	float despawnTime = -1;
 
 	// This EMP's reference. Not saved
@@ -284,7 +283,7 @@ private:
 	// The animatable that will be used after the animation ends. Only necessary if animatable is an animation and loopAnimation is false
 	Animatable baseSprite;
 
-	// Set to <= 0 if the EMP is not a bullet. The amount of damage this bullet deals
+	// The amount of damage this bullet deals
 	int damage = 1;
 
 	// Only for bullets; determines what happens when the bullet makes contact with something

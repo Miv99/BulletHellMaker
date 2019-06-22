@@ -60,6 +60,11 @@ std::string EditorMovablePoint::format() {
 	res += tm_delim + (inheritOnCollisionAction ? "1" : "0");
 	res += tm_delim + (inheritSoundSettings ? "1" : "0");
 
+	if (isBullet) {
+		res += "1" + tm_delim;
+	} else {
+		res += "0" + tm_delim;
+	}
 
 	return res;
 }
@@ -113,6 +118,12 @@ void EditorMovablePoint::load(std::string formattedString) {
 	inheritDamage = (std::stoi(items[i++]) == 1);
 	inheritOnCollisionAction = (std::stoi(items[i++]) == 1);
 	inheritSoundSettings = (std::stoi(items[i++]) == 1);
+
+	if (std::stoi(items[i++]) == 1) {
+		isBullet = true;
+	} else {
+		isBullet = false;
+	}
 }
 
 bool EditorMovablePoint::legal(SpriteLoader& spriteLoader, std::string & message) {
@@ -322,8 +333,6 @@ std::string BulletModel::format() {
 	res += "(" + baseSprite.format() + ")" + tm_delim;
 	res += tos(damage) + tm_delim;
 
-	res += tos(static_cast<int>(onCollisionAction)) + tm_delim;
-
 	if (playSoundOnSpawn) {
 		res += "1" + tm_delim;
 	} else {
@@ -353,8 +362,6 @@ void BulletModel::load(std::string formattedString) {
 	baseSprite.load(items[7]);
 
 	damage = std::stoi(items[8]);
-
-	onCollisionAction = static_cast<BULLET_ON_COLLISION_ACTION>(std::stoi(items[9]));
 
 	if (std::stoi(items[10]) == 1) {
 		playSoundOnSpawn = true;
