@@ -6,19 +6,9 @@
 #include <SFML/Audio.hpp>
 #include "TextMarshallable.h"
 
-class SoundSettings : public TextMarshallable {
+class AudioSettings {
 public:
-	inline SoundSettings() {}
-	inline SoundSettings(std::string fileName, float volume = 100, float pitch = 1) : fileName(fileName), volume(volume), pitch(pitch) {}
-	inline SoundSettings(const SoundSettings& copy) {
-		fileName = copy.fileName;
-		volume = copy.volume;
-		pitch = copy.pitch;
-		disabled = copy.disabled;
-	}
-
-	std::string format() override;
-	void load(std::string formattedString) override;
+	inline AudioSettings() {}
 
 	inline std::string getFileName() const { return fileName; }
 	inline float getVolume() const { return volume; }
@@ -30,7 +20,7 @@ public:
 	inline void setPitch(float pitch) { this->pitch = pitch; }
 	inline void setDisabled(bool disabled) { this->disabled = disabled; }
 
-private:
+protected:
 	std::string fileName = "";
 
 	// in range [0, 100]
@@ -42,10 +32,42 @@ private:
 	bool disabled = false;
 };
 
-class MusicSettings : public TextMarshallable {
+class SoundSettings : public TextMarshallable, public AudioSettings {
+public:
+	inline SoundSettings() {}
+	inline SoundSettings(std::string fileName, float volume = 100, float pitch = 1) {
+		this->fileName = fileName;
+		this->volume = volume;
+		this->pitch = pitch;
+	}
+	inline SoundSettings(std::string fileName, float volume, float pitch, bool disabled) {
+		this->fileName = fileName;
+		this->volume = volume;
+		this->pitch = pitch;
+		this->disabled = disabled;
+	}
+	inline SoundSettings(const SoundSettings& copy) {
+		fileName = copy.fileName;
+		volume = copy.volume;
+		pitch = copy.pitch;
+		disabled = copy.disabled;
+	}
+
+	std::string format() override;
+	void load(std::string formattedString) override;
+};
+
+class MusicSettings : public TextMarshallable, public AudioSettings {
 public:
 	inline MusicSettings() {}
-	inline MusicSettings(std::string fileName, bool loops = false, int loopStartMilliseconds = 0, int loopLengthMilliseconds = 0, float volume = 100, float pitch = 1) : fileName(fileName), loops(loops), loopStartMilliseconds(loopStartMilliseconds), loopLengthMilliseconds(loopLengthMilliseconds), volume(volume), pitch(pitch) {}
+	inline MusicSettings(std::string fileName, bool loops = false, int loopStartMilliseconds = 0, int loopLengthMilliseconds = 0, float volume = 100, float pitch = 1) {
+		this->fileName = fileName;
+		this->loops = loops;
+		this->loopStartMilliseconds = loopStartMilliseconds;
+		this->loopLengthMilliseconds = loopLengthMilliseconds;
+		this->volume = volume;
+		this->pitch = pitch;
+	}
 	inline MusicSettings(const MusicSettings& copy) {
 		fileName = copy.fileName;
 		loops = copy.loops;
@@ -60,42 +82,24 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 
-	inline std::string getFileName() const { return fileName; }
 	inline bool getLoop() const { return loops; }
 	inline int getLoopStartMilliseconds() const { return loopStartMilliseconds; }
 	inline int getLoopLengthMilliseconds() const { return loopLengthMilliseconds; }
-	inline float getVolume() const { return volume; }
-	inline float getPitch() const { return pitch; }
 	inline float getTransitionTime() const { return transitionTime; }
-	inline bool isDisabled() const { return disabled || fileName == ""; }
 
-	inline void setFileName(std::string fileName) { this->fileName = fileName; }
 	inline void setLoop(bool loops) { this->loops = loops; }
 	inline void setLoopStartMilliseconds(int loopStartMilliseconds) { this->loopStartMilliseconds = loopStartMilliseconds; }
 	inline void setLoopLengthMilliseconds(int loopStartMilliseconds) { this->loopLengthMilliseconds = loopLengthMilliseconds; }
-	inline void setVolume(float volume) { this->volume = volume; }
-	inline void setPitch(float pitch) { this->pitch = pitch; }
 	inline void setTransitionTime(float transitionTime) { this->transitionTime = transitionTime; }
-	inline void setDisabled(bool disabled) { this->disabled = disabled; }
 
 private:
-	std::string fileName = "";
-
 	bool loops = false;
 	// only applicable if loops is true; see sf::Music's setLoopPoints() for explanation of these fields
 	int loopStartMilliseconds = 0;
 	int loopLengthMilliseconds = 0;
 
-	// in range [0, 100]
-	float volume = 100;
-	// in range [1, inf]
-	float pitch = 1;
-
 	// Time in seconds for music's volume to go from 0 to the above volume when the music starts playing
 	float transitionTime = 0;
-
-	// If true, sound will not play
-	bool disabled = false;
 };
 
 class AudioPlayer {

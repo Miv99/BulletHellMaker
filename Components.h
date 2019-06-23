@@ -178,7 +178,7 @@ public:
 		hitboxDisabledTimeLeft = std::max(time, hitboxDisabledTimeLeft);
 	}
 
-	inline bool isDisabled() { return hitboxDisabledTimeLeft > 0; }
+	inline bool isDisabled() { return hitboxDisabledTimeLeft > 0 || radius <= 0; }
 
 	inline void setRadius(float radius) { this->radius = radius; }
 

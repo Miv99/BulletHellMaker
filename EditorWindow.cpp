@@ -31,6 +31,9 @@ void EditorWindow::start() {
 					window->close();
 				} else if (event.type == sf::Event::Resized) {
 					updateWindowView(event.size.width, event.size.height);
+					if (resizeSignal) {
+						resizeSignal->publish(event.size.width, event.size.height);
+					}
 				} else {
 					handleEvent(event);
 				}
@@ -99,6 +102,13 @@ std::shared_ptr<entt::SigH<void(float)>> EditorWindow::getRenderSignal() {
 		renderSignal = std::make_shared<entt::SigH<void(float)>>();
 	}
 	return renderSignal;
+}
+
+std::shared_ptr<entt::SigH<void(int, int)>> EditorWindow::getResizeSignal() {
+	if (!resizeSignal) {
+		resizeSignal = std::make_shared<entt::SigH<void(int, int)>>();
+	}
+	return resizeSignal;
 }
 
 void EditorWindow::physicsUpdate(float deltaTime) {

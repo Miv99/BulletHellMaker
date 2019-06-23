@@ -114,6 +114,9 @@ public:
 	// Time for the action to be completed
 	virtual float getTime() = 0;
 
+	// String format when displayed in AttackEditor
+	virtual std::string getGuiFormat() = 0;
+
 	/*
 	Generates a new MP from this EMPA.
 
@@ -135,6 +138,7 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 	inline float getTime() override { return 0; }
+	std::string getGuiFormat() override;
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 };
@@ -150,6 +154,7 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 	inline float getTime() override { return duration; }
+	std::string getGuiFormat() override;
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 
@@ -169,6 +174,7 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 	inline float getTime() override { return time; }
+	std::string getGuiFormat() override;
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 
@@ -195,6 +201,7 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 	inline float getTime() override { return time; }
+	std::string getGuiFormat() override;
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 
@@ -223,6 +230,7 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 	inline float getTime() override { return time; }
+	std::string getGuiFormat() override;
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 

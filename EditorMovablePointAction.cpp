@@ -67,6 +67,10 @@ std::string DetachFromParentEMPA::format() {
 void DetachFromParentEMPA::load(std::string formattedString) {
 }
 
+std::string DetachFromParentEMPA::getGuiFormat() {
+	return "Detach [d=0]";
+}
+
 std::shared_ptr<MovablePoint> DetachFromParentEMPA::execute(EntityCreationQueue& queue, entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
 	auto& lastPos = registry.get<PositionComponent>(entity);
 
@@ -89,6 +93,10 @@ void StayStillAtLastPositionEMPA::load(std::string formattedString) {
 	duration = stof(items[1]);
 }
 
+std::string StayStillAtLastPositionEMPA::getGuiFormat() {
+	return "Stay still [d=" + formatNum(duration) + "]";
+}
+
 std::shared_ptr<MovablePoint> StayStillAtLastPositionEMPA::execute(EntityCreationQueue& queue, entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
 	auto& mpc = registry.get<MovementPathComponent>(entity);
 
@@ -109,6 +117,10 @@ void MoveCustomPolarEMPA::load(std::string formattedString) {
 	distance = TFVFactory::create(items[1]);
 	angle = TFVFactory::create(items[2]);
 	time = std::stof(items[3]);
+}
+
+std::string MoveCustomPolarEMPA::getGuiFormat() {
+	return "Polar movement [d=" + formatNum(time) + "]";
 }
 
 std::shared_ptr<MovablePoint> MoveCustomPolarEMPA::execute(EntityCreationQueue& queue, entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {		
@@ -147,6 +159,10 @@ void MoveCustomBezierEMPA::load(std::string formattedString) {
 	}
 }
 
+std::string MoveCustomBezierEMPA::getGuiFormat() {
+	return "Bezier movement [d=" + formatNum(time) + "]";
+}
+
 std::shared_ptr<MovablePoint> MoveCustomBezierEMPA::execute(EntityCreationQueue & queue, entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
 	assert(controlPoints[0] == sf::Vector2f(0, 0) && "Bezier curves must start at (0, 0)");
 
@@ -179,6 +195,10 @@ void MovePlayerHomingEMPA::load(std::string formattedString) {
 	homingStrength = TFVFactory::create(items[1]);
 	speed = TFVFactory::create(items[2]);
 	time = std::stof(items[3]);
+}
+
+std::string MovePlayerHomingEMPA::getGuiFormat() {
+	return "Homing [d=" + formatNum(time)  + "]";
 }
 
 std::shared_ptr<MovablePoint> MovePlayerHomingEMPA::execute(EntityCreationQueue & queue, entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {

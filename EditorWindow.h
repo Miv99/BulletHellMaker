@@ -40,6 +40,7 @@ public:
 	inline int getWindowWidth() { return windowWidth; }
 	inline int getWindowHeight() { return windowHeight; }
 	std::shared_ptr<entt::SigH<void(float)>> getRenderSignal();
+	std::shared_ptr<entt::SigH<void(int, int)>> getResizeSignal();
 
 protected:
 	virtual void physicsUpdate(float deltaTime);
@@ -65,4 +66,6 @@ private:
 	// Signal that's emitted every time a render call is made
 	// function accepts 1 argument: the time since the last render
 	std::shared_ptr<entt::SigH<void(float)>> renderSignal;
+	// Signal that's emitted every time the window resizes
+	std::shared_ptr<entt::SigH<void(int, int)>> resizeSignal;
 };

@@ -19,11 +19,6 @@ public:
 
 	std::string format() override;
 	void load(std::string formattedString) override;
-	
-	/*
-	Creates a copy of this EditorAttack.
-	*/
-	std::shared_ptr<EditorAttack> createCopy();
 
 	bool legal(SpriteLoader& spriteLoader, std::string& message);
 

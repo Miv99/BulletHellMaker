@@ -30,6 +30,11 @@ public:
 	void start();
 	void close();
 
+	/*
+	Should be called every time the main window is resized.
+	*/
+	void onMainWindowResize(int windowWidth, int windowHeight);
+
 private:
 	const float GUI_PADDING_X = 20;
 	const float GUI_PADDING_Y = 10;
@@ -77,6 +82,8 @@ private:
 
 	void buildEMPTree();
 	static sf::String getEMPTreeNodeText(const EditorMovablePoint& emp);
+	// Clears empiActions and adds all EMPActions from the selected EMP to it
+	void buildEMPIActions();
 
 	void onMainWindowRender(float deltaTime);
 
@@ -99,18 +106,60 @@ private:
 	std::shared_ptr<tgui::ScrollablePanel> empiPanel;
 
 	std::shared_ptr<tgui::Label> empiID;
+	std::shared_ptr<tgui::Label> empiIsBulletLabel;
+	std::shared_ptr<tgui::CheckBox> empiIsBullet;
+	std::shared_ptr<tgui::Label> empiHitboxRadiusLabel;
 	std::shared_ptr<SliderWithEditBox> empiHitboxRadius;
-	std::shared_ptr<tgui::EditBox> empiDespawnTime;
+	std::shared_ptr<tgui::Label> empiDespawnTimeLabel;
+	//TODO: max value is sum of all Actions times; make sure to change when actions is changed
+	std::shared_ptr<SliderWithEditBox> empiDespawnTime;
+	std::shared_ptr<tgui::Label> empiActionsLabel;
 	std::shared_ptr<tgui::ListBox> empiActions;
-	//TODO: different widgets depending on the EMPAction being edited
-	std::shared_ptr<tgui::ListBox> empiSpawnType;
-	//TODO: different widgets depending on the type of EMPSpawnType chosen
+	std::shared_ptr<tgui::Label> empiSpawnTypeLabel;
+	// Entry ID is from getID()
+	std::shared_ptr<tgui::ComboBox> empiSpawnType;
+	std::shared_ptr<tgui::Label> empiSpawnTypeTimeLabel;
+	std::shared_ptr<NumericalEditBoxWithLimits> empiSpawnTypeTime;
+	std::shared_ptr<tgui::Label> empiSpawnTypeXLabel;
+	std::shared_ptr<NumericalEditBoxWithLimits> empiSpawnTypeX;
+	std::shared_ptr<tgui::Label> empiSpawnTypeYLabel;
+	std::shared_ptr<NumericalEditBoxWithLimits> empiSpawnTypeY;
+	std::shared_ptr<tgui::Label> empiShadowTrailLifespanLabel;
 	std::shared_ptr<SliderWithEditBox> empiShadowTrailLifespan;
+	std::shared_ptr<tgui::Label> empiShadowTrailIntervalLabel;
 	std::shared_ptr<SliderWithEditBox> empiShadowTrailInterval;
 	std::shared_ptr<tgui::Label> empiAnimatableLabel;
 	std::shared_ptr<AnimatableChooser> empiAnimatable;
+	std::shared_ptr<tgui::Label> empiLoopAnimationLabel;
 	std::shared_ptr<tgui::CheckBox> empiLoopAnimation;
+	std::shared_ptr<tgui::Label> empiBaseSpriteLabel;
 	std::shared_ptr<AnimatableChooser> empiBaseSprite;
+	std::shared_ptr<tgui::Label> empiDamageLabel;
+	std::shared_ptr<NumericalEditBoxWithLimits> empiDamage;
+	std::shared_ptr<tgui::Label> empiOnCollisionActionLabel;
+	// Entry ID obtained from getID()
+	std::shared_ptr<tgui::ComboBox> empiOnCollisionAction;
+	std::shared_ptr<tgui::Label> empiPierceResetTimeLabel;
+	std::shared_ptr<SliderWithEditBox> empiPierceResetTime;
+	std::shared_ptr<SoundSettingsGroup> empiSoundSettings;
+	std::shared_ptr<tgui::Label> empiBulletModelLabel;
+	// Entry ID is bullet model ID
+	std::shared_ptr<tgui::ComboBox> empiBulletModel;
+	//TODO: disable if bullet model not chosen
+	std::shared_ptr<tgui::Label> empiInheritRadiusLabel;
+	std::shared_ptr<tgui::CheckBox> empiInheritRadius;
+	std::shared_ptr<tgui::Label> empiInheritDespawnTimeLabel;
+	std::shared_ptr<tgui::CheckBox> empiInheritDespawnTime;
+	std::shared_ptr<tgui::Label> empiInheritShadowTrailIntervalLabel;
+	std::shared_ptr<tgui::CheckBox> empiInheritShadowTrailInterval;
+	std::shared_ptr<tgui::Label> empiInheritShadowTrailLifespanLabel;
+	std::shared_ptr<tgui::CheckBox> empiInheritShadowTrailLifespan;
+	std::shared_ptr<tgui::Label> empiInheritAnimatablesLabel;
+	std::shared_ptr<tgui::CheckBox> empiInheritAnimatables;
+	std::shared_ptr<tgui::Label> empiInheritDamageLabel;
+	std::shared_ptr<tgui::CheckBox> empiInheritDamage;
+	std::shared_ptr<tgui::Label> empiInheritSoundSettingsLabel;
+	std::shared_ptr<tgui::CheckBox> empiInheritSoundSettings;
 	//------------------ Attack list widgets (al__) --------------------------------
 	std::shared_ptr<tgui::ScrollablePanel> alPanel;
 

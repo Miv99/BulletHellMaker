@@ -148,7 +148,6 @@ public:
 	inline bool getInheritShadowTrailLifespan() const { return inheritShadowTrailLifespan; }
 	inline bool getInheritAnimatables() const { return inheritAnimatables; }
 	inline bool getInheritDamage() const { return inheritDamage; }
-	inline bool getInheritOnCollisionAction() const { return inheritOnCollisionAction; }
 	inline bool getInheritSoundSettings() const { return inheritSoundSettings; }
 	inline float getPierceResetTime() const { return pierceResetTime; }
 	inline bool getIsBullet() const { return isBullet; }
@@ -171,7 +170,6 @@ public:
 	inline void setInheritShadowTrailLifespan(bool inheritShadowTrailLifespan) { this->inheritShadowTrailLifespan = inheritShadowTrailLifespan; }
 	inline void setInheritAnimatables(bool inheritAnimatables) { this->inheritAnimatables = inheritAnimatables; }
 	inline void setInheritDamage(bool inheritDamage) { this->inheritDamage = inheritDamage; }
-	inline void setInheritOnCollisionAction(bool inheritOnCollisionAction) { this->inheritOnCollisionAction = inheritOnCollisionAction; }
 	inline void setInheritSoundSettings(bool inheritSoundSettings) { this->inheritSoundSettings = inheritSoundSettings; }
 	inline void setIsBullet(bool isBullet) { this->isBullet = isBullet; }
 	// Inserts an EMPAction such that the new action is at the specified index
@@ -304,6 +302,5 @@ private:
 	bool inheritShadowTrailLifespan = true;
 	bool inheritAnimatables = true;
 	bool inheritDamage = true;
-	bool inheritOnCollisionAction = true;
 	bool inheritSoundSettings = true;
 };

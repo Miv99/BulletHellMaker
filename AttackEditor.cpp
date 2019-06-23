@@ -2,6 +2,21 @@
 #include <iostream>
 #include "Constants.h"
 #include "TextMarshallable.h"
+#include "CollisionSystem.h"
+
+std::string getID(BULLET_ON_COLLISION_ACTION onCollisionAction) {
+	return std::to_string(static_cast<int>(onCollisionAction));
+}
+
+std::string getID(std::shared_ptr<EMPSpawnType> spawnType) {
+	if (dynamic_cast<SpecificGlobalEMPSpawn*>(spawnType.get())) {
+		return "0";
+	} else if (dynamic_cast<EntityRelativeEMPSpawn*>(spawnType.get())) {
+		return "1";
+	} else if (dynamic_cast<EntityAttachedEMPSpawn*>(spawnType.get())) {
+		return "2";
+	}
+}
 
 AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> spriteLoader) : levelPack(levelPack), spriteLoader(spriteLoader) {
 	tguiMutex = std::make_shared<std::mutex>();
@@ -17,18 +32,8 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 	aiName = tgui::EditBox::create();
 	aiPlayAttackAnimation = tgui::CheckBox::create();
 
-	aiID->setTextSize(16);
-	aiName->setTextSize(16);
-
-	const float aiAreaWidth = mainWindow->getWindowWidth() * 0.25f;
-	aiPanel->setPosition(0, 0);
-	aiID->setMaximumTextWidth(aiAreaWidth - GUI_PADDING_X * 2);
-	aiPlayAttackAnimation->setSize(25, 25);
-	aiName->setSize(aiAreaWidth - GUI_PADDING_X * 2, 20);
-	aiID->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
-	aiName->setPosition({ tgui::bindLeft(aiID), tgui::bindBottom(aiID) + GUI_PADDING_Y });
-	aiPlayAttackAnimation->setPosition({ tgui::bindLeft(aiID), tgui::bindBottom(aiName) + GUI_PADDING_Y });
-	aiPanel->setSize(aiAreaWidth, std::min(mainWindow->getWindowHeight()*0.25f, aiPlayAttackAnimation->getPosition().y + aiPlayAttackAnimation->getSize().y + GUI_PADDING_Y));
+	aiID->setTextSize(TEXT_SIZE);
+	aiName->setTextSize(TEXT_SIZE);
 
 	aiID->setText("No attack selected");
 	aiName->setReadOnly(true);
@@ -74,27 +79,12 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 	alCreateAttack = tgui::Button::create();
 	alDeleteAttack = tgui::Button::create();
 
-	alList->setTextSize(16);
-	alList->setItemHeight(20);
+	alList->setTextSize(TEXT_SIZE);
+	alList->setItemHeight(TEXT_BOX_HEIGHT);
 	alList->setMaximumItems(0);
 
-	alSaveAll->setTextSize(16);
-	alDiscardAll->setTextSize(16);
-
-	const float alAreaWidth = mainWindow->getWindowWidth() * 0.25f;
-	const float alAreaHeight = mainWindow->getWindowHeight() - aiPanel->getPosition().y - aiPanel->getSize().y;
-	alPanel->setSize(alAreaWidth, alAreaHeight);
-	alPanel->setPosition(0, tgui::bindBottom(aiPanel));
-	alSaveAll->setSize(100, 25);
-	alDiscardAll->setSize(100, 25);
-	alCreateAttack->setSize(100, 25);
-	alDeleteAttack->setSize(100, 25);
-	alList->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
-	alCreateAttack->setPosition(tgui::bindLeft(alList), alAreaHeight - alCreateAttack->getSize().y - GUI_PADDING_Y);
-	alDeleteAttack->setPosition(tgui::bindRight(alCreateAttack) + GUI_PADDING_X, tgui::bindTop(alCreateAttack));
-	alSaveAll->setPosition(tgui::bindLeft(alList), tgui::bindTop(alCreateAttack) - alSaveAll->getSize().y - GUI_PADDING_Y);
-	alDiscardAll->setPosition(tgui::bindRight(alSaveAll) + GUI_PADDING_X, tgui::bindTop(alSaveAll));
-	alList->setSize(alAreaWidth - GUI_PADDING_X * 2, alSaveAll->getPosition().y - GUI_PADDING_Y * 2);
+	alSaveAll->setTextSize(TEXT_SIZE);
+	alDiscardAll->setTextSize(TEXT_SIZE);
 
 	alSaveAll->setText("Save all");
 	alDiscardAll->setText("Discard all");
@@ -165,22 +155,11 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 	emplDeleteEMP = tgui::Button::create();
 
 	emplTree->getRenderer()->setBackgroundColor(sf::Color(190, 190, 190, 255));
-	emplTree->setItemHeight(20);
+	emplTree->setItemHeight(TEXT_BOX_HEIGHT);
 
 	emplLabel->setMaximumTextWidth(0);
-	emplLabel->setTextSize(16);
+	emplLabel->setTextSize(TEXT_SIZE);
 	emplLabel->setText("Movable points");
-
-	const float emplAreaWidth = mainWindow->getWindowWidth() * 0.5f;
-	emplPanel->setPosition(tgui::bindRight(aiPanel), 0);
-	emplPanel->setSize(emplAreaWidth, mainWindow->getWindowHeight());
-	emplLabel->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
-	emplCreateEMP->setSize(100, 25);
-	emplDeleteEMP->setSize(100, 25);
-	emplCreateEMP->setPosition(tgui::bindLeft(emplTree), mainWindow->getWindowHeight() - emplCreateEMP->getSize().y - GUI_PADDING_Y);
-	emplDeleteEMP->setPosition(tgui::bindRight(emplCreateEMP) + GUI_PADDING_X, tgui::bindTop(emplCreateEMP));
-	emplTree->setPosition(tgui::bindLeft(emplLabel), tgui::bindBottom(emplLabel) + GUI_PADDING_Y);
-	emplTree->setSize(emplAreaWidth - GUI_PADDING_X * 2, emplCreateEMP->getPosition().y - emplLabel->getPosition().y - emplLabel->getSize().y - GUI_PADDING_Y * 2);
 
 	emplCreateEMP->setText("New");
 	emplDeleteEMP->setText("Delete");
@@ -194,6 +173,8 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 			// Extract the "[id=___]" portion out of the node text
 			int idBeginPos = str.find_last_of('=') + 1;
 			selectEMP(std::stoi(str.substr(idBeginPos, str.length() - idBeginPos - 1)));
+		} else {
+			deselectEMP();
 		}
 	});
 	emplCreateEMP->connect("Pressed", [&]() {
@@ -212,33 +193,185 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 	emplPanel->add(emplDeleteEMP);
 	//------------------ EMP info window widgets --------------------------------
 	empiPanel = tgui::ScrollablePanel::create();
+	empiID = tgui::Label::create();
+	empiIsBulletLabel = tgui::Label::create();
+	empiIsBullet = tgui::CheckBox::create();
+	empiHitboxRadiusLabel = tgui::Label::create();
+	empiHitboxRadius = std::make_shared<SliderWithEditBox>();
+	empiDespawnTimeLabel = tgui::Label::create();
+	empiDespawnTime = std::make_shared<SliderWithEditBox>();
+	empiActionsLabel = tgui::Label::create();
+	empiActions = tgui::ListBox::create();
+	empiSpawnTypeLabel = tgui::Label::create();
+
+	empiSpawnType = tgui::ComboBox::create();
+	empiSpawnTypeTimeLabel = tgui::Label::create();
+	empiSpawnTypeTime = std::make_shared<NumericalEditBoxWithLimits>();
+	empiSpawnTypeXLabel = tgui::Label::create();
+	empiSpawnTypeX = std::make_shared<NumericalEditBoxWithLimits>();
+	empiSpawnTypeYLabel = tgui::Label::create();
+	empiSpawnTypeY = std::make_shared<NumericalEditBoxWithLimits>();
+	empiShadowTrailLifespanLabel = tgui::Label::create();
+	empiShadowTrailLifespan = std::make_shared<SliderWithEditBox>();
+	empiShadowTrailIntervalLabel = tgui::Label::create();
+	empiShadowTrailInterval = std::make_shared<SliderWithEditBox>();
 	empiAnimatableLabel = tgui::Label::create();
-	empiAnimatable = std::make_shared<AnimatableChooser>(*spriteLoader, false);
+	empiAnimatable = std::make_shared<AnimatableChooser>(*spriteLoader, false);	
+	empiLoopAnimationLabel = tgui::Label::create();
+	empiLoopAnimation = tgui::CheckBox::create();
+	empiBaseSpriteLabel = tgui::Label::create();
+	empiBaseSprite = std::make_shared<AnimatableChooser>(*spriteLoader, false);
+	empiDamageLabel = tgui::Label::create();
+	empiDamage = std::make_shared<NumericalEditBoxWithLimits>();
+	empiOnCollisionActionLabel = tgui::Label::create();
+	empiOnCollisionAction = tgui::ComboBox::create();
+	empiPierceResetTimeLabel = tgui::Label::create();
+	empiPierceResetTime = std::make_shared<SliderWithEditBox>();
+	empiSoundSettings = std::make_shared<SoundSettingsGroup>(GUI_PADDING_X, GUI_PADDING_Y);
+	empiBulletModelLabel = tgui::Label::create();
+	empiBulletModel = tgui::ComboBox::create();
+	empiInheritRadiusLabel = tgui::Label::create();
+	empiInheritRadiusLabel = tgui::Label::create();
+	empiInheritRadius = tgui::CheckBox::create();
+	empiInheritDespawnTimeLabel = tgui::Label::create();
+	empiInheritDespawnTime = tgui::CheckBox::create();
+	empiInheritShadowTrailIntervalLabel = tgui::Label::create();
+	empiInheritShadowTrailInterval = tgui::CheckBox::create();
+	empiInheritShadowTrailLifespanLabel = tgui::Label::create();
+	empiInheritShadowTrailLifespan = tgui::CheckBox::create();
+	empiInheritAnimatablesLabel = tgui::Label::create();
+	empiInheritAnimatables = tgui::CheckBox::create();
+	empiInheritDamageLabel = tgui::Label::create();
+	empiInheritDamage = tgui::CheckBox::create();
+	empiInheritSoundSettingsLabel = tgui::Label::create();
+	empiInheritSoundSettings = tgui::CheckBox::create();
 
-	empiAnimatable->setTextSize(16);
-	empiAnimatableLabel->setTextSize(16);
+	empiActions->setItemHeight(20);
 
+	empiID->setTextSize(TEXT_SIZE);
+	empiIsBulletLabel->setTextSize(TEXT_SIZE);
+
+	empiHitboxRadiusLabel->setTextSize(TEXT_SIZE);
+	empiDespawnTimeLabel->setTextSize(TEXT_SIZE);
+	empiActionsLabel->setTextSize(TEXT_SIZE);
+	empiSpawnTypeLabel->setTextSize(TEXT_SIZE);
+	empiSpawnType->setTextSize(TEXT_SIZE);
+	empiSpawnTypeTimeLabel->setTextSize(TEXT_SIZE);
+	empiSpawnTypeTime->setTextSize(TEXT_SIZE);
+	empiSpawnTypeXLabel->setTextSize(TEXT_SIZE);
+	empiSpawnTypeX->setTextSize(TEXT_SIZE);
+	empiSpawnTypeYLabel->setTextSize(TEXT_SIZE);
+	empiSpawnTypeY->setTextSize(TEXT_SIZE);
+	empiShadowTrailLifespanLabel->setTextSize(TEXT_SIZE);
+	empiShadowTrailLifespan->getEditBox()->setTextSize(TEXT_SIZE);
+	empiShadowTrailIntervalLabel->setTextSize(TEXT_SIZE);
+	empiShadowTrailInterval->getEditBox()->setTextSize(TEXT_SIZE);
+	empiAnimatableLabel->setTextSize(TEXT_SIZE);
+	empiLoopAnimationLabel->setTextSize(TEXT_SIZE);
+	empiBaseSpriteLabel->setTextSize(TEXT_SIZE);
+	empiDamageLabel->setTextSize(TEXT_SIZE);
+	empiDamage->setTextSize(TEXT_SIZE);
+	empiOnCollisionActionLabel->setTextSize(TEXT_SIZE);
+	empiOnCollisionAction->setTextSize(TEXT_SIZE);
+	empiPierceResetTimeLabel->setTextSize(TEXT_SIZE);
+	empiPierceResetTime->getEditBox()->setTextSize(TEXT_SIZE);
+	empiBulletModelLabel->setTextSize(TEXT_SIZE);
+	empiBulletModel->setTextSize(TEXT_SIZE);
+	empiInheritRadiusLabel->setTextSize(TEXT_SIZE);
+	empiInheritDespawnTimeLabel->setTextSize(TEXT_SIZE);
+	empiInheritShadowTrailIntervalLabel->setTextSize(TEXT_SIZE);
+	empiInheritShadowTrailLifespanLabel->setTextSize(TEXT_SIZE);
+	empiInheritAnimatablesLabel->setTextSize(TEXT_SIZE);
+	empiInheritDamageLabel->setTextSize(TEXT_SIZE);
+	empiInheritSoundSettingsLabel->setTextSize(TEXT_SIZE);
+
+	empiIsBulletLabel->setText("Is bullet");
+	empiHitboxRadiusLabel->setText("Hitbox radius");
+	empiDespawnTimeLabel->setText("Lifespan");
+	empiActionsLabel->setText("Movement actions");
+	empiSpawnTypeLabel->setText("Spawn type");
+	empiSpawnTypeTimeLabel->setText("Spawn delay");
+	empiSpawnTypeXLabel->setText("Spawn X");
+	empiSpawnTypeYLabel->setText("Spawn Y");
+	empiShadowTrailLifespanLabel->setText("Shadow lifespan");
+	empiShadowTrailIntervalLabel->setText("Shadow interval");
 	empiAnimatableLabel->setText("Sprite/Animation");
+	empiLoopAnimationLabel->setText("Loop animation");
+	empiBaseSpriteLabel->setText("Final sprite");
+	empiDamageLabel->setText("Damage");
+	empiOnCollisionActionLabel->setText("On-collision action");
+	empiPierceResetTimeLabel->setText("Pierce reset time");
+	empiBulletModelLabel->setText("Bullet model");
+	empiInheritRadiusLabel->setText("Inherit radius");
+	empiInheritDespawnTimeLabel->setText("Inherit lifespan");
+	empiInheritShadowTrailIntervalLabel->setText("Inherit shadow interval");
+	empiInheritShadowTrailLifespanLabel->setText("Inherit shadow lifespan");
+	empiInheritAnimatablesLabel->setText("Inherit sprites/animations");
+	empiInheritDamageLabel->setText("Inherit damage");
+	empiInheritSoundSettingsLabel->setText("Inherit sound settings");
 
-	const float empiAreaWidth = mainWindow->getWindowWidth() * 0.25f;
-	empiPanel->setPosition(tgui::bindRight(emplPanel), 0);
-	empiPanel->setSize(empiAreaWidth, mainWindow->getWindowHeight());
-	empiAnimatableLabel->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
-	empiAnimatableLabel->setMaximumTextWidth(0);
-	auto empiAnimatablePicture = empiAnimatable->getAnimatablePicture();
-	empiAnimatablePicture->setSize(100, 100);
-	empiAnimatablePicture->setPosition(tgui::bindLeft(empiAnimatableLabel), tgui::bindBottom(empiAnimatableLabel) + GUI_PADDING_Y);
-	empiAnimatable->setSize(empiAreaWidth - GUI_PADDING_X * 2, 20);
-	empiAnimatable->setPosition(tgui::bindLeft(empiAnimatableLabel), tgui::bindBottom(empiAnimatablePicture) + GUI_PADDING_Y);
-
+	empiPanel->add(empiID);
+	empiPanel->add(empiIsBulletLabel);
+	empiPanel->add(empiIsBullet);
+	empiPanel->add(empiHitboxRadiusLabel);
+	empiPanel->add(empiHitboxRadius);
+	empiPanel->add(empiHitboxRadius->getEditBox());
+	empiPanel->add(empiDespawnTimeLabel);
+	empiPanel->add(empiDespawnTime);
+	empiPanel->add(empiDespawnTime->getEditBox());
+	empiPanel->add(empiActionsLabel);
+	empiPanel->add(empiActions);
+	empiPanel->add(empiSpawnTypeLabel);
+	empiPanel->add(empiSpawnType);
+	empiPanel->add(empiSpawnTypeTimeLabel);
+	empiPanel->add(empiSpawnTypeTime);
+	empiPanel->add(empiSpawnTypeXLabel);
+	empiPanel->add(empiSpawnTypeX);
+	empiPanel->add(empiSpawnTypeYLabel);
+	empiPanel->add(empiSpawnTypeY);
+	empiPanel->add(empiShadowTrailLifespanLabel);
+	empiPanel->add(empiShadowTrailLifespan);
+	empiPanel->add(empiShadowTrailLifespan->getEditBox());
+	empiPanel->add(empiShadowTrailIntervalLabel);
+	empiPanel->add(empiShadowTrailInterval);
+	empiPanel->add(empiShadowTrailInterval->getEditBox());
 	empiPanel->add(empiAnimatableLabel);
 	empiPanel->add(empiAnimatable);
-	empiPanel->add(empiAnimatablePicture);
-	//TODO: call this and empiBaseSprite->calculateItemsToDisplay() every time window size changes
-	empiAnimatable->calculateItemsToDisplay();
-
+	empiPanel->add(empiAnimatable->getAnimatablePicture());
+	empiPanel->add(empiLoopAnimationLabel);
+	empiPanel->add(empiLoopAnimation);
+	empiPanel->add(empiBaseSpriteLabel);
+	empiPanel->add(empiBaseSprite);
+	empiPanel->add(empiBaseSprite->getAnimatablePicture());
+	empiPanel->add(empiDamageLabel);
+	empiPanel->add(empiDamage);
+	empiPanel->add(empiPierceResetTimeLabel);
+	empiPanel->add(empiPierceResetTime);
+	empiPanel->add(empiPierceResetTime->getEditBox());
+	empiPanel->add(empiSoundSettings);
+	empiPanel->add(empiBulletModelLabel);
+	empiPanel->add(empiBulletModel);
+	empiPanel->add(empiInheritRadiusLabel);
+	empiPanel->add(empiInheritRadius);
+	empiPanel->add(empiInheritDespawnTimeLabel);
+	empiPanel->add(empiInheritDespawnTime);
+	empiPanel->add(empiInheritShadowTrailIntervalLabel);
+	empiPanel->add(empiInheritShadowTrailInterval);
+	empiPanel->add(empiInheritShadowTrailLifespanLabel);
+	empiPanel->add(empiInheritShadowTrailLifespan);
+	empiPanel->add(empiInheritAnimatablesLabel);
+	empiPanel->add(empiInheritAnimatables);
+	empiPanel->add(empiInheritDamageLabel);
+	empiPanel->add(empiInheritDamage);
+	empiPanel->add(empiInheritSoundSettingsLabel);
+	empiPanel->add(empiInheritSoundSettings);
 	//------------------ Play area window widgets --------------------------------
 
+
+	//----------------------------------------------------------------------------
+
+	mainWindow->getResizeSignal()->sink().connect<AttackEditor, &AttackEditor::onMainWindowResize>(this);
+	onMainWindowResize(mainWindow->getWindowWidth(), mainWindow->getWindowHeight());
 }
 
 void AttackEditor::start() {
@@ -263,10 +396,144 @@ void AttackEditor::close() {
 	//TODO: if there are unsaved changes, create a "are you sure" prompt first
 }
 
+void AttackEditor::onMainWindowResize(int windowWidth, int windowHeight) {
+	const float aiAreaWidth = windowWidth * 0.25f;
+	aiPanel->setPosition(0, 0);
+	aiID->setMaximumTextWidth(aiAreaWidth - GUI_PADDING_X * 2);
+	aiPlayAttackAnimation->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
+	aiName->setSize(aiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+	aiID->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
+	aiName->setPosition({ tgui::bindLeft(aiID), tgui::bindBottom(aiID) + GUI_PADDING_Y });
+	aiPlayAttackAnimation->setPosition({ tgui::bindLeft(aiID), tgui::bindBottom(aiName) + GUI_PADDING_Y });
+	aiPanel->setSize(aiAreaWidth, std::min(windowHeight*0.25f, aiPlayAttackAnimation->getPosition().y + aiPlayAttackAnimation->getSize().y + GUI_PADDING_Y));
+
+	const float alAreaWidth = windowWidth * 0.25f;
+	const float alAreaHeight = windowHeight - aiPanel->getPosition().y - aiPanel->getSize().y;
+	alPanel->setSize(alAreaWidth, alAreaHeight);
+	alPanel->setPosition(0, tgui::bindBottom(aiPanel));
+	alSaveAll->setSize(100, TEXT_BUTTON_HEIGHT);
+	alDiscardAll->setSize(100, TEXT_BUTTON_HEIGHT);
+	alCreateAttack->setSize(100, TEXT_BUTTON_HEIGHT);
+	alDeleteAttack->setSize(100, TEXT_BUTTON_HEIGHT);
+	alList->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
+	alCreateAttack->setPosition(tgui::bindLeft(alList), alAreaHeight - alCreateAttack->getSize().y - GUI_PADDING_Y);
+	alDeleteAttack->setPosition(tgui::bindRight(alCreateAttack) + GUI_PADDING_X, tgui::bindTop(alCreateAttack));
+	alSaveAll->setPosition(tgui::bindLeft(alList), tgui::bindTop(alCreateAttack) - alSaveAll->getSize().y - GUI_PADDING_Y);
+	alDiscardAll->setPosition(tgui::bindRight(alSaveAll) + GUI_PADDING_X, tgui::bindTop(alSaveAll));
+	alList->setSize(alAreaWidth - GUI_PADDING_X * 2, alSaveAll->getPosition().y - GUI_PADDING_Y * 2);
+
+	const float emplAreaWidth = windowWidth * 0.5f;
+	emplPanel->setPosition(tgui::bindRight(aiPanel), 0);
+	emplPanel->setSize(emplAreaWidth, windowHeight);
+	emplLabel->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
+	emplCreateEMP->setSize(100, TEXT_BUTTON_HEIGHT);
+	emplDeleteEMP->setSize(100, TEXT_BUTTON_HEIGHT);
+	emplCreateEMP->setPosition(tgui::bindLeft(emplTree), windowHeight - emplCreateEMP->getSize().y - GUI_PADDING_Y);
+	emplDeleteEMP->setPosition(tgui::bindRight(emplCreateEMP) + GUI_PADDING_X, tgui::bindTop(emplCreateEMP));
+	emplTree->setPosition(tgui::bindLeft(emplLabel), tgui::bindBottom(emplLabel) + GUI_PADDING_Y);
+	emplTree->setSize(emplAreaWidth - GUI_PADDING_X * 2, emplCreateEMP->getPosition().y - emplLabel->getPosition().y - emplLabel->getSize().y - GUI_PADDING_Y * 2);
+
+
+	const float empiAreaWidth = windowWidth - (emplAreaWidth + alAreaWidth);
+	empiIsBullet->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
+	empiHitboxRadius->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+	empiDespawnTime->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+	empiActions->setSize(empiAreaWidth - GUI_PADDING_X * 2, 250);
+	empiSpawnType->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+	empiSpawnTypeTime->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+	empiSpawnTypeX->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+	empiSpawnTypeY->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+	empiShadowTrailLifespan->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+	empiShadowTrailInterval->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+	empiAnimatableLabel->setMaximumTextWidth(0);
+	auto empiAnimatablePicture = empiAnimatable->getAnimatablePicture();
+	empiAnimatablePicture->setSize(100, 100);
+	empiAnimatablePicture->setPosition(tgui::bindLeft(empiAnimatableLabel), tgui::bindBottom(empiAnimatableLabel) + GUI_PADDING_Y);
+	empiAnimatable->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+	empiAnimatable->setPosition(tgui::bindLeft(empiAnimatableLabel), tgui::bindBottom(empiAnimatablePicture) + GUI_PADDING_Y);
+	empiAnimatable->calculateItemsToDisplay();
+	empiLoopAnimation->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
+	auto empiBaseSpritePicture = empiBaseSprite->getAnimatablePicture();
+	empiBaseSpritePicture->setSize(100, 100);
+	empiBaseSpritePicture->setPosition(tgui::bindLeft(empiBaseSpriteLabel), tgui::bindBottom(empiBaseSpriteLabel) + GUI_PADDING_Y);
+	empiBaseSprite->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+	empiBaseSprite->setPosition(tgui::bindLeft(empiBaseSpritePicture), tgui::bindBottom(empiBaseSpritePicture) + GUI_PADDING_Y);
+	empiBaseSprite->calculateItemsToDisplay();
+	empiDamage->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+	empiOnCollisionAction->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+	empiPierceResetTime->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+	empiSoundSettings->setSize(empiAreaWidth, 0); // height fixed by onContainerResize
+	empiSoundSettings->onContainerResize(empiAreaWidth, windowHeight);
+	empiBulletModel->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+	empiInheritRadius->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
+	empiInheritDespawnTime->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
+	empiInheritShadowTrailInterval->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
+	empiInheritShadowTrailLifespan->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
+	empiInheritAnimatables->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
+	empiInheritDamage->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
+	empiInheritSoundSettings->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
+
+	empiPanel->setPosition(tgui::bindRight(emplPanel), 0);
+	empiPanel->setSize(empiAreaWidth, windowHeight);
+	empiIsBullet->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
+	empiID->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
+	empiIsBulletLabel->setPosition(tgui::bindLeft(empiID), tgui::bindBottom(empiID) + GUI_PADDING_Y);
+	empiIsBullet->setPosition(tgui::bindLeft(empiIsBulletLabel), tgui::bindBottom(empiIsBulletLabel) + GUI_PADDING_Y);
+	empiHitboxRadiusLabel->setPosition(tgui::bindLeft(empiIsBullet), tgui::bindBottom(empiIsBullet) + GUI_PADDING_Y);
+	empiHitboxRadius->setPosition(empiHitboxRadiusLabel->getPosition().x, empiHitboxRadiusLabel->getPosition().y + empiHitboxRadiusLabel->getSize().y + GUI_PADDING_Y);
+	empiDespawnTimeLabel->setPosition(tgui::bindLeft(empiHitboxRadius), tgui::bindBottom(empiHitboxRadius) + GUI_PADDING_Y);
+	empiDespawnTime->setPosition(empiDespawnTimeLabel->getPosition().x, empiDespawnTimeLabel->getPosition().y + empiDespawnTimeLabel->getSize().y + GUI_PADDING_Y);
+	empiActionsLabel->setPosition(tgui::bindLeft(empiDespawnTime), tgui::bindBottom(empiDespawnTime) + GUI_PADDING_Y);
+	empiActions->setPosition(tgui::bindLeft(empiActionsLabel), tgui::bindBottom(empiActionsLabel) + GUI_PADDING_Y);
+	empiSpawnTypeLabel->setPosition(tgui::bindLeft(empiActions), tgui::bindBottom(empiActions) + GUI_PADDING_Y);
+	empiSpawnType->setPosition(tgui::bindLeft(empiSpawnTypeLabel), tgui::bindBottom(empiSpawnTypeLabel) + GUI_PADDING_Y);
+	empiSpawnTypeTimeLabel->setPosition(tgui::bindLeft(empiSpawnType), tgui::bindBottom(empiSpawnType) + GUI_PADDING_Y);
+	empiSpawnTypeTime->setPosition(tgui::bindLeft(empiSpawnTypeTimeLabel), tgui::bindBottom(empiSpawnTypeTimeLabel) + GUI_PADDING_Y);
+	empiSpawnTypeXLabel->setPosition(tgui::bindLeft(empiSpawnTypeTime), tgui::bindBottom(empiSpawnTypeTime) + GUI_PADDING_Y);
+	empiSpawnTypeX->setPosition(tgui::bindLeft(empiSpawnTypeXLabel), tgui::bindBottom(empiSpawnTypeXLabel) + GUI_PADDING_Y);
+	empiSpawnTypeYLabel->setPosition(tgui::bindLeft(empiSpawnTypeX), tgui::bindBottom(empiSpawnTypeX) + GUI_PADDING_Y);
+	empiSpawnTypeY->setPosition(tgui::bindLeft(empiSpawnTypeYLabel), tgui::bindBottom(empiSpawnTypeYLabel) + GUI_PADDING_Y);
+	empiShadowTrailLifespanLabel->setPosition(tgui::bindLeft(empiSpawnTypeY), tgui::bindBottom(empiSpawnTypeY) + GUI_PADDING_Y);
+	empiShadowTrailLifespan->setPosition(empiShadowTrailLifespanLabel->getPosition().x, empiShadowTrailLifespanLabel->getPosition().y + empiShadowTrailLifespanLabel->getSize().y + GUI_PADDING_Y);
+	empiShadowTrailIntervalLabel->setPosition(tgui::bindLeft(empiShadowTrailLifespan), tgui::bindBottom(empiShadowTrailLifespan) + GUI_PADDING_Y);
+	empiShadowTrailInterval->setPosition(empiShadowTrailIntervalLabel->getPosition().x, empiShadowTrailIntervalLabel->getPosition().y + empiShadowTrailIntervalLabel->getSize().y + GUI_PADDING_Y);
+	empiAnimatableLabel->setPosition(tgui::bindLeft(empiShadowTrailInterval), tgui::bindBottom(empiShadowTrailInterval) + GUI_PADDING_Y);
+	//empiAnimatable->setPosition(tgui::bindLeft(empiAnimatableLabel), tgui::bindBottom(empiAnimatableLabel) + GUI_PADDING_Y);
+	empiLoopAnimationLabel->setPosition(tgui::bindLeft(empiAnimatable), tgui::bindBottom(empiAnimatable) + GUI_PADDING_Y);
+	empiLoopAnimation->setPosition(tgui::bindLeft(empiLoopAnimationLabel), tgui::bindBottom(empiLoopAnimationLabel) + GUI_PADDING_Y);
+	empiBaseSpriteLabel->setPosition(tgui::bindLeft(empiLoopAnimation), tgui::bindBottom(empiLoopAnimation) + GUI_PADDING_Y);
+	//empiBaseSprite->setPosition(tgui::bindLeft(empiBaseSpriteLabel), tgui::bindBottom(empiBaseSpriteLabel) + GUI_PADDING_Y);
+	empiDamageLabel->setPosition(tgui::bindLeft(empiBaseSprite), tgui::bindBottom(empiBaseSprite) + GUI_PADDING_Y);
+	empiDamage->setPosition(tgui::bindLeft(empiDamageLabel), tgui::bindBottom(empiDamageLabel) + GUI_PADDING_Y);
+	empiOnCollisionActionLabel->setPosition(tgui::bindLeft(empiDamage), tgui::bindBottom(empiDamage) + GUI_PADDING_Y);
+	empiOnCollisionAction->setPosition(tgui::bindLeft(empiOnCollisionActionLabel), tgui::bindBottom(empiOnCollisionActionLabel) + GUI_PADDING_Y);
+	empiPierceResetTimeLabel->setPosition(tgui::bindLeft(empiOnCollisionAction), tgui::bindBottom(empiOnCollisionAction) + GUI_PADDING_Y);
+	empiPierceResetTime->setPosition(empiPierceResetTimeLabel->getPosition().x, empiPierceResetTimeLabel->getPosition().y + empiPierceResetTimeLabel->getSize().y + GUI_PADDING_Y);
+	empiSoundSettings->setPosition(0, tgui::bindBottom(empiPierceResetTime) + GUI_PADDING_Y);
+	empiBulletModelLabel->setPosition(tgui::bindLeft(empiPierceResetTime), tgui::bindBottom(empiSoundSettings) + GUI_PADDING_Y);
+	empiBulletModel->setPosition(tgui::bindLeft(empiBulletModelLabel), tgui::bindBottom(empiBulletModelLabel) + GUI_PADDING_Y);
+	empiInheritRadiusLabel->setPosition(tgui::bindLeft(empiBulletModel), tgui::bindBottom(empiBulletModel) + GUI_PADDING_Y);
+	empiInheritRadius->setPosition(tgui::bindLeft(empiInheritRadiusLabel), tgui::bindBottom(empiInheritRadiusLabel) + GUI_PADDING_Y);
+	empiInheritDespawnTimeLabel->setPosition(tgui::bindLeft(empiInheritRadius), tgui::bindBottom(empiInheritRadius) + GUI_PADDING_Y);
+	empiInheritDespawnTime->setPosition(tgui::bindLeft(empiInheritDespawnTimeLabel), tgui::bindBottom(empiInheritDespawnTimeLabel) + GUI_PADDING_Y);
+	empiInheritShadowTrailIntervalLabel->setPosition(tgui::bindLeft(empiInheritDespawnTime), tgui::bindBottom(empiInheritDespawnTime) + GUI_PADDING_Y);
+	empiInheritShadowTrailInterval->setPosition(tgui::bindLeft(empiInheritShadowTrailIntervalLabel), tgui::bindBottom(empiInheritShadowTrailIntervalLabel) + GUI_PADDING_Y);
+	empiInheritShadowTrailLifespanLabel->setPosition(tgui::bindLeft(empiInheritShadowTrailInterval), tgui::bindBottom(empiInheritShadowTrailInterval) + GUI_PADDING_Y);
+	empiInheritShadowTrailLifespan->setPosition(tgui::bindLeft(empiInheritShadowTrailLifespanLabel), tgui::bindBottom(empiInheritShadowTrailLifespanLabel) + GUI_PADDING_Y);
+	empiInheritAnimatablesLabel->setPosition(tgui::bindLeft(empiInheritShadowTrailLifespan), tgui::bindBottom(empiInheritShadowTrailLifespan) + GUI_PADDING_Y);
+	empiInheritAnimatables->setPosition(tgui::bindLeft(empiInheritAnimatablesLabel), tgui::bindBottom(empiInheritAnimatablesLabel) + GUI_PADDING_Y);
+	empiInheritDamageLabel->setPosition(tgui::bindLeft(empiInheritAnimatables), tgui::bindBottom(empiInheritAnimatables) + GUI_PADDING_Y);
+	empiInheritDamage->setPosition(tgui::bindLeft(empiInheritDamageLabel), tgui::bindBottom(empiInheritDamageLabel) + GUI_PADDING_Y);
+	empiInheritSoundSettingsLabel->setPosition(tgui::bindLeft(empiInheritDamage), tgui::bindBottom(empiInheritDamage) + GUI_PADDING_Y);
+	empiInheritSoundSettings->setPosition(tgui::bindLeft(empiInheritSoundSettingsLabel), tgui::bindBottom(empiInheritSoundSettingsLabel) + GUI_PADDING_Y);
+}
+
 void AttackEditor::selectAttack(int id) {
 	if (unsavedAttacks.count(id) > 0) {
 		selectedAttack = unsavedAttacks[id];
 	} else {
+		// Make a copy of the attack in the LevelPack so that changes can be applied/discarded
+		// whenever the user wants instead of modifying the LevelPack directly.
 		selectedAttack = std::make_shared<EditorAttack>(levelPack.getAttack(id));
 	}
 
@@ -292,13 +559,145 @@ void AttackEditor::deselectAttack() {
 }
 
 void AttackEditor::selectEMP(int empID) {
+	// A copy of the EMP is not necessary because a copy of the selected attack has already been made
+	// when selecting an attack.
 	selectedEMP = selectedAttack->searchEMP(empID);
 
 	emplCreateEMP->setEnabled(true);
 	// Can't delete main EMP of an attack
 	emplDeleteEMP->setEnabled(empID != selectedAttack->getMainEMP()->getID());
 
-	// TODO: all the empi stuff
+	bool isBullet = selectedEMP->getIsBullet();
+	bool usesModel = selectedEMP->usesBulletModel();
+	empiID->setVisible(true);
+	empiIsBulletLabel->setVisible(true);
+	empiIsBullet->setVisible(true);
+	empiHitboxRadiusLabel->setVisible(isBullet);
+	empiHitboxRadius->setVisible(isBullet);
+	empiDespawnTimeLabel->setVisible(true);
+	empiDespawnTime->setVisible(true);
+	empiActionsLabel->setVisible(true);
+	empiActions->setVisible(true);
+	empiSpawnTypeLabel->setVisible(true);
+	empiSpawnType->setVisible(true);
+	empiSpawnTypeTimeLabel->setVisible(true);
+	empiSpawnTypeTime->setVisible(true);
+	empiSpawnTypeXLabel->setVisible(true);
+	empiSpawnTypeX->setVisible(true);
+	empiSpawnTypeYLabel->setVisible(true);
+	empiSpawnTypeY->setVisible(true);
+	empiShadowTrailLifespanLabel->setVisible(isBullet);
+	empiShadowTrailLifespan->setVisible(isBullet);
+	empiShadowTrailIntervalLabel->setVisible(isBullet);
+	empiShadowTrailInterval->setVisible(isBullet);
+	empiAnimatableLabel->setVisible(isBullet);
+	empiAnimatable->setVisible(isBullet);
+	empiLoopAnimationLabel->setVisible(isBullet);
+	empiLoopAnimation->setVisible(isBullet);
+	empiBaseSpriteLabel->setVisible(isBullet);
+	empiBaseSprite->setVisible(isBullet);
+	empiDamageLabel->setVisible(isBullet);
+	empiDamage->setVisible(isBullet);
+	empiOnCollisionActionLabel->setVisible(isBullet);
+	empiOnCollisionAction->setVisible(isBullet);
+	empiSoundSettings->setVisible(true);
+	empiBulletModelLabel->setVisible(isBullet);
+	empiBulletModel->setVisible(isBullet);
+	empiInheritRadiusLabel->setVisible(isBullet && usesModel);
+	empiInheritRadius->setVisible(isBullet && usesModel);
+	empiInheritDespawnTimeLabel->setVisible(isBullet && usesModel);
+	empiInheritDespawnTime->setVisible(isBullet && usesModel);
+	empiInheritShadowTrailIntervalLabel->setVisible(isBullet && usesModel);
+	empiInheritShadowTrailInterval->setVisible(isBullet && usesModel);
+	empiInheritShadowTrailLifespanLabel->setVisible(isBullet && usesModel);
+	empiInheritShadowTrailLifespan->setVisible(isBullet && usesModel);
+	empiInheritAnimatablesLabel->setVisible(isBullet && usesModel);
+	empiInheritAnimatables->setVisible(isBullet && usesModel);
+	empiInheritDamageLabel->setVisible(isBullet && usesModel);
+	empiInheritDamage->setVisible(isBullet && usesModel);
+	empiInheritSoundSettingsLabel->setVisible(isBullet && usesModel);
+	empiInheritSoundSettings->setVisible(isBullet && usesModel);
+
+	empiID->setText("ID: " + std::to_string(selectedEMP->getID()));
+	empiIsBullet->setChecked(selectedEMP->getIsBullet());
+	empiSpawnType->setSelectedItemById(getID(selectedEMP->getSpawnType()));
+	empiSpawnTypeTime->setValue(selectedEMP->getSpawnType()->getTime());
+	empiSpawnTypeX->setValue(selectedEMP->getSpawnType()->getX());
+	empiSpawnTypeY->setValue(selectedEMP->getSpawnType()->getY());
+	empiShadowTrailLifespan->setValue(selectedEMP->getShadowTrailLifespan());
+	empiOnCollisionAction->setSelectedItemById(getID(selectedEMP->getOnCollisionAction()));
+	empiPierceResetTime->setValue(selectedEMP->getPierceResetTime());
+	buildEMPIActions();
+
+	if (usesModel) {
+		empiBulletModel->setSelectedItemById(std::to_string(selectedEMP->getBulletModelID()));
+
+		std::shared_ptr<BulletModel> model = levelPack.getBulletModel(selectedEMP->getBulletModelID());
+		if (selectedEMP->getInheritAnimatables()) {
+			empiAnimatable->setSelectedItem(model->getAnimatable());
+			empiLoopAnimation->setChecked(model->getLoopAnimation());
+			empiBaseSprite->setSelectedItem(model->getBaseSprite());
+		} else {
+			empiAnimatable->setSelectedItem(selectedEMP->getAnimatable());
+			empiLoopAnimation->setChecked(selectedEMP->getLoopAnimation());
+			empiBaseSprite->setSelectedItem(selectedEMP->getBaseSprite());
+		}
+
+		if (selectedEMP->getInheritDamage()) {
+			empiDamage->setValue(model->getDamage());
+		} else {
+			empiDamage->setValue(selectedEMP->getDamage());
+		}
+
+		if (selectedEMP->getInheritDespawnTime()) {
+			empiDespawnTime->setValue(model->getDespawnTime());
+		} else {
+			empiDespawnTime->setValue(selectedEMP->getDespawnTime());
+		}
+
+		if (selectedEMP->getInheritRadius()) {
+			empiHitboxRadius->setValue(model->getHitboxRadius());
+		} else {
+			empiHitboxRadius->setValue(selectedEMP->getHitboxRadius());
+		}
+
+		if (selectedEMP->getInheritShadowTrailInterval()) {
+			empiShadowTrailInterval->setValue(model->getShadowTrailInterval());
+		} else {
+			empiShadowTrailInterval->setValue(selectedEMP->getShadowTrailInterval());
+		}
+
+		if (selectedEMP->getInheritShadowTrailLifespan()) {
+			empiShadowTrailLifespan->setValue(model->getShadowTrailLifespan());
+		} else {
+			empiShadowTrailInterval->setValue(selectedEMP->getShadowTrailLifespan());
+		}
+
+		if (selectedEMP->getInheritSoundSettings()) {
+			empiSoundSettings->initSettings(model->getSoundSettings());
+		} else {
+			empiSoundSettings->initSettings(selectedEMP->getSoundSettings());
+		}
+	} else {
+		empiAnimatable->setSelectedItem(selectedEMP->getAnimatable());
+		empiLoopAnimation->setChecked(selectedEMP->getLoopAnimation());
+		empiBaseSprite->setSelectedItem(selectedEMP->getBaseSprite());
+		empiDamage->setValue(selectedEMP->getDamage());
+		empiDespawnTime->setValue(selectedEMP->getDespawnTime());
+		empiHitboxRadius->setValue(selectedEMP->getHitboxRadius());
+		empiShadowTrailInterval->setValue(selectedEMP->getShadowTrailInterval());
+		empiShadowTrailInterval->setValue(selectedEMP->getShadowTrailLifespan());
+		empiSoundSettings->initSettings(selectedEMP->getSoundSettings());
+	}
+	empiAnimatable->setEnabled(!usesModel || !selectedEMP->getInheritAnimatables());
+	empiLoopAnimation->setEnabled(!usesModel || !selectedEMP->getInheritAnimatables());
+	empiBaseSprite->setEnabled(!usesModel || !selectedEMP->getInheritAnimatables());
+	empiDamage->setEnabled(!usesModel || !selectedEMP->getInheritDamage());
+	empiDespawnTime->setEnabled(!usesModel || !selectedEMP->getInheritDespawnTime());
+	empiHitboxRadius->setEnabled(!usesModel || !selectedEMP->getInheritRadius());
+	empiShadowTrailInterval->setEnabled(!usesModel || !selectedEMP->getInheritShadowTrailInterval());
+	empiShadowTrailLifespan->setEnabled(!usesModel || !selectedEMP->getInheritShadowTrailLifespan());
+	empiSoundSettings->setEnabled(!usesModel || !selectedEMP->getInheritSoundSettings());
 }
 
 void AttackEditor::deselectEMP() {
@@ -307,7 +706,56 @@ void AttackEditor::deselectEMP() {
 	emplCreateEMP->setEnabled(false);
 	emplDeleteEMP->setEnabled(false);
 
-	//TODO: clear all the empi stuff
+	empiID->setVisible(false);
+	empiIsBulletLabel->setVisible(false);
+	empiIsBullet->setVisible(false);
+	empiHitboxRadiusLabel->setVisible(false);
+	empiHitboxRadius->setVisible(false);
+	empiDespawnTimeLabel->setVisible(false);
+	empiDespawnTime->setVisible(false);
+	empiActionsLabel->setVisible(false);
+	empiActions->setVisible(false);
+	empiSpawnTypeLabel->setVisible(false);
+	empiSpawnType->setVisible(false);
+	empiSpawnTypeTimeLabel->setVisible(false);
+	empiSpawnTypeTime->setVisible(false);
+	empiSpawnTypeXLabel->setVisible(false);
+	empiSpawnTypeX->setVisible(false);
+	empiSpawnTypeYLabel->setVisible(false);
+	empiSpawnTypeY->setVisible(false);
+	empiShadowTrailLifespanLabel->setVisible(false);
+	empiShadowTrailLifespan->setVisible(false);
+	empiShadowTrailIntervalLabel->setVisible(false);
+	empiShadowTrailInterval->setVisible(false);
+	empiAnimatableLabel->setVisible(false);
+	empiAnimatable->setVisible(false);
+	empiLoopAnimationLabel->setVisible(false);
+	empiLoopAnimation->setVisible(false);
+	empiBaseSpriteLabel->setVisible(false);
+	empiBaseSprite->setVisible(false);
+	empiDamageLabel->setVisible(false);
+	empiDamage->setVisible(false);
+	empiOnCollisionActionLabel->setVisible(false);
+	empiOnCollisionAction->setVisible(false);
+	empiPierceResetTimeLabel->setVisible(false);
+	empiPierceResetTime->setVisible(false);
+	empiSoundSettings->setVisible(false);
+	empiBulletModelLabel->setVisible(false);
+	empiBulletModel->setVisible(false);
+	empiInheritRadiusLabel->setVisible(false);
+	empiInheritRadius->setVisible(false);
+	empiInheritDespawnTimeLabel->setVisible(false);
+	empiInheritDespawnTime->setVisible(false);
+	empiInheritShadowTrailIntervalLabel->setVisible(false);
+	empiInheritShadowTrailInterval->setVisible(false);
+	empiInheritShadowTrailLifespanLabel->setVisible(false);
+	empiInheritShadowTrailLifespan->setVisible(false);
+	empiInheritAnimatablesLabel->setVisible(false);
+	empiInheritAnimatables->setVisible(false);
+	empiInheritDamageLabel->setVisible(false);
+	empiInheritDamage->setVisible(false);
+	empiInheritSoundSettingsLabel->setVisible(false);
+	empiInheritSoundSettings->setVisible(false);
 }
 
 void AttackEditor::createAttack() {
@@ -395,9 +843,18 @@ void AttackEditor::buildEMPTree() {
 sf::String AttackEditor::getEMPTreeNodeText(const EditorMovablePoint& emp) {
 	//TODO: inidicate if it's a bullet and other stuff
 	// Whether EMP is a bullet or just an anchor (a reference point; not a bullet)
-	std::string bulletStr = emp.isBullet() ? "[B]" : "[A]";
+	std::string bulletStr = emp.getIsBullet() ? "[B]" : "[A]";
 	std::string idStr = "[id=" + std::to_string(emp.getID()) + "]";
 	return bulletStr + " " + idStr;
+}
+
+void AttackEditor::buildEMPIActions() {
+	empiActions->removeAllItems();
+	auto actions = selectedEMP->getActions();
+	float curTime = 0;
+	for (int i = 0; i < actions.size(); i++) {
+		empiActions->addItem("[t=" + formatNum(curTime) + "] " + actions[i]->getGuiFormat(), std::to_string(i));
+	}
 }
 
 void AttackEditor::onMainWindowRender(float deltaTime) {

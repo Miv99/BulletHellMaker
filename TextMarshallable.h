@@ -13,6 +13,22 @@ std::vector<std::string> split(std::string str, char delimiter);
 // Checks if a string contains a char
 bool contains(std::string str, char c);
 
+template<typename T>
+std::string formatNum(const T &n) {
+	std::ostringstream oss;
+	oss << n;
+	std::string s = oss.str();
+	int dotpos = s.find_first_of('.');
+	if (dotpos != std::string::npos) {
+		int ipos = s.size() - 1;
+		while (s[ipos] == '0' && ipos > dotpos) {
+			--ipos;
+		}
+		s.erase(ipos + 1, std::string::npos);
+	}
+	return s;
+}
+
 class TextMarshallable {
 public:
 	// Throws an exception if the implementation contains strings that contain delimiters

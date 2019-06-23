@@ -57,13 +57,12 @@ std::string EditorMovablePoint::format() {
 	res += tm_delim + (inheritShadowTrailLifespan ? "1" : "0");
 	res += tm_delim + (inheritAnimatables ? "1" : "0");
 	res += tm_delim + (inheritDamage ? "1" : "0");
-	res += tm_delim + (inheritOnCollisionAction ? "1" : "0");
 	res += tm_delim + (inheritSoundSettings ? "1" : "0");
 
 	if (isBullet) {
-		res += "1" + tm_delim;
+		res += tm_delim + "1";
 	} else {
-		res += "0" + tm_delim;
+		res += tm_delim + "0";
 	}
 
 	return res;
@@ -116,7 +115,6 @@ void EditorMovablePoint::load(std::string formattedString) {
 	inheritShadowTrailLifespan = (std::stoi(items[i++]) == 1);
 	inheritAnimatables = (std::stoi(items[i++]) == 1);
 	inheritDamage = (std::stoi(items[i++]) == 1);
-	inheritOnCollisionAction = (std::stoi(items[i++]) == 1);
 	inheritSoundSettings = (std::stoi(items[i++]) == 1);
 
 	if (std::stoi(items[i++]) == 1) {
@@ -206,7 +204,6 @@ void EditorMovablePoint::loadBulletModel(const LevelPack & levelPack) {
 		baseSprite = model->getBaseSprite();
 	}
 	if (inheritDamage) damage = model->getDamage();
-	if (inheritOnCollisionAction) onCollisionAction = model->getOnCollisionAction();
 	if (inheritSoundSettings) {
 		soundSettings = model->getSoundSettings();
 	}
@@ -228,7 +225,6 @@ void EditorMovablePoint::setBulletModel(std::shared_ptr<BulletModel> model) {
 		baseSprite = model->getBaseSprite();
 	}
 	if (inheritDamage) damage = model->getDamage();
-	if (inheritOnCollisionAction) onCollisionAction = model->getOnCollisionAction();
 	if (inheritSoundSettings) {
 		soundSettings = model->getSoundSettings();
 	}

@@ -44,7 +44,16 @@ Notes for me:
 -TreeView default (when there are no textures) icon bounds incorrect size if setItemHeight is called after setSize
 -attack ID 13 is messed up
 
+big todo:
+-disable time thing (empiSpawnTypeTime) if it's the main EMP
+-button to click on play area to choose location too
+-when empiActions changes (added/deleted item), the whole list must be rebuilt because id is index
+	-tooltip: "d=" means duration; time for action to complete
+
 TODO:
+-animatables can't have backslashes in name
+-change all setposition and setsize to use "25%" or whatever
+-change size of animatablepicture to match texture's aspect ratio
 -SpriteSheetLoader emits some signal every time a change is made (sprite/spritesheet added/deleted)
 -LevelPack emits signals for Attack/AttackPattern/Enemy/EnemyPhase every time one is changed (unique signal for each)
 -Animatables can't have backslashes in name
