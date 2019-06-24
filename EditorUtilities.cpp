@@ -140,6 +140,12 @@ void SliderWithEditBox::setVisible(bool visible) {
 }
 
 void SliderWithEditBox::onEditBoxValueSet(float value) {
+	if (value > getMaximum() && !editBox->getHasMax()) {
+		setMaximum(value);
+	}
+	if (value < getMinimum() && !editBox->getHasMin()) {
+		setMaximum(value);
+	}
 	tgui::Slider::setValue(value);
 }
 
@@ -231,7 +237,7 @@ void SoundSettingsGroup::onContainerResize(int containerWidth, int containerHeig
 	pitchLabel->setPosition(tgui::bindLeft(enableAudioLabel), tgui::bindBottom(volume) + paddingY);
 	pitch->setPosition(enableAudioLabel->getPosition().x, pitchLabel->getPosition().y + pitchLabel->getSize().y + paddingY);
 
-	setSize(getSize().x, pitch->getPosition().y + pitch->getSize().y - enableAudio->getPosition().y);
+	setSize(getSize().x, pitch->getPosition().y + pitch->getSize().y + paddingY);
 }
 
 std::shared_ptr<entt::SigH<void(SoundSettings)>> SoundSettingsGroup::getOnNewSoundSettingsSignal() {
@@ -269,7 +275,7 @@ void NumericalEditBoxWithLimits::setValue(float value) {
 	if (mustBeInt) {
 		setValue(std::round(value));
 	} else {
-		setText(std::to_string(value));
+		setText(formatNum(value));
 	}
 }
 
@@ -309,4 +315,20 @@ void NumericalEditBoxWithLimits::updateInputValidator() {
 	} else {
 		setInputValidator("^[0-9].*$");
 	}
+}
+
+TFVGroup::TFVGroup() {
+	onTFVChange = std::make_shared<entt::SigH<void()>>();
+}
+
+void TFVGroup::onContainerResize(int containerWidth, int containerHeight) {
+	//TODO
+}
+
+EMPAAngleOffsetGroup::EMPAAngleOffsetGroup() {
+	onAngleOffsetChange = std::make_shared <entt::SigH<void()>>();
+}
+
+void EMPAAngleOffsetGroup::onContainerResize(int containerWidth, int containerHeight) {
+	//TODO
 }

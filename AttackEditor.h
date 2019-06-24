@@ -34,6 +34,10 @@ public:
 	Should be called every time the main window is resized.
 	*/
 	void onMainWindowResize(int windowWidth, int windowHeight);
+	/*
+	Should be called every time the play area window is resized.
+	*/
+	void onPlayAreaWindowResize(int windowWidth, int windowHeight);
 
 private:
 	const float GUI_PADDING_X = 20;
@@ -49,6 +53,11 @@ private:
 	*/
 	void selectEMP(int id);
 	void deselectEMP();
+	/*
+	index - index of the selected action in the selected EMP's list of EMPActions
+	*/
+	void selectEMPA(int index);
+	void deselectEMPA();
 
 	/*
 	Begin editing an EditorMovablePoint that is part of the currently open EditorAttack.
@@ -114,7 +123,14 @@ private:
 	//TODO: max value is sum of all Actions times; make sure to change when actions is changed
 	std::shared_ptr<SliderWithEditBox> empiDespawnTime;
 	std::shared_ptr<tgui::Label> empiActionsLabel;
+	// Entry ID is index in list of the EMP's actions
 	std::shared_ptr<tgui::ListBox> empiActions;
+	// if no EMPA is selected, this button adds a new EMPA at index 0; otherwise add at selectedEMPAIndex - 1
+	std::shared_ptr<tgui::Button> empiActionsAddAbove;
+	// if no EMPA is selected, this button adds a new EMPA at last index; otherwise add at selectedEMPAIndex + 1
+	std::shared_ptr<tgui::Button> empiActionsAddBelow;
+	std::shared_ptr<tgui::Button> empiActionsEdit;
+	std::shared_ptr<tgui::Button> empiActionsDelete;
 	std::shared_ptr<tgui::Label> empiSpawnTypeLabel;
 	// Entry ID is from getID()
 	std::shared_ptr<tgui::ComboBox> empiSpawnType;
@@ -124,6 +140,7 @@ private:
 	std::shared_ptr<NumericalEditBoxWithLimits> empiSpawnTypeX;
 	std::shared_ptr<tgui::Label> empiSpawnTypeYLabel;
 	std::shared_ptr<NumericalEditBoxWithLimits> empiSpawnTypeY;
+	std::shared_ptr<tgui::Button> empiSpawnLocationManualSet;
 	std::shared_ptr<tgui::Label> empiShadowTrailLifespanLabel;
 	std::shared_ptr<SliderWithEditBox> empiShadowTrailLifespan;
 	std::shared_ptr<tgui::Label> empiShadowTrailIntervalLabel;
@@ -160,6 +177,12 @@ private:
 	std::shared_ptr<tgui::CheckBox> empiInheritDamage;
 	std::shared_ptr<tgui::Label> empiInheritSoundSettingsLabel;
 	std::shared_ptr<tgui::CheckBox> empiInheritSoundSettings;
+
+	void onEmpiHitboxRadiusChange(float value);
+	void onEmpiDespawnTimeChange(float value);
+	void onEmpiShadowTrailLifespanChange(float value);
+	void onEmpiShadowTrailIntervalChange(float value);
+	void onEmpiPierceResetTimeChange(float value);
 	//------------------ Attack list widgets (al__) --------------------------------
 	std::shared_ptr<tgui::ScrollablePanel> alPanel;
 
@@ -176,6 +199,28 @@ private:
 	std::shared_ptr<tgui::Button> emplCreateEMP;
 	std::shared_ptr<tgui::Button> emplDeleteEMP;
 	//------------------ Play area window widgets (paw__) --------------------------------
+	
+	//------------------ EMPA info widgets (empai__) (these are in the play area window)
+	std::shared_ptr<tgui::ScrollablePanel> empaiPanel;
+
+	//TODO: connect() for these
+	std::shared_ptr<tgui::Label> empaiInfo;
+	std::shared_ptr<tgui::Label> empaiDurationLabel;
+	std::shared_ptr<SliderWithEditBox> empaiDuration;
+	std::shared_ptr<tgui::Label> empaiPolarDistanceLabel;
+	std::shared_ptr<TFVGroup> empaiPolarDistance; // only for MoveCustomPolarEMPA
+	std::shared_ptr<tgui::Label> empaiPolarAngleLabel;
+	std::shared_ptr<TFVGroup> empaiPolarAngle; // only for MoveCustomPolarEMPA
+	std::shared_ptr<tgui::Label> empaiBezierControlPointsLabel;
+	std::shared_ptr<tgui::ListBox> empaiBezierControlPoints; // only for MoveCustomBezierEMPA
+	//TODO: button to add/delete bezier control points
+	std::shared_ptr<tgui::Label> empaiAngleOffsetLabel;
+	std::shared_ptr<EMPAAngleOffsetGroup> empaiAngleOffset; // for MoveCustomPolarEMPA and MoveCustomBezierEMPA
+	std::shared_ptr<tgui::Label> empaiHomingStrengthLabel;
+	std::shared_ptr<TFVGroup> empaiHomingStrength; // only for MovePlayerHomingEMPA
+	std::shared_ptr<tgui::Label> empaiHomingSpeedLabel;
+	std::shared_ptr<TFVGroup> empaiHomingSpeed; // only for MovePlayerHomingEMPA
+	// -----------------------------------------------------------------------------------
 
 	// Threads for the above windows
 	std::thread mainWindowThread;
@@ -187,6 +232,10 @@ private:
 	std::shared_ptr<EditorAttack> selectedAttack;
 	// nullptr if none selected
 	std::shared_ptr<EditorMovablePoint> selectedEMP;
+	// -1 if none selected; linked with selectedEMPA
+	int selectedEMPAIndex = -1;
+	// nullptr if none selected; linked with selectedEMPAIndex
+	std::shared_ptr<EMPAction> selectedEMPA;
 
 	// Maps EditorAttack ID to the EditorAttack copy, but with those changes.
 	// If an entry does not exist for some ID, the attack with that ID has no unsaved changes.

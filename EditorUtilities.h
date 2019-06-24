@@ -5,6 +5,8 @@
 #include "Animatable.h"
 #include "Animation.h"
 #include "AudioPlayer.h"
+#include "TimeFunctionVariable.h"
+#include "EditorMovablePointAction.h"
 #include <memory>
 #include <entt/entt.hpp>
 
@@ -47,6 +49,9 @@ public:
 	This is false by default.
 	*/
 	void setIntegerMode(bool intMode);
+
+	inline bool getHasMin() { return hasMin; }
+	inline bool getHasMax() { return hasMax; }
 
 	std::shared_ptr<entt::SigH<void(float)>> getOnValueSet();
 
@@ -122,6 +127,9 @@ private:
 	std::shared_ptr<NumericalEditBoxWithLimits> editBox;
 };
 
+/*
+Used to edit SoundSettings
+*/
 class SoundSettingsGroup : public tgui::Group {
 public:
 	SoundSettingsGroup(float paddingX = 20, float paddingY = 10);
@@ -153,4 +161,48 @@ private:
 	std::shared_ptr<tgui::Label> fileNameLabel;
 	std::shared_ptr<tgui::Label> volumeLabel;
 	std::shared_ptr<tgui::Label> pitchLabel;
+};
+
+/*
+Used to edit TFVs.
+*/
+class TFVGroup : public tgui::Group {
+public:
+	TFVGroup();
+
+	/*
+	Should be called whenever this widget's container is resized.
+	This function automatically sets the height of this widget.
+	*/
+	void onContainerResize(int containerWidth, int containerHeight);
+
+	inline std::shared_ptr<TFV> getTFV() { return tfv; }
+	inline std::shared_ptr<entt::SigH<void()>> getOnTFVChange() { return onTFVChange; }
+
+private:
+	std::shared_ptr<TFV> tfv;
+	// Signal emitted whenever a change is made to the TFV obtained from getTFV()
+	std::shared_ptr<entt::SigH<void()>> onTFVChange;
+};
+
+/*
+Used to edit EMPAAngleOffsets;
+*/
+class EMPAAngleOffsetGroup : public tgui::Group {
+public:
+	EMPAAngleOffsetGroup();
+
+	/*
+	Should be called whenever this widget's container is resized.
+	This function automatically sets the height of this widget.
+	*/
+	void onContainerResize(int containerWidth, int containerHeight);
+
+	inline std::shared_ptr<EMPAAngleOffset> getAngleOffset() { return angleOffset; }
+	inline std::shared_ptr<entt::SigH<void()>> getOnAngleOffsetChange() { return onAngleOffsetChange; }
+
+private:
+	std::shared_ptr<EMPAAngleOffset> angleOffset;
+	// Signal emitted whenever a change is made to the EMPAAngleOffset obtained from getAngleOffset()
+	std::shared_ptr<entt::SigH<void()>> onAngleOffsetChange;
 };

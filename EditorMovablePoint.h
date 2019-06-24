@@ -258,7 +258,7 @@ private:
 
 	// The minimum of this value and the total time to complete all EMPActions is the time until this EMP despawns
 	// Set to <= 0 if unused (then the total EMPActions time will be used instead; calculated with getTotalPathTime())
-	float despawnTime = -1;
+	float despawnTime = 0;
 
 	// This EMP's reference. Not saved
 	std::weak_ptr<EditorMovablePoint> parent;

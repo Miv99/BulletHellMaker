@@ -85,6 +85,8 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 
 	alSaveAll->setTextSize(TEXT_SIZE);
 	alDiscardAll->setTextSize(TEXT_SIZE);
+	alCreateAttack->setTextSize(TEXT_SIZE);
+	alDeleteAttack->setTextSize(TEXT_SIZE);
 
 	alSaveAll->setText("Save all");
 	alDiscardAll->setText("Discard all");
@@ -157,6 +159,8 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 	emplTree->getRenderer()->setBackgroundColor(sf::Color(190, 190, 190, 255));
 	emplTree->setItemHeight(TEXT_BOX_HEIGHT);
 
+	emplCreateEMP->setTextSize(TEXT_SIZE);
+	emplDeleteEMP->setTextSize(TEXT_SIZE);
 	emplLabel->setMaximumTextWidth(0);
 	emplLabel->setTextSize(TEXT_SIZE);
 	emplLabel->setText("Movable points");
@@ -202,8 +206,11 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 	empiDespawnTime = std::make_shared<SliderWithEditBox>();
 	empiActionsLabel = tgui::Label::create();
 	empiActions = tgui::ListBox::create();
+	empiActionsAddAbove = tgui::Button::create();
+	empiActionsAddBelow = tgui::Button::create();
+	empiActionsEdit = tgui::Button::create();
+	empiActionsDelete = tgui::Button::create();
 	empiSpawnTypeLabel = tgui::Label::create();
-
 	empiSpawnType = tgui::ComboBox::create();
 	empiSpawnTypeTimeLabel = tgui::Label::create();
 	empiSpawnTypeTime = std::make_shared<NumericalEditBoxWithLimits>();
@@ -211,6 +218,7 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 	empiSpawnTypeX = std::make_shared<NumericalEditBoxWithLimits>();
 	empiSpawnTypeYLabel = tgui::Label::create();
 	empiSpawnTypeY = std::make_shared<NumericalEditBoxWithLimits>();
+	empiSpawnLocationManualSet = tgui::Button::create();
 	empiShadowTrailLifespanLabel = tgui::Label::create();
 	empiShadowTrailLifespan = std::make_shared<SliderWithEditBox>();
 	empiShadowTrailIntervalLabel = tgui::Label::create();
@@ -250,10 +258,13 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 
 	empiID->setTextSize(TEXT_SIZE);
 	empiIsBulletLabel->setTextSize(TEXT_SIZE);
-
 	empiHitboxRadiusLabel->setTextSize(TEXT_SIZE);
 	empiDespawnTimeLabel->setTextSize(TEXT_SIZE);
 	empiActionsLabel->setTextSize(TEXT_SIZE);
+	empiActionsAddAbove->setTextSize(TEXT_SIZE);
+	empiActionsAddBelow->setTextSize(TEXT_SIZE);
+	empiActionsEdit->setTextSize(TEXT_SIZE);
+	empiActionsDelete->setTextSize(TEXT_SIZE);
 	empiSpawnTypeLabel->setTextSize(TEXT_SIZE);
 	empiSpawnType->setTextSize(TEXT_SIZE);
 	empiSpawnTypeTimeLabel->setTextSize(TEXT_SIZE);
@@ -262,6 +273,7 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 	empiSpawnTypeX->setTextSize(TEXT_SIZE);
 	empiSpawnTypeYLabel->setTextSize(TEXT_SIZE);
 	empiSpawnTypeY->setTextSize(TEXT_SIZE);
+	empiSpawnLocationManualSet->setTextSize(TEXT_SIZE);
 	empiShadowTrailLifespanLabel->setTextSize(TEXT_SIZE);
 	empiShadowTrailLifespan->getEditBox()->setTextSize(TEXT_SIZE);
 	empiShadowTrailIntervalLabel->setTextSize(TEXT_SIZE);
@@ -289,10 +301,15 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 	empiHitboxRadiusLabel->setText("Hitbox radius");
 	empiDespawnTimeLabel->setText("Lifespan");
 	empiActionsLabel->setText("Movement actions");
+	empiActionsAddAbove->setText("Add above");
+	empiActionsAddBelow->setText("Add below");
+	empiActionsEdit->setText("Edit");
+	empiActionsDelete->setText("Delete");
 	empiSpawnTypeLabel->setText("Spawn type");
 	empiSpawnTypeTimeLabel->setText("Spawn delay");
 	empiSpawnTypeXLabel->setText("Spawn X");
 	empiSpawnTypeYLabel->setText("Spawn Y");
+	empiSpawnLocationManualSet->setText("Manual set");
 	empiShadowTrailLifespanLabel->setText("Shadow lifespan");
 	empiShadowTrailIntervalLabel->setText("Shadow interval");
 	empiAnimatableLabel->setText("Sprite/Animation");
@@ -321,6 +338,10 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 	empiPanel->add(empiDespawnTime->getEditBox());
 	empiPanel->add(empiActionsLabel);
 	empiPanel->add(empiActions);
+	empiPanel->add(empiActionsAddAbove);
+	empiPanel->add(empiActionsAddBelow);
+	empiPanel->add(empiActionsEdit);
+	empiPanel->add(empiActionsDelete);
 	empiPanel->add(empiSpawnTypeLabel);
 	empiPanel->add(empiSpawnType);
 	empiPanel->add(empiSpawnTypeTimeLabel);
@@ -329,6 +350,7 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 	empiPanel->add(empiSpawnTypeX);
 	empiPanel->add(empiSpawnTypeYLabel);
 	empiPanel->add(empiSpawnTypeY);
+	empiPanel->add(empiSpawnLocationManualSet);
 	empiPanel->add(empiShadowTrailLifespanLabel);
 	empiPanel->add(empiShadowTrailLifespan);
 	empiPanel->add(empiShadowTrailLifespan->getEditBox());
@@ -368,10 +390,64 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 	//------------------ Play area window widgets --------------------------------
 
 
+	//------------------ EMPA info widgets ---------------------------------------
+	empaiPanel = tgui::ScrollablePanel::create();
+	empaiInfo = tgui::Label::create();
+	empaiDurationLabel = tgui::Label::create();
+	empaiDuration = std::make_shared<SliderWithEditBox>();
+	empaiPolarDistanceLabel = tgui::Label::create();
+	empaiPolarDistance = std::make_shared<TFVGroup>();
+	empaiPolarAngleLabel = tgui::Label::create();
+	empaiPolarAngle = std::make_shared<TFVGroup>();
+	empaiBezierControlPointsLabel = tgui::Label::create();
+	empaiBezierControlPoints = tgui::ListBox::create();
+	empaiAngleOffsetLabel = tgui::Label::create();
+	empaiAngleOffset = std::make_shared<EMPAAngleOffsetGroup>();
+	empaiHomingStrengthLabel = tgui::Label::create();
+	empaiHomingStrength = std::make_shared<TFVGroup>();
+	empaiHomingSpeedLabel = tgui::Label::create();
+	empaiHomingSpeed = std::make_shared<TFVGroup>();
+
+	empaiInfo->setTextSize(TEXT_SIZE);
+	empaiDurationLabel->setTextSize(TEXT_SIZE);
+	empaiPolarDistanceLabel->setTextSize(TEXT_SIZE);
+	empaiPolarAngleLabel->setTextSize(TEXT_SIZE);
+	empaiBezierControlPointsLabel->setTextSize(TEXT_SIZE);
+	empaiAngleOffsetLabel->setTextSize(TEXT_SIZE);
+	empaiHomingStrengthLabel->setTextSize(TEXT_SIZE);
+	empaiHomingSpeedLabel->setTextSize(TEXT_SIZE);
+
+	empaiDurationLabel->setText("Duration");
+	empaiPolarDistanceLabel->setText("Distance as function of time");
+	empaiPolarAngleLabel->setText("Distance as function of time");
+	empaiBezierControlPointsLabel->setText("Bezier control points");
+	empaiAngleOffsetLabel->setText("Angle offset");
+	empaiHomingStrengthLabel->setText("Homing strength as function of time");
+	empaiHomingSpeedLabel->setText("Speed as function of time");
+
+	empaiPanel->add(empaiInfo);
+	empaiPanel->add(empaiDurationLabel);
+	empaiPanel->add(empaiDuration);
+	empaiPanel->add(empaiDuration->getEditBox());
+	empaiPanel->add(empaiPolarDistanceLabel);
+	empaiPanel->add(empaiPolarDistance);
+	empaiPanel->add(empaiPolarAngleLabel);
+	empaiPanel->add(empaiPolarAngle);
+	empaiPanel->add(empaiBezierControlPointsLabel);
+	empaiPanel->add(empaiBezierControlPoints);
+	empaiPanel->add(empaiAngleOffsetLabel);
+	empaiPanel->add(empaiAngleOffset);
+	empaiPanel->add(empaiHomingStrengthLabel);
+	empaiPanel->add(empaiHomingStrength);
+	empaiPanel->add(empaiHomingSpeedLabel);
+	empaiPanel->add(empaiHomingSpeed);
 	//----------------------------------------------------------------------------
 
 	mainWindow->getResizeSignal()->sink().connect<AttackEditor, &AttackEditor::onMainWindowResize>(this);
 	onMainWindowResize(mainWindow->getWindowWidth(), mainWindow->getWindowHeight());
+
+	playAreaWindow->getResizeSignal()->sink().connect<AttackEditor, &AttackEditor::onPlayAreaWindowResize>(this);
+	onPlayAreaWindowResize(playAreaWindow->getWindowWidth(), playAreaWindow->getWindowHeight());
 }
 
 void AttackEditor::start() {
@@ -388,6 +464,9 @@ void AttackEditor::start() {
 	mainWindowGui->add(alPanel);
 	mainWindowGui->add(emplPanel);
 	mainWindowGui->add(empiPanel);
+
+	std::shared_ptr<tgui::Gui> playAreaGui = playAreaWindow->getGui();
+	playAreaGui->add(empaiPanel);
 
 	deselectAttack();
 }
@@ -422,7 +501,7 @@ void AttackEditor::onMainWindowResize(int windowWidth, int windowHeight) {
 	alDiscardAll->setPosition(tgui::bindRight(alSaveAll) + GUI_PADDING_X, tgui::bindTop(alSaveAll));
 	alList->setSize(alAreaWidth - GUI_PADDING_X * 2, alSaveAll->getPosition().y - GUI_PADDING_Y * 2);
 
-	const float emplAreaWidth = windowWidth * 0.5f;
+	const float emplAreaWidth = windowWidth * 0.375f;
 	emplPanel->setPosition(tgui::bindRight(aiPanel), 0);
 	emplPanel->setSize(emplAreaWidth, windowHeight);
 	emplLabel->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
@@ -439,10 +518,15 @@ void AttackEditor::onMainWindowResize(int windowWidth, int windowHeight) {
 	empiHitboxRadius->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 	empiDespawnTime->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 	empiActions->setSize(empiAreaWidth - GUI_PADDING_X * 2, 250);
+	empiActionsAddAbove->setSize(100, TEXT_BOX_HEIGHT);
+	empiActionsAddBelow->setSize(100, TEXT_BOX_HEIGHT);
+	empiActionsEdit->setSize(100, TEXT_BOX_HEIGHT);
+	empiActionsDelete->setSize(100, TEXT_BOX_HEIGHT);
 	empiSpawnType->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 	empiSpawnTypeTime->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 	empiSpawnTypeX->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 	empiSpawnTypeY->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+	empiSpawnLocationManualSet->setSize(100, TEXT_BOX_HEIGHT);
 	empiShadowTrailLifespan->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 	empiShadowTrailInterval->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 	empiAnimatableLabel->setMaximumTextWidth(0);
@@ -485,7 +569,11 @@ void AttackEditor::onMainWindowResize(int windowWidth, int windowHeight) {
 	empiDespawnTime->setPosition(empiDespawnTimeLabel->getPosition().x, empiDespawnTimeLabel->getPosition().y + empiDespawnTimeLabel->getSize().y + GUI_PADDING_Y);
 	empiActionsLabel->setPosition(tgui::bindLeft(empiDespawnTime), tgui::bindBottom(empiDespawnTime) + GUI_PADDING_Y);
 	empiActions->setPosition(tgui::bindLeft(empiActionsLabel), tgui::bindBottom(empiActionsLabel) + GUI_PADDING_Y);
-	empiSpawnTypeLabel->setPosition(tgui::bindLeft(empiActions), tgui::bindBottom(empiActions) + GUI_PADDING_Y);
+	empiActionsAddAbove->setPosition(tgui::bindLeft(empiActions), tgui::bindBottom(empiActions) + GUI_PADDING_Y);
+	empiActionsAddBelow->setPosition(tgui::bindRight(empiActionsAddAbove) + GUI_PADDING_X, tgui::bindTop(empiActionsAddAbove));
+	empiActionsEdit->setPosition(tgui::bindLeft(empiActions), tgui::bindBottom(empiActionsAddAbove) + GUI_PADDING_Y);
+	empiActionsDelete->setPosition(tgui::bindRight(empiActionsEdit) + GUI_PADDING_X, tgui::bindTop(empiActionsEdit));
+	empiSpawnTypeLabel->setPosition(tgui::bindLeft(empiActions), tgui::bindBottom(empiActionsEdit) + GUI_PADDING_Y);
 	empiSpawnType->setPosition(tgui::bindLeft(empiSpawnTypeLabel), tgui::bindBottom(empiSpawnTypeLabel) + GUI_PADDING_Y);
 	empiSpawnTypeTimeLabel->setPosition(tgui::bindLeft(empiSpawnType), tgui::bindBottom(empiSpawnType) + GUI_PADDING_Y);
 	empiSpawnTypeTime->setPosition(tgui::bindLeft(empiSpawnTypeTimeLabel), tgui::bindBottom(empiSpawnTypeTimeLabel) + GUI_PADDING_Y);
@@ -493,7 +581,8 @@ void AttackEditor::onMainWindowResize(int windowWidth, int windowHeight) {
 	empiSpawnTypeX->setPosition(tgui::bindLeft(empiSpawnTypeXLabel), tgui::bindBottom(empiSpawnTypeXLabel) + GUI_PADDING_Y);
 	empiSpawnTypeYLabel->setPosition(tgui::bindLeft(empiSpawnTypeX), tgui::bindBottom(empiSpawnTypeX) + GUI_PADDING_Y);
 	empiSpawnTypeY->setPosition(tgui::bindLeft(empiSpawnTypeYLabel), tgui::bindBottom(empiSpawnTypeYLabel) + GUI_PADDING_Y);
-	empiShadowTrailLifespanLabel->setPosition(tgui::bindLeft(empiSpawnTypeY), tgui::bindBottom(empiSpawnTypeY) + GUI_PADDING_Y);
+	empiSpawnLocationManualSet->setPosition(tgui::bindLeft(empiSpawnTypeY), tgui::bindBottom(empiSpawnTypeY) + GUI_PADDING_Y);
+	empiShadowTrailLifespanLabel->setPosition(tgui::bindLeft(empiSpawnLocationManualSet), tgui::bindBottom(empiSpawnLocationManualSet) + GUI_PADDING_Y*2);
 	empiShadowTrailLifespan->setPosition(empiShadowTrailLifespanLabel->getPosition().x, empiShadowTrailLifespanLabel->getPosition().y + empiShadowTrailLifespanLabel->getSize().y + GUI_PADDING_Y);
 	empiShadowTrailIntervalLabel->setPosition(tgui::bindLeft(empiShadowTrailLifespan), tgui::bindBottom(empiShadowTrailLifespan) + GUI_PADDING_Y);
 	empiShadowTrailInterval->setPosition(empiShadowTrailIntervalLabel->getPosition().x, empiShadowTrailIntervalLabel->getPosition().y + empiShadowTrailIntervalLabel->getSize().y + GUI_PADDING_Y);
@@ -526,6 +615,40 @@ void AttackEditor::onMainWindowResize(int windowWidth, int windowHeight) {
 	empiInheritDamage->setPosition(tgui::bindLeft(empiInheritDamageLabel), tgui::bindBottom(empiInheritDamageLabel) + GUI_PADDING_Y);
 	empiInheritSoundSettingsLabel->setPosition(tgui::bindLeft(empiInheritDamage), tgui::bindBottom(empiInheritDamage) + GUI_PADDING_Y);
 	empiInheritSoundSettings->setPosition(tgui::bindLeft(empiInheritSoundSettingsLabel), tgui::bindBottom(empiInheritSoundSettingsLabel) + GUI_PADDING_Y);
+}
+
+void AttackEditor::onPlayAreaWindowResize(int windowWidth, int windowHeight) {
+	const float empaiAreaWidth = windowWidth * 0.33f;
+	empaiPanel->setPosition(windowWidth - empaiAreaWidth, 0);
+	empaiPanel->setSize(empaiAreaWidth, windowHeight);
+	empaiDuration->setSize(empaiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+	empaiPolarDistance->setSize(windowWidth, 0);
+	empaiPolarDistance->onContainerResize(empaiAreaWidth, windowHeight);
+	empaiPolarAngle->setSize(windowWidth, 0);
+	empaiPolarAngle->onContainerResize(empaiAreaWidth, windowHeight);
+	empaiBezierControlPoints->setSize(empaiAreaWidth - GUI_PADDING_X * 2, 200);
+	empaiAngleOffset->setSize(windowWidth, 0);
+	empaiAngleOffset->onContainerResize(empaiAreaWidth, windowHeight);
+	empaiHomingStrength->setSize(windowWidth, 0);
+	empaiHomingStrength->onContainerResize(empaiAreaWidth, windowHeight);
+	empaiHomingSpeed->setSize(windowWidth, 0);
+	empaiHomingSpeed->onContainerResize(empaiAreaWidth, windowHeight);
+
+	empaiInfo->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
+	empaiDurationLabel->setPosition(tgui::bindLeft(empaiInfo), tgui::bindBottom(empaiInfo) + GUI_PADDING_Y);
+	empaiDuration->setPosition(GUI_PADDING_X, empaiDurationLabel->getPosition().y + empaiDurationLabel->getSize().y + GUI_PADDING_Y);
+	empaiAngleOffsetLabel->setPosition(tgui::bindLeft(empaiDuration), tgui::bindBottom(empaiDuration) + GUI_PADDING_Y);
+	empaiAngleOffset->setPosition(0, tgui::bindBottom(empaiAngleOffsetLabel));
+	empaiPolarDistanceLabel->setPosition(tgui::bindLeft(empaiAngleOffsetLabel), tgui::bindBottom(empaiAngleOffset) + GUI_PADDING_Y);
+	empaiPolarDistance->setPosition(0, tgui::bindBottom(empaiPolarDistanceLabel));
+	empaiPolarAngleLabel->setPosition(tgui::bindLeft(empaiPolarDistanceLabel), tgui::bindBottom(empaiPolarDistance) + GUI_PADDING_Y);
+	empaiPolarAngle->setPosition(0, tgui::bindBottom(empaiPolarAngleLabel));
+	empaiBezierControlPointsLabel->setPosition(tgui::bindLeft(empaiAngleOffsetLabel), tgui::bindBottom(empaiAngleOffset) + GUI_PADDING_Y);
+	empaiBezierControlPoints->setPosition(0, tgui::bindBottom(empaiBezierControlPointsLabel));
+	empaiHomingStrengthLabel->setPosition(tgui::bindLeft(empaiDurationLabel), tgui::bindBottom(empaiDuration) + GUI_PADDING_Y);
+	empaiHomingStrength->setPosition(0, tgui::bindBottom(empaiHomingStrengthLabel));
+	empaiHomingSpeedLabel->setPosition(tgui::bindLeft(empaiHomingStrengthLabel), tgui::bindBottom(empaiDuration) + GUI_PADDING_Y);
+	empaiHomingSpeed->setPosition(0, tgui::bindBottom(empaiHomingSpeedLabel));
 }
 
 void AttackEditor::selectAttack(int id) {
@@ -701,6 +824,7 @@ void AttackEditor::selectEMP(int empID) {
 }
 
 void AttackEditor::deselectEMP() {
+	deselectEMPA();
 	selectedEMP = nullptr;
 
 	emplCreateEMP->setEnabled(false);
@@ -756,6 +880,87 @@ void AttackEditor::deselectEMP() {
 	empiInheritDamage->setVisible(false);
 	empiInheritSoundSettingsLabel->setVisible(false);
 	empiInheritSoundSettings->setVisible(false);
+}
+
+void AttackEditor::selectEMPA(int index) {
+	selectedEMPAIndex = index;
+	selectedEMPA = selectedEMP->getActions()[index];
+	empiActionsAddAbove->setText("Add above");
+	empiActionsAddBelow->setText("Add below");
+	empiActionsEdit->setEnabled(true);
+	empiActionsDelete->setEnabled(true);
+
+	empaiPanel->setVisible(true);
+	if (dynamic_cast<MoveCustomPolarEMPA*>(selectedEMPA.get())) {
+		empaiPolarDistance->setVisible(true);
+		empaiPolarAngle->setVisible(true);
+		empaiBezierControlPoints->setVisible(false);
+		empaiAngleOffset->setVisible(true);
+		empaiHomingStrength->setVisible(false);
+		empaiHomingSpeed->setVisible(false);
+		empaiInfo->setText("Attack ID: " + tos(selectedAttack->getID()) + "\nMovable point ID: " + tos(selectedEMP->getID())
+			+ "\nPolar coordinates movement action");
+	} else if (dynamic_cast<MoveCustomBezierEMPA*>(selectedEMPA.get())) {
+		empaiPolarDistance->setVisible(false);
+		empaiPolarAngle->setVisible(false);
+		empaiBezierControlPoints->setVisible(true);
+		empaiAngleOffset->setVisible(true);
+		empaiHomingStrength->setVisible(false);
+		empaiHomingSpeed->setVisible(false);
+		empaiInfo->setText("Attack ID: " + tos(selectedAttack->getID()) + "\nMovable point ID: " + tos(selectedEMP->getID())
+			+ "\nBezier movement action");
+	} else if (dynamic_cast<MovePlayerHomingEMPA*>(selectedEMPA.get())) {
+		empaiPolarDistance->setVisible(false);
+		empaiPolarAngle->setVisible(false);
+		empaiBezierControlPoints->setVisible(false);
+		empaiAngleOffset->setVisible(false);
+		empaiHomingStrength->setVisible(true);
+		empaiHomingSpeed->setVisible(true);
+		empaiInfo->setText("Attack ID: " + tos(selectedAttack->getID()) + "\nMovable point ID: " + tos(selectedEMP->getID())
+			+ "\Homing movement action");
+	} else if (dynamic_cast<StayStillAtLastPositionEMPA*>(selectedEMPA.get())) {
+		empaiPolarDistance->setVisible(false);
+		empaiPolarAngle->setVisible(false);
+		empaiBezierControlPoints->setVisible(false);
+		empaiAngleOffset->setVisible(false);
+		empaiHomingStrength->setVisible(false);
+		empaiHomingSpeed->setVisible(false);
+		empaiInfo->setText("Attack ID: " + tos(selectedAttack->getID()) + "\nMovable point ID: " + tos(selectedEMP->getID())
+			+ "\Stay still action");
+	} else if (dynamic_cast<DetachFromParentEMPA*>(selectedEMPA.get())) {
+		empaiPolarDistance->setVisible(false);
+		empaiPolarAngle->setVisible(false);
+		empaiBezierControlPoints->setVisible(false);
+		empaiAngleOffset->setVisible(false);
+		empaiHomingStrength->setVisible(false);
+		empaiHomingSpeed->setVisible(false);
+		empaiInfo->setText("Attack ID: " + tos(selectedAttack->getID()) + "\nMovable point ID: " + tos(selectedEMP->getID())
+			+ "\Detach action");
+	} else {
+		// This means you forgot to add a case
+		assert(false);
+	}
+	empaiDurationLabel->setVisible(empaiDuration->isVisible());
+	empaiPolarDistanceLabel->setVisible(empaiPolarDistance->isVisible());
+	empaiPolarAngleLabel->setVisible(empaiPolarAngle->isVisible());
+	empaiBezierControlPointsLabel->setVisible(empaiBezierControlPoints->isVisible());
+	empaiAngleOffsetLabel->setVisible(empaiAngleOffset->isVisible());
+	empaiHomingStrengthLabel->setVisible(empaiHomingStrength->isVisible());
+	empaiHomingSpeedLabel->setVisible(empaiHomingSpeed->isVisible());
+
+	empaiDuration->setValue(selectedEMPA->getTime());
+}
+
+void AttackEditor::deselectEMPA() {
+	selectedEMPAIndex = -1;
+	selectedEMPA = nullptr;
+	empiActionsAddAbove->setText("Add as first");
+	empiActionsAddBelow->setText("Add as last");
+	empiActionsEdit->setEnabled(false);
+	empiActionsDelete->setEnabled(false);
+
+	empaiPanel->setVisible(false);
+	empaiInfo->setText("No Movable point action selected");
 }
 
 void AttackEditor::createAttack() {
@@ -861,5 +1066,15 @@ void AttackEditor::onMainWindowRender(float deltaTime) {
 	std::lock_guard<std::mutex> lock(*tguiMutex);
 
 	empiAnimatable->getAnimatablePicture()->update(deltaTime);
-	//TODO: add the other animatable stuff
+	empiBaseSprite->getAnimatablePicture()->update(deltaTime);
+}
+
+void AttackEditor::onEmpiHitboxRadiusChange(float value) {
+	selectedEMP->setHitboxRadius(value);
+	onAttackChange(selectedAttack);
+}
+
+void AttackEditor::onEmpiDespawnTimeChange(float value) {
+	selectedEMP->setDespawnTime(value);
+	onAttackChange(selectedAttack);
 }
