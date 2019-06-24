@@ -31,8 +31,11 @@ public:
 	*/
 	void hide();
 
+	void addPopupWidget(std::shared_ptr<tgui::Container> popupContainer, std::shared_ptr<tgui::Widget> popup);
+	void closePopupWidget();
+
 	/*
-	Ccalled every time window size changes.
+	Called every time window size changes.
 	*/
 	virtual void updateWindowView(int windowWidth, int windowHeight);
 
@@ -53,6 +56,13 @@ private:
 	int windowWidth, windowHeight;
 
 	std::shared_ptr<tgui::Gui> gui;
+	// The popup widget, if one exists.
+	// Only one popup widget can exist at any time. If a new widget pops up,
+	// the old one is removed from the Gui. When the user clicks outside the popup
+	// widget, it closes.
+	std::shared_ptr<tgui::Widget> popup;
+	// The container that contains the popup
+	std::shared_ptr<tgui::Container> popupContainer;
 
 	bool letterboxingEnabled;
 	bool scaleWidgetsOnResize;

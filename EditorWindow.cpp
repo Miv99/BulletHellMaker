@@ -35,6 +35,18 @@ void EditorWindow::start() {
 						resizeSignal->publish(event.size.width, event.size.height);
 					}
 				} else {
+					if (popup) {
+						if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left) {
+							// When mouse is released, remove the pop-up menu
+
+							closePopupWidget();
+						}
+						if (event.type == sf::Event::MouseButtonPressed && !popup->mouseOnWidget(tgui::Vector2f(event.mouseButton.x, event.mouseButton.y))) {
+							// When mouse is pressed, remove the pop-up menu only when the mouse is not on top of the menu
+							
+							closePopupWidget();
+						}
+					}
 					handleEvent(event);
 				}
 			}
@@ -56,6 +68,21 @@ void EditorWindow::start() {
 
 void EditorWindow::close() {
 	window->close();
+}
+
+void EditorWindow::addPopupWidget(std::shared_ptr<tgui::Container> popupContainer, std::shared_ptr<tgui::Widget> popup) {
+	if (this->popup) {
+		closePopupWidget();
+	}
+	this->popup = popup;
+	this->popupContainer = popupContainer;
+	popupContainer->add(popup);
+}
+
+void EditorWindow::closePopupWidget() {
+	popupContainer->remove(popup);
+	popup = nullptr;
+	popupContainer = nullptr;
 }
 
 void EditorWindow::updateWindowView(int windowWidth, int windowHeight) {
