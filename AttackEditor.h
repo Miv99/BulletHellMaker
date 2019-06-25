@@ -61,9 +61,7 @@ private:
 	void selectEMPA(int index);
 	void deselectEMPA();
 
-	bool skipUndoCommandCreation = false;
-	void onEMPChange(std::shared_ptr<EditorMovablePoint> emp, std::shared_ptr<EditorAttack> parentAttack, bool fromUndoAction, bool fromInit);
-
+	
 	/*
 	Begin editing an EditorMovablePoint that is part of the currently open EditorAttack.
 	*/
@@ -91,8 +89,20 @@ private:
 
 	/*
 	Should be called when a change is made to any EditorAttack.
+
+	skipUndoCommandCreation - see EditorAttack::skipUndoCommandCreation
+	attackWasModified - true if the attack widget values are being updated because of a change in the attack
 	*/
-	void onAttackChange(std::shared_ptr<EditorAttack> attackWithUnsavedChanges, bool skipUndoCommandCreation, bool attackWasModified);
+	void setAttackWidgetValues(std::shared_ptr<EditorAttack> attackWithUnsavedChanges, bool skipUndoCommandCreation, bool attackWasModified);
+	/*
+	Should be called when a change is made to any EMP.
+
+	parentAttack - the EditorAttack emp belongs to
+	skipUndoCommandCreation - see EditorAttack::skipUndoCommandCreation
+	fromInit - true if this function was called to initialize EMP widget values (basically when this function is called without
+		changes made to emp)
+	*/
+	void setEMPWidgetValues(std::shared_ptr<EditorMovablePoint> emp, std::shared_ptr<EditorAttack> parentAttack, bool skipUndoCommandCreation, bool fromInit);
 
 	void buildEMPTree();
 	static sf::String getEMPTreeNodeText(const EditorMovablePoint& emp);
@@ -232,6 +242,11 @@ private:
 	// Threads for the above windows
 	std::thread mainWindowThread;
 	std::thread playAreaWindowThread;
+
+	// When this bool is true, any changes (to EditorAttacks, EMPs, EMPAs,...) will not create a command for the undo stack.
+	// This is to prevent a redo from signalling a widget from
+	// creating another undo command, since UndoStack already takes care of that.
+	bool skipUndoCommandCreation = false;
 
 	std::shared_ptr<SpriteLoader> spriteLoader;
 

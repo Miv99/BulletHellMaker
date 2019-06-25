@@ -43,24 +43,33 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 	aiPlayAttackAnimation->setChecked(false);
 	aiPlayAttackAnimation->setTextClickable(true);
 
-	aiName->connect("ReturnKeyPressed", [&](std::string text) {
-		if (selectedAttack) {
-			bool attackChanged = text != selectedAttack->getName();
-			selectedAttack->setName(text);
-			alList->changeItemById(std::to_string(selectedAttack->getID()), text + " [id=" + std::to_string(selectedAttack->getID()) + "]");
-			if (attackChanged) {
-				onAttackChange(selectedAttack, true, true);
-			}
+	aiName->connect("ReturnKeyPressed", [this, &selectedAttack = this->selectedAttack](std::string text) {
+		if (selectedAttack && text != selectedAttack->getName()) {
+			std::string oldName = selectedAttack->getName();
+			mainWindowUndoStack.execute(UndoableCommand(
+				[this, selectedAttack, text]() {
+				selectedAttack->setName(text);
+				setAttackWidgetValues(selectedAttack, true, true);
+			},
+				[this, selectedAttack, oldName]() {
+				selectedAttack->setName(oldName);
+				setAttackWidgetValues(selectedAttack, true, true);
+			}));
 		}
 	});
-	aiPlayAttackAnimation->connect("Changed", [&]() {
-		if (selectedAttack) {
-			bool checked = aiPlayAttackAnimation->isChecked();
-			bool attackChanged = selectedAttack->getPlayAttackAnimation() != checked;
-			selectedAttack->setPlayAttackAnimation(checked);
-			if (attackChanged) {
-				onAttackChange(selectedAttack, true, true);
-			}
+	aiPlayAttackAnimation->connect("Changed", [this, &selectedAttack = this->selectedAttack]() {
+		bool checked = aiPlayAttackAnimation->isChecked();
+		if (selectedAttack && selectedAttack->getPlayAttackAnimation() != checked) {
+			std::string oldName = selectedAttack->getName();
+			mainWindowUndoStack.execute(UndoableCommand(
+				[this, selectedAttack, checked]() {
+				selectedAttack->setPlayAttackAnimation(checked);
+				setAttackWidgetValues(selectedAttack, true, true);
+			},
+				[this, selectedAttack, checked]() {
+				selectedAttack->setPlayAttackAnimation(checked);
+				setAttackWidgetValues(selectedAttack, true, true);
+			}));
 		}
 	});
 
@@ -322,19 +331,17 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 	empiInheritDamageLabel->setText("Inherit damage");
 	empiInheritSoundSettingsLabel->setText("Inherit sound settings");
 
-	empiIsBullet->connect("Changed", [this, &mainWindowUndoStack = this->mainWindowUndoStack, &empiIsBullet = this->empiIsBullet, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, &empiHitboxRadius = this->empiHitboxRadius]() {
+	empiIsBullet->connect("Changed", [this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack]() {
 		bool checked = empiIsBullet->isChecked();
 		if (checked != selectedEMP->getIsBullet() && !skipUndoCommandCreation) {
 			mainWindowUndoStack.execute(UndoableCommand(
-				[this, selectedEMP, selectedAttack, &empiHitboxRadius, &empiIsBullet, checked]() {
+				[this, selectedEMP, selectedAttack, checked]() {
 				selectedEMP->setIsBullet(checked);
-				onEMPChange(selectedEMP, selectedAttack, true, false);
+				setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
 			},
-				[this, selectedEMP, selectedAttack, &empiHitboxRadius, &empiIsBullet, checked]() {
-				//empiIsBullet->setChecked(!checked);
-				//empiHitboxRadius->setEnabled(!checked);
+				[this, selectedEMP, selectedAttack, checked]() {
 				selectedEMP->setIsBullet(!checked);
-				onEMPChange(selectedEMP, selectedAttack, true, false);
+				setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
 			}));
 		}
 	});
@@ -748,7 +755,7 @@ void AttackEditor::selectAttack(int id) {
 	buildEMPTree();
 	alDeleteAttack->setEnabled(true);
 
-	onAttackChange(selectedAttack, true, false);
+	setAttackWidgetValues(selectedAttack, true, false);
 }
 
 void AttackEditor::deselectAttack() {
@@ -872,7 +879,7 @@ void AttackEditor::selectEMP(int empID) {
 	empiSoundSettings->setEnabled(!usesModel || !selectedEMP->getInheritSoundSettings());
 	empiHitboxRadius->setEnabled(isBullet);
 
-	onEMPChange(selectedEMP, selectedAttack, true, true);
+	setEMPWidgetValues(selectedEMP, selectedAttack, true, true);
 }
 
 void AttackEditor::deselectEMP() {
@@ -1023,9 +1030,9 @@ void AttackEditor::deselectEMPA() {
 	empaiInfo->setText("No Movable point action selected");
 }
 
-void AttackEditor::onEMPChange(std::shared_ptr<EditorMovablePoint> emp, std::shared_ptr<EditorAttack> parentAttack, bool skipUndoCommandCreation, bool fromInit) {
+void AttackEditor::setEMPWidgetValues(std::shared_ptr<EditorMovablePoint> emp, std::shared_ptr<EditorAttack> parentAttack, bool skipUndoCommandCreation, bool fromInit) {
 	if (!fromInit) {
-		onAttackChange(parentAttack, true, true);
+		setAttackWidgetValues(parentAttack, true, true);
 	}
 	if (emp != selectedEMP) {
 		if (parentAttack != selectedAttack) {
@@ -1166,7 +1173,7 @@ void AttackEditor::createEMP(std::shared_ptr<EditorAttack> empOwner, std::shared
 	
 	emplTree->addItem(emp->generatePathToThisEmp(&AttackEditor::getEMPTreeNodeText));
 
-	onAttackChange(empOwner, false, true);
+	setAttackWidgetValues(empOwner, false, true);
 }
 
 void AttackEditor::deleteEMP(std::shared_ptr<EditorAttack> empOwner, std::shared_ptr<EditorMovablePoint> emp) {
@@ -1175,10 +1182,10 @@ void AttackEditor::deleteEMP(std::shared_ptr<EditorAttack> empOwner, std::shared
 	emp->detachFromParent();
 	buildEMPTree();
 
-	onAttackChange(empOwner, false, true);
+	setAttackWidgetValues(empOwner, false, true);
 }
 
-void AttackEditor::onAttackChange(std::shared_ptr<EditorAttack> attackWithUnsavedChanges, bool skipUndoCommandCreation, bool attackWasModified) {
+void AttackEditor::setAttackWidgetValues(std::shared_ptr<EditorAttack> attackWithUnsavedChanges, bool skipUndoCommandCreation, bool attackWasModified) {
 	if (attackWithUnsavedChanges != selectedAttack) {
 		selectAttack(attackWithUnsavedChanges->getID());
 	}
@@ -1188,7 +1195,7 @@ void AttackEditor::onAttackChange(std::shared_ptr<EditorAttack> attackWithUnsave
 	
 	// Add asterisk to the entry in attack list
 	if (attackWasModified && unsavedAttacks.count(id) > 0) {
-		alList->changeItemById(std::to_string(id), "*" + attackWithUnsavedChanges ->getName() + " [id=" + std::to_string(id) + "]");
+		alList->changeItemById(std::to_string(id), "*" + attackWithUnsavedChanges->getName() + " [id=" + std::to_string(id) + "]");
 	}
 
 	this->skipUndoCommandCreation = skipUndoCommandCreation;
@@ -1233,10 +1240,10 @@ void AttackEditor::onMainWindowRender(float deltaTime) {
 
 void AttackEditor::onEmpiHitboxRadiusChange(float value) {
 	selectedEMP->setHitboxRadius(value);
-	onAttackChange(selectedAttack, false, true);
+	setAttackWidgetValues(selectedAttack, false, true);
 }
 
 void AttackEditor::onEmpiDespawnTimeChange(float value) {
 	selectedEMP->setDespawnTime(value);
-	onAttackChange(selectedAttack, false, true);
+	setAttackWidgetValues(selectedAttack, false, true);
 }
