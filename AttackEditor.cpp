@@ -18,11 +18,11 @@ std::string getID(std::shared_ptr<EMPSpawnType> spawnType) {
 	}
 }
 
-AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> spriteLoader) : levelPack(levelPack), spriteLoader(spriteLoader) {
+AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> spriteLoader) : levelPack(levelPack), spriteLoader(spriteLoader), mainWindowUndoStack(UndoStack(UNDO_STACK_MAX)), playAreaWindowUndoStack(UndoStack(UNDO_STACK_MAX)) {
 	tguiMutex = std::make_shared<std::mutex>();
 
-	mainWindow = std::make_shared<EditorWindow>(tguiMutex, "Attack Editor", MAIN_WINDOW_WIDTH, 400);
-	playAreaWindow = std::make_shared<EditorWindow>(tguiMutex, "Attack Editor - Gameplay Test", MAP_WIDTH, MAP_HEIGHT);
+	mainWindow = std::make_shared<UndoableEditorWindow>(tguiMutex, "Attack Editor", MAIN_WINDOW_WIDTH, 400, mainWindowUndoStack);
+	playAreaWindow = std::make_shared<UndoableEditorWindow>(tguiMutex, "Attack Editor - Gameplay Test", MAP_WIDTH, MAP_HEIGHT, playAreaWindowUndoStack);
 
 	std::lock_guard<std::mutex> lock(*tguiMutex);
 
@@ -49,7 +49,7 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 			selectedAttack->setName(text);
 			alList->changeItemById(std::to_string(selectedAttack->getID()), text + " [id=" + std::to_string(selectedAttack->getID()) + "]");
 			if (attackChanged) {
-				onAttackChange(selectedAttack);
+				onAttackChange(selectedAttack, true, true);
 			}
 		}
 	});
@@ -59,7 +59,7 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 			bool attackChanged = selectedAttack->getPlayAttackAnimation() != checked;
 			selectedAttack->setPlayAttackAnimation(checked);
 			if (attackChanged) {
-				onAttackChange(selectedAttack);
+				onAttackChange(selectedAttack, true, true);
 			}
 		}
 	});
@@ -177,8 +177,6 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 			// Extract the "[id=___]" portion out of the node text
 			int idBeginPos = str.find_last_of('=') + 1;
 			selectEMP(std::stoi(str.substr(idBeginPos, str.length() - idBeginPos - 1)));
-		} else {
-			deselectEMP();
 		}
 	});
 	emplCreateEMP->connect("Pressed", [&]() {
@@ -208,7 +206,6 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 	empiActions = tgui::ListBox::create();
 	empiActionsAddAbove = tgui::Button::create();
 	empiActionsAddBelow = tgui::Button::create();
-	empiActionsEdit = tgui::Button::create();
 	empiActionsDelete = tgui::Button::create();
 	empiSpawnTypeLabel = tgui::Label::create();
 	empiSpawnType = tgui::ComboBox::create();
@@ -263,7 +260,6 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 	empiActionsLabel->setTextSize(TEXT_SIZE);
 	empiActionsAddAbove->setTextSize(TEXT_SIZE);
 	empiActionsAddBelow->setTextSize(TEXT_SIZE);
-	empiActionsEdit->setTextSize(TEXT_SIZE);
 	empiActionsDelete->setTextSize(TEXT_SIZE);
 	empiSpawnTypeLabel->setTextSize(TEXT_SIZE);
 	empiSpawnType->setTextSize(TEXT_SIZE);
@@ -303,7 +299,6 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 	empiActionsLabel->setText("Movement actions");
 	empiActionsAddAbove->setText("Add above");
 	empiActionsAddBelow->setText("Add below");
-	empiActionsEdit->setText("Edit");
 	empiActionsDelete->setText("Delete");
 	empiSpawnTypeLabel->setText("Spawn type");
 	empiSpawnTypeTimeLabel->setText("Spawn delay");
@@ -327,6 +322,96 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 	empiInheritDamageLabel->setText("Inherit damage");
 	empiInheritSoundSettingsLabel->setText("Inherit sound settings");
 
+	empiIsBullet->connect("Changed", [this, &mainWindowUndoStack = this->mainWindowUndoStack, &empiIsBullet = this->empiIsBullet, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, &empiHitboxRadius = this->empiHitboxRadius]() {
+		bool checked = empiIsBullet->isChecked();
+		if (checked != selectedEMP->getIsBullet() && !skipUndoCommandCreation) {
+			mainWindowUndoStack.execute(UndoableCommand(
+				[this, selectedEMP, selectedAttack, &empiHitboxRadius, &empiIsBullet, checked]() {
+				selectedEMP->setIsBullet(checked);
+				onEMPChange(selectedEMP, selectedAttack, true, false);
+			},
+				[this, selectedEMP, selectedAttack, &empiHitboxRadius, &empiIsBullet, checked]() {
+				//empiIsBullet->setChecked(!checked);
+				//empiHitboxRadius->setEnabled(!checked);
+				selectedEMP->setIsBullet(!checked);
+				onEMPChange(selectedEMP, selectedAttack, true, false);
+			}));
+		}
+	});
+	empiHitboxRadius->getOnValueSet()->sink().connect<AttackEditor, &AttackEditor::onEmpiHitboxRadiusChange>(this);
+	empiDespawnTime->getOnValueSet()->sink().connect<AttackEditor, &AttackEditor::onEmpiDespawnTimeChange>(this);
+	empiActions->connect("ItemSelected", [&](std::string item, std::string id) {
+		if (id == "") {
+			deselectEMPA();
+		} else {
+			selectEMPA(std::stoi(id));
+		}
+	});
+	empiActionsAddAbove->connect("Pressed", [&]() {
+		auto popup = tgui::ListBox::create();
+		popup->addItem("Bezier movement", "1");
+		popup->addItem("Polar movement", "2");
+		popup->addItem("Homing movement", "3");
+		popup->addItem("Stay still", "4");
+		popup->addItem("Detach", "5");
+		popup->setItemHeight(20);
+		popup->setPosition(empiActionsAddAbove->getPosition());
+		popup->setSize(150, popup->getItemHeight() * popup->getItemCount());
+		popup->connect("ItemSelected", [&](std::string item, std::string id) {
+			int index;
+			if (selectedEMPAIndex == -1) {
+				index = 0;
+			} else {
+				index = selectedEMPAIndex;
+			}
+			if (id == "1") {
+				selectedEMP->insertAction(index, std::make_shared<MoveCustomBezierEMPA>());
+			} else if (id == "2") {
+				selectedEMP->insertAction(index, std::make_shared<MoveCustomPolarEMPA>());
+			} else if (id == "3") {
+				selectedEMP->insertAction(index, std::make_shared<MovePlayerHomingEMPA>());
+			} else if (id == "4") {
+				selectedEMP->insertAction(index, std::make_shared<StayStillAtLastPositionEMPA>());
+			} else if (id == "5") {
+				selectedEMP->insertAction(index, std::make_shared<DetachFromParentEMPA>());
+			}
+			buildEMPIActions();
+		});
+		mainWindow->addPopupWidget(empiPanel, popup);
+	});
+	empiActionsAddBelow->connect("Pressed", [&]() {
+		auto popup = tgui::ListBox::create();
+		popup->addItem("Bezier movement", "1");
+		popup->addItem("Polar movement", "2");
+		popup->addItem("Homing movement", "3");
+		popup->addItem("Stay still", "4");
+		popup->addItem("Detach", "5");
+		popup->setItemHeight(20);
+		popup->setPosition(empiActionsAddBelow->getPosition());
+		popup->setSize(150, popup->getItemHeight() * popup->getItemCount());
+		popup->connect("ItemSelected", [&](std::string item, std::string id) {
+			int index;
+			if (selectedEMPAIndex == -1) {
+				index = selectedEMP->getActions().size();
+			} else {
+				index = selectedEMPAIndex + 1;
+			}
+			if (id == "1") {
+				selectedEMP->insertAction(index, std::make_shared<MoveCustomBezierEMPA>());
+			} else if (id == "2") {
+				selectedEMP->insertAction(index, std::make_shared<MoveCustomPolarEMPA>());
+			} else if (id == "3") {
+				selectedEMP->insertAction(index, std::make_shared<MovePlayerHomingEMPA>());
+			} else if (id == "4") {
+				selectedEMP->insertAction(index, std::make_shared<StayStillAtLastPositionEMPA>());
+			} else if (id == "5") {
+				selectedEMP->insertAction(index, std::make_shared<DetachFromParentEMPA>());
+			}
+			buildEMPIActions();
+		});
+		mainWindow->addPopupWidget(empiPanel, popup);
+	});
+	
 	empiPanel->add(empiID);
 	empiPanel->add(empiIsBulletLabel);
 	empiPanel->add(empiIsBullet);
@@ -340,7 +425,6 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 	empiPanel->add(empiActions);
 	empiPanel->add(empiActionsAddAbove);
 	empiPanel->add(empiActionsAddBelow);
-	empiPanel->add(empiActionsEdit);
 	empiPanel->add(empiActionsDelete);
 	empiPanel->add(empiSpawnTypeLabel);
 	empiPanel->add(empiSpawnType);
@@ -520,7 +604,6 @@ void AttackEditor::onMainWindowResize(int windowWidth, int windowHeight) {
 	empiActions->setSize(empiAreaWidth - GUI_PADDING_X * 2, 250);
 	empiActionsAddAbove->setSize(100, TEXT_BOX_HEIGHT);
 	empiActionsAddBelow->setSize(100, TEXT_BOX_HEIGHT);
-	empiActionsEdit->setSize(100, TEXT_BOX_HEIGHT);
 	empiActionsDelete->setSize(100, TEXT_BOX_HEIGHT);
 	empiSpawnType->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 	empiSpawnTypeTime->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
@@ -571,9 +654,8 @@ void AttackEditor::onMainWindowResize(int windowWidth, int windowHeight) {
 	empiActions->setPosition(tgui::bindLeft(empiActionsLabel), tgui::bindBottom(empiActionsLabel) + GUI_PADDING_Y);
 	empiActionsAddAbove->setPosition(tgui::bindLeft(empiActions), tgui::bindBottom(empiActions) + GUI_PADDING_Y);
 	empiActionsAddBelow->setPosition(tgui::bindRight(empiActionsAddAbove) + GUI_PADDING_X, tgui::bindTop(empiActionsAddAbove));
-	empiActionsEdit->setPosition(tgui::bindLeft(empiActions), tgui::bindBottom(empiActionsAddAbove) + GUI_PADDING_Y);
-	empiActionsDelete->setPosition(tgui::bindRight(empiActionsEdit) + GUI_PADDING_X, tgui::bindTop(empiActionsEdit));
-	empiSpawnTypeLabel->setPosition(tgui::bindLeft(empiActions), tgui::bindBottom(empiActionsEdit) + GUI_PADDING_Y);
+	empiActionsDelete->setPosition(tgui::bindLeft(empiActions), tgui::bindBottom(empiActionsAddAbove) + GUI_PADDING_Y);
+	empiSpawnTypeLabel->setPosition(tgui::bindLeft(empiActions), tgui::bindBottom(empiActionsDelete) + GUI_PADDING_Y);
 	empiSpawnType->setPosition(tgui::bindLeft(empiSpawnTypeLabel), tgui::bindBottom(empiSpawnTypeLabel) + GUI_PADDING_Y);
 	empiSpawnTypeTimeLabel->setPosition(tgui::bindLeft(empiSpawnType), tgui::bindBottom(empiSpawnType) + GUI_PADDING_Y);
 	empiSpawnTypeTime->setPosition(tgui::bindLeft(empiSpawnTypeTimeLabel), tgui::bindBottom(empiSpawnTypeTimeLabel) + GUI_PADDING_Y);
@@ -652,6 +734,7 @@ void AttackEditor::onPlayAreaWindowResize(int windowWidth, int windowHeight) {
 }
 
 void AttackEditor::selectAttack(int id) {
+	deselectEMP();
 	if (unsavedAttacks.count(id) > 0) {
 		selectedAttack = unsavedAttacks[id];
 	} else {
@@ -660,12 +743,12 @@ void AttackEditor::selectAttack(int id) {
 		selectedAttack = std::make_shared<EditorAttack>(levelPack.getAttack(id));
 	}
 
-	aiID->setText("Attack ID: " + std::to_string(id));
 	aiName->setReadOnly(false);
-	aiName->setText(selectedAttack->getName());
-	aiPlayAttackAnimation->setChecked(selectedAttack->getPlayAttackAnimation());
+	alList->setSelectedItemById(std::to_string(id));
 	buildEMPTree();
 	alDeleteAttack->setEnabled(true);
+
+	onAttackChange(selectedAttack, true, false);
 }
 
 void AttackEditor::deselectAttack() {
@@ -689,18 +772,22 @@ void AttackEditor::selectEMP(int empID) {
 	emplCreateEMP->setEnabled(true);
 	// Can't delete main EMP of an attack
 	emplDeleteEMP->setEnabled(empID != selectedAttack->getMainEMP()->getID());
+	emplTree->selectItem(selectedEMP->generatePathToThisEmp(getEMPTreeNodeText));
 
 	bool isBullet = selectedEMP->getIsBullet();
 	bool usesModel = selectedEMP->usesBulletModel();
 	empiID->setVisible(true);
 	empiIsBulletLabel->setVisible(true);
 	empiIsBullet->setVisible(true);
-	empiHitboxRadiusLabel->setVisible(isBullet);
-	empiHitboxRadius->setVisible(isBullet);
+	empiHitboxRadiusLabel->setVisible(true);
+	empiHitboxRadius->setVisible(true);
 	empiDespawnTimeLabel->setVisible(true);
 	empiDespawnTime->setVisible(true);
 	empiActionsLabel->setVisible(true);
 	empiActions->setVisible(true);
+	empiActionsAddAbove->setVisible(true);
+	empiActionsAddBelow->setVisible(true);
+	empiActionsDelete->setVisible(true);
 	empiSpawnTypeLabel->setVisible(true);
 	empiSpawnType->setVisible(true);
 	empiSpawnTypeTimeLabel->setVisible(true);
@@ -709,109 +796,71 @@ void AttackEditor::selectEMP(int empID) {
 	empiSpawnTypeX->setVisible(true);
 	empiSpawnTypeYLabel->setVisible(true);
 	empiSpawnTypeY->setVisible(true);
-	empiShadowTrailLifespanLabel->setVisible(isBullet);
-	empiShadowTrailLifespan->setVisible(isBullet);
-	empiShadowTrailIntervalLabel->setVisible(isBullet);
-	empiShadowTrailInterval->setVisible(isBullet);
-	empiAnimatableLabel->setVisible(isBullet);
-	empiAnimatable->setVisible(isBullet);
-	empiLoopAnimationLabel->setVisible(isBullet);
-	empiLoopAnimation->setVisible(isBullet);
-	empiBaseSpriteLabel->setVisible(isBullet);
-	empiBaseSprite->setVisible(isBullet);
-	empiDamageLabel->setVisible(isBullet);
-	empiDamage->setVisible(isBullet);
-	empiOnCollisionActionLabel->setVisible(isBullet);
-	empiOnCollisionAction->setVisible(isBullet);
+	empiSpawnLocationManualSet->setVisible(true);
+	empiShadowTrailLifespanLabel->setVisible(true);
+	empiShadowTrailLifespan->setVisible(true);
+	empiShadowTrailIntervalLabel->setVisible(true);
+	empiShadowTrailInterval->setVisible(true);
+	empiAnimatableLabel->setVisible(true);
+	empiAnimatable->setVisible(true);
+	empiLoopAnimationLabel->setVisible(true);
+	empiLoopAnimation->setVisible(true);
+	empiBaseSpriteLabel->setVisible(true);
+	empiBaseSprite->setVisible(true);
+	empiDamageLabel->setVisible(true);
+	empiDamage->setVisible(true);
+	empiOnCollisionActionLabel->setVisible(true);
+	empiOnCollisionAction->setVisible(true);
+	empiPierceResetTimeLabel->setVisible(true);
+	empiPierceResetTime->setVisible(true);
 	empiSoundSettings->setVisible(true);
-	empiBulletModelLabel->setVisible(isBullet);
-	empiBulletModel->setVisible(isBullet);
-	empiInheritRadiusLabel->setVisible(isBullet && usesModel);
-	empiInheritRadius->setVisible(isBullet && usesModel);
-	empiInheritDespawnTimeLabel->setVisible(isBullet && usesModel);
-	empiInheritDespawnTime->setVisible(isBullet && usesModel);
-	empiInheritShadowTrailIntervalLabel->setVisible(isBullet && usesModel);
-	empiInheritShadowTrailInterval->setVisible(isBullet && usesModel);
-	empiInheritShadowTrailLifespanLabel->setVisible(isBullet && usesModel);
-	empiInheritShadowTrailLifespan->setVisible(isBullet && usesModel);
-	empiInheritAnimatablesLabel->setVisible(isBullet && usesModel);
-	empiInheritAnimatables->setVisible(isBullet && usesModel);
-	empiInheritDamageLabel->setVisible(isBullet && usesModel);
-	empiInheritDamage->setVisible(isBullet && usesModel);
-	empiInheritSoundSettingsLabel->setVisible(isBullet && usesModel);
-	empiInheritSoundSettings->setVisible(isBullet && usesModel);
+	empiBulletModelLabel->setVisible(true);
+	empiBulletModel->setVisible(true);
+	empiInheritRadiusLabel->setVisible(true);
+	empiInheritRadius->setVisible(true);
+	empiInheritDespawnTimeLabel->setVisible(true);
+	empiInheritDespawnTime->setVisible(true);
+	empiInheritShadowTrailIntervalLabel->setVisible(true);
+	empiInheritShadowTrailInterval->setVisible(true);
+	empiInheritShadowTrailLifespanLabel->setVisible(true);
+	empiInheritShadowTrailLifespan->setVisible(true);
+	empiInheritAnimatablesLabel->setVisible(true);
+	empiInheritAnimatables->setVisible(true);
+	empiInheritDamageLabel->setVisible(true);
+	empiInheritDamage->setVisible(true);
+	empiInheritSoundSettingsLabel->setVisible(true);
+	empiInheritSoundSettings->setVisible(true);
 
-	empiID->setText("ID: " + std::to_string(selectedEMP->getID()));
-	empiIsBullet->setChecked(selectedEMP->getIsBullet());
-	empiSpawnType->setSelectedItemById(getID(selectedEMP->getSpawnType()));
-	empiSpawnTypeTime->setValue(selectedEMP->getSpawnType()->getTime());
-	empiSpawnTypeX->setValue(selectedEMP->getSpawnType()->getX());
-	empiSpawnTypeY->setValue(selectedEMP->getSpawnType()->getY());
-	empiShadowTrailLifespan->setValue(selectedEMP->getShadowTrailLifespan());
-	empiOnCollisionAction->setSelectedItemById(getID(selectedEMP->getOnCollisionAction()));
-	empiPierceResetTime->setValue(selectedEMP->getPierceResetTime());
-	buildEMPIActions();
-
-	if (usesModel) {
-		empiBulletModel->setSelectedItemById(std::to_string(selectedEMP->getBulletModelID()));
-
-		std::shared_ptr<BulletModel> model = levelPack.getBulletModel(selectedEMP->getBulletModelID());
-		if (selectedEMP->getInheritAnimatables()) {
-			empiAnimatable->setSelectedItem(model->getAnimatable());
-			empiLoopAnimation->setChecked(model->getLoopAnimation());
-			empiBaseSprite->setSelectedItem(model->getBaseSprite());
-		} else {
-			empiAnimatable->setSelectedItem(selectedEMP->getAnimatable());
-			empiLoopAnimation->setChecked(selectedEMP->getLoopAnimation());
-			empiBaseSprite->setSelectedItem(selectedEMP->getBaseSprite());
-		}
-
-		if (selectedEMP->getInheritDamage()) {
-			empiDamage->setValue(model->getDamage());
-		} else {
-			empiDamage->setValue(selectedEMP->getDamage());
-		}
-
-		if (selectedEMP->getInheritDespawnTime()) {
-			empiDespawnTime->setValue(model->getDespawnTime());
-		} else {
-			empiDespawnTime->setValue(selectedEMP->getDespawnTime());
-		}
-
-		if (selectedEMP->getInheritRadius()) {
-			empiHitboxRadius->setValue(model->getHitboxRadius());
-		} else {
-			empiHitboxRadius->setValue(selectedEMP->getHitboxRadius());
-		}
-
-		if (selectedEMP->getInheritShadowTrailInterval()) {
-			empiShadowTrailInterval->setValue(model->getShadowTrailInterval());
-		} else {
-			empiShadowTrailInterval->setValue(selectedEMP->getShadowTrailInterval());
-		}
-
-		if (selectedEMP->getInheritShadowTrailLifespan()) {
-			empiShadowTrailLifespan->setValue(model->getShadowTrailLifespan());
-		} else {
-			empiShadowTrailInterval->setValue(selectedEMP->getShadowTrailLifespan());
-		}
-
-		if (selectedEMP->getInheritSoundSettings()) {
-			empiSoundSettings->initSettings(model->getSoundSettings());
-		} else {
-			empiSoundSettings->initSettings(selectedEMP->getSoundSettings());
-		}
-	} else {
-		empiAnimatable->setSelectedItem(selectedEMP->getAnimatable());
-		empiLoopAnimation->setChecked(selectedEMP->getLoopAnimation());
-		empiBaseSprite->setSelectedItem(selectedEMP->getBaseSprite());
-		empiDamage->setValue(selectedEMP->getDamage());
-		empiDespawnTime->setValue(selectedEMP->getDespawnTime());
-		empiHitboxRadius->setValue(selectedEMP->getHitboxRadius());
-		empiShadowTrailInterval->setValue(selectedEMP->getShadowTrailInterval());
-		empiShadowTrailInterval->setValue(selectedEMP->getShadowTrailLifespan());
-		empiSoundSettings->initSettings(selectedEMP->getSoundSettings());
-	}
+	empiShadowTrailLifespanLabel->setEnabled(isBullet);
+	empiShadowTrailLifespan->setEnabled(isBullet);
+	empiShadowTrailIntervalLabel->setEnabled(isBullet);
+	empiShadowTrailInterval->setEnabled(isBullet);
+	empiAnimatableLabel->setEnabled(isBullet);
+	empiAnimatable->setEnabled(isBullet);
+	empiLoopAnimationLabel->setEnabled(isBullet);
+	empiLoopAnimation->setEnabled(isBullet);
+	empiBaseSpriteLabel->setEnabled(isBullet);
+	empiBaseSprite->setEnabled(isBullet);
+	empiDamageLabel->setEnabled(isBullet);
+	empiDamage->setEnabled(isBullet);
+	empiOnCollisionActionLabel->setEnabled(isBullet);
+	empiOnCollisionAction->setEnabled(isBullet);
+	empiBulletModelLabel->setEnabled(isBullet);
+	empiBulletModel->setEnabled(isBullet);
+	empiInheritRadiusLabel->setEnabled(isBullet && usesModel);
+	empiInheritRadius->setEnabled(isBullet && usesModel);
+	empiInheritDespawnTimeLabel->setEnabled(isBullet && usesModel);
+	empiInheritDespawnTime->setEnabled(isBullet && usesModel);
+	empiInheritShadowTrailIntervalLabel->setEnabled(isBullet && usesModel);
+	empiInheritShadowTrailInterval->setEnabled(isBullet && usesModel);
+	empiInheritShadowTrailLifespanLabel->setEnabled(isBullet && usesModel);
+	empiInheritShadowTrailLifespan->setEnabled(isBullet && usesModel);
+	empiInheritAnimatablesLabel->setEnabled(isBullet && usesModel);
+	empiInheritAnimatables->setEnabled(isBullet && usesModel);
+	empiInheritDamageLabel->setEnabled(isBullet && usesModel);
+	empiInheritDamage->setEnabled(isBullet && usesModel);
+	empiInheritSoundSettingsLabel->setEnabled(isBullet && usesModel);
+	empiInheritSoundSettings->setEnabled(isBullet && usesModel);
 	empiAnimatable->setEnabled(!usesModel || !selectedEMP->getInheritAnimatables());
 	empiLoopAnimation->setEnabled(!usesModel || !selectedEMP->getInheritAnimatables());
 	empiBaseSprite->setEnabled(!usesModel || !selectedEMP->getInheritAnimatables());
@@ -821,11 +870,17 @@ void AttackEditor::selectEMP(int empID) {
 	empiShadowTrailInterval->setEnabled(!usesModel || !selectedEMP->getInheritShadowTrailInterval());
 	empiShadowTrailLifespan->setEnabled(!usesModel || !selectedEMP->getInheritShadowTrailLifespan());
 	empiSoundSettings->setEnabled(!usesModel || !selectedEMP->getInheritSoundSettings());
+	empiHitboxRadius->setEnabled(isBullet);
+
+	onEMPChange(selectedEMP, selectedAttack, true, true);
 }
 
 void AttackEditor::deselectEMP() {
 	deselectEMPA();
 	selectedEMP = nullptr;
+
+	// This is allowed because play area window can only edit EMPA-related stuff
+	playAreaWindowUndoStack.clear();
 
 	emplCreateEMP->setEnabled(false);
 	emplDeleteEMP->setEnabled(false);
@@ -839,6 +894,9 @@ void AttackEditor::deselectEMP() {
 	empiDespawnTime->setVisible(false);
 	empiActionsLabel->setVisible(false);
 	empiActions->setVisible(false);
+	empiActionsAddAbove->setVisible(false);
+	empiActionsAddBelow->setVisible(false);
+	empiActionsDelete->setVisible(false);
 	empiSpawnTypeLabel->setVisible(false);
 	empiSpawnType->setVisible(false);
 	empiSpawnTypeTimeLabel->setVisible(false);
@@ -847,6 +905,7 @@ void AttackEditor::deselectEMP() {
 	empiSpawnTypeX->setVisible(false);
 	empiSpawnTypeYLabel->setVisible(false);
 	empiSpawnTypeY->setVisible(false);
+	empiSpawnLocationManualSet->setVisible(false);
 	empiShadowTrailLifespanLabel->setVisible(false);
 	empiShadowTrailLifespan->setVisible(false);
 	empiShadowTrailIntervalLabel->setVisible(false);
@@ -887,8 +946,10 @@ void AttackEditor::selectEMPA(int index) {
 	selectedEMPA = selectedEMP->getActions()[index];
 	empiActionsAddAbove->setText("Add above");
 	empiActionsAddBelow->setText("Add below");
-	empiActionsEdit->setEnabled(true);
 	empiActionsDelete->setEnabled(true);
+
+	// This is allowed because play area window can only edit EMPA-related stuff
+	playAreaWindowUndoStack.clear();
 
 	empaiPanel->setVisible(true);
 	if (dynamic_cast<MoveCustomPolarEMPA*>(selectedEMPA.get())) {
@@ -956,11 +1017,102 @@ void AttackEditor::deselectEMPA() {
 	selectedEMPA = nullptr;
 	empiActionsAddAbove->setText("Add as first");
 	empiActionsAddBelow->setText("Add as last");
-	empiActionsEdit->setEnabled(false);
 	empiActionsDelete->setEnabled(false);
 
 	empaiPanel->setVisible(false);
 	empaiInfo->setText("No Movable point action selected");
+}
+
+void AttackEditor::onEMPChange(std::shared_ptr<EditorMovablePoint> emp, std::shared_ptr<EditorAttack> parentAttack, bool skipUndoCommandCreation, bool fromInit) {
+	if (!fromInit) {
+		onAttackChange(parentAttack, true, true);
+	}
+	if (emp != selectedEMP) {
+		if (parentAttack != selectedAttack) {
+			selectAttack(parentAttack->getID());
+		}
+		selectEMP(emp->getID());
+	}
+	this->skipUndoCommandCreation = skipUndoCommandCreation;
+
+	if (!fromInit) {
+		buildEMPTree();
+		selectEMP(emp->getID());
+	}
+
+	empiID->setText("ID: " + std::to_string(emp->getID()));
+	empiIsBullet->setChecked(emp->getIsBullet());
+	empiSpawnType->setSelectedItemById(getID(emp->getSpawnType()));
+	empiSpawnTypeTime->setValue(emp->getSpawnType()->getTime());
+	empiSpawnTypeX->setValue(emp->getSpawnType()->getX());
+	empiSpawnTypeY->setValue(emp->getSpawnType()->getY());
+	empiShadowTrailLifespan->setValue(emp->getShadowTrailLifespan());
+	empiOnCollisionAction->setSelectedItemById(getID(emp->getOnCollisionAction()));
+	empiPierceResetTime->setValue(emp->getPierceResetTime());
+	buildEMPIActions();
+
+	if (emp->usesBulletModel()) {
+		empiBulletModel->setSelectedItemById(std::to_string(emp->getBulletModelID()));
+
+		std::shared_ptr<BulletModel> model = levelPack.getBulletModel(emp->getBulletModelID());
+		if (emp->getInheritAnimatables()) {
+			empiAnimatable->setSelectedItem(model->getAnimatable());
+			empiLoopAnimation->setChecked(model->getLoopAnimation());
+			empiBaseSprite->setSelectedItem(model->getBaseSprite());
+		} else {
+			empiAnimatable->setSelectedItem(emp->getAnimatable());
+			empiLoopAnimation->setChecked(emp->getLoopAnimation());
+			empiBaseSprite->setSelectedItem(emp->getBaseSprite());
+		}
+
+		if (emp->getInheritDamage()) {
+			empiDamage->setValue(model->getDamage());
+		} else {
+			empiDamage->setValue(emp->getDamage());
+		}
+
+		if (emp->getInheritDespawnTime()) {
+			empiDespawnTime->setValue(model->getDespawnTime());
+		} else {
+			empiDespawnTime->setValue(emp->getDespawnTime());
+		}
+
+		if (emp->getInheritRadius()) {
+			empiHitboxRadius->setValue(model->getHitboxRadius());
+		} else {
+			empiHitboxRadius->setValue(emp->getHitboxRadius());
+		}
+
+		if (emp->getInheritShadowTrailInterval()) {
+			empiShadowTrailInterval->setValue(model->getShadowTrailInterval());
+		} else {
+			empiShadowTrailInterval->setValue(emp->getShadowTrailInterval());
+		}
+
+		if (emp->getInheritShadowTrailLifespan()) {
+			empiShadowTrailLifespan->setValue(model->getShadowTrailLifespan());
+		} else {
+			empiShadowTrailInterval->setValue(emp->getShadowTrailLifespan());
+		}
+
+		if (emp->getInheritSoundSettings()) {
+			empiSoundSettings->initSettings(model->getSoundSettings());
+		} else {
+			empiSoundSettings->initSettings(emp->getSoundSettings());
+		}
+	} else {
+		empiAnimatable->setSelectedItem(emp->getAnimatable());
+		empiLoopAnimation->setChecked(emp->getLoopAnimation());
+		empiBaseSprite->setSelectedItem(emp->getBaseSprite());
+		empiDamage->setValue(emp->getDamage());
+		empiDespawnTime->setValue(emp->getDespawnTime());
+		empiHitboxRadius->setValue(emp->getHitboxRadius());
+		empiShadowTrailInterval->setValue(emp->getShadowTrailInterval());
+		empiShadowTrailInterval->setValue(emp->getShadowTrailLifespan());
+		empiSoundSettings->initSettings(emp->getSoundSettings());
+	}
+
+	this->skipUndoCommandCreation = false;
 }
 
 void AttackEditor::createAttack() {
@@ -1004,7 +1156,7 @@ void AttackEditor::discardAttackChanges(std::shared_ptr<EditorAttack> attack) {
 	if (alList->containsId(std::to_string(id))) {
 		alList->changeItemById(std::to_string(id), revertedAttack->getName() + " [id=" + std::to_string(id) + "]");
 	}
-	if (selectedAttack->getID() == id) {
+	if (selectedAttack && selectedAttack->getID() == id) {
 		deselectAttack();
 	}
 }
@@ -1014,7 +1166,7 @@ void AttackEditor::createEMP(std::shared_ptr<EditorAttack> empOwner, std::shared
 	
 	emplTree->addItem(emp->generatePathToThisEmp(&AttackEditor::getEMPTreeNodeText));
 
-	onAttackChange(empOwner);
+	onAttackChange(empOwner, false, true);
 }
 
 void AttackEditor::deleteEMP(std::shared_ptr<EditorAttack> empOwner, std::shared_ptr<EditorMovablePoint> emp) {
@@ -1023,17 +1175,27 @@ void AttackEditor::deleteEMP(std::shared_ptr<EditorAttack> empOwner, std::shared
 	emp->detachFromParent();
 	buildEMPTree();
 
-	onAttackChange(empOwner);
+	onAttackChange(empOwner, false, true);
 }
 
-void AttackEditor::onAttackChange(std::shared_ptr<EditorAttack> attackWithUnsavedChanges) {
+void AttackEditor::onAttackChange(std::shared_ptr<EditorAttack> attackWithUnsavedChanges, bool skipUndoCommandCreation, bool attackWasModified) {
+	if (attackWithUnsavedChanges != selectedAttack) {
+		selectAttack(attackWithUnsavedChanges->getID());
+	}
+
 	int id = attackWithUnsavedChanges->getID();
 	unsavedAttacks[id] = attackWithUnsavedChanges;
 	
 	// Add asterisk to the entry in attack list
-	if (unsavedAttacks.count(id) > 0) {
+	if (attackWasModified && unsavedAttacks.count(id) > 0) {
 		alList->changeItemById(std::to_string(id), "*" + attackWithUnsavedChanges ->getName() + " [id=" + std::to_string(id) + "]");
 	}
+
+	this->skipUndoCommandCreation = skipUndoCommandCreation;
+	aiID->setText("Attack ID: " + std::to_string(id));
+	aiName->setText(selectedAttack->getName());
+	aiPlayAttackAnimation->setChecked(selectedAttack->getPlayAttackAnimation());
+	skipUndoCommandCreation = false;
 }
 
 void AttackEditor::buildEMPTree() {
@@ -1071,10 +1233,10 @@ void AttackEditor::onMainWindowRender(float deltaTime) {
 
 void AttackEditor::onEmpiHitboxRadiusChange(float value) {
 	selectedEMP->setHitboxRadius(value);
-	onAttackChange(selectedAttack);
+	onAttackChange(selectedAttack, false, true);
 }
 
 void AttackEditor::onEmpiDespawnTimeChange(float value) {
 	selectedEMP->setDespawnTime(value);
-	onAttackChange(selectedAttack);
+	onAttackChange(selectedAttack, false, true);
 }

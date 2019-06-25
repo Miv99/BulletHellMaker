@@ -4,6 +4,7 @@
 #include "EditorMovablePoint.h"
 #include "LevelPack.h"
 #include "EditorUtilities.h"
+#include "UndoStack.h"
 #include <thread>
 #include <TGUI/TGUI.hpp>
 #include <vector>
@@ -11,7 +12,7 @@
 #include <mutex>
 
 /*
-A window for editing EditorAttacks.
+The editor for editing EditorAttacks.
 
 Notes:
 -An EditorAttack's mainEMP is always spawned attached to its parent with no offset and will never have any EMPActions.
@@ -42,6 +43,7 @@ public:
 private:
 	const float GUI_PADDING_X = 20;
 	const float GUI_PADDING_Y = 10;
+	const int UNDO_STACK_MAX = 100;
 
 	/*
 	id - id of the EditorAttack
@@ -58,6 +60,9 @@ private:
 	*/
 	void selectEMPA(int index);
 	void deselectEMPA();
+
+	bool skipUndoCommandCreation = false;
+	void onEMPChange(std::shared_ptr<EditorMovablePoint> emp, std::shared_ptr<EditorAttack> parentAttack, bool fromUndoAction, bool fromInit);
 
 	/*
 	Begin editing an EditorMovablePoint that is part of the currently open EditorAttack.
@@ -87,7 +92,7 @@ private:
 	/*
 	Should be called when a change is made to any EditorAttack.
 	*/
-	void onAttackChange(std::shared_ptr<EditorAttack> attackWithUnsavedChanges);
+	void onAttackChange(std::shared_ptr<EditorAttack> attackWithUnsavedChanges, bool skipUndoCommandCreation, bool attackWasModified);
 
 	void buildEMPTree();
 	static sf::String getEMPTreeNodeText(const EditorMovablePoint& emp);
@@ -101,6 +106,9 @@ private:
 	std::shared_ptr<EditorWindow> mainWindow;
 	// Window to view the play area
 	std::shared_ptr<EditorWindow> playAreaWindow;
+
+	UndoStack mainWindowUndoStack;
+	UndoStack playAreaWindowUndoStack;
 
 	const float MAIN_WINDOW_WIDTH = 1024;
 	const float MAIN_WINDOW_HEIGHT = 768;
@@ -129,7 +137,6 @@ private:
 	std::shared_ptr<tgui::Button> empiActionsAddAbove;
 	// if no EMPA is selected, this button adds a new EMPA at last index; otherwise add at selectedEMPAIndex + 1
 	std::shared_ptr<tgui::Button> empiActionsAddBelow;
-	std::shared_ptr<tgui::Button> empiActionsEdit;
 	std::shared_ptr<tgui::Button> empiActionsDelete;
 	std::shared_ptr<tgui::Label> empiSpawnTypeLabel;
 	// Entry ID is from getID()

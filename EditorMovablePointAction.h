@@ -159,7 +159,7 @@ public:
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 
 private:
-	float duration;
+	float duration = 0;
 };
 
 /*
@@ -182,7 +182,7 @@ private:
 	std::shared_ptr<TFV> distance;
 	std::shared_ptr<TFV> angle;
 	// How long movement will last
-	float time;
+	float time = 0;
 	// Evaluates to the angle in radians that will be added to the angle TFV evaluation
 	std::shared_ptr<EMPAAngleOffset> angleOffset;
 };
@@ -209,7 +209,7 @@ private:
 	// The first control point must be at (0, 0)
 	std::vector<sf::Vector2f> controlPoints;
 	// How long movement will last
-	float time;
+	float time = 0;
 	// Evaluates to the angle in radians that every control point will be rotated by (pivot at (0, 0))
 	std::shared_ptr<EMPAAngleOffset> rotationAngle;
 	// Only used if rotationAngle is not nullptr
@@ -240,7 +240,7 @@ private:
 	// Speed at any instance in time
 	std::shared_ptr<TFV> speed;
 	// How long movement will last
-	float time;
+	float time = 0;
 };
 
 class EMPActionFactory {

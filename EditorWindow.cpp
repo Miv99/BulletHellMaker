@@ -41,11 +41,6 @@ void EditorWindow::start() {
 
 							closePopupWidget();
 						}
-						if (event.type == sf::Event::MouseButtonPressed && !popup->mouseOnWidget(tgui::Vector2f(event.mouseButton.x, event.mouseButton.y))) {
-							// When mouse is pressed, remove the pop-up menu only when the mouse is not on top of the menu
-							
-							closePopupWidget();
-						}
 					}
 					handleEvent(event);
 				}
@@ -149,4 +144,15 @@ void EditorWindow::render(float deltaTime) {
 void EditorWindow::handleEvent(sf::Event event) {
 	std::lock_guard<std::mutex> lock(*tguiMutex);
 	gui->handleEvent(event);
+}
+
+void UndoableEditorWindow::handleEvent(sf::Event event) {
+	EditorWindow::handleEvent(event);
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
+		if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Z) {
+			undoStack.undo();
+		} else if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Y) {
+			undoStack.redo();
+		}
+	}
 }

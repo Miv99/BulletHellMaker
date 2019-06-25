@@ -1,5 +1,6 @@
 #pragma once
 #include "MovablePoint.h"
+#include "UndoStack.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -78,4 +79,22 @@ private:
 	std::shared_ptr<entt::SigH<void(float)>> renderSignal;
 	// Signal that's emitted every time the window resizes
 	std::shared_ptr<entt::SigH<void(int, int)>> resizeSignal;
+};
+
+/*
+An EditorWindow that has the capability of redoing and undoing commands in the UndoStack.
+Undo is done with control+z and redo with control+y.
+Commands must be added to the UndoStack by the user.
+*/
+class UndoableEditorWindow : public EditorWindow {
+public:
+	inline UndoableEditorWindow(std::shared_ptr<std::mutex> tguiMutex, std::string windowTitle, int width, int height, UndoStack& undoStack, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL) :
+		EditorWindow(tguiMutex, windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval), undoStack(undoStack) {
+	}
+
+protected:
+	virtual void handleEvent(sf::Event event);
+
+private:
+	UndoStack& undoStack;
 };
