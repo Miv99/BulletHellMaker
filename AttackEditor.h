@@ -108,6 +108,8 @@ private:
 	static sf::String getEMPTreeNodeText(const EditorMovablePoint& emp);
 	// Clears empiActions and adds all EMPActions from the selected EMP to it
 	void buildEMPIActions();
+	// Clears alList and adds all EditorAttacks to it
+	void buildAttackList(bool autoscrollToBottom);
 
 	void onMainWindowRender(float deltaTime);
 

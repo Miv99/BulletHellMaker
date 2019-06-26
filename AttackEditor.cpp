@@ -103,12 +103,7 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 	alDeleteAttack->setText("Delete");
 	alDeleteAttack->setEnabled(false);
 
-	// Disable autoscroll on initial populating so that alList is looking at the first attack on startup
-	alList->setAutoScroll(false);
-	for (auto it = levelPack.getAttackIteratorBegin(); it != levelPack.getAttackIteratorEnd(); it++) {
-		alList->addItem(it->second->getName() + " [id=" + std::to_string(it->second->getID()) + "]", std::to_string(it->second->getID()));
-	}
-	alList->setAutoScroll(true);
+	buildAttackList(false);
 
 	alSaveAll->setToolTip(createToolTip("Save all changes made to all attacks. Attacks with unsaved changes are denoted by an asterisk (*)"));
 	alDiscardAll->setToolTip(createToolTip("Discard all changes made to all attacks. Attacks with unsaved changes are denoted by an asterisk (*)"));
@@ -138,13 +133,25 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 			discardAttackChanges(attack);
 		}
 	});
-	alCreateAttack->connect("Pressed", [&]() {
-		createAttack();
+	alCreateAttack->connect("Pressed", [this, &levelPack = this->levelPack]() {
+		int newAttackID = levelPack.getNextAttackID();
+		mainWindowUndoStack.execute(UndoableCommand(
+			[this]() {
+			createAttack();
+		},
+			[this, &levelPack, newAttackID]() {
+			deleteAttack(levelPack.getAttack(newAttackID));
+		}));
 	});
-	alDeleteAttack->connect("Pressed", [&]() {
-		if (selectedAttack) {
+	alDeleteAttack->connect("Pressed", [this, &levelPack = this->levelPack, &selectedAttack = this->selectedAttack]() {
+		mainWindowUndoStack.execute(UndoableCommand(
+			[this, selectedAttack]() {
 			deleteAttack(selectedAttack);
-		}
+		},
+			[this, &levelPack, selectedAttack]() {
+			levelPack.updateAttack(selectedAttack);
+			buildAttackList(false);
+		}));
 	});
 
 	alPanel->add(alList);
@@ -1124,13 +1131,13 @@ void AttackEditor::setEMPWidgetValues(std::shared_ptr<EditorMovablePoint> emp, s
 
 void AttackEditor::createAttack() {
 	std::shared_ptr<EditorAttack> attack = levelPack.createAttack();
-	alList->addItem(attack->getName() + " [id=" + std::to_string(attack->getID()) + "]", std::to_string(attack->getID()));
+	buildAttackList(true);
 }
 
 void AttackEditor::deleteAttack(std::shared_ptr<EditorAttack> attack) {
 	//TODO: prompt: are you sure? this attack may be in use by some attack patterns.
 
-	if (selectedAttack->getID() == attack->getID()) {
+	if (selectedAttack && selectedAttack->getID() == attack->getID()) {
 		deselectAttack();
 	}
 	alList->removeItemById(std::to_string(attack->getID()));
@@ -1140,6 +1147,7 @@ void AttackEditor::deleteAttack(std::shared_ptr<EditorAttack> attack) {
 	}
 
 	levelPack.deleteAttack(attack->getID());
+	buildAttackList(false);
 }
 
 void AttackEditor::saveAttack(std::shared_ptr<EditorAttack> attack) {
@@ -1229,6 +1237,21 @@ void AttackEditor::buildEMPIActions() {
 	for (int i = 0; i < actions.size(); i++) {
 		empiActions->addItem("[t=" + formatNum(curTime) + "] " + actions[i]->getGuiFormat(), std::to_string(i));
 	}
+}
+
+void AttackEditor::buildAttackList(bool autoscrollToBottom) {
+	alList->removeAllItems();
+	if (!autoscrollToBottom) {
+		alList->setAutoScroll(false);
+	}
+	for (auto it = levelPack.getAttackIteratorBegin(); it != levelPack.getAttackIteratorEnd(); it++) {
+		if (unsavedAttacks.count(it->second->getID()) > 0) {
+			alList->addItem("*" + it->second->getName() + " [id=" + std::to_string(it->second->getID()) + "]", std::to_string(it->second->getID()));
+		} else {
+			alList->addItem(it->second->getName() + " [id=" + std::to_string(it->second->getID()) + "]", std::to_string(it->second->getID()));
+		}
+	}
+	alList->setAutoScroll(true);
 }
 
 void AttackEditor::onMainWindowRender(float deltaTime) {

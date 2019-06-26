@@ -131,6 +131,12 @@ public:
 	inline std::map<int, std::shared_ptr<BulletModel>>::iterator getBulletModelIteratorBegin() { return bulletModels.begin(); }
 	inline std::map<int, std::shared_ptr<BulletModel>>::iterator getBulletModelIteratorEnd() { return bulletModels.end(); }
 
+	inline int getNextAttackID() const { return nextAttackID; }
+	inline int getNextAttackPatternID() const { return nextAttackPatternID; }
+	inline int getNextEnemyID() const { return nextEnemyID; }
+	inline int getNextEnemyPhaseID() const { return nextEnemyPhaseID; }
+	inline int getNextBulletModelID() const { return nextBulletModelID; }
+
 	inline void setPlayer(EditorPlayer player) { metadata.setPlayer(player); }
 	inline void setFontFileName(std::string fontFileName) { this->fontFileName = fontFileName; }
 
