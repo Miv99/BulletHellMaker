@@ -266,9 +266,11 @@ void EditorMovablePoint::detachFromParent() {
 	}
 }
 
-std::shared_ptr<EditorMovablePoint> EditorMovablePoint::createChild() {
+std::shared_ptr<EditorMovablePoint> EditorMovablePoint::createChild(bool addToChildrenList) {
 	std::shared_ptr<EditorMovablePoint> child = std::make_shared<EditorMovablePoint>(nextID, shared_from_this());
-	addChild(child);
+	if (addToChildrenList) {
+		addChild(child);
+	}
 	return child;
 }
 

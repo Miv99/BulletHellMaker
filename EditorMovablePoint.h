@@ -136,6 +136,7 @@ public:
 		}
 		return total;
 	}
+	inline std::shared_ptr<EditorMovablePoint> getParent() { return parent.lock(); }
 	inline int getDamage() const { return damage; }
 	inline bool getLoopAnimation() const { return loopAnimation; }
 	inline Animatable getBaseSprite() const { return baseSprite; }
@@ -186,12 +187,12 @@ public:
 	*/
 	void detachFromParent();
 	/*
-	Creates a child of this EMP and adds it to the list of children.
+	Creates a child of this EMP.
 
-	spawnType - spawn type of the child
+	addToChildrenList - if true, the new child will be added as a child of this EMP; if false, the user should add it with addChild()
 	Returns the child EMP
 	*/
-	std::shared_ptr<EditorMovablePoint> createChild();
+	std::shared_ptr<EditorMovablePoint> createChild(bool addToChildrenList = true);
 	/*
 	Adds an existing EMP to the list of children.
 	*/

@@ -81,8 +81,9 @@ private:
 	Returns the newly created EMP.
 
 	empOwner - the EditorAttack the parent is from
+	addEMPToParentChildrenList - if true, the new EMP will be added to the parent's children list; if false, this should be done manually with EditorMovablePoint::addChild()
 	*/
-	std::shared_ptr<EditorMovablePoint> createEMP(std::shared_ptr<EditorAttack> empOwner, std::shared_ptr<EditorMovablePoint> parent);
+	std::shared_ptr<EditorMovablePoint> createEMP(std::shared_ptr<EditorAttack> empOwner, std::shared_ptr<EditorMovablePoint> parent, bool addEMPToParentChildrenList = true);
 	/*
 	empOwner - the EditorAttack the emp is from
 	*/

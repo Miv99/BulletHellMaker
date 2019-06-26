@@ -196,13 +196,32 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 			selectEMP(std::stoi(str.substr(idBeginPos, str.length() - idBeginPos - 1)));
 		}
 	});
-	emplCreateEMP->connect("Pressed", [&]() {
-		createEMP(selectedAttack, selectedEMP);
+	emplCreateEMP->connect("Pressed", [this, &selectedEMP = this->selectedEMP]() {
+		std::shared_ptr<EditorMovablePoint> emp = createEMP(selectedAttack, selectedEMP, false);
+		mainWindowUndoStack.execute(UndoableCommand(
+			[this, emp, selectedEMP]() {
+			selectedEMP->addChild(emp);
+			buildEMPTree();
+		},
+			[this, emp, selectedEMP]() {
+			if (this->selectedEMP == emp) {
+				deselectEMP();
+			}
+			emp->detachFromParent();
+			buildEMPTree();
+		}));
 	});
-	emplDeleteEMP->connect("Pressed", [&]() {
+	emplDeleteEMP->connect("Pressed", [this, &selectedAttack = this->selectedAttack, &selectedEMP = this->selectedEMP]() {
 		// Can't delete main EMP of an attack
 		if (selectedEMP && selectedEMP->getID() != selectedAttack->getMainEMP()->getID()) {
-			deleteEMP(selectedAttack, selectedEMP);
+			mainWindowUndoStack.execute(UndoableCommand(
+				[this, selectedAttack, selectedEMP]() {
+				deleteEMP(selectedAttack, selectedEMP);
+			},
+				[this, selectedEMP]() {
+				selectedEMP->getParent()->addChild(selectedEMP);
+				buildEMPTree();
+			}));
 		}
 	});
 
@@ -1177,8 +1196,8 @@ void AttackEditor::discardAttackChanges(std::shared_ptr<EditorAttack> attack) {
 	}
 }
 
-std::shared_ptr<EditorMovablePoint> AttackEditor::createEMP(std::shared_ptr<EditorAttack> empOwner, std::shared_ptr<EditorMovablePoint> parent) {
-	std::shared_ptr<EditorMovablePoint> emp = parent->createChild();
+std::shared_ptr<EditorMovablePoint> AttackEditor::createEMP(std::shared_ptr<EditorAttack> empOwner, std::shared_ptr<EditorMovablePoint> parent, bool addEMPToParentChildrenList) {
+	std::shared_ptr<EditorMovablePoint> emp = parent->createChild(addEMPToParentChildrenList);
 	
 	emplTree->addItem(emp->generatePathToThisEmp(&AttackEditor::getEMPTreeNodeText));
 
@@ -1192,8 +1211,6 @@ void AttackEditor::deleteEMP(std::shared_ptr<EditorAttack> empOwner, std::shared
 
 	emp->detachFromParent();
 	buildEMPTree();
-
-	setAttackWidgetValues(empOwner, false, true);
 }
 
 void AttackEditor::setAttackWidgetValues(std::shared_ptr<EditorAttack> attackWithUnsavedChanges, bool skipUndoCommandCreation, bool attackWasModified) {
@@ -1225,6 +1242,9 @@ void AttackEditor::buildEMPTree() {
 	}
 
 	emplTree->deselectItem();
+	if (selectedEMP) {
+		emplTree->selectItem(selectedEMP->generatePathToThisEmp(getEMPTreeNodeText));
+	}
 }
 
 sf::String AttackEditor::getEMPTreeNodeText(const EditorMovablePoint& emp) {
