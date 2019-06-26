@@ -25,6 +25,7 @@ public:
 		if (undoStack.size() > maxCommands) {
 			undoStack.pop_back();
 		}
+		redoStack.clear();
 	}
 
 	inline void undo() {

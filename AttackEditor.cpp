@@ -67,7 +67,7 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 				setAttackWidgetValues(selectedAttack, true, true);
 			},
 				[this, selectedAttack, checked]() {
-				selectedAttack->setPlayAttackAnimation(checked);
+				selectedAttack->setPlayAttackAnimation(!checked);
 				setAttackWidgetValues(selectedAttack, true, true);
 			}));
 		}
@@ -134,13 +134,14 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 		}
 	});
 	alCreateAttack->connect("Pressed", [this, &levelPack = this->levelPack]() {
-		int newAttackID = levelPack.getNextAttackID();
+		std::shared_ptr<EditorAttack> newAttack = levelPack.createAttack(false);
 		mainWindowUndoStack.execute(UndoableCommand(
-			[this]() {
-			createAttack();
+			[this, &levelPack, newAttack]() {
+			levelPack.updateAttack(newAttack);
+			buildAttackList(true);
 		},
-			[this, &levelPack, newAttackID]() {
-			deleteAttack(levelPack.getAttack(newAttackID));
+			[this, &levelPack, newAttack]() {
+			deleteAttack(newAttack, true);
 		}));
 	});
 	alDeleteAttack->connect("Pressed", [this, &levelPack = this->levelPack, &selectedAttack = this->selectedAttack]() {
@@ -1134,7 +1135,7 @@ void AttackEditor::createAttack() {
 	buildAttackList(true);
 }
 
-void AttackEditor::deleteAttack(std::shared_ptr<EditorAttack> attack) {
+void AttackEditor::deleteAttack(std::shared_ptr<EditorAttack> attack, bool autoScrollAttackListToBottom) {
 	//TODO: prompt: are you sure? this attack may be in use by some attack patterns.
 
 	if (selectedAttack && selectedAttack->getID() == attack->getID()) {
@@ -1147,7 +1148,7 @@ void AttackEditor::deleteAttack(std::shared_ptr<EditorAttack> attack) {
 	}
 
 	levelPack.deleteAttack(attack->getID());
-	buildAttackList(false);
+	buildAttackList(autoScrollAttackListToBottom);
 }
 
 void AttackEditor::saveAttack(std::shared_ptr<EditorAttack> attack) {
@@ -1176,12 +1177,14 @@ void AttackEditor::discardAttackChanges(std::shared_ptr<EditorAttack> attack) {
 	}
 }
 
-void AttackEditor::createEMP(std::shared_ptr<EditorAttack> empOwner, std::shared_ptr<EditorMovablePoint> parent) {
+std::shared_ptr<EditorMovablePoint> AttackEditor::createEMP(std::shared_ptr<EditorAttack> empOwner, std::shared_ptr<EditorMovablePoint> parent) {
 	std::shared_ptr<EditorMovablePoint> emp = parent->createChild();
 	
 	emplTree->addItem(emp->generatePathToThisEmp(&AttackEditor::getEMPTreeNodeText));
 
 	setAttackWidgetValues(empOwner, false, true);
+
+	return emp;
 }
 
 void AttackEditor::deleteEMP(std::shared_ptr<EditorAttack> empOwner, std::shared_ptr<EditorMovablePoint> emp) {
@@ -1199,7 +1202,9 @@ void AttackEditor::setAttackWidgetValues(std::shared_ptr<EditorAttack> attackWit
 	}
 
 	int id = attackWithUnsavedChanges->getID();
-	unsavedAttacks[id] = attackWithUnsavedChanges;
+	if (attackWasModified) {
+		unsavedAttacks[id] = attackWithUnsavedChanges;
+	}
 	
 	// Add asterisk to the entry in attack list
 	if (attackWasModified && unsavedAttacks.count(id) > 0) {

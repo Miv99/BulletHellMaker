@@ -70,9 +70,11 @@ public:
 	inline void insertLevel(int index, std::shared_ptr<Level> level) {
 		levels.insert(levels.begin() + index, level);
 	}
-	inline std::shared_ptr<EditorAttack> createAttack() {
+	inline std::shared_ptr<EditorAttack> createAttack(bool addAttackToLevelPack = true) {
 		auto attack = std::make_shared<EditorAttack>(nextAttackID++);
-		attacks[attack->getID()] = attack;
+		if (addAttackToLevelPack) {
+			attacks[attack->getID()] = attack;
+		}
 		return attack;
 	}
 	/*

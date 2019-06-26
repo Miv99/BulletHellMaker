@@ -72,16 +72,17 @@ private:
 	void endMovablePointEditing();
 
 	void createAttack();
-	void deleteAttack(std::shared_ptr<EditorAttack> attack);
+	void deleteAttack(std::shared_ptr<EditorAttack> attack, bool autoScrollAttackListToBottom = false);
 	void saveAttack(std::shared_ptr<EditorAttack> attack);
 	void discardAttackChanges(std::shared_ptr<EditorAttack> attack);
 
 	/*
 	Creates a new EMP as a child of parent.
+	Returns the newly created EMP.
 
 	empOwner - the EditorAttack the parent is from
 	*/
-	void createEMP(std::shared_ptr<EditorAttack> empOwner, std::shared_ptr<EditorMovablePoint> parent);
+	std::shared_ptr<EditorMovablePoint> createEMP(std::shared_ptr<EditorAttack> empOwner, std::shared_ptr<EditorMovablePoint> parent);
 	/*
 	empOwner - the EditorAttack the emp is from
 	*/
