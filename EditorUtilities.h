@@ -38,6 +38,7 @@ class NumericalEditBoxWithLimits : public tgui::EditBox {
 public:
 	NumericalEditBoxWithLimits();
 
+	float getValue();
 	void setValue(int value);
 	void setValue(float value);
 	void setMin(float min);
@@ -69,28 +70,44 @@ private:
 	bool mustBeInt = false;
 };
 
-class AnimatableChooser : public tgui::ComboBox {
+class AnimatableChooser : public tgui::Group {
 public:
 	/*
 	forceSprite - if true, the user is forced to choose between sprites instead of being able to choose between sprites and animations
 	*/
-	AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprite = false);
+	AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprite = false, float guiPaddingX = 20, float guiPaddingY = 10);
 
-	/*
-	Calculates and sets the number of items to display, depending on this widget's position relative to its container.
-	*/
-	void calculateItemsToDisplay();
 	void setSelectedItem(Animatable animatable);
 
+	/*
+	Should be called whenever this widget's container is resized.
+	This function automatically sets the height of this widget.
+	*/
+	void onContainerResize(int containerWidth, int containerHeight);
+
 	std::shared_ptr<AnimatablePicture> getAnimatablePicture();
+	inline std::shared_ptr<entt::SigH<void(Animatable)>> getOnValueSet() { return onValueSet; }
 
 	void setVisible(bool visible);
 
 private:
+	/*
+	Calculates and sets the number of items to display, depending on this widget's position relative to its container.
+	*/
+	void calculateItemsToDisplay();
+
 	SpriteLoader& spriteLoader;
 	bool forceSprite;
 
+	std::shared_ptr<tgui::ComboBox> animatable;
+	std::shared_ptr<tgui::ComboBox> rotationType;
+
 	std::shared_ptr<AnimatablePicture> animatablePicture;
+
+	float paddingX, paddingY;
+
+	// func takes 1 arg: the new Animatable
+	std::shared_ptr<entt::SigH<void(Animatable)>> onValueSet;
 };
 
 /*

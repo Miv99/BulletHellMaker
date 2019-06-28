@@ -12,25 +12,59 @@ std::shared_ptr<tgui::Label> createToolTip(std::string text) {
 	return tooltip;
 }
 
-AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprite) : spriteLoader(spriteLoader), forceSprite(forceSprite) {
+AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprite, float paddingX, float paddingY) : spriteLoader(spriteLoader), forceSprite(forceSprite), paddingX(paddingX), paddingY(paddingY) {
+	onValueSet = std::make_shared<entt::SigH<void(Animatable)>>();
+	animatable = tgui::ComboBox::create();
+	rotationType = tgui::ComboBox::create();
+
 	const std::map<std::string, std::shared_ptr<SpriteSheet>> sheets = spriteLoader.getSpriteSheets();
 	for (auto it = sheets.begin(); it != sheets.end(); it++) {
 		const std::map<std::string, std::shared_ptr<SpriteData>> spriteData = it->second->getSpriteData();
-		addItem(it->first);
+		animatable->addItem(it->first);
 		for (auto it2 = spriteData.begin(); it2 != spriteData.end(); it2++) {
-			addItem("[S]" + it2->first, it->first + "\\" + it2->first);
+			animatable->addItem("[S]" + it2->first, it->first + "\\" + it2->first);
 		}
 
 		if (!forceSprite) {
 			const std::map<std::string, std::shared_ptr<AnimationData>> animationData = it->second->getAnimationData();
 			for (auto it2 = animationData.begin(); it2 != animationData.end(); it2++) {
-				addItem("[A]" + it2->first, it->first + "\\" + it2->first);
+				animatable->addItem("[A]" + it2->first, it->first + "\\" + it2->first);
 			}
 		}
 	}
 
-	setChangeItemOnScroll(false);
-	setExpandDirection(tgui::ComboBox::ExpandDirection::Down);
+	rotationType->addItem("Rotate with movement", std::to_string(static_cast<int>(ROTATE_WITH_MOVEMENT)));
+	rotationType->addItem("Never roate", std::to_string(static_cast<int>(LOCK_ROTATION)));
+	rotationType->addItem("Face horizontal movement", std::to_string(static_cast<int>(LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT)));
+
+	animatable->setChangeItemOnScroll(false);
+	animatable->setExpandDirection(tgui::ComboBox::ExpandDirection::Down);
+	animatable->connect("ItemSelected", [&](std::string itemText, std::string id) {
+		// ID is in format "spriteSheetName\animatableName"
+		std::string spriteSheetName = id.substr(0, id.find_first_of('\\'));
+
+		// The only items without an ID are sprite sheet name indicators, so if ID is empty, this item shouldn't be selectable
+		if (spriteSheetName == "") {
+			animatable->deselectItem();
+		} else {
+			// Item text is in format "[S]spriteName" or "[A]animationName"
+			onValueSet->publish(Animatable(itemText.substr(3), spriteSheetName, itemText[1] == 'S', static_cast<ROTATION_TYPE>(std::stoi(std::string(rotationType->getSelectedItemId())))));
+		}
+	});
+
+	rotationType->setChangeItemOnScroll(false);
+	rotationType->setExpandDirection(tgui::ComboBox::ExpandDirection::Down);
+	rotationType->connect("ItemSelected", [&](std::string item, std::string id) {
+		if (animatable->getSelectedItem() != "") {
+			std::string spriteSheetName = std::string(animatable->getSelectedItemId()).substr(0, std::string(animatable->getSelectedItemId()).find_first_of('\\'));
+
+			onValueSet->publish(Animatable(std::string(animatable->getSelectedItem()).substr(3), spriteSheetName, animatable->getSelectedItem()[1] == 'S', static_cast<ROTATION_TYPE>(std::stoi(std::string(id)))));
+		}
+	});
+	rotationType->setSelectedItemById(std::to_string(static_cast<int>(LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT)));
+
+	add(animatable);
+	add(rotationType);
 }
 
 void AnimatableChooser::calculateItemsToDisplay() {
@@ -38,31 +72,42 @@ void AnimatableChooser::calculateItemsToDisplay() {
 		return;
 	}
 
-	if (getExpandDirection() == tgui::ComboBox::ExpandDirection::Down) {
+	if (animatable->getExpandDirection() == tgui::ComboBox::ExpandDirection::Down) {
 		float availableSpace = getParent()->getSize().y - getPosition().y - getSize().y;
 		// Each item in the ComboBox has height equal to the ComboBox's height
-		setItemsToDisplay((int)(availableSpace / getSize().y));
+		animatable->setItemsToDisplay((int)(availableSpace / getSize().y));
 	}
 }
 
 void AnimatableChooser::setSelectedItem(Animatable animatable) {
 	if (animatable.getAnimatableName() == "") {
-		deselectItem();
+		this->animatable->deselectItem();
 	} else {
-		setSelectedItemById(animatable.getAnimatableName() + "\\" + animatable.getSpriteSheetName());
+		this->animatable->setSelectedItemById(animatable.getAnimatableName() + "\\" + animatable.getSpriteSheetName());
 	}
+}
+
+void AnimatableChooser::onContainerResize(int containerWidth, int containerHeight) {
+	animatable->setSize(containerWidth - paddingX * 2, TEXT_BOX_HEIGHT);
+	rotationType->setSize(containerWidth - paddingX * 2, TEXT_BOX_HEIGHT);
+
+	animatable->setPosition(paddingX, paddingY);
+	rotationType->setPosition(tgui::bindLeft(animatable), tgui::bindBottom(animatable) + paddingY);
+
+	setSize(getSize().x, rotationType->getPosition().y + rotationType->getSize().y + paddingY);
+	calculateItemsToDisplay();
 }
 
 std::shared_ptr<AnimatablePicture> AnimatableChooser::getAnimatablePicture() {
 	if (!animatablePicture) {
 		animatablePicture = std::make_shared<AnimatablePicture>();
-		connect("ItemSelected", [&](std::string itemText, std::string id) {
+		animatable->connect("ItemSelected", [&](std::string itemText, std::string id) {
 			// ID is in format "spriteSheetName\animatableName"
 			std::string spriteSheetName = id.substr(0, id.find_first_of('\\'));
 
 			// The only items without an ID are sprite sheet name indicators, so if ID is empty, this item shouldn't be selectable
 			if (spriteSheetName == "") {
-				deselectItem();
+				animatable->deselectItem();
 			} else {
 				// Item text is in format "[S]spriteName" or "[A]animationName"
 				if (itemText[1] == 'S') {
@@ -77,7 +122,7 @@ std::shared_ptr<AnimatablePicture> AnimatableChooser::getAnimatablePicture() {
 }
 
 void AnimatableChooser::setVisible(bool visible) {
-	tgui::ComboBox::setVisible(visible);
+	tgui::Group::setVisible(visible);
 	animatablePicture->setVisible(visible);
 }
 
@@ -265,6 +310,11 @@ NumericalEditBoxWithLimits::NumericalEditBoxWithLimits() {
 		onValueSet->publish(value);
 	});
 	updateInputValidator();
+}
+
+float NumericalEditBoxWithLimits::getValue() {
+	if (getText() == "") return 0;
+	return std::stof(std::string(getText()));
 }
 
 void NumericalEditBoxWithLimits::setValue(int value) {
