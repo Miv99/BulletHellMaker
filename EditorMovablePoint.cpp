@@ -188,7 +188,7 @@ void EditorMovablePoint::dfsLoadBulletModel(const LevelPack & levelPack) {
 }
 
 void EditorMovablePoint::loadBulletModel(const LevelPack & levelPack) {
-	if (bulletModelID < 0) return;
+	if (!usesBulletModel()) return;
 
 	std::shared_ptr<BulletModel> model = levelPack.getBulletModel(bulletModelID);
 	// Add this EMP to the model's set of model users

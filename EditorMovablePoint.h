@@ -168,13 +168,13 @@ public:
 	void setSpawnType(std::shared_ptr<EMPSpawnType> spawnType);
 	inline void setShadowTrailInterval(float shadowTrailInterval) { this->shadowTrailInterval = shadowTrailInterval; }
 	inline void setShadowTrailLifespan(float shadowTrailLifespan) { this->shadowTrailLifespan = shadowTrailLifespan; }
-	inline void setInheritRadius(bool inheritRadius) { this->inheritRadius = inheritRadius; }
-	inline void setInheritDespawnTime(bool inheritDespawnTime) { this->inheritDespawnTime = inheritDespawnTime; }
-	inline void setInheritShadowTrailInterval(bool inheritShadowTrailInterval) { this->inheritShadowTrailInterval = inheritShadowTrailInterval; }
-	inline void setInheritShadowTrailLifespan(bool inheritShadowTrailLifespan) { this->inheritShadowTrailLifespan = inheritShadowTrailLifespan; }
-	inline void setInheritAnimatables(bool inheritAnimatables) { this->inheritAnimatables = inheritAnimatables; }
-	inline void setInheritDamage(bool inheritDamage) { this->inheritDamage = inheritDamage; }
-	inline void setInheritSoundSettings(bool inheritSoundSettings) { this->inheritSoundSettings = inheritSoundSettings; }
+	inline void setInheritRadius(bool inheritRadius, const LevelPack& levelPack) { this->inheritRadius = inheritRadius; loadBulletModel(levelPack);  }
+	inline void setInheritDespawnTime(bool inheritDespawnTime, const LevelPack& levelPack) { this->inheritDespawnTime = inheritDespawnTime; }
+	inline void setInheritShadowTrailInterval(bool inheritShadowTrailInterval, const LevelPack& levelPack) { this->inheritShadowTrailInterval = inheritShadowTrailInterval; loadBulletModel(levelPack); }
+	inline void setInheritShadowTrailLifespan(bool inheritShadowTrailLifespan, const LevelPack& levelPack) { this->inheritShadowTrailLifespan = inheritShadowTrailLifespan; loadBulletModel(levelPack); }
+	inline void setInheritAnimatables(bool inheritAnimatables, const LevelPack& levelPack) { this->inheritAnimatables = inheritAnimatables; loadBulletModel(levelPack); }
+	inline void setInheritDamage(bool inheritDamage, const LevelPack& levelPack) { this->inheritDamage = inheritDamage; loadBulletModel(levelPack); }
+	inline void setInheritSoundSettings(bool inheritSoundSettings, const LevelPack& levelPack) { this->inheritSoundSettings = inheritSoundSettings; loadBulletModel(levelPack); }
 	inline void setIsBullet(bool isBullet) { this->isBullet = isBullet; }
 	inline void setSoundSettings(SoundSettings soundSettings) { this->soundSettings = soundSettings; }
 	// Inserts an EMPAction such that the new action is at the specified index
