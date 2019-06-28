@@ -316,6 +316,7 @@ std::string BulletModel::format() {
 	std::string res = "";
 
 	res += "(" + tos(id) + ")" + tm_delim;
+	res += "(" + name + ")" + tm_delim;
 	res += "(" + tos(hitboxRadius) + ")" + tm_delim;
 	res += "(" + tos(despawnTime) + ")" + tm_delim;
 
@@ -345,21 +346,22 @@ void BulletModel::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 
 	id = std::stoi(items[0]);
-	hitboxRadius = std::stof(items[1]);
-	despawnTime = std::stof(items[2]);
+	name = items[1];
+	hitboxRadius = std::stof(items[2]);
+	despawnTime = std::stof(items[3]);
 
-	shadowTrailInterval = std::stof(items[3]);
-	shadowTrailLifespan = std::stof(items[4]);
+	shadowTrailInterval = std::stof(items[4]);
+	shadowTrailLifespan = std::stof(items[5]);
 
-	animatable.load(items[5]);
-	if (std::stoi(items[6]) == 0) {
+	animatable.load(items[6]);
+	if (std::stoi(items[7]) == 0) {
 		loopAnimation = false;
 	} else {
 		loopAnimation = true;
 	}
-	baseSprite.load(items[7]);
+	baseSprite.load(items[8]);
 
-	damage = std::stoi(items[8]);
+	damage = std::stoi(items[9]);
 
 	if (std::stoi(items[10]) == 1) {
 		playSoundOnSpawn = true;

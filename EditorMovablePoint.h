@@ -25,6 +25,7 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 
+	inline std::string getName() const { return name; }
 	inline int getID() const { return id; }
 	inline Animatable getAnimatable() const { return animatable; }
 	inline float getHitboxRadius() const { return hitboxRadius; }
@@ -37,6 +38,7 @@ public:
 	inline bool getPlaysSound() const { return playSoundOnSpawn; }
 	inline SoundSettings& getSoundSettings() { return soundSettings; }
 
+	inline void setName(std::string name) { this->name = name; }
 	inline void setPlaysSound(bool playsSound) { playSoundOnSpawn = playsSound; }
 	inline void setDamage(float damage) { this->damage = damage; }
 	inline void setAnimatable(Animatable animatable) { this->animatable = animatable; }
@@ -54,6 +56,7 @@ public:
 
 private:
 	int id;
+	std::string name;
 
 	// Radius of the EMP's hitbox. Set to <= 0 if the EMP is not a bullet.
 	float hitboxRadius = 0;
@@ -173,6 +176,7 @@ public:
 	inline void setInheritDamage(bool inheritDamage) { this->inheritDamage = inheritDamage; }
 	inline void setInheritSoundSettings(bool inheritSoundSettings) { this->inheritSoundSettings = inheritSoundSettings; }
 	inline void setIsBullet(bool isBullet) { this->isBullet = isBullet; }
+	inline void setSoundSettings(SoundSettings soundSettings) { this->soundSettings = soundSettings; }
 	// Inserts an EMPAction such that the new action is at the specified index
 	void insertAction(int index, std::shared_ptr<EMPAction> action);
 	void removeAction(int index);
