@@ -38,16 +38,16 @@ public:
 	inline bool getPlaysSound() const { return playSoundOnSpawn; }
 	inline SoundSettings& getSoundSettings() { return soundSettings; }
 
-	inline void setName(std::string name) { this->name = name; }
-	inline void setPlaysSound(bool playsSound) { playSoundOnSpawn = playsSound; }
-	inline void setDamage(float damage) { this->damage = damage; }
-	inline void setAnimatable(Animatable animatable) { this->animatable = animatable; }
-	inline void setLoopAnimation(bool loopAnimation) { this->loopAnimation = loopAnimation; }
-	inline void setBaseSprite(Animatable baseSprite) { assert(baseSprite.isSprite()); this->baseSprite = baseSprite; }
-	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; }
-	inline void setDespawnTime(float despawnTime) { this->despawnTime = despawnTime; }
-	inline void setShadowTrailInterval(float shadowTrailInterval) { this->shadowTrailInterval = shadowTrailInterval; }
-	inline void setShadowTrailLifespan(float shadowTrailLifespan) { this->shadowTrailLifespan = shadowTrailLifespan; }
+	inline void setName(std::string name) { this->name = name; onModelChange(); }
+	inline void setPlaysSound(bool playsSound) { playSoundOnSpawn = playsSound; onModelChange(); }
+	inline void setDamage(float damage) { this->damage = damage; onModelChange(); }
+	inline void setAnimatable(Animatable animatable) { this->animatable = animatable; onModelChange(); }
+	inline void setLoopAnimation(bool loopAnimation) { this->loopAnimation = loopAnimation; onModelChange(); }
+	inline void setBaseSprite(Animatable baseSprite) { assert(baseSprite.isSprite()); this->baseSprite = baseSprite; onModelChange(); }
+	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; onModelChange(); }
+	inline void setDespawnTime(float despawnTime) { this->despawnTime = despawnTime; onModelChange(); }
+	inline void setShadowTrailInterval(float shadowTrailInterval) { this->shadowTrailInterval = shadowTrailInterval; onModelChange(); }
+	inline void setShadowTrailLifespan(float shadowTrailLifespan) { this->shadowTrailLifespan = shadowTrailLifespan; onModelChange(); }
 
 	inline void addModelUser(std::shared_ptr<EditorMovablePoint> user) {
 		modelUsers.insert(user);
