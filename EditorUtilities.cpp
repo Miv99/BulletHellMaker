@@ -1,6 +1,7 @@
 #include "EditorUtilities.h"
 #include "Constants.h"
 #include <map>
+#include <boost/filesystem.hpp>
 
 std::shared_ptr<tgui::Label> createToolTip(std::string text) {
 	auto tooltip = tgui::Label::create();
@@ -228,7 +229,7 @@ void SliderWithEditBox::onEditBoxValueSet(float value) {
 	tgui::Slider::setValue(value);
 }
 
-SoundSettingsGroup::SoundSettingsGroup(float paddingX, float paddingY) : paddingX(paddingX), paddingY(paddingY) {
+SoundSettingsGroup::SoundSettingsGroup(std::string pathToSoundsFolder, float paddingX, float paddingY) : paddingX(paddingX), paddingY(paddingY) {
 	onNewSoundSettings = std::make_shared<entt::SigH<void(SoundSettings)>>();
 	enableAudio = tgui::CheckBox::create();
 	fileName = tgui::ComboBox::create();
@@ -258,7 +259,7 @@ SoundSettingsGroup::SoundSettingsGroup(float paddingX, float paddingY) : padding
 	volumeLabel->setText("Volume");
 	pitchLabel->setText("Pitch");
 	
-	//TODO:pass in sound folder and auotmatically populate fileName
+	populateFileNames(pathToSoundsFolder);
 
 	enableAudio->connect("Changed", [&]() {
 		if (ignoreSignal) return;
@@ -299,6 +300,22 @@ void SoundSettingsGroup::initSettings(SoundSettings init) {
 	volume->setValue(init.getVolume());
 	pitch->setValue(init.getPitch());
 	ignoreSignal = false;
+}
+
+void SoundSettingsGroup::populateFileNames(std::string pathToSoundsFolder) {
+	fileName->deselectItem();
+	fileName->removeAllItems();
+
+	// Populate fileName with all supported sound files in the directory
+	for (const auto & entry : boost::filesystem::directory_iterator(pathToSoundsFolder)) {
+		std::string filePath = entry.path().string();
+		std::string type = filePath.substr(filePath.find_last_of('.'));
+		if (!(type == ".wav" || type == ".ogg" || type == ".flac")) {
+			continue;
+		}
+		std::string name = filePath.substr(filePath.find_last_of('\\') + 1);
+		fileName->addItem(name);
+	}
 }
 
 void SoundSettingsGroup::onContainerResize(int containerWidth, int containerHeight) {

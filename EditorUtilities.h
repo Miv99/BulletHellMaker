@@ -154,8 +154,9 @@ Used to edit SoundSettings
 */
 class SoundSettingsGroup : public tgui::Group {
 public:
-	SoundSettingsGroup(float paddingX = 20, float paddingY = 10);
+	SoundSettingsGroup(std::string pathToSoundsFolder, float paddingX = 20, float paddingY = 10);
 	void initSettings(SoundSettings init);
+	void populateFileNames(std::string pathToSoundsFolder);
 
 	/*
 	Should be called whenever this widget's container is resized.

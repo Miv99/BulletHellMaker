@@ -268,7 +268,7 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 	empiOnCollisionAction = tgui::ComboBox::create();
 	empiPierceResetTimeLabel = tgui::Label::create();
 	empiPierceResetTime = std::make_shared<SliderWithEditBox>();
-	empiSoundSettings = std::make_shared<SoundSettingsGroup>(GUI_PADDING_X, GUI_PADDING_Y);
+	empiSoundSettings = std::make_shared<SoundSettingsGroup>("Level Packs\\" + levelPack.getName() + "\\Sounds", GUI_PADDING_X, GUI_PADDING_Y);
 	empiBulletModelLabel = tgui::Label::create();
 	empiBulletModel = tgui::ComboBox::create();
 	empiInheritRadiusLabel = tgui::Label::create();
