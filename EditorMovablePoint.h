@@ -104,7 +104,7 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 
-	bool legal(SpriteLoader& spriteLoader, std::string& message);
+	bool legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::string& message);
 
 	/*
 	Loads this EMP and its children's bullet models into the EMP, it they use models.

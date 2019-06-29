@@ -41,14 +41,14 @@ void EditorAttack::load(std::string formattedString) {
 	}
 }
 
-bool EditorAttack::legal(SpriteLoader& spriteLoader, std::string& message) {
+bool EditorAttack::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::string& message) {
 	bool good = true;
-	if (contains(name, '(') || contains(name, ')')) {
-		message += "Attack \"" + name + "\" cannot have the character '(' or ')' in its name\n";
+	if (contains(name, '(') || contains(name, ')') || contains(name, '\\')) {
+		message += "Attack \"" + name + "\" cannot have the character '(', ')', or '\' in its name\n";
 		good = false;
 	}
 	if (mainEMP) {
-		if (!mainEMP->legal(spriteLoader, message)) {
+		if (!mainEMP->legal(levelPack, spriteLoader, message)) {
 			good = false;
 		}
 	} else {

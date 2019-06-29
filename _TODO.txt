@@ -61,6 +61,7 @@ TODO:
 -change all setposition and setsize to use "25%" or whatever
 -change size of animatablepicture to match texture's aspect ratio
 -SpriteSheetLoader emits some signal every time a change is made (sprite/spritesheet added/deleted)
+-legal checks for everything should make sure all IDs used (ie attack IDs in attack patterns) are valid
 -LevelPack emits signals for Attack/AttackPattern/Enemy/EnemyPhase/BulletModel every time one is changed (unique signal for each)
 	-make sure to update:
 		-AttackEditor

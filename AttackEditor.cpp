@@ -793,7 +793,6 @@ AttackEditor::AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> s
 		}));
 	});
 
-	//TODO: move this to onLevelPackBulletModelsChange()
 	empiBulletModel->removeAllItems();
 	empiBulletModel->addItem("", "-1");
 	for (auto it = levelPack.getBulletModelIteratorBegin(); it != levelPack.getBulletModelIteratorEnd(); it++) {
@@ -1119,6 +1118,39 @@ void AttackEditor::onPlayAreaWindowResize(int windowWidth, int windowHeight) {
 	empaiHomingStrength->setPosition(0, tgui::bindBottom(empaiHomingStrengthLabel));
 	empaiHomingSpeedLabel->setPosition(tgui::bindLeft(empaiHomingStrengthLabel), tgui::bindBottom(empaiDuration) + GUI_PADDING_Y);
 	empaiHomingSpeed->setPosition(0, tgui::bindBottom(empaiHomingSpeedLabel));
+}
+
+void AttackEditor::reload() {
+	empiSoundSettings->populateFileNames("Level Packs\\" + levelPack.getName() + "\\Sounds");
+	
+	empiBulletModel->removeAllItems();
+	empiBulletModel->addItem("", "-1");
+	for (auto it = levelPack.getBulletModelIteratorBegin(); it != levelPack.getBulletModelIteratorEnd(); it++) {
+		empiBulletModel->addItem(it->second->getName(), std::to_string(it->second->getID()));
+	}
+
+	legalCheck();
+}
+
+std::vector<int> AttackEditor::legalCheck() {
+	std::vector<int> illegals;
+
+	std::string errorMessage = "";
+	for (auto it = levelPack.getAttackIteratorBegin(); it != levelPack.getAttackIteratorEnd(); it++) {
+		std::shared_ptr<EditorAttack> attack;
+		if (unsavedAttacks.count(it->first) > 0) {
+			attack = unsavedAttacks[it->first];
+		} else {
+			attack = it->second;
+		}
+		if (!attack->legal(levelPack, *spriteLoader, errorMessage)) {
+			illegals.push_back(attack->getID());
+		}
+	}
+
+	//TODO: display errorMessage in a prompt
+
+	return illegals;
 }
 
 void AttackEditor::selectAttack(int id) {

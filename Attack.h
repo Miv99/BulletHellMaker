@@ -20,7 +20,7 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 
-	bool legal(SpriteLoader& spriteLoader, std::string& message);
+	bool legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::string& message);
 
 	void loadEMPBulletModels(const LevelPack& levelPack);
 

@@ -46,6 +46,16 @@ private:
 	const int UNDO_STACK_MAX = 100;
 
 	/*
+	Reload all widgets to reflect changes made in the LevelPack.
+	*/
+	void reload();
+	/*
+	Performs a legal check on all EditorAttacks and returns a list of IDs of
+	illegal EditorAttacks.
+	*/
+	std::vector<int> legalCheck();
+
+	/*
 	id - id of the EditorAttack
 	*/
 	void selectAttack(int id);
@@ -60,7 +70,6 @@ private:
 	*/
 	void selectEMPA(int index);
 	void deselectEMPA();
-
 	
 	/*
 	Begin editing an EditorMovablePoint that is part of the currently open EditorAttack.

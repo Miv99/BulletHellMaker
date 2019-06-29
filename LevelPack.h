@@ -139,6 +139,8 @@ public:
 	inline int getNextEnemyPhaseID() const { return nextEnemyPhaseID; }
 	inline int getNextBulletModelID() const { return nextBulletModelID; }
 
+	inline bool hasBulletModel(int id) const { return bulletModels.count(id) > 0; }
+
 	inline void setPlayer(EditorPlayer player) { metadata.setPlayer(player); }
 	inline void setFontFileName(std::string fontFileName) { this->fontFileName = fontFileName; }
 
