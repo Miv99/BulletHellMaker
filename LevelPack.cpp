@@ -20,6 +20,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	auto model1 = createBulletModel();
 	model1->setAnimatable(Animatable("Bullet", "sheet1", true, LOCK_ROTATION));
 	model1->setDamage(1);
+	model1->setName("test model");
 	model1->setHitboxRadius(30);
 	model1->setPlaysSound(true);
 	model1->getSoundSettings().setFileName("test sound.wav");

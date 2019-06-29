@@ -89,7 +89,7 @@ fileName - file name with extension
 volume - in range [0, 100], where 100 is full volume
 */
 void AudioPlayer::playSound(const SoundSettings& soundSettings) {
-	if (soundSettings.isDisabled()) return;
+	if (soundSettings.isDisabled() || soundSettings.getFileName() == "") return;
 
 	// Check if the sound's SoundBuffer already exists
 	if (soundBuffers.count(soundSettings.getFileName()) == 0) {
@@ -114,7 +114,7 @@ fileName - file name with extension
 volume - in range [0, 100], where 100 is full volume
 */
 std::shared_ptr<sf::Music> AudioPlayer::playMusic(const MusicSettings& musicSettings) {
-	if (musicSettings.isDisabled()) return nullptr;
+	if (musicSettings.isDisabled() || musicSettings.getFileName() == "") return nullptr;
 
 	std::shared_ptr<sf::Music> music = std::make_shared<sf::Music>();
 	if (!music->openFromFile(musicSettings.getFileName())) {

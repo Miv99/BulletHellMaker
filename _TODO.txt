@@ -50,6 +50,7 @@ big todo:
 -when empiActions changes (added/deleted item), the whole list must be rebuilt because id is index
 	-tooltip: "d=" means duration; time for action to complete
 -when empiActions changes, make sure Detach option is still valid; turn text red if not
+-when level pack's bullet models are modified in any 
 	
 -select EMPA --> EMPA is shown on gameplay windows
  a draggable/movable dot labeled "source" is shown (if EMP spawn type is global, the source isn't movable); the total path (a bunch of dots at an adjustable time interval)  
@@ -60,7 +61,11 @@ TODO:
 -change all setposition and setsize to use "25%" or whatever
 -change size of animatablepicture to match texture's aspect ratio
 -SpriteSheetLoader emits some signal every time a change is made (sprite/spritesheet added/deleted)
--LevelPack emits signals for Attack/AttackPattern/Enemy/EnemyPhase every time one is changed (unique signal for each)
+-LevelPack emits signals for Attack/AttackPattern/Enemy/EnemyPhase/BulletModel every time one is changed (unique signal for each)
+	-make sure to update:
+		-AttackEditor
+			-empiBulletModel items + reload selected EMP with setEMPWidgetValues, empiAnimatable items + reload selected EMP with setEMPWidgetValues, 
+			empiBaseSprite items + reload selected EMP with setEMPWidgetValues, 
 -Animatables can't have backslashes in name
 -somehow downsample before bloom shaders
 -all editor windows have the same LevelPack open such that when some attack changes or something, all open windows are notified and refreshed

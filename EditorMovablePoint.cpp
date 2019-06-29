@@ -230,6 +230,10 @@ void EditorMovablePoint::setBulletModel(std::shared_ptr<BulletModel> model) {
 	}
 }
 
+void EditorMovablePoint::removeBulletModel() {
+	bulletModelID = -1;
+}
+
 void EditorMovablePoint::setSpawnType(std::shared_ptr<EMPSpawnType> spawnType) {
 	this->spawnType = spawnType;
 

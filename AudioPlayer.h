@@ -13,7 +13,7 @@ public:
 	inline std::string getFileName() const { return fileName; }
 	inline float getVolume() const { return volume; }
 	inline float getPitch() const { return pitch; }
-	inline bool isDisabled() const { return disabled || fileName == ""; }
+	inline bool isDisabled() const { return disabled; }
 
 	inline void setFileName(std::string fileName) { this->fileName = fileName; }
 	inline void setVolume(float volume) { this->volume = volume; }

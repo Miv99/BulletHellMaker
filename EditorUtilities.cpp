@@ -121,9 +121,40 @@ std::shared_ptr<AnimatablePicture> AnimatableChooser::getAnimatablePicture() {
 	return animatablePicture;
 }
 
+Animatable AnimatableChooser::getValue() {
+	std::string itemText = animatable->getSelectedItem();
+	if (itemText == "") {
+		return Animatable("", "", false, LOCK_ROTATION);
+	}
+	std::string id = animatable->getSelectedItemId();
+
+	// ID is in format "spriteSheetName\animatableName"
+	std::string spriteSheetName = id.substr(0, id.find_first_of('\\'));
+
+	// The only items without an ID are sprite sheet name indicators, so if ID is empty, this item shouldn't be selectable
+	if (spriteSheetName == "") {
+		animatable->deselectItem();
+	} else {
+		// Item text is in format "[S]spriteName" or "[A]animationName"
+		if (itemText[1] == 'S') {
+			animatablePicture->setSprite(spriteLoader, itemText.substr(3), spriteSheetName);
+		} else {
+			animatablePicture->setAnimation(spriteLoader, itemText.substr(3), spriteSheetName);
+		}
+	}
+
+	return Animatable(itemText.substr(3), spriteSheetName, itemText[1] == 'S', static_cast<ROTATION_TYPE>(std::stoi(std::string(rotationType->getSelectedItemId()))));
+}
+
 void AnimatableChooser::setVisible(bool visible) {
 	tgui::Group::setVisible(visible);
 	animatablePicture->setVisible(visible);
+}
+
+void AnimatableChooser::setEnabled(bool enabled) {
+	tgui::Group::setEnabled(enabled);
+	animatable->setEnabled(enabled);
+	rotationType->setEnabled(enabled);
 }
 
 void AnimatablePicture::update(float deltaTime) {
@@ -147,6 +178,9 @@ SliderWithEditBox::SliderWithEditBox(float paddingX) : paddingX(paddingX) {
 
 	tgui::Slider::connect("ValueChanged", [&](float value) {
 		editBox->setValue(value);
+		if (onValueSet) {
+			onValueSet->publish(value);
+		}
 	});
 	editBox->getOnValueSet()->sink().connect<SliderWithEditBox, &SliderWithEditBox::onEditBoxValueSet>(this);
 }
@@ -227,6 +261,7 @@ SoundSettingsGroup::SoundSettingsGroup(float paddingX, float paddingY) : padding
 	//TODO:pass in sound folder and auotmatically populate fileName
 
 	enableAudio->connect("Changed", [&]() {
+		if (ignoreSignal) return;
 		onNewSoundSettings->publish(SoundSettings(fileName->getSelectedItem(), volume->getValue(), pitch->getValue(), !enableAudio->isChecked()));
 		if (enableAudio->isChecked()) {
 			fileName->setEnabled(true);
@@ -239,9 +274,10 @@ SoundSettingsGroup::SoundSettingsGroup(float paddingX, float paddingY) : padding
 		}
 	});
 	fileName->connect("ItemSelected", [&]() {
+		if (ignoreSignal) return;
 		onNewSoundSettings->publish(SoundSettings(fileName->getSelectedItem(), volume->getValue(), pitch->getValue(), !enableAudio->isChecked()));
 	});
-	pitch->getOnValueSet()->sink().connect<SoundSettingsGroup, &SoundSettingsGroup::onVolumeChange>(this);
+	volume->getOnValueSet()->sink().connect<SoundSettingsGroup, &SoundSettingsGroup::onVolumeChange>(this);
 	pitch->getOnValueSet()->sink().connect<SoundSettingsGroup, &SoundSettingsGroup::onPitchChange>(this);
 
 	add(enableAudio);
@@ -257,10 +293,12 @@ SoundSettingsGroup::SoundSettingsGroup(float paddingX, float paddingY) : padding
 }
 
 void SoundSettingsGroup::initSettings(SoundSettings init) {
+	ignoreSignal = true;
 	enableAudio->setChecked(!init.isDisabled());
 	fileName->setSelectedItem(init.getFileName());
 	volume->setValue(init.getVolume());
 	pitch->setValue(init.getPitch());
+	ignoreSignal = false;
 }
 
 void SoundSettingsGroup::onContainerResize(int containerWidth, int containerHeight) {
@@ -289,11 +327,20 @@ std::shared_ptr<entt::SigH<void(SoundSettings)>> SoundSettingsGroup::getOnNewSou
 	return onNewSoundSettings;
 }
 
+void SoundSettingsGroup::setEnabled(bool enabled) {
+	enableAudio->setEnabled(enabled);
+	fileName->setEnabled(enabled);
+	volume->setEnabled(enabled);
+	pitch->setEnabled(enabled);
+}
+
 void SoundSettingsGroup::onVolumeChange(float volume) {
+	if (ignoreSignal) return;
 	onNewSoundSettings->publish(SoundSettings(fileName->getSelectedItem(), volume, pitch->getValue(), !enableAudio->isChecked()));
 }
 
 void SoundSettingsGroup::onPitchChange(float pitch) {
+	if (ignoreSignal) return;
 	onNewSoundSettings->publish(SoundSettings(fileName->getSelectedItem(), volume->getValue(), pitch, !enableAudio->isChecked()));
 }
 

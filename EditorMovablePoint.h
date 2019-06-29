@@ -119,6 +119,7 @@ public:
 	This should be the only way of setting an EMP's bullet model.
 	*/
 	void setBulletModel(std::shared_ptr<BulletModel> model);
+	void removeBulletModel();
 
 	inline bool requiresBaseSprite() {
 		return !animatable.isSprite() && !loopAnimation;

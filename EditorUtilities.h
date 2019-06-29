@@ -86,9 +86,14 @@ public:
 	void onContainerResize(int containerWidth, int containerHeight);
 
 	std::shared_ptr<AnimatablePicture> getAnimatablePicture();
+	/*
+	Returns an Animatable with empty sprite name and sprite sheet name if none is selected.
+	*/
+	Animatable getValue();
 	inline std::shared_ptr<entt::SigH<void(Animatable)>> getOnValueSet() { return onValueSet; }
 
 	void setVisible(bool visible);
+	void setEnabled(bool enabled);
 
 private:
 	/*
@@ -160,9 +165,13 @@ public:
 
 	std::shared_ptr<entt::SigH<void(SoundSettings)>> getOnNewSoundSettingsSignal();
 
+	void setEnabled(bool enabled);
+
 private:
 	void onVolumeChange(float volume);
 	void onPitchChange(float pitch);
+
+	bool ignoreSignal = false;
 
 	float paddingX, paddingY;
 

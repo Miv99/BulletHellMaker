@@ -53,7 +53,7 @@ private:
 	/*
 	id - id of the EditorMovablePoint in the currently selected EditorAttack
 	*/
-	void selectEMP(int id);
+	void selectEMP(std::shared_ptr<EditorAttack> parentAttack, int id);
 	void deselectEMP();
 	/*
 	index - index of the selected action in the selected EMP's list of EMPActions
@@ -88,6 +88,7 @@ private:
 	empOwner - the EditorAttack the emp is from
 	*/
 	void deleteEMP(std::shared_ptr<EditorAttack> empOwner, std::shared_ptr<EditorMovablePoint> emp);
+	void deleteEMPA(std::shared_ptr<EditorMovablePoint> emp, int empaIndex);
 
 	/*
 	Should be called when a change is made to any EditorAttack.
@@ -201,8 +202,15 @@ private:
 
 	void onEmpiHitboxRadiusChange(float value);
 	void onEmpiDespawnTimeChange(float value);
+	void onEmpiSpawnTypeTimeChange(float value);
+	void onEmpiSpawnTypeXChange(float value);
+	void onEmpiSpawnTypeYChange(float value);
 	void onEmpiShadowTrailLifespanChange(float value);
 	void onEmpiShadowTrailIntervalChange(float value);
+	void onAnimatableChange(Animatable value);
+	void onBaseSpriteChange(Animatable value);
+	void onEmpiDamageChange(float value);
+	void onEmpiSoundSettingsChange(SoundSettings value);
 	void onEmpiPierceResetTimeChange(float value);
 	//------------------ Attack list widgets (al__) --------------------------------
 	std::shared_ptr<tgui::ScrollablePanel> alPanel;
@@ -251,6 +259,9 @@ private:
 	// This is to prevent a redo from signalling a widget from
 	// creating another undo command, since UndoStack already takes care of that.
 	bool skipUndoCommandCreation = false;
+	// This bool is used to prevent infinite loops (eg selectEMP() causing emplTree's connect("ItemSelected") to fire, which
+	// calls selectEMP() again)
+	bool ignoreSignal = false;
 
 	std::shared_ptr<SpriteLoader> spriteLoader;
 
