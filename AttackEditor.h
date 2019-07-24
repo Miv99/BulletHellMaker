@@ -11,6 +11,16 @@
 #include <map>
 #include <mutex>
 
+class AttackEditorMainWindow : public UndoableEditorWindow {
+public:
+	inline AttackEditorMainWindow(std::shared_ptr<std::mutex> tguiMutex, std::string windowTitle, int width, int height, UndoStack& undoStack, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL) :
+		UndoableEditorWindow(tguiMutex, windowTitle, width, height, undoStack, scaleWidgetsOnResize, letterboxingEnabled, renderInterval) {
+	}
+
+protected:
+	void handleEvent(sf::Event event) override;
+};
+
 /*
 The editor for editing EditorAttacks.
 
@@ -26,7 +36,7 @@ Notes:
 */
 class AttackEditor {
 public:
-	AttackEditor(LevelPack& levelPack, std::shared_ptr<SpriteLoader> spriteLoader);
+	AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr<SpriteLoader> spriteLoader);
 
 	void start();
 	void close();
@@ -70,15 +80,6 @@ private:
 	*/
 	void selectEMPA(int index);
 	void deselectEMPA();
-	
-	/*
-	Begin editing an EditorMovablePoint that is part of the currently open EditorAttack.
-	*/
-	void beginMovablePointEditing(std::shared_ptr<EditorMovablePoint> movablePoint);
-	/*
-	Finish editing an EditorMovablePoint.
-	*/
-	void endMovablePointEditing();
 
 	void createAttack();
 	void deleteAttack(std::shared_ptr<EditorAttack> attack, bool autoScrollAttackListToBottom = false);
@@ -115,6 +116,15 @@ private:
 		changes made to emp)
 	*/
 	void setEMPWidgetValues(std::shared_ptr<EditorMovablePoint> emp, std::shared_ptr<EditorAttack> parentAttack, bool skipUndoCommandCreation, bool fromInit);
+	/*
+	Should be called when a change is made to any EMPA.
+
+	parentEMP - the EditorMovablePoint empa belongs to
+	parentAttack - the EditorAttack parentEMP belongs to
+	skipUndoCommandCreation - see EditorAttack::skipUndoCommandCreation
+	*/
+	void setEMPAWidgetValues(std::shared_ptr<EMPAction> empa, std::shared_ptr<EditorMovablePoint> parentEMP, std::shared_ptr<EditorAttack> parentAttack, bool skipUndoCommandCreation);
+
 
 	void buildEMPTree();
 	static sf::String getEMPTreeNodeText(const EditorMovablePoint& emp);
@@ -125,14 +135,13 @@ private:
 
 	void onMainWindowRender(float deltaTime);
 
-	LevelPack& levelPack;
+	std::shared_ptr<LevelPack> levelPack;
 
 	std::shared_ptr<EditorWindow> mainWindow;
 	// Window to view the play area
 	std::shared_ptr<EditorWindow> playAreaWindow;
 
 	UndoStack mainWindowUndoStack;
-	UndoStack playAreaWindowUndoStack;
 
 	const float MAIN_WINDOW_WIDTH = 1024;
 	const float MAIN_WINDOW_HEIGHT = 768;
@@ -236,9 +245,7 @@ private:
 	std::shared_ptr<tgui::TreeView> emplTree;
 	std::shared_ptr<tgui::Button> emplCreateEMP;
 	std::shared_ptr<tgui::Button> emplDeleteEMP;
-	//------------------ Play area window widgets (paw__) --------------------------------
-	
-	//------------------ EMPA info widgets (empai__) (these are in the play area window)
+	//------------------ EMPA info widgets (empai__) ------------------------------
 	std::shared_ptr<tgui::ScrollablePanel> empaiPanel;
 
 	//TODO: connect() for these
@@ -258,6 +265,18 @@ private:
 	std::shared_ptr<TFVGroup> empaiHomingStrength; // only for MovePlayerHomingEMPA
 	std::shared_ptr<tgui::Label> empaiHomingSpeedLabel;
 	std::shared_ptr<TFVGroup> empaiHomingSpeed; // only for MovePlayerHomingEMPA
+
+	void onEmpaiDurationChange(float value);
+	/*
+	Note that unlike the other "on_____Change" functions, this one is called AFTER the change has already been made. 
+	Furthermore, this can only be called from EditorUtilities::TFVGroup, which already takes care of the undo stack.
+	So, all this function has to do is handle events that must happen when a change is made to an EMPA.
+
+	empa - the EMPAction that was just changed
+	parentEMP - the EditorMovablePoint empa belongs to
+	parentAttack - the EditorAttack parentEMP belongs to
+	*/
+	void onEmpaiTFVChange(std::shared_ptr<EMPAction> empa, std::shared_ptr<EditorMovablePoint> parentEMP, std::shared_ptr<EditorAttack> parentAttack);
 	// -----------------------------------------------------------------------------------
 
 	// Threads for the above windows

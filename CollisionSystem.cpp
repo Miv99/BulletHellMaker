@@ -19,13 +19,22 @@ void CollisionSystem::update(float deltaTime) {
 	auto playerBulletView = registry.view<PlayerBulletComponent, PositionComponent, HitboxComponent>(entt::persistent_t{});
 	auto enemyBulletView = registry.view<EnemyBulletComponent, PositionComponent, HitboxComponent>(entt::persistent_t{});
 
-	uint32_t player = registry.attachee<PlayerTag>();
-	auto& playerHitbox = registry.get<HitboxComponent>(player);
-	auto& playerPosition = registry.get<PositionComponent>(player);
+	if (registry.has<PlayerTag>()) {
+		uint32_t player = registry.attachee<PlayerTag>();
+		auto& playerHitbox = registry.get<HitboxComponent>(player);
+		auto& playerPosition = registry.get<PositionComponent>(player);
 
-	// Since HitboxComponent's update is only for updating hitbox disable time and only the player's hitbox can be disabled,
-	// only update the player's hitbox
-	playerHitbox.update(deltaTime);
+		// Since HitboxComponent's update is only for updating hitbox disable time and only the player's hitbox can be disabled,
+		// only update the player's hitbox
+		playerHitbox.update(deltaTime);
+
+		// largeObjectsTable always contains players and enemies
+		// Insert player
+		if (playerHitbox.getRadius() < defaultTableObjectMaxSize) {
+			defaultTable.insert(player, playerHitbox, playerPosition);
+		}
+		largeObjectsTable.insert(player, playerHitbox, playerPosition);
+	}
 
 	// Reinsert all bullets, players, and enemies into tables
 	defaultTable.clear();
@@ -51,12 +60,6 @@ void CollisionSystem::update(float deltaTime) {
 		}
 	});
 
-	// largeObjectsTable always contains players and enemies
-	// Insert player
-	if (playerHitbox.getRadius() < defaultTableObjectMaxSize) {
-		defaultTable.insert(player, playerHitbox, playerPosition);
-	}
-	largeObjectsTable.insert(player, playerHitbox, playerPosition);
 	// Insert enemies
 	enemyView.each([&](auto entity, auto& enemy, auto& position, auto& hitbox) {
 		if (hitbox.getRadius() < defaultTableObjectMaxSize) {
@@ -66,7 +69,11 @@ void CollisionSystem::update(float deltaTime) {
 	});
 
 	// Collision detection, looping through only players and enemies
-	{
+	if (registry.has<PlayerTag>()) {
+		uint32_t player = registry.attachee<PlayerTag>();
+		auto& playerHitbox = registry.get<HitboxComponent>(player);
+		auto& playerPosition = registry.get<PositionComponent>(player);
+
 		// Check for player
 		
 		if (!playerHitbox.isDisabled()) {

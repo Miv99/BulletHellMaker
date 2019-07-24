@@ -1,6 +1,16 @@
 #pragma once
 #include "MovablePoint.h"
 #include "UndoStack.h"
+#include "EntityCreationQueue.h"
+#include "MovementSystem.h"
+#include "DespawnSystem.h"
+#include "EnemySystem.h"
+#include "SpriteAnimationSystem.h"
+#include "ShadowTrailSystem.h"
+#include "PlayerSystem.h"
+#include "CollectibleSystem.h"
+#include "EditorUtilities.h"
+#include "Constants.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -97,4 +107,62 @@ protected:
 
 private:
 	UndoStack& undoStack;
+};
+
+class GameplayTestWindow : public UndoableEditorWindow {
+public:
+	GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std::shared_ptr<SpriteLoader> spriteLoader, std::shared_ptr<std::mutex> tguiMutex,
+		std::string windowTitle, int width, int height, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false,
+		float renderInterval = RENDER_INTERVAL);
+
+protected:
+	void handleEvent(sf::Event event) override;
+	void physicsUpdate(float deltaTime) override;
+	void render(float deltaTime) override;
+
+	void updateWindowView(int width, int height) override;
+
+private:
+	const float GUI_PADDING_X = 20;
+	const float GUI_PADDING_Y = 10;
+	const int UNDO_STACK_MAX = 100;
+
+	bool paused = false;
+
+	UndoStack undoStack;
+
+	std::shared_ptr<LevelPack> levelPack;
+	std::shared_ptr<SpriteLoader> spriteLoader;
+	std::shared_ptr<EntityCreationQueue> queue;
+
+	entt::DefaultRegistry registry;
+	std::unique_ptr<sf::RenderWindow> window;
+
+	std::unique_ptr<MovementSystem> movementSystem;
+	std::unique_ptr<RenderSystem> renderSystem;
+	std::unique_ptr<CollisionSystem> collisionSystem;
+	std::unique_ptr<DespawnSystem> despawnSystem;
+	std::unique_ptr<EnemySystem> enemySystem;
+	std::unique_ptr<SpriteAnimationSystem> spriteAnimationSystem;
+	std::unique_ptr<ShadowTrailSystem> shadowTrailSystem;
+	std::unique_ptr<PlayerSystem> playerSystem;
+	std::unique_ptr<CollectibleSystem> collectibleSystem;
+	std::unique_ptr<AudioPlayer> audioPlayer;
+
+
+	std::shared_ptr<tgui::ScrollablePanel> leftPanel;
+	std::shared_ptr<tgui::Label> entityPlaceholdersListLabel;
+	std::shared_ptr<tgui::ListBox> entityPlaceholdersList;
+	std::shared_ptr<tgui::Button> newEnemyPlaceholder;
+	std::shared_ptr<tgui::Button> deleteEnemyPlaceholder;
+
+	std::shared_ptr<tgui::ScrollablePanel> rightPanel;
+	std::shared_ptr<tgui::Label> enemyPlaceholderXLabel;
+	std::shared_ptr<NumericalEditBoxWithLimits> enemyPlaceholderX;
+	std::shared_ptr<tgui::Label> enemyPlaceholderYLabel;
+	std::shared_ptr<NumericalEditBoxWithLimits> enemyPlaceholderY;
+	std::shared_ptr<tgui::Button> enemyPlaceholderManualSet;
+	std::shared_ptr<tgui::Button> setEnemyPlaceholderTestMode; // TODO: popup on click: attack, attack pattern, enemy phase, enemy
+	std::shared_ptr<tgui::Label> testModeIDLabel;
+	std::shared_ptr<tgui::ListBox> testModeID; // contains all Editor____ objects in the LevelPack (______ part depends on currently selected placeholder's test mode)
 };

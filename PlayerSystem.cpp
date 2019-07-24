@@ -2,6 +2,10 @@
 #include "Constants.h"
 
 void PlayerSystem::update(float deltaTime) {
+	if (!registry.has<PlayerTag>()) {
+		return;
+	}
+
 	auto& playerTag = registry.get<PlayerTag>();
 
 	int verticalInput = 0;

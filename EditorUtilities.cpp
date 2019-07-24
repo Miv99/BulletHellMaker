@@ -4,6 +4,8 @@
 // --TODO--
 //#include <boost/filesystem.hpp>
 
+#include <iostream>
+
 std::shared_ptr<tgui::Label> createToolTip(std::string text) {
 	auto tooltip = tgui::Label::create();
 	tooltip->setMaximumTextWidth(300);
@@ -435,16 +437,46 @@ void NumericalEditBoxWithLimits::updateInputValidator() {
 	}
 }
 
-TFVGroup::TFVGroup() {
-	onTFVChange = std::make_shared<entt::SigH<void()>>();
+TFVGroup::TFVGroup(UndoStack& undoStack) : undoStack(undoStack) {
+	onTFVChange = std::make_shared<entt::SigH<void(std::shared_ptr<EMPAction>, std::shared_ptr<EditorMovablePoint>, std::shared_ptr<EditorAttack>)>>();
+
+	//TODO
+	test = tgui::Slider::create();
+	test->connect("ValueChanged", [&](float value) {
+		if (ignoreSignal) return;
+		undoStack.execute(UndoableCommand(
+			[this, value]() {
+			std::cout << "executed" << value << std::endl;
+		},
+		[this]() {
+			std::cout << "undo" << std::endl;
+		}));
+	});
+	add(test);
 }
 
 void TFVGroup::onContainerResize(int containerWidth, int containerHeight) {
 	//TODO
+	test->setPosition(0, 0);
+	test->setSize(containerWidth, 20);
+
+	setSize(getSize().x, 25);
 }
 
-EMPAAngleOffsetGroup::EMPAAngleOffsetGroup() {
-	onAngleOffsetChange = std::make_shared <entt::SigH<void()>>();
+void TFVGroup::setTFV(std::shared_ptr<TFV> tfv, std::shared_ptr<EMPAction> parentEMPA, std::shared_ptr<EditorMovablePoint> parentEMP, std::shared_ptr<EditorAttack> parentAttack) {
+	this->tfv = tfv;
+	this->parentEMPA = parentEMPA;
+	this->parentEMP = parentEMP;
+	this->parentAttack = parentAttack;
+
+	ignoreSignal = true;
+	//TODO: set widget values
+	test->setValue(2);
+	ignoreSignal = false;
+}
+
+EMPAAngleOffsetGroup::EMPAAngleOffsetGroup(UndoStack& undoStack) : undoStack(undoStack) {
+	onAngleOffsetChange = std::make_shared<entt::SigH<void(std::shared_ptr<EMPAction>, std::shared_ptr<EditorMovablePoint>, std::shared_ptr<EditorAttack>)>>();
 }
 
 void EMPAAngleOffsetGroup::onContainerResize(int containerWidth, int containerHeight) {

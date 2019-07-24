@@ -62,6 +62,8 @@ public:
 	void load();
 	void save();
 
+	void deleteTemporaryEditorObjecs();
+
 	/*
 	Creates the sprite loader that contains info for all animatables that are used in this level pack.
 	*/
@@ -104,6 +106,39 @@ public:
 		auto bulletModel = std::make_shared<BulletModel>(nextBulletModelID++);
 		bulletModels[bulletModel->getID()] = bulletModel;
 		return bulletModel;
+	}
+
+	/*
+	Creates a temporary EditorAttack that will not be saved.
+	*/
+	inline std::shared_ptr<EditorAttack> createTempAttack() {
+		auto attack = std::make_shared<EditorAttack>(nextTempAttackID--);
+		attacks[attack->getID()] = attack;
+		return attack;
+	}
+	/*
+	Creates a temporary EditorAttackPattern that will not be saved.
+	*/
+	inline std::shared_ptr<EditorAttackPattern> createTempAttackPattern() {
+		auto attackPattern = std::make_shared<EditorAttackPattern>(nextTempAttackPatternID--);
+		attackPatterns[attackPattern->getID()] = attackPattern;
+		return attackPattern;
+	}
+	/*
+	Creates a temporary EditorEnemy that will not be saved.
+	*/
+	inline std::shared_ptr<EditorEnemy> createTempEnemy() {
+		auto enemy = std::make_shared<EditorEnemy>(nextTempEnemyID--);
+		enemies[enemy->getID()] = enemy;
+		return enemy;
+	}
+	/*
+	Creates a temporary EditorEnemyPhase that will not be saved.
+	*/
+	inline std::shared_ptr<EditorEnemyPhase> createTempEnemyPhase() {
+		auto enemyPhase = std::make_shared<EditorEnemyPhase>(nextTempEnemyPhaseID--);
+		enemyPhases[enemyPhase->getID()] = enemyPhase;
+		return enemyPhase;
 	}
 
 	inline void deleteLevel(int levelIndex) { levels.erase(levels.begin() + levelIndex); }
@@ -167,8 +202,15 @@ private:
 	int nextEnemyPhaseID = 0;
 	int nextBulletModelID = 0;
 
+	int nextTempAttackID = -1;
+	int nextTempAttackPatternID = -1;
+	int nextTempEnemyID = -1;
+	int nextTempEnemyPhaseID = -1;
+
 	// ordered levels
 	std::vector<std::shared_ptr<Level>> levels;
+	// The IDs of EditorAttack/EditorAttackPattern/EditorEnemy/EditorEnemyPhase are always positive, unless it is a temporary object.
+	// Temporary Editor_____ objects are deleted when deleteTemporaryEditorObjects() is called, and they cannot be saved in save().
 	// attack id : attack
 	std::map<int, std::shared_ptr<EditorAttack>> attacks;
 	// attack pattern id : attack pattern

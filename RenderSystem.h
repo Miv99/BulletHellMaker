@@ -57,6 +57,10 @@ public:
 	RenderSystem(entt::DefaultRegistry& registry, sf::RenderWindow& window, float playAreaWidth, float playAreaHeight);
 	void update(float deltaTime);
 
+	/*
+	Load bloom shaders to match a level's bloom settings.
+	If level is a nullptr, no bloom settings are used.
+	*/
 	void loadLevelRenderSettings(std::shared_ptr<Level> level);
 
 	/*

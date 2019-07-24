@@ -101,14 +101,16 @@ void RenderSystem::update(float deltaTime) {
 
 	// Draw background by drawing onto the temp layer first to limit the visible part of the background to the play area
 	tempLayerTexture.clear(sf::Color::Transparent);
-	backgroundSprite.setPosition(0, -MAP_HEIGHT);
-	tempLayerTexture.draw(backgroundSprite);
-	tempLayerTexture.display();
-	sf::Sprite backgroundAsSprite(tempLayerTexture.getTexture());
-	backgroundAsSprite.setPosition(0, -(float)tempLayerTexture.getSize().y);
-	sf::RenderStates backgroundStates;
-	backgroundStates.blendMode = DEFAULT_BLEND_MODE;
-	window.draw(backgroundAsSprite, backgroundStates);
+	if (backgroundSprite.getTexture()) {
+		backgroundSprite.setPosition(0, -MAP_HEIGHT);
+		tempLayerTexture.draw(backgroundSprite);
+		tempLayerTexture.display();
+		sf::Sprite backgroundAsSprite(tempLayerTexture.getTexture());
+		backgroundAsSprite.setPosition(0, -(float)tempLayerTexture.getSize().y);
+		sf::RenderStates backgroundStates;
+		backgroundStates.blendMode = DEFAULT_BLEND_MODE;
+		window.draw(backgroundAsSprite, backgroundStates);
+	}
 
 	for (int i = 0; i < layers.size(); i++) {
 		for (SpriteComponent& sprite : layers[i].second) {
@@ -119,6 +121,9 @@ void RenderSystem::update(float deltaTime) {
 			} else {
 				layerTextures[i].draw(*spritePtr);
 			}
+		}
+		if (layers[i].second.size() == 0) {
+			continue;
 		}
 		layerTextures[i].display();
 
@@ -454,10 +459,20 @@ void RenderSystem::setResolution(int newPlayAreaWidth, int newPlayAreaHeight) {
 }
 
 void RenderSystem::loadLevelRenderSettings(std::shared_ptr<Level> level) {
-	bloom = std::vector<BloomSettings>(HIGHEST_RENDER_LAYER + 1, BloomSettings());
-	auto levelBloomSettings = level->getBloomLayerSettings();
-	for (int i = 0; i < levelBloomSettings.size(); i++) {
-		bloom[i] = levelBloomSettings[i];
+	if (level) {
+		bloom = std::vector<BloomSettings>(HIGHEST_RENDER_LAYER + 1, BloomSettings());
+		auto levelBloomSettings = level->getBloomLayerSettings();
+		for (int i = 0; i < levelBloomSettings.size(); i++) {
+			bloom[i] = levelBloomSettings[i];
+		}
+	}
+	else {
+		bloom = std::vector<BloomSettings>(HIGHEST_RENDER_LAYER + 1, BloomSettings());
+		BloomSettings bloomSettings;
+		bloomSettings.setUsesBloom(false);
+		for (int i = 0; i < bloom.size(); i++) {
+			bloom[i] = bloomSettings;
+		}
 	}
 }
 
