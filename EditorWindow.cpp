@@ -16,6 +16,8 @@ void EditorWindow::start() {
 		window->setKeyRepeatEnabled(false);
 		window->setActive(true);
 		gui->setTarget(*window);
+
+		updateWindowView(window->getSize().x, window->getSize().y);
 	}
 
 	sf::Clock deltaClock;
@@ -31,9 +33,6 @@ void EditorWindow::start() {
 					window->close();
 				} else if (event.type == sf::Event::Resized) {
 					updateWindowView(event.size.width, event.size.height);
-					if (resizeSignal) {
-						resizeSignal->publish(event.size.width, event.size.height);
-					}
 				} else {
 					if (popup) {
 						if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left) {
@@ -116,6 +115,10 @@ void EditorWindow::updateWindowView(int windowWidth, int windowHeight) {
 	}
 	if (!scaleWidgetsOnResize) {
 		gui->setView(sf::View(sf::Vector2f(windowWidth / 2.0f, windowHeight / 2.0f), sf::Vector2f(windowWidth, windowHeight)));
+	}
+
+	if (resizeSignal) {
+		resizeSignal->publish(windowWidth, windowHeight);
 	}
 }
 
