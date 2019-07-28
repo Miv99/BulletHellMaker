@@ -1,4 +1,5 @@
 #include "EditorWindow.h"
+#include "Components.h"
 #include <algorithm>
 
 EditorWindow::EditorWindow(std::shared_ptr<std::mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval) :
@@ -18,6 +19,7 @@ void EditorWindow::start() {
 		gui->setTarget(*window);
 
 		updateWindowView(window->getSize().x, window->getSize().y);
+		onRenderWindowInitialization();
 	}
 
 	sf::Clock deltaClock;
@@ -161,13 +163,10 @@ void UndoableEditorWindow::handleEvent(sf::Event event) {
 }
 
 GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std::shared_ptr<SpriteLoader> spriteLoader, std::shared_ptr<std::mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval) :
-	undoStack(UndoStack(UNDO_STACK_MAX)), levelPack(levelPack), spriteLoader(spriteLoader), UndoableEditorWindow(tguiMutex, windowTitle, width, height, undoStack, scaleWidgetsOnResize, letterboxingEnabled, renderInterval) {
+	undoStack(UndoStack(UNDO_STACK_MAX)), levelPack(levelPack), spriteLoader(spriteLoader), UndoableEditorWindow(tguiMutex, windowTitle, width, height, undoStack, scaleWidgetsOnResize, letterboxingEnabled, renderInterval) {	
 	audioPlayer = std::make_unique<AudioPlayer>();
 	queue = std::make_unique<EntityCreationQueue>(registry);
 	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
-	//TODO: these numbers should come from settings like in GameInstance
-	renderSystem = std::make_unique<RenderSystem>(registry, *window, 1024, 768);
-	renderSystem->loadLevelRenderSettings(nullptr);
 	collisionSystem = std::make_unique<CollisionSystem>(*levelPack, *queue, *spriteLoader, registry, MAP_WIDTH, MAP_HEIGHT);
 	despawnSystem = std::make_unique<DespawnSystem>(registry);
 	enemySystem = std::make_unique<EnemySystem>(*queue, *spriteLoader, *levelPack, registry);
@@ -232,6 +231,14 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 
 void GameplayTestWindow::handleEvent(sf::Event event) {
 	UndoableEditorWindow::handleEvent(event);
+
+	if (event.type == sf::Event::KeyPressed && (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl))) {
+		if (event.key.code == sf::Keyboard::Dash) {
+			setCameraZoom(std::max(0.2f, cameraZoom - 0.2f));
+		} else if (event.key.code == sf::Keyboard::Equal) {
+			setCameraZoom(std::min(4.0f, cameraZoom + 0.2f));
+		}
+	}
 }
 
 void GameplayTestWindow::physicsUpdate(float deltaTime) {
@@ -267,18 +274,33 @@ void GameplayTestWindow::physicsUpdate(float deltaTime) {
 }
 
 void GameplayTestWindow::render(float deltaTime) {
-	UndoableEditorWindow::render(deltaTime);
+	int xDirection = 0, yDirection = 0;
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
+		yDirection--;
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
+		yDirection++;
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
+		xDirection--;
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
+		xDirection++;
+	}
+	moveCamera(CAMERA_SPEED * xDirection * deltaTime / cameraZoom, CAMERA_SPEED * yDirection * deltaTime / cameraZoom);
 
 	if (!paused) {
 		spriteAnimationSystem->update(deltaTime);
 	}
 	renderSystem->update(deltaTime);
+
+	UndoableEditorWindow::render(deltaTime);
 }
 
 void GameplayTestWindow::updateWindowView(int width, int height) {
 	UndoableEditorWindow::updateWindowView(width, height);
 
-	const float leftPanelWidth = width * 0.25f;
+	const float leftPanelWidth = width * LEFT_PANEL_WIDTH;
 	leftPanel->setPosition(0, 0);
 	leftPanel->setSize(leftPanelWidth, height);
 	entityPlaceholdersListLabel->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
@@ -305,4 +327,72 @@ void GameplayTestWindow::updateWindowView(int width, int height) {
 	enemyPlaceholderManualSet->setSize(100, TEXT_BUTTON_HEIGHT);
 	setEnemyPlaceholderTestMode->setSize(100, TEXT_BUTTON_HEIGHT);
 	testModeID->setSize(rightPanelWidth - GUI_PADDING_X * 2, height * 0.5f);
+}
+
+void GameplayTestWindow::onRenderWindowInitialization() {
+	// RenderSystem is initialized here instead of in the constructor beause RenderSystem
+	// requires a reference to the RenderWindow, but the RenderWindow is not initialized until
+	// start() is called, which is after the constructor call
+
+	window->setKeyRepeatEnabled(false);
+	sf::View view(sf::FloatRect(0, -MAP_HEIGHT, MAP_WIDTH, MAP_HEIGHT));
+	window->setView(view);
+	updateWindowView(window->getSize().x, window->getSize().y);
+
+	//TODO: these numbers should come from settings like in GameInstance
+	renderSystem = std::make_unique<RenderSystem>(registry, *window, 1024, 768);
+	renderSystem->loadLevelRenderSettings(nullptr);
+
+	// Set the background
+	std::shared_ptr<Level> level = levelPack->getLevel(0);
+	std::string backgroundFileName = level->getBackgroundFileName();
+	sf::Texture background;
+	if (!background.loadFromFile("Level Packs\\" + levelPack->getName() + "\\Backgrounds\\" + backgroundFileName)) {
+		//TODO: load a default background
+	}
+	background.setRepeated(true);
+	background.setSmooth(true);
+	renderSystem->setBackground(std::move(background));
+	renderSystem->setBackgroundScrollSpeedX(level->getBackgroundScrollSpeedX());
+	renderSystem->setBackgroundScrollSpeedY(level->getBackgroundScrollSpeedY());
+
+	// Create map border entities
+	// The magic number 8 comes from the thickness of the border sprite
+	// as defined in the default sprite sheet
+	uint32_t top = registry.create();
+	registry.assign<PositionComponent>(top, -MAP_WIDTH, -8);
+	registry.assign<SpriteComponent>(top, *spriteLoader, Animatable("Map horizontal border", "Default", true, LOCK_ROTATION), true, SHADOW_LAYER, 0);
+	uint32_t bottom = registry.create();
+	registry.assign<PositionComponent>(bottom, -MAP_WIDTH, MAP_HEIGHT + 8);
+	registry.assign<SpriteComponent>(bottom, *spriteLoader, Animatable("Map horizontal border", "Default", true, LOCK_ROTATION), true, SHADOW_LAYER, 0);
+	uint32_t left = registry.create();
+	registry.assign<PositionComponent>(left, -8, -8);
+	registry.assign<SpriteComponent>(left, *spriteLoader, Animatable("Map horizontal border", "Default", true, LOCK_ROTATION), true, SHADOW_LAYER, 0);
+	uint32_t right = registry.create();
+	registry.assign<PositionComponent>(right, MAP_WIDTH + 8, -8);
+	registry.assign<SpriteComponent>(right, *spriteLoader, Animatable("Map horizontal border", "Default", true, LOCK_ROTATION), true, SHADOW_LAYER, 0);
+
+	uint32_t a = registry.create();
+	registry.assign<PositionComponent>(a, MAP_WIDTH/2, MAP_HEIGHT/2);
+	registry.assign<SpriteComponent>(a, *spriteLoader, Animatable("Megaman standing still", "sheet1", true, LOCK_ROTATION), true, SHADOW_LAYER, 0);
+
+}
+
+void GameplayTestWindow::moveCamera(float xOffset, float yOffset) {
+	auto currentCenter = window->getView().getCenter();
+	lookAt(currentCenter.x + xOffset, currentCenter.y + yOffset);
+}
+
+void GameplayTestWindow::lookAt(float x, float y) {
+	sf::View view = window->getView();
+	view.setCenter(x, y);
+	window->setView(view);
+}
+
+void GameplayTestWindow::setCameraZoom(float zoom) {
+	cameraZoom = zoom;
+	sf::View view = window->getView();
+	// Centered at negative y because SFML has (0, 0) at the top-left, and RenderSystem negates y-values so that (0, 0) in every other aspect of this game is bottom-left.
+	view.setSize(MAP_WIDTH / zoom, MAP_HEIGHT / zoom);
+	window->setView(view);
 }

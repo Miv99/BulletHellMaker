@@ -55,14 +55,21 @@ public:
 	inline int getWindowHeight() { return windowHeight; }
 	std::shared_ptr<entt::SigH<void(float)>> getRenderSignal();
 	std::shared_ptr<entt::SigH<void(int, int)>> getResizeSignal();
+	inline std::shared_ptr<sf::RenderWindow> getWindow() { return window; }
 
 protected:
+	std::shared_ptr<sf::RenderWindow> window;
+
 	virtual void physicsUpdate(float deltaTime);
 	virtual void render(float deltaTime);
 	virtual void handleEvent(sf::Event event);
 
+	/*
+	Called when the RenderWindow window is initialized.
+	*/
+	inline virtual void onRenderWindowInitialization() {}
+
 private:
-	std::shared_ptr<sf::RenderWindow> window;
 	std::string windowTitle;
 	int windowWidth, windowHeight;
 
@@ -121,11 +128,17 @@ protected:
 	void render(float deltaTime) override;
 
 	void updateWindowView(int width, int height) override;
+	void onRenderWindowInitialization() override;
 
 private:
 	const float GUI_PADDING_X = 20;
 	const float GUI_PADDING_Y = 10;
 	const int UNDO_STACK_MAX = 100;
+	const float LEFT_PANEL_WIDTH = 0.25f;
+	const float CAMERA_SPEED = 100; // World units per second
+
+	// This should be modified only by setCameraZoom()
+	float cameraZoom = 1.0f;
 
 	bool paused = false;
 
@@ -136,7 +149,6 @@ private:
 	std::shared_ptr<EntityCreationQueue> queue;
 
 	entt::DefaultRegistry registry;
-	std::unique_ptr<sf::RenderWindow> window;
 
 	std::unique_ptr<MovementSystem> movementSystem;
 	std::unique_ptr<RenderSystem> renderSystem;
@@ -165,4 +177,14 @@ private:
 	std::shared_ptr<tgui::Button> setEnemyPlaceholderTestMode; // TODO: popup on click: attack, attack pattern, enemy phase, enemy
 	std::shared_ptr<tgui::Label> testModeIDLabel;
 	std::shared_ptr<tgui::ListBox> testModeID; // contains all Editor____ objects in the LevelPack (______ part depends on currently selected placeholder's test mode)
+
+	/*
+	Moves the camera by some amount of world coordinates.
+	*/
+	void moveCamera(float xOffset, float yOffset);
+	/*
+	Centers the camera on a world position.
+	*/
+	void lookAt(float x, float y);
+	void setCameraZoom(float zoom);
 };

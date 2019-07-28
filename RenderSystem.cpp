@@ -101,16 +101,14 @@ void RenderSystem::update(float deltaTime) {
 
 	// Draw background by drawing onto the temp layer first to limit the visible part of the background to the play area
 	tempLayerTexture.clear(sf::Color::Transparent);
-	if (backgroundSprite.getTexture()) {
-		backgroundSprite.setPosition(0, -MAP_HEIGHT);
-		tempLayerTexture.draw(backgroundSprite);
-		tempLayerTexture.display();
-		sf::Sprite backgroundAsSprite(tempLayerTexture.getTexture());
-		backgroundAsSprite.setPosition(0, -(float)tempLayerTexture.getSize().y);
-		sf::RenderStates backgroundStates;
-		backgroundStates.blendMode = DEFAULT_BLEND_MODE;
-		window.draw(backgroundAsSprite, backgroundStates);
-	}
+	backgroundSprite.setPosition(0, -MAP_HEIGHT);
+	tempLayerTexture.draw(backgroundSprite);
+	tempLayerTexture.display();
+	sf::Sprite backgroundAsSprite(tempLayerTexture.getTexture());
+	backgroundAsSprite.setPosition(0, -(float)tempLayerTexture.getSize().y);
+	sf::RenderStates backgroundStates;
+	backgroundStates.blendMode = DEFAULT_BLEND_MODE;
+	window.draw(backgroundAsSprite, backgroundStates);
 
 	for (int i = 0; i < layers.size(); i++) {
 		for (SpriteComponent& sprite : layers[i].second) {

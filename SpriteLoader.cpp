@@ -32,6 +32,10 @@ std::vector<int> extractInts(const std::string& str) {	std::vector<int> vect;
 }
 
 std::shared_ptr<sf::Sprite> SpriteSheet::getSprite(const std::string& spriteName) {
+	if (spriteData.count(spriteName) == 0) {
+		// Missing sprite
+		//TODO: handle it by returning a missing texture sprite
+	}
 	std::shared_ptr<SpriteData> data = spriteData.at(spriteName);
 	ComparableIntRect area = data->getArea();
 
