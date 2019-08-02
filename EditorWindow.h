@@ -135,10 +135,15 @@ private:
 	const float GUI_PADDING_Y = 10;
 	const int UNDO_STACK_MAX = 100;
 	const float LEFT_PANEL_WIDTH = 0.25f;
+	const float RIGHT_PANEL_WIDTH = 0.2f;
 	const float CAMERA_SPEED = 100; // World units per second
 
 	// This should be modified only by setCameraZoom()
 	float cameraZoom = 1.0f;
+	bool draggingCamera = false;
+	// Screen coordinates of the mouse in the last MouseMove event while
+	// draggingCamera was true
+	int previousCameraDragCoordsX, previousCameraDragCoordsY;
 
 	bool paused = false;
 
@@ -187,4 +192,8 @@ private:
 	*/
 	void lookAt(float x, float y);
 	void setCameraZoom(float zoom);
+	/*
+	screenX/Y - the screen coordinates of the click
+	*/
+	void onGameplayAreaMouseClick(float screenX, float screenY);
 };

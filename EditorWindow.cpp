@@ -238,6 +238,26 @@ void GameplayTestWindow::handleEvent(sf::Event event) {
 		} else if (event.key.code == sf::Keyboard::Equal) {
 			setCameraZoom(std::min(4.0f, cameraZoom + 0.2f));
 		}
+	} else if (event.type == sf::Event::MouseButtonPressed) {
+		if (event.mouseButton.button == sf::Mouse::Left) {
+			float windowWidth = window->getSize().x;
+			// Check if mouse is not in the gui
+			if ((!leftPanel->isVisible() || event.mouseButton.x > windowWidth * LEFT_PANEL_WIDTH) && (!rightPanel->isVisible() || event.mouseButton.x < windowWidth * (1 - RIGHT_PANEL_WIDTH))) {
+				onGameplayAreaMouseClick(event.mouseButton.x, event.mouseButton.y);
+				draggingCamera = true;
+				previousCameraDragCoordsX = event.mouseButton.x;
+				previousCameraDragCoordsY = event.mouseButton.y;
+			}
+		}
+	} else if (event.type == sf::Event::MouseMoved && draggingCamera) {
+		// Move camera depending on difference in world coordinates between event.mouseMove.x/y and previousCameraDragCoordsX/Y
+		sf::Vector2f diff = window->mapPixelToCoords(sf::Vector2i(previousCameraDragCoordsX, previousCameraDragCoordsY)) - window->mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
+		moveCamera(diff.x, diff.y);
+
+		previousCameraDragCoordsX = event.mouseMove.x;
+		previousCameraDragCoordsY = event.mouseMove.y;
+	} else if (event.type == sf::Event::MouseButtonReleased && draggingCamera) {
+		draggingCamera = false;
 	}
 }
 
@@ -307,11 +327,11 @@ void GameplayTestWindow::updateWindowView(int width, int height) {
 	entityPlaceholdersList->setPosition(GUI_PADDING_X, tgui::bindBottom(entityPlaceholdersListLabel) + GUI_PADDING_Y);
 	newEnemyPlaceholder->setPosition(GUI_PADDING_X, tgui::bindBottom(entityPlaceholdersList));
 	deleteEnemyPlaceholder->setPosition(tgui::bindRight(newEnemyPlaceholder) + GUI_PADDING_X, tgui::bindTop(newEnemyPlaceholder));
-	entityPlaceholdersList->setSize(width - GUI_PADDING_X * 2, height * 0.5f);
+	entityPlaceholdersList->setSize(leftPanelWidth - GUI_PADDING_X * 2, height * 0.5f);
 	newEnemyPlaceholder->setSize(100, TEXT_BUTTON_HEIGHT);
 	deleteEnemyPlaceholder->setSize(100, TEXT_BUTTON_HEIGHT);
 
-	const float rightPanelWidth = width * 0.25f;
+	const float rightPanelWidth = width * RIGHT_PANEL_WIDTH;
 	rightPanel->setPosition(width - rightPanelWidth, 0);
 	rightPanel->setSize(rightPanelWidth, height);
 	enemyPlaceholderXLabel->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
@@ -395,4 +415,9 @@ void GameplayTestWindow::setCameraZoom(float zoom) {
 	// Centered at negative y because SFML has (0, 0) at the top-left, and RenderSystem negates y-values so that (0, 0) in every other aspect of this game is bottom-left.
 	view.setSize(MAP_WIDTH / zoom, MAP_HEIGHT / zoom);
 	window->setView(view);
+}
+
+void GameplayTestWindow::onGameplayAreaMouseClick(float screenX, float screenY) {
+	//TODO
+	// Convert to world coordinates
 }
