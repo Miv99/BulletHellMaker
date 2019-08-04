@@ -131,6 +131,68 @@ protected:
 	void onRenderWindowInitialization() override;
 
 private:
+	class EntityPlaceholder {
+	public:
+		inline EntityPlaceholder(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, LevelPack& levelPack) : registry(registry), 
+			spriteLoader(spriteLoader), levelPack(levelPack) {}
+
+		void moveTo(float x, float y);
+		virtual void runTest() = 0;
+		void endTest();
+		bool wasClicked(int worldX, int worldY);
+		// Should be called when the EntityPlaceholder is removed from the GameplayTestWindow
+		void removePlaceholder();
+		virtual void spawnVisualEntity() = 0;
+
+		inline void setUseDefaultTestPlayer(bool useDefaultTestPlayer) { this->useDefaultTestPlayer = useDefaultTestPlayer; }
+
+	protected:
+		const float CLICK_HITBOX_SIZE = 15;
+
+		entt::DefaultRegistry& registry;
+		SpriteLoader& spriteLoader;
+		LevelPack& levelPack;
+
+		// The entity used to show the placeholder's location
+		uint32_t visualEntity;
+		// The entity spawned as a result of the test
+		uint32_t testEntity;
+		// Location of the placeholder
+		float x, y;
+		// Whether to use default test player when running test
+		bool useDefaultTestPlayer = false;
+	};
+	class PlayerEntityPlaceholder : public EntityPlaceholder {
+	public:
+		inline PlayerEntityPlaceholder(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, LevelPack& levelPack) : EntityPlaceholder(registry, spriteLoader, levelPack) {}
+	
+		void runTest() override;
+		void spawnVisualEntity() override;
+	};
+	class EnemyEntityPlaceholder : public EntityPlaceholder {
+	public:
+		enum TEST_MODE { ATTACK, ATTACK_PATTERN, PHASE, ENEMY };
+
+		inline EnemyEntityPlaceholder(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, LevelPack& levelPack, EntityCreationQueue& queue) : EntityPlaceholder(registry, spriteLoader, levelPack), queue(queue) {}
+
+		void runTest() override;
+		void spawnVisualEntity() override;
+
+		inline void setTestMode(TEST_MODE testMode) { this->testMode = testMode; }
+		inline void setTestModeID(int id) { testModeID = id; }
+
+	private:
+		EntityCreationQueue& queue;
+
+		TEST_MODE testMode = ENEMY;
+		// ID of the thing being tested, depending on testMode
+		// ATTACK -> EditorAttack ID
+		// ATTACK_PATTERN -> EditorAttackPattern ID
+		// PHASE -> EditorEnemyPhase ID
+		// ENEMY -> EditorEnemy ID
+		int testModeID;
+	};
+
 	const float GUI_PADDING_X = 20;
 	const float GUI_PADDING_Y = 10;
 	const int UNDO_STACK_MAX = 100;
@@ -144,6 +206,12 @@ private:
 	// Screen coordinates of the mouse in the last MouseMove event while
 	// draggingCamera was true
 	int previousCameraDragCoordsX, previousCameraDragCoordsY;
+	// Screen coordinates of the first mouse pressed event since the last mouse released event
+	int initialMousePressX, initialMousePressY;
+
+	std::shared_ptr<PlayerEntityPlaceholder> playerPlaceholder;
+	std::vector<std::shared_ptr<EnemyEntityPlaceholder>> enemyPlaceholders;
+	std::shared_ptr<EntityPlaceholder> selectedPlaceholder;
 
 	bool paused = false;
 
@@ -196,4 +264,8 @@ private:
 	screenX/Y - the screen coordinates of the click
 	*/
 	void onGameplayAreaMouseClick(float screenX, float screenY);
+	void runGameplayTest();
+	void endGameplayTest();
+	void selectPlaceholder(std::shared_ptr<EntityPlaceholder> placeholder);
+	void deselectPlaceholder();
 };

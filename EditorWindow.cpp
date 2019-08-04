@@ -163,7 +163,7 @@ void UndoableEditorWindow::handleEvent(sf::Event event) {
 }
 
 GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std::shared_ptr<SpriteLoader> spriteLoader, std::shared_ptr<std::mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval) :
-	undoStack(UndoStack(UNDO_STACK_MAX)), levelPack(levelPack), spriteLoader(spriteLoader), UndoableEditorWindow(tguiMutex, windowTitle, width, height, undoStack, scaleWidgetsOnResize, letterboxingEnabled, renderInterval) {	
+	undoStack(UndoStack(UNDO_STACK_MAX)), levelPack(levelPack), spriteLoader(spriteLoader), UndoableEditorWindow(tguiMutex, windowTitle, width, height, undoStack, scaleWidgetsOnResize, letterboxingEnabled, renderInterval) {
 	audioPlayer = std::make_unique<AudioPlayer>();
 	queue = std::make_unique<EntityCreationQueue>(registry);
 	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
@@ -227,6 +227,13 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 
 	getGui()->add(leftPanel);
 	getGui()->add(rightPanel);
+
+	// --------------------------------
+	playerPlaceholder = std::make_shared<PlayerEntityPlaceholder>(registry, *spriteLoader, *levelPack);
+	playerPlaceholder->moveTo(PLAYER_SPAWN_X, PLAYER_SPAWN_Y);
+	playerPlaceholder->spawnVisualEntity();
+
+	deselectPlaceholder();
 }
 
 void GameplayTestWindow::handleEvent(sf::Event event) {
@@ -244,9 +251,6 @@ void GameplayTestWindow::handleEvent(sf::Event event) {
 			// Check if mouse is not in the gui
 			if ((!leftPanel->isVisible() || event.mouseButton.x > windowWidth * LEFT_PANEL_WIDTH) && (!rightPanel->isVisible() || event.mouseButton.x < windowWidth * (1 - RIGHT_PANEL_WIDTH))) {
 				onGameplayAreaMouseClick(event.mouseButton.x, event.mouseButton.y);
-				draggingCamera = true;
-				previousCameraDragCoordsX = event.mouseButton.x;
-				previousCameraDragCoordsY = event.mouseButton.y;
 			}
 		}
 	} else if (event.type == sf::Event::MouseMoved && draggingCamera) {
@@ -256,8 +260,14 @@ void GameplayTestWindow::handleEvent(sf::Event event) {
 
 		previousCameraDragCoordsX = event.mouseMove.x;
 		previousCameraDragCoordsY = event.mouseMove.y;
-	} else if (event.type == sf::Event::MouseButtonReleased && draggingCamera) {
-		draggingCamera = false;
+	} else if (event.type == sf::Event::MouseButtonReleased) {
+		if (draggingCamera) {
+			draggingCamera = false;
+		}
+		// Gameplay area was clicked without dragging camera
+		if (initialMousePressX == event.mouseButton.x && initialMousePressY == event.mouseButton.y) {
+			deselectPlaceholder();
+		}
 	}
 }
 
@@ -391,11 +401,6 @@ void GameplayTestWindow::onRenderWindowInitialization() {
 	uint32_t right = registry.create();
 	registry.assign<PositionComponent>(right, MAP_WIDTH + 8, -8);
 	registry.assign<SpriteComponent>(right, *spriteLoader, Animatable("Map horizontal border", "Default", true, LOCK_ROTATION), true, SHADOW_LAYER, 0);
-
-	uint32_t a = registry.create();
-	registry.assign<PositionComponent>(a, MAP_WIDTH/2, MAP_HEIGHT/2);
-	registry.assign<SpriteComponent>(a, *spriteLoader, Animatable("Megaman standing still", "sheet1", true, LOCK_ROTATION), true, SHADOW_LAYER, 0);
-
 }
 
 void GameplayTestWindow::moveCamera(float xOffset, float yOffset) {
@@ -418,6 +423,199 @@ void GameplayTestWindow::setCameraZoom(float zoom) {
 }
 
 void GameplayTestWindow::onGameplayAreaMouseClick(float screenX, float screenY) {
+	sf::Vector2f mouseWorldPos = window->mapPixelToCoords(sf::Vector2i(screenX, screenY));
+	// Not sure why this is needed; probably something to do with RenderSystem coordinates being y-inversed
+	mouseWorldPos.y = -mouseWorldPos.y;
+
+	if (playerPlaceholder->wasClicked(mouseWorldPos.x, mouseWorldPos.y)) {
+		selectPlaceholder(playerPlaceholder);
+	} else {
+		bool clickedEnemy = false;
+		for (auto enemyPlaceholder : enemyPlaceholders) {
+			if (enemyPlaceholder->wasClicked(mouseWorldPos.x, mouseWorldPos.y)) {
+				selectPlaceholder(enemyPlaceholder);
+				clickedEnemy = true;
+				break;
+			}
+		}
+
+		if (!clickedEnemy) {
+			draggingCamera = true;
+			previousCameraDragCoordsX = screenX;
+			previousCameraDragCoordsY = screenY;
+			initialMousePressX = screenX;
+			initialMousePressY = screenY;
+		}
+	}
+}
+
+void GameplayTestWindow::runGameplayTest() {
+	playerPlaceholder->runTest();
+	for (auto enemy : enemyPlaceholders) {
+		enemy->runTest();
+	}
+}
+
+void GameplayTestWindow::endGameplayTest() {
+	playerPlaceholder->endTest();
+	for (auto enemy : enemyPlaceholders) {
+		enemy->endTest();
+	}
+
+	levelPack->deleteTemporaryEditorObjecs();
+}
+
+void GameplayTestWindow::selectPlaceholder(std::shared_ptr<EntityPlaceholder> placeholder) {
 	//TODO
-	// Convert to world coordinates
+	rightPanel->setVisible(true);
+	bool isEnemyPlaceholder = (dynamic_cast<EnemyEntityPlaceholder*>(placeholder.get()) != nullptr);
+	setEnemyPlaceholderTestMode->setVisible(isEnemyPlaceholder);
+	testModeIDLabel->setVisible(isEnemyPlaceholder);
+	testModeID->setVisible(isEnemyPlaceholder);
+}
+
+void GameplayTestWindow::deselectPlaceholder() {
+	rightPanel->setVisible(false);
+}
+
+void GameplayTestWindow::EntityPlaceholder::moveTo(float x, float y) {
+	this->x = x;
+	this->y = y;
+	if (registry.valid(visualEntity)) {
+		auto& pos = registry.get<PositionComponent>(visualEntity);
+		pos.setX(x);
+		pos.setY(y);
+	}
+}
+
+void GameplayTestWindow::EntityPlaceholder::endTest() {
+	if (registry.valid(testEntity)) {
+		registry.destroy(testEntity);
+	}
+	spawnVisualEntity();
+}
+
+bool GameplayTestWindow::EntityPlaceholder::wasClicked(int worldX, int worldY) {
+	return std::sqrt((worldX - x)*(worldX - x) + (worldY - y)*(worldY - y)) <= CLICK_HITBOX_SIZE;
+}
+
+void GameplayTestWindow::EntityPlaceholder::removePlaceholder() {
+	if (registry.valid(visualEntity)) {
+		registry.destroy(visualEntity);
+	}
+	if (registry.valid(testEntity)) {
+		registry.destroy(testEntity);
+	}
+}
+
+void GameplayTestWindow::PlayerEntityPlaceholder::spawnVisualEntity() {
+	assert(!registry.valid(visualEntity));
+	visualEntity = registry.create();
+	registry.assign<PositionComponent>(visualEntity, x, y);
+	//TODO: change to some default image
+	registry.assign<SpriteComponent>(visualEntity, spriteLoader, Animatable("Health", "sheet1", true, LOCK_ROTATION), true, PLAYER_LAYER, 0);
+}
+
+void GameplayTestWindow::PlayerEntityPlaceholder::runTest() {
+	registry.destroy(visualEntity);
+
+	EditorPlayer params;
+	std::string message; // does nothing
+	if (!useDefaultTestPlayer && levelPack.getPlayer().legal(spriteLoader, message)) {
+		params = levelPack.getPlayer();
+	}
+	else {
+		// Create default player params
+		//TODO: change these
+		auto playerAP = levelPack.createTempAttackPattern();
+		auto playerAttack1 = levelPack.createTempAttack();
+		auto pemp0 = playerAttack1->searchEMP(0);
+		pemp0->setAnimatable(Animatable("Bullet", "sheet1", true, LOCK_ROTATION));
+		pemp0->setHitboxRadius(30);
+		pemp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
+		pemp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 2), std::make_shared<ConstantTFV>(PI / 2.0f), 2.0f));
+		pemp0->setOnCollisionAction(PIERCE_ENTITY);
+		playerAP->addAttackID(0.1f, playerAttack1->getID());
+
+		auto bombAP = levelPack.createTempAttackPattern();
+		for (int i = 0; i < 10; i++) {
+			auto bombAttack1 = levelPack.createTempAttack();
+			auto b1emp0 = bombAttack1->searchEMP(0);
+			b1emp0->setAnimatable(Animatable("Bullet", "sheet1", true, LOCK_ROTATION));
+			b1emp0->setHitboxRadius(30);
+			b1emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
+			b1emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 1000, 2), std::make_shared<ConstantTFV>(1.0f + i * 0.13f), 2.0f));
+			b1emp0->setOnCollisionAction(PIERCE_ENTITY);
+			bombAP->addAttackID(0, bombAttack1->getID());
+		}
+
+		auto pset1 = EntityAnimatableSet(Animatable("Megaman idle", "sheet1", false, ROTATE_WITH_MOVEMENT),
+			Animatable("Megaman movement", "sheet1", false, ROTATE_WITH_MOVEMENT),
+			Animatable("Megaman attack", "sheet1", false, ROTATE_WITH_MOVEMENT),
+			std::make_shared<PlayAnimatableDeathAction>(Animatable("oh my god he's dead", "sheet1", true, ROTATE_WITH_MOVEMENT), PlayAnimatableDeathAction::NONE, 3.0f));
+
+		params = EditorPlayer(10, 11, 300, 100, 5, 0, 0, 2.0f, std::vector<PlayerPowerTier>{ PlayerPowerTier(pset1, playerAP->getID(), 0.1f, playerAP->getID(), 0.5f, bombAP->getID(), 5.0f) }, SoundSettings("oof.wav", 10), SoundSettings("death.ogg"), Animatable("heart.png", "", true, LOCK_ROTATION),
+			3, 10, Animatable("bomb.png", "", true, LOCK_ROTATION), SoundSettings("bomb_ready.wav"), 5.0f);
+	}
+
+	testEntity = registry.create();
+	registry.assign<AnimatableSetComponent>(testEntity);
+	auto& playerTag = registry.assign<PlayerTag>(entt::tag_t{}, testEntity, registry, levelPack, testEntity, params.getSpeed(), params.getFocusedSpeed(), params.getInvulnerabilityTime(),
+		params.getPowerTiers(), params.getHurtSound(), params.getDeathSound(), params.getInitialBombs(), params.getMaxBombs(), params.getBombInvincibilityTime());
+	auto& health = registry.assign<HealthComponent>(testEntity, params.getInitialHealth(), params.getMaxHealth());
+	// Hitbox temporarily at 0, 0 until an Animatable is assigned to the player later
+	registry.assign<HitboxComponent>(testEntity, LOCK_ROTATION, params.getHitboxRadius(), 0, 0);
+	registry.assign<PositionComponent>(testEntity, PLAYER_SPAWN_X - params.getHitboxPosX(), PLAYER_SPAWN_Y - params.getHitboxPosY());
+	registry.assign<SpriteComponent>(testEntity, PLAYER_LAYER, 0);
+}
+
+void GameplayTestWindow::EnemyEntityPlaceholder::runTest() {
+	EnemySpawnInfo info;
+	if (testMode == ENEMY) {
+		info = EnemySpawnInfo(testModeID, x, y, std::vector<std::pair<std::shared_ptr<Item>, int>>());
+	} else if (testMode == PHASE) {
+		std::shared_ptr<EditorEnemy> enemy = levelPack.createTempEnemy();
+		//TODO: change to default sprites and hitbox radius
+		EntityAnimatableSet enemyAnimatableSet(Animatable("Bomb", "sheet1", true, ROTATE_WITH_MOVEMENT), Animatable("Bomb", "sheet1", true, ROTATE_WITH_MOVEMENT), Animatable("Bomb", "sheet1", true, ROTATE_WITH_MOVEMENT));
+		enemy->setHitboxRadius(1);
+		enemy->setHealth(2000000000);
+		enemy->addPhaseID(0, std::make_shared<TimeBasedEnemyPhaseStartCondition>(0), testModeID, enemyAnimatableSet);
+	} else if (testMode == ATTACK_PATTERN) {
+		std::shared_ptr<EditorEnemyPhase> phase = levelPack.createTempEnemyPhase();
+		phase->addAttackPatternID(0, testModeID);
+		// TODO: make this customizable
+		phase->setAttackPatternLoopDelay(2);
+
+		std::shared_ptr<EditorEnemy> enemy = levelPack.createTempEnemy();
+		//TODO: change to default sprites and hitbox radius
+		EntityAnimatableSet enemyAnimatableSet(Animatable("Bomb", "sheet1", true, ROTATE_WITH_MOVEMENT), Animatable("Bomb", "sheet1", true, ROTATE_WITH_MOVEMENT), Animatable("Bomb", "sheet1", true, ROTATE_WITH_MOVEMENT));
+		enemy->setHitboxRadius(1);
+		enemy->setHealth(2000000000);
+		enemy->addPhaseID(0, std::make_shared<TimeBasedEnemyPhaseStartCondition>(0), phase->getID(), enemyAnimatableSet);
+	} else {
+		std::shared_ptr<EditorAttackPattern> attackPattern = levelPack.createTempAttackPattern();
+		attackPattern->addAttackID(0, testModeID);
+
+		std::shared_ptr<EditorEnemyPhase> phase = levelPack.createTempEnemyPhase();
+		phase->addAttackPatternID(0, attackPattern->getID());
+		// TODO: make this customizable
+		phase->setAttackPatternLoopDelay(2);
+
+		std::shared_ptr<EditorEnemy> enemy = levelPack.createTempEnemy();
+		//TODO: change to default sprites and hitbox radius
+		EntityAnimatableSet enemyAnimatableSet(Animatable("Bomb", "sheet1", true, ROTATE_WITH_MOVEMENT), Animatable("Bomb", "sheet1", true, ROTATE_WITH_MOVEMENT), Animatable("Bomb", "sheet1", true, ROTATE_WITH_MOVEMENT));
+		enemy->setHitboxRadius(1);
+		enemy->setHealth(2000000000);
+		enemy->addPhaseID(0, std::make_shared<TimeBasedEnemyPhaseStartCondition>(0), phase->getID(), enemyAnimatableSet);
+	}
+	info.spawnEnemy(spriteLoader, levelPack, registry, queue);
+}
+
+void GameplayTestWindow::EnemyEntityPlaceholder::spawnVisualEntity() {
+	assert(!registry.valid(visualEntity));
+	visualEntity = registry.create();
+	registry.assign<PositionComponent>(visualEntity, x, y);
+	//TODO: change to some default image
+	registry.assign<SpriteComponent>(visualEntity, spriteLoader, Animatable("Bomb", "sheet1", true, LOCK_ROTATION), true, PLAYER_LAYER, 0);
+
 }

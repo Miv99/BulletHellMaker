@@ -45,7 +45,7 @@ Notes for me:
 -attack ID 13 is messed up
 
 big todo:
--make gameplaywindow rendersystem look at offset to account for left panel
+-make gameplaywindow's endTest() call levelPack's delete temp stuff
 -before running gameplay test, make sure all editor object are legal
 -make the gameplay window an abstract class that can be used by all editors; call it a test window;
 	-enemies can be loaded into/unloaded from the test window; a player is always kept loaded
