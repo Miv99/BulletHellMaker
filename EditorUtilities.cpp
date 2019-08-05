@@ -2,6 +2,11 @@
 #include "Constants.h"
 #include <map>
 #include <boost/filesystem.hpp>
+<<<<<<< Updated upstream
+=======
+
+#include <iostream>
+>>>>>>> Stashed changes
 
 std::shared_ptr<tgui::Label> createToolTip(std::string text) {
 	auto tooltip = tgui::Label::create();

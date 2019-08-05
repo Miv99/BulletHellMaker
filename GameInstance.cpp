@@ -4,8 +4,7 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
-//--TODO--
-//#include <boost/format.hpp>
+#include <boost/format.hpp>
 #include "SpriteLoader.h"
 #include "TextFileParser.h"
 #include "Components.h"
@@ -157,8 +156,7 @@ GameInstance::GameInstance(std::string levelPackName) {
 	scoreLabel = tgui::Label::create();
 	scoreLabel->setTextSize(24);
 	scoreLabel->setMaximumTextWidth(0);
-	//--TODO--
-	//scoreLabel->setText((boost::format("Score\n%010d") % 0).str());
+	scoreLabel->setText((boost::format("Score\n%010d") % 0).str());
 
 	updateWindowView(window->getSize().x, window->getSize().y);
 
@@ -358,8 +356,7 @@ void GameInstance::render(float deltaTime) {
 		bossPhaseHealthBar->setValue(registry.get<HealthComponent>(currentBoss).getHealth());
 	}
 	if (bossPhaseTimeLeft->isVisible()) {
-		//--TODO--
-		//bossPhaseTimeLeft->setText((boost::format("%.2f") % (bossNextPhaseStartTime - registry.get<EnemyComponent>(currentBoss).getTimeSinceLastPhase())).str());
+		bossPhaseTimeLeft->setText((boost::format("%.2f") % (bossNextPhaseStartTime - registry.get<EnemyComponent>(currentBoss).getTimeSinceLastPhase())).str());
 
 		// Move timer based on player position so that the user's vision isn't obstructed
 		uint32_t player = registry.attachee<PlayerTag>();
@@ -468,8 +465,7 @@ void GameInstance::onPlayerHPChange(int newHP, int maxHP) {
 }
 
 void GameInstance::onPointsChange(int levelPoints) {
-	//--TODO--
-	//scoreLabel->setText((boost::format("Score\n%010d") % (points + levelPoints)).str());
+	scoreLabel->setText((boost::format("Score\n%010d") % (points + levelPoints)).str());
 }
 
 void GameInstance::onPlayerPowerLevelChange(int powerLevelIndex, int powerLevelMaxTierCount, int powerLevel) {
@@ -541,8 +537,7 @@ void GameInstance::onBossPhaseChange(uint32_t boss, std::shared_ptr<EditorEnemyP
 		// Show timer
 		bossPhaseTimeLeft->setVisible(true);
 		bossPhaseHealthBar->setVisible(false);
-		//--TODO--
-		//bossPhaseTimeLeft->setText((boost::format("%.2f") % (bossNextPhaseStartTime - registry.get<EnemyComponent>(boss).getTimeSinceLastPhase())).str());
+		bossPhaseTimeLeft->setText((boost::format("%.2f") % (bossNextPhaseStartTime - registry.get<EnemyComponent>(boss).getTimeSinceLastPhase())).str());
 
 		bossNextPhaseStartTime = std::dynamic_pointer_cast<TimeBasedEnemyPhaseStartCondition>(nextPhaseStartCondition)->getTime();
 
