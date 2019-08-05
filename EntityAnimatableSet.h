@@ -15,6 +15,7 @@ class EntityAnimatableSet : public TextMarshallable {
 public:
 	inline EntityAnimatableSet() {}
 	EntityAnimatableSet(Animatable idle, Animatable movement, Animatable attack, std::shared_ptr<DeathAction> deathAction);
+	EntityAnimatableSet(Animatable idle, Animatable movement, Animatable attack);
 
 	std::string format() override;
 	void load(std::string formattedString) override;

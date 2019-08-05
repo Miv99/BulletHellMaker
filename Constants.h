@@ -55,10 +55,10 @@ const static int HIGHEST_RENDER_LAYER = ENEMY_BULLET_LAYER;
 
 // ----------------- GUI stuff -----------------------
 // Height of any tgui::Widget that involves text, excluding buttons
-const static float TEXT_BOX_HEIGHT = 20;
+const static float TEXT_BOX_HEIGHT = 16;
 // Height of any button that involves text
-const static float TEXT_BUTTON_HEIGHT = 25;
+const static float TEXT_BUTTON_HEIGHT = 16;
 // Height of any slider
-const static float SLIDER_HEIGHT = 25;
-const static int TEXT_SIZE = 16;
-const static float CHECKBOX_SIZE = 25;
+const static float SLIDER_HEIGHT = 15;
+const static int TEXT_SIZE = 12;
+const static float CHECKBOX_SIZE = 15;

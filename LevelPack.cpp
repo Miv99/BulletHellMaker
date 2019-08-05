@@ -218,8 +218,10 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	this->setPlayer(EditorPlayer(10, 11, 300, 100, 5, 0, 0, 2.0f, std::vector<PlayerPowerTier>{ PlayerPowerTier(pset1, playerAP->getID(), 0.1f, playerFocusedAP->getID(), 0.5f, bombAP->getID(), 5.0f),
 		PlayerPowerTier(pset2, playerAP2->getID(), 0.01f, playerFocusedAP->getID(), 0.5f, bombAP->getID(), 5.0f) }, SoundSettings("oof.wav", 10), SoundSettings("death.ogg"), Animatable("heart.png", "", true, LOCK_ROTATION),
 		3, 10, Animatable("bomb.png", "", true, LOCK_ROTATION), SoundSettings("bomb_ready.wav"), 5.0f));
+	
 	metadata.addSpriteSheet("sheet1.txt", "sheet1.png");
-
+	metadata.addSpriteSheet("Default.txt", "Default.png");
+	
 	//TODO: uncomment
 	//load();
 }
@@ -336,6 +338,8 @@ void LevelPack::save() {
 	std::ofstream attacksFile("Level Packs\\" + name + "\\attacks.txt");
 	attacksFile << nextAttackID << std::endl;
 	for (auto p : attacks) {
+		// Skip if ID < 0, because that signifies that it's a temporary EditorAttack
+		if (p.first < 0) continue;
 		attacksFile << p.second->format() << std::endl;
 	}
 	attacksFile.close();
@@ -344,6 +348,7 @@ void LevelPack::save() {
 	std::ofstream attackPatternsFile("Level Packs\\" + name + "\\attack_patterns.txt");
 	attackPatternsFile << nextAttackPatternID << std::endl;
 	for (auto p : attackPatterns) {
+		if (p.first < 0) continue;
 		attackPatternsFile << p.second->format() << std::endl;
 	}
 	attackPatternsFile.close();
@@ -352,6 +357,7 @@ void LevelPack::save() {
 	std::ofstream enemiesFile("Level Packs\\" + name + "\\enemies.txt");
 	enemiesFile << nextEnemyID << std::endl;
 	for (auto p : enemies) {
+		if (p.first < 0) continue;
 		enemiesFile << p.second->format() << std::endl;
 	}
 	enemiesFile.close();
@@ -360,9 +366,40 @@ void LevelPack::save() {
 	std::ofstream enemyPhasesFile("Level Packs\\" + name + "\\enemy_phases.txt");
 	enemyPhasesFile << nextEnemyPhaseID << std::endl;
 	for (auto p : enemyPhases) {
+		if (p.first < 0) continue;
 		enemyPhasesFile << p.second->format() << std::endl;
 	}
 	enemyPhasesFile.close();
+}
+
+void LevelPack::deleteTemporaryEditorObjecs() {
+	for (int i = nextTempAttackID; i < 0; i++) {
+		if (attacks.count(i) > 0) {
+			attacks.erase(i);
+		}
+	}
+	nextTempAttackID = -1;
+
+	for (int i = nextTempAttackPatternID; i < 0; i++) {
+		if (attackPatterns.count(i) > 0) {
+			attackPatterns.erase(i);
+		}
+	}
+	nextTempAttackPatternID = -1;
+
+	for (int i = nextTempEnemyID; i < 0; i++) {
+		if (enemies.count(i) > 0) {
+			enemies.erase(i);
+		}
+	}
+	nextTempEnemyID = -1;
+
+	for (int i = nextTempEnemyPhaseID; i < 0; i++) {
+		if (enemyPhases.count(i) > 0) {
+			enemyPhases.erase(i);
+		}
+	}
+	nextTempEnemyPhaseID = -1;
 }
 
 std::unique_ptr<SpriteLoader> LevelPack::createSpriteLoader() {

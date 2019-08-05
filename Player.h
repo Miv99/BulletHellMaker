@@ -5,6 +5,7 @@
 #include <SFML/Graphics.hpp>
 #include "TextMarshallable.h"
 #include "EntityAnimatableSet.h"
+#include "SpriteLoader.h"
 #include "AudioPlayer.h"
 
 class PlayerPowerTier : public TextMarshallable {
@@ -62,6 +63,8 @@ public:
 
 	std::string format() override;
 	void load(std::string formattedString) override;
+
+	bool legal(SpriteLoader& spriteLoader, std::string& message);
 
 	inline int getInitialHealth() { return initialHealth; }
 	inline int getMaxHealth() { return maxHealth; }

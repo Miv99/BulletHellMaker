@@ -6,6 +6,8 @@
 #include "Animation.h"
 #include "AudioPlayer.h"
 #include "TimeFunctionVariable.h"
+#include "UndoStack.h"
+#include "Attack.h"
 #include "EditorMovablePointAction.h"
 #include <memory>
 #include <entt/entt.hpp>
@@ -192,10 +194,14 @@ private:
 
 /*
 Used to edit TFVs.
+Note that unlike the other widgets in EditorUtilities, TFVGroup automatically takes care of adding
+commands to the undo stack.
+This implementation of a TFV editor is pretty specific to TFVs in EditorAttacks' EMPs' EMPAs' TFVs (mainly
+because of the callback signal).
 */
 class TFVGroup : public tgui::Group {
 public:
-	TFVGroup();
+	TFVGroup(UndoStack& undoStack);
 
 	/*
 	Should be called whenever this widget's container is resized.
@@ -203,21 +209,38 @@ public:
 	*/
 	void onContainerResize(int containerWidth, int containerHeight);
 
-	inline std::shared_ptr<TFV> getTFV() { return tfv; }
-	inline std::shared_ptr<entt::SigH<void()>> getOnTFVChange() { return onTFVChange; }
+	void setTFV(std::shared_ptr<TFV> tfv, std::shared_ptr<EMPAction> parentEMPA, std::shared_ptr<EditorMovablePoint> parentEMP, std::shared_ptr<EditorAttack> parentAttack);
+	inline std::shared_ptr<entt::SigH<void(std::shared_ptr<EMPAction>, std::shared_ptr<EditorMovablePoint>, std::shared_ptr<EditorAttack>)>> getOnTFVChange() { return onTFVChange; }
 
 private:
+	UndoStack& undoStack;
+
 	std::shared_ptr<TFV> tfv;
-	// Signal emitted whenever a change is made to the TFV obtained from getTFV()
-	std::shared_ptr<entt::SigH<void()>> onTFVChange;
+	std::shared_ptr<EMPAction> parentEMPA;
+	std::shared_ptr<EditorMovablePoint> parentEMP;
+	std::shared_ptr<EditorAttack> parentAttack;
+
+	std::shared_ptr<tgui::Slider> test;
+
+	// Signal emitted AFTER a change is made to the TFV
+	// The EMPA parameter is the EMPA that the TFV being edited belongs to. The EMP parameter is the EMP that the EMPA belongs to.
+	// The EditorAttack parameter is the EditorAttack that the EMP belongs to.
+	std::shared_ptr<entt::SigH<void(std::shared_ptr<EMPAction>, std::shared_ptr<EditorMovablePoint>, std::shared_ptr<EditorAttack>)>> onTFVChange;
+
+	// This bool is used to prevent infinite loops (ie a change from an undo creating an undo command)
+	bool ignoreSignal = false;
 };
 
 /*
-Used to edit EMPAAngleOffsets;
+Used to edit EMPAAngleOffsets.
+Note that unlike the other widgets in EditorUtilities, TFVGroup automatically takes care of adding
+commands to the undo stack.
+This implementation of a TFV editor is pretty specific to TFVs in EditorAttacks' EMPs' EMPAs' TFVs (mainly
+because of the callback signal).
 */
 class EMPAAngleOffsetGroup : public tgui::Group {
 public:
-	EMPAAngleOffsetGroup();
+	EMPAAngleOffsetGroup(UndoStack& undoStack);
 
 	/*
 	Should be called whenever this widget's container is resized.
@@ -225,11 +248,29 @@ public:
 	*/
 	void onContainerResize(int containerWidth, int containerHeight);
 
-	inline std::shared_ptr<EMPAAngleOffset> getAngleOffset() { return angleOffset; }
-	inline std::shared_ptr<entt::SigH<void()>> getOnAngleOffsetChange() { return onAngleOffsetChange; }
+	inline std::shared_ptr<entt::SigH<void(std::shared_ptr<EMPAction>, std::shared_ptr<EditorMovablePoint>, std::shared_ptr<EditorAttack>)>> getOnAngleOffsetChange() { return onAngleOffsetChange; }
 
 private:
+	UndoStack& undoStack;
+
 	std::shared_ptr<EMPAAngleOffset> angleOffset;
-	// Signal emitted whenever a change is made to the EMPAAngleOffset obtained from getAngleOffset()
-	std::shared_ptr<entt::SigH<void()>> onAngleOffsetChange;
+	std::shared_ptr<EMPAction> parentEMPA;
+	std::shared_ptr<EditorMovablePoint> parentEMP;
+	std::shared_ptr<EditorAttack> parentAttack;
+
+	// Signal emitted AFTER a change is made to the EMPAAngleOffset
+	// The EMPA parameter is the EMPA that the TFV being edited belongs to. The EMP parameter is the EMP that the EMPA belongs to.
+	// The EditorAttack parameter is the EditorAttack that the EMP belongs to.
+	std::shared_ptr<entt::SigH<void(std::shared_ptr<EMPAction>, std::shared_ptr<EditorMovablePoint>, std::shared_ptr<EditorAttack>)>> onAngleOffsetChange;
+
+};
+
+/*
+A tgui::ListBox that can scroll horizontally as well as vertically.
+*/
+class ScrollableListBox : public tgui::ScrollablePanel {
+public:
+	//TODO: create a ListBox and insert it into this; every time an item is added/removed, track the width of the item by setting a tgui::Label
+	// to have that text, then checking the label's width. this scrollablepanel's width is then set to that max width
+	// The ListBox will be the same size as this scrollablepanel
 };

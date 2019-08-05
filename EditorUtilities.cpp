@@ -2,11 +2,7 @@
 #include "Constants.h"
 #include <map>
 #include <boost/filesystem.hpp>
-<<<<<<< Updated upstream
-=======
-
 #include <iostream>
->>>>>>> Stashed changes
 
 std::shared_ptr<tgui::Label> createToolTip(std::string text) {
 	auto tooltip = tgui::Label::create();
@@ -312,6 +308,8 @@ void SoundSettingsGroup::populateFileNames(std::string pathToSoundsFolder) {
 	fileName->removeAllItems();
 
 	// Populate fileName with all supported sound files in the directory
+	// --TODO--
+	/*
 	for (const auto & entry : boost::filesystem::directory_iterator(pathToSoundsFolder)) {
 		std::string filePath = entry.path().string();
 		std::string type = filePath.substr(filePath.find_last_of('.'));
@@ -321,6 +319,7 @@ void SoundSettingsGroup::populateFileNames(std::string pathToSoundsFolder) {
 		std::string name = filePath.substr(filePath.find_last_of('\\') + 1);
 		fileName->addItem(name);
 	}
+	*/
 }
 
 void SoundSettingsGroup::onContainerResize(int containerWidth, int containerHeight) {
@@ -436,16 +435,46 @@ void NumericalEditBoxWithLimits::updateInputValidator() {
 	}
 }
 
-TFVGroup::TFVGroup() {
-	onTFVChange = std::make_shared<entt::SigH<void()>>();
+TFVGroup::TFVGroup(UndoStack& undoStack) : undoStack(undoStack) {
+	onTFVChange = std::make_shared<entt::SigH<void(std::shared_ptr<EMPAction>, std::shared_ptr<EditorMovablePoint>, std::shared_ptr<EditorAttack>)>>();
+
+	//TODO
+	test = tgui::Slider::create();
+	test->connect("ValueChanged", [&](float value) {
+		if (ignoreSignal) return;
+		undoStack.execute(UndoableCommand(
+			[this, value]() {
+			std::cout << "executed" << value << std::endl;
+		},
+		[this]() {
+			std::cout << "undo" << std::endl;
+		}));
+	});
+	add(test);
 }
 
 void TFVGroup::onContainerResize(int containerWidth, int containerHeight) {
 	//TODO
+	test->setPosition(0, 0);
+	test->setSize(containerWidth, 20);
+
+	setSize(getSize().x, 25);
 }
 
-EMPAAngleOffsetGroup::EMPAAngleOffsetGroup() {
-	onAngleOffsetChange = std::make_shared <entt::SigH<void()>>();
+void TFVGroup::setTFV(std::shared_ptr<TFV> tfv, std::shared_ptr<EMPAction> parentEMPA, std::shared_ptr<EditorMovablePoint> parentEMP, std::shared_ptr<EditorAttack> parentAttack) {
+	this->tfv = tfv;
+	this->parentEMPA = parentEMPA;
+	this->parentEMP = parentEMP;
+	this->parentAttack = parentAttack;
+
+	ignoreSignal = true;
+	//TODO: set widget values
+	test->setValue(2);
+	ignoreSignal = false;
+}
+
+EMPAAngleOffsetGroup::EMPAAngleOffsetGroup(UndoStack& undoStack) : undoStack(undoStack) {
+	onAngleOffsetChange = std::make_shared<entt::SigH<void(std::shared_ptr<EMPAction>, std::shared_ptr<EditorMovablePoint>, std::shared_ptr<EditorAttack>)>>();
 }
 
 void EMPAAngleOffsetGroup::onContainerResize(int containerWidth, int containerHeight) {

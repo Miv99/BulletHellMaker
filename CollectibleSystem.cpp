@@ -20,25 +20,28 @@ void CollectibleSystem::update(float deltaTime) {
 	});
 
 	// Check if player is within activation radius of any collectibles
-	uint32_t player = registry.attachee<PlayerTag>();
-	auto& playerHitbox = registry.get<HitboxComponent>(player);
-	auto& playerPosition = registry.get<PositionComponent>(player);
-	for (uint32_t entity : activationTable.getNearbyObjects(playerHitbox, playerPosition)) {
-		auto& hitbox = registry.get<HitboxComponent>(entity);
-		if (collides(playerPosition, playerHitbox, registry.get<PositionComponent>(entity), hitbox.getX(), hitbox.getY(), registry.get<CollectibleComponent>(entity).getItem()->getActivationRadius())) {
-			registry.get<CollectibleComponent>(entity).activate(queue, registry, entity);
+	if (registry.has<PlayerTag>()) {
+		uint32_t player = registry.attachee<PlayerTag>();
+		auto& playerHitbox = registry.get<HitboxComponent>(player);
+		auto& playerPosition = registry.get<PositionComponent>(player);
+		for (uint32_t entity : activationTable.getNearbyObjects(playerHitbox, playerPosition)) {
+			auto& hitbox = registry.get<HitboxComponent>(entity);
+			if (collides(playerPosition, playerHitbox, registry.get<PositionComponent>(entity), hitbox.getX(), hitbox.getY(), registry.get<CollectibleComponent>(entity).getItem()->getActivationRadius())) {
+				registry.get<CollectibleComponent>(entity).activate(queue, registry, entity);
+			}
 		}
-	}
-	// Check if player makes contact with any collectibles
-	for (uint32_t entity : itemHitboxTable.getNearbyObjects(playerHitbox, playerPosition)) {
-		if (!registry.get<DespawnComponent>(entity).isMarkedForDespawn() && collides(playerPosition, playerHitbox, registry.get<PositionComponent>(entity), registry.get<HitboxComponent>(entity))) {
-			registry.get<CollectibleComponent>(entity).getItem()->onPlayerContact(registry, player);
+		// Check if player makes contact with any collectibles
+		for (uint32_t entity : itemHitboxTable.getNearbyObjects(playerHitbox, playerPosition)) {
+			if (!registry.get<DespawnComponent>(entity).isMarkedForDespawn() && collides(playerPosition, playerHitbox, registry.get<PositionComponent>(entity), registry.get<HitboxComponent>(entity))) {
+				registry.get<CollectibleComponent>(entity).getItem()->onPlayerContact(registry, player);
 
-			// Despawn the collectible
-			if (registry.has<DespawnComponent>(entity)) {
-				registry.get<DespawnComponent>(entity).setMaxTime(0);
-			} else {
-				registry.assign<DespawnComponent>(entity, 0);
+				// Despawn the collectible
+				if (registry.has<DespawnComponent>(entity)) {
+					registry.get<DespawnComponent>(entity).setMaxTime(0);
+				}
+				else {
+					registry.assign<DespawnComponent>(entity, 0);
+				}
 			}
 		}
 	}

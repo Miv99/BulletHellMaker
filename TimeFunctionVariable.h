@@ -250,8 +250,7 @@ PositionComponents when the function was called). Because of this time-invarianc
 be time-invariant and thus must implement its own mechanism for being able to determine past positions (the future can never
 be determined and this game does not require it).
 
-Another warning: when this TFV is formatted into a string, the PositionComponents are not saved and thus cannot be loaded.
-
+Another warning: this TFV cannot be saved or loaded.
 */
 class CurrentAngleTFV : public TFV {
 public:

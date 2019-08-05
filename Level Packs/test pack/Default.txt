@@ -1,0 +1,15 @@
+[Map horizontal border]
+Type = Sprite
+TextureTopLeftCoordinates = 1,1
+BoundingRectangleSize = 3,3
+Color = 255,255,255,255
+SpriteSize = 550,8
+Origin = 2,2
+
+[Map vertical border]
+Type = Sprite
+TextureTopLeftCoordinates = 1,1
+BoundingRectangleSize = 3,3
+Color = 255,255,255,255
+SpriteSize = 8,700
+Origin = 2,2

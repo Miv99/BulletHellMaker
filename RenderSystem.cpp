@@ -120,6 +120,9 @@ void RenderSystem::update(float deltaTime) {
 				layerTextures[i].draw(*spritePtr);
 			}
 		}
+		if (layers[i].second.size() == 0) {
+			continue;
+		}
 		layerTextures[i].display();
 
 		if (bloom[i].usesBloom()) {
@@ -454,10 +457,20 @@ void RenderSystem::setResolution(int newPlayAreaWidth, int newPlayAreaHeight) {
 }
 
 void RenderSystem::loadLevelRenderSettings(std::shared_ptr<Level> level) {
-	bloom = std::vector<BloomSettings>(HIGHEST_RENDER_LAYER + 1, BloomSettings());
-	auto levelBloomSettings = level->getBloomLayerSettings();
-	for (int i = 0; i < levelBloomSettings.size(); i++) {
-		bloom[i] = levelBloomSettings[i];
+	if (level) {
+		bloom = std::vector<BloomSettings>(HIGHEST_RENDER_LAYER + 1, BloomSettings());
+		auto levelBloomSettings = level->getBloomLayerSettings();
+		for (int i = 0; i < levelBloomSettings.size(); i++) {
+			bloom[i] = levelBloomSettings[i];
+		}
+	}
+	else {
+		bloom = std::vector<BloomSettings>(HIGHEST_RENDER_LAYER + 1, BloomSettings());
+		BloomSettings bloomSettings;
+		bloomSettings.setUsesBloom(false);
+		for (int i = 0; i < bloom.size(); i++) {
+			bloom[i] = bloomSettings;
+		}
 	}
 }
 

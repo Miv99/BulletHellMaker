@@ -51,6 +51,11 @@ void EditorPlayer::load(std::string formattedString) {
 	bombReadySound.load(items[i++]);
 }
 
+bool EditorPlayer::legal(SpriteLoader & spriteLoader, std::string & message) {
+	//TODO
+	return true;
+}
+
 std::string PlayerPowerTier::format() {
 	return "(" + animatableSet.format() + ")" + tm_delim + tos(attackPatternID) + tm_delim + tos(attackPatternLoopDelay) + tm_delim + tos(focusedAttackPatternID) + tm_delim + tos(focusedAttackPatternLoopDelay) + tm_delim + tos(bombAttackPatternID) + tm_delim + tos(bombCooldown);
 

@@ -4,6 +4,9 @@
 EntityAnimatableSet::EntityAnimatableSet(Animatable idle, Animatable movement, Animatable attack, std::shared_ptr<DeathAction> deathAction) : idleAnimatable(idle), movementAnimatable(movement), attackAnimatable(attack), deathAction(deathAction) {
 }
 
+EntityAnimatableSet::EntityAnimatableSet(Animatable idle, Animatable movement, Animatable attack) : idleAnimatable(idle), movementAnimatable(movement), attackAnimatable(attack) {
+}
+
 std::string EntityAnimatableSet::format() {
 	return "(" + idleAnimatable.format() + ")" + tm_delim + "(" + movementAnimatable.format() + ")" + tm_delim + "(" + attackAnimatable.format() + ")" + tm_delim + "(" + deathAction->format() + ")";
 }

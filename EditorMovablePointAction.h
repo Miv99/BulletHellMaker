@@ -114,6 +114,8 @@ public:
 	// Time for the action to be completed
 	virtual float getTime() = 0;
 
+	virtual void setTime(float duration) = 0;
+
 	// String format when displayed in AttackEditor
 	virtual std::string getGuiFormat() = 0;
 
@@ -140,6 +142,8 @@ public:
 	inline float getTime() override { return 0; }
 	std::string getGuiFormat() override;
 
+	inline void setTime(float duration) override {}
+
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 };
 
@@ -155,6 +159,8 @@ public:
 	void load(std::string formattedString) override;
 	inline float getTime() override { return duration; }
 	std::string getGuiFormat() override;
+
+	inline void setTime(float duration) override { this->duration = duration; }
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 
@@ -175,6 +181,10 @@ public:
 	void load(std::string formattedString) override;
 	inline float getTime() override { return time; }
 	std::string getGuiFormat() override;
+	inline std::shared_ptr<TFV> getDistance() { return distance; }
+	inline std::shared_ptr<TFV> getAngle() { return angle; }
+
+	inline void setTime(float duration) override { this->time = duration; }
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 
@@ -202,6 +212,8 @@ public:
 	void load(std::string formattedString) override;
 	inline float getTime() override { return time; }
 	std::string getGuiFormat() override;
+
+	inline void setTime(float duration) override { this->time = duration; }
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 
@@ -231,6 +243,8 @@ public:
 	void load(std::string formattedString) override;
 	inline float getTime() override { return time; }
 	std::string getGuiFormat() override;
+
+	inline void setTime(float duration) override { this->time = duration; }
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 

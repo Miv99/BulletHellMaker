@@ -8,6 +8,6 @@ EditorInstance::EditorInstance(std::string levelPackName) {
 	spriteLoader->preloadTextures();
 
 	// testing
-	attackEditor = std::make_shared<AttackEditor>(*levelPack, spriteLoader);
+	attackEditor = std::make_shared<AttackEditor>(levelPack, spriteLoader);
 	attackEditor->start();
 }
