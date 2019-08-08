@@ -144,6 +144,8 @@ private:
 		void removePlaceholder();
 		virtual void spawnVisualEntity() = 0;
 
+		inline float getX() { return x; }
+		inline float getY() { return y; }
 		inline void setUseDefaultTestPlayer(bool useDefaultTestPlayer) { this->useDefaultTestPlayer = useDefaultTestPlayer; }
 
 	protected:
@@ -200,6 +202,8 @@ private:
 	const float RIGHT_PANEL_WIDTH = 0.2f;
 	const float CAMERA_SPEED = 100; // World units per second
 
+	std::shared_ptr<sf::Sprite> currentCursor; // nullptr if default cursor
+
 	// This should be modified only by setCameraZoom()
 	float cameraZoom = 1.0f;
 	bool draggingCamera = false;
@@ -209,9 +213,19 @@ private:
 	// Screen coordinates of the first mouse pressed event since the last mouse released event
 	int initialMousePressX, initialMousePressY;
 
+	// Should be modified only through setter
+	bool placingNewEnemy = false;
+
+	// Should be modified only through setter
+	bool manuallySettingPlaceholderPosition = false;
+
+	std::shared_ptr<sf::Sprite> movingEnemyPlaceholderCursor;
+	std::shared_ptr<sf::Sprite> movingPlayerPlaceholderCursor;
+
 	std::shared_ptr<PlayerEntityPlaceholder> playerPlaceholder;
 	std::vector<std::shared_ptr<EnemyEntityPlaceholder>> enemyPlaceholders;
 	std::shared_ptr<EntityPlaceholder> selectedPlaceholder;
+	bool selectedPlaceholderIsPlayer;
 
 	bool paused = false;
 
@@ -268,4 +282,7 @@ private:
 	void endGameplayTest();
 	void selectPlaceholder(std::shared_ptr<EntityPlaceholder> placeholder);
 	void deselectPlaceholder();
+
+	void setPlacingNewEnemy(bool placingNewEnemy);
+	void setManuallySettingPlaceholderPosition(std::shared_ptr<EntityPlaceholder> placeholder, bool manuallySettingPlaceholderPosition);
 };

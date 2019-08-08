@@ -308,8 +308,6 @@ void SoundSettingsGroup::populateFileNames(std::string pathToSoundsFolder) {
 	fileName->removeAllItems();
 
 	// Populate fileName with all supported sound files in the directory
-	// --TODO--
-	/*
 	for (const auto & entry : boost::filesystem::directory_iterator(pathToSoundsFolder)) {
 		std::string filePath = entry.path().string();
 		std::string type = filePath.substr(filePath.find_last_of('.'));
@@ -319,7 +317,6 @@ void SoundSettingsGroup::populateFileNames(std::string pathToSoundsFolder) {
 		std::string name = filePath.substr(filePath.find_last_of('\\') + 1);
 		fileName->addItem(name);
 	}
-	*/
 }
 
 void SoundSettingsGroup::onContainerResize(int containerWidth, int containerHeight) {

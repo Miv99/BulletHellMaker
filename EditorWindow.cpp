@@ -1,6 +1,7 @@
 #include "EditorWindow.h"
 #include "Components.h"
 #include <algorithm>
+#include <iostream>
 
 EditorWindow::EditorWindow(std::shared_ptr<std::mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval) :
 	tguiMutex(tguiMutex), windowTitle(windowTitle), windowWidth(width), windowHeight(height), scaleWidgetsOnResize(scaleWidgetsOnResize), letterboxingEnabled(letterboxingEnabled), renderInterval(renderInterval) {
@@ -212,6 +213,15 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	enemyPlaceholderY->setTextSize(TEXT_SIZE);
 	testModeID->setTextSize(TEXT_SIZE);
 
+	newEnemyPlaceholder->connect("Pressed", [&]() {
+		setPlacingNewEnemy(true);
+		setManuallySettingPlaceholderPosition(selectedPlaceholder, false);
+	});
+	enemyPlaceholderManualSet->connect("Pressed", [&]() {
+		setPlacingNewEnemy(false);
+		setManuallySettingPlaceholderPosition(selectedPlaceholder, true);
+	});
+
 	leftPanel->add(entityPlaceholdersListLabel);
 	leftPanel->add(entityPlaceholdersList);
 	leftPanel->add(newEnemyPlaceholder);
@@ -232,8 +242,9 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	playerPlaceholder = std::make_shared<PlayerEntityPlaceholder>(registry, *spriteLoader, *levelPack);
 	playerPlaceholder->moveTo(PLAYER_SPAWN_X, PLAYER_SPAWN_Y);
 	playerPlaceholder->spawnVisualEntity();
-
-	deselectPlaceholder();
+	// ---------------------------------
+	movingEnemyPlaceholderCursor = spriteLoader->getSprite("Bomb", "sheet1");
+	movingPlayerPlaceholderCursor = spriteLoader->getSprite("Health", "sheet1");
 }
 
 void GameplayTestWindow::handleEvent(sf::Event event) {
@@ -252,6 +263,9 @@ void GameplayTestWindow::handleEvent(sf::Event event) {
 			if ((!leftPanel->isVisible() || event.mouseButton.x > windowWidth * LEFT_PANEL_WIDTH) && (!rightPanel->isVisible() || event.mouseButton.x < windowWidth * (1 - RIGHT_PANEL_WIDTH))) {
 				onGameplayAreaMouseClick(event.mouseButton.x, event.mouseButton.y);
 			}
+		} else if (event.mouseButton.button == sf::Mouse::Right) {
+			setPlacingNewEnemy(false);
+			setManuallySettingPlaceholderPosition(selectedPlaceholder, false);
 		}
 	} else if (event.type == sf::Event::MouseMoved && draggingCamera) {
 		// Move camera depending on difference in world coordinates between event.mouseMove.x/y and previousCameraDragCoordsX/Y
@@ -325,6 +339,21 @@ void GameplayTestWindow::render(float deltaTime) {
 	renderSystem->update(deltaTime);
 
 	UndoableEditorWindow::render(deltaTime);
+
+	if (currentCursor) {
+		sf::View oldView = window->getView();
+		sf::View fixedView = sf::View(sf::FloatRect(0, -MAP_HEIGHT, MAP_WIDTH, MAP_HEIGHT));
+		auto pos = sf::Mouse::getPosition(*window);
+		currentCursor->setPosition(pos.x, pos.y - fixedView.getSize().y);
+		auto oldCursorScale = currentCursor->getScale();
+
+		window->setView(fixedView);
+		currentCursor->setScale(oldCursorScale.x * cameraZoom, oldCursorScale.y * cameraZoom);
+		window->draw(*currentCursor);
+
+		window->setView(oldView);
+		currentCursor->setScale(oldCursorScale);
+	}
 }
 
 void GameplayTestWindow::updateWindowView(int width, int height) {
@@ -401,6 +430,8 @@ void GameplayTestWindow::onRenderWindowInitialization() {
 	uint32_t right = registry.create();
 	registry.assign<PositionComponent>(right, MAP_WIDTH + 8, -8);
 	registry.assign<SpriteComponent>(right, *spriteLoader, Animatable("Map horizontal border", "Default", true, LOCK_ROTATION), true, SHADOW_LAYER, 0);
+
+	deselectPlaceholder();
 }
 
 void GameplayTestWindow::moveCamera(float xOffset, float yOffset) {
@@ -427,24 +458,49 @@ void GameplayTestWindow::onGameplayAreaMouseClick(float screenX, float screenY) 
 	// Not sure why this is needed; probably something to do with RenderSystem coordinates being y-inversed
 	mouseWorldPos.y = -mouseWorldPos.y;
 
-	if (playerPlaceholder->wasClicked(mouseWorldPos.x, mouseWorldPos.y)) {
-		selectPlaceholder(playerPlaceholder);
+	if (placingNewEnemy) {
+		setPlacingNewEnemy(false);
+		undoStack.execute(UndoableCommand(
+			[this, mouseWorldPos]() {
+			std::shared_ptr<EnemyEntityPlaceholder> enemy = std::make_shared<EnemyEntityPlaceholder>(registry, *spriteLoader, *levelPack, *queue);
+			enemy->moveTo(mouseWorldPos.x, mouseWorldPos.y);
+			enemy->spawnVisualEntity();
+			enemyPlaceholders.push_back(enemy);
+		},
+			[this]() {
+			enemyPlaceholders.pop_back();
+		}));
+	} else if (manuallySettingPlaceholderPosition) {
+		setManuallySettingPlaceholderPosition(selectedPlaceholder, false);
+		float oldX = selectedPlaceholder->getX();
+		float oldY = selectedPlaceholder->getY();
+		undoStack.execute(UndoableCommand(
+			[this, &selectedPlaceholder = this->selectedPlaceholder, mouseWorldPos]() {
+			selectedPlaceholder->moveTo(mouseWorldPos.x, mouseWorldPos.y);
+		},
+			[this, &selectedPlaceholder = this->selectedPlaceholder, oldX, oldY]() {
+			selectedPlaceholder->moveTo(oldX, oldY);
+		}));
 	} else {
-		bool clickedEnemy = false;
-		for (auto enemyPlaceholder : enemyPlaceholders) {
-			if (enemyPlaceholder->wasClicked(mouseWorldPos.x, mouseWorldPos.y)) {
-				selectPlaceholder(enemyPlaceholder);
-				clickedEnemy = true;
-				break;
+		if (playerPlaceholder->wasClicked(mouseWorldPos.x, mouseWorldPos.y)) {
+			selectPlaceholder(playerPlaceholder);
+		} else {
+			bool clickedEnemy = false;
+			for (auto enemyPlaceholder : enemyPlaceholders) {
+				if (enemyPlaceholder->wasClicked(mouseWorldPos.x, mouseWorldPos.y)) {
+					selectPlaceholder(enemyPlaceholder);
+					clickedEnemy = true;
+					break;
+				}
 			}
-		}
 
-		if (!clickedEnemy) {
-			draggingCamera = true;
-			previousCameraDragCoordsX = screenX;
-			previousCameraDragCoordsY = screenY;
-			initialMousePressX = screenX;
-			initialMousePressY = screenY;
+			if (!clickedEnemy) {
+				draggingCamera = true;
+				previousCameraDragCoordsX = screenX;
+				previousCameraDragCoordsY = screenY;
+				initialMousePressX = screenX;
+				initialMousePressY = screenY;
+			}
 		}
 	}
 }
@@ -466,9 +522,12 @@ void GameplayTestWindow::endGameplayTest() {
 }
 
 void GameplayTestWindow::selectPlaceholder(std::shared_ptr<EntityPlaceholder> placeholder) {
+	selectedPlaceholder = placeholder;
+	
 	//TODO
 	rightPanel->setVisible(true);
 	bool isEnemyPlaceholder = (dynamic_cast<EnemyEntityPlaceholder*>(placeholder.get()) != nullptr);
+	selectedPlaceholderIsPlayer = !isEnemyPlaceholder;
 	setEnemyPlaceholderTestMode->setVisible(isEnemyPlaceholder);
 	testModeIDLabel->setVisible(isEnemyPlaceholder);
 	testModeID->setVisible(isEnemyPlaceholder);
@@ -476,6 +535,36 @@ void GameplayTestWindow::selectPlaceholder(std::shared_ptr<EntityPlaceholder> pl
 
 void GameplayTestWindow::deselectPlaceholder() {
 	rightPanel->setVisible(false);
+	currentCursor = nullptr;
+	window->setMouseCursorVisible(true);
+}
+
+void GameplayTestWindow::setPlacingNewEnemy(bool placingNewEnemy) {
+	this->placingNewEnemy = placingNewEnemy;
+	if (placingNewEnemy) {
+		window->setMouseCursorVisible(false);
+		currentCursor = movingEnemyPlaceholderCursor;
+	} else if (!manuallySettingPlaceholderPosition) {
+		window->setMouseCursorVisible(true);
+		currentCursor = nullptr;
+	}
+}
+
+void GameplayTestWindow::setManuallySettingPlaceholderPosition(std::shared_ptr<EntityPlaceholder> placeholder,  bool manuallySettingPlaceholderPosition) {
+	this->manuallySettingPlaceholderPosition = manuallySettingPlaceholderPosition;
+	if (manuallySettingPlaceholderPosition) {
+		window->setMouseCursorVisible(false);
+
+		bool isEnemyPlaceholder = (dynamic_cast<EnemyEntityPlaceholder*>(placeholder.get()) != nullptr);
+		if (isEnemyPlaceholder) {
+			currentCursor = movingEnemyPlaceholderCursor;
+		} else {
+			currentCursor = movingPlayerPlaceholderCursor;
+		}
+	} else if (!placingNewEnemy) {
+		window->setMouseCursorVisible(true);
+		currentCursor = nullptr;
+	}
 }
 
 void GameplayTestWindow::EntityPlaceholder::moveTo(float x, float y) {
