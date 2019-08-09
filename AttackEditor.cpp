@@ -963,7 +963,7 @@ void AttackEditor::onMainWindowResize(int windowWidth, int windowHeight) {
 	aiPlayAttackAnimation->setPosition({ tgui::bindLeft(aiID), tgui::bindBottom(aiName) + GUI_PADDING_Y });
 	aiPanel->setSize(aiAreaWidth, std::min(windowHeight*0.25f, aiPlayAttackAnimation->getPosition().y + aiPlayAttackAnimation->getSize().y + GUI_PADDING_Y));
 
-	const float alAreaWidth = windowWidth * 0.25f;
+	const float alAreaWidth = windowWidth * 0.2f;
 	const float alAreaHeight = windowHeight - aiPanel->getPosition().y - aiPanel->getSize().y;
 	alPanel->setSize(alAreaWidth, alAreaHeight);
 	alPanel->setPosition(0, tgui::bindBottom(aiPanel));
