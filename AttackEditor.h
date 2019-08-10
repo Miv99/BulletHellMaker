@@ -103,27 +103,24 @@ private:
 	/*
 	Should be called when a change is made to any EditorAttack.
 
-	skipUndoCommandCreation - see EditorAttack::skipUndoCommandCreation
 	attackWasModified - true if the attack widget values are being updated because of a change in the attack
 	*/
-	void setAttackWidgetValues(std::shared_ptr<EditorAttack> attackWithUnsavedChanges, bool skipUndoCommandCreation, bool attackWasModified);
+	void setAttackWidgetValues(std::shared_ptr<EditorAttack> attackWithUnsavedChanges, bool attackWasModified);
 	/*
 	Should be called when a change is made to any EMP.
 
 	parentAttack - the EditorAttack emp belongs to
-	skipUndoCommandCreation - see EditorAttack::skipUndoCommandCreation
 	fromInit - true if this function was called to initialize EMP widget values (basically when this function is called without
 		changes made to emp)
 	*/
-	void setEMPWidgetValues(std::shared_ptr<EditorMovablePoint> emp, std::shared_ptr<EditorAttack> parentAttack, bool skipUndoCommandCreation, bool fromInit);
+	void setEMPWidgetValues(std::shared_ptr<EditorMovablePoint> emp, std::shared_ptr<EditorAttack> parentAttack, bool fromInit);
 	/*
 	Should be called when a change is made to any EMPA.
 
 	parentEMP - the EditorMovablePoint empa belongs to
 	parentAttack - the EditorAttack parentEMP belongs to
-	skipUndoCommandCreation - see EditorAttack::skipUndoCommandCreation
 	*/
-	void setEMPAWidgetValues(std::shared_ptr<EMPAction> empa, std::shared_ptr<EditorMovablePoint> parentEMP, std::shared_ptr<EditorAttack> parentAttack, bool skipUndoCommandCreation);
+	void setEMPAWidgetValues(std::shared_ptr<EMPAction> empa, std::shared_ptr<EditorMovablePoint> parentEMP, std::shared_ptr<EditorAttack> parentAttack);
 
 
 	void buildEMPTree();
@@ -283,10 +280,6 @@ private:
 	std::thread mainWindowThread;
 	std::thread playAreaWindowThread;
 
-	// When this bool is true, any changes (to EditorAttacks, EMPs, EMPAs,...) will not create a command for the undo stack.
-	// This is to prevent a redo from signalling a widget from
-	// creating another undo command, since UndoStack already takes care of that.
-	bool skipUndoCommandCreation = false;
 	// This bool is used to prevent infinite loops (eg selectEMP() causing emplTree's connect("ItemSelected") to fire, which
 	// calls selectEMP() again)
 	bool ignoreSignal = false;

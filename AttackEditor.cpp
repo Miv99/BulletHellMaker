@@ -49,11 +49,11 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			mainWindowUndoStack.execute(UndoableCommand(
 				[this, selectedAttack, text]() {
 				selectedAttack->setName(text);
-				setAttackWidgetValues(selectedAttack, true, true);
+				setAttackWidgetValues(selectedAttack, true);
 			},
 				[this, selectedAttack, oldName]() {
 				selectedAttack->setName(oldName);
-				setAttackWidgetValues(selectedAttack, true, true);
+				setAttackWidgetValues(selectedAttack, true);
 			}));
 		}
 	});
@@ -64,11 +64,11 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			mainWindowUndoStack.execute(UndoableCommand(
 				[this, selectedAttack, checked]() {
 				selectedAttack->setPlayAttackAnimation(checked);
-				setAttackWidgetValues(selectedAttack, true, true);
+				setAttackWidgetValues(selectedAttack, true);
 			},
 				[this, selectedAttack, checked]() {
 				selectedAttack->setPlayAttackAnimation(!checked);
-				setAttackWidgetValues(selectedAttack, true, true);
+				setAttackWidgetValues(selectedAttack, true);
 			}));
 		}
 	});
@@ -361,15 +361,15 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	empiIsBullet->connect("Changed", [this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack]() {
 		if (ignoreSignal) return;
 		bool checked = empiIsBullet->isChecked();
-		if (checked != selectedEMP->getIsBullet() && !skipUndoCommandCreation) {
+		if (checked != selectedEMP->getIsBullet()) {
 			mainWindowUndoStack.execute(UndoableCommand(
 				[this, selectedEMP, selectedAttack, checked]() {
 				selectedEMP->setIsBullet(checked);
-				setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+				setEMPWidgetValues(selectedEMP, selectedAttack, false);
 			},
 				[this, selectedEMP, selectedAttack, checked]() {
 				selectedEMP->setIsBullet(!checked);
-				setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+				setEMPWidgetValues(selectedEMP, selectedAttack, false);
 			}));
 		}
 	});
@@ -564,7 +564,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			},
 				[this, selectedEMP, selectedAttack, oldSpawnType]() {
 				selectedEMP->setSpawnType(oldSpawnType);
-				setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+				setEMPWidgetValues(selectedEMP, selectedAttack, false);
 			}));
 		} else if (id == "2") {
 			mainWindowUndoStack.execute(UndoableCommand(
@@ -573,7 +573,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			},
 				[this, selectedEMP, selectedAttack, oldSpawnType]() {
 				selectedEMP->setSpawnType(oldSpawnType);
-				setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+				setEMPWidgetValues(selectedEMP, selectedAttack, false);
 			}));
 		} else {
 			mainWindowUndoStack.execute(UndoableCommand(
@@ -582,7 +582,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			},
 				[this, selectedEMP, selectedAttack, oldSpawnType]() {
 				selectedEMP->setSpawnType(oldSpawnType);
-				setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+				setEMPWidgetValues(selectedEMP, selectedAttack, false);
 			}));
 		}
 	});
@@ -601,11 +601,11 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 		mainWindowUndoStack.execute(UndoableCommand(
 			[this, selectedEMP, selectedAttack, checked]() {
 			selectedEMP->setLoopAnimation(checked);
-			setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+			setEMPWidgetValues(selectedEMP, selectedAttack, false);
 		},
 			[this, selectedEMP, selectedAttack, checked]() {
 			selectedEMP->setLoopAnimation(!checked);
-			setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+			setEMPWidgetValues(selectedEMP, selectedAttack, false);
 		}));
 	});
 	empiBaseSprite->getOnValueSet()->sink().connect<AttackEditor, &AttackEditor::onBaseSpriteChange>(this);
@@ -621,11 +621,11 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 		mainWindowUndoStack.execute(UndoableCommand(
 			[this, selectedEMP, selectedAttack, action]() {
 			selectedEMP->setOnCollisionAction(action);
-			setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+			setEMPWidgetValues(selectedEMP, selectedAttack, false);
 		},
 			[this, selectedEMP, selectedAttack, oldAction]() {
 			selectedEMP->setOnCollisionAction(oldAction);
-			setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+			setEMPWidgetValues(selectedEMP, selectedAttack, false);
 		}));
 	});
 
@@ -652,7 +652,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			} else {
 				selectedEMP->setBulletModel(levelPack->getBulletModel(bulletModelID));
 			}
-			setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+			setEMPWidgetValues(selectedEMP, selectedAttack, false);
 		},
 			[this, levelPack, selectedEMP, selectedAttack, oldBulletModelID,
 			radius, despawnTime, interval, lifespan, animatable, baseSprite,
@@ -671,7 +671,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			} else {
 				selectedEMP->setBulletModel(levelPack->getBulletModel(oldBulletModelID));
 			}
-			setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+			setEMPWidgetValues(selectedEMP, selectedAttack, false);
 		}));
 	});
 	empiInheritRadius->connect("Changed", [this, levelPack, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack]() {
@@ -682,12 +682,12 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			[this, levelPack, selectedEMP, selectedAttack, checked, oldValue]() {
 			selectedEMP->setHitboxRadius(oldValue);
 			selectedEMP->setInheritRadius(checked, *levelPack);
-			setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+			setEMPWidgetValues(selectedEMP, selectedAttack, false);
 		},
 			[this, levelPack, selectedEMP, selectedAttack, checked, oldValue]() {
 			selectedEMP->setHitboxRadius(oldValue);
 			selectedEMP->setInheritRadius(!checked, *levelPack);
-			setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+			setEMPWidgetValues(selectedEMP, selectedAttack, false);
 		}));
 	});
 	empiInheritDespawnTime->connect("Changed", [this, levelPack, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack]() {
@@ -698,12 +698,12 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			[this, levelPack, selectedEMP, selectedAttack, checked, oldValue]() {
 			selectedEMP->setDespawnTime(oldValue);
 			selectedEMP->setInheritDespawnTime(checked, *levelPack);
-			setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+			setEMPWidgetValues(selectedEMP, selectedAttack, false);
 		},
 			[this, levelPack, selectedEMP, selectedAttack, checked, oldValue]() {
 			selectedEMP->setDespawnTime(oldValue);
 			selectedEMP->setInheritDespawnTime(!checked, *levelPack);
-			setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+			setEMPWidgetValues(selectedEMP, selectedAttack, false);
 		}));
 	});
 	empiInheritShadowTrailInterval->connect("Changed", [this, levelPack, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack]() {
@@ -714,12 +714,12 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			[this, levelPack, selectedEMP, selectedAttack, checked, oldValue]() {
 			selectedEMP->setShadowTrailInterval(oldValue);
 			selectedEMP->setInheritShadowTrailInterval(checked, *levelPack);
-			setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+			setEMPWidgetValues(selectedEMP, selectedAttack, false);
 		},
 			[this, levelPack, selectedEMP, selectedAttack, checked, oldValue]() {
 			selectedEMP->setShadowTrailInterval(oldValue);
 			selectedEMP->setInheritShadowTrailInterval(!checked, *levelPack);
-			setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+			setEMPWidgetValues(selectedEMP, selectedAttack, false);
 		}));
 	});
 	empiInheritShadowTrailLifespan->connect("Changed", [this, levelPack, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack]() {
@@ -730,12 +730,12 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			[this, levelPack, selectedEMP, selectedAttack, checked, oldValue]() {
 			selectedEMP->setShadowTrailLifespan(oldValue);
 			selectedEMP->setInheritShadowTrailLifespan(checked, *levelPack);
-			setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+			setEMPWidgetValues(selectedEMP, selectedAttack, false);
 		},
 			[this, levelPack, selectedEMP, selectedAttack, checked, oldValue]() {
 			selectedEMP->setShadowTrailLifespan(oldValue);
 			selectedEMP->setInheritShadowTrailLifespan(!checked, *levelPack);
-			setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+			setEMPWidgetValues(selectedEMP, selectedAttack, false);
 		}));
 	});
 	empiInheritAnimatables->connect("Changed", [this, levelPack, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack]() {
@@ -750,14 +750,14 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			selectedEMP->setLoopAnimation(oldLoop);
 			selectedEMP->setBaseSprite(oldBaseSprite);
 			selectedEMP->setInheritAnimatables(checked, *levelPack);
-			setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+			setEMPWidgetValues(selectedEMP, selectedAttack, false);
 		},
 			[this, levelPack, selectedEMP, selectedAttack, checked, oldAnimatable, oldBaseSprite, oldLoop]() {
 			selectedEMP->setAnimatable(oldAnimatable);
 			selectedEMP->setLoopAnimation(oldLoop);
 			selectedEMP->setBaseSprite(oldBaseSprite);
 			selectedEMP->setInheritAnimatables(!checked, *levelPack);
-			setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+			setEMPWidgetValues(selectedEMP, selectedAttack, false);
 		}));
 	});
 	empiInheritDamage->connect("Changed", [this, levelPack, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack]() {
@@ -768,12 +768,12 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			[this, levelPack, selectedEMP, selectedAttack, checked, oldValue]() {
 			selectedEMP->setDamage(oldValue);
 			selectedEMP->setInheritDamage(checked, *levelPack);
-			setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+			setEMPWidgetValues(selectedEMP, selectedAttack, false);
 		},
 			[this, levelPack, selectedEMP, selectedAttack, checked, oldValue]() {
 			selectedEMP->setDamage(oldValue);
 			selectedEMP->setInheritDamage(!checked, *levelPack);
-			setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+			setEMPWidgetValues(selectedEMP, selectedAttack, false);
 		}));
 	});
 	empiInheritSoundSettings->connect("Changed", [this, levelPack, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack]() {
@@ -784,12 +784,12 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			[this, levelPack, selectedEMP, selectedAttack, checked, oldValue]() {
 			selectedEMP->setSoundSettings(oldValue);
 			selectedEMP->setInheritSoundSettings(checked, *levelPack);
-			setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+			setEMPWidgetValues(selectedEMP, selectedAttack, false);
 		},
 			[this, levelPack, selectedEMP, selectedAttack, checked, oldValue]() {
 			selectedEMP->setSoundSettings(oldValue);
 			selectedEMP->setInheritSoundSettings(!checked, *levelPack);
-			setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+			setEMPWidgetValues(selectedEMP, selectedAttack, false);
 		}));
 	});
 
@@ -1177,7 +1177,7 @@ void AttackEditor::selectAttack(int id) {
 	buildEMPTree();
 	alDeleteAttack->setEnabled(true);
 
-	setAttackWidgetValues(selectedAttack, true, false);
+	setAttackWidgetValues(selectedAttack, false);
 }
 
 void AttackEditor::deselectAttack() {
@@ -1264,7 +1264,7 @@ void AttackEditor::selectEMP(std::shared_ptr<EditorAttack> parentAttack, int emp
 	empiInheritSoundSettingsLabel->setVisible(true);
 	empiInheritSoundSettings->setVisible(true);
 
-	setEMPWidgetValues(selectedEMP, selectedAttack, true, true);
+	setEMPWidgetValues(selectedEMP, selectedAttack, true);
 }
 
 void AttackEditor::deselectEMP() {
@@ -1416,9 +1416,9 @@ void AttackEditor::deselectEMPA() {
 	empaiInfo->setText("No Movable point action selected");
 }
 
-void AttackEditor::setEMPWidgetValues(std::shared_ptr<EditorMovablePoint> emp, std::shared_ptr<EditorAttack> parentAttack, bool skipUndoCommandCreation, bool fromInit) {
+void AttackEditor::setEMPWidgetValues(std::shared_ptr<EditorMovablePoint> emp, std::shared_ptr<EditorAttack> parentAttack, bool fromInit) {
 	if (!fromInit) {
-		setAttackWidgetValues(parentAttack, true, true);
+		setAttackWidgetValues(parentAttack, true);
 	}
 	if (emp != selectedEMP) {
 		if (parentAttack != selectedAttack) {
@@ -1426,7 +1426,6 @@ void AttackEditor::setEMPWidgetValues(std::shared_ptr<EditorMovablePoint> emp, s
 		}
 		selectEMP(parentAttack, emp->getID());
 	}
-	this->skipUndoCommandCreation = skipUndoCommandCreation;
 
 	if (!fromInit) {
 		buildEMPTree();
@@ -1554,7 +1553,6 @@ void AttackEditor::setEMPWidgetValues(std::shared_ptr<EditorMovablePoint> emp, s
 	}
 
 	ignoreSignal = false;
-	this->skipUndoCommandCreation = false;
 }
 
 void AttackEditor::createAttack() {
@@ -1611,7 +1609,7 @@ std::shared_ptr<EditorMovablePoint> AttackEditor::createEMP(std::shared_ptr<Edit
 	
 	emplTree->addItem(emp->generatePathToThisEmp(&AttackEditor::getEMPTreeNodeText));
 
-	setAttackWidgetValues(empOwner, false, true);
+	setAttackWidgetValues(empOwner, true);
 
 	return emp;
 }
@@ -1632,7 +1630,7 @@ void AttackEditor::deleteEMPA(std::shared_ptr<EditorMovablePoint> emp, int empaI
 	buildEMPIActions();
 }
 
-void AttackEditor::setAttackWidgetValues(std::shared_ptr<EditorAttack> attackWithUnsavedChanges, bool skipUndoCommandCreation, bool attackWasModified) {
+void AttackEditor::setAttackWidgetValues(std::shared_ptr<EditorAttack> attackWithUnsavedChanges, bool attackWasModified) {
 	if (attackWithUnsavedChanges != selectedAttack) {
 		selectAttack(attackWithUnsavedChanges->getID());
 	}
@@ -1647,14 +1645,12 @@ void AttackEditor::setAttackWidgetValues(std::shared_ptr<EditorAttack> attackWit
 		alList->changeItemById(std::to_string(id), "*" + attackWithUnsavedChanges->getName() + " [id=" + std::to_string(id) + "]");
 	}
 
-	this->skipUndoCommandCreation = skipUndoCommandCreation;
 	aiID->setText("Attack ID: " + std::to_string(id));
 	aiName->setText(selectedAttack->getName());
 	aiPlayAttackAnimation->setChecked(selectedAttack->getPlayAttackAnimation());
-	skipUndoCommandCreation = false;
 }
 
-void AttackEditor::setEMPAWidgetValues(std::shared_ptr<EMPAction> empa, std::shared_ptr<EditorMovablePoint> parentEMP, std::shared_ptr<EditorAttack> parentAttack, bool skipUndoCommandCreation) {
+void AttackEditor::setEMPAWidgetValues(std::shared_ptr<EMPAction> empa, std::shared_ptr<EditorMovablePoint> parentEMP, std::shared_ptr<EditorAttack> parentAttack) {
 	if (parentEMP != selectedEMP) {
 		if (parentAttack != selectedAttack) {
 			selectAttack(parentAttack->getID());
@@ -1732,11 +1728,11 @@ void AttackEditor::onEmpiHitboxRadiusChange(float value) {
 	mainWindowUndoStack.execute(UndoableCommand(
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, value]() {
 		selectedEMP->setHitboxRadius(value);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	},
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, oldValue]() {
 		selectedEMP->setHitboxRadius(oldValue);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	}));
 }
 
@@ -1746,11 +1742,11 @@ void AttackEditor::onEmpiDespawnTimeChange(float value) {
 	mainWindowUndoStack.execute(UndoableCommand(
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, value]() {
 		selectedEMP->setDespawnTime(value);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	},
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, oldValue]() {
 		selectedEMP->setDespawnTime(oldValue);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	}));
 }
 
@@ -1760,11 +1756,11 @@ void AttackEditor::onEmpiSpawnTypeTimeChange(float value) {
 	mainWindowUndoStack.execute(UndoableCommand(
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, value]() {
 		selectedEMP->getSpawnType()->setTime(value);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	},
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, oldValue]() {
 		selectedEMP->getSpawnType()->setTime(oldValue);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	}));
 }
 
@@ -1774,11 +1770,11 @@ void AttackEditor::onEmpiSpawnTypeXChange(float value) {
 	mainWindowUndoStack.execute(UndoableCommand(
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, value]() {
 		selectedEMP->getSpawnType()->setX(value);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	},
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, oldValue]() {
 		selectedEMP->getSpawnType()->setX(oldValue);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	}));
 }
 
@@ -1788,11 +1784,11 @@ void AttackEditor::onEmpiSpawnTypeYChange(float value) {
 	mainWindowUndoStack.execute(UndoableCommand(
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, value]() {
 		selectedEMP->getSpawnType()->setY(value);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	},
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, oldValue]() {
 		selectedEMP->getSpawnType()->setY(oldValue);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	}));
 }
 
@@ -1802,11 +1798,11 @@ void AttackEditor::onEmpiShadowTrailLifespanChange(float value) {
 	mainWindowUndoStack.execute(UndoableCommand(
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, value]() {
 		selectedEMP->setShadowTrailLifespan(value);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	},
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, oldValue]() {
 		selectedEMP->setShadowTrailLifespan(oldValue);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	}));
 }
 
@@ -1816,11 +1812,11 @@ void AttackEditor::onEmpiShadowTrailIntervalChange(float value) {
 	mainWindowUndoStack.execute(UndoableCommand(
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, value]() {
 		selectedEMP->setShadowTrailInterval(value);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	},
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, oldValue]() {
 		selectedEMP->setShadowTrailInterval(oldValue);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	}));
 }
 
@@ -1830,11 +1826,11 @@ void AttackEditor::onAnimatableChange(Animatable value) {
 	mainWindowUndoStack.execute(UndoableCommand(
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, value]() {
 		selectedEMP->setAnimatable(value);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	},
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, oldValue]() {
 		selectedEMP->setAnimatable(oldValue);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	}));
 }
 
@@ -1844,11 +1840,11 @@ void AttackEditor::onBaseSpriteChange(Animatable value) {
 	mainWindowUndoStack.execute(UndoableCommand(
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, value]() {
 		selectedEMP->setBaseSprite(value);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	},
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, oldValue]() {
 		selectedEMP->setBaseSprite(oldValue);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	}));
 }
 
@@ -1858,11 +1854,11 @@ void AttackEditor::onEmpiDamageChange(float value) {
 	mainWindowUndoStack.execute(UndoableCommand(
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, value]() {
 		selectedEMP->setDamage(value);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	},
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, oldValue]() {
 		selectedEMP->setDamage(oldValue);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	}));
 }
 
@@ -1872,11 +1868,11 @@ void AttackEditor::onEmpiSoundSettingsChange(SoundSettings value) {
 	mainWindowUndoStack.execute(UndoableCommand(
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, value]() {
 		selectedEMP->setSoundSettings(value);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	},
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, oldValue]() {
 		selectedEMP->setSoundSettings(oldValue);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	}));
 }
 
@@ -1886,11 +1882,11 @@ void AttackEditor::onEmpiPierceResetTimeChange(float value) {
 	mainWindowUndoStack.execute(UndoableCommand(
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, value]() {
 		selectedEMP->setPierceResetTime(value);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	},
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, oldValue]() {
 		selectedEMP->setPierceResetTime(oldValue);
-		setEMPWidgetValues(selectedEMP, selectedAttack, true, false);
+		setEMPWidgetValues(selectedEMP, selectedAttack, false);
 	}));
 }
 
@@ -1904,14 +1900,14 @@ void AttackEditor::onEmpaiDurationChange(float value) {
 	mainWindowUndoStack.execute(UndoableCommand(
 		[this, &selectedEMPA = this->selectedEMPA, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, value]() {
 		selectedEMPA->setTime(value);
-		setEMPAWidgetValues(selectedEMPA, selectedEMP, selectedAttack, true);
+		setEMPAWidgetValues(selectedEMPA, selectedEMP, selectedAttack);
 	},
 		[this, &selectedEMPA = this->selectedEMPA, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, oldValue]() {
 		selectedEMPA->setTime(oldValue);
-		setEMPAWidgetValues(selectedEMPA, selectedEMP, selectedAttack, true);
+		setEMPAWidgetValues(selectedEMPA, selectedEMP, selectedAttack);
 	}));
 }
 
 void AttackEditor::onEmpaiTFVChange(std::shared_ptr<EMPAction> empa, std::shared_ptr<EditorMovablePoint> parentEMP, std::shared_ptr<EditorAttack> parentAttack) {
-	setEMPAWidgetValues(empa, parentEMP, parentAttack, true);
+	setEMPAWidgetValues(empa, parentEMP, parentAttack);
 }

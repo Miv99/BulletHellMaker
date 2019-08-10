@@ -183,11 +183,11 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	deleteEnemyPlaceholder = tgui::Button::create();
 
 	rightPanel = tgui::ScrollablePanel::create();
-	enemyPlaceholderXLabel = tgui::Label::create();
-	enemyPlaceholderX = std::make_shared<NumericalEditBoxWithLimits>();
-	enemyPlaceholderYLabel = tgui::Label::create();
-	enemyPlaceholderY = std::make_shared<NumericalEditBoxWithLimits>();
-	enemyPlaceholderManualSet = tgui::Button::create();
+	entityPlaceholderXLabel = tgui::Label::create();
+	entityPlaceholderX = std::make_shared<NumericalEditBoxWithLimits>();
+	entityPlaceholderYLabel = tgui::Label::create();
+	entityPlaceholderY = std::make_shared<NumericalEditBoxWithLimits>();
+	entityPlaceholderManualSet = tgui::Button::create();
 	setEnemyPlaceholderTestMode = tgui::Button::create();
 	testModeIDLabel = tgui::Label::create();
 	testModeID = tgui::ListBox::create();
@@ -195,42 +195,44 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	entityPlaceholdersListLabel->setText("Entities");
 	newEnemyPlaceholder->setText("New enemy");
 	deleteEnemyPlaceholder->setText("Delete enemy");
-	enemyPlaceholderXLabel->setText("X");
-	enemyPlaceholderYLabel->setText("Y");
-	enemyPlaceholderManualSet->setText("Manual set");
+	entityPlaceholderXLabel->setText("X");
+	entityPlaceholderYLabel->setText("Y");
+	entityPlaceholderManualSet->setText("Manual set");
 	setEnemyPlaceholderTestMode->setText("Set test mode");
 
 	entityPlaceholdersListLabel->setTextSize(TEXT_SIZE);
 	newEnemyPlaceholder->setTextSize(TEXT_SIZE);
 	deleteEnemyPlaceholder->setTextSize(TEXT_SIZE);
-	enemyPlaceholderXLabel->setTextSize(TEXT_SIZE);
-	enemyPlaceholderYLabel->setTextSize(TEXT_SIZE);
-	enemyPlaceholderManualSet->setTextSize(TEXT_SIZE);
+	entityPlaceholderXLabel->setTextSize(TEXT_SIZE);
+	entityPlaceholderYLabel->setTextSize(TEXT_SIZE);
+	entityPlaceholderManualSet->setTextSize(TEXT_SIZE);
 	setEnemyPlaceholderTestMode->setTextSize(TEXT_SIZE);
 	testModeIDLabel->setTextSize(TEXT_SIZE);
 	entityPlaceholdersList->setTextSize(TEXT_SIZE);
-	enemyPlaceholderX->setTextSize(TEXT_SIZE);
-	enemyPlaceholderY->setTextSize(TEXT_SIZE);
+	entityPlaceholderX->setTextSize(TEXT_SIZE);
+	entityPlaceholderY->setTextSize(TEXT_SIZE);
 	testModeID->setTextSize(TEXT_SIZE);
 
 	newEnemyPlaceholder->connect("Pressed", [&]() {
 		setPlacingNewEnemy(true);
 		setManuallySettingPlaceholderPosition(selectedPlaceholder, false);
 	});
-	enemyPlaceholderManualSet->connect("Pressed", [&]() {
+	entityPlaceholderManualSet->connect("Pressed", [&]() {
 		setPlacingNewEnemy(false);
 		setManuallySettingPlaceholderPosition(selectedPlaceholder, true);
 	});
+	entityPlaceholderX->getOnValueSet()->sink().connect<GameplayTestWindow, &GameplayTestWindow::onEntityPlaceholderXValueSet>(this);
+	entityPlaceholderY->getOnValueSet()->sink().connect<GameplayTestWindow, &GameplayTestWindow::onEntityPlaceholderYValueSet>(this);
 
 	leftPanel->add(entityPlaceholdersListLabel);
 	leftPanel->add(entityPlaceholdersList);
 	leftPanel->add(newEnemyPlaceholder);
 	leftPanel->add(deleteEnemyPlaceholder);
-	rightPanel->add(enemyPlaceholderXLabel);
-	rightPanel->add(enemyPlaceholderX);
-	rightPanel->add(enemyPlaceholderYLabel);
-	rightPanel->add(enemyPlaceholderY);
-	rightPanel->add(enemyPlaceholderManualSet);
+	rightPanel->add(entityPlaceholderXLabel);
+	rightPanel->add(entityPlaceholderX);
+	rightPanel->add(entityPlaceholderYLabel);
+	rightPanel->add(entityPlaceholderY);
+	rightPanel->add(entityPlaceholderManualSet);
 	rightPanel->add(setEnemyPlaceholderTestMode);
 	rightPanel->add(testModeIDLabel);
 	rightPanel->add(testModeID);
@@ -288,6 +290,10 @@ void GameplayTestWindow::handleEvent(sf::Event event) {
 			// Move selected placeholder depending on difference in world coordinates between event.mouseMove.x/y and previousPlaceholderDragCoordsX/Y
 			sf::Vector2f diff = window->mapPixelToCoords(sf::Vector2i(previousPlaceholderDragCoordsX, previousPlaceholderDragCoordsY)) - window->mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
 			selectedPlaceholder->moveTo(selectedPlaceholder->getX() - diff.x, selectedPlaceholder->getY() + diff.y);
+			if (selectedPlaceholder == this->selectedPlaceholder) {
+				entityPlaceholderX->setValue(selectedPlaceholder->getX());
+				entityPlaceholderY->setValue(selectedPlaceholder->getY());
+			}
 		}
 
 		if (draggingCamera) {
@@ -308,7 +314,7 @@ void GameplayTestWindow::handleEvent(sf::Event event) {
 
 				// Check if initial press was in gameplay area and in relative spatial proximity to mouse release
 				float screenDist = std::sqrt((initialMousePressX - event.mouseButton.x)*(initialMousePressX - event.mouseButton.x) + (initialMousePressY - event.mouseButton.y)*(initialMousePressY - event.mouseButton.y));
-				if (screenDist < 15 && (!leftPanel->isVisible() || initialMousePressX > windowWidth * LEFT_PANEL_WIDTH) && (!rightPanel->isVisible() || initialMousePressX < windowWidth * (1 - RIGHT_PANEL_WIDTH))) {
+				if (!justSelectedPlaceholder && screenDist < 15 && (!leftPanel->isVisible() || initialMousePressX > windowWidth * LEFT_PANEL_WIDTH) && (!rightPanel->isVisible() || initialMousePressX < windowWidth * (1 - RIGHT_PANEL_WIDTH))) {
 					deselectPlaceholder();
 				}
 			}
@@ -316,15 +322,27 @@ void GameplayTestWindow::handleEvent(sf::Event event) {
 			if (draggingPlaceholder) {
 				draggingPlaceholder = false;
 
-				sf::Vector2f placeholderEndingPos(selectedPlaceholder->getX(), selectedPlaceholder->getY());
-				undoStack.execute(UndoableCommand(
-					[this, &selectedPlaceholder = this->selectedPlaceholder, placeholderEndingPos]() {
-					selectedPlaceholder->moveTo(placeholderEndingPos.x, placeholderEndingPos.y);
-				},
-					[this, &selectedPlaceholder = this->selectedPlaceholder, &placeholderPosBeforeDragging = this->placeholderPosBeforeDragging]() {
-					selectedPlaceholder->moveTo(placeholderPosBeforeDragging.x, placeholderPosBeforeDragging.y);
-				}));
+				if (selectedPlaceholder) {
+					sf::Vector2f placeholderEndingPos(selectedPlaceholder->getX(), selectedPlaceholder->getY());
+					undoStack.execute(UndoableCommand(
+						[this, &selectedPlaceholder = this->selectedPlaceholder, placeholderEndingPos]() {
+						selectedPlaceholder->moveTo(placeholderEndingPos.x, placeholderEndingPos.y);
+						if (selectedPlaceholder == this->selectedPlaceholder) {
+							entityPlaceholderX->setValue(selectedPlaceholder->getX());
+							entityPlaceholderY->setValue(selectedPlaceholder->getY());
+						}
+					},
+						[this, &selectedPlaceholder = this->selectedPlaceholder, &placeholderPosBeforeDragging = this->placeholderPosBeforeDragging]() {
+						selectedPlaceholder->moveTo(placeholderPosBeforeDragging.x, placeholderPosBeforeDragging.y);
+						if (selectedPlaceholder == this->selectedPlaceholder) {
+							entityPlaceholderX->setValue(selectedPlaceholder->getX());
+							entityPlaceholderY->setValue(selectedPlaceholder->getY());
+						}
+					}));
+				}
 			}
+
+			justSelectedPlaceholder = false;
 		}
 	}
 }
@@ -417,17 +435,17 @@ void GameplayTestWindow::updateWindowView(int width, int height) {
 	const float rightPanelWidth = width * RIGHT_PANEL_WIDTH;
 	rightPanel->setPosition(width - rightPanelWidth, 0);
 	rightPanel->setSize(rightPanelWidth, height);
-	enemyPlaceholderXLabel->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
-	enemyPlaceholderX->setPosition(GUI_PADDING_X, tgui::bindBottom(enemyPlaceholderXLabel) + GUI_PADDING_Y);
-	enemyPlaceholderYLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(enemyPlaceholderX) + GUI_PADDING_Y);
-	enemyPlaceholderY->setPosition(GUI_PADDING_X, tgui::bindBottom(enemyPlaceholderYLabel) + GUI_PADDING_Y);
-	enemyPlaceholderManualSet->setPosition(GUI_PADDING_X, tgui::bindBottom(enemyPlaceholderY) + GUI_PADDING_Y);
-	setEnemyPlaceholderTestMode->setPosition(GUI_PADDING_X, tgui::bindBottom(enemyPlaceholderManualSet) + GUI_PADDING_Y);
+	entityPlaceholderXLabel->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
+	entityPlaceholderX->setPosition(GUI_PADDING_X, tgui::bindBottom(entityPlaceholderXLabel) + GUI_PADDING_Y);
+	entityPlaceholderYLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(entityPlaceholderX) + GUI_PADDING_Y);
+	entityPlaceholderY->setPosition(GUI_PADDING_X, tgui::bindBottom(entityPlaceholderYLabel) + GUI_PADDING_Y);
+	entityPlaceholderManualSet->setPosition(GUI_PADDING_X, tgui::bindBottom(entityPlaceholderY) + GUI_PADDING_Y);
+	setEnemyPlaceholderTestMode->setPosition(GUI_PADDING_X, tgui::bindBottom(entityPlaceholderManualSet) + GUI_PADDING_Y);
 	testModeIDLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(setEnemyPlaceholderTestMode) + GUI_PADDING_Y);
 	testModeID->setPosition(GUI_PADDING_X, tgui::bindBottom(testModeIDLabel) + GUI_PADDING_Y);
-	enemyPlaceholderX->setSize(rightPanelWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
-	enemyPlaceholderY->setSize(rightPanelWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
-	enemyPlaceholderManualSet->setSize(100, TEXT_BUTTON_HEIGHT);
+	entityPlaceholderX->setSize(rightPanelWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+	entityPlaceholderY->setSize(rightPanelWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+	entityPlaceholderManualSet->setSize(100, TEXT_BUTTON_HEIGHT);
 	setEnemyPlaceholderTestMode->setSize(100, TEXT_BUTTON_HEIGHT);
 	testModeID->setSize(rightPanelWidth - GUI_PADDING_X * 2, height * 0.5f);
 }
@@ -478,6 +496,28 @@ void GameplayTestWindow::onRenderWindowInitialization() {
 	deselectPlaceholder();
 }
 
+void GameplayTestWindow::onEntityPlaceholderXValueSet(float value) {
+	float oldValue = selectedPlaceholder->getX();
+	undoStack.execute(UndoableCommand(
+		[this, &selectedPlaceholder = this->selectedPlaceholder, value]() {
+		selectedPlaceholder->moveTo(value, selectedPlaceholder->getY());
+	},
+		[this, &selectedPlaceholder = this->selectedPlaceholder, oldValue]() {
+		selectedPlaceholder->moveTo(oldValue, selectedPlaceholder->getY());
+	}));
+}
+
+void GameplayTestWindow::onEntityPlaceholderYValueSet(float value) {
+	float oldValue = selectedPlaceholder->getY();
+	undoStack.execute(UndoableCommand(
+		[this, &selectedPlaceholder = this->selectedPlaceholder, value]() {
+		selectedPlaceholder->moveTo(selectedPlaceholder->getX(), value);
+	},
+		[this, &selectedPlaceholder = this->selectedPlaceholder, oldValue]() {
+		selectedPlaceholder->moveTo(selectedPlaceholder->getX(), oldValue);
+	}));
+}
+
 void GameplayTestWindow::moveCamera(float xOffset, float yOffset) {
 	auto currentCenter = window->getView().getCenter();
 	lookAt(currentCenter.x + xOffset, currentCenter.y + yOffset);
@@ -522,9 +562,17 @@ void GameplayTestWindow::onGameplayAreaMouseClick(float screenX, float screenY) 
 		undoStack.execute(UndoableCommand(
 			[this, &selectedPlaceholder = this->selectedPlaceholder, mouseWorldPos]() {
 			selectedPlaceholder->moveTo(mouseWorldPos.x, mouseWorldPos.y);
+			if (selectedPlaceholder == this->selectedPlaceholder) {
+				entityPlaceholderX->setValue(selectedPlaceholder->getX());
+				entityPlaceholderY->setValue(selectedPlaceholder->getY());
+			}
 		},
 			[this, &selectedPlaceholder = this->selectedPlaceholder, oldX, oldY]() {
 			selectedPlaceholder->moveTo(oldX, oldY);
+			if (selectedPlaceholder == this->selectedPlaceholder) {
+				entityPlaceholderX->setValue(selectedPlaceholder->getX());
+				entityPlaceholderY->setValue(selectedPlaceholder->getY());
+			}
 		}));
 	} else if (playerPlaceholder->wasClicked(mouseWorldPos.x, mouseWorldPos.y)) {
 		if (selectedPlaceholder == playerPlaceholder) {
@@ -535,6 +583,7 @@ void GameplayTestWindow::onGameplayAreaMouseClick(float screenX, float screenY) 
 			placeholderPosBeforeDragging.y = selectedPlaceholder->getY();
 		} else {
 			selectPlaceholder(playerPlaceholder);
+			justSelectedPlaceholder = true;
 		}
 	} else {
 		for (auto enemyPlaceholder : enemyPlaceholders) {
@@ -547,6 +596,7 @@ void GameplayTestWindow::onGameplayAreaMouseClick(float screenX, float screenY) 
 					placeholderPosBeforeDragging.y = selectedPlaceholder->getY();
 				} else {
 					selectPlaceholder(enemyPlaceholder);
+					justSelectedPlaceholder = true;
 				}
 				return;
 			}
@@ -583,6 +633,8 @@ void GameplayTestWindow::selectPlaceholder(std::shared_ptr<EntityPlaceholder> pl
 	setEnemyPlaceholderTestMode->setVisible(isEnemyPlaceholder);
 	testModeIDLabel->setVisible(isEnemyPlaceholder);
 	testModeID->setVisible(isEnemyPlaceholder);
+	entityPlaceholderX->setValue(placeholder->getX());
+	entityPlaceholderY->setValue(placeholder->getY());
 }
 
 void GameplayTestWindow::deselectPlaceholder() {

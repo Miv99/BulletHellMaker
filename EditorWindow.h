@@ -212,6 +212,10 @@ private:
 	// World pos of the placeholder being dragged at the moment it started being dragged
 	sf::Vector2f placeholderPosBeforeDragging;
 
+	// Set to true while left mouse is held down right after selecting a placeholder.
+	// Used for preventing deselection from occurring in the same mouse press/release sequence that triggers selection.
+	bool justSelectedPlaceholder = false;
+
 	// Screen coordinates of the mouse in the last MouseMove event while
 	// draggingCamera was true
 	int previousCameraDragCoordsX, previousCameraDragCoordsY;
@@ -264,14 +268,17 @@ private:
 	std::shared_ptr<tgui::Button> deleteEnemyPlaceholder;
 
 	std::shared_ptr<tgui::ScrollablePanel> rightPanel;
-	std::shared_ptr<tgui::Label> enemyPlaceholderXLabel;
-	std::shared_ptr<NumericalEditBoxWithLimits> enemyPlaceholderX;
-	std::shared_ptr<tgui::Label> enemyPlaceholderYLabel;
-	std::shared_ptr<NumericalEditBoxWithLimits> enemyPlaceholderY;
-	std::shared_ptr<tgui::Button> enemyPlaceholderManualSet;
+	std::shared_ptr<tgui::Label> entityPlaceholderXLabel;
+	std::shared_ptr<NumericalEditBoxWithLimits> entityPlaceholderX;
+	std::shared_ptr<tgui::Label> entityPlaceholderYLabel;
+	std::shared_ptr<NumericalEditBoxWithLimits> entityPlaceholderY;
+	std::shared_ptr<tgui::Button> entityPlaceholderManualSet;
 	std::shared_ptr<tgui::Button> setEnemyPlaceholderTestMode; // TODO: popup on click: attack, attack pattern, enemy phase, enemy
 	std::shared_ptr<tgui::Label> testModeIDLabel;
 	std::shared_ptr<tgui::ListBox> testModeID; // contains all Editor____ objects in the LevelPack (______ part depends on currently selected placeholder's test mode)
+
+	void onEntityPlaceholderXValueSet(float value);
+	void onEntityPlaceholderYValueSet(float value);
 
 	/*
 	Moves the camera by some amount of world coordinates.
