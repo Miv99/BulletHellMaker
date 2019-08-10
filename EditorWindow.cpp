@@ -250,11 +250,19 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 void GameplayTestWindow::handleEvent(sf::Event event) {
 	UndoableEditorWindow::handleEvent(event);
 
-	if (event.type == sf::Event::KeyPressed && (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl))) {
-		if (event.key.code == sf::Keyboard::Dash) {
-			setCameraZoom(std::max(0.2f, cameraZoom - 0.2f));
-		} else if (event.key.code == sf::Keyboard::Equal) {
-			setCameraZoom(std::min(4.0f, cameraZoom + 0.2f));
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
+		if (event.type == sf::Event::KeyPressed) {
+			if (event.key.code == sf::Keyboard::Dash) {
+				setCameraZoom(std::max(0.2f, cameraZoom - 0.2f));
+			} else if (event.key.code == sf::Keyboard::Equal) {
+				setCameraZoom(std::min(4.0f, cameraZoom + 0.2f));
+			}
+		} else if (event.type == sf::Event::MouseWheelScrolled) {
+			if (event.mouseWheelScroll.delta < 0) {
+				setCameraZoom(std::max(0.2f, cameraZoom - 0.2f));
+			} else if (event.mouseWheelScroll.delta > 0) {
+				setCameraZoom(std::min(4.0f, cameraZoom + 0.2f));
+			}
 		}
 	} else if (event.type == sf::Event::MouseButtonPressed) {
 		if (event.mouseButton.button == sf::Mouse::Left) {
