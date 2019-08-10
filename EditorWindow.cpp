@@ -266,21 +266,48 @@ void GameplayTestWindow::handleEvent(sf::Event event) {
 		} else if (event.mouseButton.button == sf::Mouse::Right) {
 			setPlacingNewEnemy(false);
 			setManuallySettingPlaceholderPosition(selectedPlaceholder, false);
+		} else if (event.mouseButton.button == sf::Mouse::Middle) {
+			draggingCamera = true;
+			previousCameraDragCoordsX = event.mouseButton.x;
+			previousCameraDragCoordsY = event.mouseButton.y;
 		}
-	} else if (event.type == sf::Event::MouseMoved && draggingCamera) {
-		// Move camera depending on difference in world coordinates between event.mouseMove.x/y and previousCameraDragCoordsX/Y
-		sf::Vector2f diff = window->mapPixelToCoords(sf::Vector2i(previousCameraDragCoordsX, previousCameraDragCoordsY)) - window->mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
-		moveCamera(diff.x, diff.y);
-
-		previousCameraDragCoordsX = event.mouseMove.x;
-		previousCameraDragCoordsY = event.mouseMove.y;
-	} else if (event.type == sf::Event::MouseButtonReleased) {
+	} else if (event.type == sf::Event::MouseMoved) {
 		if (draggingCamera) {
-			draggingCamera = false;
+			// Move camera depending on difference in world coordinates between event.mouseMove.x/y and previousCameraDragCoordsX/Y
+			sf::Vector2f diff = window->mapPixelToCoords(sf::Vector2i(previousCameraDragCoordsX, previousCameraDragCoordsY)) - window->mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
+			moveCamera(diff.x, diff.y);
+		} else if (draggingPlaceholder) {
+			// Move selected placeholder depending on difference in world coordinates between event.mouseMove.x/y and previousPlaceholderDragCoordsX/Y
+			sf::Vector2f diff = window->mapPixelToCoords(sf::Vector2i(previousPlaceholderDragCoordsX, previousPlaceholderDragCoordsY)) - window->mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
+			selectedPlaceholder->moveTo(selectedPlaceholder->getX() - diff.x, selectedPlaceholder->getY() + diff.y);
 		}
-		// Gameplay area was clicked without dragging camera
-		if (initialMousePressX == event.mouseButton.x && initialMousePressY == event.mouseButton.y) {
-			deselectPlaceholder();
+
+		if (draggingCamera) {
+			previousCameraDragCoordsX = event.mouseMove.x;
+			previousCameraDragCoordsY = event.mouseMove.y;
+		}
+		if (draggingPlaceholder) {
+			previousPlaceholderDragCoordsX = event.mouseMove.x;
+			previousPlaceholderDragCoordsY = event.mouseMove.y;
+		}
+	} else if (event.type == sf::Event::MouseButtonReleased) {
+		float windowWidth = window->getSize().x;
+		if (draggingCamera && event.mouseButton.button == sf::Mouse::Middle) {
+			draggingCamera = false;
+		} else if (event.mouseButton.button == sf::Mouse::Left) {
+			if ((!leftPanel->isVisible() || event.mouseButton.x > windowWidth * LEFT_PANEL_WIDTH) && (!rightPanel->isVisible() || event.mouseButton.x < windowWidth * (1 - RIGHT_PANEL_WIDTH))) {
+				// Release event was from left mouse and in the gameplay area
+
+				// Check if initial press was in gameplay area and in relative spatial proximity to mouse release
+				float screenDist = std::sqrt((initialMousePressX - event.mouseButton.x)*(initialMousePressX - event.mouseButton.x) + (initialMousePressY - event.mouseButton.y)*(initialMousePressY - event.mouseButton.y));
+				if (screenDist < 15 && (!leftPanel->isVisible() || initialMousePressX > windowWidth * LEFT_PANEL_WIDTH) && (!rightPanel->isVisible() || initialMousePressX < windowWidth * (1 - RIGHT_PANEL_WIDTH))) {
+					deselectPlaceholder();
+				}
+			}
+
+			if (draggingPlaceholder) {
+				draggingPlaceholder = false;
+			}
 		}
 	}
 }
@@ -481,25 +508,28 @@ void GameplayTestWindow::onGameplayAreaMouseClick(float screenX, float screenY) 
 			[this, &selectedPlaceholder = this->selectedPlaceholder, oldX, oldY]() {
 			selectedPlaceholder->moveTo(oldX, oldY);
 		}));
-	} else {
-		if (playerPlaceholder->wasClicked(mouseWorldPos.x, mouseWorldPos.y)) {
-			selectPlaceholder(playerPlaceholder);
+	} else if (playerPlaceholder->wasClicked(mouseWorldPos.x, mouseWorldPos.y)) {
+		if (selectedPlaceholder == playerPlaceholder) {
+			draggingPlaceholder = true;
+			previousPlaceholderDragCoordsX = screenX;
+			previousPlaceholderDragCoordsY = screenY;
 		} else {
-			bool clickedEnemy = false;
-			for (auto enemyPlaceholder : enemyPlaceholders) {
-				if (enemyPlaceholder->wasClicked(mouseWorldPos.x, mouseWorldPos.y)) {
-					selectPlaceholder(enemyPlaceholder);
-					clickedEnemy = true;
-					break;
-				}
-			}
+			selectPlaceholder(playerPlaceholder);
+		}
+	} else {
+		initialMousePressX = screenX;
+		initialMousePressY = screenY;
 
-			if (!clickedEnemy) {
-				draggingCamera = true;
-				previousCameraDragCoordsX = screenX;
-				previousCameraDragCoordsY = screenY;
-				initialMousePressX = screenX;
-				initialMousePressY = screenY;
+		for (auto enemyPlaceholder : enemyPlaceholders) {
+			if (enemyPlaceholder->wasClicked(mouseWorldPos.x, mouseWorldPos.y)) {
+				if (selectedPlaceholder = enemyPlaceholder) {
+					draggingPlaceholder = true;
+					previousPlaceholderDragCoordsX = screenX;
+					previousPlaceholderDragCoordsY = screenY;
+				} else {
+					selectPlaceholder(enemyPlaceholder);
+				}
+				break;
 			}
 		}
 	}
@@ -537,6 +567,7 @@ void GameplayTestWindow::deselectPlaceholder() {
 	rightPanel->setVisible(false);
 	currentCursor = nullptr;
 	window->setMouseCursorVisible(true);
+	selectedPlaceholder = nullptr;
 }
 
 void GameplayTestWindow::setPlacingNewEnemy(bool placingNewEnemy) {

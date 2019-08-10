@@ -207,10 +207,14 @@ private:
 	// This should be modified only by setCameraZoom()
 	float cameraZoom = 1.0f;
 	bool draggingCamera = false;
+	bool draggingPlaceholder = false;
 	// Screen coordinates of the mouse in the last MouseMove event while
 	// draggingCamera was true
 	int previousCameraDragCoordsX, previousCameraDragCoordsY;
-	// Screen coordinates of the first mouse pressed event since the last mouse released event
+	// Screen coordinates of the mouse in the last MouseMove event while
+	// draggingPlaceholder was true
+	int previousPlaceholderDragCoordsX, previousPlaceholderDragCoordsY;
+	// Screen coordinates of the first left  mouse pressed event since the last left mouse released event
 	int initialMousePressX, initialMousePressY;
 
 	// Should be modified only through setter
