@@ -517,21 +517,21 @@ void GameplayTestWindow::onGameplayAreaMouseClick(float screenX, float screenY) 
 			selectPlaceholder(playerPlaceholder);
 		}
 	} else {
-		initialMousePressX = screenX;
-		initialMousePressY = screenY;
-
 		for (auto enemyPlaceholder : enemyPlaceholders) {
 			if (enemyPlaceholder->wasClicked(mouseWorldPos.x, mouseWorldPos.y)) {
-				if (selectedPlaceholder = enemyPlaceholder) {
+				if (selectedPlaceholder == enemyPlaceholder) {
 					draggingPlaceholder = true;
 					previousPlaceholderDragCoordsX = screenX;
 					previousPlaceholderDragCoordsY = screenY;
 				} else {
 					selectPlaceholder(enemyPlaceholder);
 				}
-				break;
+				return;
 			}
 		}
+
+		initialMousePressX = screenX;
+		initialMousePressY = screenY;
 	}
 }
 
