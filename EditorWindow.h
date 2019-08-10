@@ -207,7 +207,11 @@ private:
 	// This should be modified only by setCameraZoom()
 	float cameraZoom = 1.0f;
 	bool draggingCamera = false;
+	
 	bool draggingPlaceholder = false;
+	// World pos of the placeholder being dragged at the moment it started being dragged
+	sf::Vector2f placeholderPosBeforeDragging;
+
 	// Screen coordinates of the mouse in the last MouseMove event while
 	// draggingCamera was true
 	int previousCameraDragCoordsX, previousCameraDragCoordsY;

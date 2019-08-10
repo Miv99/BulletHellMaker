@@ -315,6 +315,15 @@ void GameplayTestWindow::handleEvent(sf::Event event) {
 
 			if (draggingPlaceholder) {
 				draggingPlaceholder = false;
+
+				sf::Vector2f placeholderEndingPos(selectedPlaceholder->getX(), selectedPlaceholder->getY());
+				undoStack.execute(UndoableCommand(
+					[this, &selectedPlaceholder = this->selectedPlaceholder, placeholderEndingPos]() {
+					selectedPlaceholder->moveTo(placeholderEndingPos.x, placeholderEndingPos.y);
+				},
+					[this, &selectedPlaceholder = this->selectedPlaceholder, &placeholderPosBeforeDragging = this->placeholderPosBeforeDragging]() {
+					selectedPlaceholder->moveTo(placeholderPosBeforeDragging.x, placeholderPosBeforeDragging.y);
+				}));
 			}
 		}
 	}
@@ -503,6 +512,7 @@ void GameplayTestWindow::onGameplayAreaMouseClick(float screenX, float screenY) 
 			enemyPlaceholders.push_back(enemy);
 		},
 			[this]() {
+			enemyPlaceholders.back()->removePlaceholder();
 			enemyPlaceholders.pop_back();
 		}));
 	} else if (manuallySettingPlaceholderPosition) {
@@ -521,6 +531,8 @@ void GameplayTestWindow::onGameplayAreaMouseClick(float screenX, float screenY) 
 			draggingPlaceholder = true;
 			previousPlaceholderDragCoordsX = screenX;
 			previousPlaceholderDragCoordsY = screenY;
+			placeholderPosBeforeDragging.x = selectedPlaceholder->getX();
+			placeholderPosBeforeDragging.y = selectedPlaceholder->getY();
 		} else {
 			selectPlaceholder(playerPlaceholder);
 		}
@@ -531,6 +543,8 @@ void GameplayTestWindow::onGameplayAreaMouseClick(float screenX, float screenY) 
 					draggingPlaceholder = true;
 					previousPlaceholderDragCoordsX = screenX;
 					previousPlaceholderDragCoordsY = screenY;
+					placeholderPosBeforeDragging.x = selectedPlaceholder->getX();
+					placeholderPosBeforeDragging.y = selectedPlaceholder->getY();
 				} else {
 					selectPlaceholder(enemyPlaceholder);
 				}
