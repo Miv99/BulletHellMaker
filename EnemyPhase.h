@@ -40,6 +40,7 @@ public:
 	inline std::shared_ptr<EnemyPhaseAction> getPhaseEndAction() { return phaseEndAction; }
 	inline float getAttackPatternLoopDelay() { return attackPatternLoopDelay; }
 	inline bool getPlayMusic() { return playMusic; }
+	inline std::string getName() { return name; }
 	/*
 	Returns a reference to the music settings.
 	*/

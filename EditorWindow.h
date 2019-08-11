@@ -180,6 +180,8 @@ private:
 		void runTest() override;
 		void spawnVisualEntity() override;
 
+		inline TEST_MODE getTestMode() { return testMode; }
+		inline int getTestModeID() { return testModeID; }
 		inline void setTestMode(TEST_MODE testMode) { this->testMode = testMode; }
 		inline void setTestModeID(int id) { testModeID = id; }
 
@@ -231,6 +233,10 @@ private:
 	// Should be modified only through setter
 	bool manuallySettingPlaceholderPosition = false;
 
+	// This bool is used to prevent infinite loops (eg selectEMP() causing emplTree's connect("ItemSelected") to fire, which
+	// calls selectEMP() again)
+	bool ignoreSignal = false;
+
 	std::shared_ptr<sf::Sprite> movingEnemyPlaceholderCursor;
 	std::shared_ptr<sf::Sprite> movingPlayerPlaceholderCursor;
 
@@ -273,9 +279,10 @@ private:
 	std::shared_ptr<tgui::Label> entityPlaceholderYLabel;
 	std::shared_ptr<NumericalEditBoxWithLimits> entityPlaceholderY;
 	std::shared_ptr<tgui::Button> entityPlaceholderManualSet;
-	std::shared_ptr<tgui::Button> setEnemyPlaceholderTestMode; // TODO: popup on click: attack, attack pattern, enemy phase, enemy
+	std::shared_ptr<tgui::Button> setEnemyPlaceholderTestMode;
 	std::shared_ptr<tgui::Label> testModeIDLabel;
 	std::shared_ptr<tgui::ListBox> testModeID; // contains all Editor____ objects in the LevelPack (______ part depends on currently selected placeholder's test mode)
+	std::shared_ptr<tgui::ListBox> testModePopup; // popup created when setEnemyPlaceholderTestMode is clicked
 
 	void onEntityPlaceholderXValueSet(float value);
 	void onEntityPlaceholderYValueSet(float value);

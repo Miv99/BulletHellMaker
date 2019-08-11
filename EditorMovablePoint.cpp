@@ -161,10 +161,12 @@ bool EditorMovablePoint::legal(LevelPack& levelPack, SpriteLoader& spriteLoader,
 
 	// Make sure animatable can be loaded
 	try {
-		if (animatable.isSprite()) {
-			spriteLoader.getSprite(animatable.getAnimatableName(), animatable.getSpriteSheetName());
-		} else {
-			spriteLoader.getAnimation(animatable.getAnimatableName(), animatable.getSpriteSheetName(), false);
+		if (animatable.getAnimatableName() != "") {
+			if (animatable.isSprite()) {
+				spriteLoader.getSprite(animatable.getAnimatableName(), animatable.getSpriteSheetName());
+			} else {
+				spriteLoader.getAnimation(animatable.getAnimatableName(), animatable.getSpriteSheetName(), false);
+			}
 		}
 	} catch (const char* str) {
 		message += "\t" + std::string(str) + "\n";

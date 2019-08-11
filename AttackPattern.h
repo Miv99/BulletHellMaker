@@ -25,6 +25,7 @@ public:
 	void changeEntityPathToAttackPatternActions(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag);
 
 	inline int getID() { return id; }
+	inline std::string getName() { return name; }
 	inline std::pair<float, int> getAttackData(int index) { return attackIDs[index]; }
 	inline std::shared_ptr<EMPAction> getAction(int index) { return actions[index]; }
 	inline int getAttacksCount() { return attackIDs.size(); }
