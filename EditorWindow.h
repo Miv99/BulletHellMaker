@@ -133,7 +133,7 @@ protected:
 private:
 	class EntityPlaceholder {
 	public:
-		inline EntityPlaceholder(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, LevelPack& levelPack) : registry(registry), 
+		inline EntityPlaceholder(int id, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, LevelPack& levelPack) : id(id), registry(registry), 
 			spriteLoader(spriteLoader), levelPack(levelPack) {}
 
 		void moveTo(float x, float y);
@@ -155,6 +155,8 @@ private:
 		SpriteLoader& spriteLoader;
 		LevelPack& levelPack;
 
+		// ID of the placeholder
+		int id;
 		// The entity used to show the placeholder's location
 		uint32_t visualEntity;
 		// The entity spawned as a result of the test
@@ -166,7 +168,8 @@ private:
 	};
 	class PlayerEntityPlaceholder : public EntityPlaceholder {
 	public:
-		inline PlayerEntityPlaceholder(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, LevelPack& levelPack) : EntityPlaceholder(registry, spriteLoader, levelPack) {}
+		inline PlayerEntityPlaceholder(int id, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, LevelPack& levelPack) : 
+			EntityPlaceholder(id, registry, spriteLoader, levelPack) {}
 	
 		void runTest() override;
 		void spawnVisualEntity() override;
@@ -175,15 +178,17 @@ private:
 	public:
 		enum TEST_MODE { ATTACK, ATTACK_PATTERN, PHASE, ENEMY };
 
-		inline EnemyEntityPlaceholder(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, LevelPack& levelPack, EntityCreationQueue& queue) : EntityPlaceholder(registry, spriteLoader, levelPack), queue(queue) {}
+		inline EnemyEntityPlaceholder(int id, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, LevelPack& levelPack, EntityCreationQueue& queue) : 
+			EntityPlaceholder(id, registry, spriteLoader, levelPack), queue(queue) {}
 
 		void runTest() override;
 		void spawnVisualEntity() override;
+		bool legalCheck(std::string& message, LevelPack& levelPack, SpriteLoader& spriteLoader);
 
 		inline TEST_MODE getTestMode() { return testMode; }
 		inline int getTestModeID() { return testModeID; }
 		inline void setTestMode(TEST_MODE testMode) { this->testMode = testMode; }
-		inline void setTestModeID(int id) { testModeID = id; }
+		inline void setTestModeID(int id) { testModeID = id; testModeIDHasBeenSet = true; }
 
 	private:
 		EntityCreationQueue& queue;
@@ -195,6 +200,7 @@ private:
 		// PHASE -> EditorEnemyPhase ID
 		// ENEMY -> EditorEnemy ID
 		int testModeID;
+		bool testModeIDHasBeenSet = false;
 	};
 
 	const float GUI_PADDING_X = 20;
@@ -244,8 +250,10 @@ private:
 	std::vector<std::shared_ptr<EnemyEntityPlaceholder>> enemyPlaceholders;
 	std::shared_ptr<EntityPlaceholder> selectedPlaceholder;
 	bool selectedPlaceholderIsPlayer;
+	int nextPlaceholderID = 0;
 
 	bool paused = false;
+	bool testInProgress = false;
 
 	UndoStack undoStack;
 
@@ -272,6 +280,8 @@ private:
 	std::shared_ptr<tgui::ListBox> entityPlaceholdersList;
 	std::shared_ptr<tgui::Button> newEnemyPlaceholder;
 	std::shared_ptr<tgui::Button> deleteEnemyPlaceholder;
+	std::shared_ptr<tgui::Button> startAndEndTest;
+	std::shared_ptr<tgui::Button> toggleBottomPanelDisplay;
 
 	std::shared_ptr<tgui::ScrollablePanel> rightPanel;
 	std::shared_ptr<tgui::Label> entityPlaceholderXLabel;
@@ -283,6 +293,10 @@ private:
 	std::shared_ptr<tgui::Label> testModeIDLabel;
 	std::shared_ptr<tgui::ListBox> testModeID; // contains all Editor____ objects in the LevelPack (______ part depends on currently selected placeholder's test mode)
 	std::shared_ptr<tgui::ListBox> testModePopup; // popup created when setEnemyPlaceholderTestMode is clicked
+
+	std::shared_ptr<tgui::ScrollablePanel> bottomPanel;
+	std::shared_ptr<tgui::Label> logs;
+
 
 	void onEntityPlaceholderXValueSet(float value);
 	void onEntityPlaceholderYValueSet(float value);
@@ -307,4 +321,8 @@ private:
 
 	void setPlacingNewEnemy(bool placingNewEnemy);
 	void setManuallySettingPlaceholderPosition(std::shared_ptr<EntityPlaceholder> placeholder, bool manuallySettingPlaceholderPosition);
+
+	void toggleLogsDisplay();
+	void clearLogs();
+	void logMessage(std::string message);
 };

@@ -438,12 +438,14 @@ float LevelPack::searchLargestItemCollectionHitbox() const {
 }
 
 void LevelPack::playSound(const SoundSettings & soundSettings) const {
+	if (soundSettings.getFileName() == "") return;
 	SoundSettings alteredPath = SoundSettings(soundSettings);
 	alteredPath.setFileName("Level Packs/" + name + "/Sounds/" + alteredPath.getFileName());
 	audioPlayer.playSound(alteredPath);
 }
 
 void LevelPack::playMusic(const MusicSettings & musicSettings) const {
+	if (musicSettings.getFileName() == "") return;
 	MusicSettings alteredPath = MusicSettings(musicSettings);
 	alteredPath.setFileName("Level Packs/" + name + "/Music/" + alteredPath.getFileName());
 	audioPlayer.playMusic(alteredPath);

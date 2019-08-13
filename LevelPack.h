@@ -147,6 +147,12 @@ public:
 	inline void deleteEnemy(int id) { enemies.erase(id); }
 	inline void deleteEnemyPhase(int id) { enemyPhases.erase(id); }
 
+	inline bool hasEnemy(int id) { return enemies.count(id) != 0; }
+	inline bool hasEnemyPhase(int id) { return enemyPhases.count(id) != 0; }
+	inline bool hasAttackPattern(int id) { return attackPatterns.count(id) != 0; }
+	inline bool hasAttack(int id) { return attacks.count(id) != 0; }
+	inline bool hasBulletModel(int id) { return bulletModels.count(id) != 0; }
+
 	inline std::string getName() { return name; }
 	inline std::shared_ptr<Level> getLevel(int levelIndex) const { return levels[levelIndex]; }
 	inline std::shared_ptr<EditorAttack> getAttack(int id) const { return attacks.at(id); }

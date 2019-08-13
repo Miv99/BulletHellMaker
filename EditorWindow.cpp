@@ -181,6 +181,8 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	entityPlaceholdersList = tgui::ListBox::create();
 	newEnemyPlaceholder = tgui::Button::create();
 	deleteEnemyPlaceholder = tgui::Button::create();
+	startAndEndTest = tgui::Button::create();
+	toggleBottomPanelDisplay = tgui::Button::create();
 
 	rightPanel = tgui::ScrollablePanel::create();
 	entityPlaceholderXLabel = tgui::Label::create();
@@ -193,6 +195,9 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	testModeID = tgui::ListBox::create();
 	testModePopup = tgui::ListBox::create();
 
+	bottomPanel = tgui::ScrollablePanel::create();
+	logs = tgui::Label::create();
+
 	entityPlaceholdersListLabel->setText("Entities");
 	newEnemyPlaceholder->setText("New enemy");
 	deleteEnemyPlaceholder->setText("Delete enemy");
@@ -200,6 +205,8 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	entityPlaceholderYLabel->setText("Y");
 	entityPlaceholderManualSet->setText("Manual set");
 	setEnemyPlaceholderTestMode->setText("Set test mode");
+	startAndEndTest->setText("Start test");
+	toggleBottomPanelDisplay->setText("Show logs");
 
 	entityPlaceholdersListLabel->setTextSize(TEXT_SIZE);
 	newEnemyPlaceholder->setTextSize(TEXT_SIZE);
@@ -214,6 +221,8 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	entityPlaceholderY->setTextSize(TEXT_SIZE);
 	testModeID->setTextSize(TEXT_SIZE);
 	testModePopup->setTextSize(TEXT_SIZE);
+	startAndEndTest->setTextSize(TEXT_SIZE);
+	toggleBottomPanelDisplay->setTextSize(TEXT_SIZE);
 
 	testModePopup->addItem("Enemy", std::to_string(static_cast<int>(EnemyEntityPlaceholder::ENEMY)));
 	testModePopup->addItem("Enemy phase", std::to_string(static_cast<int>(EnemyEntityPlaceholder::PHASE)));
@@ -252,11 +261,23 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 		// Load testModeID widget's items
 		selectPlaceholder(selectedPlaceholder);
 	});
+	startAndEndTest->connect("Pressed", [&]() {
+		if (testInProgress) {
+			endGameplayTest();
+		} else {
+			runGameplayTest();
+		}
+	});
+	toggleBottomPanelDisplay->connect("Pressed", [&]() {
+		toggleLogsDisplay();
+	});
 
 	leftPanel->add(entityPlaceholdersListLabel);
 	leftPanel->add(entityPlaceholdersList);
 	leftPanel->add(newEnemyPlaceholder);
 	leftPanel->add(deleteEnemyPlaceholder);
+	leftPanel->add(startAndEndTest);
+	leftPanel->add(toggleBottomPanelDisplay);
 	rightPanel->add(entityPlaceholderXLabel);
 	rightPanel->add(entityPlaceholderX);
 	rightPanel->add(entityPlaceholderYLabel);
@@ -265,21 +286,41 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	rightPanel->add(setEnemyPlaceholderTestMode);
 	rightPanel->add(testModeIDLabel);
 	rightPanel->add(testModeID);
+	bottomPanel->add(logs);
 
 	getGui()->add(leftPanel);
 	getGui()->add(rightPanel);
+	getGui()->add(bottomPanel);
 
 	// --------------------------------
-	playerPlaceholder = std::make_shared<PlayerEntityPlaceholder>(registry, *spriteLoader, *levelPack);
+	playerPlaceholder = std::make_shared<PlayerEntityPlaceholder>(nextPlaceholderID, registry, *spriteLoader, *levelPack);
+	entityPlaceholdersList->addItem("[id=" + std::to_string(nextPlaceholderID) + "] Player", std::to_string(nextPlaceholderID));
+	nextPlaceholderID++;
 	playerPlaceholder->moveTo(PLAYER_SPAWN_X, PLAYER_SPAWN_Y);
 	playerPlaceholder->spawnVisualEntity();
 	// ---------------------------------
 	movingEnemyPlaceholderCursor = spriteLoader->getSprite("Bomb", "sheet1");
 	movingPlayerPlaceholderCursor = spriteLoader->getSprite("Health", "sheet1");
+	// ---------------------------------
+	// Create the level manager
+	registry.reserve<LevelManagerTag>(1);
+	registry.reserve(registry.alive() + 1);
+	uint32_t levelManager = registry.create();
+	auto level = std::make_shared<Level>();
+	//TODO: default level stuff (just the health/points/power packs, bomb items)
+	auto& levelManagerTag = registry.assign<LevelManagerTag>(entt::tag_t{}, levelManager, &(*levelPack), level);
+	// ----------------------------------
+	toggleLogsDisplay();
 }
 
 void GameplayTestWindow::handleEvent(sf::Event event) {
 	UndoableEditorWindow::handleEvent(event);
+
+	if (event.type == sf::Event::KeyPressed) {
+		if (event.key.code == sf::Keyboard::L) {
+			toggleLogsDisplay();
+		}
+	}
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
 		if (event.type == sf::Event::KeyPressed) {
@@ -385,8 +426,8 @@ void GameplayTestWindow::physicsUpdate(float deltaTime) {
 		collisionSystem->update(deltaTime);
 		queue->executeAll();
 
-		//registry.get<LevelManagerTag>().update(*queue, *spriteLoader, registry, deltaTime);
-		//queue->executeAll();
+		registry.get<LevelManagerTag>().update(*queue, *spriteLoader, registry, deltaTime);
+		queue->executeAll();
 
 		despawnSystem->update(deltaTime);
 		queue->executeAll();
@@ -455,11 +496,15 @@ void GameplayTestWindow::updateWindowView(int width, int height) {
 	leftPanel->setSize(leftPanelWidth, height);
 	entityPlaceholdersListLabel->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
 	entityPlaceholdersList->setPosition(GUI_PADDING_X, tgui::bindBottom(entityPlaceholdersListLabel) + GUI_PADDING_Y);
-	newEnemyPlaceholder->setPosition(GUI_PADDING_X, tgui::bindBottom(entityPlaceholdersList));
-	deleteEnemyPlaceholder->setPosition(tgui::bindRight(newEnemyPlaceholder) + GUI_PADDING_X, tgui::bindTop(newEnemyPlaceholder));
-	entityPlaceholdersList->setSize(leftPanelWidth - GUI_PADDING_X * 2, height * 0.5f);
-	newEnemyPlaceholder->setSize(100, TEXT_BUTTON_HEIGHT);
-	deleteEnemyPlaceholder->setSize(100, TEXT_BUTTON_HEIGHT);
+	newEnemyPlaceholder->setPosition(GUI_PADDING_X, tgui::bindBottom(entityPlaceholdersList) + GUI_PADDING_Y);
+	deleteEnemyPlaceholder->setPosition(GUI_PADDING_X, tgui::bindBottom(newEnemyPlaceholder) + GUI_PADDING_Y);
+	startAndEndTest->setPosition(GUI_PADDING_X, tgui::bindBottom(deleteEnemyPlaceholder) + GUI_PADDING_Y * 2);
+	toggleBottomPanelDisplay->setPosition(GUI_PADDING_X, tgui::bindBottom(startAndEndTest) + GUI_PADDING_Y);
+	entityPlaceholdersList->setSize(leftPanelWidth - GUI_PADDING_X * 2, std::max(height * 0.75f, entityPlaceholdersList->getItemHeight() * 5.0f));
+	newEnemyPlaceholder->setSize(std::max(leftPanelWidth - GUI_PADDING_X * 2, 100.0f), TEXT_BUTTON_HEIGHT);
+	deleteEnemyPlaceholder->setSize(std::max(leftPanelWidth - GUI_PADDING_X * 2, 100.0f), TEXT_BUTTON_HEIGHT);
+	startAndEndTest->setSize(std::max(leftPanelWidth - GUI_PADDING_X * 2, 100.0f), TEXT_BUTTON_HEIGHT * 2);
+	toggleBottomPanelDisplay->setSize(std::max(leftPanelWidth - GUI_PADDING_X * 2, 100.0f), TEXT_BUTTON_HEIGHT);
 
 	const float rightPanelWidth = width * RIGHT_PANEL_WIDTH;
 	rightPanel->setPosition(width - rightPanelWidth, 0);
@@ -477,6 +522,14 @@ void GameplayTestWindow::updateWindowView(int width, int height) {
 	entityPlaceholderManualSet->setSize(100, TEXT_BUTTON_HEIGHT);
 	setEnemyPlaceholderTestMode->setSize(100, TEXT_BUTTON_HEIGHT);
 	testModeID->setSize(rightPanelWidth - GUI_PADDING_X * 2, height * 0.5f);
+
+	const float bottomPanelWidth = width - leftPanelWidth - rightPanelWidth;
+	const float bottomPanelHeight = height * 0.25f;
+	bottomPanel->setSize(bottomPanelWidth, bottomPanelHeight);
+	bottomPanel->setPosition(tgui::bindRight(leftPanel), height - bottomPanelHeight);
+	logs->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
+	logs->setSize(bottomPanelWidth - GUI_PADDING_X * 2, bottomPanelHeight - GUI_PADDING_Y);
+	logs->setMaximumTextWidth(logs->getSize().x);
 }
 
 void GameplayTestWindow::onRenderWindowInitialization() {
@@ -575,7 +628,9 @@ void GameplayTestWindow::onGameplayAreaMouseClick(float screenX, float screenY) 
 		setPlacingNewEnemy(false);
 		undoStack.execute(UndoableCommand(
 			[this, mouseWorldPos]() {
-			std::shared_ptr<EnemyEntityPlaceholder> enemy = std::make_shared<EnemyEntityPlaceholder>(registry, *spriteLoader, *levelPack, *queue);
+			std::shared_ptr<EnemyEntityPlaceholder> enemy = std::make_shared<EnemyEntityPlaceholder>(nextPlaceholderID, registry, *spriteLoader, *levelPack, *queue);
+			entityPlaceholdersList->addItem("[id=" + std::to_string(nextPlaceholderID) + "] Unset", nextPlaceholderID);
+			nextPlaceholderID++;
 			enemy->moveTo(mouseWorldPos.x, mouseWorldPos.y);
 			enemy->spawnVisualEntity();
 			enemyPlaceholders.push_back(enemy);
@@ -637,16 +692,44 @@ void GameplayTestWindow::onGameplayAreaMouseClick(float screenX, float screenY) 
 }
 
 void GameplayTestWindow::runGameplayTest() {
-	playerPlaceholder->runTest();
+	std::string message;
+	bool good = true;
 	for (auto enemy : enemyPlaceholders) {
-		enemy->runTest();
+		good = good && enemy->legalCheck(message, *levelPack, *spriteLoader);
+	}
+	clearLogs();
+	logMessage(message);
+
+	if (good) {
+		testInProgress = true;
+		startAndEndTest->setText("End test");
+		playerPlaceholder->runTest();
+		for (auto enemy : enemyPlaceholders) {
+			enemy->runTest();
+		}
 	}
 }
 
 void GameplayTestWindow::endGameplayTest() {
+	testInProgress = false;
+	startAndEndTest->setText("Start test");
+
 	playerPlaceholder->endTest();
 	for (auto enemy : enemyPlaceholders) {
 		enemy->endTest();
+	}
+
+	// Delete all entities except level manager
+	uint32_t levelManager = registry.attachee<LevelManagerTag>();
+	registry.each([&](uint32_t entity) {
+		if (entity != levelManager) {
+			registry.destroy(entity);
+		}
+	});
+	// Respawn visual entities
+	playerPlaceholder->spawnVisualEntity();
+	for (auto enemy : enemyPlaceholders) {
+		enemy->spawnVisualEntity();
 	}
 
 	levelPack->deleteTemporaryEditorObjecs();
@@ -743,6 +826,24 @@ void GameplayTestWindow::setManuallySettingPlaceholderPosition(std::shared_ptr<E
 	}
 }
 
+void GameplayTestWindow::toggleLogsDisplay() {
+	if (bottomPanel->isVisible()) {
+		bottomPanel->setVisible(false);
+		toggleBottomPanelDisplay->setText("Show logs");
+	} else {
+		bottomPanel->setVisible(true);
+		toggleBottomPanelDisplay->setText("Hide logs");
+	}
+}
+
+void GameplayTestWindow::clearLogs() {
+	logs->setText("");
+}
+
+void GameplayTestWindow::logMessage(std::string message) {
+	logs->setText(logs->getText() + "\n" + message);
+}
+
 void GameplayTestWindow::EntityPlaceholder::moveTo(float x, float y) {
 	this->x = x;
 	this->y = y;
@@ -757,7 +858,6 @@ void GameplayTestWindow::EntityPlaceholder::endTest() {
 	if (registry.valid(testEntity)) {
 		registry.destroy(testEntity);
 	}
-	spawnVisualEntity();
 }
 
 bool GameplayTestWindow::EntityPlaceholder::wasClicked(int worldX, int worldY) {
@@ -835,6 +935,8 @@ void GameplayTestWindow::PlayerEntityPlaceholder::runTest() {
 }
 
 void GameplayTestWindow::EnemyEntityPlaceholder::runTest() {
+	registry.destroy(visualEntity);
+
 	EnemySpawnInfo info;
 	if (testMode == ENEMY) {
 		info = EnemySpawnInfo(testModeID, x, y, std::vector<std::pair<std::shared_ptr<Item>, int>>());
@@ -883,4 +985,43 @@ void GameplayTestWindow::EnemyEntityPlaceholder::spawnVisualEntity() {
 	//TODO: change to some default image
 	registry.assign<SpriteComponent>(visualEntity, spriteLoader, Animatable("Bomb", "sheet1", true, LOCK_ROTATION), true, PLAYER_LAYER, 0);
 
+}
+
+bool GameplayTestWindow::EnemyEntityPlaceholder::legalCheck(std::string & message, LevelPack & levelPack, SpriteLoader & spriteLoader) {
+	bool good = true;
+	if (!testModeIDHasBeenSet) {
+		message += "[id=" + std::to_string(id) + "] Test mode ID has not been set.\n";
+		good = false;
+	} else {
+		if (testMode == ENEMY) {
+			if (!levelPack.hasEnemy(testModeID)) {
+				message += "[id=" + std::to_string(id) + "] Enemy ID " + std::to_string(testModeID) + " no longer exists.\n";
+				good = false;
+			} else {
+				good = good && levelPack.getEnemy(testModeID)->legal(message);
+			}
+		} else if (testMode == PHASE) {
+			if (!levelPack.hasEnemyPhase(testModeID)) {
+				message += "[id=" + std::to_string(id) + "] Enemy phase ID " + std::to_string(testModeID) + " no longer exists.\n";
+				good = false;
+			} else {
+				good = good && levelPack.getEnemyPhase(testModeID)->legal(message);
+			}
+		} else if (testMode == ATTACK_PATTERN) {
+			if (!levelPack.hasAttackPattern(testModeID)) {
+				message += "[id=" + std::to_string(id) + "] Attack pattern ID " + std::to_string(testModeID) + " no longer exists.\n";
+				good = false;
+			} else {
+				good = good && levelPack.getAttackPattern(testModeID)->legal(message);
+			}
+		} else {
+			if (!levelPack.hasAttack(testModeID)) {
+				message += "[id=" + std::to_string(id) + "] Attack pattern ID " + std::to_string(testModeID) + " no longer exists.\n";
+				good = false;
+			} else {
+				good = good && levelPack.getAttack(testModeID)->legal(levelPack, spriteLoader, message);
+			}
+		}
+	}
+	return good;
 }
