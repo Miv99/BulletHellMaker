@@ -11,6 +11,7 @@
 #include "CollectibleSystem.h"
 #include "EditorUtilities.h"
 #include "Constants.h"
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -144,6 +145,7 @@ private:
 		void removePlaceholder();
 		virtual void spawnVisualEntity() = 0;
 
+		inline int getID() { return id; }
 		inline float getX() { return x; }
 		inline float getY() { return y; }
 		inline void setUseDefaultTestPlayer(bool useDefaultTestPlayer) { this->useDefaultTestPlayer = useDefaultTestPlayer; }
@@ -185,6 +187,7 @@ private:
 		void spawnVisualEntity() override;
 		bool legalCheck(std::string& message, LevelPack& levelPack, SpriteLoader& spriteLoader);
 
+		inline bool testModeIDSet() { return testModeIDHasBeenSet; }
 		inline TEST_MODE getTestMode() { return testMode; }
 		inline int getTestModeID() { return testModeID; }
 		inline void setTestMode(TEST_MODE testMode) { this->testMode = testMode; }
@@ -247,10 +250,11 @@ private:
 	std::shared_ptr<sf::Sprite> movingPlayerPlaceholderCursor;
 
 	std::shared_ptr<PlayerEntityPlaceholder> playerPlaceholder;
-	std::vector<std::shared_ptr<EnemyEntityPlaceholder>> enemyPlaceholders;
+	std::map<int, std::shared_ptr<EnemyEntityPlaceholder>> enemyPlaceholders; // Maps placeholder ID to placeholder
 	std::shared_ptr<EntityPlaceholder> selectedPlaceholder;
 	bool selectedPlaceholderIsPlayer;
 	int nextPlaceholderID = 0;
+	int mostRecentNewEnemyPlaceholderID;
 
 	bool paused = false;
 	bool testInProgress = false;
@@ -277,7 +281,7 @@ private:
 
 	std::shared_ptr<tgui::ScrollablePanel> leftPanel;
 	std::shared_ptr<tgui::Label> entityPlaceholdersListLabel;
-	std::shared_ptr<tgui::ListBox> entityPlaceholdersList;
+	std::shared_ptr<tgui::ListBox> entityPlaceholdersList; // Item ID is placeholder ID
 	std::shared_ptr<tgui::Button> newEnemyPlaceholder;
 	std::shared_ptr<tgui::Button> deleteEnemyPlaceholder;
 	std::shared_ptr<tgui::Button> startAndEndTest;
@@ -318,6 +322,8 @@ private:
 	void endGameplayTest();
 	void selectPlaceholder(std::shared_ptr<EntityPlaceholder> placeholder);
 	void deselectPlaceholder();
+	void deletePlaceholder(int placeholderID);
+	void updateEntityPlaceholdersList();
 
 	void setPlacingNewEnemy(bool placingNewEnemy);
 	void setManuallySettingPlaceholderPosition(std::shared_ptr<EntityPlaceholder> placeholder, bool manuallySettingPlaceholderPosition);

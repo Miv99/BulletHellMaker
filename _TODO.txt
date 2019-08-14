@@ -45,6 +45,7 @@ Notes for me:
 -attack ID 13 is messed up
 
 big todo:
+-move delete placeholder butotn to right panel
 -make gameplaywindow's endTest() call levelPack's delete temp stuff
 -before running gameplay test, make sure all editor object are legal
 -make the gameplay window an abstract class that can be used by all editors; call it a test window;

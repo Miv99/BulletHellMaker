@@ -232,9 +232,35 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	testModePopup->setSize(150, testModePopup->getItemHeight() * testModePopup->getItemCount());
 	testModePopup->setPosition(tgui::bindLeft(setEnemyPlaceholderTestMode), tgui::bindTop(setEnemyPlaceholderTestMode));
 
+	entityPlaceholdersList->connect("ItemSelected", [&](std::string item, std::string id) {
+		if (ignoreSignal) return;
+		if (id == "") {
+			deselectPlaceholder();
+		} else {
+			if (std::stoi(id) == playerPlaceholder->getID()) {
+				selectPlaceholder(playerPlaceholder);
+			} else {
+				selectPlaceholder(enemyPlaceholders[std::stoi(id)]);
+			}
+		}
+	});
 	newEnemyPlaceholder->connect("Pressed", [&]() {
 		setPlacingNewEnemy(true);
 		setManuallySettingPlaceholderPosition(selectedPlaceholder, false);
+	});
+	deleteEnemyPlaceholder->connect("Pressed", [this, &selectedPlaceholder = this->selectedPlaceholder]() {
+		std::shared_ptr<EnemyEntityPlaceholder> enemy = std::dynamic_pointer_cast<EnemyEntityPlaceholder>(selectedPlaceholder);
+		undoStack.execute(UndoableCommand(
+			[this, selectedPlaceholder]() {
+			deletePlaceholder(selectedPlaceholder->getID());
+		},
+			[this, enemy]() {
+			int id = enemy->getID();
+			mostRecentNewEnemyPlaceholderID = id;
+			enemy->spawnVisualEntity();
+			enemyPlaceholders[id] = enemy;
+			updateEntityPlaceholdersList();
+		}));
 	});
 	entityPlaceholderManualSet->connect("Pressed", [&]() {
 		setPlacingNewEnemy(false);
@@ -247,6 +273,7 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 			assert(dynamic_cast<EnemyEntityPlaceholder*>(selectedPlaceholder.get()) != nullptr);
 			auto enemyPlaceholder = dynamic_cast<EnemyEntityPlaceholder*>(selectedPlaceholder.get());
 			enemyPlaceholder->setTestModeID(std::stoi(itemID));
+			updateEntityPlaceholdersList();
 		}
 	});
 	setEnemyPlaceholderTestMode->connect("Pressed", [&]() {
@@ -294,7 +321,6 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 
 	// --------------------------------
 	playerPlaceholder = std::make_shared<PlayerEntityPlaceholder>(nextPlaceholderID, registry, *spriteLoader, *levelPack);
-	entityPlaceholdersList->addItem("[id=" + std::to_string(nextPlaceholderID) + "] Player", std::to_string(nextPlaceholderID));
 	nextPlaceholderID++;
 	playerPlaceholder->moveTo(PLAYER_SPAWN_X, PLAYER_SPAWN_Y);
 	playerPlaceholder->spawnVisualEntity();
@@ -311,6 +337,7 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	auto& levelManagerTag = registry.assign<LevelManagerTag>(entt::tag_t{}, levelManager, &(*levelPack), level);
 	// ----------------------------------
 	toggleLogsDisplay();
+	updateEntityPlaceholdersList();
 }
 
 void GameplayTestWindow::handleEvent(sf::Event event) {
@@ -626,18 +653,18 @@ void GameplayTestWindow::onGameplayAreaMouseClick(float screenX, float screenY) 
 
 	if (placingNewEnemy) {
 		setPlacingNewEnemy(false);
+		std::shared_ptr<EnemyEntityPlaceholder> enemy = std::make_shared<EnemyEntityPlaceholder>(nextPlaceholderID, registry, *spriteLoader, *levelPack, *queue);
+		nextPlaceholderID++;
 		undoStack.execute(UndoableCommand(
-			[this, mouseWorldPos]() {
-			std::shared_ptr<EnemyEntityPlaceholder> enemy = std::make_shared<EnemyEntityPlaceholder>(nextPlaceholderID, registry, *spriteLoader, *levelPack, *queue);
-			entityPlaceholdersList->addItem("[id=" + std::to_string(nextPlaceholderID) + "] Unset", nextPlaceholderID);
-			nextPlaceholderID++;
+			[this, mouseWorldPos, enemy]() {
+			mostRecentNewEnemyPlaceholderID = enemy->getID();
 			enemy->moveTo(mouseWorldPos.x, mouseWorldPos.y);
 			enemy->spawnVisualEntity();
-			enemyPlaceholders.push_back(enemy);
+			enemyPlaceholders[enemy->getID()] = enemy;
+			updateEntityPlaceholdersList();
 		},
-			[this]() {
-			enemyPlaceholders.back()->removePlaceholder();
-			enemyPlaceholders.pop_back();
+			[this, enemy]() {
+			deletePlaceholder(enemy->getID());
 		}));
 	} else if (manuallySettingPlaceholderPosition) {
 		setManuallySettingPlaceholderPosition(selectedPlaceholder, false);
@@ -670,16 +697,16 @@ void GameplayTestWindow::onGameplayAreaMouseClick(float screenX, float screenY) 
 			justSelectedPlaceholder = true;
 		}
 	} else {
-		for (auto enemyPlaceholder : enemyPlaceholders) {
-			if (enemyPlaceholder->wasClicked(mouseWorldPos.x, mouseWorldPos.y)) {
-				if (selectedPlaceholder == enemyPlaceholder) {
+		for (auto p : enemyPlaceholders) {
+			if (p.second->wasClicked(mouseWorldPos.x, mouseWorldPos.y)) {
+				if (selectedPlaceholder == p.second) {
 					draggingPlaceholder = true;
 					previousPlaceholderDragCoordsX = screenX;
 					previousPlaceholderDragCoordsY = screenY;
 					placeholderPosBeforeDragging.x = selectedPlaceholder->getX();
 					placeholderPosBeforeDragging.y = selectedPlaceholder->getY();
 				} else {
-					selectPlaceholder(enemyPlaceholder);
+					selectPlaceholder(p.second);
 					justSelectedPlaceholder = true;
 				}
 				return;
@@ -694,8 +721,8 @@ void GameplayTestWindow::onGameplayAreaMouseClick(float screenX, float screenY) 
 void GameplayTestWindow::runGameplayTest() {
 	std::string message;
 	bool good = true;
-	for (auto enemy : enemyPlaceholders) {
-		good = good && enemy->legalCheck(message, *levelPack, *spriteLoader);
+	for (auto p : enemyPlaceholders) {
+		good = good && p.second->legalCheck(message, *levelPack, *spriteLoader);
 	}
 	clearLogs();
 	logMessage(message);
@@ -704,8 +731,8 @@ void GameplayTestWindow::runGameplayTest() {
 		testInProgress = true;
 		startAndEndTest->setText("End test");
 		playerPlaceholder->runTest();
-		for (auto enemy : enemyPlaceholders) {
-			enemy->runTest();
+		for (auto p : enemyPlaceholders) {
+			p.second->runTest();
 		}
 	}
 }
@@ -715,8 +742,8 @@ void GameplayTestWindow::endGameplayTest() {
 	startAndEndTest->setText("Start test");
 
 	playerPlaceholder->endTest();
-	for (auto enemy : enemyPlaceholders) {
-		enemy->endTest();
+	for (auto p : enemyPlaceholders) {
+		p.second->endTest();
 	}
 
 	// Delete all entities except level manager
@@ -728,8 +755,8 @@ void GameplayTestWindow::endGameplayTest() {
 	});
 	// Respawn visual entities
 	playerPlaceholder->spawnVisualEntity();
-	for (auto enemy : enemyPlaceholders) {
-		enemy->spawnVisualEntity();
+	for (auto p : enemyPlaceholders) {
+		p.second->spawnVisualEntity();
 	}
 
 	levelPack->deleteTemporaryEditorObjecs();
@@ -743,6 +770,7 @@ void GameplayTestWindow::selectPlaceholder(std::shared_ptr<EntityPlaceholder> pl
 	rightPanel->setVisible(true);
 	bool isEnemyPlaceholder = (dynamic_cast<EnemyEntityPlaceholder*>(placeholder.get()) != nullptr);
 	selectedPlaceholderIsPlayer = !isEnemyPlaceholder;
+	deleteEnemyPlaceholder->setEnabled(isEnemyPlaceholder);
 	setEnemyPlaceholderTestMode->setVisible(isEnemyPlaceholder);
 	testModeIDLabel->setVisible(isEnemyPlaceholder);
 	testModeID->setVisible(isEnemyPlaceholder);
@@ -788,6 +816,7 @@ void GameplayTestWindow::selectPlaceholder(std::shared_ptr<EntityPlaceholder> pl
 
 		testModeID->setSelectedItemById(std::to_string(static_cast<int>(enemyPlaceholder->getTestModeID())));
 	}
+	entityPlaceholdersList->setSelectedItemById(std::to_string(placeholder->getID()));
 	ignoreSignal = false;
 }
 
@@ -796,6 +825,44 @@ void GameplayTestWindow::deselectPlaceholder() {
 	currentCursor = nullptr;
 	window->setMouseCursorVisible(true);
 	selectedPlaceholder = nullptr;
+	entityPlaceholdersList->deselectItem();
+	deleteEnemyPlaceholder->setEnabled(false);
+}
+
+void GameplayTestWindow::deletePlaceholder(int placeholderID) {
+	assert(placeholderID != playerPlaceholder->getID()); // Player placeholder can't be deleted
+
+	if (selectedPlaceholder && placeholderID == selectedPlaceholder->getID()) {
+		deselectPlaceholder();
+	}
+
+	enemyPlaceholders[placeholderID]->removePlaceholder();
+	enemyPlaceholders.erase(placeholderID);
+	entityPlaceholdersList->removeItemById(std::to_string(placeholderID));
+}
+
+void GameplayTestWindow::updateEntityPlaceholdersList() {
+	// 			entityPlaceholdersList->addItem("[id=" + std::to_string(id) + "] Unset", std::to_string(id)); //TODO: not say unset; depends
+	entityPlaceholdersList->removeAllItems();
+	entityPlaceholdersList->addItem("[id=" + std::to_string(playerPlaceholder->getID()) + "] Player", std::to_string(playerPlaceholder->getID()));
+	for (auto p : enemyPlaceholders) {
+		std::string text = "";
+		if (!p.second->testModeIDSet()) {
+			text = "Unset";
+		} else {
+			if (p.second->getTestMode() == EnemyEntityPlaceholder::ENEMY) {
+				text = "Enemy";
+			} else if (p.second->getTestMode() == EnemyEntityPlaceholder::PHASE) {
+				text = "Phase";
+			} else if (p.second->getTestMode() == EnemyEntityPlaceholder::ATTACK_PATTERN) {
+				text = "A.Pattern";
+			} else {
+				text = "Attack";
+			}
+			text += " " + std::to_string(p.second->getTestModeID());
+		}
+		entityPlaceholdersList->addItem("[id=" + std::to_string(p.first) + "] " + text, std::to_string(p.first));
+	}
 }
 
 void GameplayTestWindow::setPlacingNewEnemy(bool placingNewEnemy) {
