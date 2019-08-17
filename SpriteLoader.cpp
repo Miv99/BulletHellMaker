@@ -52,7 +52,7 @@ std::shared_ptr<sf::Sprite> SpriteSheet::getSprite(const std::string& spriteName
 	std::shared_ptr<sf::Sprite> sprite = std::make_shared<sf::Sprite>();
 	sprite->setTexture(*textures[area]);
 	sprite->setColor(data->getColor());
-	sprite->setScale(data->getSpriteWidth() / area.width, data->getSpriteHeight() / area.height);
+	sprite->setScale((float)data->getSpriteWidth() / area.width, (float)data->getSpriteHeight() / area.height);
 	sprite->setOrigin(data->getSpriteOriginX(), data->getSpriteOriginY());
 	return sprite;
 }
