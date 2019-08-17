@@ -325,8 +325,8 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	playerPlaceholder->moveTo(PLAYER_SPAWN_X, PLAYER_SPAWN_Y);
 	playerPlaceholder->spawnVisualEntity();
 	// ---------------------------------
-	movingEnemyPlaceholderCursor = spriteLoader->getSprite("Bomb", "sheet1");
-	movingPlayerPlaceholderCursor = spriteLoader->getSprite("Health", "sheet1");
+	movingEnemyPlaceholderCursor = spriteLoader->getSprite("Enemy Placeholder", "Default");
+	movingPlayerPlaceholderCursor = spriteLoader->getSprite("Player Placeholder", "Default");
 	// ---------------------------------
 	// Create the level manager
 	registry.reserve<LevelManagerTag>(1);
@@ -586,22 +586,6 @@ void GameplayTestWindow::onRenderWindowInitialization() {
 	renderSystem->setBackgroundScrollSpeedX(level->getBackgroundScrollSpeedX());
 	renderSystem->setBackgroundScrollSpeedY(level->getBackgroundScrollSpeedY());
 
-	// Create map border entities
-	// The magic number 8 comes from the thickness of the border sprite
-	// as defined in the default sprite sheet
-	uint32_t top = registry.create();
-	registry.assign<PositionComponent>(top, -MAP_WIDTH, -8);
-	registry.assign<SpriteComponent>(top, *spriteLoader, Animatable("Map horizontal border", "Default", true, LOCK_ROTATION), true, SHADOW_LAYER, 0);
-	uint32_t bottom = registry.create();
-	registry.assign<PositionComponent>(bottom, -MAP_WIDTH, MAP_HEIGHT + 8);
-	registry.assign<SpriteComponent>(bottom, *spriteLoader, Animatable("Map horizontal border", "Default", true, LOCK_ROTATION), true, SHADOW_LAYER, 0);
-	uint32_t left = registry.create();
-	registry.assign<PositionComponent>(left, -8, -8);
-	registry.assign<SpriteComponent>(left, *spriteLoader, Animatable("Map horizontal border", "Default", true, LOCK_ROTATION), true, SHADOW_LAYER, 0);
-	uint32_t right = registry.create();
-	registry.assign<PositionComponent>(right, MAP_WIDTH + 8, -8);
-	registry.assign<SpriteComponent>(right, *spriteLoader, Animatable("Map horizontal border", "Default", true, LOCK_ROTATION), true, SHADOW_LAYER, 0);
-
 	deselectPlaceholder();
 }
 
@@ -765,7 +749,6 @@ void GameplayTestWindow::endGameplayTest() {
 void GameplayTestWindow::selectPlaceholder(std::shared_ptr<EntityPlaceholder> placeholder) {
 	selectedPlaceholder = placeholder;
 	
-	//TODO
 	ignoreSignal = true;
 	rightPanel->setVisible(true);
 	bool isEnemyPlaceholder = (dynamic_cast<EnemyEntityPlaceholder*>(placeholder.get()) != nullptr);
@@ -842,7 +825,6 @@ void GameplayTestWindow::deletePlaceholder(int placeholderID) {
 }
 
 void GameplayTestWindow::updateEntityPlaceholdersList() {
-	// 			entityPlaceholdersList->addItem("[id=" + std::to_string(id) + "] Unset", std::to_string(id)); //TODO: not say unset; depends
 	entityPlaceholdersList->removeAllItems();
 	entityPlaceholdersList->addItem("[id=" + std::to_string(playerPlaceholder->getID()) + "] Player", std::to_string(playerPlaceholder->getID()));
 	for (auto p : enemyPlaceholders) {
@@ -944,8 +926,7 @@ void GameplayTestWindow::PlayerEntityPlaceholder::spawnVisualEntity() {
 	assert(!registry.valid(visualEntity));
 	visualEntity = registry.create();
 	registry.assign<PositionComponent>(visualEntity, x, y);
-	//TODO: change to some default image
-	registry.assign<SpriteComponent>(visualEntity, spriteLoader, Animatable("Health", "sheet1", true, LOCK_ROTATION), true, PLAYER_LAYER, 0);
+	registry.assign<SpriteComponent>(visualEntity, spriteLoader, Animatable("Player Placeholder", "Default", true, LOCK_ROTATION), true, PLAYER_LAYER, 0);
 }
 
 void GameplayTestWindow::PlayerEntityPlaceholder::runTest() {
@@ -958,11 +939,10 @@ void GameplayTestWindow::PlayerEntityPlaceholder::runTest() {
 	}
 	else {
 		// Create default player params
-		//TODO: change these
 		auto playerAP = levelPack.createTempAttackPattern();
 		auto playerAttack1 = levelPack.createTempAttack();
 		auto pemp0 = playerAttack1->searchEMP(0);
-		pemp0->setAnimatable(Animatable("Bullet", "sheet1", true, LOCK_ROTATION));
+		pemp0->setAnimatable(Animatable("Player Placeholder", "Default", true, LOCK_ROTATION));
 		pemp0->setHitboxRadius(30);
 		pemp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
 		pemp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 2), std::make_shared<ConstantTFV>(PI / 2.0f), 2.0f));
@@ -973,7 +953,7 @@ void GameplayTestWindow::PlayerEntityPlaceholder::runTest() {
 		for (int i = 0; i < 10; i++) {
 			auto bombAttack1 = levelPack.createTempAttack();
 			auto b1emp0 = bombAttack1->searchEMP(0);
-			b1emp0->setAnimatable(Animatable("Bullet", "sheet1", true, LOCK_ROTATION));
+			b1emp0->setAnimatable(Animatable("Player Bullet", "Default", true, LOCK_ROTATION));
 			b1emp0->setHitboxRadius(30);
 			b1emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
 			b1emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 1000, 2), std::make_shared<ConstantTFV>(1.0f + i * 0.13f), 2.0f));
@@ -981,10 +961,10 @@ void GameplayTestWindow::PlayerEntityPlaceholder::runTest() {
 			bombAP->addAttackID(0, bombAttack1->getID());
 		}
 
-		auto pset1 = EntityAnimatableSet(Animatable("Megaman idle", "sheet1", false, ROTATE_WITH_MOVEMENT),
-			Animatable("Megaman movement", "sheet1", false, ROTATE_WITH_MOVEMENT),
-			Animatable("Megaman attack", "sheet1", false, ROTATE_WITH_MOVEMENT),
-			std::make_shared<PlayAnimatableDeathAction>(Animatable("oh my god he's dead", "sheet1", true, ROTATE_WITH_MOVEMENT), PlayAnimatableDeathAction::NONE, 3.0f));
+		auto pset1 = EntityAnimatableSet(Animatable("Player Placeholder", "Default", true, ROTATE_WITH_MOVEMENT),
+			Animatable("Player Placeholder", "Default", true, ROTATE_WITH_MOVEMENT),
+			Animatable("Player Placeholder", "Default", true, ROTATE_WITH_MOVEMENT),
+			std::make_shared<PlayAnimatableDeathAction>(Animatable("Player Placeholder", "Default", true, ROTATE_WITH_MOVEMENT), PlayAnimatableDeathAction::NONE, 3.0f));
 
 		params = EditorPlayer(10, 11, 300, 100, 5, 0, 0, 2.0f, std::vector<PlayerPowerTier>{ PlayerPowerTier(pset1, playerAP->getID(), 0.1f, playerAP->getID(), 0.5f, bombAP->getID(), 5.0f) }, SoundSettings("oof.wav", 10), SoundSettings("death.ogg"), Animatable("heart.png", "", true, LOCK_ROTATION),
 			3, 10, Animatable("bomb.png", "", true, LOCK_ROTATION), SoundSettings("bomb_ready.wav"), 5.0f);
@@ -1009,9 +989,8 @@ void GameplayTestWindow::EnemyEntityPlaceholder::runTest() {
 		info = EnemySpawnInfo(testModeID, x, y, std::vector<std::pair<std::shared_ptr<Item>, int>>());
 	} else if (testMode == PHASE) {
 		std::shared_ptr<EditorEnemy> enemy = levelPack.createTempEnemy();
-		//TODO: change to default sprites and hitbox radius
-		EntityAnimatableSet enemyAnimatableSet(Animatable("Bomb", "sheet1", true, ROTATE_WITH_MOVEMENT), Animatable("Bomb", "sheet1", true, ROTATE_WITH_MOVEMENT), Animatable("Bomb", "sheet1", true, ROTATE_WITH_MOVEMENT));
-		enemy->setHitboxRadius(1);
+		EntityAnimatableSet enemyAnimatableSet(Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT), Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT), Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT));
+		enemy->setHitboxRadius(100);
 		enemy->setHealth(2000000000);
 		enemy->addPhaseID(0, std::make_shared<TimeBasedEnemyPhaseStartCondition>(0), testModeID, enemyAnimatableSet);
 	} else if (testMode == ATTACK_PATTERN) {
@@ -1021,9 +1000,8 @@ void GameplayTestWindow::EnemyEntityPlaceholder::runTest() {
 		phase->setAttackPatternLoopDelay(2);
 
 		std::shared_ptr<EditorEnemy> enemy = levelPack.createTempEnemy();
-		//TODO: change to default sprites and hitbox radius
-		EntityAnimatableSet enemyAnimatableSet(Animatable("Bomb", "sheet1", true, ROTATE_WITH_MOVEMENT), Animatable("Bomb", "sheet1", true, ROTATE_WITH_MOVEMENT), Animatable("Bomb", "sheet1", true, ROTATE_WITH_MOVEMENT));
-		enemy->setHitboxRadius(1);
+		EntityAnimatableSet enemyAnimatableSet(Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT), Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT), Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT));
+		enemy->setHitboxRadius(100);
 		enemy->setHealth(2000000000);
 		enemy->addPhaseID(0, std::make_shared<TimeBasedEnemyPhaseStartCondition>(0), phase->getID(), enemyAnimatableSet);
 	} else {
@@ -1036,9 +1014,8 @@ void GameplayTestWindow::EnemyEntityPlaceholder::runTest() {
 		phase->setAttackPatternLoopDelay(2);
 
 		std::shared_ptr<EditorEnemy> enemy = levelPack.createTempEnemy();
-		//TODO: change to default sprites and hitbox radius
-		EntityAnimatableSet enemyAnimatableSet(Animatable("Bomb", "sheet1", true, ROTATE_WITH_MOVEMENT), Animatable("Bomb", "sheet1", true, ROTATE_WITH_MOVEMENT), Animatable("Bomb", "sheet1", true, ROTATE_WITH_MOVEMENT));
-		enemy->setHitboxRadius(1);
+		EntityAnimatableSet enemyAnimatableSet(Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT), Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT), Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT));
+		enemy->setHitboxRadius(100);
 		enemy->setHealth(2000000000);
 		enemy->addPhaseID(0, std::make_shared<TimeBasedEnemyPhaseStartCondition>(0), phase->getID(), enemyAnimatableSet);
 	}
@@ -1049,9 +1026,7 @@ void GameplayTestWindow::EnemyEntityPlaceholder::spawnVisualEntity() {
 	assert(!registry.valid(visualEntity));
 	visualEntity = registry.create();
 	registry.assign<PositionComponent>(visualEntity, x, y);
-	//TODO: change to some default image
-	registry.assign<SpriteComponent>(visualEntity, spriteLoader, Animatable("Bomb", "sheet1", true, LOCK_ROTATION), true, PLAYER_LAYER, 0);
-
+	registry.assign<SpriteComponent>(visualEntity, spriteLoader, Animatable("Enemy Placeholder", "Default", true, LOCK_ROTATION), true, PLAYER_LAYER, 0);
 }
 
 bool GameplayTestWindow::EnemyEntityPlaceholder::legalCheck(std::string & message, LevelPack & levelPack, SpriteLoader & spriteLoader) {
