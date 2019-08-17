@@ -184,7 +184,7 @@ bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, c
 					} else {
 						color.r = temp[0];
 						color.g = temp[1];
-						color.g = temp[2];
+						color.b = temp[2];
 						color.a = temp[3];
 					}
 				}
