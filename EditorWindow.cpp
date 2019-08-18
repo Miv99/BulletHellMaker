@@ -836,6 +836,7 @@ void GameplayTestWindow::deletePlaceholder(int placeholderID) {
 }
 
 void GameplayTestWindow::updateEntityPlaceholdersList() {
+	ignoreSignal = true;
 	entityPlaceholdersList->removeAllItems();
 	entityPlaceholdersList->addItem("[id=" + std::to_string(playerPlaceholder->getID()) + "] Player", std::to_string(playerPlaceholder->getID()));
 	for (auto p : enemyPlaceholders) {
@@ -856,6 +857,11 @@ void GameplayTestWindow::updateEntityPlaceholdersList() {
 		}
 		entityPlaceholdersList->addItem("[id=" + std::to_string(p.first) + "] " + text, std::to_string(p.first));
 	}
+	// Reslect the selectPlaceholder, if any
+	if (selectedPlaceholder) {
+		entityPlaceholdersList->setSelectedItemById(std::to_string(selectedPlaceholder->getID()));
+	}
+	ignoreSignal = false;
 }
 
 void GameplayTestWindow::setPlacingNewEnemy(bool placingNewEnemy) {
