@@ -48,8 +48,14 @@ sf::Vector2f MovementPathComponent::getPreviousPosition(entt::DefaultRegistry & 
 	// This function assumes that if a reference entity has no MovementPathComponent, it has stayed in the same position its entire lifespan
 
 	float curTime = time - secondsAgo;
-	if (curTime >= 0) {
+	// Account for float inaccuracies
+	if (curTime >= -0.0001f) {
 		// This entity was on the same path [secondsAgo] seconds ago
+
+		// curTime was probably supposed to be 0 but ended up being < 0 from float inaccuracies, so set it to 0
+		if (curTime < 0) {
+			curTime = 0;
+		}
 
 		if (useReferenceEntity) {
 			if (registry.has<MovementPathComponent>(referenceEntity)) {
