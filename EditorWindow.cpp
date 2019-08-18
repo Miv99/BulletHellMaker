@@ -477,20 +477,22 @@ void GameplayTestWindow::physicsUpdate(float deltaTime) {
 }
 
 void GameplayTestWindow::render(float deltaTime) {
-	int xDirection = 0, yDirection = 0;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-		yDirection--;
+	if (!testInProgress) {
+		int xDirection = 0, yDirection = 0;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
+			yDirection--;
+		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
+			yDirection++;
+		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
+			xDirection--;
+		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
+			xDirection++;
+		}
+		moveCamera(CAMERA_SPEED * xDirection * deltaTime / cameraZoom, CAMERA_SPEED * yDirection * deltaTime / cameraZoom);
 	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-		yDirection++;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-		xDirection--;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-		xDirection++;
-	}
-	moveCamera(CAMERA_SPEED * xDirection * deltaTime / cameraZoom, CAMERA_SPEED * yDirection * deltaTime / cameraZoom);
 
 	if (!paused) {
 		spriteAnimationSystem->update(deltaTime);
@@ -977,7 +979,7 @@ void GameplayTestWindow::PlayerEntityPlaceholder::runTest() {
 	auto& health = registry.assign<HealthComponent>(testEntity, params.getInitialHealth(), params.getMaxHealth());
 	// Hitbox temporarily at 0, 0 until an Animatable is assigned to the player later
 	registry.assign<HitboxComponent>(testEntity, LOCK_ROTATION, params.getHitboxRadius(), 0, 0);
-	registry.assign<PositionComponent>(testEntity, PLAYER_SPAWN_X - params.getHitboxPosX(), PLAYER_SPAWN_Y - params.getHitboxPosY());
+	registry.assign<PositionComponent>(testEntity, x - params.getHitboxPosX(), y - params.getHitboxPosY());
 	registry.assign<SpriteComponent>(testEntity, PLAYER_LAYER, 0);
 }
 
