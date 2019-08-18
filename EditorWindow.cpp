@@ -705,6 +705,9 @@ void GameplayTestWindow::onGameplayAreaMouseClick(float screenX, float screenY) 
 }
 
 void GameplayTestWindow::runGameplayTest() {
+	preTestCameraCenter = window->getView().getCenter();
+	preTestCameraZoom = cameraZoom;
+
 	std::string message;
 	bool good = true;
 	for (auto p : enemyPlaceholders) {
@@ -720,12 +723,18 @@ void GameplayTestWindow::runGameplayTest() {
 		for (auto p : enemyPlaceholders) {
 			p.second->runTest();
 		}
+
+		lookAt(MAP_WIDTH / 2.0f, -MAP_HEIGHT / 2.0f);
+		setCameraZoom(1);
 	}
 }
 
 void GameplayTestWindow::endGameplayTest() {
 	testInProgress = false;
 	startAndEndTest->setText("Start test");
+
+	lookAt(preTestCameraCenter.x, preTestCameraCenter.y);
+	setCameraZoom(preTestCameraZoom);
 
 	playerPlaceholder->endTest();
 	for (auto p : enemyPlaceholders) {

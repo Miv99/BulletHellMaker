@@ -235,6 +235,10 @@ private:
 	int previousPlaceholderDragCoordsX, previousPlaceholderDragCoordsY;
 	// Screen coordinates of the first left  mouse pressed event since the last left mouse released event
 	int initialMousePressX, initialMousePressY;
+	// Camera position right before gameplay test started
+	sf::Vector2f preTestCameraCenter;
+	// Camera zoom level right before gameplay test started
+	float preTestCameraZoom;
 
 	// Should be modified only through setter
 	bool placingNewEnemy = false;
