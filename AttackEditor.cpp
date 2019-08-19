@@ -561,6 +561,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			mainWindowUndoStack.execute(UndoableCommand(
 				[this, selectedEMP, selectedAttack]() {
 				selectedEMP->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(empiSpawnTypeTime->getValue(), empiSpawnTypeX->getValue(), empiSpawnTypeY->getValue()));
+				setEMPWidgetValues(selectedEMP, selectedAttack, false);
 			},
 				[this, selectedEMP, selectedAttack, oldSpawnType]() {
 				selectedEMP->setSpawnType(oldSpawnType);
@@ -570,6 +571,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			mainWindowUndoStack.execute(UndoableCommand(
 				[this, selectedEMP, selectedAttack]() {
 				selectedEMP->setSpawnType(std::make_shared<EntityAttachedEMPSpawn>(empiSpawnTypeTime->getValue(), empiSpawnTypeX->getValue(), empiSpawnTypeY->getValue()));
+				setEMPWidgetValues(selectedEMP, selectedAttack, false);
 			},
 				[this, selectedEMP, selectedAttack, oldSpawnType]() {
 				selectedEMP->setSpawnType(oldSpawnType);
@@ -579,6 +581,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			mainWindowUndoStack.execute(UndoableCommand(
 				[this, selectedEMP, selectedAttack]() {
 				selectedEMP->setSpawnType(std::make_shared<SpecificGlobalEMPSpawn>(empiSpawnTypeTime->getValue(), empiSpawnTypeX->getValue(), empiSpawnTypeY->getValue()));
+				setEMPWidgetValues(selectedEMP, selectedAttack, false);
 			},
 				[this, selectedEMP, selectedAttack, oldSpawnType]() {
 				selectedEMP->setSpawnType(oldSpawnType);
