@@ -960,7 +960,7 @@ void GameplayTestWindow::PlayerEntityPlaceholder::runTest() {
 		auto playerAttack1 = levelPack.createTempAttack();
 		auto pemp0 = playerAttack1->searchEMP(0);
 		pemp0->setAnimatable(Animatable("Player Placeholder", "Default", true, LOCK_ROTATION));
-		pemp0->setHitboxRadius(30);
+		pemp0->setHitboxRadius(20);
 		pemp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
 		pemp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 2), std::make_shared<ConstantTFV>(PI / 2.0f), 2.0f));
 		pemp0->setOnCollisionAction(PIERCE_ENTITY);
@@ -971,7 +971,7 @@ void GameplayTestWindow::PlayerEntityPlaceholder::runTest() {
 			auto bombAttack1 = levelPack.createTempAttack();
 			auto b1emp0 = bombAttack1->searchEMP(0);
 			b1emp0->setAnimatable(Animatable("Player Bullet", "Default", true, LOCK_ROTATION));
-			b1emp0->setHitboxRadius(30);
+			b1emp0->setHitboxRadius(7.5f);
 			b1emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
 			b1emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 1000, 2), std::make_shared<ConstantTFV>(1.0f + i * 0.13f), 2.0f));
 			b1emp0->setOnCollisionAction(PIERCE_ENTITY);
@@ -1007,9 +1007,10 @@ void GameplayTestWindow::EnemyEntityPlaceholder::runTest() {
 	} else if (testMode == PHASE) {
 		std::shared_ptr<EditorEnemy> enemy = levelPack.createTempEnemy();
 		EntityAnimatableSet enemyAnimatableSet(Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT), Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT), Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT));
-		enemy->setHitboxRadius(100);
+		enemy->setHitboxRadius(20);
 		enemy->setHealth(2000000000);
 		enemy->addPhaseID(0, std::make_shared<TimeBasedEnemyPhaseStartCondition>(0), testModeID, enemyAnimatableSet);
+		info = EnemySpawnInfo(enemy->getID(), x, y, std::vector<std::pair<std::shared_ptr<Item>, int>>());
 	} else if (testMode == ATTACK_PATTERN) {
 		std::shared_ptr<EditorEnemyPhase> phase = levelPack.createTempEnemyPhase();
 		phase->addAttackPatternID(0, testModeID);
@@ -1018,9 +1019,10 @@ void GameplayTestWindow::EnemyEntityPlaceholder::runTest() {
 
 		std::shared_ptr<EditorEnemy> enemy = levelPack.createTempEnemy();
 		EntityAnimatableSet enemyAnimatableSet(Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT), Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT), Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT));
-		enemy->setHitboxRadius(100);
+		enemy->setHitboxRadius(20);
 		enemy->setHealth(2000000000);
 		enemy->addPhaseID(0, std::make_shared<TimeBasedEnemyPhaseStartCondition>(0), phase->getID(), enemyAnimatableSet);
+		info = EnemySpawnInfo(enemy->getID(), x, y, std::vector<std::pair<std::shared_ptr<Item>, int>>());
 	} else {
 		std::shared_ptr<EditorAttackPattern> attackPattern = levelPack.createTempAttackPattern();
 		attackPattern->addAttackID(0, testModeID);
@@ -1032,9 +1034,10 @@ void GameplayTestWindow::EnemyEntityPlaceholder::runTest() {
 
 		std::shared_ptr<EditorEnemy> enemy = levelPack.createTempEnemy();
 		EntityAnimatableSet enemyAnimatableSet(Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT), Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT), Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT));
-		enemy->setHitboxRadius(100);
+		enemy->setHitboxRadius(20);
 		enemy->setHealth(2000000000);
 		enemy->addPhaseID(0, std::make_shared<TimeBasedEnemyPhaseStartCondition>(0), phase->getID(), enemyAnimatableSet);
+		info = EnemySpawnInfo(enemy->getID(), x, y, std::vector<std::pair<std::shared_ptr<Item>, int>>());
 	}
 	info.spawnEnemy(spriteLoader, levelPack, registry, queue);
 }
