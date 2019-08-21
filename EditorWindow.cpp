@@ -198,8 +198,11 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	bottomPanel = tgui::ScrollablePanel::create();
 	logs = tgui::Label::create();
 
+	externalEndTest = tgui::Button::create();
+
 	entityPlaceholdersList->setAutoScroll(false);
 	testModeID->setAutoScroll(false);
+	externalEndTest->setVisible(false);
 
 	entityPlaceholdersListLabel->setText("Entities");
 	newEnemyPlaceholder->setText("New enemy");
@@ -210,6 +213,7 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	setEnemyPlaceholderTestMode->setText("Set test mode");
 	startAndEndTest->setText("Start test");
 	toggleBottomPanelDisplay->setText("Show logs");
+	externalEndTest->setText("End test");
 
 	entityPlaceholdersListLabel->setTextSize(TEXT_SIZE);
 	newEnemyPlaceholder->setTextSize(TEXT_SIZE);
@@ -226,6 +230,7 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	testModePopup->setTextSize(TEXT_SIZE);
 	startAndEndTest->setTextSize(TEXT_SIZE);
 	toggleBottomPanelDisplay->setTextSize(TEXT_SIZE);
+	externalEndTest->setTextSize(TEXT_SIZE);
 
 	testModePopup->addItem("Enemy", std::to_string(static_cast<int>(EnemyEntityPlaceholder::ENEMY)));
 	testModePopup->addItem("Enemy phase", std::to_string(static_cast<int>(EnemyEntityPlaceholder::PHASE)));
@@ -301,6 +306,10 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	toggleBottomPanelDisplay->connect("Pressed", [&]() {
 		toggleLogsDisplay();
 	});
+	externalEndTest->connect("Pressed", [&]() {
+		assert(testInProgress);
+		endGameplayTest();
+	});
 
 	leftPanel->add(entityPlaceholdersListLabel);
 	leftPanel->add(entityPlaceholdersList);
@@ -321,6 +330,7 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	getGui()->add(leftPanel);
 	getGui()->add(rightPanel);
 	getGui()->add(bottomPanel);
+	getGui()->add(externalEndTest);
 
 	// --------------------------------
 	playerPlaceholder = std::make_shared<PlayerEntityPlaceholder>(nextPlaceholderID, registry, *spriteLoader, *levelPack);
@@ -552,8 +562,8 @@ void GameplayTestWindow::updateWindowView(int width, int height) {
 	testModeID->setPosition(GUI_PADDING_X, tgui::bindBottom(testModeIDLabel) + GUI_PADDING_Y);
 	entityPlaceholderX->setSize(rightPanelWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 	entityPlaceholderY->setSize(rightPanelWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
-	entityPlaceholderManualSet->setSize(100, TEXT_BUTTON_HEIGHT);
-	setEnemyPlaceholderTestMode->setSize(100, TEXT_BUTTON_HEIGHT);
+	entityPlaceholderManualSet->setSize(std::max(rightPanelWidth - GUI_PADDING_X * 2, 100.0f), TEXT_BUTTON_HEIGHT);
+	setEnemyPlaceholderTestMode->setSize(std::max(rightPanelWidth - GUI_PADDING_X * 2, 100.0f), TEXT_BUTTON_HEIGHT);
 	testModeID->setSize(rightPanelWidth - GUI_PADDING_X * 2, height * 0.5f);
 
 	const float bottomPanelWidth = width - leftPanelWidth - rightPanelWidth;
@@ -563,6 +573,9 @@ void GameplayTestWindow::updateWindowView(int width, int height) {
 	logs->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
 	logs->setSize(bottomPanelWidth - GUI_PADDING_X * 2, bottomPanelHeight - GUI_PADDING_Y);
 	logs->setMaximumTextWidth(logs->getSize().x);
+
+	externalEndTest->setSize(100.0f, TEXT_BOX_HEIGHT);
+	externalEndTest->setPosition(0, height - externalEndTest->getSize().y);
 }
 
 void GameplayTestWindow::onRenderWindowInitialization() {
@@ -730,6 +743,10 @@ void GameplayTestWindow::runGameplayTest() {
 			p.second->runTest();
 		}
 
+		deselectPlaceholder();
+		leftPanel->setVisible(false);
+		externalEndTest->setVisible(true);
+
 		lookAt(MAP_WIDTH / 2.0f, -MAP_HEIGHT / 2.0f);
 		setCameraZoom(1);
 	}
@@ -738,6 +755,8 @@ void GameplayTestWindow::runGameplayTest() {
 void GameplayTestWindow::endGameplayTest() {
 	testInProgress = false;
 	startAndEndTest->setText("Start test");
+	leftPanel->setVisible(true);
+	externalEndTest->setVisible(false);
 
 	lookAt(preTestCameraCenter.x, preTestCameraCenter.y);
 	setCameraZoom(preTestCameraZoom);

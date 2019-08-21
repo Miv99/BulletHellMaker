@@ -307,6 +307,8 @@ private:
 	std::shared_ptr<tgui::ScrollablePanel> bottomPanel;
 	std::shared_ptr<tgui::Label> logs;
 
+	std::shared_ptr<tgui::Button> externalEndTest;
+
 
 	void onEntityPlaceholderXValueSet(float value);
 	void onEntityPlaceholderYValueSet(float value);
