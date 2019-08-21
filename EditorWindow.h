@@ -9,6 +9,7 @@
 #include "ShadowTrailSystem.h"
 #include "PlayerSystem.h"
 #include "CollectibleSystem.h"
+#include "DebugRenderSystem.h"
 #include "EditorUtilities.h"
 #include "Constants.h"
 #include <map>
@@ -273,6 +274,7 @@ private:
 
 	std::unique_ptr<MovementSystem> movementSystem;
 	std::unique_ptr<RenderSystem> renderSystem;
+	std::unique_ptr<DebugRenderSystem> debugRenderSystem;
 	std::unique_ptr<CollisionSystem> collisionSystem;
 	std::unique_ptr<DespawnSystem> despawnSystem;
 	std::unique_ptr<EnemySystem> enemySystem;

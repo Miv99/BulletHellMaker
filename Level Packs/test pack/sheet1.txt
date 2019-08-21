@@ -84,7 +84,7 @@ TextureTopLeftCoordinates = 259,155
 BoundingRectangleSize = 18,17
 Color = 255,50,50,255
 SpriteSize = 40,40
-Origin = 20,20
+Origin = 9,8
 
 [Box]
 Type = Sprite

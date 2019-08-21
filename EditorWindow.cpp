@@ -198,6 +198,9 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	bottomPanel = tgui::ScrollablePanel::create();
 	logs = tgui::Label::create();
 
+	entityPlaceholdersList->setAutoScroll(false);
+	testModeID->setAutoScroll(false);
+
 	entityPlaceholdersListLabel->setText("Entities");
 	newEnemyPlaceholder->setText("New enemy");
 	deleteEnemyPlaceholder->setText("Delete enemy");
@@ -498,6 +501,7 @@ void GameplayTestWindow::render(float deltaTime) {
 		spriteAnimationSystem->update(deltaTime);
 	}
 	renderSystem->update(deltaTime);
+	debugRenderSystem->update(deltaTime);
 
 	UndoableEditorWindow::render(deltaTime);
 
@@ -574,6 +578,8 @@ void GameplayTestWindow::onRenderWindowInitialization() {
 	//TODO: these numbers should come from settings like in GameInstance
 	renderSystem = std::make_unique<RenderSystem>(registry, *window, 1024, 768);
 	renderSystem->loadLevelRenderSettings(nullptr);
+
+	debugRenderSystem = std::make_unique<DebugRenderSystem>(registry, *window);
 
 	// Set the background
 	std::shared_ptr<Level> level = levelPack->getLevel(0);
