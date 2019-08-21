@@ -67,7 +67,7 @@ public:
 };
 
 /*
-Spawn type for spawning an EMP at some position relative to the entity doing the attack.
+Spawn type for spawning an EMP at some position relative to the hitbox origin of an entity.
 */
 class EntityRelativeEMPSpawn : public EMPSpawnType {
 public:
@@ -77,11 +77,14 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 
+	/*
+	entity - the entity that is being used as the reference
+	*/
 	MPSpawnInformation getSpawnInfo(entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 };
 
 /*
-Spawn type for spawning an EMP at some position relative to the entity and then setting the spawned
+Spawn type for spawning an EMP at some position relative to the hitbox origin of an entity and then setting the spawned
 EMP's parent as the MP of the entity.
 */
 class EntityAttachedEMPSpawn : public EMPSpawnType {
@@ -92,6 +95,9 @@ public:
 	std::string format() override;
 	void load(std::string formattedString) override;
 
+	/*
+	entity - the entity that the spawned EMP will be attached to
+	*/
 	MPSpawnInformation getSpawnInfo(entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 };
 

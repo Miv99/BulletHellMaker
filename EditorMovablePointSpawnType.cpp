@@ -40,6 +40,12 @@ MPSpawnInformation EntityRelativeEMPSpawn::getSpawnInfo(entt::DefaultRegistry & 
 	// Assume that if the entity spawning this has no MovementPathComponent, it has stayed at the same global position for its entire lifespan
 	if (registry.has<MovementPathComponent>(entity)) {
 		auto& pos = registry.get<MovementPathComponent>(entity).getPreviousPosition(registry, timeLag);
+		// Offset by the hitbox origin, if the entity has one
+		if (registry.has<HitboxComponent>(entity)) {
+			auto hitbox = registry.get<HitboxComponent>(entity);
+			pos.x += hitbox.getX();
+			pos.y += hitbox.getY();
+		}
 		return MPSpawnInformation{ false, NULL, sf::Vector2f(pos.x + x, pos.y + y) };
 	} else {
 		auto& pos = registry.get<PositionComponent>(entity);
@@ -64,6 +70,13 @@ void EntityAttachedEMPSpawn::load(std::string formattedString) {
 }
 
 MPSpawnInformation EntityAttachedEMPSpawn::getSpawnInfo(entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
+	float offsetX = 0, offsetY = 0;
+	// Offset by the hitbox origin, if the entity has one
+	if (registry.has<HitboxComponent>(entity)) {
+		auto hitbox = registry.get<HitboxComponent>(entity);
+		offsetX += hitbox.getX();
+		offsetY += hitbox.getY();
+	}
 	return MPSpawnInformation{ true, entity, sf::Vector2f(x, y) };
 }
 

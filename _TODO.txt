@@ -45,8 +45,7 @@ Notes for me:
 -attack ID 13 is messed up
 
 big todo:
--make the gameplay window an abstract class that can be used by all editors; call it a test window;
-	-the sprite for all enemies not in enemy test mode is just a circle scaled to an arbitrary size
+-deselect placeholder and can't select placeholder when test starts
 -call LevelPack::deleteTemporaryEditorObjecs() when test ends or when an editor instance is closed
 -control+s to save current attack; control+shift+s to save all attacks
 	-when saving a single attack, do legal check on that attack only
