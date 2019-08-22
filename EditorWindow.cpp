@@ -517,7 +517,7 @@ void GameplayTestWindow::render(float deltaTime) {
 
 	if (currentCursor) {
 		sf::View oldView = window->getView();
-		sf::View fixedView = sf::View(sf::FloatRect(0, -MAP_HEIGHT, MAP_WIDTH, MAP_HEIGHT));
+		sf::View fixedView = sf::View(sf::FloatRect(0, -(float)window->getSize().y, window->getSize().x, window->getSize().y));
 		auto pos = sf::Mouse::getPosition(*window);
 		currentCursor->setPosition(pos.x, pos.y - fixedView.getSize().y);
 		auto oldCursorScale = currentCursor->getScale();
@@ -576,6 +576,8 @@ void GameplayTestWindow::updateWindowView(int width, int height) {
 
 	externalEndTest->setSize(100.0f, TEXT_BOX_HEIGHT);
 	externalEndTest->setPosition(0, height - externalEndTest->getSize().y);
+
+    setCameraZoom(cameraZoom);
 }
 
 void GameplayTestWindow::onRenderWindowInitialization() {
@@ -646,8 +648,7 @@ void GameplayTestWindow::lookAt(float x, float y) {
 void GameplayTestWindow::setCameraZoom(float zoom) {
 	cameraZoom = zoom;
 	sf::View view = window->getView();
-	// Centered at negative y because SFML has (0, 0) at the top-left, and RenderSystem negates y-values so that (0, 0) in every other aspect of this game is bottom-left.
-	view.setSize(MAP_WIDTH / zoom, MAP_HEIGHT / zoom);
+	view.setSize(window->getSize().x / zoom, window->getSize().y / zoom);
 	window->setView(view);
 }
 
@@ -783,6 +784,10 @@ void GameplayTestWindow::endGameplayTest() {
 }
 
 void GameplayTestWindow::selectPlaceholder(std::shared_ptr<EntityPlaceholder> placeholder) {
+    if (testInProgress) {
+        return;
+    }
+
 	selectedPlaceholder = placeholder;
 	
 	ignoreSignal = true;
