@@ -287,6 +287,9 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	empiInheritSoundSettingsLabel = tgui::Label::create();
 	empiInheritSoundSettings = tgui::CheckBox::create();
 
+	empiSpawnType->setChangeItemOnScroll(false);
+	empiOnCollisionAction->setChangeItemOnScroll(false);
+	empiBulletModel->setChangeItemOnScroll(false);
 	empiActions->setItemHeight(20);
 
 	empiID->setTextSize(TEXT_SIZE);

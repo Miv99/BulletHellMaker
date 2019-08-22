@@ -19,6 +19,9 @@ AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprit
 	animatable = tgui::ComboBox::create();
 	rotationType = tgui::ComboBox::create();
 
+	animatable->setChangeItemOnScroll(false);
+	rotationType->setChangeItemOnScroll(false);
+
 	const std::map<std::string, std::shared_ptr<SpriteSheet>> sheets = spriteLoader.getSpriteSheets();
 	for (auto it = sheets.begin(); it != sheets.end(); it++) {
 		const std::map<std::string, std::shared_ptr<SpriteData>> spriteData = it->second->getSpriteData();
@@ -177,6 +180,8 @@ void AnimatablePicture::setSprite(SpriteLoader& spriteLoader, const std::string&
 
 SliderWithEditBox::SliderWithEditBox(float paddingX) : paddingX(paddingX) {
 	editBox = std::make_shared<NumericalEditBoxWithLimits>();
+
+    tgui::Slider::setChangeValueOnScroll(false);
 
 	tgui::Slider::connect("ValueChanged", [&](float value) {
 		editBox->setValue(value);
