@@ -750,7 +750,13 @@ void GameplayTestWindow::runGameplayTest() {
 
 		lookAt(MAP_WIDTH / 2.0f, -MAP_HEIGHT / 2.0f);
 		setCameraZoom(1);
-	}
+
+        if (bottomPanel->isVisible()) {
+            toggleLogsDisplay();
+        }
+    } else if (!bottomPanel->isVisible()) {
+        toggleLogsDisplay();
+    }
 }
 
 void GameplayTestWindow::endGameplayTest() {

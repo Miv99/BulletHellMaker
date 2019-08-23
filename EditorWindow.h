@@ -335,7 +335,9 @@ private:
 
 	void setPlacingNewEnemy(bool placingNewEnemy);
 	void setManuallySettingPlaceholderPosition(std::shared_ptr<EntityPlaceholder> placeholder, bool manuallySettingPlaceholderPosition);
-
+    /*
+    Toggle depends on whether bottomPanel is visible at the time of this function call.
+    */
 	void toggleLogsDisplay();
 	void clearLogs();
 	void logMessage(std::string message);
