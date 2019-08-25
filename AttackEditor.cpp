@@ -864,8 +864,6 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	empiPanel->add(empiInheritDamage);
 	empiPanel->add(empiInheritSoundSettingsLabel);
 	empiPanel->add(empiInheritSoundSettings);
-	//------------------ Play area window widgets --------------------------------
-
 
 	//------------------ EMPA info widgets ---------------------------------------
 	empaiPanel = tgui::ScrollablePanel::create();

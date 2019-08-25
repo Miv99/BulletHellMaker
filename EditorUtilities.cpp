@@ -99,7 +99,7 @@ void AnimatableChooser::onContainerResize(int containerWidth, int containerHeigh
 	animatable->setPosition(paddingX, paddingY);
 	rotationType->setPosition(tgui::bindLeft(animatable), tgui::bindBottom(animatable) + paddingY);
 
-	setSize(getSize().x, rotationType->getPosition().y + rotationType->getSize().y + paddingY);
+	setSize(containerWidth - paddingX * 2, rotationType->getPosition().y + rotationType->getSize().y + paddingY);
 	calculateItemsToDisplay();
 }
 
@@ -343,7 +343,7 @@ void SoundSettingsGroup::onContainerResize(int containerWidth, int containerHeig
 	pitchLabel->setPosition(tgui::bindLeft(enableAudioLabel), tgui::bindBottom(volume) + paddingY);
 	pitch->setPosition(enableAudioLabel->getPosition().x, pitchLabel->getPosition().y + pitchLabel->getSize().y + paddingY);
 
-	setSize(getSize().x, pitch->getPosition().y + pitch->getSize().y + paddingY);
+	setSize(containerWidth - paddingX * 2, pitch->getPosition().y + pitch->getSize().y + paddingY);
 }
 
 std::shared_ptr<entt::SigH<void(SoundSettings)>> SoundSettingsGroup::getOnNewSoundSettingsSignal() {
@@ -437,8 +437,9 @@ void NumericalEditBoxWithLimits::updateInputValidator() {
 	}
 }
 
-TFVGroup::TFVGroup(UndoStack& undoStack) : undoStack(undoStack) {
-	onTFVChange = std::make_shared<entt::SigH<void(std::shared_ptr<EMPAction>, std::shared_ptr<EditorMovablePoint>, std::shared_ptr<EditorAttack>)>>();
+TFVGroup::TFVGroup(UndoStack& undoStack, float paddingX, float paddingY) : undoStack(undoStack), paddingX(paddingX), paddingY(paddingY) {
+	onAttackTFVChange = std::make_shared<entt::SigH<void(std::shared_ptr<EMPAction>, std::shared_ptr<EditorMovablePoint>, std::shared_ptr<EditorAttack>)>>();
+	onEMPATFVChange = std::make_shared<entt::SigH<void(std::shared_ptr<EMPAction>)>>();
 
 	//TODO
 	test = tgui::Slider::create();
@@ -446,10 +447,10 @@ TFVGroup::TFVGroup(UndoStack& undoStack) : undoStack(undoStack) {
 		if (ignoreSignal) return;
 		undoStack.execute(UndoableCommand(
 			[this, value]() {
-			std::cout << "executed" << value << std::endl;
+			onTFVChange();
 		},
 		[this]() {
-			std::cout << "undo" << std::endl;
+			onTFVChange();
 		}));
 	});
 	add(test);
@@ -460,7 +461,7 @@ void TFVGroup::onContainerResize(int containerWidth, int containerHeight) {
 	test->setPosition(0, 0);
 	test->setSize(containerWidth, 20);
 
-	setSize(getSize().x, 25);
+	setSize(containerWidth - paddingX * 2, 25);
 }
 
 void TFVGroup::setTFV(std::shared_ptr<TFV> tfv, std::shared_ptr<EMPAction> parentEMPA, std::shared_ptr<EditorMovablePoint> parentEMP, std::shared_ptr<EditorAttack> parentAttack) {

@@ -7,6 +7,8 @@
 #include "AudioPlayer.h"
 #include "TimeFunctionVariable.h"
 #include "UndoStack.h"
+#include "DebugRenderSystem.h"
+#include "RenderSystem.h"
 #include "Attack.h"
 #include "EditorMovablePointAction.h"
 #include <memory>
@@ -201,7 +203,7 @@ because of the callback signal).
 */
 class TFVGroup : public tgui::Group {
 public:
-	TFVGroup(UndoStack& undoStack);
+	TFVGroup(UndoStack& undoStack, float paddingX = 20, float paddingY = 10);
 
 	/*
 	Should be called whenever this widget's container is resized.
@@ -209,10 +211,22 @@ public:
 	*/
 	void onContainerResize(int containerWidth, int containerHeight);
 
+	/*
+	Sets the TFV that this TFVGroup will be editing.
+	This particular setter is for TFVs that are part of EditorAttacks.
+	*/
 	void setTFV(std::shared_ptr<TFV> tfv, std::shared_ptr<EMPAction> parentEMPA, std::shared_ptr<EditorMovablePoint> parentEMP, std::shared_ptr<EditorAttack> parentAttack);
-	inline std::shared_ptr<entt::SigH<void(std::shared_ptr<EMPAction>, std::shared_ptr<EditorMovablePoint>, std::shared_ptr<EditorAttack>)>> getOnTFVChange() { return onTFVChange; }
+	/*
+	Sets the TFV that this TFVGroup will be editing.
+	This particular setter is for TFVs that are part of EMPAs but not EditorAttacks
+	*/
+	void setTFV(std::shared_ptr<TFV> tfv, std::shared_ptr<EMPAction> parentEMPA);
+	inline std::shared_ptr<entt::SigH<void(std::shared_ptr<EMPAction>, std::shared_ptr<EditorMovablePoint>, std::shared_ptr<EditorAttack>)>> getOnAttackTFVChange() { return onAttackTFVChange; }
+	inline std::shared_ptr<entt::SigH<void(std::shared_ptr<EMPAction>)>> getOnEMPATFVChange() { return onEMPATFVChange; }
 
 private:
+	float paddingX, paddingY;
+
 	UndoStack& undoStack;
 
 	std::shared_ptr<TFV> tfv;
@@ -222,13 +236,18 @@ private:
 
 	std::shared_ptr<tgui::Slider> test;
 
-	// Signal emitted AFTER a change is made to the TFV
+	// Signal emitted AFTER a change is made to the TFV, if this TFV belongs to some EditorAttack.
 	// The EMPA parameter is the EMPA that the TFV being edited belongs to. The EMP parameter is the EMP that the EMPA belongs to.
 	// The EditorAttack parameter is the EditorAttack that the EMP belongs to.
-	std::shared_ptr<entt::SigH<void(std::shared_ptr<EMPAction>, std::shared_ptr<EditorMovablePoint>, std::shared_ptr<EditorAttack>)>> onTFVChange;
+	std::shared_ptr<entt::SigH<void(std::shared_ptr<EMPAction>, std::shared_ptr<EditorMovablePoint>, std::shared_ptr<EditorAttack>)>> onAttackTFVChange;
+	// Same as above, but for TFVs that belong to an EMPA but not an EditorAttack.
+	std::shared_ptr<entt::SigH<void(std::shared_ptr<EMPAction>)>> onEMPATFVChange;
 
 	// This bool is used to prevent infinite loops (ie a change from an undo creating an undo command)
 	bool ignoreSignal = false;
+
+	// Should be called whenever a change is made to the TFV
+	void onTFVChange();
 };
 
 /*
@@ -258,11 +277,17 @@ private:
 	std::shared_ptr<EditorMovablePoint> parentEMP;
 	std::shared_ptr<EditorAttack> parentAttack;
 
+	std::shared_ptr<tgui::ComboBox> offsetType;
+	std::shared_ptr<SliderWithEditBox> x;
+	std::shared_ptr<SliderWithEditBox> y;
+
 	// Signal emitted AFTER a change is made to the EMPAAngleOffset
 	// The EMPA parameter is the EMPA that the TFV being edited belongs to. The EMP parameter is the EMP that the EMPA belongs to.
 	// The EditorAttack parameter is the EditorAttack that the EMP belongs to.
 	std::shared_ptr<entt::SigH<void(std::shared_ptr<EMPAction>, std::shared_ptr<EditorMovablePoint>, std::shared_ptr<EditorAttack>)>> onAngleOffsetChange;
 
+	// This bool is used to prevent infinite loops (ie a change from an undo creating an undo command)
+	bool ignoreSignal = false;
 };
 
 /*
