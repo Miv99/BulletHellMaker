@@ -136,7 +136,7 @@ private:
 
 	std::shared_ptr<EditorWindow> mainWindow;
 	// Window to view the play area
-	std::shared_ptr<EditorWindow> playAreaWindow;
+	std::shared_ptr<GameplayTestWindow> gameplayTestWindow;
 
 	UndoStack mainWindowUndoStack;
 
@@ -242,6 +242,7 @@ private:
 	std::shared_ptr<tgui::TreeView> emplTree;
 	std::shared_ptr<tgui::Button> emplCreateEMP;
 	std::shared_ptr<tgui::Button> emplDeleteEMP;
+	std::shared_ptr<tgui::Button> emplTestEMP;
 	//------------------ EMPA info widgets (empai__) ------------------------------
 	std::shared_ptr<tgui::ScrollablePanel> empaiPanel;
 
@@ -262,6 +263,7 @@ private:
 	std::shared_ptr<TFVGroup> empaiHomingStrength; // only for MovePlayerHomingEMPA
 	std::shared_ptr<tgui::Label> empaiHomingSpeedLabel;
 	std::shared_ptr<TFVGroup> empaiHomingSpeed; // only for MovePlayerHomingEMPA
+	std::shared_ptr<tgui::Button> empaiEditBezierControlPoints; // only for MoveCustomBezierEMPA
 
 	void onEmpaiDurationChange(float value);
 	/*

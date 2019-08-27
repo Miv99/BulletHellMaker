@@ -4,6 +4,18 @@
 #include <boost/filesystem.hpp>
 #include <iostream>
 
+std::string getID(std::shared_ptr<EMPAAngleOffset> offset) {
+	if (dynamic_cast<EMPAAngleOffsetZero*>(offset.get())) {
+		return "0";
+	} else if (dynamic_cast<EMPAAngleOffsetToPlayer*>(offset.get())) {
+		return "1";
+	} else if (dynamic_cast<EMPAAngleOffsetToGlobalPosition*>(offset.get())) {
+		return "3";
+	} else if (dynamic_cast<EMPAngleOffsetPlayerSpriteAngle*>(offset.get())) {
+		return "4";
+	}
+}
+
 std::shared_ptr<tgui::Label> createToolTip(std::string text) {
 	auto tooltip = tgui::Label::create();
 	tooltip->setMaximumTextWidth(300);
@@ -476,8 +488,47 @@ void TFVGroup::setTFV(std::shared_ptr<TFV> tfv, std::shared_ptr<EMPAction> paren
 	ignoreSignal = false;
 }
 
+void TFVGroup::setTFV(std::shared_ptr<TFV> tfv, std::shared_ptr<EMPAction> parentEMPA) {
+	this->tfv = tfv;
+	this->parentEMPA = parentEMPA;
+	this->parentEMP = nullptr;
+	this->parentAttack = nullptr;
+
+	ignoreSignal = true;
+	//TODO: set widget values
+	ignoreSignal = false;
+}
+
+void TFVGroup::onTFVChange() {
+	if (onAttackTFVChange && parentAttack) {
+		onAttackTFVChange->publish(parentEMPA, parentEMP, parentAttack);
+	}
+	if (onEMPATFVChange) {
+		onEMPATFVChange->publish(parentEMPA);
+	}
+}
+
 EMPAAngleOffsetGroup::EMPAAngleOffsetGroup(UndoStack& undoStack) : undoStack(undoStack) {
 	onAngleOffsetChange = std::make_shared<entt::SigH<void(std::shared_ptr<EMPAction>, std::shared_ptr<EditorMovablePoint>, std::shared_ptr<EditorAttack>)>>();
+
+	offsetType = tgui::ComboBox::create();
+	offsetType->setTextSize(TEXT_SIZE);
+	// ID are from getID()
+	offsetType->addItem("No offset", "1");
+	offsetType->addItem("To player", "2");
+	offsetType->addItem("To global position", "3");
+	offsetType->addItem("Player sprite angle", "4");
+	offsetType->connect("ItemSelected", [&](std::string item, std::string id) {
+		//TODO
+		if (ignoreSignal) return;
+		undoStack.execute(UndoableCommand(
+			[this]() {
+			
+		},
+			[this]() {
+			
+		}));
+	});
 }
 
 void EMPAAngleOffsetGroup::onContainerResize(int containerWidth, int containerHeight) {

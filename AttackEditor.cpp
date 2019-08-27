@@ -22,7 +22,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	tguiMutex = std::make_shared<std::mutex>();
 
 	mainWindow = std::make_shared<AttackEditorMainWindow>(tguiMutex, "Attack Editor", MAIN_WINDOW_WIDTH, 400, mainWindowUndoStack);
-	playAreaWindow = std::make_shared<GameplayTestWindow>(levelPack, spriteLoader, tguiMutex, "Attack Editor - Gameplay Test", MAP_WIDTH, MAP_HEIGHT);
+	gameplayTestWindow = std::make_shared<GameplayTestWindow>(levelPack, spriteLoader, tguiMutex, "Attack Editor - Gameplay Test", MAP_WIDTH, MAP_HEIGHT);
 
 	std::lock_guard<std::mutex> lock(*tguiMutex);
 
@@ -172,21 +172,26 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	emplLabel = tgui::Label::create();
 	emplCreateEMP = tgui::Button::create();
 	emplDeleteEMP = tgui::Button::create();
+	emplTestEMP = tgui::Button::create();
 
 	emplTree->getRenderer()->setBackgroundColor(sf::Color(190, 190, 190, 255));
 	emplTree->setItemHeight(TEXT_BOX_HEIGHT);
 
 	emplCreateEMP->setTextSize(TEXT_SIZE);
 	emplDeleteEMP->setTextSize(TEXT_SIZE);
+	emplTestEMP->setTextSize(TEXT_SIZE);
 	emplLabel->setMaximumTextWidth(0);
 	emplLabel->setTextSize(TEXT_SIZE);
 	emplLabel->setText("Movable points");
 
 	emplCreateEMP->setText("New");
 	emplDeleteEMP->setText("Delete");
+	emplTestEMP->setText("Test EMP");
 
 	emplCreateEMP->setToolTip(createToolTip("Create a new movable point"));
 	emplDeleteEMP->setToolTip(createToolTip("Delete the selected movable point"));
+	emplTestEMP->setToolTip(createToolTip("Tests the EMP's movement. The EMP must be legal to be tested. Note that only the movement actions are tested, \
+		not anything else. In the test, the EMP will not be attached to any parent."));
 	
 	emplTree->connect("ItemSelected", [&](sf::String nodeText) {
 		if (nodeText != "") {
@@ -224,11 +229,16 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			}));
 		}
 	});
+	emplTestEMP->connect("Pressed", [this, &selectedAttack = this->selectedAttack, &selectedEMP = this->selectedEMP]() {
+		gameplayTestWindow->addEMPTestPlaceholder(selectedEMP, true, selectedAttack->getID());
+		gameplayTestWindow->sendToForeground();
+	});
 
 	emplPanel->add(emplLabel);
 	emplPanel->add(emplTree);
 	emplPanel->add(emplCreateEMP);
 	emplPanel->add(emplDeleteEMP);
+	emplPanel->add(emplTestEMP);
 	//------------------ EMP info window widgets --------------------------------
 	empiPanel = tgui::ScrollablePanel::create();
 	empiID = tgui::Label::create();
@@ -820,6 +830,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	empiPanel->add(empiActionsAddBelow);
 	empiPanel->add(empiActionsDelete);
 	empiPanel->add(empiSpawnTypeLabel);
+
 	empiPanel->add(empiSpawnType);
 	empiPanel->add(empiSpawnTypeTimeLabel);
 	empiPanel->add(empiSpawnTypeTime);
@@ -882,6 +893,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	empaiHomingStrength = std::make_shared<TFVGroup>(mainWindowUndoStack);
 	empaiHomingSpeedLabel = tgui::Label::create();
 	empaiHomingSpeed = std::make_shared<TFVGroup>(mainWindowUndoStack);
+	empaiEditBezierControlPoints = tgui::Button::create();
 
 	empaiInfo->setTextSize(TEXT_SIZE);
 	empaiDurationLabel->setTextSize(TEXT_SIZE);
@@ -891,6 +903,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	empaiAngleOffsetLabel->setTextSize(TEXT_SIZE);
 	empaiHomingStrengthLabel->setTextSize(TEXT_SIZE);
 	empaiHomingSpeedLabel->setTextSize(TEXT_SIZE);
+	empaiEditBezierControlPoints->setTextSize(TEXT_SIZE);
 
 	empaiDurationLabel->setText("Duration");
 	empaiPolarDistanceLabel->setText("Distance as function of time");
@@ -899,14 +912,18 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	empaiAngleOffsetLabel->setText("Angle offset");
 	empaiHomingStrengthLabel->setText("Homing strength as function of time");
 	empaiHomingSpeedLabel->setText("Speed as function of time");
+	empaiEditBezierControlPoints->setText("Edit control points");
 
 	empaiDuration->getOnValueSet()->sink().connect<AttackEditor, &AttackEditor::onEmpaiDurationChange>(this);
-	empaiPolarDistance->getOnTFVChange()->sink().connect<AttackEditor, &AttackEditor::onEmpaiTFVChange>(this);
-	empaiPolarAngle->getOnTFVChange()->sink().connect<AttackEditor, &AttackEditor::onEmpaiTFVChange>(this);
+	empaiPolarDistance->getOnAttackTFVChange()->sink().connect<AttackEditor, &AttackEditor::onEmpaiTFVChange>(this);
+	empaiPolarAngle->getOnAttackTFVChange()->sink().connect<AttackEditor, &AttackEditor::onEmpaiTFVChange>(this);
 	//TODO: empaiBezierControlPoints callback
 	empaiAngleOffset->getOnAngleOffsetChange()->sink().connect<AttackEditor, &AttackEditor::onEmpaiTFVChange>(this);
-	empaiHomingStrength->getOnTFVChange()->sink().connect<AttackEditor, &AttackEditor::onEmpaiTFVChange>(this);
-	empaiHomingSpeed->getOnTFVChange()->sink().connect<AttackEditor, &AttackEditor::onEmpaiTFVChange>(this);
+	empaiHomingStrength->getOnAttackTFVChange()->sink().connect<AttackEditor, &AttackEditor::onEmpaiTFVChange>(this);
+	empaiHomingSpeed->getOnAttackTFVChange()->sink().connect<AttackEditor, &AttackEditor::onEmpaiTFVChange>(this);
+	empaiEditBezierControlPoints->connect("Pressed", [&]() {
+		//TODO
+	});
 
 	empaiPanel->add(empaiInfo);
 	empaiPanel->add(empaiDurationLabel);
@@ -924,18 +941,19 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	empaiPanel->add(empaiHomingStrength);
 	empaiPanel->add(empaiHomingSpeedLabel);
 	empaiPanel->add(empaiHomingSpeed);
+	empaiPanel->add(empaiEditBezierControlPoints);
 	//----------------------------------------------------------------------------
 
 	mainWindow->getResizeSignal()->sink().connect<AttackEditor, &AttackEditor::onMainWindowResize>(this);
 	onMainWindowResize(mainWindow->getWindowWidth(), mainWindow->getWindowHeight());
 
-	playAreaWindow->getResizeSignal()->sink().connect<AttackEditor, &AttackEditor::onPlayAreaWindowResize>(this);
-	onPlayAreaWindowResize(playAreaWindow->getWindowWidth(), playAreaWindow->getWindowHeight());
+	gameplayTestWindow->getResizeSignal()->sink().connect<AttackEditor, &AttackEditor::onPlayAreaWindowResize>(this);
+	onPlayAreaWindowResize(gameplayTestWindow->getWindowWidth(), gameplayTestWindow->getWindowHeight());
 }
 
 void AttackEditor::start() {
 	mainWindowThread = std::thread(&EditorWindow::start, mainWindow);
-	playAreaWindowThread = std::thread(&EditorWindow::start, playAreaWindow);
+	playAreaWindowThread = std::thread(&EditorWindow::start, gameplayTestWindow);
 
 	mainWindowThread.detach();
 	playAreaWindowThread.detach();
@@ -988,7 +1006,9 @@ void AttackEditor::onMainWindowResize(int windowWidth, int windowHeight) {
 	emplLabel->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
 	emplCreateEMP->setSize(100, TEXT_BUTTON_HEIGHT);
 	emplDeleteEMP->setSize(100, TEXT_BUTTON_HEIGHT);
-	emplCreateEMP->setPosition(tgui::bindLeft(emplTree), windowHeight - emplCreateEMP->getSize().y - GUI_PADDING_Y);
+	emplTestEMP->setSize(100, TEXT_BUTTON_HEIGHT);
+	emplTestEMP->setPosition(tgui::bindLeft(emplTree), windowHeight - emplCreateEMP->getSize().y - GUI_PADDING_Y);
+	emplCreateEMP->setPosition(tgui::bindLeft(emplTree), tgui::bindTop(emplTestEMP) - emplCreateEMP->getSize().y - GUI_PADDING_Y);
 	emplDeleteEMP->setPosition(tgui::bindRight(emplCreateEMP) + GUI_PADDING_X, tgui::bindTop(emplCreateEMP));
 	emplTree->setPosition(tgui::bindLeft(emplLabel), tgui::bindBottom(emplLabel) + GUI_PADDING_Y);
 	emplTree->setSize(emplAreaWidth - GUI_PADDING_X * 2, emplCreateEMP->getPosition().y - emplLabel->getPosition().y - emplLabel->getSize().y - GUI_PADDING_Y * 2);
@@ -1111,6 +1131,7 @@ void AttackEditor::onMainWindowResize(int windowWidth, int windowHeight) {
 	empaiHomingStrength->onContainerResize(empaiAreaWidth, windowHeight);
 	empaiHomingSpeed->setSize(empaiAreaWidth, 0);
 	empaiHomingSpeed->onContainerResize(empaiAreaWidth, windowHeight);
+	empaiEditBezierControlPoints->setSize(empaiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 
 	empaiInfo->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
 	empaiDurationLabel->setPosition(tgui::bindLeft(empaiInfo), tgui::bindBottom(empaiInfo) + GUI_PADDING_Y);
@@ -1122,7 +1143,8 @@ void AttackEditor::onMainWindowResize(int windowWidth, int windowHeight) {
 	empaiPolarAngleLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiPolarDistance) + GUI_PADDING_Y);
 	empaiPolarAngle->setPosition(0, tgui::bindBottom(empaiPolarAngleLabel));
 	empaiBezierControlPointsLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiAngleOffset) + GUI_PADDING_Y);
-	empaiBezierControlPoints->setPosition(0, tgui::bindBottom(empaiBezierControlPointsLabel));
+	empaiBezierControlPoints->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiBezierControlPointsLabel));
+	empaiEditBezierControlPoints->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiBezierControlPoints) + GUI_PADDING_Y);
 	empaiHomingStrengthLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiDuration) + GUI_PADDING_Y);
 	empaiHomingStrength->setPosition(0, tgui::bindBottom(empaiHomingStrengthLabel));
 	empaiHomingSpeedLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiHomingStrength) + GUI_PADDING_Y);
@@ -1210,6 +1232,9 @@ void AttackEditor::selectEMP(std::shared_ptr<EditorAttack> parentAttack, int emp
 	// Can't delete main EMP of an attack
 	emplDeleteEMP->setEnabled(empID != selectedAttack->getMainEMP()->getID());
 	emplTree->selectItem(selectedEMP->generatePathToThisEmp(getEMPTreeNodeText));
+	// Can only test EMP if it's legal
+	std::string useless;
+	emplTestEMP->setEnabled(selectedEMP->legal(*levelPack, *spriteLoader, useless));
 
 	bool isBullet = selectedEMP->getIsBullet();
 	bool usesModel = selectedEMP->usesBulletModel();
@@ -1277,6 +1302,7 @@ void AttackEditor::deselectEMP() {
 
 	emplCreateEMP->setEnabled(false);
 	emplDeleteEMP->setEnabled(false);
+	emplTestEMP->setEnabled(false);
 
 	empiID->setVisible(false);
 	empiIsBulletLabel->setVisible(false);
@@ -1350,6 +1376,7 @@ void AttackEditor::selectEMPA(int index) {
 		empaiPolarAngle->setVisible(true);
 		empaiPolarDistance->setTFV(concreteEMPA->getAngle(), selectedEMPA, selectedEMP, selectedAttack);
 		empaiBezierControlPoints->setVisible(false);
+		empaiEditBezierControlPoints->setVisible(false);
 		empaiAngleOffset->setVisible(true);
 		empaiHomingStrength->setVisible(false);
 		empaiHomingSpeed->setVisible(false);
@@ -1359,6 +1386,7 @@ void AttackEditor::selectEMPA(int index) {
 		empaiPolarDistance->setVisible(false);
 		empaiPolarAngle->setVisible(false);
 		empaiBezierControlPoints->setVisible(true);
+		empaiEditBezierControlPoints->setVisible(true);
 		empaiAngleOffset->setVisible(true);
 		empaiHomingStrength->setVisible(false);
 		empaiHomingSpeed->setVisible(false);
@@ -1368,6 +1396,7 @@ void AttackEditor::selectEMPA(int index) {
 		empaiPolarDistance->setVisible(false);
 		empaiPolarAngle->setVisible(false);
 		empaiBezierControlPoints->setVisible(false);
+		empaiEditBezierControlPoints->setVisible(false);
 		empaiAngleOffset->setVisible(false);
 		empaiHomingStrength->setVisible(true);
 		empaiHomingSpeed->setVisible(true);
@@ -1377,6 +1406,7 @@ void AttackEditor::selectEMPA(int index) {
 		empaiPolarDistance->setVisible(false);
 		empaiPolarAngle->setVisible(false);
 		empaiBezierControlPoints->setVisible(false);
+		empaiEditBezierControlPoints->setVisible(false);
 		empaiAngleOffset->setVisible(false);
 		empaiHomingStrength->setVisible(false);
 		empaiHomingSpeed->setVisible(false);
@@ -1386,6 +1416,7 @@ void AttackEditor::selectEMPA(int index) {
 		empaiPolarDistance->setVisible(false);
 		empaiPolarAngle->setVisible(false);
 		empaiBezierControlPoints->setVisible(false);
+		empaiEditBezierControlPoints->setVisible(false);
 		empaiAngleOffset->setVisible(false);
 		empaiHomingStrength->setVisible(false);
 		empaiHomingSpeed->setVisible(false);
@@ -1437,6 +1468,10 @@ void AttackEditor::setEMPWidgetValues(std::shared_ptr<EditorMovablePoint> emp, s
 	}
 
 	ignoreSignal = true;
+	// Can only test EMP if it's legal
+	std::string useless;
+	emplTestEMP->setEnabled(selectedEMP->legal(*levelPack, *spriteLoader, useless));
+
 	empiID->setText("ID: " + std::to_string(emp->getID()));
 	empiIsBullet->setChecked(emp->getIsBullet());
 	empiSpawnType->setSelectedItemById(getID(emp->getSpawnType()));

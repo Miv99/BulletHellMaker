@@ -48,6 +48,11 @@ public:
 	void closePopupWidget();
 
 	/*
+	Sends this window to the foreground of the computer display.
+	*/
+	void sendToForeground();
+
+	/*
 	Called every time window size changes.
 	*/
 	virtual void updateWindowView(int windowWidth, int windowHeight);
@@ -123,6 +128,12 @@ public:
 	GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std::shared_ptr<SpriteLoader> spriteLoader, std::shared_ptr<std::mutex> tguiMutex,
 		std::string windowTitle, int width, int height, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false,
 		float renderInterval = RENDER_INTERVAL);
+
+	/*
+	Adds a placeholder for testing EMPs. The EMP being tested for a particular placeholder cannot be changed.
+	See EMPTestEntityPlaceholder for explanations of parameters.
+	*/
+	void addEMPTestPlaceholder(std::shared_ptr<EditorMovablePoint> emp, bool empIsFromAttack, int sourceID);
 
 protected:
 	void handleEvent(sf::Event event) override;
@@ -206,6 +217,59 @@ private:
 		int testModeID;
 		bool testModeIDHasBeenSet = false;
 	};
+	/*
+	Placeholder for entities that represent control points when editing bezier EMPAs.
+	*/
+	class BezierControlPointPlaceholder : public EntityPlaceholder {
+	public:
+		/*
+		parentEMPA - the parent EMPA of the control point that this control point placeholder represents
+
+		Note that the control point being represented is not specified. When bezier control point editing ends in GameplayTestWindow, all existing
+		BezierControlPointPlaceholders will be converted to coordinates and back-inserted into the list of control points in the EMPA starting with
+		the placeholder with the lowest ID.
+		*/
+		inline BezierControlPointPlaceholder(int id, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, LevelPack& levelPack, std::shared_ptr<MoveCustomBezierEMPA> parentEMPA) :
+			EntityPlaceholder(id, registry, spriteLoader, levelPack), parentEMPA(parentEMPA) {
+		}
+
+		void runTest() override;
+		void spawnVisualEntity() override;
+
+	private:
+		std::shared_ptr<MoveCustomBezierEMPA> parentEMPA;
+	};
+	class EMPTestEntityPlaceholder : public EntityPlaceholder {
+	public:
+		/*
+		Constructor for placeholders that test EMPs that aren't part of an EditorAttack.
+
+		emp - EMP being tested
+		sourceID - ID of the EditorAttack emp comes from, if empFromAttack is true. If empFromAttack is false, sourceID is the EditorAttackPattern emp is from
+		empFromAttack - whether the emp comes from an EditorAttack (true) or an EditorAttackPattern (false)
+		*/
+		inline EMPTestEntityPlaceholder(int id, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, LevelPack& levelPack, EntityCreationQueue& queue, std::shared_ptr<EditorMovablePoint> emp, int sourceID, bool empFromAttack) :
+			EntityPlaceholder(id, registry, spriteLoader, levelPack), queue(queue), emp(emp), sourceID(sourceID), empFromAttack(empFromAttack) {
+		}
+
+		void runTest() override;
+		void spawnVisualEntity() override;
+		bool legalCheck(std::string& message, LevelPack& levelPack, SpriteLoader& spriteLoader);
+
+		inline int getEMPID() { return emp->getID(); }
+		inline bool empIsFromAttack() { return empFromAttack; }
+		inline int getSourceID() { return sourceID; }
+
+	private:
+		EntityCreationQueue& queue;
+		std::shared_ptr<EditorMovablePoint> emp;
+		int sourceID;
+		bool empFromAttack;
+
+		// List of precomputed positions of the EMP relative to its starting position. The list ends at either the first nondeterministic EMPA or the EMP's lifespan.
+		// These positions are calculated when runTest() is called.
+		std::vector<sf::Vector2f> positions;
+	};
 
 	const float GUI_PADDING_X = 20;
 	const float GUI_PADDING_Y = 10;
@@ -255,7 +319,7 @@ private:
 	std::shared_ptr<sf::Sprite> movingPlayerPlaceholderCursor;
 
 	std::shared_ptr<PlayerEntityPlaceholder> playerPlaceholder;
-	std::map<int, std::shared_ptr<EnemyEntityPlaceholder>> enemyPlaceholders; // Maps placeholder ID to placeholder
+	std::map<int, std::shared_ptr<EntityPlaceholder>> nonplayerPlaceholders; // Maps placeholder ID to placeholder; contains all EnemyEntityPlaceholders and EMPTestEntityPlaceholders
 	std::shared_ptr<EntityPlaceholder> selectedPlaceholder;
 	bool selectedPlaceholderIsPlayer;
 	int nextPlaceholderID = 0;
