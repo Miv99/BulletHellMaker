@@ -62,6 +62,7 @@ public:
 	inline int getWindowHeight() { return windowHeight; }
 	std::shared_ptr<entt::SigH<void(float)>> getRenderSignal();
 	std::shared_ptr<entt::SigH<void(int, int)>> getResizeSignal();
+	std::shared_ptr<entt::SigH<void()>> getCloseSignal();
 	inline std::shared_ptr<sf::RenderWindow> getWindow() { return window; }
 
 protected:
@@ -103,6 +104,8 @@ private:
 	std::shared_ptr<entt::SigH<void(float)>> renderSignal;
 	// Signal that's emitted every time the window resizes
 	std::shared_ptr<entt::SigH<void(int, int)>> resizeSignal;
+	// Signal that's emitted right before the window closes
+	std::shared_ptr<entt::SigH<void()>> closeSignal;
 };
 
 /*
