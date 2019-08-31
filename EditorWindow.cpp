@@ -6,6 +6,35 @@ EditorWindow::EditorWindow(std::shared_ptr<std::mutex> tguiMutex, std::string wi
 	tguiMutex(tguiMutex), windowTitle(windowTitle), windowWidth(width), windowHeight(height), scaleWidgetsOnResize(scaleWidgetsOnResize), letterboxingEnabled(letterboxingEnabled), renderInterval(renderInterval) {
 	std::lock_guard<std::mutex> lock(*tguiMutex);
 	gui = std::make_shared<tgui::Gui>();
+	closeSignal = std::make_shared<entt::SigH<void()>>();
+
+	confirmationPanel = tgui::Panel::create();
+	confirmationText = tgui::Label::create();
+	confirmationYes = tgui::Button::create();
+	confirmationNo = tgui::Button::create();
+	confirmationText->setTextSize(TEXT_SIZE);
+	confirmationYes->setTextSize(TEXT_SIZE);
+	confirmationNo->setTextSize(TEXT_SIZE);
+	confirmationText->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
+	confirmationYes->setText("Yes");
+	confirmationNo->setText("No");
+	confirmationYes->setSize(100.0f, TEXT_BUTTON_HEIGHT);
+	confirmationNo->setSize(100.0f, TEXT_BUTTON_HEIGHT);
+
+	confirmationYes->connect("Pressed", [&]() {
+		assert(confirmationSignal); // This button cannot be pressed unless promptConfirmation() was called first
+		confirmationSignal->publish(true);
+		closeConfirmationPanel();
+	});
+	confirmationNo->connect("Pressed", [&]() {
+		assert(confirmationSignal); // This button cannot be pressed unless promptConfirmation() was called first
+		confirmationSignal->publish(false);
+		closeConfirmationPanel();
+	});
+
+	confirmationPanel->add(confirmationText);
+	confirmationPanel->add(confirmationYes);
+	confirmationPanel->add(confirmationNo);
 }
 
 void EditorWindow::start() {
@@ -67,6 +96,24 @@ void EditorWindow::close() {
 	window->close();
 }
 
+std::shared_ptr<entt::SigH<void(bool)>> EditorWindow::promptConfirmation(std::string message) {
+	confirmationSignal = std::make_shared<entt::SigH<void(bool)>>();
+
+	// Disable all widgets
+	widgetsToBeEnabledAfterConfirmationPrompt.clear();
+	for (std::shared_ptr<tgui::Widget> ptr : gui->getWidgets()) {
+		if (ptr->isEnabled()) {
+			widgetsToBeEnabledAfterConfirmationPrompt.push_back(ptr);
+		}
+		ptr->setEnabled(false);
+	}
+
+	confirmationText->setText(message);
+	gui->add(confirmationPanel);
+
+	return confirmationSignal;
+}
+
 void EditorWindow::addPopupWidget(std::shared_ptr<tgui::Container> popupContainer, std::shared_ptr<tgui::Widget> popup) {
 	if (this->popup) {
 		closePopupWidget();
@@ -120,6 +167,12 @@ void EditorWindow::updateWindowView(int windowWidth, int windowHeight) {
 		gui->setView(sf::View(sf::Vector2f(windowWidth / 2.0f, windowHeight / 2.0f), sf::Vector2f(windowWidth, windowHeight)));
 	}
 
+	confirmationPanel->setSize(std::max(300.0f, windowWidth * 0.35f), std::max(200.0f, windowHeight * 0.25f));
+	confirmationPanel->setPosition(windowWidth / 2.0f - confirmationPanel->getSize().x / 2.0f, windowHeight / 2.0f - confirmationPanel->getSize().y / 2.0f);
+	confirmationText->setMaximumTextWidth(confirmationPanel->getSize().x - GUI_PADDING_X * 2);
+	confirmationYes->setPosition(confirmationPanel->getSize().x/2.0f - confirmationYes->getSize().x - GUI_PADDING_X/2.0f, confirmationPanel->getSize().y - confirmationYes->getSize().y - GUI_PADDING_Y);
+	confirmationNo->setPosition(tgui::bindRight(confirmationYes) + GUI_PADDING_X, tgui::bindTop(confirmationYes));
+
 	if (resizeSignal) {
 		resizeSignal->publish(windowWidth, windowHeight);
 	}
@@ -154,6 +207,14 @@ void EditorWindow::render(float deltaTime) {
 void EditorWindow::handleEvent(sf::Event event) {
 	std::lock_guard<std::mutex> lock(*tguiMutex);
 	gui->handleEvent(event);
+}
+
+void EditorWindow::closeConfirmationPanel() {
+	gui->remove(confirmationPanel);
+
+	for (auto ptr : widgetsToBeEnabledAfterConfirmationPrompt) {
+		ptr->setEnabled(true);
+	}
 }
 
 void UndoableEditorWindow::handleEvent(sf::Event event) {

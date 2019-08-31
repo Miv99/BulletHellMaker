@@ -44,11 +44,17 @@ public:
 	*/
 	void hide();
 
+	/*
+	Disables all widgets and then prompts the user with a custom message to which the user can respond with either a yes or a no.
+	A signal with one parameter is returned. The signal will be published only once, when the user responds. The bool parameter
+	will be true if the user responds with yes, false if no. After the user response, all widgets' enabled/disabled statuses are
+	set back to what they were before this function call.
+	Each call to promptConfirmation() returns a new signal.
+	*/
+	std::shared_ptr<entt::SigH<void(bool)>> promptConfirmation(std::string message);
+
 	void addPopupWidget(std::shared_ptr<tgui::Container> popupContainer, std::shared_ptr<tgui::Widget> popup);
 	void closePopupWidget();
-
-	/*
-	*/
 
 	/*
 	Called every time window size changes.
@@ -76,6 +82,9 @@ protected:
 	inline virtual void onRenderWindowInitialization() {}
 
 private:
+	const float GUI_PADDING_X = 20;
+	const float GUI_PADDING_Y = 10;
+
 	std::string windowTitle;
 	int windowWidth, windowHeight;
 
@@ -87,6 +96,15 @@ private:
 	std::shared_ptr<tgui::Widget> popup;
 	// The container that contains the popup
 	std::shared_ptr<tgui::Container> popupContainer;
+
+	// The widgets for the confirmation popup in promptConfirmation()
+	std::shared_ptr<tgui::Panel> confirmationPanel; // Not added to gui until promptConfirmation() is called; removed after user responds
+	std::shared_ptr<tgui::Label> confirmationText;
+	std::shared_ptr<tgui::Button> confirmationYes;
+	std::shared_ptr<tgui::Button> confirmationNo;
+
+	// A list of all Widgets in gui whose value of isEnabled() was true right before promptConfirmation() was called
+	std::list<std::shared_ptr<tgui::Widget>> widgetsToBeEnabledAfterConfirmationPrompt;
 
 	bool letterboxingEnabled;
 	bool scaleWidgetsOnResize;
@@ -104,6 +122,13 @@ private:
 	std::shared_ptr<entt::SigH<void(int, int)>> resizeSignal;
 	// Signal that's emitted right before the window closes
 	std::shared_ptr<entt::SigH<void()>> closeSignal;
+	// Signal for confirmation popup. See promptConfirmation().
+	std::shared_ptr<entt::SigH<void(bool)>> confirmationSignal;
+
+	/*
+	Call to stop the confirmation prompt started by promptConfirmation().
+	*/
+	void closeConfirmationPanel();
 };
 
 /*
