@@ -4,6 +4,11 @@
 #include <boost/filesystem.hpp>
 #include <iostream>
 
+#ifdef _WIN32
+#include <Windows.h>
+#include <WinUser.h>
+#endif
+
 std::string getID(std::shared_ptr<EMPAAngleOffset> offset) {
 	if (dynamic_cast<EMPAAngleOffsetZero*>(offset.get())) {
 		return "0";
@@ -14,6 +19,14 @@ std::string getID(std::shared_ptr<EMPAAngleOffset> offset) {
 	} else if (dynamic_cast<EMPAngleOffsetPlayerSpriteAngle*>(offset.get())) {
 		return "4";
 	}
+}
+
+void sendToForeground(sf::RenderWindow& window) {
+	// Windows only
+#ifdef _WIN32
+	SetForegroundWindow(window.getSystemHandle());
+#endif
+	//TODO other OS's if necessary
 }
 
 std::shared_ptr<tgui::Label> createToolTip(std::string text) {

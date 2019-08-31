@@ -1,10 +1,6 @@
 #include "EditorWindow.h"
 #include "Components.h"
 #include <algorithm>
-#ifdef _WIN32
-#include <Windows.h>
-#include <WinUser.h>
-#endif
 
 EditorWindow::EditorWindow(std::shared_ptr<std::mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval) :
 	tguiMutex(tguiMutex), windowTitle(windowTitle), windowWidth(width), windowHeight(height), scaleWidgetsOnResize(scaleWidgetsOnResize), letterboxingEnabled(letterboxingEnabled), renderInterval(renderInterval) {
@@ -84,14 +80,6 @@ void EditorWindow::closePopupWidget() {
 	popupContainer->remove(popup);
 	popup = nullptr;
 	popupContainer = nullptr;
-}
-
-void EditorWindow::sendToForeground() {
-	// Windows only
-	#ifdef _WIN32
-	SetForegroundWindow(window->getSystemHandle());
-	#endif
-	//TODO other OS's if necessary
 }
 
 void EditorWindow::updateWindowView(int windowWidth, int windowHeight) {

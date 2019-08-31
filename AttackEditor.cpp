@@ -231,7 +231,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	});
 	emplTestEMP->connect("Pressed", [this, &selectedAttack = this->selectedAttack, &selectedEMP = this->selectedEMP]() {
 		gameplayTestWindow->addEMPTestPlaceholder(selectedEMP, true, selectedAttack->getID());
-		gameplayTestWindow->sendToForeground();
+		sendToForeground(*gameplayTestWindow->getWindow());
 	});
 
 	emplPanel->add(emplLabel);

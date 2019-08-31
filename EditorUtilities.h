@@ -14,6 +14,10 @@
 #include <memory>
 #include <entt/entt.hpp>
 
+/*
+Sends window to the foreground of the computer display.
+*/
+void sendToForeground(sf::RenderWindow& window);
 std::shared_ptr<tgui::Label> createToolTip(std::string text);
 
 /*

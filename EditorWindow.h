@@ -48,9 +48,7 @@ public:
 	void closePopupWidget();
 
 	/*
-	Sends this window to the foreground of the computer display.
 	*/
-	void sendToForeground();
 
 	/*
 	Called every time window size changes.
