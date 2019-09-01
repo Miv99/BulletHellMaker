@@ -82,15 +82,15 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	aiPanel->add(aiPlayAttackAnimation);
 	//------------------ Attack list window widgets --------------------------------
 	alPanel = tgui::ScrollablePanel::create();
-	alList = tgui::ListBox::create();
+	alList = std::make_shared<ScrollableListBox>();
 	alSaveAll = tgui::Button::create();
 	alDiscardAll = tgui::Button::create();
 	alCreateAttack = tgui::Button::create();
 	alDeleteAttack = tgui::Button::create();
 
 	alList->setTextSize(TEXT_SIZE);
-	alList->setItemHeight(TEXT_BOX_HEIGHT);
-	alList->setMaximumItems(0);
+	alList->getListBox()->setItemHeight(TEXT_BOX_HEIGHT);
+	alList->getListBox()->setMaximumItems(0);
 
 	alSaveAll->setTextSize(TEXT_SIZE);
 	alDiscardAll->setTextSize(TEXT_SIZE);
@@ -110,7 +110,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	alCreateAttack->setToolTip(createToolTip("Create a new attack"));
 	alDeleteAttack->setToolTip(createToolTip("Delete the selected attack"));
 
-	alList->connect("ItemSelected", [&](std::string itemName, std::string itemID) {
+	alList->getListBox()->connect("ItemSelected", [&](std::string itemName, std::string itemID) {
 		if (itemID != "") {
 			selectAttack(std::stoi(itemID));
 		}
@@ -249,7 +249,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	empiDespawnTimeLabel = tgui::Label::create();
 	empiDespawnTime = std::make_shared<SliderWithEditBox>();
 	empiActionsLabel = tgui::Label::create();
-	empiActions = tgui::ListBox::create();
+	empiActions = std::make_shared<ScrollableListBox>();
 	empiActionsAddAbove = tgui::Button::create();
 	empiActionsAddBelow = tgui::Button::create();
 	empiActionsDelete = tgui::Button::create();
@@ -300,7 +300,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	empiSpawnType->setChangeItemOnScroll(false);
 	empiOnCollisionAction->setChangeItemOnScroll(false);
 	empiBulletModel->setChangeItemOnScroll(false);
-	empiActions->setItemHeight(20);
+	empiActions->getListBox()->setItemHeight(20);
 
 	empiID->setTextSize(TEXT_SIZE);
 	empiIsBulletLabel->setTextSize(TEXT_SIZE);
@@ -388,7 +388,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	});
 	empiHitboxRadius->getOnValueSet()->sink().connect<AttackEditor, &AttackEditor::onEmpiHitboxRadiusChange>(this);
 	empiDespawnTime->getOnValueSet()->sink().connect<AttackEditor, &AttackEditor::onEmpiDespawnTimeChange>(this);
-	empiActions->connect("ItemSelected", [&](std::string item, std::string id) {
+	empiActions->getListBox()->connect("ItemSelected", [&](std::string item, std::string id) {
 		if (ignoreSignal) return;
 		if (id == "") {
 			deselectEMPA();
@@ -396,7 +396,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			selectEMPA(std::stoi(id));
 		}
 	});
-	empiActionsAddAbove->connect("Pressed", [this, &selectedEMP = this->selectedEMP, &selectedEMPAIndex = this->selectedEMPAIndex]() {
+	empiActionsAddAbove->connect("Pressed", [this, &selectedEMP = this->selectedEMP, &selectedEMPAIndex = this->selectedEMPAIndex, &selectedAttack = this->selectedAttack]() {
 		if (ignoreSignal) return;
 		auto popup = tgui::ListBox::create();
 		popup->addItem("Bezier movement", "1");
@@ -407,7 +407,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 		popup->setItemHeight(20);
 		popup->setPosition(empiActionsAddAbove->getPosition());
 		popup->setSize(150, popup->getItemHeight() * popup->getItemCount());
-		popup->connect("ItemSelected", [this, selectedEMP, selectedEMPAIndex](std::string item, std::string id) {
+		popup->connect("ItemSelected", [this, selectedEMP, selectedAttack, selectedEMPAIndex](std::string item, std::string id) {
 			if (ignoreSignal) return;
 			int index;
 			if (selectedEMPAIndex == -1) {
@@ -417,64 +417,64 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			}
 			if (id == "1") {
 				mainWindowUndoStack.execute(UndoableCommand(
-					[this, index, selectedEMP]() {
+					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->insertAction(index, std::make_shared<MoveCustomBezierEMPA>());
 					selectEMPA(index);
-					buildEMPIActions();
+					setEMPWidgetValues(selectedEMP, selectedAttack, false);
 				},
-					[this, index, selectedEMP]() {
+					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->removeAction(index);
-					buildEMPIActions();
+					setEMPWidgetValues(selectedEMP, selectedAttack, false);
 				}));
 			} else if (id == "2") {
 				mainWindowUndoStack.execute(UndoableCommand(
-					[this, index, selectedEMP]() {
+					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->insertAction(index, std::make_shared<MoveCustomPolarEMPA>());
 					selectEMPA(index);
-					buildEMPIActions();
+					setEMPWidgetValues(selectedEMP, selectedAttack, false);
 				},
-					[this, index, selectedEMP]() {
+					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->removeAction(index);
-					buildEMPIActions();
+					setEMPWidgetValues(selectedEMP, selectedAttack, false); buildEMPIActions();
 				}));
 			} else if (id == "3") {
 				mainWindowUndoStack.execute(UndoableCommand(
-					[this, index, selectedEMP]() {
+					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->insertAction(index, std::make_shared<MovePlayerHomingEMPA>());
 					selectEMPA(index);
-					buildEMPIActions();
+					setEMPWidgetValues(selectedEMP, selectedAttack, false);
 				},
-					[this, index, selectedEMP]() {
+					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->removeAction(index);
-					buildEMPIActions();
+					setEMPWidgetValues(selectedEMP, selectedAttack, false);
 				}));
 			} else if (id == "4") {
 				mainWindowUndoStack.execute(UndoableCommand(
-					[this, index, selectedEMP]() {
+					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->insertAction(index, std::make_shared<StayStillAtLastPositionEMPA>());
 					selectEMPA(index);
-					buildEMPIActions();
+					setEMPWidgetValues(selectedEMP, selectedAttack, false);
 				},
-					[this, index, selectedEMP]() {
+					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->removeAction(index);
-					buildEMPIActions();
+					setEMPWidgetValues(selectedEMP, selectedAttack, false);
 				}));
 			} else if (id == "5") {
 				mainWindowUndoStack.execute(UndoableCommand(
-					[this, index, selectedEMP]() {
+					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->insertAction(index, std::make_shared<DetachFromParentEMPA>());
 					selectEMPA(index);
-					buildEMPIActions();
+					setEMPWidgetValues(selectedEMP, selectedAttack, false);
 				},
-					[this, index, selectedEMP]() {
+					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->removeAction(index);
-					buildEMPIActions();
+					setEMPWidgetValues(selectedEMP, selectedAttack, false);
 				}));
 			}
 		});
 		mainWindow->addPopupWidget(empiPanel, popup);
 	});
-	empiActionsAddBelow->connect("Pressed", [this, &selectedEMP = this->selectedEMP, &selectedEMPAIndex = this->selectedEMPAIndex]() {
+	empiActionsAddBelow->connect("Pressed", [this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, &selectedEMPAIndex = this->selectedEMPAIndex]() {
 		if (ignoreSignal) return;
 		auto popup = tgui::ListBox::create();
 		popup->addItem("Bezier movement", "1");
@@ -485,7 +485,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 		popup->setItemHeight(20);
 		popup->setPosition(empiActionsAddBelow->getPosition());
 		popup->setSize(150, popup->getItemHeight() * popup->getItemCount());
-		popup->connect("ItemSelected", [this, selectedEMP, selectedEMPAIndex](std::string item, std::string id) {
+		popup->connect("MousePressed", [this, selectedEMP, selectedAttack, selectedEMPAIndex](std::string item, std::string id) {
 			if (ignoreSignal) return;
 			int index;
 			if (selectedEMPAIndex == -1) {
@@ -495,58 +495,58 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			}
 			if (id == "1") {
 				mainWindowUndoStack.execute(UndoableCommand(
-					[this, index, selectedEMP]() {
+					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->insertAction(index, std::make_shared<MoveCustomBezierEMPA>());
 					selectEMPA(index);
-					buildEMPIActions();
+					setEMPWidgetValues(selectedEMP, selectedAttack, false);
 				},
-					[this, index, selectedEMP]() {
+					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->removeAction(index);
-					buildEMPIActions();
+					setEMPWidgetValues(selectedEMP, selectedAttack, false);
 				}));
 			} else if (id == "2") {
 				mainWindowUndoStack.execute(UndoableCommand(
-					[this, index, selectedEMP]() {
+					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->insertAction(index, std::make_shared<MoveCustomPolarEMPA>());
 					selectEMPA(index);
-					buildEMPIActions();
+					setEMPWidgetValues(selectedEMP, selectedAttack, false);
 				},
-					[this, index, selectedEMP]() {
+					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->removeAction(index);
-					buildEMPIActions();
+					setEMPWidgetValues(selectedEMP, selectedAttack, false); buildEMPIActions();
 				}));
 			} else if (id == "3") {
 				mainWindowUndoStack.execute(UndoableCommand(
-					[this, index, selectedEMP]() {
+					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->insertAction(index, std::make_shared<MovePlayerHomingEMPA>());
 					selectEMPA(index);
-					buildEMPIActions();
+					setEMPWidgetValues(selectedEMP, selectedAttack, false);
 				},
-					[this, index, selectedEMP]() {
+					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->removeAction(index);
-					buildEMPIActions();
+					setEMPWidgetValues(selectedEMP, selectedAttack, false);
 				}));
 			} else if (id == "4") {
 				mainWindowUndoStack.execute(UndoableCommand(
-					[this, index, selectedEMP]() {
+					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->insertAction(index, std::make_shared<StayStillAtLastPositionEMPA>());
 					selectEMPA(index);
-					buildEMPIActions();
+					setEMPWidgetValues(selectedEMP, selectedAttack, false);
 				},
-					[this, index, selectedEMP]() {
+					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->removeAction(index);
-					buildEMPIActions();
+					setEMPWidgetValues(selectedEMP, selectedAttack, false);
 				}));
 			} else if (id == "5") {
 				mainWindowUndoStack.execute(UndoableCommand(
-					[this, index, selectedEMP]() {
+					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->insertAction(index, std::make_shared<DetachFromParentEMPA>());
 					selectEMPA(index);
-					buildEMPIActions();
+					setEMPWidgetValues(selectedEMP, selectedAttack, false);
 				},
-					[this, index, selectedEMP]() {
+					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->removeAction(index);
-					buildEMPIActions();
+					setEMPWidgetValues(selectedEMP, selectedAttack, false);
 				}));
 			}
 		});
@@ -886,7 +886,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	empaiPolarAngleLabel = tgui::Label::create();
 	empaiPolarAngle = std::make_shared<TFVGroup>(mainWindowUndoStack);
 	empaiBezierControlPointsLabel = tgui::Label::create();
-	empaiBezierControlPoints = tgui::ListBox::create();
+	empaiBezierControlPoints = std::make_shared<ScrollableListBox>();
 	empaiAngleOffsetLabel = tgui::Label::create();
 	empaiAngleOffset = std::make_shared<EMPAAngleOffsetGroup>(mainWindowUndoStack);
 	empaiHomingStrengthLabel = tgui::Label::create();
@@ -922,7 +922,15 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	empaiHomingStrength->getOnAttackTFVChange()->sink().connect<AttackEditor, &AttackEditor::onEmpaiTFVChange>(this);
 	empaiHomingSpeed->getOnAttackTFVChange()->sink().connect<AttackEditor, &AttackEditor::onEmpaiTFVChange>(this);
 	empaiEditBezierControlPoints->connect("Pressed", [&]() {
-		//TODO
+		editingEMPABezierControlPoints = true;
+
+		// Block all user input
+		ibPanel->setVisible(true);
+		ibText->setText("Currently editing bezier control points for Attack ID " + std::to_string(selectedAttack->getID()) + ", EMP ID " + 
+			std::to_string(selectedEMP->getID()) + ", EMPA #" + std::to_string(selectedEMPAIndex + 1) + " in the gameplay test window.");
+
+		gameplayTestWindow->beginEditingBezierControlPoints(dynamic_cast<MoveCustomBezierEMPA*>(selectedEMPA.get()));
+		sendToForeground(*gameplayTestWindow->getWindow());
 	});
 
 	empaiPanel->add(empaiInfo);
@@ -942,13 +950,20 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	empaiPanel->add(empaiHomingSpeedLabel);
 	empaiPanel->add(empaiHomingSpeed);
 	empaiPanel->add(empaiEditBezierControlPoints);
+	//------------------ Input blocker widgets ---------------------------------------
+	ibPanel = tgui::Panel::create();
+	ibText = tgui::Label::create();
+
+	ibPanel->setVisible(false);
+	ibText->setTextSize(TEXT_SIZE);
+
+	ibPanel->add(ibText);
 	//----------------------------------------------------------------------------
 
 	mainWindow->getResizeSignal()->sink().connect<AttackEditor, &AttackEditor::onMainWindowResize>(this);
 	onMainWindowResize(mainWindow->getWindowWidth(), mainWindow->getWindowHeight());
-
-	gameplayTestWindow->getResizeSignal()->sink().connect<AttackEditor, &AttackEditor::onPlayAreaWindowResize>(this);
-	onPlayAreaWindowResize(gameplayTestWindow->getWindowWidth(), gameplayTestWindow->getWindowHeight());
+	gameplayTestWindow->getCloseSignal()->sink().connect<AttackEditor, &AttackEditor::onGameplayTestWindowClose>(this);
+	gameplayTestWindow->getOnBezierControlPointEditingEndSignal()->sink().connect<AttackEditor, &AttackEditor::onGameplayTestWindowBezierControlPointsEditingEnd>(this);
 }
 
 void AttackEditor::start() {
@@ -966,6 +981,7 @@ void AttackEditor::start() {
 	mainWindowGui->add(emplPanel);
 	mainWindowGui->add(empiPanel);
 	mainWindowGui->add(empaiPanel);
+	mainWindowGui->add(ibPanel);
 
 	deselectAttack();
 }
@@ -999,6 +1015,7 @@ void AttackEditor::onMainWindowResize(int windowWidth, int windowHeight) {
 	alSaveAll->setPosition(tgui::bindLeft(alList), tgui::bindTop(alCreateAttack) - alSaveAll->getSize().y - GUI_PADDING_Y);
 	alDiscardAll->setPosition(tgui::bindRight(alSaveAll) + GUI_PADDING_X, tgui::bindTop(alSaveAll));
 	alList->setSize(alAreaWidth - GUI_PADDING_X * 2, alSaveAll->getPosition().y - GUI_PADDING_Y * 2);
+	alList->onResize();
 
 	const float emplAreaWidth = windowWidth * 0.25f;
 	emplPanel->setPosition(tgui::bindRight(aiPanel), 0);
@@ -1019,6 +1036,7 @@ void AttackEditor::onMainWindowResize(int windowWidth, int windowHeight) {
 	empiHitboxRadius->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 	empiDespawnTime->setSize(empiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 	empiActions->setSize(empiAreaWidth - GUI_PADDING_X * 2, 250);
+	empiActions->onResize();
 	empiActionsAddAbove->setSize(100, TEXT_BOX_HEIGHT);
 	empiActionsAddBelow->setSize(100, TEXT_BOX_HEIGHT);
 	empiActionsDelete->setSize(100, TEXT_BOX_HEIGHT);
@@ -1125,6 +1143,7 @@ void AttackEditor::onMainWindowResize(int windowWidth, int windowHeight) {
 	empaiPolarAngle->setSize(empaiAreaWidth, 0);
 	empaiPolarAngle->onContainerResize(empaiAreaWidth, windowHeight);
 	empaiBezierControlPoints->setSize(empaiAreaWidth - GUI_PADDING_X * 2, 200);
+	empaiBezierControlPoints->onResize();
 	empaiAngleOffset->setSize(empaiAreaWidth, 0);
 	empaiAngleOffset->onContainerResize(empaiAreaWidth, windowHeight);
 	empaiHomingStrength->setSize(empaiAreaWidth, 0);
@@ -1149,9 +1168,11 @@ void AttackEditor::onMainWindowResize(int windowWidth, int windowHeight) {
 	empaiHomingStrength->setPosition(0, tgui::bindBottom(empaiHomingStrengthLabel));
 	empaiHomingSpeedLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiHomingStrength) + GUI_PADDING_Y);
 	empaiHomingSpeed->setPosition(0, tgui::bindBottom(empaiHomingSpeedLabel));
-}
 
-void AttackEditor::onPlayAreaWindowResize(int windowWidth, int windowHeight) {
+	ibPanel->setPosition(0, 0);
+	ibPanel->setSize("100%", "100%");
+	ibText->setMaximumTextWidth(ibPanel->getSize().x - GUI_PADDING_X * 2);
+	ibText->setPosition(GUI_PADDING_X, (ibPanel->getSize().y - ibText->getSize().y) / 2.0f);
 }
 
 void AttackEditor::reload() {
@@ -1199,7 +1220,7 @@ void AttackEditor::selectAttack(int id) {
 	}
 
 	aiName->setReadOnly(false);
-	alList->setSelectedItemById(std::to_string(id));
+	alList->getListBox()->setSelectedItemById(std::to_string(id));
 	buildEMPTree();
 	alDeleteAttack->setEnabled(true);
 
@@ -1215,7 +1236,7 @@ void AttackEditor::deselectAttack() {
 	aiName->setReadOnly(true);
 	aiPlayAttackAnimation->setChecked(false);
 	emplTree->removeAllItems();
-	alList->deselectItem();
+	alList->getListBox()->deselectItem();
 	alDeleteAttack->setEnabled(false);
 }
 
@@ -1223,6 +1244,7 @@ void AttackEditor::selectEMP(std::shared_ptr<EditorAttack> parentAttack, int emp
 	if (selectedAttack && selectedAttack->getID() != parentAttack->getID()) {
 		selectAttack(parentAttack->getID());
 	}
+	deselectEMPA();
 	
 	// A copy of the EMP is not necessary because a copy of the selected attack has already been made
 	// when selecting an attack.
@@ -1392,6 +1414,7 @@ void AttackEditor::selectEMPA(int index) {
 		empaiHomingSpeed->setVisible(false);
 		empaiInfo->setText("Attack ID: " + tos(selectedAttack->getID()) + "\nMovable point ID: " + tos(selectedEMP->getID())
 			+ "\nBezier movement action");
+		populateEmpaiBezierControlPoints(selectedEMPA);
 	} else if (dynamic_cast<MovePlayerHomingEMPA*>(selectedEMPA.get())) {
 		empaiPolarDistance->setVisible(false);
 		empaiPolarAngle->setVisible(false);
@@ -1605,8 +1628,9 @@ void AttackEditor::deleteAttack(std::shared_ptr<EditorAttack> attack, bool autoS
 	if (selectedAttack && selectedAttack->getID() == attack->getID()) {
 		deselectAttack();
 	}
-	alList->removeItemById(std::to_string(attack->getID()));
-	
+	alList->getListBox()->removeItemById(std::to_string(attack->getID()));
+	alList->onListBoxItemsChange();
+
 	if (unsavedAttacks.count(attack->getID()) > 0) {
 		unsavedAttacks.erase(attack->getID());
 	}
@@ -1619,9 +1643,10 @@ void AttackEditor::saveAttack(std::shared_ptr<EditorAttack> attack) {
 	levelPack->updateAttack(attack);
 
 	int id = attack->getID();
-	if (alList->containsId(std::to_string(id))) {
-		alList->changeItemById(std::to_string(id), attack->getName() + " [id=" + std::to_string(id) + "]");
+	if (alList->getListBox()->containsId(std::to_string(id))) {
+		alList->getListBox()->changeItemById(std::to_string(id), attack->getName() + " [id=" + std::to_string(id) + "]");
 	}
+	alList->onListBoxItemsChange();
 	if (unsavedAttacks.count(id) > 0) {
 		unsavedAttacks.erase(id);
 	}
@@ -1635,9 +1660,10 @@ void AttackEditor::discardAttackChanges(std::shared_ptr<EditorAttack> attack) {
 	std::shared_ptr<EditorAttack> revertedAttack = levelPack->getAttack(attack->getID());
 
 	int id = attack->getID();
-	if (alList->containsId(std::to_string(id))) {
-		alList->changeItemById(std::to_string(id), revertedAttack->getName() + " [id=" + std::to_string(id) + "]");
+	if (alList->getListBox()->containsId(std::to_string(id))) {
+		alList->getListBox()->changeItemById(std::to_string(id), revertedAttack->getName() + " [id=" + std::to_string(id) + "]");
 	}
+	alList->onListBoxItemsChange();
 	if (selectedAttack && selectedAttack->getID() == id) {
 		deselectAttack();
 	}
@@ -1678,11 +1704,11 @@ void AttackEditor::setAttackWidgetValues(std::shared_ptr<EditorAttack> attackWit
 	if (attackWasModified) {
 		unsavedAttacks[id] = attackWithUnsavedChanges;
 	}
-	
 	// Add asterisk to the entry in attack list
 	if (attackWasModified && unsavedAttacks.count(id) > 0) {
-		alList->changeItemById(std::to_string(id), "*" + attackWithUnsavedChanges->getName() + " [id=" + std::to_string(id) + "]");
+		alList->getListBox()->changeItemById(std::to_string(id), "*" + attackWithUnsavedChanges->getName() + " [id=" + std::to_string(id) + "]");
 	}
+	alList->onListBoxItemsChange();
 
 	aiID->setText("Attack ID: " + std::to_string(id));
 	aiName->setText(selectedAttack->getName());
@@ -1707,7 +1733,18 @@ void AttackEditor::setEMPAWidgetValues(std::shared_ptr<EMPAction> empa, std::sha
 		}
 	}
 
-	// Since EditorUtilities::TFVGroup already takes care of undos, there is no need to set widget values here
+	// Since EditorUtilities::TFVGroup already takes care of undos, there is no need to set those widgets' values here
+
+	if (dynamic_cast<MoveCustomBezierEMPA*>(empa.get())) {
+		populateEmpaiBezierControlPoints(selectedEMPA);
+	}
+
+	// This function is called only when a change is made to an EMPA and therefore also to the parent EditorAttack as well
+	int id = parentAttack->getID();
+	unsavedAttacks[id] = parentAttack;
+	// Add asterisk to the entry in attack list
+	alList->getListBox()->changeItemById(std::to_string(id), "*" + parentAttack->getName() + " [id=" + std::to_string(id) + "]");
+	alList->onListBoxItemsChange();
 }
 
 void AttackEditor::buildEMPTree() {
@@ -1731,27 +1768,29 @@ sf::String AttackEditor::getEMPTreeNodeText(const EditorMovablePoint& emp) {
 }
 
 void AttackEditor::buildEMPIActions() {
-	empiActions->removeAllItems();
+	empiActions->getListBox()->removeAllItems();
 	auto actions = selectedEMP->getActions();
 	float curTime = 0;
 	for (int i = 0; i < actions.size(); i++) {
-		empiActions->addItem("[t=" + formatNum(curTime) + "] " + actions[i]->getGuiFormat(), std::to_string(i));
+		empiActions->getListBox()->addItem("[t=" + formatNum(curTime) + "] " + actions[i]->getGuiFormat(), std::to_string(i));
 	}
+	empiActions->onListBoxItemsChange();
 }
 
 void AttackEditor::buildAttackList(bool autoscrollToBottom) {
-	alList->removeAllItems();
+	alList->getListBox()->removeAllItems();
 	if (!autoscrollToBottom) {
-		alList->setAutoScroll(false);
+		alList->getListBox()->setAutoScroll(false);
 	}
 	for (auto it = levelPack->getAttackIteratorBegin(); it != levelPack->getAttackIteratorEnd(); it++) {
 		if (unsavedAttacks.count(it->second->getID()) > 0) {
-			alList->addItem("*" + it->second->getName() + " [id=" + std::to_string(it->second->getID()) + "]", std::to_string(it->second->getID()));
+			alList->getListBox()->addItem("*" + it->second->getName() + " [id=" + std::to_string(it->second->getID()) + "]", std::to_string(it->second->getID()));
 		} else {
-			alList->addItem(it->second->getName() + " [id=" + std::to_string(it->second->getID()) + "]", std::to_string(it->second->getID()));
+			alList->getListBox()->addItem(it->second->getName() + " [id=" + std::to_string(it->second->getID()) + "]", std::to_string(it->second->getID()));
 		}
 	}
-	alList->setAutoScroll(true);
+	alList->getListBox()->setAutoScroll(true);
+	alList->onListBoxItemsChange();
 }
 
 void AttackEditor::onMainWindowRender(float deltaTime) {
@@ -1759,6 +1798,31 @@ void AttackEditor::onMainWindowRender(float deltaTime) {
 
 	empiAnimatable->getAnimatablePicture()->update(deltaTime);
 	empiBaseSprite->getAnimatablePicture()->update(deltaTime);
+}
+
+void AttackEditor::onGameplayTestWindowClose() {
+	if (editingEMPABezierControlPoints) {
+		onGameplayTestWindowBezierControlPointsEditingEnd(false, std::vector<sf::Vector2f>());
+	}
+}
+
+void AttackEditor::onGameplayTestWindowBezierControlPointsEditingEnd(bool changesWereMade, std::vector<sf::Vector2f> newControlPoints) {
+	// Stop blocking input
+	ibPanel->setVisible(false);
+
+	if (changesWereMade) {
+		MoveCustomBezierEMPA* bezierEMPA = dynamic_cast<MoveCustomBezierEMPA*>(selectedEMPA.get());
+		std::vector<sf::Vector2f> oldControlPoints = bezierEMPA->getUnrotatedControlPoints();
+		mainWindowUndoStack.execute(UndoableCommand(
+			[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, &bezierEMPA = bezierEMPA, &selectedEMPA = selectedEMPA, newControlPoints]() {
+			bezierEMPA->setUnrotatedControlPoints(newControlPoints);
+			setEMPAWidgetValues(selectedEMPA, selectedEMP, selectedAttack);
+		},
+			[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, &bezierEMPA = bezierEMPA, &selectedEMPA = selectedEMPA, oldControlPoints]() {
+			bezierEMPA->setUnrotatedControlPoints(oldControlPoints);
+			setEMPAWidgetValues(selectedEMPA, selectedEMP, selectedAttack);
+		}));
+	}
 }
 
 void AttackEditor::onEmpiHitboxRadiusChange(float value) {
@@ -1931,6 +1995,17 @@ void AttackEditor::onEmpiPierceResetTimeChange(float value) {
 
 void AttackEditorMainWindow::handleEvent(sf::Event event) {
 	UndoableEditorWindow::handleEvent(event);
+}
+
+void AttackEditor::populateEmpaiBezierControlPoints(std::shared_ptr<EMPAction> empa) {
+	empaiBezierControlPoints->getListBox()->removeAllItems();
+	MoveCustomBezierEMPA* bezier = dynamic_cast<MoveCustomBezierEMPA*>(empa.get());
+	int i = 0;
+	for (sf::Vector2f cp : bezier->getUnrotatedControlPoints()) {
+		empaiBezierControlPoints->getListBox()->addItem("[" + std::to_string(i + 1) + "] x=" + std::to_string(cp.x) + 
+			" y=" + std::to_string(cp.y) , std::to_string(i++));
+	}
+	empaiBezierControlPoints->onListBoxItemsChange();
 }
 
 void AttackEditor::onEmpaiDurationChange(float value) {

@@ -45,15 +45,13 @@ public:
 	Should be called every time the main window is resized.
 	*/
 	void onMainWindowResize(int windowWidth, int windowHeight);
-	/*
-	Should be called every time the play area window is resized.
-	*/
-	void onPlayAreaWindowResize(int windowWidth, int windowHeight);
 
 private:
 	const float GUI_PADDING_X = 20;
 	const float GUI_PADDING_Y = 10;
 	const int UNDO_STACK_MAX = 100;
+
+	bool editingEMPABezierControlPoints = false;
 
 	/*
 	Reload all widgets to reflect changes made in the LevelPack.
@@ -131,6 +129,8 @@ private:
 	void buildAttackList(bool autoscrollToBottom);
 
 	void onMainWindowRender(float deltaTime);
+	void onGameplayTestWindowClose();
+	void onGameplayTestWindowBezierControlPointsEditingEnd(bool changesWereMade, std::vector<sf::Vector2f> newControlPoints);
 
 	std::shared_ptr<LevelPack> levelPack;
 
@@ -162,7 +162,7 @@ private:
 	std::shared_ptr<SliderWithEditBox> empiDespawnTime;
 	std::shared_ptr<tgui::Label> empiActionsLabel;
 	// Entry ID is index in list of the EMP's actions
-	std::shared_ptr<tgui::ListBox> empiActions;
+	std::shared_ptr<ScrollableListBox> empiActions;
 	// if no EMPA is selected, this button adds a new EMPA at index 0; otherwise add at selectedEMPAIndex - 1
 	std::shared_ptr<tgui::Button> empiActionsAddAbove;
 	// if no EMPA is selected, this button adds a new EMPA at last index; otherwise add at selectedEMPAIndex + 1
@@ -230,7 +230,7 @@ private:
 	//------------------ Attack list widgets (al__) --------------------------------
 	std::shared_ptr<tgui::ScrollablePanel> alPanel;
 
-	std::shared_ptr<tgui::ListBox> alList;
+	std::shared_ptr<ScrollableListBox> alList;
 	std::shared_ptr<tgui::Button> alSaveAll;
 	std::shared_ptr<tgui::Button> alDiscardAll;
 	std::shared_ptr<tgui::Button> alCreateAttack;
@@ -255,7 +255,8 @@ private:
 	std::shared_ptr<tgui::Label> empaiPolarAngleLabel;
 	std::shared_ptr<TFVGroup> empaiPolarAngle; // only for MoveCustomPolarEMPA
 	std::shared_ptr<tgui::Label> empaiBezierControlPointsLabel;
-	std::shared_ptr<tgui::ListBox> empaiBezierControlPoints; // only for MoveCustomBezierEMPA
+	// ID in each item is the control point index
+	std::shared_ptr<ScrollableListBox> empaiBezierControlPoints; // only for MoveCustomBezierEMPA
 	//TODO: button to add/delete bezier control points
 	std::shared_ptr<tgui::Label> empaiAngleOffsetLabel;
 	std::shared_ptr<EMPAAngleOffsetGroup> empaiAngleOffset; // for MoveCustomPolarEMPA and MoveCustomBezierEMPA
@@ -265,6 +266,11 @@ private:
 	std::shared_ptr<TFVGroup> empaiHomingSpeed; // only for MovePlayerHomingEMPA
 	std::shared_ptr<tgui::Button> empaiEditBezierControlPoints; // only for MoveCustomBezierEMPA
 
+	/*
+	Populates empaiBezierControlPoints with the control points in empa.
+	empa must be a MoveCustomBezierEMPA.
+	*/
+	void populateEmpaiBezierControlPoints(std::shared_ptr<EMPAction> empa);
 	void onEmpaiDurationChange(float value);
 	/*
 	Note that unlike the other "on_____Change" functions, this one is called AFTER the change has already been made. 
@@ -276,6 +282,10 @@ private:
 	parentAttack - the EditorAttack parentEMP belongs to
 	*/
 	void onEmpaiTFVChange(std::shared_ptr<EMPAction> empa, std::shared_ptr<EditorMovablePoint> parentEMP, std::shared_ptr<EditorAttack> parentAttack);
+	//------------------ Input blocker widgets (ib___) ------------------------------
+	std::shared_ptr<tgui::Panel> ibPanel;
+	std::shared_ptr<tgui::Label> ibText;
+
 	// -----------------------------------------------------------------------------------
 
 	// Threads for the above windows

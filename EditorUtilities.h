@@ -78,6 +78,11 @@ private:
 	bool mustBeInt = false;
 };
 
+/*
+Widget that 
+The AnimatablePicture from getAnimatablePicture() is not added to the AnimatableChooser Group, so it must be added to the AnimatableChooser's
+container separately. For the same reason, its size and positions do not change with AnimatableChooser's changes.
+*/
 class AnimatableChooser : public tgui::Group {
 public:
 	/*
@@ -126,9 +131,11 @@ private:
 /*
 A slider whose value can be set with a NumericalEditBoxWithLimits located on its right.
 
+The EditBox from getEditBox() is not added to the SliderWithEditBox since SliderWithEditBox is not a container,
+so the EditBox must be added to the SliderWithEditBox's container separately. 
+
 Note: connect() should not be used on neither this nor the edit box; use getOnValueSet()'s signal instead.
 To get the value, use tgui::Slider::getValue(), not the edit box's value.
-Remember to also add getEditBox() to whatever container this is in.
 Only SliderWithEditBox::setSize() and setPosition() should be called, not any of tgui::Slider's setSize()'s or setPosition()'s
 */
 class SliderWithEditBox : public tgui::Slider {
@@ -296,10 +303,25 @@ private:
 
 /*
 A tgui::ListBox that can scroll horizontally as well as vertically.
+The ListBox from getListBox() does not have to be added to a container, since it is already a part of the super ScrollablePanel.
 */
 class ScrollableListBox : public tgui::ScrollablePanel {
 public:
-	//TODO: create a ListBox and insert it into this; every time an item is added/removed, track the width of the item by setting a tgui::Label
-	// to have that text, then checking the label's width. this scrollablepanel's width is then set to that max width
-	// The ListBox will be the same size as this scrollablepanel
+	ScrollableListBox();
+	/*
+	Should be called anytime an item is added, removed, or changed from the ListBox.
+	*/
+	void onListBoxItemsChange();
+	/*
+	Should be called after the ScrollableListBox is resized.
+	*/
+	inline void onResize() { onListBoxItemsChange(); }
+
+	void setTextSize(int textSize);
+	inline std::shared_ptr<tgui::ListBox> getListBox() { return listBox; }
+
+private:
+	std::shared_ptr<tgui::ListBox> listBox;
+	std::shared_ptr<tgui::Label> textWidthChecker;
+	float longestWidth;
 };

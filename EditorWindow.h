@@ -113,7 +113,7 @@ private:
 	// tgui::Gui draw() calls also can't be done at the same time.
 	// Apparently tgui gets super messed up with multithreading.
 	std::shared_ptr<std::mutex> tguiMutex;
-
+	
 	float renderInterval;
 	// Signal that's emitted every time a render call is made
 	// function accepts 1 argument: the time since the last render
@@ -161,6 +161,23 @@ public:
 	*/
 	void addEMPTestPlaceholder(std::shared_ptr<EditorMovablePoint> emp, bool empIsFromAttack, int sourceID);
 
+	/*
+	bezierEMPA - the MoveCustomBezierEMPA whose control points will be edited
+	*/
+	void beginEditingBezierControlPoints(MoveCustomBezierEMPA* bezierEMPA);
+	/*
+	saveChanges - whether changes to the control points should be saved by whoever called beginEditingBezierControlPoints()
+	newControlPoints - the new control points; ignored if saveChanges is false
+	*/
+	void endEditingBezierControlPoints(bool saveChanges, std::vector<sf::Vector2f> newControlPoints);
+
+	/*
+	id - the desired ID of the new placeholder
+	*/
+	void insertBezierControlPointPlaceholder(int id, float x, float y);
+
+	inline std::shared_ptr<entt::SigH<void(bool, std::vector<sf::Vector2f>)>> getOnBezierControlPointEditingEndSignal() { return onBezierControlPointEditingEnd; }
+
 protected:
 	void handleEvent(sf::Event event) override;
 	void physicsUpdate(float deltaTime) override;
@@ -176,13 +193,14 @@ private:
 			spriteLoader(spriteLoader), levelPack(levelPack) {}
 
 		void moveTo(float x, float y);
-		virtual void runTest() = 0;
-		void endTest();
+		virtual void runTest(std::shared_ptr<std::mutex> registryMutex) = 0;
+		void endTest(std::shared_ptr<std::mutex> registryMutex);
 		bool wasClicked(int worldX, int worldY);
 		// Should be called when the EntityPlaceholder is removed from the GameplayTestWindow
-		void removePlaceholder();
+		void removePlaceholder(std::shared_ptr<std::mutex> registryMutex);
 		virtual void spawnVisualEntity() = 0;
 
+		inline void setID(int id) { this->id = id; }
 		inline int getID() { return id; }
 		inline float getX() { return x; }
 		inline float getY() { return y; }
@@ -211,7 +229,7 @@ private:
 		inline PlayerEntityPlaceholder(int id, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, LevelPack& levelPack) : 
 			EntityPlaceholder(id, registry, spriteLoader, levelPack) {}
 	
-		void runTest() override;
+		void runTest(std::shared_ptr<std::mutex> registryMutex) override;
 		void spawnVisualEntity() override;
 	};
 	class EnemyEntityPlaceholder : public EntityPlaceholder {
@@ -221,7 +239,7 @@ private:
 		inline EnemyEntityPlaceholder(int id, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, LevelPack& levelPack, EntityCreationQueue& queue) : 
 			EntityPlaceholder(id, registry, spriteLoader, levelPack), queue(queue) {}
 
-		void runTest() override;
+		void runTest(std::shared_ptr<std::mutex> registryMutex) override;
 		void spawnVisualEntity() override;
 		bool legalCheck(std::string& message, LevelPack& levelPack, SpriteLoader& spriteLoader);
 
@@ -249,21 +267,15 @@ private:
 	class BezierControlPointPlaceholder : public EntityPlaceholder {
 	public:
 		/*
-		parentEMPA - the parent EMPA of the control point that this control point placeholder represents
-
 		Note that the control point being represented is not specified. When bezier control point editing ends in GameplayTestWindow, all existing
 		BezierControlPointPlaceholders will be converted to coordinates and back-inserted into the list of control points in the EMPA starting with
 		the placeholder with the lowest ID.
 		*/
-		inline BezierControlPointPlaceholder(int id, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, LevelPack& levelPack, std::shared_ptr<MoveCustomBezierEMPA> parentEMPA) :
-			EntityPlaceholder(id, registry, spriteLoader, levelPack), parentEMPA(parentEMPA) {
+		inline BezierControlPointPlaceholder(int id, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, LevelPack& levelPack) : EntityPlaceholder(id, registry, spriteLoader, levelPack) {
 		}
 
-		void runTest() override;
+		void runTest(std::shared_ptr<std::mutex> registryMutex) override;
 		void spawnVisualEntity() override;
-
-	private:
-		std::shared_ptr<MoveCustomBezierEMPA> parentEMPA;
 	};
 	class EMPTestEntityPlaceholder : public EntityPlaceholder {
 	public:
@@ -278,7 +290,7 @@ private:
 			EntityPlaceholder(id, registry, spriteLoader, levelPack), queue(queue), emp(emp), sourceID(sourceID), empFromAttack(empFromAttack) {
 		}
 
-		void runTest() override;
+		void runTest(std::shared_ptr<std::mutex> registryMutex) override;
 		void spawnVisualEntity() override;
 		bool legalCheck(std::string& message, LevelPack& levelPack, SpriteLoader& spriteLoader);
 
@@ -303,6 +315,9 @@ private:
 	const float LEFT_PANEL_WIDTH = 0.25f;
 	const float RIGHT_PANEL_WIDTH = 0.2f;
 	const float CAMERA_SPEED = 100; // World units per second
+
+	// Mutex to make sure entities aren't destroyed while being iterated through
+	std::shared_ptr<std::mutex> registryMutex;
 
 	std::shared_ptr<sf::Sprite> currentCursor; // nullptr if default cursor
 
@@ -382,6 +397,11 @@ private:
 	std::shared_ptr<tgui::Button> deleteEnemyPlaceholder;
 	std::shared_ptr<tgui::Button> startAndEndTest;
 	std::shared_ptr<tgui::Button> toggleBottomPanelDisplay;
+	// These 2 buttons are only used when editing bezier control points
+	// if no placeholder is selected, this button adds a new placeholder at index 0; otherwise add at selectedEMPAIndex - 1
+	std::shared_ptr<tgui::Button> addControlPointPlaceholderAbove;
+	// if no EMPA is selected, this button adds a new EMPA at last index; otherwise add at selectedEMPAIndex + 1
+	std::shared_ptr<tgui::Button> addControlPointPlaceholderBelow;
 
 	std::shared_ptr<tgui::ScrollablePanel> rightPanel;
 	std::shared_ptr<tgui::Label> entityPlaceholderXLabel;
@@ -398,7 +418,25 @@ private:
 	std::shared_ptr<tgui::Label> logs;
 
 	std::shared_ptr<tgui::Button> externalEndTest;
+	// Only visible when editing bezier control points
+	std::shared_ptr<tgui::Button> bezierFinishEditing;
 
+	// Signal that is emitted right before the user stops editing
+	// The bool parameter is whether any changes were made to the control points and the vector is the new list of
+	// control points. The vector should be ignored if the bool parameter is false.
+	std::shared_ptr<entt::SigH<void(bool, std::vector<sf::Vector2f>)>> onBezierControlPointEditingEnd;
+	bool editingBezierControlPoints = false;
+	// The desired ID of the next new control point placeholder
+	int nextBezierControlPointPlaceholderDesiredID;
+	// nonplayerPlaceholders cached at the moment right before it is replaced by bezier control points
+	std::map<int, std::shared_ptr<EntityPlaceholder>> cachedNonplayerPlaceholdersForEditingBezierControlPoints;
+	// nonplayerPlaceholders cached at the moment right before gameplay test while editing bezier control points
+	std::map<int, std::shared_ptr<EntityPlaceholder>> cachedNonplayerPlaceholdersForBezierControlPointsTest;
+	// The last-saved control points of the EMPA being edited
+	std::vector<sf::Vector2f> lastSavedBezierControlPoints;
+
+	// Used for the save changes confirmation signal
+	void onBezierFinishEditingConfirmationPrompt(bool saveChanges);
 
 	void onEntityPlaceholderXValueSet(float value);
 	void onEntityPlaceholderYValueSet(float value);

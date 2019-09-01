@@ -214,6 +214,8 @@ public:
 	std::string getGuiFormat() override;
 
 	inline void setTime(float duration) override { this->time = duration; }
+	inline void setUnrotatedControlPoints(std::vector<sf::Vector2f> unrotatedControlPoints) { this->unrotatedControlPoints = unrotatedControlPoints; }
+	const std::vector<sf::Vector2f> getUnrotatedControlPoints() { return unrotatedControlPoints; }
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 

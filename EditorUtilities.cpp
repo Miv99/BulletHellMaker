@@ -547,3 +547,26 @@ EMPAAngleOffsetGroup::EMPAAngleOffsetGroup(UndoStack& undoStack) : undoStack(und
 void EMPAAngleOffsetGroup::onContainerResize(int containerWidth, int containerHeight) {
 	//TODO
 }
+
+ScrollableListBox::ScrollableListBox() {
+	listBox = tgui::ListBox::create();
+	add(listBox);
+	listBox->setSize("100%", "100%");
+
+	textWidthChecker = tgui::Label::create();
+	textWidthChecker->setMaximumTextWidth(0);
+}
+
+void ScrollableListBox::onListBoxItemsChange() {
+	float largestWidth = 0;
+	for (auto str : listBox->getItems()) {
+		textWidthChecker->setText(str);
+		largestWidth = std::max(largestWidth, textWidthChecker->getSize().x);
+	}
+	listBox->setSize(std::max(getSize().x, largestWidth), "100%");
+}
+
+void ScrollableListBox::setTextSize(int textSize) {
+	listBox->setTextSize(textSize);
+	textWidthChecker->setTextSize(textSize);
+}
