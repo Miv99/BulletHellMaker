@@ -564,9 +564,10 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 		}));
 	});
 
+	// See getID(EMPSpawnType*) for which ID to use
+	empiSpawnType->addItem("Relative to map", "0");
 	empiSpawnType->addItem("Relative to parent, detached", "1");
 	empiSpawnType->addItem("Relative to parent, attached", "2");
-	empiSpawnType->addItem("Relative to map", "3");
 	empiSpawnType->connect("ItemSelected", [this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack](std::string item, std::string id) {
 		if (ignoreSignal) return;
 		std::shared_ptr<EMPSpawnType> oldSpawnType = selectedEMP->getSpawnType();
@@ -1810,6 +1811,8 @@ void AttackEditor::onGameplayTestWindowBezierControlPointsEditingEnd(bool change
 	// Stop blocking input
 	ibPanel->setVisible(false);
 
+	editingEMPABezierControlPoints = false;
+
 	if (changesWereMade) {
 		MoveCustomBezierEMPA* bezierEMPA = dynamic_cast<MoveCustomBezierEMPA*>(selectedEMPA.get());
 		std::vector<sf::Vector2f> oldControlPoints = bezierEMPA->getUnrotatedControlPoints();
@@ -2003,7 +2006,8 @@ void AttackEditor::populateEmpaiBezierControlPoints(std::shared_ptr<EMPAction> e
 	int i = 0;
 	for (sf::Vector2f cp : bezier->getUnrotatedControlPoints()) {
 		empaiBezierControlPoints->getListBox()->addItem("[" + std::to_string(i + 1) + "] x=" + std::to_string(cp.x) + 
-			" y=" + std::to_string(cp.y) , std::to_string(i++));
+			" y=" + std::to_string(cp.y) , std::to_string(i));
+		i++;
 	}
 	empaiBezierControlPoints->onListBoxItemsChange();
 }

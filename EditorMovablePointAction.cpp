@@ -145,7 +145,7 @@ std::shared_ptr<MovablePoint> MoveCustomPolarEMPA::execute(EntityCreationQueue& 
 std::string MoveCustomBezierEMPA::format() {
 	std::string ret = "MoveCustomBezierEMPA" + tm_delim;
 	ret += "(" + tos(time) + ")";
-	for (auto p : controlPoints) {
+	for (auto p : unrotatedControlPoints) {
 		ret += tm_delim + "(" + tos(p.x) + ")" + tm_delim + "(" + tos(p.y) + ")";
 	}
 	return ret;
@@ -154,8 +154,8 @@ std::string MoveCustomBezierEMPA::format() {
 void MoveCustomBezierEMPA::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	time = std::stof(items[1]);
-	for (int i = 2; i < items.size() + 2; i += 2) {
-		controlPoints.push_back(sf::Vector2f(std::stof(items[i]), std::stof(items[i + 1])));
+	for (int i = 2; i < items.size(); i += 2) {
+		unrotatedControlPoints.push_back(sf::Vector2f(std::stof(items[i]), std::stof(items[i + 1])));
 	}
 }
 
@@ -164,7 +164,7 @@ std::string MoveCustomBezierEMPA::getGuiFormat() {
 }
 
 std::shared_ptr<MovablePoint> MoveCustomBezierEMPA::execute(EntityCreationQueue & queue, entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
-	assert(controlPoints[0] == sf::Vector2f(0, 0) && "Bezier curves must start at (0, 0)");
+	assert(unrotatedControlPoints[0] == sf::Vector2f(0, 0) && "Bezier curves must start at (0, 0)");
 
 	auto& lastPos = registry.get<PositionComponent>(entity);
 	// Queue creation of the reference entity
@@ -176,13 +176,13 @@ std::shared_ptr<MovablePoint> MoveCustomBezierEMPA::execute(EntityCreationQueue 
 		float cos = std::cos(radians);
 		float sin = std::sin(radians);
 		// Skip the first control point since it's always going to be (0, 0)
-		for (int i = 1; i < controlPoints.size(); i++) {
+		for (int i = 1; i < unrotatedControlPoints.size(); i++) {
 			controlPoints[i].x = unrotatedControlPoints[i].x * cos - unrotatedControlPoints[i].y * sin;
 			controlPoints[i].y = unrotatedControlPoints[i].x * sin + unrotatedControlPoints[i].y * cos;
 		}
 		return std::make_shared<BezierMP>(time, controlPoints);
 	} else {
-		return std::make_shared<BezierMP>(time, controlPoints);
+		return std::make_shared<BezierMP>(time, unrotatedControlPoints);
 	}
 }
 

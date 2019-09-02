@@ -1,6 +1,8 @@
 #include "EditorWindow.h"
 #include "Components.h"
 #include <algorithm>
+#include <boost/date_time.hpp>
+#include <sstream>
 
 EditorWindow::EditorWindow(std::shared_ptr<std::mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval) :
 	tguiMutex(tguiMutex), windowTitle(windowTitle), windowWidth(width), windowHeight(height), scaleWidgetsOnResize(scaleWidgetsOnResize), letterboxingEnabled(letterboxingEnabled), renderInterval(renderInterval) {
@@ -410,6 +412,14 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 		setManuallySettingPlaceholderPosition(selectedPlaceholder, false);
 	});
 	bezierFinishEditing->connect("Pressed", [&]() {
+		if (nonplayerPlaceholders.size() <= 1) {
+			logMessage("Number of control points must be >= 2");
+			if (!bottomPanel->isVisible()) {
+				toggleLogsDisplay();
+			}
+			return;
+		}
+
 		// Prompt user for whether to save changes
 		auto saveChangesSignal = promptConfirmation("Save changes made to the control points?");
 		saveChangesSignal->sink().connect<GameplayTestWindow, &GameplayTestWindow::onBezierFinishEditingConfirmationPrompt>(this);
@@ -779,8 +789,9 @@ void GameplayTestWindow::beginEditingBezierControlPoints(MoveCustomBezierEMPA* b
 	nonplayerPlaceholders.clear();
 	// Create placeholder for existing control points
 	int i = 0;
+	float xOffset = MAP_WIDTH/2.0f, yOffset = MAP_HEIGHT/2.0f;
 	for (auto cp : bezierEMPA->getUnrotatedControlPoints()) {
-		insertBezierControlPointPlaceholder(i++, cp.x, cp.y);
+		insertBezierControlPointPlaceholder(i++, cp.x + xOffset, cp.y + yOffset);
 	}
 
 	deselectPlaceholder();
@@ -865,11 +876,14 @@ void GameplayTestWindow::insertBezierControlPointPlaceholder(int id, float x, fl
 }
 
 void GameplayTestWindow::onBezierFinishEditingConfirmationPrompt(bool saveChanges) {
+	assert(nonplayerPlaceholders.size() >= 2);
+
 	if (saveChanges) {
-		// Convert existing placeholders to control points
+		// Convert existing placeholders to control points, relative to the first control point
 		std::vector<sf::Vector2f> cps;
+		sf::Vector2f offset = sf::Vector2f(nonplayerPlaceholders[0]->getX(), nonplayerPlaceholders[0]->getY());
 		for (auto p : nonplayerPlaceholders) {
-			cps.push_back(sf::Vector2f(p.second->getX(), p.second->getY()));
+			cps.push_back(sf::Vector2f(p.second->getX(), p.second->getY()) - offset);
 		}
 		endEditingBezierControlPoints(true, cps);
 	} else {
@@ -1034,7 +1048,9 @@ void GameplayTestWindow::runGameplayTest() {
 		}
 	}
 	clearLogs();
-	logMessage(message);
+	if (message != "") {
+		logMessage(message);
+	}
 
 	if (good) {
 		testInProgress = true;
@@ -1248,7 +1264,8 @@ void GameplayTestWindow::updateEntityPlaceholdersList() {
 			}
 		} else if (dynamic_cast<BezierControlPointPlaceholder*>(p.second.get())) {
 			BezierControlPointPlaceholder* cpPlaceholder = dynamic_cast<BezierControlPointPlaceholder*>(p.second.get());
-			entityPlaceholdersList->addItem("[" + std::to_string(i) + "] x=" + std::to_string(cpPlaceholder->getX()) + " y=" + std::to_string(cpPlaceholder->getY()), std::to_string(p.first));
+			// Display the x/y relative to the first control point
+			entityPlaceholdersList->addItem("[" + std::to_string(i) + "] x=" + std::to_string(cpPlaceholder->getX() - nonplayerPlaceholders[0]->getX()) + " y=" + std::to_string(cpPlaceholder->getY() - nonplayerPlaceholders[0]->getY()), std::to_string(p.first));
 		}
 		i++;
 	}
@@ -1302,7 +1319,10 @@ void GameplayTestWindow::clearLogs() {
 }
 
 void GameplayTestWindow::logMessage(std::string message) {
-	logs->setText(logs->getText() + "\n" + message);
+	boost::posix_time::ptime timeLocal = boost::posix_time::second_clock::local_time();
+	std::stringstream stream;
+	stream << timeLocal.time_of_day();
+	logs->setText(logs->getText() + "\n[" + stream.str() + "] " + message);
 }
 
 void GameplayTestWindow::EntityPlaceholder::moveTo(float x, float y) {
