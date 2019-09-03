@@ -1652,6 +1652,21 @@ void AttackEditor::saveAttack(std::shared_ptr<EditorAttack> attack) {
 		unsavedAttacks.erase(id);
 	}
 
+	// Reselect attack so that selectedAttack isn't pointing to the same EditorAttack as the one in levelPack and is pointing to a copy of levelPack's EditorAttack of the same ID.
+	// The "levelPack->updateAttack(attack);" line causes selectedAttack, if (selectedAttack == attack), to point to the same EditorAttack as the one in levelPack.
+	if (selectedAttack && selectedAttack == attack) {
+		auto prevSelectedEMP = selectedEMP;
+		auto prevSelectedEMPAIndex = selectedEMPAIndex;
+		selectAttack(selectedAttack->getID());
+		// This is to reselect things that might have been deselected by selectAttack()
+		if (prevSelectedEMP) {
+			selectEMP(selectedAttack, prevSelectedEMP->getID());
+			if (prevSelectedEMPAIndex != -1) {
+				selectEMPA(prevSelectedEMPAIndex);
+			}
+		}
+	}
+
 	//TODO: legal check on this attack only
 }
 
