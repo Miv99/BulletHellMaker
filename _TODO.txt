@@ -45,8 +45,9 @@ Notes for me:
 -attack ID 13 is messed up
 
 big todo:
--HUGE BUG: changing an EMP in AttackEditor while a gameplay test is going on will change the EMPs in the test even though
- the EMP in AttackEditor should be completely separate from the LevelPack
+-HUGE BUG: when gameplay test in progress, changes made to the level pack can blow up the test
+	solution: maybe make a copy of the level pack and send it to all _____Systems when gameplay test begins;
+		when gameplay test ends, the OG level pack is used again
 -make "start test" do something when editing CPs
 -make entities rendered in gameplay test window not be limited by the play area
 -visualize movement path when editing bezier control points (implement visualizer for EMP in a general way such that it can easily be applied to just a single EMPA; then

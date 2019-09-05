@@ -34,6 +34,7 @@ std::shared_ptr<sf::Sprite> SpriteSheet::getSprite(const std::string& spriteName
 	if (spriteData.count(spriteName) == 0) {
 		// Missing sprite
 		//TODO: handle it by returning a missing texture sprite
+		return std::shared_ptr<sf::Sprite>();
 	}
 	std::shared_ptr<SpriteData> data = spriteData.at(spriteName);
 	ComparableIntRect area = data->getArea();
@@ -108,6 +109,10 @@ SpriteLoader::SpriteLoader(const std::string& levelPackRelativePath, const std::
 }
 
 std::shared_ptr<sf::Sprite> SpriteLoader::getSprite(const std::string& spriteName, const std::string& spriteSheetName) {
+	if (spriteSheets.count(spriteSheetName) == 0) {
+		//TODO: return default sprite
+		return std::make_shared<sf::Sprite>();
+	}
 	return spriteSheets[spriteSheetName]->getSprite(spriteName);
 }
 

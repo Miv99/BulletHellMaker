@@ -602,31 +602,35 @@ void GameplayTestWindow::physicsUpdate(float deltaTime) {
 		audioPlayer->update(deltaTime);
 
 		if (testInProgress) {
-			std::lock_guard<std::mutex> lock(*registryMutex);
+			try {
+				std::lock_guard<std::mutex> lock(*registryMutex);
 
-			collisionSystem->update(deltaTime);
-			queue->executeAll();
+				collisionSystem->update(deltaTime);
+				queue->executeAll();
 
-			registry.get<LevelManagerTag>().update(*queue, *spriteLoader, registry, deltaTime);
-			queue->executeAll();
+				registry.get<LevelManagerTag>().update(*queue, *spriteLoader, registry, deltaTime);
+				queue->executeAll();
 
-			despawnSystem->update(deltaTime);
-			queue->executeAll();
+				despawnSystem->update(deltaTime);
+				queue->executeAll();
 
-			shadowTrailSystem->update(deltaTime);
-			queue->executeAll();
+				shadowTrailSystem->update(deltaTime);
+				queue->executeAll();
 
-			movementSystem->update(deltaTime);
-			queue->executeAll();
+				movementSystem->update(deltaTime);
+				queue->executeAll();
 
-			collectibleSystem->update(deltaTime);
-			queue->executeAll();
+				collectibleSystem->update(deltaTime);
+				queue->executeAll();
 
-			playerSystem->update(deltaTime);
-			queue->executeAll();
+				playerSystem->update(deltaTime);
+				queue->executeAll();
 
-			enemySystem->update(deltaTime);
-			queue->executeAll();
+				enemySystem->update(deltaTime);
+				queue->executeAll();
+			} catch (...) {
+				endGameplayTest();
+			}
 		}
 	}
 }

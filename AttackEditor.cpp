@@ -388,7 +388,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	});
 	empiHitboxRadius->getOnValueSet()->sink().connect<AttackEditor, &AttackEditor::onEmpiHitboxRadiusChange>(this);
 	empiDespawnTime->getOnValueSet()->sink().connect<AttackEditor, &AttackEditor::onEmpiDespawnTimeChange>(this);
-	empiActions->getListBox()->connect("ItemSelected", [&](std::string item, std::string id) {
+	empiActions->getListBox()->connect("MousePressed", [&](std::string item, std::string id) {
 		if (ignoreSignal) return;
 		if (id == "") {
 			deselectEMPA();
@@ -407,7 +407,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 		popup->setItemHeight(20);
 		popup->setPosition(empiActionsAddAbove->getPosition());
 		popup->setSize(150, popup->getItemHeight() * popup->getItemCount());
-		popup->connect("ItemSelected", [this, selectedEMP, selectedAttack, selectedEMPAIndex](std::string item, std::string id) {
+		popup->connect("MousePressed", [this, selectedEMP, selectedAttack, selectedEMPAIndex](std::string item, std::string id) {
 			if (ignoreSignal) return;
 			int index;
 			if (selectedEMPAIndex == -1) {
@@ -418,9 +418,11 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			if (id == "1") {
 				mainWindowUndoStack.execute(UndoableCommand(
 					[this, index, selectedEMP, selectedAttack]() {
-					selectedEMP->insertAction(index, std::make_shared<MoveCustomBezierEMPA>());
+					auto empa = std::make_shared<MoveCustomBezierEMPA>(std::vector<sf::Vector2f>{sf::Vector2f(0, 0), sf::Vector2f(100, 0)}, 3);
+					selectedEMP->insertAction(index, empa);
 					selectEMPA(index);
 					setEMPWidgetValues(selectedEMP, selectedAttack, false);
+					setEMPAWidgetValues(empa, selectedEMP, selectedAttack);
 				},
 					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->removeAction(index);
@@ -429,9 +431,11 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			} else if (id == "2") {
 				mainWindowUndoStack.execute(UndoableCommand(
 					[this, index, selectedEMP, selectedAttack]() {
-					selectedEMP->insertAction(index, std::make_shared<MoveCustomPolarEMPA>());
+					auto empa = std::make_shared<MoveCustomPolarEMPA>(std::make_shared<ConstantTFV>(0), std::make_shared<ConstantTFV>(0), 3);
+					selectedEMP->insertAction(index, empa);
 					selectEMPA(index);
 					setEMPWidgetValues(selectedEMP, selectedAttack, false);
+					setEMPAWidgetValues(empa, selectedEMP, selectedAttack);
 				},
 					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->removeAction(index);
@@ -440,9 +444,11 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			} else if (id == "3") {
 				mainWindowUndoStack.execute(UndoableCommand(
 					[this, index, selectedEMP, selectedAttack]() {
-					selectedEMP->insertAction(index, std::make_shared<MovePlayerHomingEMPA>());
+					auto empa = std::make_shared<MovePlayerHomingEMPA>(std::make_shared<ConstantTFV>(0), std::make_shared<ConstantTFV>(0), 3);
+					selectedEMP->insertAction(index, empa);
 					selectEMPA(index);
 					setEMPWidgetValues(selectedEMP, selectedAttack, false);
+					setEMPAWidgetValues(empa, selectedEMP, selectedAttack);
 				},
 					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->removeAction(index);
@@ -451,9 +457,11 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			} else if (id == "4") {
 				mainWindowUndoStack.execute(UndoableCommand(
 					[this, index, selectedEMP, selectedAttack]() {
-					selectedEMP->insertAction(index, std::make_shared<StayStillAtLastPositionEMPA>());
+					auto empa = std::make_shared<StayStillAtLastPositionEMPA>(3);
+					selectedEMP->insertAction(index, empa);
 					selectEMPA(index);
 					setEMPWidgetValues(selectedEMP, selectedAttack, false);
+					setEMPAWidgetValues(empa, selectedEMP, selectedAttack);
 				},
 					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->removeAction(index);
@@ -462,9 +470,11 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			} else if (id == "5") {
 				mainWindowUndoStack.execute(UndoableCommand(
 					[this, index, selectedEMP, selectedAttack]() {
-					selectedEMP->insertAction(index, std::make_shared<DetachFromParentEMPA>());
+					auto empa = std::make_shared<DetachFromParentEMPA>();
+					selectedEMP->insertAction(index, empa);
 					selectEMPA(index);
 					setEMPWidgetValues(selectedEMP, selectedAttack, false);
+					setEMPAWidgetValues(empa, selectedEMP, selectedAttack);
 				},
 					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->removeAction(index);
@@ -496,9 +506,11 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			if (id == "1") {
 				mainWindowUndoStack.execute(UndoableCommand(
 					[this, index, selectedEMP, selectedAttack]() {
-					selectedEMP->insertAction(index, std::make_shared<MoveCustomBezierEMPA>());
+					auto empa = std::make_shared<MoveCustomBezierEMPA>(std::vector<sf::Vector2f>{sf::Vector2f(0, 0), sf::Vector2f(100, 0)}, 3);
+					selectedEMP->insertAction(index, empa);
 					selectEMPA(index);
 					setEMPWidgetValues(selectedEMP, selectedAttack, false);
+					setEMPAWidgetValues(empa, selectedEMP, selectedAttack);
 				},
 					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->removeAction(index);
@@ -507,9 +519,11 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			} else if (id == "2") {
 				mainWindowUndoStack.execute(UndoableCommand(
 					[this, index, selectedEMP, selectedAttack]() {
-					selectedEMP->insertAction(index, std::make_shared<MoveCustomPolarEMPA>());
+					auto empa = std::make_shared<MoveCustomPolarEMPA>(std::make_shared<ConstantTFV>(0), std::make_shared<ConstantTFV>(0), 3);
+					selectedEMP->insertAction(index, empa);
 					selectEMPA(index);
 					setEMPWidgetValues(selectedEMP, selectedAttack, false);
+					setEMPAWidgetValues(empa, selectedEMP, selectedAttack);
 				},
 					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->removeAction(index);
@@ -518,9 +532,11 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			} else if (id == "3") {
 				mainWindowUndoStack.execute(UndoableCommand(
 					[this, index, selectedEMP, selectedAttack]() {
-					selectedEMP->insertAction(index, std::make_shared<MovePlayerHomingEMPA>());
+					auto empa = std::make_shared<MovePlayerHomingEMPA>(std::make_shared<ConstantTFV>(0), std::make_shared<ConstantTFV>(0), 3);
+					selectedEMP->insertAction(index, empa);
 					selectEMPA(index);
 					setEMPWidgetValues(selectedEMP, selectedAttack, false);
+					setEMPAWidgetValues(empa, selectedEMP, selectedAttack);
 				},
 					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->removeAction(index);
@@ -529,9 +545,11 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			} else if (id == "4") {
 				mainWindowUndoStack.execute(UndoableCommand(
 					[this, index, selectedEMP, selectedAttack]() {
-					selectedEMP->insertAction(index, std::make_shared<StayStillAtLastPositionEMPA>());
+					auto empa = std::make_shared<StayStillAtLastPositionEMPA>(3);
+					selectedEMP->insertAction(index, empa);
 					selectEMPA(index);
 					setEMPWidgetValues(selectedEMP, selectedAttack, false);
+					setEMPAWidgetValues(empa, selectedEMP, selectedAttack);
 				},
 					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->removeAction(index);
@@ -540,9 +558,11 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 			} else if (id == "5") {
 				mainWindowUndoStack.execute(UndoableCommand(
 					[this, index, selectedEMP, selectedAttack]() {
-					selectedEMP->insertAction(index, std::make_shared<DetachFromParentEMPA>());
+					auto empa = std::make_shared<DetachFromParentEMPA>();
+					selectedEMP->insertAction(index, empa);
 					selectEMPA(index);
 					setEMPWidgetValues(selectedEMP, selectedAttack, false);
+					setEMPAWidgetValues(empa, selectedEMP, selectedAttack);
 				},
 					[this, index, selectedEMP, selectedAttack]() {
 					selectedEMP->removeAction(index);
@@ -1754,6 +1774,7 @@ void AttackEditor::setEMPAWidgetValues(std::shared_ptr<EMPAction> empa, std::sha
 	if (dynamic_cast<MoveCustomBezierEMPA*>(empa.get())) {
 		populateEmpaiBezierControlPoints(selectedEMPA);
 	}
+	empaiDuration->setValue(empa->getTime());
 
 	// This function is called only when a change is made to an EMPA and therefore also to the parent EditorAttack as well
 	int id = parentAttack->getID();

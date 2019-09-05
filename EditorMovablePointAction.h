@@ -185,6 +185,8 @@ public:
 	inline std::shared_ptr<TFV> getAngle() { return angle; }
 
 	inline void setTime(float duration) override { this->time = duration; }
+	inline void setDistance(std::shared_ptr<TFV> distance) { this->distance = distance; }
+	inline void setAngle(std::shared_ptr<TFV> angle) { this->angle = angle; }
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 
@@ -205,8 +207,12 @@ The first control point must be at (0, 0) because all movement is done relative 
 class MoveCustomBezierEMPA : public EMPAction {
 public:
 	inline MoveCustomBezierEMPA() {}
-	inline MoveCustomBezierEMPA(std::vector<sf::Vector2f> controlPoints, float time) : controlPoints(controlPoints), time(time) {}
-	inline MoveCustomBezierEMPA(std::vector<sf::Vector2f> controlPoints, float time, std::shared_ptr<EMPAAngleOffset> rotationAngle) : controlPoints(controlPoints), unrotatedControlPoints(controlPoints), time(time), rotationAngle(rotationAngle) {}
+	inline MoveCustomBezierEMPA(std::vector<sf::Vector2f> unrotatedControlPoints, float time) : time(time) {
+		setUnrotatedControlPoints(unrotatedControlPoints);
+	}
+	inline MoveCustomBezierEMPA(std::vector<sf::Vector2f> unrotatedControlPoints, float time, std::shared_ptr<EMPAAngleOffset> rotationAngle) : time(time), rotationAngle(rotationAngle) {
+		setUnrotatedControlPoints(unrotatedControlPoints);
+	}
 
 	std::string format() override;
 	void load(std::string formattedString) override;
