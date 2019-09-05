@@ -1541,8 +1541,6 @@ void AttackEditor::setEMPWidgetValues(std::shared_ptr<EditorMovablePoint> emp, s
 	empiShadowTrailLifespan->setEnabled(isBullet);
 	empiShadowTrailIntervalLabel->setEnabled(isBullet);
 	empiShadowTrailInterval->setEnabled(isBullet);
-	empiAnimatableLabel->setEnabled(isBullet);
-	empiAnimatable->setEnabled(isBullet);
 	empiLoopAnimationLabel->setEnabled(isBullet);
 	empiLoopAnimation->setEnabled(isBullet);
 	empiBaseSpriteLabel->setEnabled(isBullet);
@@ -1968,7 +1966,9 @@ void AttackEditor::onAnimatableChange(Animatable value) {
 	mainWindowUndoStack.execute(UndoableCommand(
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, value]() {
 		selectedEMP->setAnimatable(value);
-		setEMPWidgetValues(selectedEMP, selectedAttack, false);
+		this->ignoreSignal = true;
+		empiAnimatable->setSelectedItem(selectedEMP->getAnimatable());
+		this->ignoreSignal = false;
 	},
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, oldValue]() {
 		selectedEMP->setAnimatable(oldValue);

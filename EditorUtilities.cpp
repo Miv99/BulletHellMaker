@@ -69,6 +69,9 @@ AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprit
 
 	animatable->setChangeItemOnScroll(false);
 	animatable->setExpandDirection(tgui::ComboBox::ExpandDirection::Down);
+	animatable->connect("MouseEntered", [&]() {
+		calculateItemsToDisplay();
+	});
 	animatable->connect("ItemSelected", [&](std::string itemText, std::string id) {
 		// ID is in format "spriteSheetName\animatableName"
 		std::string spriteSheetName = id.substr(0, id.find_first_of('\\'));
@@ -84,8 +87,11 @@ AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprit
 
 	rotationType->setChangeItemOnScroll(false);
 	rotationType->setExpandDirection(tgui::ComboBox::ExpandDirection::Down);
+	rotationType->connect("MouseEntered", [&]() {
+		calculateItemsToDisplay();
+	});
 	rotationType->connect("ItemSelected", [&](std::string item, std::string id) {
-		if (animatable->getSelectedItem() != "") {
+		if (animatable->getSelectedItem() != "" && !(rotationType->getSelectedItem() == item && rotationType->getSelectedItemId() == id)) {
 			std::string spriteSheetName = std::string(animatable->getSelectedItemId()).substr(0, std::string(animatable->getSelectedItemId()).find_first_of('\\'));
 
 			onValueSet->publish(Animatable(std::string(animatable->getSelectedItem()).substr(3), spriteSheetName, animatable->getSelectedItem()[1] == 'S', static_cast<ROTATION_TYPE>(std::stoi(std::string(id)))));
@@ -103,17 +109,30 @@ void AnimatableChooser::calculateItemsToDisplay() {
 	}
 
 	if (animatable->getExpandDirection() == tgui::ComboBox::ExpandDirection::Down) {
-		float availableSpace = getParent()->getSize().y - getPosition().y - getSize().y;
+		auto window = getParent();
+		while (window->getParent()) {
+			window = window->getParent();
+		}
+		float heightLeft = window->getSize().y - animatable->getAbsolutePosition().y;
 		// Each item in the ComboBox has height equal to the ComboBox's height
-		animatable->setItemsToDisplay((int)(availableSpace / getSize().y));
+		animatable->setItemsToDisplay((int)(heightLeft / animatable->getSize().y));
+	}
+	if (rotationType->getExpandDirection() == tgui::ComboBox::ExpandDirection::Down) {
+		auto window = getParent();
+		while (window->getParent()) {
+			window = window->getParent();
+		}
+		float heightLeft = window->getSize().y - rotationType->getAbsolutePosition().y;
+		// Each item in the ComboBox has height equal to the ComboBox's height
+		rotationType->setItemsToDisplay((int)(heightLeft / rotationType->getSize().y));
 	}
 }
 
 void AnimatableChooser::setSelectedItem(Animatable animatable) {
 	if (animatable.getAnimatableName() == "") {
 		this->animatable->deselectItem();
-	} else {
-		this->animatable->setSelectedItemById(animatable.getAnimatableName() + "\\" + animatable.getSpriteSheetName());
+	} else if (animatable.getSpriteSheetName() + "\\" + animatable.getAnimatableName() != this->animatable->getSelectedItemId()) {
+		this->animatable->setSelectedItemById(animatable.getSpriteSheetName() + "\\" + animatable.getAnimatableName());
 	}
 }
 
@@ -124,7 +143,7 @@ void AnimatableChooser::onContainerResize(int containerWidth, int containerHeigh
 	animatable->setPosition(paddingX, paddingY);
 	rotationType->setPosition(tgui::bindLeft(animatable), tgui::bindBottom(animatable) + paddingY);
 
-	setSize(containerWidth - paddingX * 2, rotationType->getPosition().y + rotationType->getSize().y + paddingY);
+	setSize(containerWidth - paddingX, rotationType->getPosition().y + rotationType->getSize().y + paddingY);
 	calculateItemsToDisplay();
 }
 
@@ -200,6 +219,7 @@ void AnimatablePicture::setAnimation(SpriteLoader& spriteLoader, const std::stri
 
 void AnimatablePicture::setSprite(SpriteLoader& spriteLoader, const std::string& spriteName, const std::string& spriteSheetName) {
 	getRenderer()->setTexture(*spriteLoader.getSprite(spriteName, spriteSheetName)->getTexture());
+	
 	animation = nullptr;
 }
 
@@ -368,7 +388,7 @@ void SoundSettingsGroup::onContainerResize(int containerWidth, int containerHeig
 	pitchLabel->setPosition(tgui::bindLeft(enableAudioLabel), tgui::bindBottom(volume) + paddingY);
 	pitch->setPosition(enableAudioLabel->getPosition().x, pitchLabel->getPosition().y + pitchLabel->getSize().y + paddingY);
 
-	setSize(containerWidth - paddingX * 2, pitch->getPosition().y + pitch->getSize().y + paddingY);
+	setSize(containerWidth - paddingX, pitch->getPosition().y + pitch->getSize().y + paddingY);
 }
 
 std::shared_ptr<entt::SigH<void(SoundSettings)>> SoundSettingsGroup::getOnNewSoundSettingsSignal() {
@@ -486,7 +506,7 @@ void TFVGroup::onContainerResize(int containerWidth, int containerHeight) {
 	test->setPosition(0, 0);
 	test->setSize(containerWidth, 20);
 
-	setSize(containerWidth - paddingX * 2, 25);
+	setSize(containerWidth - paddingX, 25);
 }
 
 void TFVGroup::setTFV(std::shared_ptr<TFV> tfv, std::shared_ptr<EMPAction> parentEMPA, std::shared_ptr<EditorMovablePoint> parentEMP, std::shared_ptr<EditorAttack> parentAttack) {

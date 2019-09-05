@@ -14,6 +14,13 @@ public:
 	inline Animatable(std::string animatableName, std::string spriteSheetName, bool animatableIsSprite, ROTATION_TYPE rotationType) : animatableName(animatableName), 
 		spriteSheetName(spriteSheetName), animatableIsSprite(animatableIsSprite), rotationType(rotationType) {}
 
+	bool operator==(const Animatable& other) {
+		return animatableName == other.animatableName && spriteSheetName == other.spriteSheetName && animatableIsSprite == other.animatableIsSprite && rotationType == other.rotationType;
+	}
+	bool operator!=(const Animatable& other) {
+		return !(*this == other);
+	}
+
 	std::string format() override;
 	void load(std::string formattedString) override;
 
