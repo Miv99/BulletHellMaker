@@ -316,6 +316,7 @@ public:
 	Should be called after the ScrollableListBox is resized.
 	*/
 	inline void onResize() { onListBoxItemsChange(); }
+	bool mouseWheelScrolled(float delta, tgui::Vector2f pos) override;
 
 	void setTextSize(int textSize);
 	inline std::shared_ptr<tgui::ListBox> getListBox() { return listBox; }
