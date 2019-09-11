@@ -405,7 +405,7 @@ private:
 
 	std::shared_ptr<tgui::ScrollablePanel> rightPanel;
 	std::shared_ptr<tgui::Label> entityPlaceholderXLabel;
-	std::shared_ptr<NumericalEditBoxWithLimits> entityPlaceholderX;
+	std::shared_ptr<NumericalEditBoxWithLimits> entityPlaceholderX; // This and entityPlaceholderY should have their value changed only by setEntityPlaceholderXWidgetValue() and setEntityPlaceholderYWidgetValue()
 	std::shared_ptr<tgui::Label> entityPlaceholderYLabel;
 	std::shared_ptr<NumericalEditBoxWithLimits> entityPlaceholderY;
 	std::shared_ptr<tgui::Button> entityPlaceholderManualSet;
@@ -438,6 +438,8 @@ private:
 	// Used for the save changes confirmation signal
 	void onBezierFinishEditingConfirmationPrompt(bool saveChanges);
 
+	void setEntityPlaceholderXWidgetValue(float value);
+	void setEntityPlaceholderYWidgetValue(float value);
 	void onEntityPlaceholderXValueSet(float value);
 	void onEntityPlaceholderYValueSet(float value);
 

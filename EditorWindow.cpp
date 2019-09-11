@@ -532,8 +532,8 @@ void GameplayTestWindow::handleEvent(sf::Event event) {
 			// Move selected placeholder depending on difference in world coordinates between event.mouseMove.x/y and previousPlaceholderDragCoordsX/Y
 			sf::Vector2f diff = window->mapPixelToCoords(sf::Vector2i(previousPlaceholderDragCoordsX, previousPlaceholderDragCoordsY)) - window->mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
 			selectedPlaceholder->moveTo(selectedPlaceholder->getX() - diff.x, selectedPlaceholder->getY() + diff.y);
-			entityPlaceholderX->setValue(selectedPlaceholder->getX());
-			entityPlaceholderY->setValue(selectedPlaceholder->getY());
+			setEntityPlaceholderXWidgetValue(selectedPlaceholder->getX());
+			setEntityPlaceholderYWidgetValue(selectedPlaceholder->getY());
 		}
 
 		if (draggingCamera) {
@@ -568,8 +568,8 @@ void GameplayTestWindow::handleEvent(sf::Event event) {
 						[this, &selectedPlaceholder = this->selectedPlaceholder, placeholderEndingPos]() {
 						selectedPlaceholder->moveTo(placeholderEndingPos.x, placeholderEndingPos.y);
 						if (selectedPlaceholder == this->selectedPlaceholder) {
-							entityPlaceholderX->setValue(selectedPlaceholder->getX());
-							entityPlaceholderY->setValue(selectedPlaceholder->getY());
+							setEntityPlaceholderXWidgetValue(selectedPlaceholder->getX());
+							setEntityPlaceholderYWidgetValue(selectedPlaceholder->getY());
 						}
 						if (editingBezierControlPoints) {
 							// Update entity placeholder list because control point entries have their coordinates
@@ -579,8 +579,8 @@ void GameplayTestWindow::handleEvent(sf::Event event) {
 						[this, &selectedPlaceholder = this->selectedPlaceholder, &placeholderPosBeforeDragging = this->placeholderPosBeforeDragging]() {
 						selectedPlaceholder->moveTo(placeholderPosBeforeDragging.x, placeholderPosBeforeDragging.y);
 						if (selectedPlaceholder == this->selectedPlaceholder) {
-							entityPlaceholderX->setValue(selectedPlaceholder->getX());
-							entityPlaceholderY->setValue(selectedPlaceholder->getY());
+							setEntityPlaceholderXWidgetValue(selectedPlaceholder->getX());
+							setEntityPlaceholderYWidgetValue(selectedPlaceholder->getY());
 						}
 						if (editingBezierControlPoints) {
 							// Update entity placeholder list because control point entries have their coordinates
@@ -895,6 +895,32 @@ void GameplayTestWindow::onBezierFinishEditingConfirmationPrompt(bool saveChange
 	}
 }
 
+void GameplayTestWindow::setEntityPlaceholderXWidgetValue(float value) {
+	if (editingBezierControlPoints) {
+		// Value is relative to the position of the first bezier control point
+		if (nonplayerPlaceholders.size() == 0) {
+			entityPlaceholderX->setValue(0);
+		} else {
+			entityPlaceholderX->setValue(value - nonplayerPlaceholders[0]->getX());
+		}
+	} else {
+		entityPlaceholderX->setValue(value);
+	}
+}
+
+void GameplayTestWindow::setEntityPlaceholderYWidgetValue(float value) {
+	if (editingBezierControlPoints) {
+		// Value is relative to the position of the first bezier control point
+		if (nonplayerPlaceholders.size() == 0) {
+			entityPlaceholderY->setValue(0);
+		} else {
+			entityPlaceholderY->setValue(value - nonplayerPlaceholders[0]->getY());
+		}
+	} else {
+		entityPlaceholderY->setValue(value);
+	}
+}
+
 void GameplayTestWindow::onEntityPlaceholderXValueSet(float value) {
 	float oldValue = selectedPlaceholder->getX();
 	undoStack.execute(UndoableCommand(
@@ -984,8 +1010,8 @@ void GameplayTestWindow::onGameplayAreaMouseClick(float screenX, float screenY) 
 			[this, &selectedPlaceholder = this->selectedPlaceholder, mouseWorldPos]() {
 			selectedPlaceholder->moveTo(mouseWorldPos.x, mouseWorldPos.y);
 			if (selectedPlaceholder == this->selectedPlaceholder) {
-				entityPlaceholderX->setValue(selectedPlaceholder->getX());
-				entityPlaceholderY->setValue(selectedPlaceholder->getY());
+				setEntityPlaceholderXWidgetValue(selectedPlaceholder->getX());
+				setEntityPlaceholderYWidgetValue(selectedPlaceholder->getY());
 			}
 			if (editingBezierControlPoints) {
 				// Update entity placeholder list because control point entries have their coordinates
@@ -995,8 +1021,8 @@ void GameplayTestWindow::onGameplayAreaMouseClick(float screenX, float screenY) 
 			[this, &selectedPlaceholder = this->selectedPlaceholder, oldX, oldY]() {
 			selectedPlaceholder->moveTo(oldX, oldY);
 			if (selectedPlaceholder == this->selectedPlaceholder) {
-				entityPlaceholderX->setValue(selectedPlaceholder->getX());
-				entityPlaceholderY->setValue(selectedPlaceholder->getY());
+				setEntityPlaceholderXWidgetValue(selectedPlaceholder->getX());
+				setEntityPlaceholderYWidgetValue(selectedPlaceholder->getY());
 			}
 			if (editingBezierControlPoints) {
 				// Update entity placeholder list because control point entries have their coordinates
@@ -1127,8 +1153,8 @@ void GameplayTestWindow::selectPlaceholder(std::shared_ptr<EntityPlaceholder> pl
 		setEnemyPlaceholderTestMode->setVisible(false);
 		testModeIDLabel->setVisible(false);
 		testModeID->setVisible(false);
-		entityPlaceholderX->setValue(placeholder->getX());
-		entityPlaceholderY->setValue(placeholder->getY());
+		setEntityPlaceholderXWidgetValue(placeholder->getX());
+		setEntityPlaceholderYWidgetValue(placeholder->getY());
 		entityPlaceholdersList->setSelectedItemById(std::to_string(placeholder->getID()));
 		ignoreSignal = false;
 	} else if (dynamic_cast<EMPTestEntityPlaceholder*>(placeholder.get()) != nullptr) {
@@ -1138,8 +1164,8 @@ void GameplayTestWindow::selectPlaceholder(std::shared_ptr<EntityPlaceholder> pl
 		setEnemyPlaceholderTestMode->setVisible(false);
 		testModeIDLabel->setVisible(false);
 		testModeID->setVisible(false);
-		entityPlaceholderX->setValue(placeholder->getX());
-		entityPlaceholderY->setValue(placeholder->getY());
+		setEntityPlaceholderXWidgetValue(placeholder->getX());
+		setEntityPlaceholderYWidgetValue(placeholder->getY());
 		entityPlaceholdersList->setSelectedItemById(std::to_string(placeholder->getID()));
 		ignoreSignal = false;
 	} else {
@@ -1151,8 +1177,8 @@ void GameplayTestWindow::selectPlaceholder(std::shared_ptr<EntityPlaceholder> pl
 		setEnemyPlaceholderTestMode->setVisible(isEnemyPlaceholder);
 		testModeIDLabel->setVisible(isEnemyPlaceholder);
 		testModeID->setVisible(isEnemyPlaceholder);
-		entityPlaceholderX->setValue(placeholder->getX());
-		entityPlaceholderY->setValue(placeholder->getY());
+		setEntityPlaceholderXWidgetValue(placeholder->getX());
+		setEntityPlaceholderYWidgetValue(placeholder->getY());
 		if (isEnemyPlaceholder) {
 			testModeID->removeAllItems();
 
