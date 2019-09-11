@@ -123,6 +123,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 		for (auto attack : queued) {
 			saveAttack(attack);
 		}
+		levelPack->save();
 	});
 	alDiscardAll->connect("Pressed", [&]() {
 		std::vector<std::shared_ptr<EditorAttack>> queued;
