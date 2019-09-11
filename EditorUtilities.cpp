@@ -249,12 +249,12 @@ void SliderWithEditBox::setPosition(float x, float y) {
 }
 
 void SliderWithEditBox::setValue(float value) {
-	tgui::Slider::setValue(value);
+	Slider::setValue(value);
 	editBox->setValue(value);
 }
 
 void SliderWithEditBox::setEnabled(bool enabled) {
-	tgui::Slider::setEnabled(enabled);
+	Slider::setEnabled(enabled);
 	editBox->setEnabled(enabled);
 }
 
@@ -266,7 +266,7 @@ inline std::shared_ptr<entt::SigH<void(float)>> SliderWithEditBox::getOnValueSet
 }
 
 void SliderWithEditBox::setVisible(bool visible) {
-	tgui::Slider::setVisible(visible);
+	Slider::setVisible(visible);
 	editBox->setVisible(visible);
 }
 
@@ -277,7 +277,7 @@ void SliderWithEditBox::onEditBoxValueSet(float value) {
 	if (value < getMinimum() && !editBox->getHasMin()) {
 		setMaximum(value);
 	}
-	tgui::Slider::setValue(value);
+	Slider::setValue(value);
 }
 
 SoundSettingsGroup::SoundSettingsGroup(std::string pathToSoundsFolder, float paddingX, float paddingY) : paddingX(paddingX), paddingY(paddingY) {
@@ -421,7 +421,7 @@ NumericalEditBoxWithLimits::NumericalEditBoxWithLimits() {
 		if (hasMin && value < min) {
 			value = min;
 		}
-		setText(std::to_string(value));
+		setText(formatNum(value));
 		onValueSet->publish(value);
 	});
 	updateInputValidator();
@@ -433,12 +433,12 @@ float NumericalEditBoxWithLimits::getValue() {
 }
 
 void NumericalEditBoxWithLimits::setValue(int value) {
-	setText(std::to_string(value));
+	setText(formatNum(value));
 }
 
 void NumericalEditBoxWithLimits::setValue(float value) {
 	if (mustBeInt) {
-		setValue(std::round(value));
+		setText(formatNum(std::round(value)));
 	} else {
 		setText(formatNum(value));
 	}
@@ -476,7 +476,7 @@ std::shared_ptr<entt::SigH<void(float)>> NumericalEditBoxWithLimits::getOnValueS
 
 void NumericalEditBoxWithLimits::updateInputValidator() {
 	if (mustBeInt) {
-		setInputValidator("^[0-9]*$");
+		setInputValidator("^-?[0-9]*$");
 	} else {
 		setInputValidator("^[0-9].*$");
 	}
@@ -487,6 +487,7 @@ TFVGroup::TFVGroup(UndoStack& undoStack, float paddingX, float paddingY) : undoS
 	onEMPATFVChange = std::make_shared<entt::SigH<void(std::shared_ptr<EMPAction>)>>();
 
 	//TODO
+	/*
 	test = tgui::Slider::create();
 	test->connect("ValueChanged", [&](float value) {
 		if (ignoreSignal) return;
@@ -499,12 +500,13 @@ TFVGroup::TFVGroup(UndoStack& undoStack, float paddingX, float paddingY) : undoS
 		}));
 	});
 	add(test);
+	*/
 }
 
 void TFVGroup::onContainerResize(int containerWidth, int containerHeight) {
 	//TODO
-	test->setPosition(0, 0);
-	test->setSize(containerWidth, 20);
+	//test->setPosition(0, 0);
+	//test->setSize(containerWidth, 20);
 
 	setSize(containerWidth - paddingX, 25);
 }
@@ -517,7 +519,7 @@ void TFVGroup::setTFV(std::shared_ptr<TFV> tfv, std::shared_ptr<EMPAction> paren
 
 	ignoreSignal = true;
 	//TODO: set widget values
-	test->setValue(2);
+	//test->setValue(2);
 	ignoreSignal = false;
 }
 
@@ -611,4 +613,28 @@ bool ScrollableListBox::mouseWheelScrolled(float delta, tgui::Vector2f pos) {
 void ScrollableListBox::setTextSize(int textSize) {
 	listBox->setTextSize(textSize);
 	textWidthChecker->setTextSize(textSize);
+}
+
+void Slider::setValue(float value) {
+	// Round to nearest allowed value
+	//if (m_step != 0)
+	//	value = m_minimum + (std::round((value - m_minimum) / m_step) * m_step);
+
+	// When the value is below the minimum or above the maximum then adjust it
+	if (value < m_minimum)
+		value = m_minimum;
+	else if (value > m_maximum)
+		value = m_maximum;
+
+	if (m_value != value) {
+		m_value = value;
+
+		onValueChange.emit(this, m_value);
+
+		updateThumbPosition();
+	}
+}
+
+void Slider::setStep(float step) {
+	m_step = step;
 }

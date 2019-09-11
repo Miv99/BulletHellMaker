@@ -26,7 +26,18 @@ std::string formatNum(const T &n) {
 		}
 		s.erase(ipos + 1, std::string::npos);
 	}
-	return s;
+
+	if (s.size() > 0) {
+		// Remove trailing zeros and dot
+		int i = s.size() - 1;
+		while (i > 0 && (s[i] == '0' || s[i] == '.')) {
+			i--;
+		}
+
+		return s.substr(0, i + 1);
+	} else {
+		return s;
+	}
 }
 
 class TextMarshallable {

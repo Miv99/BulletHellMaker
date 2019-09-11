@@ -20,6 +20,19 @@ Sends window to the foreground of the computer display.
 void sendToForeground(sf::RenderWindow& window);
 std::shared_ptr<tgui::Label> createToolTip(std::string text);
 
+
+/*
+A tgui::Slider that allows for values not limited by multiples of the slider's step.
+*/
+class Slider : public tgui::Slider {
+public:
+	void setValue(float value);
+	using tgui::Slider::setValue;
+
+	void setStep(float step);
+	using tgui::Slider::setStep;
+};
+
 /*
 A tgui::Picture that is able to display animations.
 
@@ -138,7 +151,7 @@ Note: connect() should not be used on neither this nor the edit box; use getOnVa
 To get the value, use tgui::Slider::getValue(), not the edit box's value.
 Only SliderWithEditBox::setSize() and setPosition() should be called, not any of tgui::Slider's setSize()'s or setPosition()'s
 */
-class SliderWithEditBox : public tgui::Slider {
+class SliderWithEditBox : public Slider {
 public:
 	SliderWithEditBox(float paddingX = 20);
 
