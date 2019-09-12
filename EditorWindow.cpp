@@ -657,7 +657,7 @@ void GameplayTestWindow::render(float deltaTime) {
 	if (!paused) {
 		spriteAnimationSystem->update(deltaTime);
 	}
-	renderSystem->update(deltaTime);
+	//renderSystem->update(deltaTime);
 	debugRenderSystem->update(deltaTime);
 	registryMutex->unlock();
 
@@ -752,7 +752,7 @@ void GameplayTestWindow::onRenderWindowInitialization() {
 	renderSystem = std::make_unique<RenderSystem>(registry, *window, 1024, 768);
 	renderSystem->loadLevelRenderSettings(nullptr);
 
-	debugRenderSystem = std::make_unique<DebugRenderSystem>(registry, *window);
+	debugRenderSystem = std::make_unique<DebugRenderSystem>(registry, *window, MAP_WIDTH, MAP_HEIGHT);
 
 	// Set the background
 	std::shared_ptr<Level> level = levelPack->getLevel(0);
@@ -766,6 +766,9 @@ void GameplayTestWindow::onRenderWindowInitialization() {
 	renderSystem->setBackground(std::move(background));
 	renderSystem->setBackgroundScrollSpeedX(level->getBackgroundScrollSpeedX());
 	renderSystem->setBackgroundScrollSpeedY(level->getBackgroundScrollSpeedY());
+	debugRenderSystem->setBackground(std::move(background));
+	debugRenderSystem->setBackgroundScrollSpeedX(level->getBackgroundScrollSpeedX());
+	debugRenderSystem->setBackgroundScrollSpeedY(level->getBackgroundScrollSpeedY());
 
 	deselectPlaceholder();
 }

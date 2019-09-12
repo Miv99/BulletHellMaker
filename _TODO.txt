@@ -49,7 +49,6 @@ big todo:
 	solution: maybe make a copy of the level pack and send it to all _____Systems when gameplay test begins;
 		when gameplay test ends, the OG level pack is used again
 -make "start test" do something when editing CPs
--make entities rendered in gameplay test window not be limited by the play area
 -visualize movement path when editing bezier control points (implement visualizer for EMP in a general way such that it can easily be applied to just a single EMPA; then
 	create a temp bezier EMPA that contains unsaved changes that will be used solely to visualize path)
 -improve how popups in editor windows work (how right now mousepressed is the event that chooses the option)
