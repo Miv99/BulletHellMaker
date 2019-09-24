@@ -123,7 +123,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 		for (auto attack : queued) {
 			saveAttack(attack);
 		}
-		levelPack->save();
+		this->levelPack->save();
 	});
 	alDiscardAll->connect("Pressed", [&]() {
 		std::vector<std::shared_ptr<EditorAttack>> queued;
@@ -1967,8 +1967,11 @@ void AttackEditor::onAnimatableChange(Animatable value) {
 	mainWindowUndoStack.execute(UndoableCommand(
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, value]() {
 		selectedEMP->setAnimatable(value);
+		// Not setEMPWidgetValues() because of some random infinite loop bug that I can't figure out how to fix
+		// so this is some dumb hack
 		this->ignoreSignal = true;
 		empiAnimatable->setSelectedItem(selectedEMP->getAnimatable());
+		setAttackWidgetValues(selectedAttack, true);
 		this->ignoreSignal = false;
 	},
 		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, oldValue]() {
