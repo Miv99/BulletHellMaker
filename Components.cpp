@@ -197,7 +197,7 @@ void EnemyComponent::checkPhases(EntityCreationQueue& queue, SpriteLoader& sprit
 void EnemyComponent::checkAttackPatterns(EntityCreationQueue& queue, SpriteLoader& spriteLoader, const LevelPack& levelPack, entt::DefaultRegistry& registry, uint32_t entity) {
 	// Attack patterns loop, so entity can always continue to the next attack pattern
 	while (currentPhase) {
-		auto nextAttackPattern = currentPhase->getAttackPatternData(currentAttackPatternIndex + 1);
+		auto nextAttackPattern = currentPhase->getAttackPatternData(levelPack, currentAttackPatternIndex + 1);
 		// Check if condition for next attack pattern is satisfied
 		if (timeSincePhase >= nextAttackPattern.first) {
 			timeSinceAttackPattern = timeSincePhase - nextAttackPattern.first;

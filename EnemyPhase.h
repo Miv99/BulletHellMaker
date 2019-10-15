@@ -9,6 +9,8 @@
 #include "AudioPlayer.h"
 #include "AttackPattern.h"
 
+class LevelPack;
+
 /*
 An enemy phase consists of a list of attack patterns and at what time each begins.
 */
@@ -28,13 +30,7 @@ public:
 	inline void setPlayMusic(bool playMusic) { this->playMusic = playMusic; }
 
 	inline int getID() { return id; }
-	inline std::pair<float, int> getAttackPatternData(int index) { 
-		int size = attackPatternIds.size();
-		auto item = attackPatternIds[index % size];
-		// Increase time of the attack pattern at some index by the loop count multiplied by total time for all attack patterns to execute
-		item.first += (attackPatternIds[size - 1].first + attackPatternLoopDelay) * (int)(index/size);
-		return item;
-	}
+	std::pair<float, int> getAttackPatternData(const LevelPack& levelPack, int index);
 	inline int getAttackPatternsCount() { return attackPatternIds.size(); }
 	inline std::shared_ptr<EnemyPhaseAction> getPhaseBeginAction() { return phaseBeginAction; }
 	inline std::shared_ptr<EnemyPhaseAction> getPhaseEndAction() { return phaseEndAction; }

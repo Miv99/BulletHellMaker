@@ -42,6 +42,11 @@ void EditorAttackPattern::load(std::string formattedString) {
 
 	shadowTrailInterval = std::stof(items[i++]);
 	shadowTrailLifespan = std::stof(items[i++]);
+
+	actionsTotalTime = 0;
+	for (auto action : actions) {
+		actionsTotalTime += action->getTime();
+	}
 }
 
 bool EditorAttackPattern::legal(std::string & message) {
@@ -70,8 +75,20 @@ void EditorAttackPattern::addAttackID(float time, int id) {
 
 void EditorAttackPattern::insertAction(int index, std::shared_ptr<EMPAction> action) {
 	actions.insert(actions.begin() + index, action);
+
+	// Recalculate completely just in case of floating point imprecision
+	actionsTotalTime = 0;
+	for (auto action : actions) {
+		actionsTotalTime += action->getTime();
+	}
 }
 
 void EditorAttackPattern::removeAction(int index) {
 	actions.erase(actions.begin() + index);
+
+	// Recalculate completely just in case of floating point imprecision
+	actionsTotalTime = 0;
+	for (auto action : actions) {
+		actionsTotalTime += action->getTime();
+	}
 }

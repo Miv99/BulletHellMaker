@@ -1527,7 +1527,7 @@ void GameplayTestWindow::EnemyEntityPlaceholder::runTest(std::shared_ptr<std::mu
 		std::shared_ptr<EditorEnemyPhase> phase = levelPack.createTempEnemyPhase();
 		phase->addAttackPatternID(0, testModeID);
 		// TODO: make this customizable
-		phase->setAttackPatternLoopDelay(8);
+		phase->setAttackPatternLoopDelay(0);
 
 		std::shared_ptr<EditorEnemy> enemy = levelPack.createTempEnemy();
 		EntityAnimatableSet enemyAnimatableSet(Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT), Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT), Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT));

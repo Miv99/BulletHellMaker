@@ -45,6 +45,9 @@ Notes for me:
 -attack ID 13 is messed up
 
 big todo:
+-phase's attackPatternLoopDelay sems to be time after t=0 rather than after t=(time of last EMPA + its duration)
+-move placeholder -> visualized movement path doesn't move
+-can check "show movement path" when no attack pattern ID is selected
 -HUGE BUG: when gameplay test in progress, changes made to the level pack can blow up the test
 	solution: maybe make a copy of the level pack and send it to all _____Systems when gameplay test begins;
 		when gameplay test ends, the OG level pack is used again

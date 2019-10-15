@@ -33,6 +33,7 @@ public:
 	inline int getActionsCount() { return actions.size(); }
 	inline float getShadowTrailInterval() { return shadowTrailInterval; }
 	inline float getShadowTrailLifespan() { return shadowTrailLifespan; }
+	inline float getActionsTotalTime() { return actionsTotalTime; }
 
 	inline void setShadowTrailInterval(float shadowTrailInterval) { this->shadowTrailInterval = shadowTrailInterval; }
 	inline void setShadowTrailLifespan(float shadowTrailLifespan) { this->shadowTrailLifespan = shadowTrailLifespan; }
@@ -52,6 +53,8 @@ private:
 	std::vector<std::pair<float, int>> attackIDs;
 	// EMPActions that will be carried out by the enemy that has this attack pattern as soon as the previous EMPAction ends
 	std::vector<std::shared_ptr<EMPAction>> actions;
+	// Total time for all actions to finish execution
+	float actionsTotalTime;
 
 	// Shadow trails are only for enemies
 	// See ShadowTrailComponent
