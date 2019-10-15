@@ -28,6 +28,7 @@ public:
 	inline std::string getName() { return name; }
 	inline std::pair<float, int> getAttackData(int index) { return attackIDs[index]; }
 	inline std::shared_ptr<EMPAction> getAction(int index) { return actions[index]; }
+	inline const std::vector<std::shared_ptr<EMPAction>> getActions() { return actions; }
 	inline int getAttacksCount() { return attackIDs.size(); }
 	inline int getActionsCount() { return actions.size(); }
 	inline float getShadowTrailInterval() { return shadowTrailInterval; }

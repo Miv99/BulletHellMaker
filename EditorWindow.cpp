@@ -267,6 +267,8 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	testModeIDLabel = tgui::Label::create();
 	testModeID = tgui::ListBox::create();
 	testModePopup = tgui::ListBox::create();
+	showMovementPathLabel = tgui::Label::create();
+	showMovementPath = tgui::CheckBox::create();
 
 	bottomPanel = tgui::ScrollablePanel::create();
 	logs = tgui::Label::create();
@@ -290,6 +292,7 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	toggleBottomPanelDisplay->setText("Show logs");
 	externalEndTest->setText("End test");
 	bezierFinishEditing->setText("Finish editing");
+	showMovementPathLabel->setText("Show movement path");
 
 	entityPlaceholdersListLabel->setTextSize(TEXT_SIZE);
 	newEnemyPlaceholder->setTextSize(TEXT_SIZE);
@@ -310,6 +313,7 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	addControlPointPlaceholderAbove->setTextSize(TEXT_SIZE);
 	addControlPointPlaceholderBelow->setTextSize(TEXT_SIZE);
 	bezierFinishEditing->setTextSize(TEXT_SIZE);
+	showMovementPathLabel->setTextSize(TEXT_SIZE);
 
 	testModePopup->addItem("Enemy", std::to_string(static_cast<int>(EnemyEntityPlaceholder::ENEMY)));
 	testModePopup->addItem("Enemy phase", std::to_string(static_cast<int>(EnemyEntityPlaceholder::PHASE)));
@@ -319,6 +323,14 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	testModePopup->setSize(150, testModePopup->getItemHeight() * testModePopup->getItemCount());
 	testModePopup->setPosition(tgui::bindLeft(setEnemyPlaceholderTestMode), tgui::bindTop(setEnemyPlaceholderTestMode));
 
+	showMovementPath->connect("Changed", [&]() {
+		if (ignoreSignal) return;
+		if (showMovementPath->isChecked()) {
+			showPlaceholderMovementPath(selectedPlaceholder);
+		} else if (placeholderMovementPaths.count(selectedPlaceholder->getID()) > 0) {
+			placeholderMovementPaths.erase(selectedPlaceholder->getID());
+		}
+	});
 	entityPlaceholdersList->connect("ItemSelected", [&](std::string item, std::string id) {
 		if (ignoreSignal) return;
 		if (id == "") {
@@ -445,6 +457,8 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	rightPanel->add(setEnemyPlaceholderTestMode);
 	rightPanel->add(testModeIDLabel);
 	rightPanel->add(testModeID);
+	rightPanel->add(showMovementPathLabel);
+	rightPanel->add(showMovementPath);
 	bottomPanel->add(logs);
 
 	getGui()->add(leftPanel);
@@ -657,8 +671,13 @@ void GameplayTestWindow::render(float deltaTime) {
 	if (!paused) {
 		spriteAnimationSystem->update(deltaTime);
 	}
-	//renderSystem->update(deltaTime);
 	debugRenderSystem->update(deltaTime);
+	// Render movement paths
+	if (!testInProgress) {
+		for (auto it = placeholderMovementPaths.begin(); it != placeholderMovementPaths.end(); it++) {
+			window->draw(it->second);
+		}
+	}
 	registryMutex->unlock();
 
 	UndoableEditorWindow::render(deltaTime);
@@ -716,11 +735,14 @@ void GameplayTestWindow::updateWindowView(int width, int height) {
 	setEnemyPlaceholderTestMode->setPosition(GUI_PADDING_X, tgui::bindBottom(entityPlaceholderManualSet) + GUI_PADDING_Y);
 	testModeIDLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(setEnemyPlaceholderTestMode) + GUI_PADDING_Y);
 	testModeID->setPosition(GUI_PADDING_X, tgui::bindBottom(testModeIDLabel) + GUI_PADDING_Y);
+	showMovementPathLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(testModeID) + GUI_PADDING_Y);
+	showMovementPath->setPosition(GUI_PADDING_X, tgui::bindBottom(showMovementPathLabel) + GUI_PADDING_Y);
 	entityPlaceholderX->setSize(rightPanelWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 	entityPlaceholderY->setSize(rightPanelWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 	entityPlaceholderManualSet->setSize(std::max(rightPanelWidth - GUI_PADDING_X * 2, 100.0f), TEXT_BUTTON_HEIGHT);
 	setEnemyPlaceholderTestMode->setSize(std::max(rightPanelWidth - GUI_PADDING_X * 2, 100.0f), TEXT_BUTTON_HEIGHT);
 	testModeID->setSize(rightPanelWidth - GUI_PADDING_X * 2, height * 0.5f);
+	showMovementPath->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
 
 	const float bottomPanelWidth = width - leftPanelWidth - rightPanelWidth;
 	const float bottomPanelHeight = height * 0.25f;
@@ -1156,6 +1178,8 @@ void GameplayTestWindow::selectPlaceholder(std::shared_ptr<EntityPlaceholder> pl
 		setEnemyPlaceholderTestMode->setVisible(false);
 		testModeIDLabel->setVisible(false);
 		testModeID->setVisible(false);
+		showMovementPathLabel->setVisible(false);
+		showMovementPath->setVisible(false);
 		setEntityPlaceholderXWidgetValue(placeholder->getX());
 		setEntityPlaceholderYWidgetValue(placeholder->getY());
 		entityPlaceholdersList->setSelectedItemById(std::to_string(placeholder->getID()));
@@ -1167,6 +1191,8 @@ void GameplayTestWindow::selectPlaceholder(std::shared_ptr<EntityPlaceholder> pl
 		setEnemyPlaceholderTestMode->setVisible(false);
 		testModeIDLabel->setVisible(false);
 		testModeID->setVisible(false);
+		showMovementPathLabel->setVisible(true);
+		showMovementPath->setVisible(true);
 		setEntityPlaceholderXWidgetValue(placeholder->getX());
 		setEntityPlaceholderYWidgetValue(placeholder->getY());
 		entityPlaceholdersList->setSelectedItemById(std::to_string(placeholder->getID()));
@@ -1194,6 +1220,8 @@ void GameplayTestWindow::selectPlaceholder(std::shared_ptr<EntityPlaceholder> pl
 						testModeID->addItem(it->second->getName() + " [id=" + std::to_string(it->second->getID()) + "]", std::to_string(it->second->getID()));
 					}
 				}
+				showMovementPathLabel->setVisible(false);
+				showMovementPath->setVisible(false);
 			} else if (enemyPlaceholder->getTestMode() == EnemyEntityPlaceholder::PHASE) {
 				testModeIDLabel->setText("Phase ID");
 				for (auto it = levelPack->getEnemyPhaseIteratorBegin(); it != levelPack->getEnemyPhaseIteratorEnd(); it++) {
@@ -1202,6 +1230,8 @@ void GameplayTestWindow::selectPlaceholder(std::shared_ptr<EntityPlaceholder> pl
 						testModeID->addItem(it->second->getName() + " [id=" + std::to_string(it->second->getID()) + "]", std::to_string(it->second->getID()));
 					}
 				}
+				showMovementPathLabel->setVisible(false);
+				showMovementPath->setVisible(false);
 			} else if (enemyPlaceholder->getTestMode() == EnemyEntityPlaceholder::ATTACK_PATTERN) {
 				testModeIDLabel->setText("Attack pattern ID");
 				for (auto it = levelPack->getAttackPatternIteratorBegin(); it != levelPack->getAttackPatternIteratorEnd(); it++) {
@@ -1210,6 +1240,8 @@ void GameplayTestWindow::selectPlaceholder(std::shared_ptr<EntityPlaceholder> pl
 						testModeID->addItem(it->second->getName() + " [id=" + std::to_string(it->second->getID()) + "]", std::to_string(it->second->getID()));
 					}
 				}
+				showMovementPathLabel->setVisible(true);
+				showMovementPath->setVisible(true);
 			} else if (enemyPlaceholder->getTestMode() == EnemyEntityPlaceholder::ATTACK) {
 				testModeIDLabel->setText("Attack ID");
 				for (auto it = levelPack->getAttackIteratorBegin(); it != levelPack->getAttackIteratorEnd(); it++) {
@@ -1218,9 +1250,14 @@ void GameplayTestWindow::selectPlaceholder(std::shared_ptr<EntityPlaceholder> pl
 						testModeID->addItem(it->second->getName() + " [id=" + std::to_string(it->second->getID()) + "]", std::to_string(it->second->getID()));
 					}
 				}
+				showMovementPathLabel->setVisible(false);
+				showMovementPath->setVisible(false);
 			}
 
 			testModeID->setSelectedItemById(std::to_string(static_cast<int>(enemyPlaceholder->getTestModeID())));
+		} else {
+			showMovementPathLabel->setVisible(false);
+			showMovementPath->setVisible(false);
 		}
 		entityPlaceholdersList->setSelectedItemById(std::to_string(placeholder->getID()));
 		ignoreSignal = false;
@@ -1230,6 +1267,11 @@ void GameplayTestWindow::selectPlaceholder(std::shared_ptr<EntityPlaceholder> pl
 	if (editingBezierControlPoints) {
 		addControlPointPlaceholderAbove->setText("Add above");
 		addControlPointPlaceholderBelow->setText("Add below");
+	}
+	if (showMovementPath->isVisible()) {
+		showMovementPath->setChecked(placeholderMovementPaths.count(placeholder->getID()) > 0);
+	} else if (placeholderMovementPaths.count(placeholder->getID()) > 0) {
+		placeholderMovementPaths.erase(placeholder->getID());
 	}
 	ignoreSignal = false;
 }
@@ -1358,6 +1400,19 @@ void GameplayTestWindow::logMessage(std::string message) {
 	logs->setText(logs->getText() + "\n[" + stream.str() + "] " + message);
 }
 
+void GameplayTestWindow::showPlaceholderMovementPath(std::shared_ptr<EntityPlaceholder> placeholder) {
+	if (dynamic_cast<BezierControlPointPlaceholder*>(placeholder.get()) != nullptr) {
+		// Special case, since individual BezierControlPointPlaceholders don't have knowledge of the entire list of bezier control points
+		//TODO: generate the path
+	} else {
+		placeholderMovementPaths[placeholder->getID()] = placeholder->getMovementPath(MOVEMENT_PATH_TIME_RESOLUTION, playerPlaceholder->getX(), playerPlaceholder->getY());
+		// Negate y value of each vertex since our render system uses negative y's and then map to screen coordinates
+		for (int i = 0; i < placeholderMovementPaths[placeholder->getID()].getVertexCount(); i++) {
+			placeholderMovementPaths[placeholder->getID()][i].position = sf::Vector2f(placeholderMovementPaths[placeholder->getID()][i].position.x, -placeholderMovementPaths[placeholder->getID()][i].position.y);
+		}
+	}
+}
+
 void GameplayTestWindow::EntityPlaceholder::moveTo(float x, float y) {
 	this->x = x;
 	this->y = y;
@@ -1394,6 +1449,11 @@ void GameplayTestWindow::PlayerEntityPlaceholder::spawnVisualEntity() {
 	visualEntity = registry.create();
 	registry.assign<PositionComponent>(visualEntity, x, y);
 	registry.assign<SpriteComponent>(visualEntity, spriteLoader, Animatable("Player Placeholder", "Default", true, LOCK_ROTATION), true, PLAYER_LAYER, 0);
+}
+
+sf::VertexArray GameplayTestWindow::PlayerEntityPlaceholder::getMovementPath(float timeResolution, float playerX, float playerY) {
+	// No path for this
+	return sf::VertexArray();
 }
 
 void GameplayTestWindow::PlayerEntityPlaceholder::runTest(std::shared_ptr<std::mutex> registryMutex) {
@@ -1467,7 +1527,7 @@ void GameplayTestWindow::EnemyEntityPlaceholder::runTest(std::shared_ptr<std::mu
 		std::shared_ptr<EditorEnemyPhase> phase = levelPack.createTempEnemyPhase();
 		phase->addAttackPatternID(0, testModeID);
 		// TODO: make this customizable
-		phase->setAttackPatternLoopDelay(2);
+		phase->setAttackPatternLoopDelay(8);
 
 		std::shared_ptr<EditorEnemy> enemy = levelPack.createTempEnemy();
 		EntityAnimatableSet enemyAnimatableSet(Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT), Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT), Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT));
@@ -1540,6 +1600,16 @@ bool GameplayTestWindow::EnemyEntityPlaceholder::legalCheck(std::string & messag
 	return good;
 }
 
+sf::VertexArray GameplayTestWindow::EnemyEntityPlaceholder::getMovementPath(float timeResolution, float playerX, float playerY) {
+	if (testMode == ATTACK_PATTERN && levelPack.hasAttackPattern(testModeID)) {
+		auto attackPattern = levelPack.getAttackPattern(testModeID);
+		//TODO: different colors
+		return generateVertexArray(attackPattern->getActions(), timeResolution, x, y, playerX, playerY);
+	} else {
+		return sf::VertexArray();
+	}
+}
+
 void GameplayTestWindow::EMPTestEntityPlaceholder::runTest(std::shared_ptr<std::mutex> registryMutex) {
 	std::lock_guard<std::mutex> lock(*registryMutex);
 	registry.destroy(visualEntity);
@@ -1583,6 +1653,11 @@ bool GameplayTestWindow::EMPTestEntityPlaceholder::legalCheck(std::string & mess
 	return emp->legal(levelPack, spriteLoader, message);
 }
 
+sf::VertexArray GameplayTestWindow::EMPTestEntityPlaceholder::getMovementPath(float timeResolution, float playerX, float playerY) {
+	//TODO: different colors
+	return generateVertexArray(emp->getActions(), timeResolution, x, y, playerX, playerY);
+}
+
 void GameplayTestWindow::BezierControlPointPlaceholder::runTest(std::shared_ptr<std::mutex> registryMutex) {
 	//TODO
 }
@@ -1592,4 +1667,10 @@ void GameplayTestWindow::BezierControlPointPlaceholder::spawnVisualEntity() {
 	visualEntity = registry.create();
 	registry.assign<PositionComponent>(visualEntity, x, y);
 	registry.assign<SpriteComponent>(visualEntity, spriteLoader, Animatable("Enemy Placeholder", "Default", true, LOCK_ROTATION), true, PLAYER_LAYER, 0);
+}
+
+sf::VertexArray GameplayTestWindow::BezierControlPointPlaceholder::getMovementPath(float timeResolution, float playerX, float playerY) {
+	// It's all wack because BezierControlPointPlaceholders don't have info on the entire bezier movement path so it has to be implemented as a
+	// special case from GameplayTestWindow::showPlaceholderMovementPath(placeholder)
+	return sf::VertexArray();
 }

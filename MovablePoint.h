@@ -202,6 +202,14 @@ public:
 		angle = std::make_shared<CurrentAngleTFV>(registry, from, to);
 		prevAngle = angle->evaluate(0);
 	}
+	/*
+	HomingMP that homes in on a static position.
+	If a HomingMP is initialized with this constructor, evaluate() should never be called.
+	*/
+	inline HomingMP(float lifespan, std::shared_ptr<TFV> speed, std::shared_ptr<TFV> homingStrength, float fromX, float fromY, float toX, float toY) : MovablePoint(lifespan, true), speed(speed), homingStrength(homingStrength), registry(registry) {
+		angle = std::make_shared<ConstantTFV>(std::atan2(toY - fromY, toX - fromX));
+		prevAngle = angle->evaluate(0);
+	}
 
 	sf::Vector2f evaluate(float time) override;
 

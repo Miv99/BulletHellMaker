@@ -49,8 +49,15 @@ big todo:
 	solution: maybe make a copy of the level pack and send it to all _____Systems when gameplay test begins;
 		when gameplay test ends, the OG level pack is used again
 -make "start test" do something when editing CPs
+
 -visualize movement path when editing bezier control points (implement visualizer for EMP in a general way such that it can easily be applied to just a single EMPA; then
 	create a temp bezier EMPA that contains unsaved changes that will be used solely to visualize path)
+	-maybe showEMPAPath(empa, vector2f relativeTo) then just chain a bunch of them together for the whole emp
+	-checkbox when selecting a placeholder that says "show path" -> call a showPath() in the EntityPlaceholder class
+		-checkbox available only on EMPTestEntityPlaceholders, the first BezierControlPointPlaceholder when editing bezier CPs,
+		 and EnemyEntityPlaceholder with TEST_MODE ATTACK_PATTERN
+	
+	
 -improve how popups in editor windows work (how right now mousepressed is the event that chooses the option)
 -gameplay window turn list boxes into scrollable ones
 -have bezier TFV support infinite control points

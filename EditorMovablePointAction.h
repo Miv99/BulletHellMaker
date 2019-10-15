@@ -27,6 +27,8 @@ public:
 	virtual void load(std::string formattedString) = 0;
 
 	virtual float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) = 0;
+	// Same as the other evaluate, but for when only the player's position is known
+	virtual float evaluate(float xFrom, float yFrom, float playerX, float playerY) = 0;
 };
 
 /*
@@ -41,6 +43,7 @@ public:
 
 	// Returns the angle in radians from coordinates (xFrom, yFrom) to the player plus the player offset (player.x + xOffset, player.y + yOffset)
 	float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override;
+	float evaluate(float xFrom, float yFrom, float playerX, float playerY) override;
 
 private:
 	float xOffset = 0;
@@ -60,6 +63,7 @@ public:
 
 	// Returns the angle in radians from coordinates (xFrom, yFrom) to the global position (x, y)
 	float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override;
+	float evaluate(float xFrom, float yFrom, float playerX, float playerY) override;
 
 private:
 	float x;
@@ -78,6 +82,7 @@ public:
 
 	// Returns 0
 	inline float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override { return 0; }
+	inline float evaluate(float xFrom, float yFrom, float playerX, float playerY) override { return 0; }
 };
 
 /*
@@ -91,6 +96,7 @@ public:
 	void load(std::string formattedString) override;
 
 	float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override;
+	float evaluate(float xFrom, float yFrom, float playerX, float playerY) override;
 
 private:
 	float x;
@@ -120,11 +126,17 @@ public:
 	virtual std::string getGuiFormat() = 0;
 
 	/*
-	Generates a new MP from this EMPA.
+	Generates a new MP from this EMPA and then changes the entity's reference entity to reflect the new MP.
 
 	timeLag - the time elapsed since the generation was supposed to happen
 	*/
 	virtual std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) = 0;
+	/*
+	Same thing as execute(), but no reference entity is created.
+
+	x, y - the current position of whatever is going to use this MP
+	*/
+	virtual std::shared_ptr<MovablePoint> generateStandaloneMP(float x, float y, float playerX, float playerY) = 0;
 };
 
 /*
@@ -145,6 +157,7 @@ public:
 	inline void setTime(float duration) override {}
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
+	std::shared_ptr<MovablePoint> generateStandaloneMP(float x, float y, float playerX, float playerY) override;
 };
 
 /*
@@ -163,6 +176,7 @@ public:
 	inline void setTime(float duration) override { this->duration = duration; }
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
+	std::shared_ptr<MovablePoint> generateStandaloneMP(float x, float y, float playerX, float playerY) override;
 
 private:
 	float duration = 0;
@@ -189,6 +203,7 @@ public:
 	inline void setAngle(std::shared_ptr<TFV> angle) { this->angle = angle; }
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
+	std::shared_ptr<MovablePoint> generateStandaloneMP(float x, float y, float playerX, float playerY) override;
 
 private:
 	std::shared_ptr<TFV> distance;
@@ -227,6 +242,7 @@ public:
 	const std::vector<sf::Vector2f> getUnrotatedControlPoints() { return unrotatedControlPoints; }
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
+	std::shared_ptr<MovablePoint> generateStandaloneMP(float x, float y, float playerX, float playerY) override;
 
 private:
 	// The first control point must be at (0, 0)
@@ -258,6 +274,7 @@ public:
 	inline void setTime(float duration) override { this->time = duration; }
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
+	std::shared_ptr<MovablePoint> generateStandaloneMP(float x, float y, float playerX, float playerY) override;
 
 private:
 	// In range (0, 1]

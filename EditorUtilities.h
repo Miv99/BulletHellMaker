@@ -1,5 +1,6 @@
 #pragma once
 #include <TGUI/TGUI.hpp>
+#include <SFML/Graphics.hpp>
 #include <string>
 #include "SpriteLoader.h"
 #include "Animatable.h"
@@ -11,6 +12,8 @@
 #include "RenderSystem.h"
 #include "Attack.h"
 #include "EditorMovablePointAction.h"
+#include "EditorMovablePoint.h"
+#include "MovablePoint.h"
 #include <memory>
 #include <entt/entt.hpp>
 
@@ -18,7 +21,20 @@
 Sends window to the foreground of the computer display.
 */
 void sendToForeground(sf::RenderWindow& window);
+/*
+Returns a tooltip containing some text.
+*/
 std::shared_ptr<tgui::Label> createToolTip(std::string text);
+/*
+Returns a sf::VertexArray that contains the positions that an entity following the array of EMPAs will be in over time.
+Note that there must be an entity with the PlayerTag component if any of the EMPAs or their EMPAAngleOffsets require the player's position.
+The vertices linearly interpolate from startColor to endColor as the path progresses.
+
+timeResolution - the amount of time between each point
+x, y - the starting position of the returned vertex array
+playerX, playerY - position of the player
+*/
+sf::VertexArray generateVertexArray(std::vector<std::shared_ptr<EMPAction>> actions, float timeResolution, float x, float y, float playerX, float playerY, sf::Color startColor = sf::Color::Red, sf::Color endColor = sf::Color::Blue);
 
 
 /*

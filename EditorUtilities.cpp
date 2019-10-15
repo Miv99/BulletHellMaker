@@ -39,6 +39,33 @@ std::shared_ptr<tgui::Label> createToolTip(std::string text) {
 	return tooltip;
 }
 
+sf::VertexArray generateVertexArray(std::vector<std::shared_ptr<EMPAction>> actions, float timeResolution, float x, float y, float playerX, float playerY, sf::Color startColor, sf::Color endColor) {
+	float totalTime = 0;
+	for (auto action : actions) {
+		totalTime += action->getTime();
+	}
+
+	sf::VertexArray ret;
+	float totalTimeElapsed = 0;
+	float time = 0;
+	float curX = x, curY = y;
+	for (auto action : actions) {
+		auto mp = action->generateStandaloneMP(curX, curY, playerX, playerY); 
+		while (time < action->getTime()) {
+			sf::Vector2f pos = mp->compute(sf::Vector2f(0, 0), time);
+			sf::Color color = sf::Color((endColor.r - startColor.r)*(totalTimeElapsed / totalTime) + startColor.r, (endColor.r - startColor.r)*(totalTimeElapsed / totalTime) + startColor.r, (endColor.b - startColor.b)*(totalTimeElapsed / totalTime) + startColor.b, (endColor.a - startColor.a)*(totalTimeElapsed / totalTime) + startColor.a);
+			ret.append(sf::Vertex(pos + sf::Vector2f(curX, curY), color));
+			time += timeResolution;
+			totalTimeElapsed += timeResolution;
+		}
+		time -= action->getTime();
+		sf::Vector2f newPos = mp->compute(sf::Vector2f(0, 0), mp->getLifespan());
+		curX += newPos.x;
+		curY += newPos.y;
+	}
+	return ret;
+}
+
 AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprite, float paddingX, float paddingY) : spriteLoader(spriteLoader), forceSprite(forceSprite), paddingX(paddingX), paddingY(paddingY) {
 	onValueSet = std::make_shared<entt::SigH<void(Animatable)>>();
 	animatable = tgui::ComboBox::create();

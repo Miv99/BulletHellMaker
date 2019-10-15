@@ -199,6 +199,7 @@ private:
 		// Should be called when the EntityPlaceholder is removed from the GameplayTestWindow
 		void removePlaceholder(std::shared_ptr<std::mutex> registryMutex);
 		virtual void spawnVisualEntity() = 0;
+		virtual sf::VertexArray getMovementPath(float timeResolution, float playerX, float playerY) = 0;
 
 		inline void setID(int id) { this->id = id; }
 		inline int getID() { return id; }
@@ -231,6 +232,7 @@ private:
 	
 		void runTest(std::shared_ptr<std::mutex> registryMutex) override;
 		void spawnVisualEntity() override;
+		sf::VertexArray getMovementPath(float timeResolution, float playerX, float playerY) override;
 	};
 	class EnemyEntityPlaceholder : public EntityPlaceholder {
 	public:
@@ -242,6 +244,7 @@ private:
 		void runTest(std::shared_ptr<std::mutex> registryMutex) override;
 		void spawnVisualEntity() override;
 		bool legalCheck(std::string& message, LevelPack& levelPack, SpriteLoader& spriteLoader);
+		sf::VertexArray getMovementPath(float timeResolution, float playerX, float playerY) override;
 
 		inline bool testModeIDSet() { return testModeIDHasBeenSet; }
 		inline TEST_MODE getTestMode() { return testMode; }
@@ -276,6 +279,7 @@ private:
 
 		void runTest(std::shared_ptr<std::mutex> registryMutex) override;
 		void spawnVisualEntity() override;
+		sf::VertexArray getMovementPath(float timeResolution, float playerX, float playerY) override;
 	};
 	class EMPTestEntityPlaceholder : public EntityPlaceholder {
 	public:
@@ -293,6 +297,7 @@ private:
 		void runTest(std::shared_ptr<std::mutex> registryMutex) override;
 		void spawnVisualEntity() override;
 		bool legalCheck(std::string& message, LevelPack& levelPack, SpriteLoader& spriteLoader);
+		sf::VertexArray getMovementPath(float timeResolution, float playerX, float playerY) override;
 
 		inline int getEMPID() { return emp->getID(); }
 		inline bool empIsFromAttack() { return empFromAttack; }
@@ -315,6 +320,7 @@ private:
 	const float LEFT_PANEL_WIDTH = 0.25f;
 	const float RIGHT_PANEL_WIDTH = 0.2f;
 	const float CAMERA_SPEED = 100; // World units per second
+	const float MOVEMENT_PATH_TIME_RESOLUTION = 0.05f; // Time between each visualized movement path vertex
 
 	// Mutex to make sure entities aren't destroyed while being iterated through
 	std::shared_ptr<std::mutex> registryMutex;
@@ -413,6 +419,8 @@ private:
 	std::shared_ptr<tgui::Label> testModeIDLabel;
 	std::shared_ptr<tgui::ListBox> testModeID; // contains all Editor____ objects in the LevelPack (______ part depends on currently selected placeholder's test mode)
 	std::shared_ptr<tgui::ListBox> testModePopup; // popup created when setEnemyPlaceholderTestMode is clicked
+	std::shared_ptr<tgui::Label> showMovementPathLabel;
+	std::shared_ptr<tgui::CheckBox> showMovementPath;
 
 	std::shared_ptr<tgui::ScrollablePanel> bottomPanel;
 	std::shared_ptr<tgui::Label> logs;
@@ -434,6 +442,10 @@ private:
 	std::map<int, std::shared_ptr<EntityPlaceholder>> cachedNonplayerPlaceholdersForBezierControlPointsTest;
 	// The last-saved control points of the EMPA being edited
 	std::vector<sf::Vector2f> lastSavedBezierControlPoints;
+
+	// Maps placeholder IDs to the VertexArray that represents the placeholder's movement path
+	// All VertexArrays in this map are drawn on-screen while testInProgress is false
+	std::map<int, sf::VertexArray> placeholderMovementPaths;
 
 	// Used for the save changes confirmation signal
 	void onBezierFinishEditingConfirmationPrompt(bool saveChanges);
@@ -471,4 +483,13 @@ private:
 	void toggleLogsDisplay();
 	void clearLogs();
 	void logMessage(std::string message);
+
+	/*
+	Show the movement path of some placeholder.
+	This function only does something for placeholders that are one of the following:
+		-BezierControlPointPlaceholder
+		-EMPTestEntityPlaceholder
+		-EnemyEntityPlaceholder with test mode EnemyEntityPlaceholder::ATTACK_PATTERN
+	*/
+	void showPlaceholderMovementPath(std::shared_ptr<EntityPlaceholder> placeholder);
 };
