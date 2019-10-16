@@ -36,11 +36,22 @@ void MovementPathComponent::update(EntityCreationQueue& queue, entt::DefaultRegi
 		path = actions[currentActionsIndex]->execute(queue, registry, entity, time);
 		currentActionsIndex++;
 	}
-	if (useReferenceEntity) {
-		auto& pos = registry.get<PositionComponent>(referenceEntity);
-		entityPosition.setPosition(path->compute(sf::Vector2f(pos.getX(), pos.getY()), time));
+	if (time <= path->getLifespan()) {
+		if (useReferenceEntity) {
+			auto& pos = registry.get<PositionComponent>(referenceEntity);
+			entityPosition.setPosition(path->compute(sf::Vector2f(pos.getX(), pos.getY()), time));
+		} else {
+			entityPosition.setPosition(path->compute(sf::Vector2f(0, 0), time));
+		}
 	} else {
-		entityPosition.setPosition(path->compute(sf::Vector2f(0, 0), time));
+		// The path's lifespan has been exceeded and there are no more paths to execute, so just stay at the last position on the path, relative to the reference entity
+
+		if (useReferenceEntity) {
+			auto& pos = registry.get<PositionComponent>(referenceEntity);
+			entityPosition.setPosition(path->compute(sf::Vector2f(pos.getX(), pos.getY()), path->getLifespan()));
+		} else {
+			entityPosition.setPosition(path->compute(sf::Vector2f(0, 0), path->getLifespan()));
+		}
 	}
 }
 

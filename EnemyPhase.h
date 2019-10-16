@@ -56,7 +56,7 @@ private:
 	// Attack pattern ids (int) and when they occur, with t=0 being the start of the phase
 	// Sorted ascending by time
 	std::vector<std::pair<float, int>> attackPatternIds;
-	// The amount of time to wait before restarting the attack pattern loop
+	// The amount of time to wait after the last attack pattern finishes (all actions have been executed and finished) before restarting the attack pattern loop
 	float attackPatternLoopDelay = 0;
 
 	// The EnemyPhaseAction that is executed right when this phase begins
