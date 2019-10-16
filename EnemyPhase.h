@@ -30,6 +30,10 @@ public:
 	inline void setPlayMusic(bool playMusic) { this->playMusic = playMusic; }
 
 	inline int getID() { return id; }
+	/*
+	Returns a pair: the amount of time after the start of this phase that the attack pattern at the given index will begin, and the id of that attack pattern.
+	Note that there is no upper bound on index, since attack patterns can loop, so this function takes that into account.
+	*/
 	std::pair<float, int> getAttackPatternData(const LevelPack& levelPack, int index);
 	inline int getAttackPatternsCount() { return attackPatternIds.size(); }
 	inline std::shared_ptr<EnemyPhaseAction> getPhaseBeginAction() { return phaseBeginAction; }

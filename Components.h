@@ -465,6 +465,9 @@ private:
 	std::shared_ptr<EditorEnemyPhase> currentPhase = nullptr;
 	std::shared_ptr<EditorAttackPattern> currentAttackPattern = nullptr;
 
+	// Whether to keep checking for if the entity can continue to the next attack pattern
+	bool checkNextAttackPattern = true;
+
 	// Current phase index in list of phases in EditorEnemy
 	int currentPhaseIndex = -1;
 	// Current attack pattern index in list of attack patterns in current EditorEnemyPhase

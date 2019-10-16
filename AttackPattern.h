@@ -54,7 +54,7 @@ private:
 	// EMPActions that will be carried out by the enemy that has this attack pattern as soon as the previous EMPAction ends
 	std::vector<std::shared_ptr<EMPAction>> actions;
 	// Total time for all actions to finish execution
-	float actionsTotalTime;
+	float actionsTotalTime = 0;
 
 	// Shadow trails are only for enemies
 	// See ShadowTrailComponent

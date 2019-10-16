@@ -15,6 +15,8 @@ Documentation to put in the editor somewhere:
 -The particle animatable in ParticleExplosionDeathAction is meant to be colored by the color field. 
  Meaning, the color specified in the Animatable's sprite sheet entry will be ignored.
 -Due to limitations with the GUI library, animations with differing sprite sizes will always scale to fit the preview
+-An EditorAttackPattern "finishes" when all its EMPAs have been executed.
+ Attacks that execute after the time it takes for an attack pattern to finish will not execute.
 
 Tips to put in editor somewhere:
 -For a classic bullet hell, all enemy bullets should do 1 damage
@@ -45,7 +47,6 @@ Notes for me:
 -attack ID 13 is messed up
 
 big todo:
--phase's attackPatternLoopDelay sems to be time after t=0 rather than after t=(time of last EMPA + its duration)
 -move placeholder -> visualized movement path doesn't move
 -can check "show movement path" when no attack pattern ID is selected
 -HUGE BUG: when gameplay test in progress, changes made to the level pack can blow up the test
@@ -60,7 +61,9 @@ big todo:
 		-checkbox available only on EMPTestEntityPlaceholders, the first BezierControlPointPlaceholder when editing bezier CPs,
 		 and EnemyEntityPlaceholder with TEST_MODE ATTACK_PATTERN
 	
-	
+-An EditorAttackPattern "finishes" when all its EMPAs have been executed (actionsTotalTime seconds after the start of the attack pattern).
+ Attacks that execute more than [actionsTotalTime] seconds after the start of the attack pattern will not execute.
+	-so, in attack pattern editor, make names of all attacks that execute after [actionsTotalTime] have a red name
 -improve how popups in editor windows work (how right now mousepressed is the event that chooses the option)
 -gameplay window turn list boxes into scrollable ones
 -have bezier TFV support infinite control points

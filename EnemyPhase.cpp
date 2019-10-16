@@ -55,7 +55,7 @@ bool EditorEnemyPhase::legal(std::string & message) {
 std::pair<float, int> EditorEnemyPhase::getAttackPatternData(const LevelPack & levelPack, int index) {
 	int size = attackPatternIds.size();
 	auto item = attackPatternIds[index % size];
-	// Increase time of the attack pattern at some index by the loop count multiplied by total time for all attack patterns to execute
+	// Increase time of the attack pattern at some index by the loop count multiplied by total time for all attack patterns to finish
 	item.first += (attackPatternIds[size - 1].first + levelPack.getAttackPattern(attackPatternIds[size - 1].second)->getActionsTotalTime() + attackPatternLoopDelay) * (int)(index / size);
 	return item;
 }

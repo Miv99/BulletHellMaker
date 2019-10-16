@@ -157,6 +157,17 @@ void EnemyComponent::checkPhases(EntityCreationQueue& queue, SpriteLoader& sprit
 			currentPhase = levelPack.getEnemyPhase(std::get<1>(nextPhaseData));
 			currentAttackPattern = nullptr;
 
+			// Do not loop through attack patterns while in this current phase if no attack pattern in this phase takes longer than 0 secoonds
+			// to execute, to prevent an infinite loop in checkAttackPatterns()
+			// Loop to (currentPhase->getAttackPatternsCount() * 2) to check for any loop delays as well
+			checkNextAttackPattern = false;
+			for (int i = 0; i < currentPhase->getAttackPatternsCount() * 2; i++) {
+				if (currentPhase->getAttackPatternData(levelPack, i).first > 0) {
+					checkNextAttackPattern = true;
+					break;
+				}
+			}
+
 			// Send phase change signal
 			if (enemyPhaseChangeSignal) {
 				if (currentPhaseIndex == 0) {
@@ -196,7 +207,7 @@ void EnemyComponent::checkPhases(EntityCreationQueue& queue, SpriteLoader& sprit
 
 void EnemyComponent::checkAttackPatterns(EntityCreationQueue& queue, SpriteLoader& spriteLoader, const LevelPack& levelPack, entt::DefaultRegistry& registry, uint32_t entity) {
 	// Attack patterns loop, so entity can always continue to the next attack pattern
-	while (currentPhase) {
+	while (currentPhase && checkNextAttackPattern) {
 		auto nextAttackPattern = currentPhase->getAttackPatternData(levelPack, currentAttackPatternIndex + 1);
 		// Check if condition for next attack pattern is satisfied
 		if (timeSincePhase >= nextAttackPattern.first) {
