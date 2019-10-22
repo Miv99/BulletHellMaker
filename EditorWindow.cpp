@@ -674,8 +674,12 @@ void GameplayTestWindow::render(float deltaTime) {
 	debugRenderSystem->update(deltaTime);
 	// Render movement paths
 	if (!testInProgress) {
-		for (auto it = placeholderMovementPaths.begin(); it != placeholderMovementPaths.end(); it++) {
-			window->draw(it->second);
+		if (editingBezierControlPoints) {
+			window->draw(bezierMovementPath);
+		} else {
+			for (auto it = placeholderMovementPaths.begin(); it != placeholderMovementPaths.end(); it++) {
+				window->draw(it->second);
+			}
 		}
 	}
 	registryMutex->unlock();
@@ -801,6 +805,7 @@ void GameplayTestWindow::beginEditingBezierControlPoints(MoveCustomBezierEMPA* b
 	}
 
 	editingBezierControlPoints = true;
+	editingBezierEMPALifespan = bezierEMPA->getTime();
 
 	newEnemyPlaceholder->setVisible(false);
 	addControlPointPlaceholderAbove->setVisible(true);
@@ -822,6 +827,8 @@ void GameplayTestWindow::beginEditingBezierControlPoints(MoveCustomBezierEMPA* b
 	for (auto cp : bezierEMPA->getUnrotatedControlPoints()) {
 		insertBezierControlPointPlaceholder(i++, cp.x + xOffset, cp.y + yOffset);
 	}
+
+	showBezierMovementPath();
 
 	deselectPlaceholder();
 	updateEntityPlaceholdersList();
@@ -1302,6 +1309,8 @@ void GameplayTestWindow::deletePlaceholder(int placeholderID) {
 		nonplayerPlaceholders.erase(placeholderID);
 		entityPlaceholdersList->removeItemById(std::to_string(placeholderID));
 	}
+
+	updateEntityPlaceholdersList();
 }
 
 void GameplayTestWindow::updateEntityPlaceholdersList() {
@@ -1349,6 +1358,10 @@ void GameplayTestWindow::updateEntityPlaceholdersList() {
 		entityPlaceholdersList->setSelectedItemById(std::to_string(selectedPlaceholder->getID()));
 	}
 	ignoreSignal = false;
+
+	if (editingBezierControlPoints) {
+		showBezierMovementPath();
+	}
 }
 
 void GameplayTestWindow::setPlacingNewEnemy(bool placingNewEnemy) {
@@ -1401,15 +1414,21 @@ void GameplayTestWindow::logMessage(std::string message) {
 }
 
 void GameplayTestWindow::showPlaceholderMovementPath(std::shared_ptr<EntityPlaceholder> placeholder) {
-	if (dynamic_cast<BezierControlPointPlaceholder*>(placeholder.get()) != nullptr) {
-		// Special case, since individual BezierControlPointPlaceholders don't have knowledge of the entire list of bezier control points
-		//TODO: generate the path
-	} else {
-		placeholderMovementPaths[placeholder->getID()] = placeholder->getMovementPath(MOVEMENT_PATH_TIME_RESOLUTION, playerPlaceholder->getX(), playerPlaceholder->getY());
-		// Negate y value of each vertex since our render system uses negative y's and then map to screen coordinates
-		for (int i = 0; i < placeholderMovementPaths[placeholder->getID()].getVertexCount(); i++) {
-			placeholderMovementPaths[placeholder->getID()][i].position = sf::Vector2f(placeholderMovementPaths[placeholder->getID()][i].position.x, -placeholderMovementPaths[placeholder->getID()][i].position.y);
-		}
+	placeholderMovementPaths[placeholder->getID()] = placeholder->getMovementPath(MOVEMENT_PATH_TIME_RESOLUTION, playerPlaceholder->getX(), playerPlaceholder->getY());
+}
+
+void GameplayTestWindow::showBezierMovementPath() {
+	//TODO: different colors
+	std::vector<sf::Vector2f> points;
+	for (auto it = nonplayerPlaceholders.begin(); it != nonplayerPlaceholders.end(); it++) {
+		points.push_back(sf::Vector2f(it->second->getX(), it->second->getY()));
+	}
+	std::shared_ptr<EMPAction> empa = std::make_shared<MoveCustomBezierEMPA>(points, editingBezierEMPALifespan);
+	bezierMovementPath = generateVertexArray(empa, MOVEMENT_PATH_TIME_RESOLUTION, 0, 0, 0, 0);
+	bezierMovementPath.setPrimitiveType(sf::PrimitiveType::Lines);
+	// Negate y value of each vertex since our render system uses negative y's and then map to screen coordinates
+	for (int i = 0; i < bezierMovementPath.getVertexCount(); i++) {
+		bezierMovementPath[i].position = sf::Vector2f(bezierMovementPath[i].position.x, -bezierMovementPath[i].position.y);
 	}
 }
 
@@ -1526,8 +1545,8 @@ void GameplayTestWindow::EnemyEntityPlaceholder::runTest(std::shared_ptr<std::mu
 	} else if (testMode == ATTACK_PATTERN) {
 		std::shared_ptr<EditorEnemyPhase> phase = levelPack.createTempEnemyPhase();
 		phase->addAttackPatternID(0, testModeID);
-		// TODO: make this customizable; must be >= 0
-		phase->setAttackPatternLoopDelay(1.0f);
+		// TODO: make this customizable; must be >= 0; this is the delay before restarting the attack pattern loop
+		phase->setAttackPatternLoopDelay(3.0f);
 
 		std::shared_ptr<EditorEnemy> enemy = levelPack.createTempEnemy();
 		EntityAnimatableSet enemyAnimatableSet(Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT), Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT), Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT));
@@ -1541,7 +1560,7 @@ void GameplayTestWindow::EnemyEntityPlaceholder::runTest(std::shared_ptr<std::mu
 
 		std::shared_ptr<EditorEnemyPhase> phase = levelPack.createTempEnemyPhase();
 		phase->addAttackPatternID(0, attackPattern->getID());
-		// TODO: make this customizable; must be > 0
+		// TODO: make this customizable; must be > 0; this is the time between each attack
 		phase->setAttackPatternLoopDelay(1.0f);
 
 		std::shared_ptr<EditorEnemy> enemy = levelPack.createTempEnemy();
@@ -1604,7 +1623,13 @@ sf::VertexArray GameplayTestWindow::EnemyEntityPlaceholder::getMovementPath(floa
 	if (testMode == ATTACK_PATTERN && levelPack.hasAttackPattern(testModeID)) {
 		auto attackPattern = levelPack.getAttackPattern(testModeID);
 		//TODO: different colors
-		return generateVertexArray(attackPattern->getActions(), timeResolution, x, y, playerX, playerY);
+		sf::VertexArray va = generateVertexArray(attackPattern->getActions(), timeResolution, x, y, playerX, playerY);
+		va.setPrimitiveType(sf::PrimitiveType::Lines);
+		// Negate y value of each vertex since our render system uses negative y's and then map to screen coordinates
+		for (int i = 0; i < va.getVertexCount(); i++) {
+			va[i].position = sf::Vector2f(va[i].position.x, -va[i].position.y);
+		}
+		return va;
 	} else {
 		return sf::VertexArray();
 	}

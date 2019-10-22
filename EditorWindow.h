@@ -366,7 +366,9 @@ private:
 	std::shared_ptr<sf::Sprite> movingPlayerPlaceholderCursor;
 
 	std::shared_ptr<PlayerEntityPlaceholder> playerPlaceholder;
-	std::map<int, std::shared_ptr<EntityPlaceholder>> nonplayerPlaceholders; // Maps placeholder ID to placeholder; contains all EnemyEntityPlaceholders and EMPTestEntityPlaceholders
+	// Maps placeholder ID to placeholder; contains all EnemyEntityPlaceholders and EMPTestEntityPlaceholders
+	// If editingBezierControlPoints is true, all placeholders' positions in here correspond to bezier control point positions, maintaining order
+	std::map<int, std::shared_ptr<EntityPlaceholder>> nonplayerPlaceholders; 
 	std::shared_ptr<EntityPlaceholder> selectedPlaceholder;
 	bool selectedPlaceholderIsPlayer;
 	int nextPlaceholderID = 0;
@@ -434,6 +436,8 @@ private:
 	// control points. The vector should be ignored if the bool parameter is false.
 	std::shared_ptr<entt::SigH<void(bool, std::vector<sf::Vector2f>)>> onBezierControlPointEditingEnd;
 	bool editingBezierControlPoints = false;
+	// The lifespan of the MoveCustomBezierEMPA being edited
+	float editingBezierEMPALifespan;
 	// The desired ID of the next new control point placeholder
 	int nextBezierControlPointPlaceholderDesiredID;
 	// nonplayerPlaceholders cached at the moment right before it is replaced by bezier control points
@@ -446,6 +450,8 @@ private:
 	// Maps placeholder IDs to the VertexArray that represents the placeholder's movement path
 	// All VertexArrays in this map are drawn on-screen while testInProgress is false
 	std::map<int, sf::VertexArray> placeholderMovementPaths;
+	// Movement path for bezier control point editing
+	sf::VertexArray bezierMovementPath;
 
 	// Used for the save changes confirmation signal
 	void onBezierFinishEditingConfirmationPrompt(bool saveChanges);
@@ -492,4 +498,10 @@ private:
 		-EnemyEntityPlaceholder with test mode EnemyEntityPlaceholder::ATTACK_PATTERN
 	*/
 	void showPlaceholderMovementPath(std::shared_ptr<EntityPlaceholder> placeholder);
+	/*
+	Show the movement path of the bezier control points being edited.
+	Should only be called when editing bezier control points.
+	This function also recalculates the path if the path is already visible.
+	*/
+	void showBezierMovementPath();
 };
