@@ -27,8 +27,8 @@ std::string formatNum(const T &n) {
 		s.erase(ipos + 1, std::string::npos);
 	}
 
-	if (s.size() > 0) {
-		// Remove trailing zeros and dot
+	if (s.size() > 0 && s.find('.') != std::string::npos) {
+		// Remove trailing zeros and dot if the string has a dot
 		int i = s.size() - 1;
 		while (i > 0 && (s[i] == '0' || s[i] == '.')) {
 			i--;
