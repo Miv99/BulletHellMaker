@@ -581,23 +581,31 @@ void GameplayTestWindow::handleEvent(sf::Event event) {
 					undoStack.execute(UndoableCommand(
 						[this, &selectedPlaceholder = this->selectedPlaceholder, placeholderEndingPos]() {
 						selectedPlaceholder->moveTo(placeholderEndingPos.x, placeholderEndingPos.y);
+						if (placeholderMovementPaths.count(selectedPlaceholder->getID()) > 0) {
+							// Update movement path
+							showPlaceholderMovementPath(selectedPlaceholder);
+						}
 						if (selectedPlaceholder == this->selectedPlaceholder) {
 							setEntityPlaceholderXWidgetValue(selectedPlaceholder->getX());
 							setEntityPlaceholderYWidgetValue(selectedPlaceholder->getY());
 						}
 						if (editingBezierControlPoints) {
-							// Update entity placeholder list because control point entries have their coordinates
+							// Update coordinates in placeholders list
 							updateEntityPlaceholdersList();
 						}
 					},
 						[this, &selectedPlaceholder = this->selectedPlaceholder, &placeholderPosBeforeDragging = this->placeholderPosBeforeDragging]() {
 						selectedPlaceholder->moveTo(placeholderPosBeforeDragging.x, placeholderPosBeforeDragging.y);
+						if (placeholderMovementPaths.count(selectedPlaceholder->getID()) > 0) {
+							// Update movement path
+							showPlaceholderMovementPath(selectedPlaceholder);
+						}
 						if (selectedPlaceholder == this->selectedPlaceholder) {
 							setEntityPlaceholderXWidgetValue(selectedPlaceholder->getX());
 							setEntityPlaceholderYWidgetValue(selectedPlaceholder->getY());
 						}
 						if (editingBezierControlPoints) {
-							// Update entity placeholder list because control point entries have their coordinates
+							// Update coordinates in placeholders list
 							updateEntityPlaceholdersList();
 						}
 					}));
@@ -958,6 +966,10 @@ void GameplayTestWindow::onEntityPlaceholderXValueSet(float value) {
 	undoStack.execute(UndoableCommand(
 		[this, &selectedPlaceholder = this->selectedPlaceholder, value]() {
 		selectedPlaceholder->moveTo(value, selectedPlaceholder->getY());
+		if (placeholderMovementPaths.count(selectedPlaceholder->getID()) > 0) {
+			// Update movement path
+			showPlaceholderMovementPath(selectedPlaceholder);
+		}
 		if (editingBezierControlPoints) {
 			// Update entity placeholder list because control point entries have their coordinates
 			updateEntityPlaceholdersList();
@@ -965,6 +977,10 @@ void GameplayTestWindow::onEntityPlaceholderXValueSet(float value) {
 	},
 		[this, &selectedPlaceholder = this->selectedPlaceholder, oldValue]() {
 		selectedPlaceholder->moveTo(oldValue, selectedPlaceholder->getY());
+		if (placeholderMovementPaths.count(selectedPlaceholder->getID()) > 0) {
+			// Update movement path
+			showPlaceholderMovementPath(selectedPlaceholder);
+		}
 		if (editingBezierControlPoints) {
 			// Update entity placeholder list because control point entries have their coordinates
 			updateEntityPlaceholdersList();
@@ -977,15 +993,23 @@ void GameplayTestWindow::onEntityPlaceholderYValueSet(float value) {
 	undoStack.execute(UndoableCommand(
 		[this, &selectedPlaceholder = this->selectedPlaceholder, value]() {
 		selectedPlaceholder->moveTo(selectedPlaceholder->getX(), value);
+		if (placeholderMovementPaths.count(selectedPlaceholder->getID()) > 0) {
+			// Update movement path
+			showPlaceholderMovementPath(selectedPlaceholder);
+		}
 		if (editingBezierControlPoints) {
-			// Update entity placeholder list because control point entries have their coordinates
+			// Update coordinates in placeholders list
 			updateEntityPlaceholdersList();
 		}
 	},
 		[this, &selectedPlaceholder = this->selectedPlaceholder, oldValue]() {
 		selectedPlaceholder->moveTo(selectedPlaceholder->getX(), oldValue);
+		if (placeholderMovementPaths.count(selectedPlaceholder->getID()) > 0) {
+			// Update movement path
+			showPlaceholderMovementPath(selectedPlaceholder);
+		}
 		if (editingBezierControlPoints) {
-			// Update entity placeholder list because control point entries have their coordinates
+			// Update coordinates in placeholders list
 			updateEntityPlaceholdersList();
 		}
 	}));
@@ -1361,6 +1385,11 @@ void GameplayTestWindow::updateEntityPlaceholdersList() {
 
 	if (editingBezierControlPoints) {
 		showBezierMovementPath();
+	} else {
+		// Recalculate movement paths
+		for (auto it = placeholderMovementPaths.begin(); it != placeholderMovementPaths.end(); it++) {
+			showPlaceholderMovementPath(nonplayerPlaceholders[it->first]);
+		}
 	}
 }
 
