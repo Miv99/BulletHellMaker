@@ -14,6 +14,14 @@ Color = 255,0,0,255
 SpriteSize = 40,40
 Origin = 50,50
 
+[Selected Placeholder]
+Type = Sprite
+TextureTopLeftCoordinates = 0,0
+BoundingRectangleSize = 100,100
+Color = 0,182,255,255
+SpriteSize = 40,40
+Origin = 50,50
+
 [Player Bullet]
 Type = Sprite
 TextureTopLeftCoordinates = 100,0

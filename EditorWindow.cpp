@@ -1203,7 +1203,9 @@ void GameplayTestWindow::selectPlaceholder(std::shared_ptr<EntityPlaceholder> pl
         return;
     }
 
+	deselectPlaceholder();
 	selectedPlaceholder = placeholder;
+	selectedPlaceholder->onSelection();
 
 	if (dynamic_cast<BezierControlPointPlaceholder*>(placeholder.get()) != nullptr) {
 		ignoreSignal = true;
@@ -1311,6 +1313,10 @@ void GameplayTestWindow::selectPlaceholder(std::shared_ptr<EntityPlaceholder> pl
 }
 
 void GameplayTestWindow::deselectPlaceholder() {
+	if (selectedPlaceholder) {
+		selectedPlaceholder->onDeselection();
+	}
+
 	rightPanel->setVisible(false);
 	currentCursor = nullptr;
 	window->setMouseCursorVisible(true);
@@ -1517,11 +1523,27 @@ void GameplayTestWindow::EntityPlaceholder::removePlaceholder(std::shared_ptr<st
 	}
 }
 
+void GameplayTestWindow::EntityPlaceholder::onSelection() {
+	if (registry.valid(visualEntity)) {
+		registry.get<SpriteComponent>(visualEntity).setAnimatable(spriteLoader, Animatable("Selected Placeholder", "Default", true, LOCK_ROTATION), false);
+	}
+}
+
+void GameplayTestWindow::EntityPlaceholder::onDeselection() {
+	if (registry.valid(visualEntity)) {
+		registry.get<SpriteComponent>(visualEntity).setAnimatable(spriteLoader, getVisualEntityAnimatable(), false);
+	}
+}
+
 void GameplayTestWindow::PlayerEntityPlaceholder::spawnVisualEntity() {
 	assert(!registry.valid(visualEntity));
 	visualEntity = registry.create();
 	registry.assign<PositionComponent>(visualEntity, x, y);
-	registry.assign<SpriteComponent>(visualEntity, spriteLoader, Animatable("Player Placeholder", "Default", true, LOCK_ROTATION), true, PLAYER_LAYER, 0);
+	registry.assign<SpriteComponent>(visualEntity, spriteLoader, getVisualEntityAnimatable(), true, PLAYER_LAYER, 0);
+}
+
+Animatable GameplayTestWindow::PlayerEntityPlaceholder::getVisualEntityAnimatable() {
+	return Animatable("Player Placeholder", "Default", true, LOCK_ROTATION);
 }
 
 sf::VertexArray GameplayTestWindow::PlayerEntityPlaceholder::getMovementPath(float timeResolution, float playerX, float playerY) {
@@ -1631,7 +1653,11 @@ void GameplayTestWindow::EnemyEntityPlaceholder::spawnVisualEntity() {
 	assert(!registry.valid(visualEntity));
 	visualEntity = registry.create();
 	registry.assign<PositionComponent>(visualEntity, x, y);
-	registry.assign<SpriteComponent>(visualEntity, spriteLoader, Animatable("Enemy Placeholder", "Default", true, LOCK_ROTATION), true, PLAYER_LAYER, 0);
+	registry.assign<SpriteComponent>(visualEntity, spriteLoader, getVisualEntityAnimatable(), true, PLAYER_LAYER, 0);
+}
+
+Animatable GameplayTestWindow::EnemyEntityPlaceholder::getVisualEntityAnimatable() {
+	return Animatable("Enemy Placeholder", "Default", true, LOCK_ROTATION);
 }
 
 bool GameplayTestWindow::EnemyEntityPlaceholder::legalCheck(std::string & message, LevelPack & levelPack, SpriteLoader & spriteLoader) {
@@ -1725,7 +1751,11 @@ void GameplayTestWindow::EMPTestEntityPlaceholder::spawnVisualEntity() {
 	assert(!registry.valid(visualEntity));
 	visualEntity = registry.create();
 	registry.assign<PositionComponent>(visualEntity, x, y);
-	registry.assign<SpriteComponent>(visualEntity, spriteLoader, Animatable("Enemy Placeholder", "Default", true, LOCK_ROTATION), true, PLAYER_LAYER, 0);
+	registry.assign<SpriteComponent>(visualEntity, spriteLoader, getVisualEntityAnimatable(), true, PLAYER_LAYER, 0);
+}
+
+Animatable GameplayTestWindow::EMPTestEntityPlaceholder::getVisualEntityAnimatable() {
+	return Animatable("Enemy Placeholder", "Default", true, LOCK_ROTATION);
 }
 
 bool GameplayTestWindow::EMPTestEntityPlaceholder::legalCheck(std::string & message, LevelPack & levelPack, SpriteLoader & spriteLoader) {
@@ -1745,7 +1775,11 @@ void GameplayTestWindow::BezierControlPointPlaceholder::spawnVisualEntity() {
 	assert(!registry.valid(visualEntity));
 	visualEntity = registry.create();
 	registry.assign<PositionComponent>(visualEntity, x, y);
-	registry.assign<SpriteComponent>(visualEntity, spriteLoader, Animatable("Enemy Placeholder", "Default", true, LOCK_ROTATION), true, PLAYER_LAYER, 0);
+	registry.assign<SpriteComponent>(visualEntity, spriteLoader, getVisualEntityAnimatable(), true, PLAYER_LAYER, 0);
+}
+
+Animatable GameplayTestWindow::BezierControlPointPlaceholder::getVisualEntityAnimatable() {
+	return Animatable("Enemy Placeholder", "Default", true, LOCK_ROTATION);
 }
 
 sf::VertexArray GameplayTestWindow::BezierControlPointPlaceholder::getMovementPath(float timeResolution, float playerX, float playerY) {

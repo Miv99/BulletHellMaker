@@ -199,6 +199,12 @@ private:
 		// Should be called when the EntityPlaceholder is removed from the GameplayTestWindow
 		void removePlaceholder(std::shared_ptr<std::mutex> registryMutex);
 		virtual void spawnVisualEntity() = 0;
+		// Called when this placeholder is selected
+		void onSelection();
+		// Called when this placeholder is deselected
+		void onDeselection();
+
+		virtual Animatable getVisualEntityAnimatable() = 0;
 		virtual sf::VertexArray getMovementPath(float timeResolution, float playerX, float playerY) = 0;
 
 		inline void setID(int id) { this->id = id; }
@@ -232,6 +238,7 @@ private:
 	
 		void runTest(std::shared_ptr<std::mutex> registryMutex) override;
 		void spawnVisualEntity() override;
+		Animatable getVisualEntityAnimatable() override;
 		sf::VertexArray getMovementPath(float timeResolution, float playerX, float playerY) override;
 	};
 	class EnemyEntityPlaceholder : public EntityPlaceholder {
@@ -243,6 +250,7 @@ private:
 
 		void runTest(std::shared_ptr<std::mutex> registryMutex) override;
 		void spawnVisualEntity() override;
+		Animatable getVisualEntityAnimatable() override;
 		bool legalCheck(std::string& message, LevelPack& levelPack, SpriteLoader& spriteLoader);
 		sf::VertexArray getMovementPath(float timeResolution, float playerX, float playerY) override;
 
@@ -279,6 +287,7 @@ private:
 
 		void runTest(std::shared_ptr<std::mutex> registryMutex) override;
 		void spawnVisualEntity() override;
+		Animatable getVisualEntityAnimatable() override;
 		sf::VertexArray getMovementPath(float timeResolution, float playerX, float playerY) override;
 	};
 	class EMPTestEntityPlaceholder : public EntityPlaceholder {
@@ -296,6 +305,7 @@ private:
 
 		void runTest(std::shared_ptr<std::mutex> registryMutex) override;
 		void spawnVisualEntity() override;
+		Animatable getVisualEntityAnimatable() override;
 		bool legalCheck(std::string& message, LevelPack& levelPack, SpriteLoader& spriteLoader);
 		sf::VertexArray getMovementPath(float timeResolution, float playerX, float playerY) override;
 
