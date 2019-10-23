@@ -51,36 +51,13 @@ big todo:
 	solution: maybe make a copy of the level pack and send it to all _____Systems when gameplay test begins;
 		when gameplay test ends, the OG level pack is used again
 -make "start test" do something when editing CPs
-
--visualize movement path when editing bezier control points (implement visualizer for EMP in a general way such that it can easily be applied to just a single EMPA; then
-	create a temp bezier EMPA that contains unsaved changes that will be used solely to visualize path)
-	-maybe showEMPAPath(empa, vector2f relativeTo) then just chain a bunch of them together for the whole emp
-	-checkbox when selecting a placeholder that says "show path" -> call a showPath() in the EntityPlaceholder class
-		-checkbox available only on EMPTestEntityPlaceholders, the first BezierControlPointPlaceholder when editing bezier CPs,
-		 and EnemyEntityPlaceholder with TEST_MODE ATTACK_PATTERN
 	
 -An EditorAttackPattern "finishes" when all its EMPAs have been executed (actionsTotalTime seconds after the start of the attack pattern).
  Attacks that execute more than [actionsTotalTime] seconds after the start of the attack pattern will not execute.
 	-so, in attack pattern editor, make names of all attacks that execute after [actionsTotalTime] have a red name
 -improve how popups in editor windows work (how right now mousepressed is the event that chooses the option)
 -gameplay window turn list boxes into scrollable ones
--have bezier TFV support infinite control points
 -select placeholder -> color it differently
--think about how to implement empaiBezierControlPoints
-	-edit button that sets gameplay test window into bezier edit mode:
-		0. some indicator on attack editor to let user know that everything in attack editor is disabled until
-			(panel that covers entire screen with only a Label: "Currently editing bezier control points for Attack #, EMP #, EMPA index #")
-			-> 
-		1. caches current state of all placeholders (including player) into some list of placeholders
-		2. deletes all placeholders
-		3. adds a placeholder for every control point that corresponds to that control point; selected placeholders can't have their 
-			test modes/test mode ids be changed; adding a new placeholder is equivalent to adding a new control point; running gameplay test 
-			caches then deletes all placeholders, creates a single placeholder in EMPA test mode (see below) with ID of EMPA being edited, and
-			runs gameplay test normally; when gameplay test ends, delete all placeholders and then restore the placeholders from the cache created in
-			this step
-		4. when "finish editing" button is pressed, the EMPA being edited has its control points set according to the placeholders. the cached placeholders
-			from #1 are put back, and bezier edit mode is exited; call AttackEditor::populateEmpaiBezierControlPoints(); if gameplay test is being run, end it first
-		5. also have a "discard and exit" button that does all of #4 but doesn't control points aren't set
 -add to attack editor: 
 	-test EMP button
 		-places a single placeholder in the gameplay test window in a special EMP test mode (this test mode can't be chosen by user) that tests

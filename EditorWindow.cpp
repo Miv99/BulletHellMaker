@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <boost/date_time.hpp>
 #include <sstream>
+#include <iterator>
 
 EditorWindow::EditorWindow(std::shared_ptr<std::mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval) :
 	tguiMutex(tguiMutex), windowTitle(windowTitle), windowWidth(width), windowHeight(height), scaleWidgetsOnResize(scaleWidgetsOnResize), letterboxingEnabled(letterboxingEnabled), renderInterval(renderInterval) {
@@ -912,6 +913,7 @@ void GameplayTestWindow::insertBezierControlPointPlaceholder(int id, float x, fl
 				nextPlaceholderID = i + 1;
 			}
 		}
+		selectPlaceholder(cp);
 		updateEntityPlaceholdersList();
 	},
 		[this, cp]() {
@@ -1052,6 +1054,7 @@ void GameplayTestWindow::onGameplayAreaMouseClick(float screenX, float screenY) 
 				enemy->moveTo(mouseWorldPos.x, mouseWorldPos.y);
 				enemy->spawnVisualEntity();
 				nonplayerPlaceholders[enemy->getID()] = enemy;
+				selectPlaceholder(enemy);
 				updateEntityPlaceholdersList();
 			},
 				[this, enemy]() {
@@ -1326,6 +1329,28 @@ void GameplayTestWindow::deletePlaceholder(int placeholderID) {
 
 	if (selectedPlaceholder && placeholderID == selectedPlaceholder->getID()) {
 		deselectPlaceholder();
+
+		// If the selected placeholder was the only one in the list, ...
+		if (nonplayerPlaceholders.size() == 1) {
+			// If not editing bezier control points, select the player placeholder
+			if (!editingBezierControlPoints) {
+				selectPlaceholder(playerPlaceholder);
+			}
+		} else if (std::prev(nonplayerPlaceholders.end())->first == placeholderID) {
+			// If the selected placeholder was the last one in the list, try to select the 2nd to last
+
+			selectPlaceholder(std::prev(std::prev(nonplayerPlaceholders.end()))->second);
+		} else {
+			// Try to select the next placeholder in the list
+			for (auto it = nonplayerPlaceholders.begin(); it != nonplayerPlaceholders.end(); it++) {
+				if (it->first == placeholderID) {
+					if (std::next(it) != nonplayerPlaceholders.end()) {
+						selectPlaceholder(std::next(it)->second);
+					}
+					break;
+				}
+			}
+		}
 	}
 
 	if (nonplayerPlaceholders.count(placeholderID) > 0) {
