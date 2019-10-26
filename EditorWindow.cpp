@@ -1321,7 +1321,6 @@ void GameplayTestWindow::deselectPlaceholder() {
 
 	rightPanel->setVisible(false);
 	currentCursor = nullptr;
-	window->setMouseCursorVisible(true);
 	selectedPlaceholder = nullptr;
 	entityPlaceholdersList->getListBox()->deselectItem();
 	deleteEnemyPlaceholder->setEnabled(false);
@@ -1429,10 +1428,8 @@ void GameplayTestWindow::updateEntityPlaceholdersList() {
 void GameplayTestWindow::setPlacingNewEnemy(bool placingNewEnemy) {
 	this->placingNewEnemy = placingNewEnemy;
 	if (placingNewEnemy) {
-		window->setMouseCursorVisible(false);
 		currentCursor = movingEnemyPlaceholderCursor;
 	} else if (!manuallySettingPlaceholderPosition) {
-		window->setMouseCursorVisible(true);
 		currentCursor = nullptr;
 	}
 }
@@ -1440,8 +1437,6 @@ void GameplayTestWindow::setPlacingNewEnemy(bool placingNewEnemy) {
 void GameplayTestWindow::setManuallySettingPlaceholderPosition(std::shared_ptr<EntityPlaceholder> placeholder,  bool manuallySettingPlaceholderPosition) {
 	this->manuallySettingPlaceholderPosition = manuallySettingPlaceholderPosition;
 	if (manuallySettingPlaceholderPosition) {
-		window->setMouseCursorVisible(false);
-
 		bool isPlayerPlaceholder = (dynamic_cast<PlayerEntityPlaceholder*>(placeholder.get()) != nullptr);
 		if (isPlayerPlaceholder) {
 			currentCursor = movingPlayerPlaceholderCursor;
@@ -1449,7 +1444,6 @@ void GameplayTestWindow::setManuallySettingPlaceholderPosition(std::shared_ptr<E
 			currentCursor = movingEnemyPlaceholderCursor;
 		}
 	} else if (!placingNewEnemy) {
-		window->setMouseCursorVisible(true);
 		currentCursor = nullptr;
 	}
 }
