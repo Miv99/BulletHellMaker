@@ -410,7 +410,7 @@ private:
 
 	std::shared_ptr<tgui::ScrollablePanel> leftPanel;
 	std::shared_ptr<tgui::Label> entityPlaceholdersListLabel;
-	std::shared_ptr<tgui::ListBox> entityPlaceholdersList; // Item ID is placeholder ID
+	std::shared_ptr<ScrollableListBox> entityPlaceholdersList; // Item ID is placeholder ID
 	std::shared_ptr<tgui::Button> newEnemyPlaceholder;
 	std::shared_ptr<tgui::Button> deleteEnemyPlaceholder;
 	std::shared_ptr<tgui::Button> startAndEndTest;
@@ -429,8 +429,8 @@ private:
 	std::shared_ptr<tgui::Button> entityPlaceholderManualSet;
 	std::shared_ptr<tgui::Button> setEnemyPlaceholderTestMode;
 	std::shared_ptr<tgui::Label> testModeIDLabel;
-	std::shared_ptr<tgui::ListBox> testModeID; // contains all Editor____ objects in the LevelPack (______ part depends on currently selected placeholder's test mode)
-	std::shared_ptr<tgui::ListBox> testModePopup; // popup created when setEnemyPlaceholderTestMode is clicked
+	std::shared_ptr<ScrollableListBox> testModeID; // contains all Editor____ objects in the LevelPack (______ part depends on currently selected placeholder's test mode)
+	std::shared_ptr<ScrollableListBox> testModePopup; // popup created when setEnemyPlaceholderTestMode is clicked
 	std::shared_ptr<tgui::Label> showMovementPathLabel;
 	std::shared_ptr<tgui::CheckBox> showMovementPath;
 

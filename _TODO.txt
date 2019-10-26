@@ -56,8 +56,6 @@ big todo:
  Attacks that execute more than [actionsTotalTime] seconds after the start of the attack pattern will not execute.
 	-so, in attack pattern editor, make names of all attacks that execute after [actionsTotalTime] have a red name
 -improve how popups in editor windows work (how right now mousepressed is the event that chooses the option)
--gameplay window turn list boxes into scrollable ones
--select placeholder -> color it differently
 -add to attack editor: 
 	-test EMP button
 		-places a single placeholder in the gameplay test window in a special EMP test mode (this test mode can't be chosen by user) that tests
