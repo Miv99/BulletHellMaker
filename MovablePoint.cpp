@@ -1,5 +1,6 @@
 #include "MovablePoint.h"
 #include <iostream>
+#include <boost/log/trivial.hpp>
 
 float lerpRadians(float start, float end, float amount) {
 	float difference = std::abs(end - start);
@@ -40,6 +41,12 @@ sf::Vector2f HomingMP::evaluate(float time) {
 	assert(deltaTime <= MAX_PHYSICS_DELTA_TIME + 0.0001f);
 
 	// Note: comparisons are done agianst MAX_PHYSICS_DELTA_TIME + 0.0001f to account for floating point inaccuracies
+
+	if (registry.has<PositionComponent>(from)) {
+		// Sometimes the game randomly crashes from this and idk why so this is just a safety precaution
+		BOOST_LOG_TRIVIAL(error) << "HomingMP failed to find PositionComponent of entity id " << from;
+		//return sf::Vector2f(0, 0);
+	}
 
 	auto& fromPos = registry.get<PositionComponent>(from);
 	if (deltaTime > 0) {
