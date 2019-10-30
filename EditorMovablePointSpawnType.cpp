@@ -20,6 +20,10 @@ MPSpawnInformation SpecificGlobalEMPSpawn::getSpawnInfo(entt::DefaultRegistry & 
 	return MPSpawnInformation{ false, NULL, sf::Vector2f(x, y) };
 }
 
+MPSpawnInformation SpecificGlobalEMPSpawn::getForcedDetachmentSpawnInfo(entt::DefaultRegistry & registry, float timeLag) {
+	return MPSpawnInformation{ false, NULL, sf::Vector2f(x, y) };
+}
+
 std::string EntityRelativeEMPSpawn::format() {
 	std::string res = "";
 	res += "EntityRelativeEMPSpawn" + tm_delim;
@@ -53,6 +57,10 @@ MPSpawnInformation EntityRelativeEMPSpawn::getSpawnInfo(entt::DefaultRegistry & 
 	}
 }
 
+MPSpawnInformation EntityRelativeEMPSpawn::getForcedDetachmentSpawnInfo(entt::DefaultRegistry & registry, float timeLag) {
+	return MPSpawnInformation{ false, NULL, sf::Vector2f(x, y) };
+}
+
 std::string EntityAttachedEMPSpawn::format() {
 	std::string res = "";
 	res += "EntityAttachedEMPSpawn" + tm_delim;
@@ -78,6 +86,10 @@ MPSpawnInformation EntityAttachedEMPSpawn::getSpawnInfo(entt::DefaultRegistry & 
 		offsetY += hitbox.getY();
 	}
 	return MPSpawnInformation{ true, entity, sf::Vector2f(x, y) };
+}
+
+MPSpawnInformation EntityAttachedEMPSpawn::getForcedDetachmentSpawnInfo(entt::DefaultRegistry & registry, float timeLag) {
+	return MPSpawnInformation{ false, NULL, sf::Vector2f(x, y) };
 }
 
 std::shared_ptr<EMPSpawnType> EMPSpawnTypeFactory::create(std::string formattedString) {

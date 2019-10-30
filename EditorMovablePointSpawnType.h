@@ -34,6 +34,10 @@ public:
 	entity - the entity spawning the EMP
 	*/
 	virtual MPSpawnInformation getSpawnInfo(entt::DefaultRegistry& registry, uint32_t entity, float timeLag) = 0;
+	/*
+	Same as getSpawnInfo(), but useReferenceEntity in the returned MPSpawnInformation will always be false
+	*/
+	virtual MPSpawnInformation getForcedDetachmentSpawnInfo(entt::DefaultRegistry& registry, float timeLag) = 0;
 	inline float getTime() const { return time; }
 	inline float getX() const { return x; }
 	inline float getY() const { return y; }
@@ -64,6 +68,7 @@ public:
 	void load(std::string formattedString) override;
 
 	MPSpawnInformation getSpawnInfo(entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
+	MPSpawnInformation getForcedDetachmentSpawnInfo(entt::DefaultRegistry& registry, float timeLag) override;
 };
 
 /*
@@ -81,6 +86,7 @@ public:
 	entity - the entity that is being used as the reference
 	*/
 	MPSpawnInformation getSpawnInfo(entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
+	MPSpawnInformation getForcedDetachmentSpawnInfo(entt::DefaultRegistry& registry, float timeLag) override;
 };
 
 /*
@@ -99,6 +105,7 @@ public:
 	entity - the entity that the spawned EMP will be attached to
 	*/
 	MPSpawnInformation getSpawnInfo(entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
+	MPSpawnInformation getForcedDetachmentSpawnInfo(entt::DefaultRegistry& registry, float timeLag) override;
 };
 
 class EMPSpawnTypeFactory {

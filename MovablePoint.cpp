@@ -42,10 +42,10 @@ sf::Vector2f HomingMP::evaluate(float time) {
 
 	// Note: comparisons are done agianst MAX_PHYSICS_DELTA_TIME + 0.0001f to account for floating point inaccuracies
 
-	if (registry.has<PositionComponent>(from)) {
+	if (!registry.has<PositionComponent>(from)) {
 		// Sometimes the game randomly crashes from this and idk why so this is just a safety precaution
 		BOOST_LOG_TRIVIAL(error) << "HomingMP failed to find PositionComponent of entity id " << from;
-		//return sf::Vector2f(0, 0);
+		return sf::Vector2f(0, 0);
 	}
 
 	auto& fromPos = registry.get<PositionComponent>(from);

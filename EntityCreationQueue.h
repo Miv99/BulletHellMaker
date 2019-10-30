@@ -6,6 +6,7 @@
 #include "EnemySpawn.h"
 #include "Item.h"
 #include "DeathAction.h"
+#include "EditorMovablePointSpawnType.h"
 
 class EditorMovablePoint;
 class SpriteLoader;
@@ -155,6 +156,44 @@ private:
 	int enemyID;
 	int enemyPhaseID;
 	bool playAttackAnimation;
+};
+
+/*
+Command for creating the entity/entities associated with an attack.
+The entity that spawns will never be attached to any other entity.
+*/
+class EMPSpawnFromNothingCommand : public EntityCreationCommand {
+public:
+	/*
+	emp - the EMP whose data will be used for the bullet
+	isMainEMP - whether emp is the mainEMP of its EditorAttack
+	timeLag - time when attack should have occurred minus time when the attack actually occurred
+	attackPatternID - ID of enemy attack pattern that this attack came from
+	*/
+	EMPSpawnFromNothingCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, bool isMainEMP, float timeLag, int attackID, int attackPatternID);
+	/*
+	Same as the other constructor, but with a custom MPSpawnInformation
+
+	emp - the EMP whose data will be used for the bullet
+	spawnInfo - the spawn information that emp will be forced to use. Note that spawnInfo will be used instead of the MPSpawnInformation from emp->getSpawnInfo()
+	isMainEMP - whether emp is the mainEMP of its EditorAttack
+	timeLag - time when attack should have occurred minus time when the attack actually occurred
+	attackPatternID - ID of enemy attack pattern that this attack came from
+	*/
+	EMPSpawnFromNothingCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, MPSpawnInformation spawnInfo, bool isMainEMP, float timeLag, int attackID, int attackPatternID);
+
+	void execute(EntityCreationQueue& queue) override;
+	int getEntitiesQueuedCount() override;
+
+private:
+	SpriteLoader& spriteLoader;
+	std::shared_ptr<EditorMovablePoint> emp;
+	bool isMainEMP;
+	float timeLag;
+	int attackID;
+	int attackPatternID;
+	MPSpawnInformation spawnInfo;
+	bool spawnInfoIsDefined;
 };
 
 /*

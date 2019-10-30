@@ -50,6 +50,7 @@ big todo:
 -HUGE BUG: when gameplay test in progress, changes made to the level pack can blow up the test
 	solution: maybe make a copy of the level pack and send it to all _____Systems when gameplay test begins;
 		when gameplay test ends, the OG level pack is used again
+	better solution (?): restart the test every time a change is made to the level pack
 -make "start test" do something when editing CPs
 	
 -An EditorAttackPattern "finishes" when all its EMPAs have been executed (actionsTotalTime seconds after the start of the attack pattern).

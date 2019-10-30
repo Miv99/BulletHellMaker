@@ -19,6 +19,11 @@
 // Used to account for float inaccuracies
 const float sigma = 0.00001f;
 
+MovementPathComponent::MovementPathComponent(EntityCreationQueue & queue, uint32_t self, entt::DefaultRegistry & registry, uint32_t entity, MPSpawnInformation spawnInfo, std::vector<std::shared_ptr<EMPAction>> actions, float initialTime) : actions(actions), time(initialTime) {
+	initialSpawn(registry, entity, spawnInfo, actions);
+	update(queue, registry, self, registry.get<PositionComponent>(self), 0);
+}
+
 void MovementPathComponent::update(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, PositionComponent& entityPosition, float deltaTime) {
 	time += deltaTime;
 	// While loop for actions with lifespan of 0 like DetachFromParent 
@@ -115,6 +120,13 @@ void MovementPathComponent::setPath(EntityCreationQueue& queue, entt::DefaultReg
 
 void MovementPathComponent::initialSpawn(entt::DefaultRegistry& registry, uint32_t entity, std::shared_ptr<EMPSpawnType> spawnType, std::vector<std::shared_ptr<EMPAction>>& actions) {
 	auto spawnInfo = spawnType->getSpawnInfo(registry, entity, time);
+	useReferenceEntity = spawnInfo.useReferenceEntity;
+	referenceEntity = spawnInfo.referenceEntity;
+
+	path = std::make_shared<StationaryMP>(spawnInfo.position, 0);
+}
+
+void MovementPathComponent::initialSpawn(entt::DefaultRegistry & registry, uint32_t entity, MPSpawnInformation spawnInfo, std::vector<std::shared_ptr<EMPAction>>& actions) {
 	useReferenceEntity = spawnInfo.useReferenceEntity;
 	referenceEntity = spawnInfo.referenceEntity;
 
@@ -319,12 +331,21 @@ void SpriteComponent::update(float deltaTime) {
 }
 
 EMPSpawnerComponent::EMPSpawnerComponent(std::vector<std::shared_ptr<EditorMovablePoint>> emps, uint32_t parent, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation) : parent(parent), attackID(attackID), attackPatternID(attackPatternID), enemyID(enemyID), enemyPhaseID(enemyPhaseID), playAttackAnimation(playAttackAnimation), isEnemyBulletSpawner(true) {
+	spawnedBulletType = 0;
+	for (auto emp : emps) {
+		this->emps.push(emp);
+	}
+}
+
+EMPSpawnerComponent::EMPSpawnerComponent(std::vector<std::shared_ptr<EditorMovablePoint>> emps, uint32_t parent, int attackID, int attackPatternID) {
+	spawnedBulletType = 1;
 	for (auto emp : emps) {
 		this->emps.push(emp);
 	}
 }
 
 EMPSpawnerComponent::EMPSpawnerComponent(std::vector<std::shared_ptr<EditorMovablePoint>> emps, uint32_t parent, int attackID, int attackPatternID, bool playAttackAnimation) : parent(parent), attackID(attackID), attackPatternID(attackPatternID), playAttackAnimation(playAttackAnimation), isEnemyBulletSpawner(false) {
+	spawnedBulletType = 2;
 	for (auto emp : emps) {
 		this->emps.push(emp);
 	}
@@ -333,7 +354,7 @@ EMPSpawnerComponent::EMPSpawnerComponent(std::vector<std::shared_ptr<EditorMovab
 void EMPSpawnerComponent::update(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, EntityCreationQueue& queue, float deltaTime) {
 	time += deltaTime;
 
-	if (isEnemyBulletSpawner) {
+	if (spawnedBulletType == 0) {
 		while (!emps.empty()) {
 			float t = emps.front()->getSpawnType()->getTime();
 			if (time >= t) {
@@ -343,11 +364,21 @@ void EMPSpawnerComponent::update(entt::DefaultRegistry& registry, SpriteLoader& 
 				break;
 			}
 		}
-	} else {
+	} else if (spawnedBulletType == 2) {
 		while (!emps.empty()) {
 			float t = emps.front()->getSpawnType()->getTime();
 			if (time >= t) {
 				queue.pushBack(std::make_unique<EMPSpawnFromPlayerCommand>(registry, spriteLoader, emps.front(), false, parent, time - t, attackID, attackPatternID, playAttackAnimation));
+				emps.pop();
+			} else {
+				break;
+			}
+		}
+	} else {
+		while (!emps.empty()) {
+			float t = emps.front()->getSpawnType()->getTime();
+			if (time >= t) {
+				queue.pushBack(std::make_unique<EMPSpawnFromNothingCommand>(registry, spriteLoader, emps.front(), false, time - t, attackID, attackPatternID));
 				emps.pop();
 			} else {
 				break;

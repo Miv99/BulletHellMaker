@@ -1,7 +1,6 @@
 #include "EntityCreationQueue.h"
 #include "EditorMovablePoint.h"
 #include "EditorMovablePointAction.h"
-#include "EditorMovablePointSpawnType.h"
 #include "SpriteLoader.h"
 #include "Enemy.h"
 #include "EntityAnimatableSet.h"
@@ -97,6 +96,93 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 }
 
 int EMPSpawnFromEnemyCommand::getEntitiesQueuedCount() {
+	return emp->getTreeSize();
+}
+
+
+EMPSpawnFromNothingCommand::EMPSpawnFromNothingCommand(entt::DefaultRegistry & registry, SpriteLoader & spriteLoader, std::shared_ptr<EditorMovablePoint> emp, bool isMainEMP, float timeLag, int attackID, int attackPatternID) :
+	EntityCreationCommand(registry), spriteLoader(spriteLoader), emp(emp), spawnInfoIsDefined(false), isMainEMP(isMainEMP), timeLag(timeLag), attackID(attackID), attackPatternID(attackPatternID) {
+}
+
+EMPSpawnFromNothingCommand::EMPSpawnFromNothingCommand(entt::DefaultRegistry & registry, SpriteLoader & spriteLoader, std::shared_ptr<EditorMovablePoint> emp, MPSpawnInformation spawnInfo, bool isMainEMP, float timeLag, int attackID, int attackPatternID) :
+	EntityCreationCommand(registry), spriteLoader(spriteLoader), emp(emp), spawnInfo(spawnInfo), spawnInfoIsDefined(true), isMainEMP(isMainEMP), timeLag(timeLag), attackID(attackID), attackPatternID(attackPatternID) {
+}
+
+void EMPSpawnFromNothingCommand::execute(EntityCreationQueue & queue) {
+	// Create the entity
+	auto bullet = registry.create();
+	if (!spawnInfoIsDefined) {
+		spawnInfo = emp->getSpawnType()->getForcedDetachmentSpawnInfo(registry, timeLag);
+	}
+
+	// Make sure the bullet despawns along with its reference entity
+	if (spawnInfo.useReferenceEntity) {
+		registry.assign<DespawnComponent>(bullet, registry, spawnInfo.referenceEntity, bullet);
+	} else {
+		registry.assign<DespawnComponent>(bullet);
+	}
+
+	// Spawn at 0, 0 because creation of the MovementPathComponent will just update the position anyway
+	registry.assign<PositionComponent>(bullet, 0, 0);
+
+	auto& despawn = registry.get<DespawnComponent>(bullet);
+	if (isMainEMP && emp->getHitboxRadius() < 0) {
+		// The main EMP of an attack, if the EMP is not a bullet, despawns when all its children despawn
+
+		despawn.setDespawnWhenNoChildren();
+	} else {
+		// Add max time to DespawnComponent despawn conditions
+		if (emp->getDespawnTime() > 0) {
+			despawn.setMaxTime(std::min(emp->getTotalPathTime(), emp->getDespawnTime()));
+		} else {
+			despawn.setMaxTime(emp->getTotalPathTime());
+		}
+	}
+
+	if (emp->requiresBaseSprite()) {
+		Animatable animatable = emp->getAnimatable();
+		// Initialize with base sprite as the original sprite so that the base sprite will be the sprite that is reverted to when
+		// the animation ends
+		auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, emp->getBaseSprite(), true, ENEMY_BULLET_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel() - timeLag);
+		sprite.setAnimatable(spriteLoader, animatable, emp->getLoopAnimation());
+		if (emp->getIsBullet()) {
+			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
+		}
+	} else {
+		Animatable animatable = emp->getAnimatable();
+		auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, animatable, emp->getLoopAnimation(), ENEMY_BULLET_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel() - timeLag);
+		if (emp->getIsBullet()) {
+			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
+		}
+	}
+
+	if (emp->getIsBullet()) {
+		registry.assign<EnemyBulletComponent>(bullet, attackID, attackPatternID, -1, -1, emp->getDamage(), emp->getOnCollisionAction(), emp->getPierceResetTime());
+	}
+
+	registry.assign<MovementPathComponent>(bullet, queue, bullet, registry, -1, spawnInfo, emp->getActions(), timeLag);
+
+	if (emp->getShadowTrailLifespan() > 0) {
+		registry.assign<ShadowTrailComponent>(bullet, emp->getShadowTrailInterval(), emp->getShadowTrailLifespan());
+	}
+
+	if (emp->getChildren().size() > 0) {
+		EMPSpawnerComponent& empSpawnerComponent = registry.assign<EMPSpawnerComponent>(bullet, emp->getChildren(), bullet, attackID, attackPatternID, -1, -1, false);
+		// Update in case there are any children that should be spawned instantly
+		empSpawnerComponent.update(registry, spriteLoader, queue, 0);
+	}
+
+	// Create the simple reference entity, since all entities must have one
+	auto& lastPos = registry.get<PositionComponent>(bullet);
+	queue.pushFront(std::make_unique<CreateMovementReferenceEntityCommand>(registry, bullet, timeLag, lastPos.getX(), lastPos.getY()));
+
+	// Play the sound associated with the EMP
+	if (!emp->getSoundSettings().isDisabled()) {
+		registry.get<LevelManagerTag>().getLevelPack()->playSound(emp->getSoundSettings());
+	}
+}
+
+int EMPSpawnFromNothingCommand::getEntitiesQueuedCount() {
 	return emp->getTreeSize();
 }
 

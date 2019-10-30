@@ -1715,32 +1715,7 @@ void GameplayTestWindow::EMPTestEntityPlaceholder::runTest(std::shared_ptr<std::
 	std::lock_guard<std::mutex> lock(*registryMutex);
 	registry.destroy(visualEntity);
 
-	std::shared_ptr<EditorAttackPattern> attackPattern = levelPack.createTempAttackPattern();
-	int i = 0;
-	for (auto action : emp->getActions()) {
-		attackPattern->insertAction(i++, action);
-	}
-	std::shared_ptr<EditorEnemyPhase> phase = levelPack.createTempEnemyPhase();
-	phase->addAttackPatternID(0, attackPattern->getID());
-	phase->setAttackPatternLoopDelay(2);
-	std::shared_ptr<EditorEnemy> enemy = levelPack.createTempEnemy();
-	Animatable animatable;
-	if (emp->getAnimatable().getAnimatableName() != "") {
-		animatable = emp->getAnimatable();
-	} else {
-		animatable = Animatable("Enemy Placeholder", "Default", true, ROTATE_WITH_MOVEMENT);
-	}
-	EntityAnimatableSet enemyAnimatableSet(animatable, animatable, animatable);
-	enemy->setHitboxRadius(0);
-	enemy->setHealth(2000000000);
-	if (emp->getDespawnTime() > 0) {
-		enemy->setDespawnTime(std::min(emp->getTotalPathTime(), emp->getDespawnTime()));
-	} else {
-		enemy->setDespawnTime(emp->getTotalPathTime());
-	}
-	enemy->addPhaseID(0, std::make_shared<TimeBasedEnemyPhaseStartCondition>(0), phase->getID(), enemyAnimatableSet);
-	EnemySpawnInfo info(enemy->getID(), x, y, std::vector<std::pair<std::shared_ptr<Item>, int>>());
-	info.spawnEnemy(spriteLoader, levelPack, registry, queue);
+	queue.pushBack(std::make_unique<EMPSpawnFromNothingCommand>(registry, spriteLoader, emp, MPSpawnInformation{ false, NULL, sf::Vector2f(x, y) }, true, 0, -1, -1));
 }
 
 void GameplayTestWindow::EMPTestEntityPlaceholder::spawnVisualEntity() {

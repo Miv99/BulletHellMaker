@@ -35,6 +35,7 @@ class Item;
 class PlayerPowerTier;
 enum BULLET_ON_COLLISION_ACTION;
 class EnemyPhaseStartCondition;
+struct MPSpawnInformation;
 
 class PositionComponent {
 public:
@@ -60,6 +61,11 @@ public:
 		initialSpawn(registry, entity, spawnType, actions);
 		update(queue, registry, self, registry.get<PositionComponent>(self), 0);
 	}
+
+	/*
+	entity - the entity that the entity with this component should be attached to, if any
+	*/
+	MovementPathComponent(EntityCreationQueue& queue, uint32_t self, entt::DefaultRegistry& registry, uint32_t entity, MPSpawnInformation spawnInfo, std::vector<std::shared_ptr<EMPAction>> actions, float initialTime);
 
 	/*
 	Updates elapsed time and updates the entity's position along its path
@@ -104,6 +110,7 @@ private:
 	int currentActionsIndex = 0;
 
 	void initialSpawn(entt::DefaultRegistry& registry, uint32_t entity, std::shared_ptr<EMPSpawnType> spawnType, std::vector<std::shared_ptr<EMPAction>>& actions);
+	void initialSpawn(entt::DefaultRegistry& registry, uint32_t entity, MPSpawnInformation spawnInfo, std::vector<std::shared_ptr<EMPAction>>& actions);
 };
 
 class HealthComponent {
@@ -734,6 +741,15 @@ public:
 	*/
 	EMPSpawnerComponent(std::vector<std::shared_ptr<EditorMovablePoint>> emps, uint32_t parent, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation);
 	/*
+	Constructor for an empty bullets spawner.
+
+	emps - the EMPs that will be spawned by this entity and, if applicable, will be spawned with respect to parent; must be sorted ascending by time of spawn
+	parent - the entity that the spawned EMPs will be spawned in reference to; may be unused depending on the EMP's spawn type
+	attackID - the ID of the attack each EMP originated from
+	attackPattern - same but attack pattern
+	*/
+	EMPSpawnerComponent(std::vector<std::shared_ptr<EditorMovablePoint>> emps, uint32_t parent, int attackID, int attackPatternID);
+	/*
 	Constructor for an player bullets spawner.
 
 	emps - the EMPs that will be spawned by this entity and, if applicable, will be spawned with respect to parent; must be sorted ascending by time of spawn
@@ -759,6 +775,9 @@ private:
 
 	// Time since this entity was spawned
 	float time = 0;
+
+	// 0 for enemy, 1 for empty, 2 for player
+	int spawnedBulletType;
 };
 
 /*
