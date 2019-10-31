@@ -53,7 +53,7 @@ public:
 		disabled = copy.disabled;
 	}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 };
 
@@ -79,7 +79,7 @@ public:
 		disabled = copy.disabled;
 	}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	inline bool getLoop() const { return loops; }

@@ -1,7 +1,7 @@
 #include "EnemySpawnCondition.h"
 #include "Components.h"
 
-std::string GlobalTimeBasedEnemySpawnCondition::format() {
+std::string GlobalTimeBasedEnemySpawnCondition::format() const {
 	std::string res = "";
 	res += "GlobalTimeBasedEnemySpawnCondition" + tm_delim;
 	res += "(" + tos(time) + ")";
@@ -17,7 +17,7 @@ bool GlobalTimeBasedEnemySpawnCondition::satisfied(entt::DefaultRegistry & regis
 	return registry.get<LevelManagerTag>().getTimeSinceStartOfLevel() >= time;
 }
 
-std::string EnemyCountBasedEnemySpawnCondition::format() {
+std::string EnemyCountBasedEnemySpawnCondition::format() const {
 	std::string res = "";
 	res += "EnemyCountBasedEnemySpawnCondition" + tm_delim;
 	res += "(" + tos(enemyCount) + ")";
@@ -33,7 +33,7 @@ bool EnemyCountBasedEnemySpawnCondition::satisfied(entt::DefaultRegistry & regis
 	return registry.view<EnemyComponent>().size() - 1 <= enemyCount;
 }
 
-std::string TimeBasedEnemySpawnCondition::format() {
+std::string TimeBasedEnemySpawnCondition::format() const {
 	std::string res = "";
 	res += "TimeBasedEnemySpawnCondition" + tm_delim;
 	res += "(" + tos(time) + ")";

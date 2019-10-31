@@ -16,7 +16,6 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	/*
 	testing
 	*/
-	
 	auto model1 = createBulletModel();
 	model1->setAnimatable(Animatable("Bullet", "sheet1", true, LOCK_ROTATION));
 	model1->setDamage(1);
@@ -451,7 +450,7 @@ void LevelPack::playMusic(const MusicSettings & musicSettings) const {
 	audioPlayer.playMusic(alteredPath);
 }
 
-std::string LevelPackMetadata::format() {
+std::string LevelPackMetadata::format() const {
 	std::string ret = "(" + player.format() + ")" + tm_delim;
 	ret += tos(spriteSheets.size());
 	for (auto p : spriteSheets) {

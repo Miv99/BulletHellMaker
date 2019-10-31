@@ -14,7 +14,7 @@ public:
 	inline PlayerPowerTier(EntityAnimatableSet animatableSet, int attackPatternID, float attackPatternLoopDelay, int focusedAttackPatternID, float focusedAttackPatternLoopDelay, int bombAttackPatternID, float bombCooldown) :
 		animatableSet(animatableSet), attackPatternID(attackPatternID), attackPatternLoopDelay(attackPatternLoopDelay), focusedAttackPatternID(focusedAttackPatternID), focusedAttackPatternLoopDelay(focusedAttackPatternLoopDelay), bombAttackPatternID(bombAttackPatternID), bombCooldown(bombCooldown) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	inline const EntityAnimatableSet& getAnimatableSet() const { return animatableSet; }
@@ -61,7 +61,7 @@ public:
 		invulnerabilityTime(invulnerabilityTime), powerTiers(powerTiers), hurtSound(hurtSound), deathSound(deathSound), smoothPlayerHPBar(false), discretePlayerHPSprite(discretePlayerHPSprite),
 		initialBombs(initialBombs), maxBombs(maxBombs), bombSprite(bombSprite), bombReadySound(bombReadySound), bombInvincibilityTime(bombInvincibilityTime) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	bool legal(SpriteLoader& spriteLoader, std::string& message);

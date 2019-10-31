@@ -8,7 +8,7 @@
 EnemySpawnInfo::EnemySpawnInfo(int enemyID, float x, float y, std::vector<std::pair<std::shared_ptr<Item>, int>> itemsDroppedOnDeath) : enemyID(enemyID), x(x), y(y), itemsDroppedOnDeath(itemsDroppedOnDeath) {
 }
 
-std::string EnemySpawnInfo::format() {
+std::string EnemySpawnInfo::format() const {
 	std::string res = "";
 	res += tos(x) + tm_delim;
 	res += tos(y) + tm_delim;

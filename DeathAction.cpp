@@ -3,7 +3,7 @@
 #include "LevelPack.h"
 #include "EntityCreationQueue.h"
 
-std::string PlayAnimatableDeathAction::format() {
+std::string PlayAnimatableDeathAction::format() const {
 	return "PlayAnimatableDeathAction" + tm_delim + "(" + animatable.format() + ")" + tm_delim + tos(duration) + tm_delim + "(" + tos((int)(effect)) + ")";
 }
 
@@ -18,7 +18,7 @@ void PlayAnimatableDeathAction::execute(LevelPack& levelPack, EntityCreationQueu
 	queue.pushBack(std::make_unique<PlayDeathAnimatableCommand>(registry, spriteLoader, entity, animatable, effect, duration));
 }
 
-std::string PlaySoundDeathAction::format() {
+std::string PlaySoundDeathAction::format() const {
 	return "PlaySoundDeathAction" + tm_delim + "(" + soundSettings.format() + ")";
 }
 
@@ -31,7 +31,7 @@ void PlaySoundDeathAction::execute(LevelPack& levelPack, EntityCreationQueue & q
 	levelPack.playSound(soundSettings);
 }
 
-std::string ExecuteAttacksDeathAction::format() {
+std::string ExecuteAttacksDeathAction::format() const {
 	std::string ret = "ExecuteAttacksDeathAction" + tm_delim;
 	ret += tos(attackIDs.size());
 	for (auto id : attackIDs) {
@@ -68,7 +68,7 @@ void ExecuteAttacksDeathAction::execute(LevelPack & levelPack, EntityCreationQue
 	}
 }
 
-std::string ParticleExplosionDeathAction::format() {
+std::string ParticleExplosionDeathAction::format() const {
 	std::string ret = "ParticleExplosionDeathAction" + tm_delim;
 	ret += tos(static_cast<int>(effect)) + tm_delim;
 	ret += tos(color.r) + tm_delim + tos(color.g) + tm_delim + tos(color.b) + tm_delim + tos(color.a);

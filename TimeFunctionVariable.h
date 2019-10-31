@@ -17,7 +17,7 @@ Evaluation of a TFV does not change it internally, so the same TFV can be reused
 */
 class TFV : public TextMarshallable {
 public:
-	virtual std::string format() = 0;
+	virtual std::string format() const = 0;
 	virtual void load(std::string formattedString) = 0;
 
 	virtual float evaluate(float time) = 0;
@@ -35,7 +35,7 @@ public:
 	inline LinearTFV() {}
 	inline LinearTFV(float startValue, float endValue, float maxTime) : startValue(startValue), endValue(endValue), maxTime(maxTime) {}
 	
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	float evaluate(float time) {
@@ -58,7 +58,7 @@ public:
 	inline ConstantTFV() {}
 	inline ConstantTFV(float value) : value(value) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	float evaluate(float time) {
@@ -83,7 +83,7 @@ public:
 	inline SineWaveTFV() {}
 	inline SineWaveTFV(float period, float amplitude, float valueShift, float phaseShift = 0.0f) : period(period), amplitude(amplitude), valueShift(valueShift), phaseShift(phaseShift) {}
 	
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 	
 	inline float evaluate(float time) {
@@ -109,7 +109,7 @@ public:
 	inline ConstantAccelerationDistanceTFV() {}
 	inline ConstantAccelerationDistanceTFV(float initialDistance, float initialVelocity, float acceleration) : initialDistance(initialDistance), initialVelocity(initialVelocity), acceleration(acceleration) {}
 	
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 	
 	inline float evaluate(float time) override {
@@ -137,7 +137,7 @@ public:
 		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
 	}
 	
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 	
 	inline float evaluate(float time) override {
@@ -166,7 +166,7 @@ public:
 		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
 	}
 	
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 	
 	inline float evaluate(float time) override {
@@ -197,7 +197,7 @@ public:
 		a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f*dampeningFactor + 1);
 	}
 	
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 	
 	inline float evaluate(float time) override {
@@ -230,7 +230,7 @@ public:
 		assert(dynamic_cast<TranslationWrapperTFV*>(wrappedTFV.get()) == nullptr && "TranslationWrapperTFV should never wrap another; they can be combined");
 	}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	inline float evaluate(float time) override {
@@ -262,7 +262,7 @@ public:
 		assert(registry.has<PositionComponent>(from) && registry.has<PositionComponent>(to) && registry.has<HitboxComponent>(to) && registry.has<HitboxComponent>(to));
 	}
 
-	inline std::string format() override {
+	inline std::string format() const override {
 		assert(false && "CurrentAngleTFV cannot be saved.");
 		return "";
 	}
@@ -292,7 +292,7 @@ class PiecewiseContinuousTFV : public TFV {
 public:
 	inline PiecewiseContinuousTFV() {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	inline float evaluate(float time) override {

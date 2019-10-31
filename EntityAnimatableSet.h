@@ -17,7 +17,7 @@ public:
 	EntityAnimatableSet(Animatable idle, Animatable movement, Animatable attack, std::shared_ptr<DeathAction> deathAction);
 	EntityAnimatableSet(Animatable idle, Animatable movement, Animatable attack);
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	inline Animatable getIdleAnimatable() { return idleAnimatable; }

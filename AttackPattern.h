@@ -17,23 +17,23 @@ public:
 	inline EditorAttackPattern() {}
 	inline EditorAttackPattern(int id) : id(id) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	bool legal(std::string& message);
+	bool legal(std::string& message) const;
 
 	void changeEntityPathToAttackPatternActions(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag);
 
-	inline int getID() { return id; }
-	inline std::string getName() { return name; }
-	inline std::pair<float, int> getAttackData(int index) { return attackIDs[index]; }
-	inline std::shared_ptr<EMPAction> getAction(int index) { return actions[index]; }
-	inline const std::vector<std::shared_ptr<EMPAction>> getActions() { return actions; }
-	inline int getAttacksCount() { return attackIDs.size(); }
-	inline int getActionsCount() { return actions.size(); }
-	inline float getShadowTrailInterval() { return shadowTrailInterval; }
-	inline float getShadowTrailLifespan() { return shadowTrailLifespan; }
-	inline float getActionsTotalTime() { return actionsTotalTime; }
+	inline int getID() const { return id; }
+	inline std::string getName() const { return name; }
+	inline std::pair<float, int> getAttackData(int index) const { return attackIDs[index]; }
+	inline std::shared_ptr<EMPAction> getAction(int index) const { return actions[index]; }
+	inline const std::vector<std::shared_ptr<EMPAction>> getActions() const { return actions; }
+	inline int getAttacksCount() const { return attackIDs.size(); }
+	inline int getActionsCount() const { return actions.size(); }
+	inline float getShadowTrailInterval() const { return shadowTrailInterval; }
+	inline float getShadowTrailLifespan() const { return shadowTrailLifespan; }
+	inline float getActionsTotalTime() const { return actionsTotalTime; }
 
 	inline void setShadowTrailInterval(float shadowTrailInterval) { this->shadowTrailInterval = shadowTrailInterval; }
 	inline void setShadowTrailLifespan(float shadowTrailLifespan) { this->shadowTrailLifespan = shadowTrailLifespan; }

@@ -471,6 +471,8 @@ private:
 	void onEntityPlaceholderXValueSet(float value);
 	void onEntityPlaceholderYValueSet(float value);
 
+	void onLevelPackChange();
+
 	/*
 	Moves the camera by some amount of world coordinates.
 	*/

@@ -23,6 +23,7 @@
 #include "AudioPlayer.h"
 #include "Player.h"
 #include "Level.h"
+#include <entt/entt.hpp>
 
 // REMEMBER: THESE CLASSES ARE NEVER MODIFIED
 // there will be Components that will keep track of deltaTimes
@@ -34,7 +35,7 @@ Attacks, attack patterns, enemies, and enemy phases can be saved by name.
 
 class LevelPackMetadata : public TextMarshallable {
 public:
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	inline EditorPlayer getPlayer() { return player; }
@@ -86,6 +87,7 @@ public:
 	*/
 	inline void updateAttack(std::shared_ptr<EditorAttack> attack) {
 		attacks[attack->getID()] = attack;
+		onChange->publish();
 	}
 	inline std::shared_ptr<EditorAttackPattern> createAttackPattern() {
 		auto attackPattern = std::make_shared<EditorAttackPattern>(nextAttackPatternID++);
@@ -155,7 +157,7 @@ public:
 
 	inline std::string getName() { return name; }
 	inline std::shared_ptr<Level> getLevel(int levelIndex) const { return levels[levelIndex]; }
-	inline std::shared_ptr<EditorAttack> getAttack(int id) const { return attacks.at(id); }
+	inline std::shared_ptr<const EditorAttack> getAttack(int id) const { return attacks.at(id); }
 	inline std::shared_ptr<EditorAttackPattern> getAttackPattern(int id) const { return attackPatterns.at(id); }
 	inline std::shared_ptr<EditorEnemy> getEnemy(int id) const { return enemies.at(id); }
 	inline std::shared_ptr<EditorEnemyPhase> getEnemyPhase(int id) const { return enemyPhases.at(id); }
@@ -179,6 +181,13 @@ public:
 	inline int getNextEnemyID() const { return nextEnemyID; }
 	inline int getNextEnemyPhaseID() const { return nextEnemyPhaseID; }
 	inline int getNextBulletModelID() const { return nextBulletModelID; }
+
+	inline std::shared_ptr<entt::SigH<void()>> getOnChange() {
+		if (!onChange) {
+			onChange = std::make_shared<entt::SigH<void()>>();
+		}
+		return onChange;
+	}
 
 	inline bool hasBulletModel(int id) const { return bulletModels.count(id) > 0; }
 
@@ -229,4 +238,7 @@ private:
 	std::map<int, std::shared_ptr<BulletModel>> bulletModels;
 
 	std::string fontFileName = "font.ttf";
+
+	// Called when a change is made to the level pack
+	std::shared_ptr<entt::SigH<void()>> onChange;
 };

@@ -20,7 +20,7 @@ public:
 	inline Item(Animatable animatable, float hitboxRadius, float activationRadius = 75.0f) : animatable(animatable), hitboxRadius(hitboxRadius), activationRadius(activationRadius) {}
 	inline Item(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius = 75.0f) : animatable(animatable), hitboxRadius(hitboxRadius), onCollectSound(onCollectSound), activationRadius(activationRadius) {}
 
-	std::string format() = 0;
+	std::string format() const = 0;
 	void load(std::string formattedString) = 0;
 
 	// Called when the player makes contact with an item's hitbox
@@ -56,7 +56,7 @@ public:
 	inline HealthPackItem(Animatable animatable, float hitboxRadius, float activationRadius = 75.0f) : Item(animatable, hitboxRadius, activationRadius) {}
 	inline HealthPackItem(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius = 75.0f) : Item(animatable, hitboxRadius, onCollectSound, activationRadius) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	void onPlayerContact(entt::DefaultRegistry& registry, uint32_t player);
@@ -71,7 +71,7 @@ public:
 	inline PowerPackItem(Animatable animatable, float hitboxRadius, float activationRadius = 75.0f) : Item(animatable, hitboxRadius, activationRadius) {}
 	inline PowerPackItem(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius = 75.0f) : Item(animatable, hitboxRadius, onCollectSound, activationRadius) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	void onPlayerContact(entt::DefaultRegistry& registry, uint32_t player);
@@ -86,7 +86,7 @@ public:
 	inline BombItem(Animatable animatable, float hitboxRadius, float activationRadius = 75.0f) : Item(animatable, hitboxRadius, activationRadius) {}
 	inline BombItem(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius = 75.0f) : Item(animatable, hitboxRadius, onCollectSound, activationRadius) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	void onPlayerContact(entt::DefaultRegistry& registry, uint32_t player);
@@ -101,7 +101,7 @@ public:
 	inline PointsPackItem(Animatable animatable, float hitboxRadius, float activationRadius = 150.0f) : Item(animatable, hitboxRadius, activationRadius) {}
 	inline PointsPackItem(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius = 150.0f) : Item(animatable, hitboxRadius, onCollectSound, activationRadius) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	void onPlayerContact(entt::DefaultRegistry& registry, uint32_t player);

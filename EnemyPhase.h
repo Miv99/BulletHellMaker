@@ -19,28 +19,28 @@ public:
 	inline EditorEnemyPhase() {}
 	inline EditorEnemyPhase(int id) : id(id) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	bool legal(std::string& message);
+	bool legal(std::string& message)const;
 
 	inline void setAttackPatternLoopDelay(float attackPatternLoopDelay) { this->attackPatternLoopDelay = attackPatternLoopDelay; }
 	inline void setPhaseBeginAction(std::shared_ptr<EnemyPhaseAction> phaseBeginAction) { this->phaseBeginAction = phaseBeginAction; }
 	inline void setPhaseEndAction(std::shared_ptr<EnemyPhaseAction> phaseEndAction) { this->phaseEndAction = phaseEndAction; }
 	inline void setPlayMusic(bool playMusic) { this->playMusic = playMusic; }
 
-	inline int getID() { return id; }
+	inline int getID() const { return id; }
 	/*
 	Returns a pair: the amount of time after the start of this phase that the attack pattern at the given index will begin, and the id of that attack pattern.
 	Note that there is no upper bound on index, since attack patterns can loop, so this function takes that into account.
 	*/
-	std::pair<float, int> getAttackPatternData(const LevelPack& levelPack, int index);
-	inline int getAttackPatternsCount() { return attackPatternIds.size(); }
-	inline std::shared_ptr<EnemyPhaseAction> getPhaseBeginAction() { return phaseBeginAction; }
-	inline std::shared_ptr<EnemyPhaseAction> getPhaseEndAction() { return phaseEndAction; }
-	inline float getAttackPatternLoopDelay() { return attackPatternLoopDelay; }
-	inline bool getPlayMusic() { return playMusic; }
-	inline std::string getName() { return name; }
+	std::pair<float, int> getAttackPatternData(const LevelPack& levelPack, int index) const;
+	inline int getAttackPatternsCount() const { return attackPatternIds.size(); }
+	inline std::shared_ptr<EnemyPhaseAction> getPhaseBeginAction() const { return phaseBeginAction; }
+	inline std::shared_ptr<EnemyPhaseAction> getPhaseEndAction() const { return phaseEndAction; }
+	inline float getAttackPatternLoopDelay() const { return attackPatternLoopDelay; }
+	inline bool getPlayMusic() const { return playMusic; }
+	inline std::string getName() const { return name; }
 	/*
 	Returns a reference to the music settings.
 	*/

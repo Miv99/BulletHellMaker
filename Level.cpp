@@ -1,6 +1,6 @@
 #include "Level.h"
 
-std::string Level::format() {
+std::string Level::format() const {
 	std::string res = "";
 	res += name + tm_delim;
 	res += tos(enemyGroups.size()) + tm_delim;
@@ -62,7 +62,7 @@ void Level::load(std::string formattedString) {
 	}
 }
 
-bool Level::legal(std::string & message) {
+bool Level::legal(std::string & message) const {
 	bool good = true;	
 	//TODO
 	//TODO check packs' animatables can be opened

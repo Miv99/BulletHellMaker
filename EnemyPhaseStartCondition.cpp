@@ -1,7 +1,7 @@
 #include "EnemyPhaseStartCondition.h"
 #include "Components.h"
 
-std::string TimeBasedEnemyPhaseStartCondition::format() {
+std::string TimeBasedEnemyPhaseStartCondition::format() const {
 	std::string res = "";
 	res += "TimeBasedEnemyPhaseStartCondition" + tm_delim;
 	res += "(" + tos(time) + ")";
@@ -17,7 +17,7 @@ bool TimeBasedEnemyPhaseStartCondition::satisfied(entt::DefaultRegistry & regist
 	return registry.get<EnemyComponent>(entity).getTimeSinceLastPhase() >= time;
 }
 
-std::string HPBasedEnemyPhaseStartCondition::format() {
+std::string HPBasedEnemyPhaseStartCondition::format() const {
 	std::string res = "";
 	res += "HPBasedEnemyPhaseStartCondition" + tm_delim;
 	res += "(" + tos(ratio) + ")";
@@ -34,7 +34,7 @@ bool HPBasedEnemyPhaseStartCondition::satisfied(entt::DefaultRegistry & registry
 	return health.getHealth()/health.getMaxHealth() <= ratio;
 }
 
-std::string EnemyCountBasedEnemyPhaseStartCondition::format() {
+std::string EnemyCountBasedEnemyPhaseStartCondition::format() const {
 	std::string res = "";
 	res += "EnemyCountBasedEnemyPhaseStartCondition" + tm_delim;
 	res += "(" + tos(enemyCount) + ")";

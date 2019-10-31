@@ -43,6 +43,6 @@ std::string formatNum(const T &n) {
 class TextMarshallable {
 public:
 	// Throws an exception if the implementation contains strings that contain delimiters
-	virtual std::string format() = 0;
+	virtual std::string format() const = 0;
 	virtual void load(std::string formattedString) = 0;
 };

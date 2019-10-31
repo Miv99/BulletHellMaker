@@ -15,12 +15,12 @@ public:
 	inline EditorAttack() {}
 	EditorAttack(int id);
 	// Copy constructor
-	EditorAttack(std::shared_ptr<EditorAttack> copy);
+	EditorAttack(std::shared_ptr<const EditorAttack> copy);
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	bool legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::string& message);
+	bool legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::string& message) const;
 
 	void loadEMPBulletModels(const LevelPack& levelPack);
 
@@ -33,7 +33,7 @@ public:
 	enemyID - the ID of the enemy executing this attack
 	enemyPhaseID - the ID of the enemy's current phase 
 	*/
-	void EditorAttack::executeAsEnemy(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, uint32_t entity, float timeLag, int attackPatternID, int enemyID, int enemyPhaseID);
+	void EditorAttack::executeAsEnemy(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, uint32_t entity, float timeLag, int attackPatternID, int enemyID, int enemyPhaseID) const;
 	/*
 	Executes the attack as a player.
 
@@ -41,18 +41,18 @@ public:
 	timeLag - the time elapsed since this attack was supposed to execute
 	attackPatternID - the ID of the enemy's current attack pattern
 	*/
-	void EditorAttack::executeAsPlayer(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, uint32_t entity, float timeLag, int attackPatternID);
+	void EditorAttack::executeAsPlayer(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, uint32_t entity, float timeLag, int attackPatternID) const;
 
-	inline int getID() { return id; }
-	inline std::string getName() { return name; }
-	inline bool getPlayAttackAnimation() { return playAttackAnimation; }
-	inline std::shared_ptr<EditorMovablePoint> getMainEMP() { return mainEMP; }
-	inline void setName(std::string name) { this->name = name; }
+	inline int getID() const { return id; }
+	inline std::string getName() const { return name; }
+	inline bool getPlayAttackAnimation() const { return playAttackAnimation; }
+	inline std::shared_ptr<EditorMovablePoint> getMainEMP() const { return mainEMP; }
+	inline void setName(std::string name)  { this->name = name; }
 	inline void setPlayAttackAnimation(bool playAttackAnimation) { this->playAttackAnimation = playAttackAnimation; }
 	
 	float searchLargestHitbox() const;
 	// Search for the EMP with the ID
-	std::shared_ptr<EditorMovablePoint> searchEMP(int id);
+	std::shared_ptr<EditorMovablePoint> searchEMP(int id) const;
 
 	/*
 	Generates a list of string vectors such that, when each all the string vectors are added to a tgui::TreeView,
@@ -60,7 +60,7 @@ public:
 
 	nodeText - a function that takes an EMP and returns a string -- the text in the tgui::TreeView for the node for that EMP
 	*/
-	std::vector<std::vector<sf::String>> generateTreeViewEmpHierarchy(std::function<sf::String(const EditorMovablePoint&)> nodeText);
+	std::vector<std::vector<sf::String>> generateTreeViewEmpHierarchy(std::function<sf::String(const EditorMovablePoint&)> nodeText) const;
 
 private:
 	// The ID of the next EMP created in this attack.

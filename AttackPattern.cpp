@@ -2,7 +2,7 @@
 #include "Components.h"
 #include "EditorMovablePointSpawnType.h"
 
-std::string EditorAttackPattern::format() {
+std::string EditorAttackPattern::format() const {
 	std::string res = "";
 	res += "(" + tos(id) + ")" + tm_delim;
 	res += "(" + name + ")" + tm_delim;
@@ -49,7 +49,7 @@ void EditorAttackPattern::load(std::string formattedString) {
 	}
 }
 
-bool EditorAttackPattern::legal(std::string & message) {
+bool EditorAttackPattern::legal(std::string & message) const {
 	bool good = true;
 	if (contains(name, '(') || contains(name, ')')) {
 		message += "Attack pattern \"" + name + "\" cannot have the character '(' or ')' in its name\n";

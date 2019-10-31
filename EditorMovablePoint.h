@@ -22,7 +22,7 @@ public:
 	inline BulletModel() {}
 	inline BulletModel(int id) : id(id) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	inline std::string getName() const { return name; }
@@ -101,7 +101,7 @@ public:
 	EditorMovablePoint(int& nextID, bool setID);
 	EditorMovablePoint(int& nextID, std::weak_ptr<EditorMovablePoint> parent);
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	bool legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::string& message);
@@ -239,7 +239,7 @@ public:
 		return std::max(hitboxRadius, childrenMax);
 	}
 	// Search for the child of this subtree with the ID
-	inline std::shared_ptr<EditorMovablePoint> searchID(int id) {
+	inline std::shared_ptr<EditorMovablePoint> searchID(int id) const {
 		for (auto child : children) {
 			if (child->id == id) {
 				return child;

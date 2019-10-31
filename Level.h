@@ -17,14 +17,14 @@ public:
 	inline Level() {}
 	inline Level(std::string name) : name(name) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	bool legal(std::string& message);
+	bool legal(std::string& message) const;
 
-	inline std::string getName() { return name; }
-	inline const std::vector<EnemySpawnInfo>& getEnemyGroupSpawnInfo(int conditionIndex) { return enemyGroups[conditionIndex].second; }
-	inline int getEnemyGroupsCount() { return enemyGroups.size(); }
+	inline std::string getName() const { return name; }
+	inline const std::vector<EnemySpawnInfo>& getEnemyGroupSpawnInfo(int conditionIndex) const { return enemyGroups[conditionIndex].second; }
+	inline int getEnemyGroupsCount() const { return enemyGroups.size(); }
 	inline std::shared_ptr<HealthPackItem> getHealthPack() {
 		if (!healthPack) {
 			healthPack = std::make_shared<HealthPackItem>();
@@ -53,13 +53,13 @@ public:
 	Returns a reference to the music settings.
 	*/
 	inline MusicSettings& getMusicSettings() { return musicSettings; }
-	inline std::string getBackgroundFileName() { return backgroundFileName; }
-	inline float getBackgroundScrollSpeedX() { return backgroundScrollSpeedX; }
-	inline float getBackgroundScrollSpeedY() { return backgroundScrollSpeedY; }
-	inline sf::Color getBossNameColor() { return bossNameColor; }
-	inline sf::Color getBossHPBarColor() { return bossHPBarColor; }
+	inline std::string getBackgroundFileName() const { return backgroundFileName; }
+	inline float getBackgroundScrollSpeedX() const { return backgroundScrollSpeedX; }
+	inline float getBackgroundScrollSpeedY() const { return backgroundScrollSpeedY; }
+	inline sf::Color getBossNameColor() const { return bossNameColor; }
+	inline sf::Color getBossHPBarColor() const { return bossHPBarColor; }
 	// Returns a reference
-	inline std::vector<BloomSettings>& getBloomLayerSettings() { return bloomLayerSettings; }
+	inline std::vector<BloomSettings> getBloomLayerSettings() const { return bloomLayerSettings; }
 
 	inline void setName(std::string name) { this->name = name; }
 	inline void setBackgroundFileName(std::string backgroundFileName) { this->backgroundFileName = backgroundFileName; }
@@ -77,7 +77,7 @@ public:
 		enemyGroups[conditionIndex].second.push_back(enemy);
 	}
 
-	inline bool conditionSatisfied(int conditionIndex, entt::DefaultRegistry& registry) { return enemyGroups[conditionIndex].first->satisfied(registry); }
+	inline bool conditionSatisfied(int conditionIndex, entt::DefaultRegistry& registry) const { return enemyGroups[conditionIndex].first->satisfied(registry); }
 
 private:
 	// Name of the level

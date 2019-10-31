@@ -1,6 +1,6 @@
 #include "Player.h"
 
-std::string EditorPlayer::format() {
+std::string EditorPlayer::format() const {
 	std::string ret = tos(initialHealth) + tm_delim + tos(maxHealth) + tm_delim + tos(speed) + tm_delim + tos(focusedSpeed) + tm_delim + tos(hitboxRadius) + tm_delim + tos(hitboxPosX) + tm_delim + tos(hitboxPosY) + tm_delim + tos(invulnerabilityTime);
 	for (PlayerPowerTier tier : powerTiers) {
 		ret += tm_delim + "(" + tier.format() + ")";
@@ -56,7 +56,7 @@ bool EditorPlayer::legal(SpriteLoader & spriteLoader, std::string & message) {
 	return true;
 }
 
-std::string PlayerPowerTier::format() {
+std::string PlayerPowerTier::format() const {
 	return "(" + animatableSet.format() + ")" + tm_delim + tos(attackPatternID) + tm_delim + tos(attackPatternLoopDelay) + tm_delim + tos(focusedAttackPatternID) + tm_delim + tos(focusedAttackPatternLoopDelay) + tm_delim + tos(bombAttackPatternID) + tm_delim + tos(bombCooldown);
 
 }

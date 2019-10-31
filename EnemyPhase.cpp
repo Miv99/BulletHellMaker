@@ -1,7 +1,7 @@
 #include "EnemyPhase.h"
 #include "LevelPack.h"
 
-std::string EditorEnemyPhase::format() {
+std::string EditorEnemyPhase::format() const {
 	std::string res = "";
 	res += "(" + std::to_string(id) + ")" + tm_delim;
 	res += "(" + name + ")" + tm_delim;
@@ -39,7 +39,7 @@ void EditorEnemyPhase::load(std::string formattedString) {
 	musicSettings.load(items[i++]);
 }
 
-bool EditorEnemyPhase::legal(std::string & message) {
+bool EditorEnemyPhase::legal(std::string & message) const {
 	bool good = true;
 	if (contains(name, '(') || contains(name, ')')) {
 		message += "Enemy phase \"" + name + "\" cannot have the character '(' or ')' in its name\n";
@@ -52,7 +52,7 @@ bool EditorEnemyPhase::legal(std::string & message) {
 	return good;
 }
 
-std::pair<float, int> EditorEnemyPhase::getAttackPatternData(const LevelPack & levelPack, int index) {
+std::pair<float, int> EditorEnemyPhase::getAttackPatternData(const LevelPack & levelPack, int index) const {
 	int size = attackPatternIds.size();
 	auto item = attackPatternIds[index % size];
 	// Increase time of the attack pattern at some index by the loop count multiplied by total time for all attack patterns to finish

@@ -12,7 +12,7 @@ The condition for an enemy phase to start.
 */
 class EnemyPhaseStartCondition : public TextMarshallable {
 public:
-	std::string format() = 0;
+	std::string format() const = 0;
 	void load(std::string formattedString) = 0;
 
 	virtual bool satisfied(entt::DefaultRegistry& registry, uint32_t entity) = 0;
@@ -26,7 +26,7 @@ public:
 	inline TimeBasedEnemyPhaseStartCondition() {}
 	inline TimeBasedEnemyPhaseStartCondition(float time) : time(time) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	bool satisfied(entt::DefaultRegistry& registry, uint32_t entity) override;
@@ -46,7 +46,7 @@ public:
 	inline HPBasedEnemyPhaseStartCondition() {}
 	inline HPBasedEnemyPhaseStartCondition(float ratio) : ratio(ratio) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	bool satisfied(entt::DefaultRegistry& registry, uint32_t entity) override;
@@ -67,7 +67,7 @@ public:
 	inline EnemyCountBasedEnemyPhaseStartCondition() {}
 	inline EnemyCountBasedEnemyPhaseStartCondition(int enemyCount) : enemyCount(enemyCount) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	bool satisfied(entt::DefaultRegistry& registry, uint32_t entity) override;

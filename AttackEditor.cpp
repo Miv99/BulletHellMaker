@@ -1692,7 +1692,7 @@ void AttackEditor::saveAttack(std::shared_ptr<EditorAttack> attack) {
 void AttackEditor::discardAttackChanges(std::shared_ptr<EditorAttack> attack) {
 	unsavedAttacks.erase(attack->getID());
 
-	std::shared_ptr<EditorAttack> revertedAttack = levelPack->getAttack(attack->getID());
+	std::shared_ptr<const EditorAttack> revertedAttack = levelPack->getAttack(attack->getID());
 
 	int id = attack->getID();
 	if (alList->getListBox()->containsId(std::to_string(id))) {

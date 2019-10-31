@@ -1,6 +1,6 @@
 #include "TimeFunctionVariable.h"
 
-std::string ConstantTFV::format() {
+std::string ConstantTFV::format() const {
 	return "ConstantTFV" + tm_delim + tos(value);
 }
 
@@ -9,7 +9,7 @@ void ConstantTFV::load(std::string formattedString) {
 	value = std::stof(items[1]);
 }
 
-std::string LinearTFV::format() {
+std::string LinearTFV::format() const {
 	return "LinearTFV" + tm_delim + tos(startValue) + tm_delim + tos(endValue) + tm_delim + tos(maxTime);
 }
 
@@ -20,7 +20,7 @@ void LinearTFV::load(std::string formattedString) {
 	maxTime = std::stof(items[3]);
 }
 
-std::string SineWaveTFV::format() {
+std::string SineWaveTFV::format() const {
 	return "SineWaveTFV" + tm_delim + tos(period) + tm_delim + tos(amplitude) + tm_delim + tos(valueShift) + tm_delim + tos(phaseShift);
 }
 
@@ -32,7 +32,7 @@ void SineWaveTFV::load(std::string formattedString) {
 	phaseShift = std::stof(items[4]);
 }
 
-std::string ConstantAccelerationDistanceTFV::format() {
+std::string ConstantAccelerationDistanceTFV::format() const {
 	return "ConstantAccelerationDistanceTFV" + tm_delim + tos(initialDistance) + tm_delim + tos(initialVelocity) + tm_delim + tos(acceleration);
 }
 
@@ -43,7 +43,7 @@ void ConstantAccelerationDistanceTFV::load(std::string formattedString) {
 	acceleration = std::stof(items[3]);
 }
 
-std::string DampenedStartTFV::format() {
+std::string DampenedStartTFV::format() const {
 	return "DampenedStartTFV" + tm_delim + tos(a) + tm_delim + tos(startValue) + tm_delim + tos(dampeningFactor);
 }
 
@@ -54,7 +54,7 @@ void DampenedStartTFV::load(std::string formattedString) {
 	dampeningFactor = std::stoi(items[3]);
 }
 
-std::string DampenedEndTFV::format() {
+std::string DampenedEndTFV::format() const {
 	return "DampenedEndTFV" + tm_delim + tos(a) + tm_delim + tos(endValue) + tm_delim + tos(maxTime) + tm_delim + tos(dampeningFactor);
 }
 
@@ -66,7 +66,7 @@ void DampenedEndTFV::load(std::string formattedString) {
 	dampeningFactor = std::stoi(items[4]);
 }
 
-std::string DoubleDampenedTFV::format() {
+std::string DoubleDampenedTFV::format() const {
 	return "DoubleDampenedTFV" + tm_delim + tos(a) + tm_delim + tos(startValue) + tm_delim + tos(endValue) + tm_delim + tos(maxTime) + tm_delim + tos(dampeningFactor);
 }
 
@@ -79,7 +79,7 @@ void DoubleDampenedTFV::load(std::string formattedString) {
 	dampeningFactor = std::stoi(items[5]);
 }
 
-std::string TranslationWrapperTFV::format() {
+std::string TranslationWrapperTFV::format() const {
 	return "TranslationWrapperTFV" + tm_delim + tos(valueTranslation) + tm_delim + "(" + wrappedTFV->format() + ")";
 }
 
@@ -89,7 +89,7 @@ void TranslationWrapperTFV::load(std::string formattedString) {
 	wrappedTFV = TFVFactory::create(items[2]);
 }
 
-std::string PiecewiseContinuousTFV::format() {
+std::string PiecewiseContinuousTFV::format() const {
 	std::string ret = "";
 	ret += "PiecewiseContinuousTFV";
 	for (auto segment : segments) {

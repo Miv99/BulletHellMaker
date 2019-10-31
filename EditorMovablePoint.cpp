@@ -14,7 +14,7 @@ EditorMovablePoint::EditorMovablePoint(int & nextID, std::weak_ptr<EditorMovable
 	spawnType = std::make_shared<EntityRelativeEMPSpawn>(0.0f, 0.0f, 0.0f);
 }
 
-std::string EditorMovablePoint::format() {
+std::string EditorMovablePoint::format() const {
 	std::string res = "";
 
 	res += "(" + tos(id) + ")" + tm_delim;
@@ -323,7 +323,7 @@ std::vector<sf::String> EditorMovablePoint::generatePathToThisEmp(std::function<
 	return ret;
 }
 
-std::string BulletModel::format() {
+std::string BulletModel::format() const {
 	std::string res = "";
 
 	res += "(" + tos(id) + ")" + tm_delim;

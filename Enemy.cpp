@@ -1,6 +1,6 @@
 #include "Enemy.h"
 
-std::string EditorEnemy::format() {
+std::string EditorEnemy::format() const {
 	std::string res = "";
 	res += "(" + tos(id) + ")" + tm_delim;
 	res += "(" + name + ")" + tm_delim;
@@ -52,7 +52,7 @@ void EditorEnemy::load(std::string formattedString) {
 	deathSound.load(items[i++]);
 }
 
-bool EditorEnemy::legal(std::string& message) {
+bool EditorEnemy::legal(std::string& message) const {
 	bool good = true;
 	if (contains(name, '(') || contains(name, ')')) {
 		message += "Enemy \"" + name + "\" cannot have the character '(' or ')' in its name\n";

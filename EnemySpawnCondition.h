@@ -7,7 +7,7 @@
 
 class EnemySpawnCondition : public TextMarshallable {
 public:
-	std::string format() = 0;
+	std::string format() const = 0;
 	void load(std::string formattedString) = 0;
 
 	virtual bool satisfied(entt::DefaultRegistry& registry) = 0;
@@ -21,7 +21,7 @@ public:
 	inline GlobalTimeBasedEnemySpawnCondition() {}
 	inline GlobalTimeBasedEnemySpawnCondition(float time) : time(time) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	bool satisfied(entt::DefaultRegistry& registry) override;
@@ -39,7 +39,7 @@ public:
 	inline TimeBasedEnemySpawnCondition() {}
 	inline TimeBasedEnemySpawnCondition(float time) : time(time) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	bool satisfied(entt::DefaultRegistry& registry) override;
@@ -57,7 +57,7 @@ public:
 	inline EnemyCountBasedEnemySpawnCondition() {}
 	inline EnemyCountBasedEnemySpawnCondition(int enemyCount) : enemyCount(enemyCount) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	bool satisfied(entt::DefaultRegistry& registry) override;

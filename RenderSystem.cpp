@@ -487,7 +487,7 @@ void RenderSystem::setBackground(sf::Texture background) {
 	backgroundSprite.setTexture(this->background);
 }
 
-std::string BloomSettings::format() {
+std::string BloomSettings::format() const {
 	std::string ret = "";
 	if (useBloom) {
 		ret += "1" + tm_delim;

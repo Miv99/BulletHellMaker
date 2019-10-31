@@ -23,7 +23,7 @@ class EMPAAngleOffset : public TextMarshallable {
 public:
 	inline EMPAAngleOffset() {}
 
-	virtual std::string format() = 0;
+	virtual std::string format() const = 0;
 	virtual void load(std::string formattedString) = 0;
 
 	virtual float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) = 0;
@@ -38,7 +38,7 @@ class EMPAAngleOffsetToPlayer : public EMPAAngleOffset {
 public:
 	inline EMPAAngleOffsetToPlayer(float xOffset = 0, float yOffset = 0) : xOffset(xOffset), yOffset(yOffset) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	// Returns the angle in radians from coordinates (xFrom, yFrom) to the player plus the player offset (player.x + xOffset, player.y + yOffset)
@@ -58,7 +58,7 @@ public:
 	inline EMPAAngleOffsetToGlobalPosition() {}
 	inline EMPAAngleOffsetToGlobalPosition(float x, float y) : x(x), y(y) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	// Returns the angle in radians from coordinates (xFrom, yFrom) to the global position (x, y)
@@ -77,7 +77,7 @@ class EMPAAngleOffsetZero : public EMPAAngleOffset {
 public:
 	inline EMPAAngleOffsetZero() {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	// Returns 0
@@ -92,7 +92,7 @@ class EMPAngleOffsetPlayerSpriteAngle : public EMPAAngleOffset {
 public:
 	inline EMPAngleOffsetPlayerSpriteAngle() {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override;
@@ -115,7 +115,7 @@ EMPA for short.
 */
 class EMPAction : public TextMarshallable {
 public:
-	virtual std::string format() = 0;
+	virtual std::string format() const = 0;
 	virtual void load(std::string formattedString) = 0;
 	// Time for the action to be completed
 	virtual float getTime() = 0;
@@ -149,7 +149,7 @@ class DetachFromParentEMPA : public EMPAction {
 public:
 	inline DetachFromParentEMPA() {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 	inline float getTime() override { return 0; }
 	std::string getGuiFormat() override;
@@ -168,7 +168,7 @@ public:
 	inline StayStillAtLastPositionEMPA() {}
 	inline StayStillAtLastPositionEMPA(float duration) : duration(duration) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 	inline float getTime() override { return duration; }
 	std::string getGuiFormat() override;
@@ -191,7 +191,7 @@ public:
 	inline MoveCustomPolarEMPA(std::shared_ptr<TFV> distance, std::shared_ptr<TFV> angle, float time) : distance(distance), angle(angle), time(time) {}
 	inline MoveCustomPolarEMPA(std::shared_ptr<TFV> distance, std::shared_ptr<TFV> angle, float time, std::shared_ptr<EMPAAngleOffset> angleOffset) : distance(distance), angle(angle), time(time), angleOffset(angleOffset) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 	inline float getTime() override { return time; }
 	std::string getGuiFormat() override;
@@ -229,7 +229,7 @@ public:
 		setUnrotatedControlPoints(unrotatedControlPoints);
 	}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 	inline float getTime() override { return time; }
 	std::string getGuiFormat() override;
@@ -266,7 +266,7 @@ public:
 	*/
 	inline MovePlayerHomingEMPA(std::shared_ptr<TFV> homingStrength, std::shared_ptr<TFV> speed, float time) : homingStrength(homingStrength), speed(speed), time(time) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 	inline float getTime() override { return time; }
 	std::string getGuiFormat() override;

@@ -1,6 +1,6 @@
 #include "Animatable.h"
 
-std::string Animatable::format() {
+std::string Animatable::format() const {
 	std::string res = "(" + animatableName + ")" + tm_delim + "(" + spriteSheetName + ")" + tm_delim;
 	if (animatableIsSprite) {
 		res += "1" + tm_delim;

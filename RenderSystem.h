@@ -19,7 +19,7 @@ public:
 	// For debug only
 	inline BloomSettings(float glowStrength, float minBright, sf::BlendMode blendMode = DEFAULT_BLEND_MODE) : useBloom(true), glowStrength(glowStrength), minBright(minBright), blendMode(blendMode) {}
 
-	std::string format();
+	std::string format() const override;
 	void load(std::string formattedString);
 
 	inline bool usesBloom() { return useBloom; }

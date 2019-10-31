@@ -23,20 +23,20 @@ public:
 	inline EditorEnemy() {}
 	inline EditorEnemy(int id) : id(id) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	bool legal(std::string& message);
+	bool legal(std::string& message) const;
 
-	inline int getID() { return id; }
-	inline std::tuple<std::shared_ptr<EnemyPhaseStartCondition>, int, EntityAnimatableSet> getPhaseData(int index) { return phaseIDs[index]; }
-	inline int getPhasesCount() { return phaseIDs.size(); }
-	inline std::string getName() { return name; }
-	inline float getHitboxRadius() { return hitboxRadius; }
-	inline int getHealth() { return health; }
-	inline float getDespawnTime() { return despawnTime; }
-	inline const std::vector<std::shared_ptr<DeathAction>> getDeathActions() { return deathActions; }
-	inline bool getIsBoss() { return isBoss; }
+	inline int getID() const { return id; }
+	inline std::tuple<std::shared_ptr<EnemyPhaseStartCondition>, int, EntityAnimatableSet> getPhaseData(int index) const { return phaseIDs[index]; }
+	inline int getPhasesCount() const { return phaseIDs.size(); }
+	inline std::string getName() const { return name; }
+	inline float getHitboxRadius() const { return hitboxRadius; }
+	inline int getHealth() const { return health; }
+	inline float getDespawnTime() const { return despawnTime; }
+	inline const std::vector<std::shared_ptr<DeathAction>> getDeathActions() const { return deathActions; }
+	inline bool getIsBoss() const { return isBoss; }
 	// Returns a reference
 	inline SoundSettings& getHurtSound() { return hurtSound; }
 	// Returns a reference

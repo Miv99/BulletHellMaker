@@ -487,6 +487,8 @@ GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std
 	// ----------------------------------
 	toggleLogsDisplay();
 	updateEntityPlaceholdersList();
+
+	levelPack->getOnChange()->sink().connect<GameplayTestWindow, &GameplayTestWindow::onLevelPackChange>(this);
 }
 
 void GameplayTestWindow::addEMPTestPlaceholder(std::shared_ptr<EditorMovablePoint> emp, bool empIsFromAttack, int sourceID) {
@@ -1017,6 +1019,15 @@ void GameplayTestWindow::onEntityPlaceholderYValueSet(float value) {
 			updateEntityPlaceholdersList();
 		}
 	}));
+}
+
+void GameplayTestWindow::onLevelPackChange() {
+	updateEntityPlaceholdersList();
+	deselectPlaceholder();
+
+	if (testInProgress) {
+		endGameplayTest();
+	}
 }
 
 void GameplayTestWindow::moveCamera(float xOffset, float yOffset) {

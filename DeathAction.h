@@ -20,7 +20,7 @@ Entity despawn does not count as death, unless the entity is a bullet.
 */
 class DeathAction : public TextMarshallable {
 public:
-	std::string format() = 0;
+	std::string format() const = 0;
 	void load(std::string formattedString) = 0;
 
 	/*
@@ -45,7 +45,7 @@ public:
 	inline PlayAnimatableDeathAction() {}
 	inline PlayAnimatableDeathAction(Animatable animatable, DEATH_ANIMATION_EFFECT effect, float duration) : animatable(animatable), effect(effect), duration(duration) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	void execute(LevelPack& levelPack, EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) override;
@@ -80,7 +80,7 @@ public:
 	*/
 	inline PlaySoundDeathAction(SoundSettings soundSettings) : soundSettings(soundSettings) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	void execute(LevelPack& levelPack, EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) override;
@@ -101,7 +101,7 @@ public:
 	inline ExecuteAttacksDeathAction() {}
 	inline ExecuteAttacksDeathAction(std::vector<int> attackIDs) : attackIDs(attackIDs) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	void execute(LevelPack& levelPack, EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) override;
@@ -130,7 +130,7 @@ public:
 	inline ParticleExplosionDeathAction(PARTICLE_EFFECT effect, Animatable animatable, bool loopAnimatable, sf::Color color, int minParticles = 20, int maxParticles = 30, float minDistance = 20, float maxDistance = 500, float minLifespan = 0.75f, float maxLifespan = 2.5f) :
 		effect(effect), animatable(animatable), color(color), minParticles(minParticles), maxParticles(maxParticles), minDistance(minDistance), maxDistance(maxDistance), minLifespan(minLifespan), maxLifespan(maxLifespan) {}
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	void execute(LevelPack& levelPack, EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) override;

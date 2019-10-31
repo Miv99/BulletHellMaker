@@ -6,14 +6,14 @@ EditorAttack::EditorAttack(int id) : id(id) {
 	mainEMP = std::make_shared<EditorMovablePoint>(nextEMPID, true);
 }
 
-EditorAttack::EditorAttack(std::shared_ptr<EditorAttack> copy) {
+EditorAttack::EditorAttack(std::shared_ptr<const EditorAttack> copy) {
 	// Since EMPs are unique to the EditorAttack and new EMP objects
 	// are created in load(), we can just load from the copy's format
 	// and there won't be any object conflicts
 	load(copy->format());
 }
 
-std::string EditorAttack::format() {
+std::string EditorAttack::format() const {
 	std::string res = "";
 	res += "(" + tos(id) + ")" + tm_delim;
 	res += "(" + tos(nextEMPID) + ")" + tm_delim;
@@ -41,7 +41,7 @@ void EditorAttack::load(std::string formattedString) {
 	}
 }
 
-bool EditorAttack::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::string& message) {
+bool EditorAttack::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::string& message) const {
 	bool good = true;
 	if (contains(name, '(') || contains(name, ')') || contains(name, '\\')) {
 		message += "Attack \"" + name + "\" cannot have the character '(', ')', or '\' in its name\n";
@@ -62,11 +62,11 @@ void EditorAttack::loadEMPBulletModels(const LevelPack & levelPack) {
 	mainEMP->dfsLoadBulletModel(levelPack);
 }
 
-void EditorAttack::executeAsEnemy(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, uint32_t entity, float timeLag, int attackPatternID, int enemyID, int enemyPhaseID) {
+void EditorAttack::executeAsEnemy(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, uint32_t entity, float timeLag, int attackPatternID, int enemyID, int enemyPhaseID) const {
 	queue.pushBack(std::make_unique<EMPSpawnFromEnemyCommand>(registry, spriteLoader, mainEMP, true, entity, timeLag, id, attackPatternID, enemyID, enemyPhaseID, playAttackAnimation));
 }
 
-void EditorAttack::executeAsPlayer(EntityCreationQueue & queue, SpriteLoader & spriteLoader, entt::DefaultRegistry & registry, uint32_t entity, float timeLag, int attackPatternID) {
+void EditorAttack::executeAsPlayer(EntityCreationQueue & queue, SpriteLoader & spriteLoader, entt::DefaultRegistry & registry, uint32_t entity, float timeLag, int attackPatternID) const {
 	queue.pushBack(std::make_unique<EMPSpawnFromPlayerCommand>(registry, spriteLoader, mainEMP, true, entity, timeLag, id, attackPatternID, playAttackAnimation));
 }
 
@@ -74,13 +74,13 @@ float EditorAttack::searchLargestHitbox() const {
 	return mainEMP->searchLargestHitbox();
 }
 
-std::shared_ptr<EditorMovablePoint> EditorAttack::searchEMP(int id) {
+std::shared_ptr<EditorMovablePoint> EditorAttack::searchEMP(int id) const {
 	if (mainEMP->getID() == id) {
 		return mainEMP;
 	}
 	return mainEMP->searchID(id);
 }
 
-std::vector<std::vector<sf::String>> EditorAttack::generateTreeViewEmpHierarchy(std::function<sf::String(const EditorMovablePoint&)> nodeText) {
+std::vector<std::vector<sf::String>> EditorAttack::generateTreeViewEmpHierarchy(std::function<sf::String(const EditorMovablePoint&)> nodeText) const {
 	return mainEMP->generateTreeViewEmpHierarchy(nodeText, {});
 }

@@ -17,7 +17,7 @@ public:
 	inline EnemySpawnInfo() {}
 	EnemySpawnInfo(int enemyID, float x, float y, std::vector<std::pair<std::shared_ptr<Item>, int>> itemsDroppedOnDeath);
 
-	std::string format() override;
+	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	void spawnEnemy(SpriteLoader& spriteLoader, const LevelPack& levelPack, entt::DefaultRegistry& registry, EntityCreationQueue& queue);
