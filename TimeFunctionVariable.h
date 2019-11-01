@@ -17,6 +17,12 @@ Evaluation of a TFV does not change it internally, so the same TFV can be reused
 */
 class TFV : public TextMarshallable {
 public:
+	inline TFV() {}
+	// Copy constructor
+	inline virtual TFV(std::shared_ptr<TFV> tfv) {
+		load(tfv->format());
+	}
+
 	virtual std::string format() const = 0;
 	virtual void load(std::string formattedString) = 0;
 
@@ -286,11 +292,12 @@ private:
 };
 
 /*
-TFV that connects multiple TFVs together in piecewise continuous fashion.
+TFV that connects multiple TFVs together in piecewise fashion.
+Each TFV segment in PiecewiseTFV will be evaluated based on time since the start of that segment, not time since the start of PiecewiseTFV.
 */
-class PiecewiseContinuousTFV : public TFV {
+class PiecewiseTFV : public TFV {
 public:
-	inline PiecewiseContinuousTFV() {}
+	inline PiecewiseTFV() {}
 
 	std::string format() const override;
 	void load(std::string formattedString) override;

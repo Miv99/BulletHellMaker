@@ -89,16 +89,16 @@ void TranslationWrapperTFV::load(std::string formattedString) {
 	wrappedTFV = TFVFactory::create(items[2]);
 }
 
-std::string PiecewiseContinuousTFV::format() const {
+std::string PiecewiseTFV::format() const {
 	std::string ret = "";
-	ret += "PiecewiseContinuousTFV";
+	ret += "PiecewiseTFV";
 	for (auto segment : segments) {
 		ret += tm_delim + tos(segment.first) + tm_delim + "(" + segment.second->format() + ")";
 	}
 	return ret;
 }
 
-void PiecewiseContinuousTFV::load(std::string formattedString) {
+void PiecewiseTFV::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	for (int i = 1; i < items.size(); i += 2) {
 		segments.push_back(std::make_pair(std::stof(items[i]), TFVFactory::create(items[i + 1])));
@@ -133,8 +133,8 @@ std::shared_ptr<TFV> TFVFactory::create(std::string formattedString) {
 	else if (name == "TranslationWrapperTFV") {
 		ptr = std::make_shared<TranslationWrapperTFV>();
 	}
-	else if (name == "PiecewiseContinuousTFV") {
-		ptr = std::make_shared<PiecewiseContinuousTFV>();
+	else if (name == "PiecewiseTFV") {
+		ptr = std::make_shared<PiecewiseTFV>();
 	}
 	ptr->load(formattedString);
 	return std::move(ptr);
