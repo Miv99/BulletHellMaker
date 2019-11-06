@@ -13,7 +13,7 @@
 
 class AttackEditorMainWindow : public UndoableEditorWindow {
 public:
-	inline AttackEditorMainWindow(std::shared_ptr<std::mutex> tguiMutex, std::string windowTitle, int width, int height, UndoStack& undoStack, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL) :
+	inline AttackEditorMainWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, UndoStack& undoStack, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL) :
 		UndoableEditorWindow(tguiMutex, windowTitle, width, height, undoStack, scaleWidgetsOnResize, letterboxingEnabled, renderInterval) {
 	}
 
@@ -272,16 +272,9 @@ private:
 	*/
 	void populateEmpaiBezierControlPoints(std::shared_ptr<EMPAction> empa);
 	void onEmpaiDurationChange(float value);
-	/*
-	Note that unlike the other "on_____Change" functions, this one is called AFTER the change has already been made. 
-	Furthermore, this can only be called from EditorUtilities::TFVGroup, which already takes care of the undo stack.
-	So, all this function has to do is handle events that must happen when a change is made to an EMPA.
-
-	empa - the EMPAction that was just changed
-	parentEMP - the EditorMovablePoint empa belongs to
-	parentAttack - the EditorAttack parentEMP belongs to
-	*/
-	void onEmpaiTFVChange(std::shared_ptr<EMPAction> empa, std::shared_ptr<EditorMovablePoint> parentEMP, std::shared_ptr<EditorAttack> parentAttack);
+	void onEmpaiAngleOffsetChange(std::shared_ptr<EMPAAngleOffset> oldOffset, std::shared_ptr<EMPAAngleOffset> updatedOffset);
+	void onTFVEditingStart();
+	void onTFVEditingEnd(std::shared_ptr<TFV> oldTFV, std::shared_ptr<TFV> updatedTFV);
 	//------------------ Input blocker widgets (ib___) ------------------------------
 	std::shared_ptr<tgui::Panel> ibPanel;
 	std::shared_ptr<tgui::Label> ibText;
@@ -314,5 +307,5 @@ private:
 	// Mutex used to make sure multiple tgui widgets aren't being instantiated at the same time in different threads.
 	// tgui::Gui draw() calls also can't be done at the same time.
 	// Apparently tgui gets super messed up with multithreading.
-	std::shared_ptr<std::mutex> tguiMutex;
+	std::shared_ptr<std::recursive_mutex> tguiMutex;
 };

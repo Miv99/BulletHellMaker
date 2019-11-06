@@ -2,6 +2,10 @@
 #include "EditorMovablePointAction.h"
 #include "EditorMovablePointSpawnType.h"
 
+std::shared_ptr<EMPAAngleOffset> EMPAAngleOffsetToPlayer::clone() {
+	return std::make_shared<EMPAAngleOffsetToPlayer>(xOffset, yOffset);
+}
+
 std::string EMPAAngleOffsetToPlayer::format() const {
 	std::string res = "";
 	res += "EMPAAngleOffsetToPlayer" + tm_delim;
@@ -26,6 +30,10 @@ float EMPAAngleOffsetToPlayer::evaluate(float xFrom, float yFrom, float playerX,
 	return std::atan2(playerY + yOffset - yFrom, playerX + xOffset - xFrom);
 }
 
+std::shared_ptr<EMPAAngleOffset> EMPAAngleOffsetToGlobalPosition::clone() {
+	return std::make_shared<EMPAAngleOffsetToGlobalPosition>(x, y);
+}
+
 std::string EMPAAngleOffsetToGlobalPosition::format() const {
 	std::string res = "";
 	res += "EMPAAngleOffsetToGlobalPosition" + tm_delim;
@@ -48,6 +56,10 @@ float EMPAAngleOffsetToGlobalPosition::evaluate(float xFrom, float yFrom, float 
 	return std::atan2(y - yFrom, x - xFrom);
 }
 
+std::shared_ptr<EMPAAngleOffset> EMPAAngleOffsetZero::clone() {
+	return std::make_shared<EMPAAngleOffsetZero>();
+}
+
 std::string EMPAAngleOffsetZero::format() const {
 	return "EMPAAngleOffsetZero";
 }
@@ -55,6 +67,10 @@ std::string EMPAAngleOffsetZero::format() const {
 void EMPAAngleOffsetZero::load(std::string formattedString) {
 }
 
+
+std::shared_ptr<EMPAAngleOffset> EMPAngleOffsetPlayerSpriteAngle::clone() {
+	return std::make_shared<EMPAngleOffsetPlayerSpriteAngle>();
+}
 
 std::string EMPAngleOffsetPlayerSpriteAngle::format() const {
 	return "EMPAngleOffsetPlayerSpriteAngle";

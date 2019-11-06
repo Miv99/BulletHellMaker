@@ -621,7 +621,7 @@ std::shared_ptr<entt::SigH<void(int)>> PlayerTag::getBombCountChangeSignal() {
 void CollectibleComponent::activate(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t self) {
 	// Item is activated, so begin moving towards the player
 
-	auto speed = std::make_shared<PiecewiseContinuousTFV>();
+	auto speed = std::make_shared<PiecewiseTFV>();
 	// Speed starts off quickly at 450 and slows to 350 by t=2
 	speed->insertSegment(0, std::make_pair(2.0f, std::make_shared<DampenedEndTFV>(450.0f, 350.0f, 2.0f, 2)));
 	// Speed then maintains a constant 350 forever

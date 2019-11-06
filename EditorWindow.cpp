@@ -5,9 +5,9 @@
 #include <sstream>
 #include <iterator>
 
-EditorWindow::EditorWindow(std::shared_ptr<std::mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval) :
+EditorWindow::EditorWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval) :
 	tguiMutex(tguiMutex), windowTitle(windowTitle), windowWidth(width), windowHeight(height), scaleWidgetsOnResize(scaleWidgetsOnResize), letterboxingEnabled(letterboxingEnabled), renderInterval(renderInterval) {
-	std::lock_guard<std::mutex> lock(*tguiMutex);
+	std::lock_guard<std::recursive_mutex> lock(*tguiMutex);
 	gui = std::make_shared<tgui::Gui>();
 	closeSignal = std::make_shared<entt::SigH<void()>>();
 
@@ -41,10 +41,10 @@ EditorWindow::EditorWindow(std::shared_ptr<std::mutex> tguiMutex, std::string wi
 }
 
 void EditorWindow::start() {
-	if (!window) {
+	if (!window || !window->isOpen()) {
 		// SFML requires the RenderWindow to be created in the thread
 
-		std::lock_guard<std::mutex> lock(*tguiMutex);
+		std::lock_guard<std::recursive_mutex> lock(*tguiMutex);
 		window = std::make_shared<sf::RenderWindow>(sf::VideoMode(windowWidth, windowHeight), windowTitle, sf::Style::Default);
 		window->setKeyRepeatEnabled(false);
 		window->setActive(true);
@@ -95,8 +95,78 @@ void EditorWindow::start() {
 	}
 }
 
+void EditorWindow::startAndHide() {
+	if (!window || !window->isOpen()) {
+		// SFML requires the RenderWindow to be created in the thread
+
+		std::lock_guard<std::recursive_mutex> lock(*tguiMutex);
+		window = std::make_shared<sf::RenderWindow>(sf::VideoMode(windowWidth, windowHeight), windowTitle, sf::Style::Default);
+		window->setKeyRepeatEnabled(false);
+		window->setActive(true);
+		gui->setTarget(*window);
+
+		updateWindowView(window->getSize().x, window->getSize().y);
+		onRenderWindowInitialization();
+	}
+	hide();
+
+	sf::Clock deltaClock;
+
+	// Main loop
+	while (window->isOpen()) {
+		// While behind in render updates, do physics updates
+		float timeSinceLastRender = 0;
+		while (timeSinceLastRender < renderInterval) {
+			sf::Event event;
+			while (window->pollEvent(event)) {
+				if (event.type == sf::Event::Closed) {
+					closeSignal->publish();
+					window->close();
+				} else if (event.type == sf::Event::Resized) {
+					updateWindowView(event.size.width, event.size.height);
+				} else {
+					if (popup) {
+						if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left) {
+							// When mouse is released, remove the pop-up menu
+
+							closePopupWidget();
+						}
+					}
+					handleEvent(event);
+				}
+			}
+
+			float dt = std::min(MAX_PHYSICS_DELTA_TIME, deltaClock.restart().asSeconds());
+			physicsUpdate(dt);
+
+			timeSinceLastRender += dt;
+		}
+
+		window->clear();
+		render(timeSinceLastRender);
+		if (renderSignal) {
+			renderSignal->publish(timeSinceLastRender);
+		}
+		window->display();
+	}
+}
+
 void EditorWindow::close() {
-	window->close();
+	if (window && window->isOpen()) {
+		window->close();
+	}
+}
+
+void EditorWindow::hide() {
+	if (window) {
+		window->setVisible(false);
+	}
+}
+
+void EditorWindow::show() {
+	if (window) {
+		window->setVisible(true);
+	}
 }
 
 std::shared_ptr<entt::SigH<void(bool)>> EditorWindow::promptConfirmation(std::string message) {
@@ -203,12 +273,12 @@ void EditorWindow::physicsUpdate(float deltaTime) {
 }
 
 void EditorWindow::render(float deltaTime) {
-	std::lock_guard<std::mutex> lock(*tguiMutex);
+	std::lock_guard<std::recursive_mutex> lock(*tguiMutex);
 	gui->draw();
 }
 
 void EditorWindow::handleEvent(sf::Event event) {
-	std::lock_guard<std::mutex> lock(*tguiMutex);
+	std::lock_guard<std::recursive_mutex> lock(*tguiMutex);
 	gui->handleEvent(event);
 }
 
@@ -231,9 +301,9 @@ void UndoableEditorWindow::handleEvent(sf::Event event) {
 	}
 }
 
-GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std::shared_ptr<SpriteLoader> spriteLoader, std::shared_ptr<std::mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval) :
+GameplayTestWindow::GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std::shared_ptr<SpriteLoader> spriteLoader, std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval) :
 	undoStack(UndoStack(UNDO_STACK_MAX)), levelPack(levelPack), spriteLoader(spriteLoader), UndoableEditorWindow(tguiMutex, windowTitle, width, height, undoStack, scaleWidgetsOnResize, letterboxingEnabled, renderInterval) {
-	registryMutex = std::make_shared<std::mutex>();
+	registryMutex = std::make_shared<std::recursive_mutex>();
 
 	audioPlayer = std::make_unique<AudioPlayer>();
 	queue = std::make_unique<EntityCreationQueue>(registry);
@@ -628,7 +698,7 @@ void GameplayTestWindow::physicsUpdate(float deltaTime) {
 
 		if (testInProgress) {
 			try {
-				std::lock_guard<std::mutex> lock(*registryMutex);
+				std::lock_guard<std::recursive_mutex> lock(*registryMutex);
 
 				collisionSystem->update(deltaTime);
 				queue->executeAll();
@@ -1195,7 +1265,7 @@ void GameplayTestWindow::endGameplayTest() {
 	}
 
 	// Delete all entities except level manager
-	std::lock_guard<std::mutex> lock(*registryMutex);
+	std::lock_guard<std::recursive_mutex> lock(*registryMutex);
 	uint32_t levelManager = registry.attachee<LevelManagerTag>();
 	registry.each([&](uint32_t entity) {
 		if (entity != levelManager) {
@@ -1509,8 +1579,8 @@ void GameplayTestWindow::EntityPlaceholder::moveTo(float x, float y) {
 	}
 }
 
-void GameplayTestWindow::EntityPlaceholder::endTest(std::shared_ptr<std::mutex> registryMutex) {
-	std::lock_guard<std::mutex> lock(*registryMutex);
+void GameplayTestWindow::EntityPlaceholder::endTest(std::shared_ptr<std::recursive_mutex> registryMutex) {
+	std::lock_guard<std::recursive_mutex> lock(*registryMutex);
 	if (registry.valid(testEntity)) {
 		registry.destroy(testEntity);
 	}
@@ -1520,8 +1590,8 @@ bool GameplayTestWindow::EntityPlaceholder::wasClicked(int worldX, int worldY) {
 	return std::sqrt((worldX - x)*(worldX - x) + (worldY - y)*(worldY - y)) <= CLICK_HITBOX_SIZE;
 }
 
-void GameplayTestWindow::EntityPlaceholder::removePlaceholder(std::shared_ptr<std::mutex> registryMutex) {
-	std::lock_guard<std::mutex> lock(*registryMutex);
+void GameplayTestWindow::EntityPlaceholder::removePlaceholder(std::shared_ptr<std::recursive_mutex> registryMutex) {
+	std::lock_guard<std::recursive_mutex> lock(*registryMutex);
 	if (registry.valid(visualEntity)) {
 		registry.destroy(visualEntity);
 	}
@@ -1558,8 +1628,8 @@ sf::VertexArray GameplayTestWindow::PlayerEntityPlaceholder::getMovementPath(flo
 	return sf::VertexArray();
 }
 
-void GameplayTestWindow::PlayerEntityPlaceholder::runTest(std::shared_ptr<std::mutex> registryMutex) {
-	std::lock_guard<std::mutex> lock(*registryMutex);
+void GameplayTestWindow::PlayerEntityPlaceholder::runTest(std::shared_ptr<std::recursive_mutex> registryMutex) {
+	std::lock_guard<std::recursive_mutex> lock(*registryMutex);
 	registry.destroy(visualEntity);
 
 	EditorPlayer params;
@@ -1611,8 +1681,8 @@ void GameplayTestWindow::PlayerEntityPlaceholder::runTest(std::shared_ptr<std::m
 	registry.assign<SpriteComponent>(testEntity, PLAYER_LAYER, 0);
 }
 
-void GameplayTestWindow::EnemyEntityPlaceholder::runTest(std::shared_ptr<std::mutex> registryMutex) {
-	std::lock_guard<std::mutex> lock(*registryMutex);
+void GameplayTestWindow::EnemyEntityPlaceholder::runTest(std::shared_ptr<std::recursive_mutex> registryMutex) {
+	std::lock_guard<std::recursive_mutex> lock(*registryMutex);
 	registry.destroy(visualEntity);
 
 	EnemySpawnInfo info;
@@ -1722,8 +1792,8 @@ sf::VertexArray GameplayTestWindow::EnemyEntityPlaceholder::getMovementPath(floa
 	}
 }
 
-void GameplayTestWindow::EMPTestEntityPlaceholder::runTest(std::shared_ptr<std::mutex> registryMutex) {
-	std::lock_guard<std::mutex> lock(*registryMutex);
+void GameplayTestWindow::EMPTestEntityPlaceholder::runTest(std::shared_ptr<std::recursive_mutex> registryMutex) {
+	std::lock_guard<std::recursive_mutex> lock(*registryMutex);
 	registry.destroy(visualEntity);
 
 	queue.pushBack(std::make_unique<EMPSpawnFromNothingCommand>(registry, spriteLoader, emp, MPSpawnInformation{ false, NULL, sf::Vector2f(x, y) }, true, 0, -1, -1));
@@ -1749,7 +1819,7 @@ sf::VertexArray GameplayTestWindow::EMPTestEntityPlaceholder::getMovementPath(fl
 	return generateVertexArray(emp->getActions(), timeResolution, x, y, playerX, playerY);
 }
 
-void GameplayTestWindow::BezierControlPointPlaceholder::runTest(std::shared_ptr<std::mutex> registryMutex) {
+void GameplayTestWindow::BezierControlPointPlaceholder::runTest(std::shared_ptr<std::recursive_mutex> registryMutex) {
 	//TODO
 }
 

@@ -19,12 +19,12 @@ std::string getID(std::shared_ptr<EMPSpawnType> spawnType) {
 }
 
 AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr<SpriteLoader> spriteLoader) : levelPack(levelPack), spriteLoader(spriteLoader), mainWindowUndoStack(UndoStack(UNDO_STACK_MAX)) {
-	tguiMutex = std::make_shared<std::mutex>();
+	tguiMutex = std::make_shared<std::recursive_mutex>();
 
 	mainWindow = std::make_shared<AttackEditorMainWindow>(tguiMutex, "Attack Editor", MAIN_WINDOW_WIDTH, 400, mainWindowUndoStack);
 	gameplayTestWindow = std::make_shared<GameplayTestWindow>(levelPack, spriteLoader, tguiMutex, "Attack Editor - Gameplay Test", MAP_WIDTH, MAP_HEIGHT);
 
-	std::lock_guard<std::mutex> lock(*tguiMutex);
+	std::lock_guard<std::recursive_mutex> lock(*tguiMutex);
 
 	//------------------ Attack info window widgets (ai__) ---------------------
 	aiPanel = tgui::ScrollablePanel::create();
@@ -904,17 +904,17 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	empaiDurationLabel = tgui::Label::create();
 	empaiDuration = std::make_shared<SliderWithEditBox>();
 	empaiPolarDistanceLabel = tgui::Label::create();
-	empaiPolarDistance = std::make_shared<TFVGroup>(mainWindowUndoStack);
+	empaiPolarDistance = std::make_shared<TFVGroup>(tguiMutex);
 	empaiPolarAngleLabel = tgui::Label::create();
-	empaiPolarAngle = std::make_shared<TFVGroup>(mainWindowUndoStack);
+	empaiPolarAngle = std::make_shared<TFVGroup>(tguiMutex);
 	empaiBezierControlPointsLabel = tgui::Label::create();
 	empaiBezierControlPoints = std::make_shared<ScrollableListBox>();
 	empaiAngleOffsetLabel = tgui::Label::create();
-	empaiAngleOffset = std::make_shared<EMPAAngleOffsetGroup>(mainWindowUndoStack);
+	empaiAngleOffset = std::make_shared<EMPAAngleOffsetGroup>();
 	empaiHomingStrengthLabel = tgui::Label::create();
-	empaiHomingStrength = std::make_shared<TFVGroup>(mainWindowUndoStack);
+	empaiHomingStrength = std::make_shared<TFVGroup>(tguiMutex);
 	empaiHomingSpeedLabel = tgui::Label::create();
-	empaiHomingSpeed = std::make_shared<TFVGroup>(mainWindowUndoStack);
+	empaiHomingSpeed = std::make_shared<TFVGroup>(tguiMutex);
 	empaiEditBezierControlPoints = tgui::Button::create();
 
 	empaiInfo->setTextSize(TEXT_SIZE);
@@ -937,12 +937,11 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	empaiEditBezierControlPoints->setText("Edit control points");
 
 	empaiDuration->getOnValueSet()->sink().connect<AttackEditor, &AttackEditor::onEmpaiDurationChange>(this);
-	empaiPolarDistance->getOnAttackTFVChange()->sink().connect<AttackEditor, &AttackEditor::onEmpaiTFVChange>(this);
-	empaiPolarAngle->getOnAttackTFVChange()->sink().connect<AttackEditor, &AttackEditor::onEmpaiTFVChange>(this);
-	//TODO: empaiBezierControlPoints callback
-	empaiAngleOffset->getOnAngleOffsetChange()->sink().connect<AttackEditor, &AttackEditor::onEmpaiTFVChange>(this);
-	empaiHomingStrength->getOnAttackTFVChange()->sink().connect<AttackEditor, &AttackEditor::onEmpaiTFVChange>(this);
-	empaiHomingSpeed->getOnAttackTFVChange()->sink().connect<AttackEditor, &AttackEditor::onEmpaiTFVChange>(this);
+	empaiPolarDistance->getOnEditingEnd()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingEnd>(this);
+	empaiPolarAngle->getOnEditingEnd()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingEnd>(this);
+	empaiAngleOffset->getOnAngleOffsetChange()->sink().connect<AttackEditor, &AttackEditor::onEmpaiAngleOffsetChange>(this);
+	empaiHomingStrength->getOnEditingEnd()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingEnd>(this);
+	empaiHomingSpeed->getOnEditingEnd()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingEnd>(this);
 	empaiEditBezierControlPoints->connect("Pressed", [&]() {
 		editingEMPABezierControlPoints = true;
 
@@ -950,10 +949,15 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 		ibPanel->setVisible(true);
 		ibText->setText("Currently editing bezier control points for Attack ID " + std::to_string(selectedAttack->getID()) + ", EMP ID " + 
 			std::to_string(selectedEMP->getID()) + ", EMPA #" + std::to_string(selectedEMPAIndex + 1) + " in the gameplay test window.");
-
+		
 		gameplayTestWindow->beginEditingBezierControlPoints(dynamic_cast<MoveCustomBezierEMPA*>(selectedEMPA.get()));
 		sendToForeground(*gameplayTestWindow->getWindow());
 	});
+
+	empaiPolarDistance->getOnEditingStart()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingStart>(this);
+	empaiPolarAngle->getOnEditingStart()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingStart>(this);
+	empaiHomingStrength->getOnEditingStart()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingStart>(this);
+	empaiHomingSpeed->getOnEditingStart()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingStart>(this);
 
 	empaiPanel->add(empaiInfo);
 	empaiPanel->add(empaiDurationLabel);
@@ -1178,18 +1182,18 @@ void AttackEditor::onMainWindowResize(int windowWidth, int windowHeight) {
 	empaiDurationLabel->setPosition(tgui::bindLeft(empaiInfo), tgui::bindBottom(empaiInfo) + GUI_PADDING_Y);
 	empaiDuration->setPosition(GUI_PADDING_X, empaiDurationLabel->getPosition().y + empaiDurationLabel->getSize().y + GUI_PADDING_Y);
 	empaiAngleOffsetLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiDuration) + GUI_PADDING_Y);
-	empaiAngleOffset->setPosition(0, tgui::bindBottom(empaiAngleOffsetLabel));
+	empaiAngleOffset->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiAngleOffsetLabel));
 	empaiPolarDistanceLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiAngleOffset) + GUI_PADDING_Y);
-	empaiPolarDistance->setPosition(0, tgui::bindBottom(empaiPolarDistanceLabel));
+	empaiPolarDistance->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiPolarDistanceLabel));
 	empaiPolarAngleLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiPolarDistance) + GUI_PADDING_Y);
-	empaiPolarAngle->setPosition(0, tgui::bindBottom(empaiPolarAngleLabel));
+	empaiPolarAngle->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiPolarAngleLabel));
 	empaiBezierControlPointsLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiAngleOffset) + GUI_PADDING_Y);
 	empaiBezierControlPoints->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiBezierControlPointsLabel));
 	empaiEditBezierControlPoints->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiBezierControlPoints) + GUI_PADDING_Y);
 	empaiHomingStrengthLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiDuration) + GUI_PADDING_Y);
-	empaiHomingStrength->setPosition(0, tgui::bindBottom(empaiHomingStrengthLabel));
+	empaiHomingStrength->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiHomingStrengthLabel));
 	empaiHomingSpeedLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiHomingStrength) + GUI_PADDING_Y);
-	empaiHomingSpeed->setPosition(0, tgui::bindBottom(empaiHomingSpeedLabel));
+	empaiHomingSpeed->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiHomingSpeedLabel));
 
 	ibPanel->setPosition(0, 0);
 	ibPanel->setSize("100%", "100%");
@@ -1411,14 +1415,16 @@ void AttackEditor::selectEMPA(int index) {
 	empiActionsAddBelow->setText("Add below");
 	empiActionsDelete->setEnabled(true);
 
+	//TODO setTFV for the rest
+
 	empaiDurationLabel->setVisible(true);
 	empaiDuration->setVisible(true);
 	if (dynamic_cast<MoveCustomPolarEMPA*>(selectedEMPA.get())) {
 		MoveCustomPolarEMPA* concreteEMPA = dynamic_cast<MoveCustomPolarEMPA*>(selectedEMPA.get());
 		empaiPolarDistance->setVisible(true);
-		empaiPolarDistance->setTFV(concreteEMPA->getDistance(), selectedEMPA, selectedEMP, selectedAttack);
+		empaiPolarDistance->setTFV(concreteEMPA->getDistance());
 		empaiPolarAngle->setVisible(true);
-		empaiPolarDistance->setTFV(concreteEMPA->getAngle(), selectedEMPA, selectedEMP, selectedAttack);
+		empaiPolarAngle->setTFV(concreteEMPA->getAngle());
 		empaiBezierControlPoints->setVisible(false);
 		empaiEditBezierControlPoints->setVisible(false);
 		empaiAngleOffset->setVisible(true);
@@ -1830,7 +1836,7 @@ void AttackEditor::buildAttackList(bool autoscrollToBottom) {
 }
 
 void AttackEditor::onMainWindowRender(float deltaTime) {
-	std::lock_guard<std::mutex> lock(*tguiMutex);
+	std::lock_guard<std::recursive_mutex> lock(*tguiMutex);
 
 	empiAnimatable->getAnimatablePicture()->update(deltaTime);
 	empiBaseSprite->getAnimatablePicture()->update(deltaTime);
@@ -2066,6 +2072,40 @@ void AttackEditor::onEmpaiDurationChange(float value) {
 	}));
 }
 
-void AttackEditor::onEmpaiTFVChange(std::shared_ptr<EMPAction> empa, std::shared_ptr<EditorMovablePoint> parentEMP, std::shared_ptr<EditorAttack> parentAttack) {
-	setEMPAWidgetValues(empa, parentEMP, parentAttack);
+void AttackEditor::onEmpaiAngleOffsetChange(std::shared_ptr<EMPAAngleOffset> oldOffset, std::shared_ptr<EMPAAngleOffset> updatedOffset) {
+	std::shared_ptr<EMPAAngleOffset> copyOfOld = oldOffset->clone();
+
+	mainWindowUndoStack.execute(UndoableCommand(
+		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, &selectedEMPA = selectedEMPA, &oldOffset = oldOffset, updatedOffset]() {
+		*oldOffset = *updatedOffset;
+		setEMPAWidgetValues(selectedEMPA, selectedEMP, selectedAttack);
+	},
+		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, &selectedEMPA = selectedEMPA, &oldOffset = oldOffset, copyOfOld]() {
+		*oldOffset = *copyOfOld;
+		setEMPAWidgetValues(selectedEMPA, selectedEMP, selectedAttack);
+	}));
+}
+
+void AttackEditor::onTFVEditingStart() {
+	// Block all user input
+	ibPanel->setVisible(true);
+	ibText->setText("Currently editing a TFV for Attack ID " + std::to_string(selectedAttack->getID()) + ", EMP ID " +
+		std::to_string(selectedEMP->getID()) + ", EMPA #" + std::to_string(selectedEMPAIndex + 1) + " in the gameplay test window.");
+}
+
+void AttackEditor::onTFVEditingEnd(std::shared_ptr<TFV> oldTFV, std::shared_ptr<TFV> updatedTFV) {
+	// Stop blocking input
+	ibPanel->setVisible(false);
+
+	std::shared_ptr<TFV> copyOfOld = oldTFV->clone();
+
+	mainWindowUndoStack.execute(UndoableCommand(
+		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, &selectedEMPA = selectedEMPA, &oldTFV = oldTFV, updatedTFV]() {
+		*oldTFV = *updatedTFV;
+		setEMPAWidgetValues(selectedEMPA, selectedEMP, selectedAttack);
+	},
+		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, &selectedEMPA = selectedEMPA, &oldTFV = oldTFV, copyOfOld]() {
+		*oldTFV = *copyOfOld;
+		setEMPAWidgetValues(selectedEMPA, selectedEMP, selectedAttack);
+	}));
 }

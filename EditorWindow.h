@@ -22,19 +22,27 @@
 #include <TGUI/TGUI.hpp>
 #include <entt/entt.hpp>
 
+/*
+If the underlying RenderWindow is closed, one only needs to call start() or startAndHide() again to reopen the RenderWindow.
+*/
 class EditorWindow {
 public:
 	/*
 	renderInterval - time between each render call. If the gui has a ListBox, renderInterval should be some relatively large number (~0.1) because tgui gets
 		messed up with multithreading.
 	*/
-	EditorWindow(std::shared_ptr<std::mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL);
+	EditorWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL);
 
 	/*
 	Starts the main loop.
 	This function blocks the current thread.
 	*/
 	void start();
+	/*
+	Starts the main loop and then hides the window.
+	This function blocks the current thread.
+	*/
+	void startAndHide();
 	/*
 	Closes the window.
 	*/
@@ -43,6 +51,10 @@ public:
 	Pauses the EditorWindow and hides it. The EditorWindow object data is maintained.
 	*/
 	void hide();
+	/*
+	Shows the EditorWindow.
+	*/
+	void show();
 
 	/*
 	Disables all widgets and then prompts the user with a custom message to which the user can respond with either a yes or a no.
@@ -112,7 +124,7 @@ private:
 	// Mutex used to make sure multiple tgui widgets aren't being instantiated at the same time in different threads.
 	// tgui::Gui draw() calls also can't be done at the same time.
 	// Apparently tgui gets super messed up with multithreading.
-	std::shared_ptr<std::mutex> tguiMutex;
+	std::shared_ptr<std::recursive_mutex> tguiMutex;
 	
 	float renderInterval;
 	// Signal that's emitted every time a render call is made
@@ -138,7 +150,7 @@ Commands must be added to the UndoStack by the user.
 */
 class UndoableEditorWindow : public EditorWindow {
 public:
-	inline UndoableEditorWindow(std::shared_ptr<std::mutex> tguiMutex, std::string windowTitle, int width, int height, UndoStack& undoStack, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL) :
+	inline UndoableEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, UndoStack& undoStack, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL) :
 		EditorWindow(tguiMutex, windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval), undoStack(undoStack) {
 	}
 
@@ -151,7 +163,7 @@ private:
 
 class GameplayTestWindow : public UndoableEditorWindow {
 public:
-	GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std::shared_ptr<SpriteLoader> spriteLoader, std::shared_ptr<std::mutex> tguiMutex,
+	GameplayTestWindow(std::shared_ptr<LevelPack> levelPack, std::shared_ptr<SpriteLoader> spriteLoader, std::shared_ptr<std::recursive_mutex> tguiMutex,
 		std::string windowTitle, int width, int height, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false,
 		float renderInterval = RENDER_INTERVAL);
 
@@ -193,11 +205,11 @@ private:
 			spriteLoader(spriteLoader), levelPack(levelPack) {}
 
 		void moveTo(float x, float y);
-		virtual void runTest(std::shared_ptr<std::mutex> registryMutex) = 0;
-		void endTest(std::shared_ptr<std::mutex> registryMutex);
+		virtual void runTest(std::shared_ptr<std::recursive_mutex> registryMutex) = 0;
+		void endTest(std::shared_ptr<std::recursive_mutex> registryMutex);
 		bool wasClicked(int worldX, int worldY);
 		// Should be called when the EntityPlaceholder is removed from the GameplayTestWindow
-		void removePlaceholder(std::shared_ptr<std::mutex> registryMutex);
+		void removePlaceholder(std::shared_ptr<std::recursive_mutex> registryMutex);
 		virtual void spawnVisualEntity() = 0;
 		// Called when this placeholder is selected
 		void onSelection();
@@ -236,7 +248,7 @@ private:
 		inline PlayerEntityPlaceholder(int id, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, LevelPack& levelPack) : 
 			EntityPlaceholder(id, registry, spriteLoader, levelPack) {}
 	
-		void runTest(std::shared_ptr<std::mutex> registryMutex) override;
+		void runTest(std::shared_ptr<std::recursive_mutex> registryMutex) override;
 		void spawnVisualEntity() override;
 		Animatable getVisualEntityAnimatable() override;
 		sf::VertexArray getMovementPath(float timeResolution, float playerX, float playerY) override;
@@ -248,7 +260,7 @@ private:
 		inline EnemyEntityPlaceholder(int id, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, LevelPack& levelPack, EntityCreationQueue& queue) : 
 			EntityPlaceholder(id, registry, spriteLoader, levelPack), queue(queue) {}
 
-		void runTest(std::shared_ptr<std::mutex> registryMutex) override;
+		void runTest(std::shared_ptr<std::recursive_mutex> registryMutex) override;
 		void spawnVisualEntity() override;
 		Animatable getVisualEntityAnimatable() override;
 		bool legalCheck(std::string& message, LevelPack& levelPack, SpriteLoader& spriteLoader);
@@ -285,7 +297,7 @@ private:
 		inline BezierControlPointPlaceholder(int id, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, LevelPack& levelPack) : EntityPlaceholder(id, registry, spriteLoader, levelPack) {
 		}
 
-		void runTest(std::shared_ptr<std::mutex> registryMutex) override;
+		void runTest(std::shared_ptr<std::recursive_mutex> registryMutex) override;
 		void spawnVisualEntity() override;
 		Animatable getVisualEntityAnimatable() override;
 		sf::VertexArray getMovementPath(float timeResolution, float playerX, float playerY) override;
@@ -303,7 +315,7 @@ private:
 			EntityPlaceholder(id, registry, spriteLoader, levelPack), queue(queue), emp(emp), sourceID(sourceID), empFromAttack(empFromAttack) {
 		}
 
-		void runTest(std::shared_ptr<std::mutex> registryMutex) override;
+		void runTest(std::shared_ptr<std::recursive_mutex> registryMutex) override;
 		void spawnVisualEntity() override;
 		Animatable getVisualEntityAnimatable() override;
 		bool legalCheck(std::string& message, LevelPack& levelPack, SpriteLoader& spriteLoader);
@@ -333,7 +345,7 @@ private:
 	const float MOVEMENT_PATH_TIME_RESOLUTION = 0.05f; // Time between each visualized movement path vertex
 
 	// Mutex to make sure entities aren't destroyed while being iterated through
-	std::shared_ptr<std::mutex> registryMutex;
+	std::shared_ptr<std::recursive_mutex> registryMutex;
 
 	std::shared_ptr<sf::Sprite> currentCursor; // nullptr if default cursor
 

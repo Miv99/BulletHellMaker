@@ -22,6 +22,7 @@ Angle in radians to some position.
 class EMPAAngleOffset : public TextMarshallable {
 public:
 	inline EMPAAngleOffset() {}
+	virtual std::shared_ptr<EMPAAngleOffset> clone() = 0;
 
 	virtual std::string format() const = 0;
 	virtual void load(std::string formattedString) = 0;
@@ -37,6 +38,7 @@ Angle in radians to the player.
 class EMPAAngleOffsetToPlayer : public EMPAAngleOffset {
 public:
 	inline EMPAAngleOffsetToPlayer(float xOffset = 0, float yOffset = 0) : xOffset(xOffset), yOffset(yOffset) {}
+	std::shared_ptr<EMPAAngleOffset> clone() override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
@@ -57,6 +59,7 @@ class EMPAAngleOffsetToGlobalPosition : public EMPAAngleOffset {
 public:
 	inline EMPAAngleOffsetToGlobalPosition() {}
 	inline EMPAAngleOffsetToGlobalPosition(float x, float y) : x(x), y(y) {}
+	std::shared_ptr<EMPAAngleOffset> clone() override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
@@ -76,6 +79,7 @@ Angle offset that always returns 0.
 class EMPAAngleOffsetZero : public EMPAAngleOffset {
 public:
 	inline EMPAAngleOffsetZero() {}
+	std::shared_ptr<EMPAAngleOffset> clone() override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
@@ -91,16 +95,13 @@ Angle offset that always returns the angle that the player's sprite is facing.
 class EMPAngleOffsetPlayerSpriteAngle : public EMPAAngleOffset {
 public:
 	inline EMPAngleOffsetPlayerSpriteAngle() {}
+	std::shared_ptr<EMPAAngleOffset> clone() override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override;
 	float evaluate(float xFrom, float yFrom, float playerX, float playerY) override;
-
-private:
-	float x;
-	float y;
 };
 
 class EMPAngleOffsetFactory {

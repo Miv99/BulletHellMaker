@@ -1,5 +1,6 @@
 #include "EditorUtilities.h"
 #include "Constants.h"
+#include "EditorWindow.h"
 #include <map>
 #include <boost/filesystem.hpp>
 #include <iostream>
@@ -527,69 +528,78 @@ void NumericalEditBoxWithLimits::updateInputValidator() {
 	}
 }
 
-TFVGroup::TFVGroup(UndoStack& undoStack, float paddingX, float paddingY) : undoStack(undoStack), paddingX(paddingX), paddingY(paddingY) {
-	onAttackTFVChange = std::make_shared<entt::SigH<void(std::shared_ptr<EMPAction>, std::shared_ptr<EditorMovablePoint>, std::shared_ptr<EditorAttack>)>>();
-	onEMPATFVChange = std::make_shared<entt::SigH<void(std::shared_ptr<EMPAction>)>>();
+TFVGroup::TFVGroup(std::shared_ptr<std::recursive_mutex> tguiMutex, float paddingX, float paddingY) : tguiMutex(tguiMutex), paddingX(paddingX), paddingY(paddingY), undoStack(UndoStack(50)) {
+	std::lock_guard<std::recursive_mutex> lock(*tguiMutex);
 
-	//TODO
-	/*
-	test = tgui::Slider::create();
-	test->connect("ValueChanged", [&](float value) {
-		if (ignoreSignal) return;
-		undoStack.execute(UndoableCommand(
-			[this, value]() {
-			onTFVChange();
-		},
-		[this]() {
-			onTFVChange();
-		}));
+	onEditingStart = std::make_shared<entt::SigH<void()>>();
+	onEditingEnd = std::make_shared<entt::SigH<void(std::shared_ptr<TFV>, std::shared_ptr<TFV>)>>();
+
+	tfvShortDescription = tgui::Label::create();
+	beginEditingButton = tgui::Button::create();
+	beginEditingButton->setText("Edit");
+
+	beginEditingButton->connect("Pressed", [&]() {
+		beginEditing();
 	});
-	add(test);
-	*/
+
+	add(tfvShortDescription);
+	add(beginEditingButton);
+
+	//TODO: change default size
+	tfvEditorWindow = std::make_shared<UndoableEditorWindow>(tguiMutex, "TFV Editor", 1024, 768, undoStack);
+	// Stop editing when the window is closed
+	tfvEditorWindow->getCloseSignal()->sink().connect<TFVGroup, &TFVGroup::endEditingWithoutSaving>(this);
+}
+
+void TFVGroup::beginEditing() {
+	// Start the window thread
+	tfvEditorWindowThread = std::thread(&EditorWindow::start, tfvEditorWindow);
+	tfvEditorWindowThread.detach();
+
+	onEditingStart->publish();
+}
+
+void TFVGroup::endEditing(bool saveEditedTFV) {
+	// Close the window and its thread
+	tfvEditorWindow->close();
+
+	if (saveEditedTFV) {
+		onEditingEnd->publish(oldTFV, tfv);
+	} else {
+		onEditingEnd->publish(oldTFV, oldTFV);
+	}
+}
+
+void TFVGroup::endEditingWithoutSaving() {
+	endEditing(false);
 }
 
 void TFVGroup::onContainerResize(int containerWidth, int containerHeight) {
-	//TODO
-	//test->setPosition(0, 0);
-	//test->setSize(containerWidth, 20);
+	tfvShortDescription->setPosition(0, 0);
+	beginEditingButton->setPosition(0, tgui::bindBottom(tfvShortDescription) + paddingY);
+	beginEditingButton->setSize(100, TEXT_BUTTON_HEIGHT);
 
-	setSize(containerWidth - paddingX, 25);
+	// Remember that this is on resize of the container housing THIS widget, so don't update positions/sizes of the widgets
+	// in the separate UndoableEditorWindow here
+
+	setSize(containerWidth - paddingX, beginEditingButton->getPosition().y + beginEditingButton->getSize().y + paddingY);
 }
 
-void TFVGroup::setTFV(std::shared_ptr<TFV> tfv, std::shared_ptr<EMPAction> parentEMPA, std::shared_ptr<EditorMovablePoint> parentEMP, std::shared_ptr<EditorAttack> parentAttack) {
-	this->tfv = tfv;
-	this->parentEMPA = parentEMPA;
-	this->parentEMP = parentEMP;
-	this->parentAttack = parentAttack;
-
-	ignoreSignal = true;
-	//TODO: set widget values
-	//test->setValue(2);
-	ignoreSignal = false;
-}
-
-void TFVGroup::setTFV(std::shared_ptr<TFV> tfv, std::shared_ptr<EMPAction> parentEMPA) {
-	this->tfv = tfv;
-	this->parentEMPA = parentEMPA;
-	this->parentEMP = nullptr;
-	this->parentAttack = nullptr;
-
-	ignoreSignal = true;
-	//TODO: set widget values
-	ignoreSignal = false;
-}
-
-void TFVGroup::onTFVChange() {
-	if (onAttackTFVChange && parentAttack) {
-		onAttackTFVChange->publish(parentEMPA, parentEMP, parentAttack);
+void TFVGroup::setTFV(std::shared_ptr<TFV> tfv) {
+	oldTFV = tfv;
+	if (dynamic_cast<PiecewiseTFV*>(tfv.get()) != nullptr) {
+		this->tfv = std::dynamic_pointer_cast<PiecewiseTFV>(tfv->clone());
+	} else {
+		this->tfv = std::make_shared<PiecewiseTFV>();
+		this->tfv->insertSegment(0, std::make_pair(0, tfv->clone()));
 	}
-	if (onEMPATFVChange) {
-		onEMPATFVChange->publish(parentEMPA);
-	}
+	tfvShortDescription->setText(tfv->getName());
+
+	//TODO: init values of the widgets in the window
 }
 
-EMPAAngleOffsetGroup::EMPAAngleOffsetGroup(UndoStack& undoStack) : undoStack(undoStack) {
-	onAngleOffsetChange = std::make_shared<entt::SigH<void(std::shared_ptr<EMPAction>, std::shared_ptr<EditorMovablePoint>, std::shared_ptr<EditorAttack>)>>();
+EMPAAngleOffsetGroup::EMPAAngleOffsetGroup() {
+	onAngleOffsetChange = std::make_shared<entt::SigH<void(std::shared_ptr<EMPAAngleOffset>, std::shared_ptr<EMPAAngleOffset>)>>();
 
 	offsetType = tgui::ComboBox::create();
 	offsetType->setTextSize(TEXT_SIZE);
@@ -600,19 +610,19 @@ EMPAAngleOffsetGroup::EMPAAngleOffsetGroup(UndoStack& undoStack) : undoStack(und
 	offsetType->addItem("Player sprite angle", "4");
 	offsetType->connect("ItemSelected", [&](std::string item, std::string id) {
 		//TODO
-		if (ignoreSignal) return;
-		undoStack.execute(UndoableCommand(
-			[this]() {
-			
-		},
-			[this]() {
-			
-		}));
+		onAngleOffsetChange->publish(oldAngleOffset, angleOffset);
 	});
 }
 
 void EMPAAngleOffsetGroup::onContainerResize(int containerWidth, int containerHeight) {
 	//TODO
+}
+
+void EMPAAngleOffsetGroup::setEMPAAngleOffset(std::shared_ptr<EMPAAngleOffset> offset) {
+	oldAngleOffset = offset;
+	angleOffset = offset->clone();
+
+	//TODO: init values of widgets
 }
 
 ScrollableListBox::ScrollableListBox() {

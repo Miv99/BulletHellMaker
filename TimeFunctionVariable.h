@@ -18,13 +18,12 @@ Evaluation of a TFV does not change it internally, so the same TFV can be reused
 class TFV : public TextMarshallable {
 public:
 	inline TFV() {}
-	// Copy constructor
-	inline virtual TFV(std::shared_ptr<TFV> tfv) {
-		load(tfv->format());
-	}
+	virtual std::shared_ptr<TFV> clone() = 0;
 
 	virtual std::string format() const = 0;
 	virtual void load(std::string formattedString) = 0;
+	// Display name for the user
+	virtual std::string getName() = 0;
 
 	virtual float evaluate(float time) = 0;
 };
@@ -40,9 +39,11 @@ class LinearTFV : public TFV {
 public:
 	inline LinearTFV() {}
 	inline LinearTFV(float startValue, float endValue, float maxTime) : startValue(startValue), endValue(endValue), maxTime(maxTime) {}
-	
+	std::shared_ptr<TFV> clone() override;
+
 	std::string format() const override;
 	void load(std::string formattedString) override;
+	std::string getName() override { return "Linear"; }
 
 	float evaluate(float time) {
 		return startValue + (time / maxTime) * (endValue - startValue);
@@ -63,9 +64,11 @@ class ConstantTFV : public TFV {
 public:
 	inline ConstantTFV() {}
 	inline ConstantTFV(float value) : value(value) {}
+	std::shared_ptr<TFV> clone() override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+	std::string getName() override { return "Constant"; }
 
 	float evaluate(float time) {
 		return value;
@@ -88,9 +91,11 @@ class SineWaveTFV : public TFV {
 public:
 	inline SineWaveTFV() {}
 	inline SineWaveTFV(float period, float amplitude, float valueShift, float phaseShift = 0.0f) : period(period), amplitude(amplitude), valueShift(valueShift), phaseShift(phaseShift) {}
+	std::shared_ptr<TFV> clone() override;
 	
 	std::string format() const override;
 	void load(std::string formattedString) override;
+	std::string getName() override { return "Sine wave"; }
 	
 	inline float evaluate(float time) {
 		return amplitude * (float)sin(time * PI2 / period + phaseShift) + valueShift;
@@ -114,9 +119,11 @@ class ConstantAccelerationDistanceTFV : public TFV {
 public:
 	inline ConstantAccelerationDistanceTFV() {}
 	inline ConstantAccelerationDistanceTFV(float initialDistance, float initialVelocity, float acceleration) : initialDistance(initialDistance), initialVelocity(initialVelocity), acceleration(acceleration) {}
-	
+	std::shared_ptr<TFV> clone() override;
+
 	std::string format() const override;
 	void load(std::string formattedString) override;
+	std::string getName() override { return "Distance due to gravity"; }
 	
 	inline float evaluate(float time) override {
 		return initialDistance + initialVelocity * time + 0.5f*acceleration*time*time;
@@ -142,9 +149,11 @@ public:
 	inline DampenedStartTFV(float startValue, float endValue, float maxTime, int dampeningFactor) : dampeningFactor(dampeningFactor), startValue(startValue) {
 		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
 	}
+	std::shared_ptr<TFV> clone() override;
 	
 	std::string format() const override;
 	void load(std::string formattedString) override;
+	std::string getName() override { return "Dampened start"; }
 	
 	inline float evaluate(float time) override {
 		return a * pow(time, 0.08f*dampeningFactor + 1) + startValue;
@@ -171,9 +180,11 @@ public:
 	inline DampenedEndTFV(float startValue, float endValue, float maxTime, int dampeningFactor) : dampeningFactor(dampeningFactor), endValue(endValue), maxTime(maxTime) {
 		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
 	}
+	std::shared_ptr<TFV> clone() override;
 	
 	std::string format() const override;
 	void load(std::string formattedString) override;
+	std::string getName() override { return "Dampened end"; }
 	
 	inline float evaluate(float time) override {
 		return -a * pow(maxTime - time, 0.08f*dampeningFactor + 1) + endValue;
@@ -202,9 +213,11 @@ public:
 	inline DoubleDampenedTFV(float startValue, float endValue, float maxTime, int dampeningFactor) : dampeningFactor(dampeningFactor), startValue(startValue), endValue(endValue), maxTime(maxTime) {
 		a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f*dampeningFactor + 1);
 	}
+	std::shared_ptr<TFV> clone() override;
 	
 	std::string format() const override;
 	void load(std::string formattedString) override;
+	std::string getName() override { return "Dampened start and end"; }
 	
 	inline float evaluate(float time) override {
 		if (time < maxTime / 2) {
@@ -235,9 +248,11 @@ public:
 	inline TranslationWrapperTFV(std::shared_ptr<TFV> wrappedTFV, float valueTranslation) : wrappedTFV(wrappedTFV), valueTranslation(valueTranslation) {
 		assert(dynamic_cast<TranslationWrapperTFV*>(wrappedTFV.get()) == nullptr && "TranslationWrapperTFV should never wrap another; they can be combined");
 	}
+	std::shared_ptr<TFV> clone() override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+	std::string getName() override { return "Translated"; }
 
 	inline float evaluate(float time) override {
 		return valueTranslation + wrappedTFV->evaluate(time);
@@ -267,6 +282,7 @@ public:
 	inline CurrentAngleTFV(entt::DefaultRegistry& registry, uint32_t from, uint32_t to) : registry(registry), from(from), to(to) {
 		assert(registry.has<PositionComponent>(from) && registry.has<PositionComponent>(to) && registry.has<HitboxComponent>(to) && registry.has<HitboxComponent>(to));
 	}
+	std::shared_ptr<TFV> clone() override;
 
 	inline std::string format() const override {
 		assert(false && "CurrentAngleTFV cannot be saved.");
@@ -276,6 +292,7 @@ public:
 		assert(false && "CurrentAngleTFV cannot be loaded. If it is ever used by something, that something must know that the TFV it is \
 			using is a CurrentAngleTFV so that the CurrentAngleTFV can be constructed again.");
 	}
+	std::string getName() override { return "Angle to entity"; }
 
 	float evaluate(float time) override {
 		auto& fromPos = registry.get<PositionComponent>(from);
@@ -298,9 +315,11 @@ Each TFV segment in PiecewiseTFV will be evaluated based on time since the start
 class PiecewiseTFV : public TFV {
 public:
 	inline PiecewiseTFV() {}
+	std::shared_ptr<TFV> clone() override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+	std::string getName() override { return "Piecewise"; }
 
 	inline float evaluate(float time) override {
 		auto it = std::lower_bound(segments.begin(), segments.end(), time, SegmentComparator());
