@@ -69,6 +69,18 @@ public:
 	void closePopupWidget();
 
 	/*
+	Returns the ID of the added vertex array.
+	*/
+	int addVertexArray(sf::VertexArray vertexArray);
+	void removeVertexArray(int id);
+	/*
+	Sets the old VertexArray with the given id to be newVertexArray.
+	If there was no VertexArray with the given id, nothing will happen.
+	*/
+	void modifyVertexArray(int id, sf::VertexArray newVertexArray);
+	void removeAllVertexArrays();
+
+	/*
 	Called every time window size changes.
 	*/
 	virtual void updateWindowView(int windowWidth, int windowHeight);
@@ -96,6 +108,9 @@ protected:
 private:
 	const float GUI_PADDING_X = 20;
 	const float GUI_PADDING_Y = 10;
+
+	int nextVertexArrayID = 0;
+	std::map<int, sf::VertexArray> vertexArrays;
 
 	std::string windowTitle;
 	int windowWidth, windowHeight;

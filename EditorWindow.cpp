@@ -202,6 +202,29 @@ void EditorWindow::closePopupWidget() {
 	popupContainer = nullptr;
 }
 
+int EditorWindow::addVertexArray(sf::VertexArray vertexArray) {
+	int id = nextVertexArrayID;
+	vertexArrays[id] = vertexArray;
+	nextVertexArrayID++;
+	return id;
+}
+
+void EditorWindow::removeVertexArray(int id) {
+	if (vertexArrays.count(id) > 0) {
+		vertexArrays.erase(id);
+	}
+}
+
+void EditorWindow::modifyVertexArray(int id, sf::VertexArray newVertexArray) {
+	if (vertexArrays.count(id) > 0) {
+		vertexArrays[id] = newVertexArray;
+	}
+}
+
+void EditorWindow::removeAllVertexArrays() {
+	vertexArrays.clear();
+}
+
 void EditorWindow::updateWindowView(int windowWidth, int windowHeight) {
 	this->windowWidth = windowWidth;
 	this->windowHeight = windowHeight;
@@ -275,6 +298,10 @@ void EditorWindow::physicsUpdate(float deltaTime) {
 void EditorWindow::render(float deltaTime) {
 	std::lock_guard<std::recursive_mutex> lock(*tguiMutex);
 	gui->draw();
+
+	for (auto it = vertexArrays.begin(); it != vertexArrays.end(); it++) {
+		window->draw(it->second);
+	}
 }
 
 void EditorWindow::handleEvent(sf::Event event) {
