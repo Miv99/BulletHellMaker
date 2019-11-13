@@ -1422,9 +1422,9 @@ void AttackEditor::selectEMPA(int index) {
 	if (dynamic_cast<MoveCustomPolarEMPA*>(selectedEMPA.get())) {
 		MoveCustomPolarEMPA* concreteEMPA = dynamic_cast<MoveCustomPolarEMPA*>(selectedEMPA.get());
 		empaiPolarDistance->setVisible(true);
-		empaiPolarDistance->setTFV(concreteEMPA->getDistance());
+		empaiPolarDistance->setTFV(concreteEMPA->getDistance(), selectedEMPA->getTime());
 		empaiPolarAngle->setVisible(true);
-		empaiPolarAngle->setTFV(concreteEMPA->getAngle());
+		empaiPolarAngle->setTFV(concreteEMPA->getAngle(), selectedEMPA->getTime());
 		empaiBezierControlPoints->setVisible(false);
 		empaiEditBezierControlPoints->setVisible(false);
 		empaiAngleOffset->setVisible(true);

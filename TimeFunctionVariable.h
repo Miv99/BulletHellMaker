@@ -9,6 +9,7 @@
 #include "TextMarshallable.h"
 #include "Components.h"
 #include <entt/entt.hpp>
+#include <utility>
 
 /*
 TimeFuncVar (TFV)
@@ -327,6 +328,19 @@ public:
 			return segments.back().second->evaluate(time - segments.back().first);
 		} else {
 			return it->second->evaluate(time - it->first);
+		}
+	}
+
+	/*
+	Returns a pair containing, in order, the normal evaluation of the TFV and the index of the segment
+	in which the evaluation occurred.
+	*/
+	inline std::pair<float, int> piecewiseEvaluate(float time) {
+		auto it = std::lower_bound(segments.begin(), segments.end(), time, SegmentComparator());
+		if (it == segments.end()) {
+			return std::make_pair(segments.back().second->evaluate(time - segments.back().first), segments.size() - 1);
+		} else {
+			return std::make_pair(it->second->evaluate(time - it->first), it - segments.begin());
 		}
 	}
 

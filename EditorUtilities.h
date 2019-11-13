@@ -38,7 +38,15 @@ playerX, playerY - position of the player
 */
 sf::VertexArray generateVertexArray(std::vector<std::shared_ptr<EMPAction>> actions, float timeResolution, float x, float y, float playerX, float playerY, sf::Color startColor = sf::Color::Red, sf::Color endColor = sf::Color::Blue);
 sf::VertexArray generateVertexArray(std::shared_ptr<EMPAction> action, float timeResolution, float x, float y, float playerX, float playerY, sf::Color startColor = sf::Color::Red, sf::Color endColor = sf::Color::Blue);
+/*
+Returns an array of segment data. Each segment data is 2 vectors of floats in order:
+the x-coordinates and the y-coordinates of a matplotlibc curve.
+The x-axis represents time in seconds and the y-axis the TFV's value.
 
+timeResolution - the amount of time between each point
+colors - the list of colors that will be looped to determine the color of each segment of the curve
+*/
+std::vector<std::pair<std::vector<float>, std::vector<float>>> generateMPLPoints(std::shared_ptr<PiecewiseTFV> tfv, float tfvLifespan, float timeResolution);
 
 class UndoableEditorWindow;
 
@@ -268,11 +276,13 @@ public:
 	Initialize this widget to tfv's values.
 	tfv won't be modified by this widget
 	*/
-	void setTFV(std::shared_ptr<TFV> tfv);
+	void setTFV(std::shared_ptr<TFV> tfv, float tfvLifespan);
 	inline std::shared_ptr<entt::SigH<void()>> getOnEditingStart() { return onEditingStart; }
 	inline std::shared_ptr<entt::SigH<void(std::shared_ptr<TFV>, std::shared_ptr<TFV>)>> getOnEditingEnd() { return onEditingEnd; }
 
 private:
+	const float TFV_TIME_RESOLUTION = 0.05f; // Time between each tfv curve vertex
+
 	float paddingX, paddingY;
 
 	std::shared_ptr<std::recursive_mutex> tguiMutex;
@@ -281,8 +291,12 @@ private:
 	std::thread tfvEditorWindowThread;
 	std::shared_ptr<UndoableEditorWindow> tfvEditorWindow;
 
+	std::shared_ptr<tgui::ScrollablePanel> panel;
+	std::shared_ptr<tgui::Button> showGraph;
+
 	std::shared_ptr<TFV> oldTFV; // Should never be modified after setTFV() is called
 	std::shared_ptr<PiecewiseTFV> tfv;
+	float tfvLifespan; // Shouldn't be modified except by setTFV()
 
 	std::shared_ptr<tgui::Label> tfvShortDescription;
 	std::shared_ptr<tgui::Button> beginEditingButton;
@@ -292,6 +306,8 @@ private:
 	// Signal emitted after the user stops using this TFVGroup to edit a TFV
 	// 2 parameters in order: the old TFV with no changes applied and the old TFV with changes applied
 	std::shared_ptr<entt::SigH<void(std::shared_ptr<TFV>, std::shared_ptr<TFV>)>> onEditingEnd;
+
+	void onTFVEditorWindowResize(int windowWidth, int windowHeight);
 };
 
 /*

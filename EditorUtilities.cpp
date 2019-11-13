@@ -4,6 +4,7 @@
 #include <map>
 #include <boost/filesystem.hpp>
 #include <iostream>
+#include "matplotlibcpp.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -81,7 +82,38 @@ sf::VertexArray generateVertexArray(std::shared_ptr<EMPAction> action, float tim
 		totalTimeElapsed += timeResolution;
 	}
 	time -= action->getTime();
-	sf::Vector2f newPos = mp->compute(sf::Vector2f(0, 0), mp->getLifespan());
+	return ret;
+}
+
+std::vector<std::pair<std::vector<float>, std::vector<float>>> generateMPLPoints(std::shared_ptr<PiecewiseTFV> tfv, float tfvLifespan, float timeResolution) {
+	std::vector<std::pair<std::vector<float>, std::vector<float>>> ret;
+	float time = 0;
+	int prevSegmentIndex = -1;
+	float lowestY = 2147483647;
+	float highestY = -2147483647;
+	std::vector<float> singleSegmentX;
+	std::vector<float> singleSegmentY;
+	while (time < tfvLifespan) {
+		std::pair<float, int> valueAndSegmentIndex = tfv->piecewiseEvaluate(time);
+		sf::Vector2f pos(time, valueAndSegmentIndex.first);
+
+		if (valueAndSegmentIndex.second != prevSegmentIndex) {
+			if (prevSegmentIndex != -1) {
+				ret.push_back(std::make_pair(singleSegmentX, singleSegmentY));
+				singleSegmentX.clear();
+				singleSegmentY.clear();
+			}
+
+			prevSegmentIndex = valueAndSegmentIndex.second;
+		}
+		lowestY = std::min(lowestY, valueAndSegmentIndex.first);
+		highestY = std::max(highestY, valueAndSegmentIndex.first);
+
+		singleSegmentX.push_back(pos.x);
+		singleSegmentY.push_back(pos.y);
+		time += timeResolution;
+	}
+	ret.push_back(std::make_pair(singleSegmentX, singleSegmentY));
 	return ret;
 }
 
@@ -549,6 +581,29 @@ TFVGroup::TFVGroup(std::shared_ptr<std::recursive_mutex> tguiMutex, float paddin
 	tfvEditorWindow = std::make_shared<UndoableEditorWindow>(tguiMutex, "TFV Editor", 1024, 768, undoStack);
 	// Stop editing when the window is closed
 	tfvEditorWindow->getCloseSignal()->sink().connect<TFVGroup, &TFVGroup::endEditingWithoutSaving>(this);
+	
+	// Add widgets to TFV editor
+	panel = tgui::ScrollablePanel::create();
+
+	showGraph = tgui::Button::create();
+	showGraph->setText("Show graph");
+	showGraph->connect("Pressed", [&]() {
+		auto points = generateMPLPoints(tfv, tfvLifespan, TFV_TIME_RESOLUTION);
+		matplotlibcpp::clf();
+		matplotlibcpp::close();
+		for (int i = 0; i < points.size(); i++) {
+			if (i % 2 == 0) {
+				matplotlibcpp::plot(points[i].first, points[i].second, "r");
+			} else {
+				matplotlibcpp::plot(points[i].first, points[i].second, "b");
+			}
+		}
+		matplotlibcpp::show();
+	});
+	panel->add(showGraph);
+
+	tfvEditorWindow->getGui()->add(panel);
+	tfvEditorWindow->getResizeSignal()->sink().connect<TFVGroup, &TFVGroup::onTFVEditorWindowResize>(this);
 }
 
 void TFVGroup::beginEditing() {
@@ -557,11 +612,15 @@ void TFVGroup::beginEditing() {
 	tfvEditorWindowThread.detach();
 
 	onEditingStart->publish();
+
+	
 }
 
 void TFVGroup::endEditing(bool saveEditedTFV) {
 	// Close the window and its thread
 	tfvEditorWindow->close();
+	// Clear its undo stack
+	undoStack.clear();
 
 	if (saveEditedTFV) {
 		onEditingEnd->publish(oldTFV, tfv);
@@ -585,8 +644,9 @@ void TFVGroup::onContainerResize(int containerWidth, int containerHeight) {
 	setSize(containerWidth - paddingX, beginEditingButton->getPosition().y + beginEditingButton->getSize().y + paddingY);
 }
 
-void TFVGroup::setTFV(std::shared_ptr<TFV> tfv) {
+void TFVGroup::setTFV(std::shared_ptr<TFV> tfv, float tfvLifespan) {
 	oldTFV = tfv;
+	this->tfvLifespan = tfvLifespan;
 	if (dynamic_cast<PiecewiseTFV*>(tfv.get()) != nullptr) {
 		this->tfv = std::dynamic_pointer_cast<PiecewiseTFV>(tfv->clone());
 	} else {
@@ -596,6 +656,13 @@ void TFVGroup::setTFV(std::shared_ptr<TFV> tfv) {
 	tfvShortDescription->setText(tfv->getName());
 
 	//TODO: init values of the widgets in the window
+}
+
+void TFVGroup::onTFVEditorWindowResize(int windowWidth, int windowHeight) {
+	panel->setSize("100%", "100%");
+	panel->setPosition(0, 0);
+	showGraph->setSize(100, TEXT_BUTTON_HEIGHT);
+	showGraph->setPosition(paddingX, paddingY);
 }
 
 EMPAAngleOffsetGroup::EMPAAngleOffsetGroup() {
