@@ -336,6 +336,13 @@ void SliderWithEditBox::setEnabled(bool enabled) {
 	editBox->setEnabled(enabled);
 }
 
+void SliderWithEditBox::setIntegerMode(bool intMode) {
+	editBox->setIntegerMode(intMode);
+	if (intMode) {
+		setStep(std::max((int)getStep(), 1));
+	}
+}
+
 inline std::shared_ptr<entt::SigH<void(float)>> SliderWithEditBox::getOnValueSet() {
 	if (!onValueSet) {
 		onValueSet = std::make_shared<entt::SigH<void(float)>>();
@@ -564,7 +571,8 @@ TFVGroup::TFVGroup(std::shared_ptr<std::recursive_mutex> tguiMutex, float paddin
 	std::lock_guard<std::recursive_mutex> lock(*tguiMutex);
 
 	onEditingStart = std::make_shared<entt::SigH<void()>>();
-	onEditingEnd = std::make_shared<entt::SigH<void(std::shared_ptr<TFV>, std::shared_ptr<TFV>)>>();
+	onEditingEnd = std::make_shared<entt::SigH<void(std::shared_ptr<TFV>, std::shared_ptr<TFV>, std::string, bool)>>();
+	onSave = std::make_shared<entt::SigH<void(std::shared_ptr<TFV>, std::shared_ptr<TFV>, std::string)>>();
 
 	tfvShortDescription = tgui::Label::create();
 	beginEditingButton = tgui::Button::create();
@@ -581,6 +589,7 @@ TFVGroup::TFVGroup(std::shared_ptr<std::recursive_mutex> tguiMutex, float paddin
 	tfvEditorWindow = std::make_shared<UndoableEditorWindow>(tguiMutex, "TFV Editor", 1024, 768, undoStack);
 	// Stop editing when the window is closed
 	tfvEditorWindow->getCloseSignal()->sink().connect<TFVGroup, &TFVGroup::endEditingWithoutSaving>(this);
+	tfvEditorWindow->getResizeSignal()->sink().connect<TFVGroup, &TFVGroup::onTFVEditorWindowResize>(this);
 	
 	// Add widgets to TFV editor
 	panel = tgui::ScrollablePanel::create();
@@ -602,8 +611,77 @@ TFVGroup::TFVGroup(std::shared_ptr<std::recursive_mutex> tguiMutex, float paddin
 	});
 	panel->add(showGraph);
 
+	finishEditing = tgui::Button::create();
+	finishEditing->setText("Finish editing");
+	finishEditing->connect("Pressed", [&]() {
+		// Prompt user for whether to save changes
+		auto saveChangesSignal = tfvEditorWindow->promptConfirmation("Save changes made to the control points?");
+		saveChangesSignal->sink().connect<TFVGroup, &TFVGroup::endEditing>(this);
+	});
+	panel->add(finishEditing);
+
+	saveTFV = tgui::Button::create();
+	saveTFV->setText("Save");
+	saveTFV->connect("Pressed", [&]() {
+		onSave->publish(oldTFV, tfv, tfvIdentifier);
+		// This is to update oldTFV to be the tfv with changes saved
+		setTFV(tfv, tfvLifespan, tfvIdentifier);
+	});
+	panel->add(saveTFV);
+
+	segmentList = std::make_shared<ScrollableListBox>();
+	segmentList->setTextSize(TEXT_SIZE);
+	segmentList->getListBox()->connect("ItemSelected", [&](std::string item, std::string id) {
+		if (id != "") {
+			selectSegment(std::stoi(id));
+		}
+	});
+	panel->add(segmentList);
+
+	tfvFloat1Label = tgui::Label::create();
+	tfvFloat2Label = tgui::Label::create();
+	tfvFloat3Label = tgui::Label::create();
+	tfvFloat4Label = tgui::Label::create();
+	tfvInt1Label = tgui::Label::create();
+	tfvFloat1Label->setTextSize(TEXT_SIZE);
+	tfvFloat2Label->setTextSize(TEXT_SIZE);
+	tfvFloat3Label->setTextSize(TEXT_SIZE);
+	tfvFloat4Label->setTextSize(TEXT_SIZE);
+	tfvInt1Label->setTextSize(TEXT_SIZE);
+	panel->add(tfvFloat1Label);
+	panel->add(tfvFloat2Label);
+	panel->add(tfvFloat3Label);
+	panel->add(tfvFloat4Label);
+	panel->add(tfvInt1Label);
+
+	tfvFloat1Slider = std::make_shared<SliderWithEditBox>();
+	tfvFloat2Slider = std::make_shared<SliderWithEditBox>();
+	tfvFloat3Slider = std::make_shared<SliderWithEditBox>();
+	tfvFloat4Slider = std::make_shared<SliderWithEditBox>();
+	tfvInt1Slider = std::make_shared<SliderWithEditBox>();
+	tfvInt1Slider->setIntegerMode(true);
+	tfvFloat1Slider->getOnValueSet()->sink().connect<TFVGroup, &TFVGroup::onTFVFloat1SliderChange>(this);
+	tfvFloat2Slider->getOnValueSet()->sink().connect<TFVGroup, &TFVGroup::onTFVFloat2SliderChange>(this);
+	tfvFloat3Slider->getOnValueSet()->sink().connect<TFVGroup, &TFVGroup::onTFVFloat3SliderChange>(this);
+	tfvFloat4Slider->getOnValueSet()->sink().connect<TFVGroup, &TFVGroup::onTFVFloat4SliderChange>(this);
+	tfvInt1Slider->getOnValueSet()->sink().connect<TFVGroup, &TFVGroup::onTFVInt1SliderChange>(this);
+	tfvFloat1Slider->getEditBox()->setTextSize(TEXT_SIZE);
+	tfvFloat2Slider->getEditBox()->setTextSize(TEXT_SIZE);
+	tfvFloat3Slider->getEditBox()->setTextSize(TEXT_SIZE);
+	tfvFloat4Slider->getEditBox()->setTextSize(TEXT_SIZE);
+	tfvInt1Slider->getEditBox()->setTextSize(TEXT_SIZE);
+	panel->add(tfvFloat1Slider);
+	panel->add(tfvFloat2Slider);
+	panel->add(tfvFloat3Slider);
+	panel->add(tfvFloat4Slider);
+	panel->add(tfvInt1Slider);
+	panel->add(tfvFloat1Slider->getEditBox());
+	panel->add(tfvFloat2Slider->getEditBox());
+	panel->add(tfvFloat3Slider->getEditBox());
+	panel->add(tfvFloat4Slider->getEditBox());
+	panel->add(tfvInt1Slider->getEditBox());
+
 	tfvEditorWindow->getGui()->add(panel);
-	tfvEditorWindow->getResizeSignal()->sink().connect<TFVGroup, &TFVGroup::onTFVEditorWindowResize>(this);
 }
 
 void TFVGroup::beginEditing() {
@@ -612,8 +690,6 @@ void TFVGroup::beginEditing() {
 	tfvEditorWindowThread.detach();
 
 	onEditingStart->publish();
-
-	
 }
 
 void TFVGroup::endEditing(bool saveEditedTFV) {
@@ -622,11 +698,7 @@ void TFVGroup::endEditing(bool saveEditedTFV) {
 	// Clear its undo stack
 	undoStack.clear();
 
-	if (saveEditedTFV) {
-		onEditingEnd->publish(oldTFV, tfv);
-	} else {
-		onEditingEnd->publish(oldTFV, oldTFV);
-	}
+	onEditingEnd->publish(oldTFV, tfv, tfvIdentifier, saveEditedTFV);
 }
 
 void TFVGroup::endEditingWithoutSaving() {
@@ -644,9 +716,10 @@ void TFVGroup::onContainerResize(int containerWidth, int containerHeight) {
 	setSize(containerWidth - paddingX, beginEditingButton->getPosition().y + beginEditingButton->getSize().y + paddingY);
 }
 
-void TFVGroup::setTFV(std::shared_ptr<TFV> tfv, float tfvLifespan) {
+void TFVGroup::setTFV(std::shared_ptr<TFV> tfv, float tfvLifespan, std::string tfvIdentifier) {
 	oldTFV = tfv;
 	this->tfvLifespan = tfvLifespan;
+	this->tfvIdentifier = tfvIdentifier;
 	if (dynamic_cast<PiecewiseTFV*>(tfv.get()) != nullptr) {
 		this->tfv = std::dynamic_pointer_cast<PiecewiseTFV>(tfv->clone());
 	} else {
@@ -656,13 +729,150 @@ void TFVGroup::setTFV(std::shared_ptr<TFV> tfv, float tfvLifespan) {
 	tfvShortDescription->setText(tfv->getName());
 
 	//TODO: init values of the widgets in the window
+	populateSegmentList();
+}
+
+void TFVGroup::selectSegment(int index) {
+	selectedSegmentIndex = index;
+	selectedSegment = tfv->getSegment(index).second;
+
+	// whether to use tfvFloat1Slider, tfvFloat2Slider, ...
+	bool f1 = false, f2 = false, f3 = false, f4 = false, i1 = false;
+
+	if (dynamic_cast<LinearTFV*>(selectedSegment.get()) != nullptr) {
+		f1 = f2 = f3 = true;
+
+		tfvFloat1Label->setText("Start value");
+		tfvFloat2Label->setText("End value");
+		tfvFloat3Label->setText("Time from start to end value");
+
+		auto ptr = dynamic_cast<LinearTFV*>(selectedSegment.get());
+		tfvFloat1Slider->setValue(ptr->getStartValue());
+		tfvFloat2Slider->setValue(ptr->getEndValue());
+		tfvFloat3Slider->setValue(ptr->getMaxTime());
+	} else if (dynamic_cast<ConstantTFV*>(selectedSegment.get()) != nullptr) {
+		f1 = true;
+	}
+
+	tfvFloat1Label->setVisible(f1);
+	tfvFloat1Slider->setVisible(f1);
+	tfvFloat2Label->setVisible(f2);
+	tfvFloat2Slider->setVisible(f2);
+	tfvFloat3Label->setVisible(f3);
+	tfvFloat3Slider->setVisible(f3);
+	tfvFloat4Label->setVisible(f4);
+	tfvFloat4Slider->setVisible(f4);
+	tfvInt1Label->setVisible(i1);
+	tfvInt1Slider->setVisible(i1);
+}
+
+void TFVGroup::populateSegmentList() {
+	std::string selectedIndexString = segmentList->getListBox()->getSelectedItemId();
+	segmentList->getListBox()->removeAllItems();
+	int index = 0;
+	for (int i = 0; i < tfv->getSegmentsCount(); i++) {
+		auto segment = tfv->getSegment(i);
+
+		float nextTime = tfvLifespan;
+		if (i + 1 < tfv->getSegmentsCount()) {
+			nextTime = tfv->getSegment(i + 1).first;
+		}
+
+		segmentList->getListBox()->addItem("[" + std::to_string(index + 1) + "] " + segment.second->getName() + " (t=" + formatNum(segment.first) + " to t=" + formatNum(nextTime) + ")", std::to_string(index));
+		index++;
+	}
+	// Reselect old segment if any
+	if (selectedIndexString != "") {
+		segmentList->getListBox()->setSelectedItemById(selectedIndexString);
+	}
 }
 
 void TFVGroup::onTFVEditorWindowResize(int windowWidth, int windowHeight) {
 	panel->setSize("100%", "100%");
 	panel->setPosition(0, 0);
+
+	finishEditing->setSize(100, TEXT_BUTTON_HEIGHT);
+	finishEditing->setPosition(windowWidth - finishEditing->getSize().x, windowHeight - finishEditing->getSize().y);
+
+	saveTFV->setSize(100, TEXT_BUTTON_HEIGHT);
+	saveTFV->setPosition(0, windowHeight - saveTFV->getSize().y);
+
 	showGraph->setSize(100, TEXT_BUTTON_HEIGHT);
 	showGraph->setPosition(paddingX, paddingY);
+
+	segmentList->setSize("40%", saveTFV->getPosition().y - paddingY - showGraph->getPosition().y - showGraph->getSize().y - paddingY*2);
+	segmentList->onResize();
+	segmentList->setPosition(tgui::bindLeft(showGraph), tgui::bindBottom(showGraph) + paddingY);
+
+	int segmentListRightBoundary = segmentList->getPosition().x + segmentList->getSize().x + paddingX;
+	tfvFloat1Label->setPosition(segmentListRightBoundary, tgui::bindTop(segmentList) );
+	tfvFloat1Slider->setPosition(segmentListRightBoundary, tfvFloat1Label->getPosition().y + tfvFloat1Label->getSize().y + paddingY);
+
+	tfvFloat2Label->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat1Slider) + paddingY);
+	tfvFloat2Slider->setPosition(segmentListRightBoundary, tfvFloat2Label->getPosition().y + tfvFloat2Label->getSize().y + paddingY);
+
+	tfvFloat3Label->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat2Slider) + paddingY);
+	tfvFloat3Slider->setPosition(segmentListRightBoundary, tfvFloat3Label->getPosition().y + tfvFloat3Label->getSize().y + paddingY);
+
+	tfvFloat4Label->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat3Slider) + paddingY);
+	tfvFloat4Slider->setPosition(segmentListRightBoundary, tfvFloat4Label->getPosition().y + tfvFloat4Label->getSize().y + paddingY);
+
+	tfvInt1Label->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat4Slider) + paddingY);
+	tfvInt1Slider->setPosition(segmentListRightBoundary, tfvInt1Label->getPosition().y + tfvInt1Label->getSize().y + paddingY);
+}
+
+void TFVGroup::onTFVFloat1SliderChange(float value) {
+	if (dynamic_cast<LinearTFV*>(selectedSegment.get()) != nullptr) {
+		auto ptr = dynamic_cast<LinearTFV*>(selectedSegment.get());
+		float oldValue = ptr->getStartValue();
+		undoStack.execute(UndoableCommand(
+			[this, &ptr = ptr, value]() {
+			ptr->setStartValue(value);
+		},
+			[this, &ptr = ptr, oldValue]() {
+			ptr->setStartValue(oldValue);
+		}));
+	} // else if...
+}
+
+void TFVGroup::onTFVFloat2SliderChange(float value) {
+	if (dynamic_cast<LinearTFV*>(selectedSegment.get()) != nullptr) {
+		auto ptr = dynamic_cast<LinearTFV*>(selectedSegment.get());
+		float oldValue = ptr->getEndValue();
+		undoStack.execute(UndoableCommand(
+			[this, &ptr = ptr, value]() {
+			ptr->setEndValue(value);
+		},
+			[this, &ptr = ptr, oldValue]() {
+			ptr->setEndValue(oldValue);
+		}));
+	} // else if...
+}
+
+void TFVGroup::onTFVFloat3SliderChange(float value) {
+	if (dynamic_cast<LinearTFV*>(selectedSegment.get()) != nullptr) {
+		auto ptr = dynamic_cast<LinearTFV*>(selectedSegment.get());
+		float oldValue = ptr->getMaxTime();
+		undoStack.execute(UndoableCommand(
+			[this, &ptr = ptr, value]() {
+			ptr->setMaxTime(value);
+		},
+			[this, &ptr = ptr, oldValue]() {
+			ptr->setMaxTime(oldValue);
+		}));
+	} // else if...
+}
+
+void TFVGroup::onTFVFloat4SliderChange(float value) {
+	if (dynamic_cast<LinearTFV*>(selectedSegment.get()) != nullptr) {
+		
+	} // else if...
+}
+
+void TFVGroup::onTFVInt1SliderChange(float value) {
+	if (dynamic_cast<LinearTFV*>(selectedSegment.get()) != nullptr) {
+		
+	} // else if...
 }
 
 EMPAAngleOffsetGroup::EMPAAngleOffsetGroup() {

@@ -69,6 +69,7 @@ cur todo:
 	 can call onTFVEditingEnd(); (look at how gameplaytestwindow's close signal in AttackEditor causes bezier stuff to close)
 
 big todo:
+-piecewise tfv name displayed as name of first segment if only one segment
 -disable keyboard commands when screen is blocked (ibPanel is visible) in AttackEditor
 -disable keyboard commands when confirmation prompt is up in UndoableEditorWindow
 -Remove start test button when editing CPs
@@ -90,7 +91,7 @@ big todo:
 -select EMPA --> EMPA is shown on gameplay windows
  a draggable/movable dot labeled "source" is shown (if EMP spawn type is global, the source isn't movable); the total path (a bunch of dots at an adjustable time interval)  
  is drawn from the source; if an EMPA is selected, the dots of that particular EMPA are colored differently
-
+	
 TODO:
 -animatables can't have backslashes in name
 -change all setposition and setsize to use "25%" or whatever

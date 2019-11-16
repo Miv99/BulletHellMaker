@@ -188,6 +188,7 @@ public:
 	void setPosition(float x, float y);
 	void setValue(float value);
 	void setEnabled(bool enabled);
+	void setIntegerMode(bool intMode);
 
 	inline std::shared_ptr<tgui::EditBox> getEditBox() { return editBox; }
 	inline std::shared_ptr<entt::SigH<void(float)>> getOnValueSet();
@@ -247,6 +248,33 @@ private:
 	std::shared_ptr<tgui::Label> pitchLabel;
 };
 
+
+/*
+A tgui::ListBox that can scroll horizontally as well as vertically.
+The ListBox from getListBox() does not have to be added to a container, since it is already a part of the super ScrollablePanel.
+*/
+class ScrollableListBox : public tgui::ScrollablePanel {
+public:
+	ScrollableListBox();
+	/*
+	Should be called anytime an item is added, removed, or changed from the ListBox.
+	*/
+	void onListBoxItemsChange();
+	/*
+	Should be called after the ScrollableListBox is resized.
+	*/
+	inline void onResize() { onListBoxItemsChange(); }
+	bool mouseWheelScrolled(float delta, tgui::Vector2f pos) override;
+
+	void setTextSize(int textSize);
+	inline std::shared_ptr<tgui::ListBox> getListBox() { return listBox; }
+
+private:
+	std::shared_ptr<tgui::ListBox> listBox;
+	std::shared_ptr<tgui::Label> textWidthChecker;
+	float longestWidth;
+};
+
 /*
 Used to edit TFVs.
 This widget will use the widgets in tfvEditorWindow to .
@@ -275,10 +303,16 @@ public:
 	/*
 	Initialize this widget to tfv's values.
 	tfv won't be modified by this widget
+
+	tfvIdentifier - some unique string so that whatever's using TFVGroup knows what TFV is being edited.
+		eg We are editing a MoveCustomPolarEMPA's distance TFV using this TFVGroup, so we pass "distance"
+		into tfvIdentifier. Then when we catch the onSave signal, we see that the identifier is "distance"
+		so we know to set the MoveCustomPolarEMPA's distance TFV to the newly updated TFV.
 	*/
-	void setTFV(std::shared_ptr<TFV> tfv, float tfvLifespan);
+	void setTFV(std::shared_ptr<TFV> tfv, float tfvLifespan, std::string tfvIdentifier);
 	inline std::shared_ptr<entt::SigH<void()>> getOnEditingStart() { return onEditingStart; }
-	inline std::shared_ptr<entt::SigH<void(std::shared_ptr<TFV>, std::shared_ptr<TFV>)>> getOnEditingEnd() { return onEditingEnd; }
+	inline std::shared_ptr<entt::SigH<void(std::shared_ptr<TFV>, std::shared_ptr<TFV>, std::string, bool)>> getOnEditingEnd() { return onEditingEnd; }
+	inline std::shared_ptr<entt::SigH<void(std::shared_ptr<TFV>, std::shared_ptr<TFV>, std::string)>> getOnSave() { return onSave; }
 
 private:
 	const float TFV_TIME_RESOLUTION = 0.05f; // Time between each tfv curve vertex
@@ -293,9 +327,25 @@ private:
 
 	std::shared_ptr<tgui::ScrollablePanel> panel;
 	std::shared_ptr<tgui::Button> showGraph;
+	std::shared_ptr<tgui::Button> finishEditing;
+	std::shared_ptr<tgui::Button> saveTFV;
+	std::shared_ptr<ScrollableListBox> segmentList; // Each item ID is the index of the segment in tfv's segment vector
+	std::shared_ptr<tgui::Label> tfvFloat1Label;
+	std::shared_ptr<SliderWithEditBox> tfvFloat1Slider;
+	std::shared_ptr<tgui::Label> tfvFloat2Label;
+	std::shared_ptr<SliderWithEditBox> tfvFloat2Slider;
+	std::shared_ptr<tgui::Label> tfvFloat3Label;
+	std::shared_ptr<SliderWithEditBox> tfvFloat3Slider;
+	std::shared_ptr<tgui::Label> tfvFloat4Label;
+	std::shared_ptr<SliderWithEditBox> tfvFloat4Slider;
+	std::shared_ptr<tgui::Label> tfvInt1Label;
+	std::shared_ptr<SliderWithEditBox> tfvInt1Slider;
 
 	std::shared_ptr<TFV> oldTFV; // Should never be modified after setTFV() is called
 	std::shared_ptr<PiecewiseTFV> tfv;
+	std::string tfvIdentifier;
+	std::shared_ptr<TFV> selectedSegment;
+	int selectedSegmentIndex = -1;
 	float tfvLifespan; // Shouldn't be modified except by setTFV()
 
 	std::shared_ptr<tgui::Label> tfvShortDescription;
@@ -304,10 +354,20 @@ private:
 	// Signal emitted after the user begins using this TFVGroup to edit a TFV
 	std::shared_ptr<entt::SigH<void()>> onEditingStart;
 	// Signal emitted after the user stops using this TFVGroup to edit a TFV
-	// 2 parameters in order: the old TFV with no changes applied and the old TFV with changes applied
-	std::shared_ptr<entt::SigH<void(std::shared_ptr<TFV>, std::shared_ptr<TFV>)>> onEditingEnd;
+	// 3 parameters in order: the old TFV with no changes applied, the old TFV with changes applied, and whether to apply changes in whatever's using TFVGroup
+	std::shared_ptr<entt::SigH<void(std::shared_ptr<TFV>, std::shared_ptr<TFV>, std::string, bool)>> onEditingEnd;
+	// Signal emitted after the user saves the TFV
+	std::shared_ptr<entt::SigH<void(std::shared_ptr<TFV>, std::shared_ptr<TFV>, std::string)>> onSave;
+
+	void selectSegment(int index);
+	void populateSegmentList();
 
 	void onTFVEditorWindowResize(int windowWidth, int windowHeight);
+	void onTFVFloat1SliderChange(float value);
+	void onTFVFloat2SliderChange(float value);
+	void onTFVFloat3SliderChange(float value);
+	void onTFVFloat4SliderChange(float value);
+	void onTFVInt1SliderChange(float value);
 };
 
 /*
@@ -341,30 +401,4 @@ private:
 	// Signal emitted AFTER a change is made to the EMPAAngleOffset
 	// 2 parameters in order: the old EMPAAngleOffset with no changes applied and the old EMPAAngleOffset with changes applied
 	std::shared_ptr<entt::SigH<void(std::shared_ptr<EMPAAngleOffset>, std::shared_ptr<EMPAAngleOffset>)>> onAngleOffsetChange;
-};
-
-/*
-A tgui::ListBox that can scroll horizontally as well as vertically.
-The ListBox from getListBox() does not have to be added to a container, since it is already a part of the super ScrollablePanel.
-*/
-class ScrollableListBox : public tgui::ScrollablePanel {
-public:
-	ScrollableListBox();
-	/*
-	Should be called anytime an item is added, removed, or changed from the ListBox.
-	*/
-	void onListBoxItemsChange();
-	/*
-	Should be called after the ScrollableListBox is resized.
-	*/
-	inline void onResize() { onListBoxItemsChange(); }
-	bool mouseWheelScrolled(float delta, tgui::Vector2f pos) override;
-
-	void setTextSize(int textSize);
-	inline std::shared_ptr<tgui::ListBox> getListBox() { return listBox; }
-
-private:
-	std::shared_ptr<tgui::ListBox> listBox;
-	std::shared_ptr<tgui::Label> textWidthChecker;
-	float longestWidth;
 };

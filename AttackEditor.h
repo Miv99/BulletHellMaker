@@ -274,7 +274,8 @@ private:
 	void onEmpaiDurationChange(float value);
 	void onEmpaiAngleOffsetChange(std::shared_ptr<EMPAAngleOffset> oldOffset, std::shared_ptr<EMPAAngleOffset> updatedOffset);
 	void onTFVEditingStart();
-	void onTFVEditingEnd(std::shared_ptr<TFV> oldTFV, std::shared_ptr<TFV> updatedTFV);
+	void onTFVEditingEnd(std::shared_ptr<TFV> oldTFV, std::shared_ptr<TFV> updatedTFV, std::string tfvIdentifier, bool saveChanges);
+	void onTFVEditingSave(std::shared_ptr<TFV> oldTFV, std::shared_ptr<TFV> updatedTFV, std::string tfvIdentifier);
 	//------------------ Input blocker widgets (ib___) ------------------------------
 	std::shared_ptr<tgui::Panel> ibPanel;
 	std::shared_ptr<tgui::Label> ibText;

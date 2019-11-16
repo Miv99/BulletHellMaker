@@ -50,6 +50,13 @@ public:
 		return startValue + (time / maxTime) * (endValue - startValue);
 	}
 
+	inline float getStartValue() { return startValue; }
+	inline float getEndValue() { return endValue; }
+	inline float getMaxTime() { return maxTime; }
+	inline void setStartValue(float startValue) { this->startValue = startValue; }
+	inline void setEndValue(float endValue) { this->endValue = endValue; }
+	inline void setMaxTime(float maxTime) { this->maxTime = maxTime; }
+
 private:
 	float startValue;
 	float endValue;
@@ -365,6 +372,14 @@ public:
 		for (int i = index; i < segments.size(); i++) {
 			segments[i].first -= erasedActiveTime;
 		}
+	}
+
+	inline std::pair<float, std::shared_ptr<TFV>> getSegment(int index) {
+		return segments[index];
+	}
+
+	inline int getSegmentsCount() {
+		return segments.size();
 	}
 
 private:

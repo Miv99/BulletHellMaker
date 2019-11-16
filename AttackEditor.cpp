@@ -929,7 +929,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 
 	empaiDurationLabel->setText("Duration");
 	empaiPolarDistanceLabel->setText("Distance as function of time");
-	empaiPolarAngleLabel->setText("Distance as function of time");
+	empaiPolarAngleLabel->setText("Angle as function of time");
 	empaiBezierControlPointsLabel->setText("Bezier control points");
 	empaiAngleOffsetLabel->setText("Angle offset");
 	empaiHomingStrengthLabel->setText("Homing strength as function of time");
@@ -937,11 +937,7 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 	empaiEditBezierControlPoints->setText("Edit control points");
 
 	empaiDuration->getOnValueSet()->sink().connect<AttackEditor, &AttackEditor::onEmpaiDurationChange>(this);
-	empaiPolarDistance->getOnEditingEnd()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingEnd>(this);
-	empaiPolarAngle->getOnEditingEnd()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingEnd>(this);
 	empaiAngleOffset->getOnAngleOffsetChange()->sink().connect<AttackEditor, &AttackEditor::onEmpaiAngleOffsetChange>(this);
-	empaiHomingStrength->getOnEditingEnd()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingEnd>(this);
-	empaiHomingSpeed->getOnEditingEnd()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingEnd>(this);
 	empaiEditBezierControlPoints->connect("Pressed", [&]() {
 		editingEMPABezierControlPoints = true;
 
@@ -954,10 +950,18 @@ AttackEditor::AttackEditor(std::shared_ptr<LevelPack> levelPack, std::shared_ptr
 		sendToForeground(*gameplayTestWindow->getWindow());
 	});
 
+	empaiPolarDistance->getOnEditingEnd()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingEnd>(this);
+	empaiPolarAngle->getOnEditingEnd()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingEnd>(this);
+	empaiHomingStrength->getOnEditingEnd()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingEnd>(this);
+	empaiHomingSpeed->getOnEditingEnd()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingEnd>(this);
 	empaiPolarDistance->getOnEditingStart()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingStart>(this);
 	empaiPolarAngle->getOnEditingStart()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingStart>(this);
 	empaiHomingStrength->getOnEditingStart()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingStart>(this);
-	empaiHomingSpeed->getOnEditingStart()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingStart>(this);
+	empaiHomingSpeed->getOnSave()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingSave>(this);
+	empaiPolarDistance->getOnSave()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingSave>(this);
+	empaiPolarAngle->getOnSave()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingSave>(this);
+	empaiHomingStrength->getOnSave()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingSave>(this);
+	empaiHomingSpeed->getOnSave()->sink().connect<AttackEditor, &AttackEditor::onTFVEditingSave>(this);
 
 	empaiPanel->add(empaiInfo);
 	empaiPanel->add(empaiDurationLabel);
@@ -1422,9 +1426,9 @@ void AttackEditor::selectEMPA(int index) {
 	if (dynamic_cast<MoveCustomPolarEMPA*>(selectedEMPA.get())) {
 		MoveCustomPolarEMPA* concreteEMPA = dynamic_cast<MoveCustomPolarEMPA*>(selectedEMPA.get());
 		empaiPolarDistance->setVisible(true);
-		empaiPolarDistance->setTFV(concreteEMPA->getDistance(), selectedEMPA->getTime());
+		empaiPolarDistance->setTFV(concreteEMPA->getDistance(), selectedEMPA->getTime(), "distance");
 		empaiPolarAngle->setVisible(true);
-		empaiPolarAngle->setTFV(concreteEMPA->getAngle(), selectedEMPA->getTime());
+		empaiPolarAngle->setTFV(concreteEMPA->getAngle(), selectedEMPA->getTime(), "angle");
 		empaiBezierControlPoints->setVisible(false);
 		empaiEditBezierControlPoints->setVisible(false);
 		empaiAngleOffset->setVisible(true);
@@ -1772,6 +1776,8 @@ void AttackEditor::setEMPAWidgetValues(std::shared_ptr<EMPAction> empa, std::sha
 			}
 			i++;
 		}
+	} else {
+		selectEMPA(selectedEMPAIndex);
 	}
 
 	// Since EditorUtilities::TFVGroup already takes care of undos, there is no need to set those widgets' values here
@@ -2051,8 +2057,8 @@ void AttackEditor::populateEmpaiBezierControlPoints(std::shared_ptr<EMPAction> e
 	MoveCustomBezierEMPA* bezier = dynamic_cast<MoveCustomBezierEMPA*>(empa.get());
 	int i = 0;
 	for (sf::Vector2f cp : bezier->getUnrotatedControlPoints()) {
-		empaiBezierControlPoints->getListBox()->addItem("[" + std::to_string(i + 1) + "] x=" + std::to_string(cp.x) + 
-			" y=" + std::to_string(cp.y) , std::to_string(i));
+		empaiBezierControlPoints->getListBox()->addItem("[" + std::to_string(i + 1) + "] x=" + formatNum(cp.x) +
+			" y=" + formatNum(cp.y) , std::to_string(i));
 		i++;
 	}
 	empaiBezierControlPoints->onListBoxItemsChange();
@@ -2093,19 +2099,36 @@ void AttackEditor::onTFVEditingStart() {
 		std::to_string(selectedEMP->getID()) + ", EMPA #" + std::to_string(selectedEMPAIndex + 1) + " in the gameplay test window.");
 }
 
-void AttackEditor::onTFVEditingEnd(std::shared_ptr<TFV> oldTFV, std::shared_ptr<TFV> updatedTFV) {
+void AttackEditor::onTFVEditingEnd(std::shared_ptr<TFV> oldTFV, std::shared_ptr<TFV> updatedTFV, std::string tfvIdentifier, bool saveChanges) {
 	// Stop blocking input
 	ibPanel->setVisible(false);
 
-	std::shared_ptr<TFV> copyOfOld = oldTFV->clone();
+	if (saveChanges) {
+		onTFVEditingSave(oldTFV, updatedTFV, tfvIdentifier);
+	}
+}
 
-	mainWindowUndoStack.execute(UndoableCommand(
-		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, &selectedEMPA = selectedEMPA, &oldTFV = oldTFV, updatedTFV]() {
-		*oldTFV = *updatedTFV;
-		setEMPAWidgetValues(selectedEMPA, selectedEMP, selectedAttack);
-	},
-		[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, &selectedEMPA = selectedEMPA, &oldTFV = oldTFV, copyOfOld]() {
-		*oldTFV = *copyOfOld;
-		setEMPAWidgetValues(selectedEMPA, selectedEMP, selectedAttack);
-	}));
+void AttackEditor::onTFVEditingSave(std::shared_ptr<TFV> oldTFV, std::shared_ptr<TFV> updatedTFV, std::string tfvIdentifier) {
+	std::shared_ptr<TFV> copyOfOld = oldTFV->clone();
+	
+	if (dynamic_cast<MoveCustomPolarEMPA*>(selectedEMPA.get()) != nullptr) {
+		mainWindowUndoStack.execute(UndoableCommand(
+			[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, &selectedEMPA = selectedEMPA, oldTFV, updatedTFV, tfvIdentifier]() {
+			if (tfvIdentifier == "distance") {
+				dynamic_cast<MoveCustomPolarEMPA*>(selectedEMPA.get())->setDistance(updatedTFV);
+			} else {
+				dynamic_cast<MoveCustomPolarEMPA*>(selectedEMPA.get())->setAngle(updatedTFV);
+			}
+			setEMPAWidgetValues(selectedEMPA, selectedEMP, selectedAttack);
+		},
+			[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, &selectedEMPA = selectedEMPA, oldTFV, copyOfOld, tfvIdentifier]() {
+			if (tfvIdentifier == "distance") {
+				dynamic_cast<MoveCustomPolarEMPA*>(selectedEMPA.get())->setDistance(copyOfOld);
+			} else {
+				dynamic_cast<MoveCustomPolarEMPA*>(selectedEMPA.get())->setAngle(copyOfOld);
+			}
+			setEMPAWidgetValues(selectedEMPA, selectedEMP, selectedAttack);
+		}));
+	}
+	//TODO: the other EMPAs
 }
