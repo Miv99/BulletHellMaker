@@ -1599,7 +1599,7 @@ void GameplayTestWindow::showBezierMovementPath() {
 void GameplayTestWindow::EntityPlaceholder::moveTo(float x, float y) {
 	this->x = x;
 	this->y = y;
-	if (registry.valid(visualEntity)) {
+	if (visualEntityExists) {
 		auto& pos = registry.get<PositionComponent>(visualEntity);
 		pos.setX(x);
 		pos.setY(y);
@@ -1619,8 +1619,9 @@ bool GameplayTestWindow::EntityPlaceholder::wasClicked(int worldX, int worldY) {
 
 void GameplayTestWindow::EntityPlaceholder::removePlaceholder(std::shared_ptr<std::recursive_mutex> registryMutex) {
 	std::lock_guard<std::recursive_mutex> lock(*registryMutex);
-	if (registry.valid(visualEntity)) {
+	if (visualEntityExists) {
 		registry.destroy(visualEntity);
+		visualEntityExists = false;
 	}
 	if (registry.valid(testEntity)) {
 		registry.destroy(testEntity);
@@ -1628,22 +1629,23 @@ void GameplayTestWindow::EntityPlaceholder::removePlaceholder(std::shared_ptr<st
 }
 
 void GameplayTestWindow::EntityPlaceholder::onSelection() {
-	if (registry.valid(visualEntity)) {
+	if (visualEntityExists) {
 		registry.get<SpriteComponent>(visualEntity).setAnimatable(spriteLoader, Animatable("Selected Placeholder", "Default", true, LOCK_ROTATION), false);
 	}
 }
 
 void GameplayTestWindow::EntityPlaceholder::onDeselection() {
-	if (registry.valid(visualEntity)) {
+	if (visualEntityExists) {
 		registry.get<SpriteComponent>(visualEntity).setAnimatable(spriteLoader, getVisualEntityAnimatable(), false);
 	}
 }
 
 void GameplayTestWindow::PlayerEntityPlaceholder::spawnVisualEntity() {
-	assert(!registry.valid(visualEntity));
+	assert(!visualEntityExists);
 	visualEntity = registry.create();
 	registry.assign<PositionComponent>(visualEntity, x, y);
 	registry.assign<SpriteComponent>(visualEntity, spriteLoader, getVisualEntityAnimatable(), true, PLAYER_LAYER, 0);
+	visualEntityExists = true;
 }
 
 Animatable GameplayTestWindow::PlayerEntityPlaceholder::getVisualEntityAnimatable() {
@@ -1658,6 +1660,7 @@ sf::VertexArray GameplayTestWindow::PlayerEntityPlaceholder::getMovementPath(flo
 void GameplayTestWindow::PlayerEntityPlaceholder::runTest(std::shared_ptr<std::recursive_mutex> registryMutex) {
 	std::lock_guard<std::recursive_mutex> lock(*registryMutex);
 	registry.destroy(visualEntity);
+	visualEntityExists = false;
 
 	EditorPlayer params;
 	std::string message; // does nothing
@@ -1711,6 +1714,7 @@ void GameplayTestWindow::PlayerEntityPlaceholder::runTest(std::shared_ptr<std::r
 void GameplayTestWindow::EnemyEntityPlaceholder::runTest(std::shared_ptr<std::recursive_mutex> registryMutex) {
 	std::lock_guard<std::recursive_mutex> lock(*registryMutex);
 	registry.destroy(visualEntity);
+	visualEntityExists = false;
 
 	EnemySpawnInfo info;
 	if (testMode == ENEMY) {
@@ -1754,10 +1758,11 @@ void GameplayTestWindow::EnemyEntityPlaceholder::runTest(std::shared_ptr<std::re
 }
 
 void GameplayTestWindow::EnemyEntityPlaceholder::spawnVisualEntity() {
-	assert(!registry.valid(visualEntity));
+	assert(!visualEntityExists);
 	visualEntity = registry.create();
 	registry.assign<PositionComponent>(visualEntity, x, y);
 	registry.assign<SpriteComponent>(visualEntity, spriteLoader, getVisualEntityAnimatable(), true, PLAYER_LAYER, 0);
+	visualEntityExists = true;
 }
 
 Animatable GameplayTestWindow::EnemyEntityPlaceholder::getVisualEntityAnimatable() {
@@ -1822,15 +1827,17 @@ sf::VertexArray GameplayTestWindow::EnemyEntityPlaceholder::getMovementPath(floa
 void GameplayTestWindow::EMPTestEntityPlaceholder::runTest(std::shared_ptr<std::recursive_mutex> registryMutex) {
 	std::lock_guard<std::recursive_mutex> lock(*registryMutex);
 	registry.destroy(visualEntity);
+	visualEntityExists = false;
 
 	queue.pushBack(std::make_unique<EMPSpawnFromNothingCommand>(registry, spriteLoader, emp, MPSpawnInformation{ false, NULL, sf::Vector2f(x, y) }, true, 0, -1, -1));
 }
 
 void GameplayTestWindow::EMPTestEntityPlaceholder::spawnVisualEntity() {
-	assert(!registry.valid(visualEntity));
+	assert(!visualEntityExists);
 	visualEntity = registry.create();
 	registry.assign<PositionComponent>(visualEntity, x, y);
 	registry.assign<SpriteComponent>(visualEntity, spriteLoader, getVisualEntityAnimatable(), true, PLAYER_LAYER, 0);
+	visualEntityExists = true;
 }
 
 Animatable GameplayTestWindow::EMPTestEntityPlaceholder::getVisualEntityAnimatable() {
@@ -1851,10 +1858,11 @@ void GameplayTestWindow::BezierControlPointPlaceholder::runTest(std::shared_ptr<
 }
 
 void GameplayTestWindow::BezierControlPointPlaceholder::spawnVisualEntity() {
-	assert(!registry.valid(visualEntity));
+	assert(!visualEntityExists);
 	visualEntity = registry.create();
 	registry.assign<PositionComponent>(visualEntity, x, y);
 	registry.assign<SpriteComponent>(visualEntity, spriteLoader, getVisualEntityAnimatable(), true, PLAYER_LAYER, 0);
+	visualEntityExists = true;
 }
 
 Animatable GameplayTestWindow::BezierControlPointPlaceholder::getVisualEntityAnimatable() {

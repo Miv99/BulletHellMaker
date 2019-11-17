@@ -251,6 +251,7 @@ private:
 		int id;
 		// The entity used to show the placeholder's location
 		uint32_t visualEntity;
+		bool visualEntityExists = false;
 		// The entity spawned as a result of the test
 		uint32_t testEntity;
 		// Location of the placeholder

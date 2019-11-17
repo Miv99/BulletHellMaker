@@ -46,7 +46,7 @@ public:
 	void load(std::string formattedString) override;
 	std::string getName() override { return "Linear"; }
 
-	float evaluate(float time) {
+	inline float evaluate(float time) {
 		return startValue + (time / maxTime) * (endValue - startValue);
 	}
 
@@ -78,9 +78,12 @@ public:
 	void load(std::string formattedString) override;
 	std::string getName() override { return "Constant"; }
 
-	float evaluate(float time) {
+	inline float evaluate(float time) {
 		return value;
 	}
+
+	inline void setValue(float value) { this->value = value; }
+	inline float getValue() { return value; }
 
 private:
 	float value;
@@ -109,6 +112,15 @@ public:
 		return amplitude * (float)sin(time * PI2 / period + phaseShift) + valueShift;
 	}
 
+	inline void setPeriod(float period) { this->period = period; }
+	inline void setAmplitude(float amplitude) { this->amplitude = amplitude; }
+	inline void setValueShift(float valueShift) { this->valueShift = valueShift; }
+	inline void setPhaseShift(float phaseShift) { this->phaseShift = phaseShift; }
+	inline float getPeriod() { return period; }
+	inline float getAmplitude() { return amplitude; }
+	inline float getValueShift() { return valueShift; }
+	inline float getPhaseShift() { return phaseShift; }
+
 private:
 	float period;
 	float amplitude;
@@ -131,11 +143,18 @@ public:
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
-	std::string getName() override { return "Distance due to gravity"; }
+	std::string getName() override { return "Distance due to simulated gravity"; }
 	
 	inline float evaluate(float time) override {
 		return initialDistance + initialVelocity * time + 0.5f*acceleration*time*time;
 	}
+
+	inline void setInitialDistance(float initialDistance) { this->initialDistance = initialDistance; }
+	inline void setInitialVelocity(float initialVelocity) { this->initialVelocity = initialVelocity; }
+	inline void setAcceleration(float acceleration) { this->acceleration = acceleration; }
+	inline float getInitialDistance() { return initialDistance; }
+	inline float getInitialVelocity() { return initialVelocity; }
+	inline float getAcceleration() { return acceleration; }
 
 private:
 	float initialDistance;
@@ -154,7 +173,7 @@ int dampeningFactor - range [1, infinity]; no upper limit but ~100 is already pr
 class DampenedStartTFV : public TFV {
 public:
 	inline DampenedStartTFV() {}
-	inline DampenedStartTFV(float startValue, float endValue, float maxTime, int dampeningFactor) : dampeningFactor(dampeningFactor), startValue(startValue) {
+	inline DampenedStartTFV(float startValue, float endValue, float maxTime, int dampeningFactor) : dampeningFactor(dampeningFactor), startValue(startValue), endValue(endValue), maxTime(maxTime) {
 		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
 	}
 	std::shared_ptr<TFV> clone() override;
@@ -167,10 +186,30 @@ public:
 		return a * pow(time, 0.08f*dampeningFactor + 1) + startValue;
 	}
 
+	inline void setStartValue(float startValue) {
+		this->startValue = startValue;
+		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
+	}
+	inline void setEndValue(float endValue) {
+		this->endValue = endValue;
+		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
+	}
+	inline void setDampeningFactor(int dampeningFactor) {
+		this->dampeningFactor = dampeningFactor;
+		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
+	}
+	inline void setMaxTime(float maxTime) { this->maxTime = maxTime; }
+	inline float getStartValue() { return startValue; }
+	inline float getEndValue() { return endValue; }
+	inline int getDampeningFactor() { return dampeningFactor; }
+	inline float getMaxTime() { return maxTime; }
+
 private:
 	// Calculated value to scale graph correctly
 	float a;
 	float startValue;
+	float endValue;
+	float maxTime;
 	int dampeningFactor;
 };
 
@@ -185,7 +224,7 @@ int dampeningFactor - range [1, infinity]; no upper limit but ~100 is already pr
 class DampenedEndTFV : public TFV {
 public:
 	inline DampenedEndTFV() {}
-	inline DampenedEndTFV(float startValue, float endValue, float maxTime, int dampeningFactor) : dampeningFactor(dampeningFactor), endValue(endValue), maxTime(maxTime) {
+	inline DampenedEndTFV(float startValue, float endValue, float maxTime, int dampeningFactor) : dampeningFactor(dampeningFactor), startValue(startValue), endValue(endValue), maxTime(maxTime) {
 		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
 	}
 	std::shared_ptr<TFV> clone() override;
@@ -198,9 +237,28 @@ public:
 		return -a * pow(maxTime - time, 0.08f*dampeningFactor + 1) + endValue;
 	}
 
+	inline void setStartValue(float startValue) {
+		this->startValue = startValue;
+		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
+	}
+	inline void setEndValue(float endValue) {
+		this->endValue = endValue;
+		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
+	}
+	inline void setDampeningFactor(int dampeningFactor) {
+		this->dampeningFactor = dampeningFactor;
+		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
+	}
+	inline void setMaxTime(float maxTime) { this->maxTime = maxTime; }
+	inline float getStartValue() { return startValue; }
+	inline float getEndValue() { return endValue; }
+	inline int getDampeningFactor() { return dampeningFactor; }
+	inline float getMaxTime() { return maxTime; }
+
 private:
 	// Calculated value to scale graph correctly
 	float a;
+	float startValue;
 	float endValue;
 	float maxTime;
 	int dampeningFactor;
@@ -234,6 +292,24 @@ public:
 			return -a * pow(maxTime - time, 0.08f*dampeningFactor + 1) + endValue;
 		}
 	}
+
+	inline void setStartValue(float startValue) {
+		this->startValue = startValue;
+		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
+	}
+	inline void setEndValue(float endValue) {
+		this->endValue = endValue;
+		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
+	}
+	inline void setDampeningFactor(int dampeningFactor) {
+		this->dampeningFactor = dampeningFactor;
+		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
+	}
+	inline void setMaxTime(float maxTime) { this->maxTime = maxTime; }
+	inline float getStartValue() { return startValue; }
+	inline float getEndValue() { return endValue; }
+	inline int getDampeningFactor() { return dampeningFactor; }
+	inline float getMaxTime() { return maxTime; }
 
 private:
 	// Calculated value to scale graph correctly

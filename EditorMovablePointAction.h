@@ -194,11 +194,11 @@ public:
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
-	inline float getTime() override { return time; }
 	std::string getGuiFormat() override;
 	inline std::shared_ptr<TFV> getDistance() { return distance; }
 	inline std::shared_ptr<TFV> getAngle() { return angle; }
 
+	inline float getTime() override { return time; }
 	inline void setTime(float duration) override { this->time = duration; }
 	inline void setDistance(std::shared_ptr<TFV> distance) { this->distance = distance; }
 	inline void setAngle(std::shared_ptr<TFV> angle) { this->angle = angle; }
@@ -269,13 +269,17 @@ public:
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
-	inline float getTime() override { return time; }
 	std::string getGuiFormat() override;
-
-	inline void setTime(float duration) override { this->time = duration; }
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 	std::shared_ptr<MovablePoint> generateStandaloneMP(float x, float y, float playerX, float playerY) override;
+
+	inline void setHomingStrength(std::shared_ptr<TFV> homingStrength) { this->homingStrength = homingStrength; }
+	inline void setSpeed(std::shared_ptr<TFV> speed) { this->speed = speed; }
+	inline void setTime(float time) override { this->time = time; }
+	inline std::shared_ptr<TFV> getHomingStrength() { return homingStrength; }
+	inline std::shared_ptr<TFV> getSpeed() { return speed; }
+	inline float getTime() override { return time; }
 
 private:
 	// In range (0, 1]

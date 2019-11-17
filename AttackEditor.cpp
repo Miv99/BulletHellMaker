@@ -2129,6 +2129,24 @@ void AttackEditor::onTFVEditingSave(std::shared_ptr<TFV> oldTFV, std::shared_ptr
 			}
 			setEMPAWidgetValues(selectedEMPA, selectedEMP, selectedAttack);
 		}));
+	} else if (dynamic_cast<MovePlayerHomingEMPA*>(selectedEMPA.get()) != nullptr) {
+		mainWindowUndoStack.execute(UndoableCommand(
+			[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, &selectedEMPA = selectedEMPA, oldTFV, updatedTFV, tfvIdentifier]() {
+			if (tfvIdentifier == "homingStrength") {
+				dynamic_cast<MovePlayerHomingEMPA*>(selectedEMPA.get())->setHomingStrength(updatedTFV);
+			} else {
+				dynamic_cast<MovePlayerHomingEMPA*>(selectedEMPA.get())->setSpeed(updatedTFV);
+			}
+			setEMPAWidgetValues(selectedEMPA, selectedEMP, selectedAttack);
+		},
+			[this, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, &selectedEMPA = selectedEMPA, oldTFV, copyOfOld, tfvIdentifier]() {
+			if (tfvIdentifier == "homingStrength") {
+				dynamic_cast<MovePlayerHomingEMPA*>(selectedEMPA.get())->setHomingStrength(copyOfOld);
+			} else {
+				dynamic_cast<MovePlayerHomingEMPA*>(selectedEMPA.get())->setSpeed(copyOfOld);
+			}
+			setEMPAWidgetValues(selectedEMPA, selectedEMP, selectedAttack);
+		}));
 	}
-	//TODO: the other EMPAs
+	//TODO: add more EMPAs if any
 }

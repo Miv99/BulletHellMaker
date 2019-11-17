@@ -740,19 +740,80 @@ void TFVGroup::selectSegment(int index) {
 	bool f1 = false, f2 = false, f3 = false, f4 = false, i1 = false;
 
 	if (dynamic_cast<LinearTFV*>(selectedSegment.get()) != nullptr) {
-		f1 = f2 = f3 = true;
+		f1 = f2 = true;
 
 		tfvFloat1Label->setText("Start value");
 		tfvFloat2Label->setText("End value");
-		tfvFloat3Label->setText("Time from start to end value");
 
 		auto ptr = dynamic_cast<LinearTFV*>(selectedSegment.get());
 		tfvFloat1Slider->setValue(ptr->getStartValue());
 		tfvFloat2Slider->setValue(ptr->getEndValue());
-		tfvFloat3Slider->setValue(ptr->getMaxTime());
 	} else if (dynamic_cast<ConstantTFV*>(selectedSegment.get()) != nullptr) {
 		f1 = true;
+
+		tfvFloat1Label->setText("Value");
+
+		auto ptr = dynamic_cast<ConstantTFV*>(selectedSegment.get());
+		tfvFloat1Slider->setValue(ptr->getValue());
+	} else if (dynamic_cast<SineWaveTFV*>(selectedSegment.get()) != nullptr) {
+		f1 = f2 = f3 = f4 = true;
+
+		tfvFloat1Label->setText("Period");
+		tfvFloat2Label->setText("Amplitude");
+		tfvFloat3Label->setText("ValueShift");
+		tfvFloat4Label->setText("PhaseShift");
+
+		auto ptr = dynamic_cast<SineWaveTFV*>(selectedSegment.get());
+		tfvFloat1Slider->setValue(ptr->getPeriod());
+		tfvFloat2Slider->setValue(ptr->getAmplitude());
+		tfvFloat3Slider->setValue(ptr->getValueShift());
+		tfvFloat4Slider->setValue(ptr->getPhaseShift());
+	} else if (dynamic_cast<ConstantAccelerationDistanceTFV*>(selectedSegment.get()) != nullptr) {
+		f1 = f2 = f3 = true;
+
+		tfvFloat1Label->setText("Initial distance");
+		tfvFloat2Label->setText("Initial velocity");
+		tfvFloat3Label->setText("Acceleration");
+
+		auto ptr = dynamic_cast<ConstantAccelerationDistanceTFV*>(selectedSegment.get());
+		tfvFloat1Slider->setValue(ptr->getInitialDistance());
+		tfvFloat2Slider->setValue(ptr->getInitialVelocity());
+		tfvFloat3Slider->setValue(ptr->getAcceleration());
+	} else if (dynamic_cast<DampenedStartTFV*>(selectedSegment.get()) != nullptr) {
+		f1 = f2 = f3 = true;
+
+		tfvFloat1Label->setText("Start value");
+		tfvFloat2Label->setText("End value");
+		tfvFloat3Label->setText("Dampening factor");
+
+		auto ptr = dynamic_cast<DampenedStartTFV*>(selectedSegment.get());
+		tfvFloat1Slider->setValue(ptr->getStartValue());
+		tfvFloat2Slider->setValue(ptr->getEndValue());
+		tfvFloat3Slider->setValue(ptr->getDampeningFactor());
+	} else if (dynamic_cast<DampenedEndTFV*>(selectedSegment.get()) != nullptr) {
+		f1 = f2 = f3 = f4 = true;
+
+		tfvFloat1Label->setText("Start value");
+		tfvFloat2Label->setText("End value");
+		tfvFloat3Label->setText("Dampening factor");
+
+		auto ptr = dynamic_cast<DampenedEndTFV*>(selectedSegment.get());
+		tfvFloat1Slider->setValue(ptr->getStartValue());
+		tfvFloat2Slider->setValue(ptr->getEndValue());
+		tfvFloat3Slider->setValue(ptr->getDampeningFactor());
+	} else if (dynamic_cast<DoubleDampenedTFV*>(selectedSegment.get()) != nullptr) {
+		f1 = f2 = f3 = f4 = true;
+
+		tfvFloat1Label->setText("Start value");
+		tfvFloat2Label->setText("End value");
+		tfvFloat4Label->setText("Dampening factor");
+
+		auto ptr = dynamic_cast<DoubleDampenedTFV*>(selectedSegment.get());
+		tfvFloat1Slider->setValue(ptr->getStartValue());
+		tfvFloat2Slider->setValue(ptr->getEndValue());
+		tfvFloat3Slider->setValue(ptr->getDampeningFactor());
 	}
+	//TODO: add to this if more TFVs are made
 
 	tfvFloat1Label->setVisible(f1);
 	tfvFloat1Slider->setVisible(f1);
@@ -832,7 +893,67 @@ void TFVGroup::onTFVFloat1SliderChange(float value) {
 			[this, &ptr = ptr, oldValue]() {
 			ptr->setStartValue(oldValue);
 		}));
-	} // else if...
+	} else if (dynamic_cast<ConstantTFV*>(selectedSegment.get()) != nullptr) {
+		auto ptr = dynamic_cast<ConstantTFV*>(selectedSegment.get());
+		float oldValue = ptr->getValue();
+		undoStack.execute(UndoableCommand(
+			[this, &ptr = ptr, value]() {
+			ptr->setValue(value);
+		},
+			[this, &ptr = ptr, oldValue]() {
+			ptr->setValue(oldValue);
+		}));
+	} else if (dynamic_cast<SineWaveTFV*>(selectedSegment.get()) != nullptr) {
+		auto ptr = dynamic_cast<SineWaveTFV*>(selectedSegment.get());
+		float oldValue = ptr->getPeriod();
+		undoStack.execute(UndoableCommand(
+			[this, &ptr = ptr, value]() {
+			ptr->setPeriod(value);
+		},
+			[this, &ptr = ptr, oldValue]() {
+			ptr->setPeriod(oldValue);
+		}));
+	} else if (dynamic_cast<ConstantAccelerationDistanceTFV*>(selectedSegment.get()) != nullptr) {
+		auto ptr = dynamic_cast<ConstantAccelerationDistanceTFV*>(selectedSegment.get());
+		float oldValue = ptr->getInitialDistance();
+		undoStack.execute(UndoableCommand(
+			[this, &ptr = ptr, value]() {
+			ptr->setInitialDistance(value);
+		},
+			[this, &ptr = ptr, oldValue]() {
+			ptr->setInitialDistance(oldValue);
+		}));
+	} else if (dynamic_cast<DampenedStartTFV*>(selectedSegment.get()) != nullptr) {
+		auto ptr = dynamic_cast<DampenedStartTFV*>(selectedSegment.get());
+		float oldValue = ptr->getStartValue();
+		undoStack.execute(UndoableCommand(
+			[this, &ptr = ptr, value]() {
+			ptr->setStartValue(value);
+		},
+			[this, &ptr = ptr, oldValue]() {
+			ptr->setStartValue(oldValue);
+		}));
+	} else if (dynamic_cast<DampenedEndTFV*>(selectedSegment.get()) != nullptr) {
+		auto ptr = dynamic_cast<DampenedEndTFV*>(selectedSegment.get());
+		float oldValue = ptr->getStartValue();
+		undoStack.execute(UndoableCommand(
+			[this, &ptr = ptr, value]() {
+			ptr->setStartValue(value);
+		},
+			[this, &ptr = ptr, oldValue]() {
+			ptr->setStartValue(oldValue);
+		}));
+	} else if (dynamic_cast<DoubleDampenedTFV*>(selectedSegment.get()) != nullptr) {
+		auto ptr = dynamic_cast<DoubleDampenedTFV*>(selectedSegment.get());
+		float oldValue = ptr->getStartValue();
+		undoStack.execute(UndoableCommand(
+			[this, &ptr = ptr, value]() {
+			ptr->setStartValue(value);
+		},
+			[this, &ptr = ptr, oldValue]() {
+			ptr->setStartValue(oldValue);
+		}));
+	}
 }
 
 void TFVGroup::onTFVFloat2SliderChange(float value) {
@@ -846,33 +967,129 @@ void TFVGroup::onTFVFloat2SliderChange(float value) {
 			[this, &ptr = ptr, oldValue]() {
 			ptr->setEndValue(oldValue);
 		}));
-	} // else if...
+	} else if (dynamic_cast<SineWaveTFV*>(selectedSegment.get()) != nullptr) {
+		auto ptr = dynamic_cast<SineWaveTFV*>(selectedSegment.get());
+		float oldValue = ptr->getAmplitude();
+		undoStack.execute(UndoableCommand(
+			[this, &ptr = ptr, value]() {
+			ptr->setAmplitude(value);
+		},
+			[this, &ptr = ptr, oldValue]() {
+			ptr->setAmplitude(oldValue);
+		}));
+	} else if (dynamic_cast<ConstantAccelerationDistanceTFV*>(selectedSegment.get()) != nullptr) {
+		auto ptr = dynamic_cast<ConstantAccelerationDistanceTFV*>(selectedSegment.get());
+		float oldValue = ptr->getInitialVelocity();
+		undoStack.execute(UndoableCommand(
+			[this, &ptr = ptr, value]() {
+			ptr->setInitialVelocity(value);
+		},
+			[this, &ptr = ptr, oldValue]() {
+			ptr->setInitialVelocity(oldValue);
+		}));
+	} else if (dynamic_cast<DampenedStartTFV*>(selectedSegment.get()) != nullptr) {
+		auto ptr = dynamic_cast<DampenedStartTFV*>(selectedSegment.get());
+		float oldValue = ptr->getEndValue();
+		undoStack.execute(UndoableCommand(
+			[this, &ptr = ptr, value]() {
+			ptr->setEndValue(value);
+		},
+			[this, &ptr = ptr, oldValue]() {
+			ptr->setEndValue(oldValue);
+		}));
+	} else if (dynamic_cast<DampenedEndTFV*>(selectedSegment.get()) != nullptr) {
+		auto ptr = dynamic_cast<DampenedEndTFV*>(selectedSegment.get());
+		float oldValue = ptr->getEndValue();
+		undoStack.execute(UndoableCommand(
+			[this, &ptr = ptr, value]() {
+			ptr->setEndValue(value);
+		},
+			[this, &ptr = ptr, oldValue]() {
+			ptr->setEndValue(oldValue);
+		}));
+	} else if (dynamic_cast<DoubleDampenedTFV*>(selectedSegment.get()) != nullptr) {
+		auto ptr = dynamic_cast<DoubleDampenedTFV*>(selectedSegment.get());
+		float oldValue = ptr->getEndValue();
+		undoStack.execute(UndoableCommand(
+			[this, &ptr = ptr, value]() {
+			ptr->setEndValue(value);
+		},
+			[this, &ptr = ptr, oldValue]() {
+			ptr->setEndValue(oldValue);
+		}));
+	}
 }
 
 void TFVGroup::onTFVFloat3SliderChange(float value) {
-	if (dynamic_cast<LinearTFV*>(selectedSegment.get()) != nullptr) {
-		auto ptr = dynamic_cast<LinearTFV*>(selectedSegment.get());
-		float oldValue = ptr->getMaxTime();
+	if (dynamic_cast<SineWaveTFV*>(selectedSegment.get()) != nullptr) {
+		auto ptr = dynamic_cast<SineWaveTFV*>(selectedSegment.get());
+		float oldValue = ptr->getValueShift();
 		undoStack.execute(UndoableCommand(
 			[this, &ptr = ptr, value]() {
-			ptr->setMaxTime(value);
+			ptr->setValueShift(value);
 		},
 			[this, &ptr = ptr, oldValue]() {
-			ptr->setMaxTime(oldValue);
+			ptr->setValueShift(oldValue);
 		}));
-	} // else if...
+	} else if (dynamic_cast<ConstantAccelerationDistanceTFV*>(selectedSegment.get()) != nullptr) {
+		auto ptr = dynamic_cast<ConstantAccelerationDistanceTFV*>(selectedSegment.get());
+		float oldValue = ptr->getAcceleration();
+		undoStack.execute(UndoableCommand(
+			[this, &ptr = ptr, value]() {
+			ptr->setAcceleration(value);
+		},
+			[this, &ptr = ptr, oldValue]() {
+			ptr->setAcceleration(oldValue);
+		}));
+	}
 }
 
 void TFVGroup::onTFVFloat4SliderChange(float value) {
-	if (dynamic_cast<LinearTFV*>(selectedSegment.get()) != nullptr) {
-		
-	} // else if...
+	if (dynamic_cast<SineWaveTFV*>(selectedSegment.get()) != nullptr) {
+		auto ptr = dynamic_cast<SineWaveTFV*>(selectedSegment.get());
+		float oldValue = ptr->getPhaseShift();
+		undoStack.execute(UndoableCommand(
+			[this, &ptr = ptr, value]() {
+			ptr->setPhaseShift(value);
+		},
+			[this, &ptr = ptr, oldValue]() {
+			ptr->setPhaseShift(oldValue);
+		}));
+	}
 }
 
 void TFVGroup::onTFVInt1SliderChange(float value) {
-	if (dynamic_cast<LinearTFV*>(selectedSegment.get()) != nullptr) {
-		
-	} // else if...
+	if (dynamic_cast<DampenedStartTFV*>(selectedSegment.get()) != nullptr) {
+		auto ptr = dynamic_cast<DampenedStartTFV*>(selectedSegment.get());
+		float oldValue = ptr->getDampeningFactor();
+		undoStack.execute(UndoableCommand(
+			[this, &ptr = ptr, value]() {
+			ptr->setDampeningFactor(std::round(value));
+		},
+			[this, &ptr = ptr, oldValue]() {
+			ptr->setDampeningFactor(std::round(oldValue));
+		}));
+	} else if (dynamic_cast<DampenedEndTFV*>(selectedSegment.get()) != nullptr) {
+		auto ptr = dynamic_cast<DampenedEndTFV*>(selectedSegment.get());
+		float oldValue = ptr->getDampeningFactor();
+		undoStack.execute(UndoableCommand(
+			[this, &ptr = ptr, value]() {
+			ptr->setDampeningFactor(std::round(value));
+		},
+			[this, &ptr = ptr, oldValue]() {
+			ptr->setDampeningFactor(std::round(oldValue));
+		}));
+	} else if (dynamic_cast<DoubleDampenedTFV*>(selectedSegment.get()) != nullptr) {
+		auto ptr = dynamic_cast<DoubleDampenedTFV*>(selectedSegment.get());
+		float oldValue = ptr->getDampeningFactor();
+		undoStack.execute(UndoableCommand(
+			[this, &ptr = ptr, value]() {
+			ptr->setDampeningFactor(std::round(value));
+		},
+			[this, &ptr = ptr, oldValue]() {
+			ptr->setDampeningFactor(std::round(oldValue));
+		}));
+	}
 }
 
 EMPAAngleOffsetGroup::EMPAAngleOffsetGroup() {
