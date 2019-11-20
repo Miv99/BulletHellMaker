@@ -320,6 +320,7 @@ private:
 	float paddingX, paddingY;
 
 	std::shared_ptr<std::recursive_mutex> tguiMutex;
+	std::recursive_mutex tfvMutex;
 
 	UndoStack undoStack;
 	std::thread tfvEditorWindowThread;
@@ -329,6 +330,14 @@ private:
 	std::shared_ptr<tgui::Button> showGraph;
 	std::shared_ptr<tgui::Button> finishEditing;
 	std::shared_ptr<tgui::Button> saveTFV;
+
+	//TODO add these
+	std::shared_ptr<tgui::Button> addSegment;
+	std::shared_ptr<tgui::Button> deleteSegment;
+	std::shared_ptr<SliderWithEditBox> startTime;
+	std::shared_ptr<tgui::Button> changeSegmentType;
+	std::shared_ptr<ScrollableListBox> segmentTypePopup;
+
 	std::shared_ptr<ScrollableListBox> segmentList; // Each item ID is the index of the segment in tfv's segment vector
 	std::shared_ptr<tgui::Label> tfvFloat1Label;
 	std::shared_ptr<SliderWithEditBox> tfvFloat1Slider;
@@ -359,6 +368,9 @@ private:
 	// Signal emitted after the user saves the TFV
 	std::shared_ptr<entt::SigH<void(std::shared_ptr<TFV>, std::shared_ptr<TFV>, std::string)>> onSave;
 
+	bool ignoreSignal = false;
+
+	void deselectSegment();
 	void selectSegment(int index);
 	void populateSegmentList();
 
@@ -368,6 +380,7 @@ private:
 	void onTFVFloat3SliderChange(float value);
 	void onTFVFloat4SliderChange(float value);
 	void onTFVInt1SliderChange(float value);
+	void onSelectedSegmentStartTimeChange(float value);
 };
 
 /*

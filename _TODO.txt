@@ -69,12 +69,13 @@ cur todo:
 	 can call onTFVEditingEnd(); (look at how gameplaytestwindow's close signal in AttackEditor causes bezier stuff to close)
 
 big todo:
--cannot change max time of any TFV but can change any TFV's start time (when they become active). 
-	-start time of the first segment must be 0; cannot be changed
-	-chage start time of segment index [i] -> if new start time < that of [i - 1], swap [i] and [i - 1]; 
-		if new start time > that of [i + 1], swap [i] and [i + 1] in PiecewiseTFV's segment vector
--if any TFV has a max time var, that var should be changed automatically as TFV start times are modified
-	-ie modify start time of [i] -> update max time of [i - 1] and [i]; also update when any swaps occur
+-implement these in PiecewiseTFV: void changeSegmentStartTime(int index, float newStartTime); segment list should be updated after every call
+	-cannot change max time of any TFV but can change any TFV's start time (when they become active). 
+		-start time of the first segment must be 0; cannot be changed
+		-chage start time of segment index [i] -> if new start time < that of [i - 1], swap [i] and [i - 1]; 
+			if new start time > that of [i + 1], swap [i] and [i + 1] in PiecewiseTFV's segment vector
+	-if any TFV has a max time var, that var should be changed automatically as TFV start times are modified
+		-ie modify start time of [i] -> update max time of [i - 1] and [i]; also update when any swaps occur
 
 -piecewise tfv name displayed as name of first segment if only one segment
 -disable keyboard commands when screen is blocked (ibPanel is visible) in AttackEditor
@@ -98,7 +99,7 @@ big todo:
 -select EMPA --> EMPA is shown on gameplay windows
  a draggable/movable dot labeled "source" is shown (if EMP spawn type is global, the source isn't movable); the total path (a bunch of dots at an adjustable time interval)  
  is drawn from the source; if an EMPA is selected, the dots of that particular EMPA are colored differently
-	
+
 TODO:
 -disable undo while test is in progress in gameplay test window
 -animatables can't have backslashes in name

@@ -629,11 +629,109 @@ TFVGroup::TFVGroup(std::shared_ptr<std::recursive_mutex> tguiMutex, float paddin
 	});
 	panel->add(saveTFV);
 
+	addSegment = tgui::Button::create();
+	addSegment->setText("Add");
+	addSegment->connect("Pressed", [&]() {
+		if (ignoreSignal) return;
+		std::lock_guard<std::recursive_mutex> lock(tfvMutex);
+
+		float time = 0;
+		if (selectedSegment) {
+			time = tfv->getSegment(selectedSegmentIndex).first;
+		}
+		tfv->insertSegment(std::make_pair(time, std::make_shared<ConstantTFV>(0)));
+		if (selectedSegment) {
+			selectSegment(selectedSegmentIndex + 1);
+		}
+		populateSegmentList();
+	});
+	panel->add(addSegment);
+
+	deleteSegment = tgui::Button::create();
+	deleteSegment->setText("Delete");
+	deleteSegment->connect("Pressed", [&]() {
+		std::lock_guard<std::recursive_mutex> lock(tfvMutex);
+
+		tfv->removeSegment(selectedSegmentIndex);
+		populateSegmentList();
+		if (tfv->getSegmentsCount() == 1) {
+			selectSegment(0);
+		} else if (selectedSegmentIndex < tfv->getSegmentsCount()) {
+			selectSegment(selectedSegmentIndex);
+		} else {
+			selectSegment(selectedSegmentIndex - 1);
+		}
+	});
+	panel->add(deleteSegment);
+
+	changeSegmentType = tgui::Button::create();
+	changeSegmentType->setText("Change type");
+	changeSegmentType->connect("Pressed", [&]() {
+		tfvEditorWindow->addPopupWidget(panel, segmentTypePopup);
+	});
+	panel->add(changeSegmentType);
+
+	segmentTypePopup = std::make_shared<ScrollableListBox>();
+	segmentTypePopup->getListBox()->addItem("LinearTFV", "1");
+	segmentTypePopup->getListBox()->addItem("ConstantTFV", "2");
+	segmentTypePopup->getListBox()->addItem("SineWaveTFV", "3");
+	segmentTypePopup->getListBox()->addItem("ConstantAccelerationDistanceTFV", "4");
+	segmentTypePopup->getListBox()->addItem("DampenedStartTFV", "5");
+	segmentTypePopup->getListBox()->addItem("DampenedEndTFV", "6");
+	segmentTypePopup->getListBox()->addItem("DoubleDampenedTFV", "7");
+	segmentTypePopup->getListBox()->setItemHeight(20);
+	segmentTypePopup->setSize(150, segmentTypePopup->getListBox()->getItemHeight() * segmentTypePopup->getListBox()->getItemCount());
+	segmentTypePopup->setPosition(tgui::bindLeft(changeSegmentType), tgui::bindTop(changeSegmentType));
+	segmentTypePopup->getListBox()->connect("MousePressed", [&](std::string itemName, std::string itemID) {
+		std::lock_guard<std::recursive_mutex> lock(tfvMutex);
+
+		std::shared_ptr<TFV> newTFV;
+		if (itemID == "1") {
+			newTFV = std::make_shared<LinearTFV>();
+		} else if (itemID == "2") {
+			newTFV = std::make_shared<ConstantTFV>();
+		} else if (itemID == "3") {
+			newTFV = std::make_shared<SineWaveTFV>();
+		} else if (itemID == "4") {
+			newTFV = std::make_shared<ConstantAccelerationDistanceTFV>();
+		} else if (itemID == "5") {
+			newTFV = std::make_shared<DampenedStartTFV>();
+		} else if (itemID == "6") {
+			newTFV = std::make_shared<DampenedEndTFV>();
+		} else if (itemID == "7") {
+			newTFV = std::make_shared<DoubleDampenedTFV>();
+		}
+		// Replace selected segment with new type
+		std::shared_ptr<TFV> oldClone = selectedSegment->clone();
+		float oldStartTime = tfv->getSegment(selectedSegmentIndex).first;
+		int selectedSegmentIndex = this->selectedSegmentIndex;
+		undoStack.execute(UndoableCommand(
+			[this, oldStartTime, newTFV, selectedSegmentIndex]() {
+			std::lock_guard<std::recursive_mutex> lock(tfvMutex);
+			tfv->removeSegment(selectedSegmentIndex);
+			tfv->insertSegment(std::make_pair(oldStartTime, newTFV));
+			// Reselect to reload widgets
+			selectSegment(selectedSegmentIndex);
+			populateSegmentList();
+		},
+			[this, oldStartTime, oldClone, selectedSegmentIndex]() {
+			std::lock_guard<std::recursive_mutex> lock(tfvMutex);
+			tfv->removeSegment(selectedSegmentIndex);
+			tfv->insertSegment(std::make_pair(oldStartTime, oldClone));
+			// Reselect to reload widgets
+			selectSegment(selectedSegmentIndex);
+			populateSegmentList();
+		}));
+	});
+
 	segmentList = std::make_shared<ScrollableListBox>();
 	segmentList->setTextSize(TEXT_SIZE);
 	segmentList->getListBox()->connect("ItemSelected", [&](std::string item, std::string id) {
+		if (ignoreSignal) return;
 		if (id != "") {
 			selectSegment(std::stoi(id));
+		} else {
+			deselectSegment();
 		}
 	});
 	panel->add(segmentList);
@@ -660,28 +758,35 @@ TFVGroup::TFVGroup(std::shared_ptr<std::recursive_mutex> tguiMutex, float paddin
 	tfvFloat4Slider = std::make_shared<SliderWithEditBox>();
 	tfvInt1Slider = std::make_shared<SliderWithEditBox>();
 	tfvInt1Slider->setIntegerMode(true);
+	startTime = std::make_shared<SliderWithEditBox>();
 	tfvFloat1Slider->getOnValueSet()->sink().connect<TFVGroup, &TFVGroup::onTFVFloat1SliderChange>(this);
 	tfvFloat2Slider->getOnValueSet()->sink().connect<TFVGroup, &TFVGroup::onTFVFloat2SliderChange>(this);
 	tfvFloat3Slider->getOnValueSet()->sink().connect<TFVGroup, &TFVGroup::onTFVFloat3SliderChange>(this);
 	tfvFloat4Slider->getOnValueSet()->sink().connect<TFVGroup, &TFVGroup::onTFVFloat4SliderChange>(this);
 	tfvInt1Slider->getOnValueSet()->sink().connect<TFVGroup, &TFVGroup::onTFVInt1SliderChange>(this);
+	startTime->getOnValueSet()->sink().connect<TFVGroup, &TFVGroup::onSelectedSegmentStartTimeChange>(this);
 	tfvFloat1Slider->getEditBox()->setTextSize(TEXT_SIZE);
 	tfvFloat2Slider->getEditBox()->setTextSize(TEXT_SIZE);
 	tfvFloat3Slider->getEditBox()->setTextSize(TEXT_SIZE);
 	tfvFloat4Slider->getEditBox()->setTextSize(TEXT_SIZE);
 	tfvInt1Slider->getEditBox()->setTextSize(TEXT_SIZE);
+	startTime->getEditBox()->setTextSize(TEXT_SIZE);
 	panel->add(tfvFloat1Slider);
 	panel->add(tfvFloat2Slider);
 	panel->add(tfvFloat3Slider);
 	panel->add(tfvFloat4Slider);
 	panel->add(tfvInt1Slider);
+	panel->add(startTime);
 	panel->add(tfvFloat1Slider->getEditBox());
 	panel->add(tfvFloat2Slider->getEditBox());
 	panel->add(tfvFloat3Slider->getEditBox());
 	panel->add(tfvFloat4Slider->getEditBox());
 	panel->add(tfvInt1Slider->getEditBox());
+	panel->add(startTime->getEditBox());
 
 	tfvEditorWindow->getGui()->add(panel);
+
+	deselectSegment();
 }
 
 void TFVGroup::beginEditing() {
@@ -697,6 +802,7 @@ void TFVGroup::endEditing(bool saveEditedTFV) {
 	tfvEditorWindow->close();
 	// Clear its undo stack
 	undoStack.clear();
+	deselectSegment();
 
 	onEditingEnd->publish(oldTFV, tfv, tfvIdentifier, saveEditedTFV);
 }
@@ -732,9 +838,34 @@ void TFVGroup::setTFV(std::shared_ptr<TFV> tfv, float tfvLifespan, std::string t
 	populateSegmentList();
 }
 
+void TFVGroup::deselectSegment() {
+	selectedSegmentIndex = -1;
+	selectedSegment = nullptr;
+	deleteSegment->setEnabled(false);
+	bool f1 = false, f2 = false, f3 = false, f4 = false, i1 = false;
+	tfvFloat1Label->setVisible(f1);
+	tfvFloat1Slider->setVisible(f1);
+	tfvFloat2Label->setVisible(f2);
+	tfvFloat2Slider->setVisible(f2);
+	tfvFloat3Label->setVisible(f3);
+	tfvFloat3Slider->setVisible(f3);
+	tfvFloat4Label->setVisible(f4);
+	tfvFloat4Slider->setVisible(f4);
+	tfvInt1Label->setVisible(i1);
+	tfvInt1Slider->setVisible(i1);
+	startTime->setVisible(false);
+}
+
 void TFVGroup::selectSegment(int index) {
+	std::lock_guard<std::recursive_mutex> lock(tfvMutex);
+
 	selectedSegmentIndex = index;
 	selectedSegment = tfv->getSegment(index).second;
+	// Cannot delete the last segment
+	deleteSegment->setEnabled(tfv->getSegmentsCount() != 1);
+
+	ignoreSignal = true;
+	segmentList->getListBox()->setSelectedItemById(std::to_string(index));
 
 	// whether to use tfvFloat1Slider, tfvFloat2Slider, ...
 	bool f1 = false, f2 = false, f3 = false, f4 = false, i1 = false;
@@ -813,6 +944,7 @@ void TFVGroup::selectSegment(int index) {
 		tfvFloat2Slider->setValue(ptr->getEndValue());
 		tfvFloat3Slider->setValue(ptr->getDampeningFactor());
 	}
+	startTime->setValue(tfv->getSegment(index).first);
 	//TODO: add to this if more TFVs are made
 
 	tfvFloat1Label->setVisible(f1);
@@ -825,9 +957,15 @@ void TFVGroup::selectSegment(int index) {
 	tfvFloat4Slider->setVisible(f4);
 	tfvInt1Label->setVisible(i1);
 	tfvInt1Slider->setVisible(i1);
+	// Cannot change start time of the first segment
+	startTime->setVisible(index != 0);
+
+	ignoreSignal = false;
 }
 
 void TFVGroup::populateSegmentList() {
+	ignoreSignal = true;
+	std::lock_guard<std::recursive_mutex> lock(tfvMutex);
 	std::string selectedIndexString = segmentList->getListBox()->getSelectedItemId();
 	segmentList->getListBox()->removeAllItems();
 	int index = 0;
@@ -846,6 +984,7 @@ void TFVGroup::populateSegmentList() {
 	if (selectedIndexString != "") {
 		segmentList->getListBox()->setSelectedItemById(selectedIndexString);
 	}
+	ignoreSignal = false;
 }
 
 void TFVGroup::onTFVEditorWindowResize(int windowWidth, int windowHeight) {
@@ -861,12 +1000,21 @@ void TFVGroup::onTFVEditorWindowResize(int windowWidth, int windowHeight) {
 	showGraph->setSize(100, TEXT_BUTTON_HEIGHT);
 	showGraph->setPosition(paddingX, paddingY);
 
-	segmentList->setSize("40%", saveTFV->getPosition().y - paddingY - showGraph->getPosition().y - showGraph->getSize().y - paddingY*2);
+	segmentList->setSize("40%", saveTFV->getPosition().y - paddingY - showGraph->getPosition().y - showGraph->getSize().y - paddingY*2 - (TEXT_BUTTON_HEIGHT + paddingY)*2);
 	segmentList->onResize();
 	segmentList->setPosition(tgui::bindLeft(showGraph), tgui::bindBottom(showGraph) + paddingY);
 
+	addSegment->setSize(100, TEXT_BUTTON_HEIGHT);
+	addSegment->setPosition(tgui::bindLeft(segmentList), tgui::bindBottom(segmentList) + paddingY);
+	deleteSegment->setSize(100, TEXT_BUTTON_HEIGHT);
+	deleteSegment->setPosition(tgui::bindLeft(segmentList), tgui::bindBottom(addSegment) + paddingY);
+
 	int segmentListRightBoundary = segmentList->getPosition().x + segmentList->getSize().x + paddingX;
-	tfvFloat1Label->setPosition(segmentListRightBoundary, tgui::bindTop(segmentList) );
+	changeSegmentType->setPosition(segmentListRightBoundary, tgui::bindTop(segmentList));
+
+	startTime->setPosition(segmentListRightBoundary, changeSegmentType->getPosition().y + paddingY*2);
+
+	tfvFloat1Label->setPosition(segmentListRightBoundary, tgui::bindBottom(startTime) + paddingY * 2);
 	tfvFloat1Slider->setPosition(segmentListRightBoundary, tfvFloat1Label->getPosition().y + tfvFloat1Label->getSize().y + paddingY);
 
 	tfvFloat2Label->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat1Slider) + paddingY);
@@ -1090,6 +1238,23 @@ void TFVGroup::onTFVInt1SliderChange(float value) {
 			ptr->setDampeningFactor(std::round(oldValue));
 		}));
 	}
+}
+
+void TFVGroup::onSelectedSegmentStartTimeChange(float value) {
+	if (ignoreSignal) return;
+
+	float oldValue = tfv->getSegment(selectedSegmentIndex).first;
+	undoStack.execute(UndoableCommand(
+		[this, &selectedSegmentIndex = this->selectedSegmentIndex, value]() {
+		std::lock_guard<std::recursive_mutex> lock(tfvMutex);
+		selectSegment(tfv->changeSegmentStartTime(selectedSegmentIndex, value));
+		populateSegmentList();
+	},
+		[this, &selectedSegmentIndex = this->selectedSegmentIndex, oldValue]() {
+		std::lock_guard<std::recursive_mutex> lock(tfvMutex);
+		selectSegment(tfv->changeSegmentStartTime(selectedSegmentIndex, oldValue));
+		populateSegmentList();
+	}));
 }
 
 EMPAAngleOffsetGroup::EMPAAngleOffsetGroup() {

@@ -9,6 +9,9 @@ const static float MAX_PHYSICS_DELTA_TIME = 1 / 30.0f;
 // Time between each frame render; render FPS = 1/RENDER_INTERVAL
 const static float RENDER_INTERVAL = 1 / 60.0f;
 
+// Epsilon for checking float equality
+const static float EPSILON = MAX_PHYSICS_DELTA_TIME / 10.0f;
+
 const static int MAP_WIDTH = 550;
 const static int MAP_HEIGHT = 700;
 

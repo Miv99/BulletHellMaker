@@ -2093,6 +2093,8 @@ void AttackEditor::onEmpaiAngleOffsetChange(std::shared_ptr<EMPAAngleOffset> old
 }
 
 void AttackEditor::onTFVEditingStart() {
+	// Reselect EMPA to call the relevant TFVGroup::setTFV()'s again
+	selectEMPA(selectedEMPAIndex);
 	// Block all user input
 	ibPanel->setVisible(true);
 	ibText->setText("Currently editing a TFV for Attack ID " + std::to_string(selectedAttack->getID()) + ", EMP ID " +

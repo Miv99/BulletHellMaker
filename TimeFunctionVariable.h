@@ -405,63 +405,47 @@ public:
 	void load(std::string formattedString) override;
 	std::string getName() override { return "Piecewise"; }
 
-	inline float evaluate(float time) override {
-		auto it = std::lower_bound(segments.begin(), segments.end(), time, SegmentComparator());
-		if (it == segments.end()) {
-			return segments.back().second->evaluate(time - segments.back().first);
-		} else {
-			return it->second->evaluate(time - it->first);
-		}
-	}
+	float evaluate(float time) override;
 
 	/*
 	Returns a pair containing, in order, the normal evaluation of the TFV and the index of the segment
 	in which the evaluation occurred.
 	*/
-	inline std::pair<float, int> piecewiseEvaluate(float time) {
-		auto it = std::lower_bound(segments.begin(), segments.end(), time, SegmentComparator());
-		if (it == segments.end()) {
-			return std::make_pair(segments.back().second->evaluate(time - segments.back().first), segments.size() - 1);
-		} else {
-			return std::make_pair(it->second->evaluate(time - it->first), it - segments.begin());
-		}
-	}
+	std::pair<float, int> piecewiseEvaluate(float time);
 
 	/*
+	This function should only be used for testing purposes.
+
 	segment - a pair with the float representing the lifespan of the TFV
 	*/
-	inline void insertSegment(int index, std::pair<float, std::shared_ptr<TFV>> segment) {
-		// Recalculate active times
-		for (int i = index; i < segments.size(); i++) {
-			segments[i].first += segment.first;
-		}
-		if (index != 0) {
-			segment.first += segments[index - 1].first;
-		}
-		segments.insert(segments.begin() + index, segment);
-	}
+	void insertSegment(int index, std::pair<float, std::shared_ptr<TFV>> segment);
 
-	inline void removeSegment(int index) {
-		auto erasedActiveTime = (segments.begin() + index)->first;
-		segments.erase(segments.begin() + index);
-		// Recalculate active times
-		for (int i = index; i < segments.size(); i++) {
-			segments[i].first -= erasedActiveTime;
-		}
-	}
+	/*
+	segment - a pair with the float representing the start time of the TFV
+	*/
+	void insertSegment(std::pair<float, std::shared_ptr<TFV>> segment);
 
-	inline std::pair<float, std::shared_ptr<TFV>> getSegment(int index) {
-		return segments[index];
-	}
+	void removeSegment(int index);
 
-	inline int getSegmentsCount() {
-		return segments.size();
-	}
+	/*
+	Return the new index of the modified segment in the segment list.
+	*/
+	int changeSegmentStartTime(int segmentIndex, float newStartTime);
+
+	std::pair<float, std::shared_ptr<TFV>> getSegment(int index);
+
+	int getSegmentsCount();
 
 private:
 	struct SegmentComparator {
-		int operator()(const std::pair<float, std::shared_ptr<TFV>>& a, float b) {
+		bool operator()(const std::pair<float, std::shared_ptr<TFV>>& a, float b) {
 			return a.first < b;
+		}
+		bool operator()(float a, const std::pair<float, std::shared_ptr<TFV>>& b) {
+			return a < b.first;
+		}
+		int operator()(const std::pair<float, std::shared_ptr<TFV>>& a, const std::pair<float, std::shared_ptr<TFV>>& b) {
+			return a.first < b.first;
 		}
 	};
 

@@ -149,6 +149,77 @@ void PiecewiseTFV::load(std::string formattedString) {
 	}
 }
 
+float PiecewiseTFV::evaluate(float time) {
+	auto it = std::lower_bound(segments.begin(), segments.end(), time, SegmentComparator());
+	if (it == segments.end()) {
+		return segments.back().second->evaluate(time - segments.back().first);
+	} else {
+		return it->second->evaluate(time - it->first);
+	}
+}
+
+std::pair<float, int> PiecewiseTFV::piecewiseEvaluate(float time) {
+	auto it = std::lower_bound(segments.begin(), segments.end(), time, SegmentComparator());
+	if (it == segments.end()) {
+		return std::make_pair(segments.back().second->evaluate(time - segments.back().first), segments.size() - 1);
+	} else {
+		return std::make_pair(it->second->evaluate(time - it->first), it - segments.begin());
+	}
+}
+
+void PiecewiseTFV::insertSegment(int index, std::pair<float, std::shared_ptr<TFV>> segment) {
+	// Recalculate active times
+	for (int i = index; i < segments.size(); i++) {
+		segments[i].first += segment.first;
+	}
+	if (index != 0) {
+		segment.first += segments[index - 1].first;
+	}
+	segments.insert(segments.begin() + index, segment);
+}
+
+void PiecewiseTFV::insertSegment(std::pair<float, std::shared_ptr<TFV>> segment) {
+	auto it = std::lower_bound(segments.begin(), segments.end(), segment.first, SegmentComparator());
+	segments.insert(it, segment);
+}
+
+void PiecewiseTFV::removeSegment(int index) {
+	auto erasedActiveTime = (segments.begin() + index)->first;
+	segments.erase(segments.begin() + index);
+	// Recalculate active times
+	for (int i = index; i < segments.size(); i++) {
+		segments[i].first -= erasedActiveTime;
+	}
+}
+
+int PiecewiseTFV::changeSegmentStartTime(int segmentIndex, float newStartTime) {
+	segments[segmentIndex].first = newStartTime;
+	if (segmentIndex != 0 && newStartTime < segments[segmentIndex - 1].first) {
+		int i = segmentIndex - 1;
+		while (i != -1 && newStartTime < segments[i].first) {
+			std::iter_swap(segments.begin() + i, segments.begin() + i + 1);
+			i--;
+		}
+		return i + 1;
+	} else if (segmentIndex != segments.size() - 1 && newStartTime > segments[segmentIndex + 1].first) {
+		int i = segmentIndex + 1;
+		while (i != segments.size() && newStartTime > segments[i].first) {
+			std::iter_swap(segments.begin() + i, segments.begin() + i - 1);
+			i++;
+		}
+		return i - 1;
+	}
+	return segmentIndex;
+}
+
+std::pair<float, std::shared_ptr<TFV>> PiecewiseTFV::getSegment(int index) {
+	return segments[index];
+}
+
+int PiecewiseTFV::getSegmentsCount() {
+	return segments.size();
+}
+
 
 std::shared_ptr<TFV> TFVFactory::create(std::string formattedString) {
 	auto name = split(formattedString, DELIMITER)[0];
