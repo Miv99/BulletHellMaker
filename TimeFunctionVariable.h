@@ -19,14 +19,23 @@ Evaluation of a TFV does not change it internally, so the same TFV can be reused
 class TFV : public TextMarshallable {
 public:
 	inline TFV() {}
+	inline TFV(float maxTime) : maxTime(maxTime) {}
 	virtual std::shared_ptr<TFV> clone() = 0;
 
 	virtual std::string format() const = 0;
 	virtual void load(std::string formattedString) = 0;
 	// Display name for the user
 	virtual std::string getName() = 0;
+	
+	inline float getMaxTime() { return maxTime; }
+	virtual void setMaxTime(float maxTime) { this->maxTime = maxTime; }
 
 	virtual float evaluate(float time) = 0;
+
+protected:
+	// The lifespan of the TFV
+	// Note that some types of TFVs don't need to know its own lifespan for evaluation
+	float maxTime = 1;
 };
 
 /*
@@ -34,12 +43,12 @@ TFV whose value increases linearly with time.
 
 float startValue
 float endValue
-float maxTime
+float 
 */
 class LinearTFV : public TFV {
 public:
 	inline LinearTFV() {}
-	inline LinearTFV(float startValue, float endValue, float maxTime) : startValue(startValue), endValue(endValue), maxTime(maxTime) {}
+	inline LinearTFV(float startValue, float endValue, float maxTime) : TFV(maxTime), startValue(startValue), endValue(endValue) {}
 	std::shared_ptr<TFV> clone() override;
 
 	std::string format() const override;
@@ -52,15 +61,12 @@ public:
 
 	inline float getStartValue() { return startValue; }
 	inline float getEndValue() { return endValue; }
-	inline float getMaxTime() { return maxTime; }
 	inline void setStartValue(float startValue) { this->startValue = startValue; }
 	inline void setEndValue(float endValue) { this->endValue = endValue; }
-	inline void setMaxTime(float maxTime) { this->maxTime = maxTime; }
 
 private:
-	float startValue;
-	float endValue;
-	float maxTime;
+	float startValue = 0;
+	float endValue = 0;
 };
 
 /*
@@ -86,7 +92,7 @@ public:
 	inline float getValue() { return value; }
 
 private:
-	float value;
+	float value = 0;
 };
 
 /*
@@ -122,10 +128,10 @@ public:
 	inline float getPhaseShift() { return phaseShift; }
 
 private:
-	float period;
-	float amplitude;
-	float valueShift;
-	float phaseShift;
+	float period = 1;
+	float amplitude = 1;
+	float valueShift = 0;
+	float phaseShift = 0;
 };
 
 /*
@@ -157,9 +163,9 @@ public:
 	inline float getAcceleration() { return acceleration; }
 
 private:
-	float initialDistance;
-	float initialVelocity;
-	float acceleration;
+	float initialDistance = 0;
+	float initialVelocity = 0;
+	float acceleration = 9.8f;
 };
 
 /*
@@ -172,8 +178,10 @@ int dampeningFactor - range [1, infinity]; no upper limit but ~100 is already pr
 */
 class DampenedStartTFV : public TFV {
 public:
-	inline DampenedStartTFV() {}
-	inline DampenedStartTFV(float startValue, float endValue, float maxTime, int dampeningFactor) : dampeningFactor(dampeningFactor), startValue(startValue), endValue(endValue), maxTime(maxTime) {
+	inline DampenedStartTFV() {
+		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
+	}
+	inline DampenedStartTFV(float startValue, float endValue, float maxTime, int dampeningFactor) : TFV(maxTime), dampeningFactor(dampeningFactor), startValue(startValue), endValue(endValue) {
 		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
 	}
 	std::shared_ptr<TFV> clone() override;
@@ -198,19 +206,20 @@ public:
 		this->dampeningFactor = dampeningFactor;
 		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
 	}
-	inline void setMaxTime(float maxTime) { this->maxTime = maxTime; }
+	inline void setMaxTime(float maxTime) override {
+		this->maxTime = maxTime;
+		a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f*dampeningFactor + 1);
+	}
 	inline float getStartValue() { return startValue; }
 	inline float getEndValue() { return endValue; }
 	inline int getDampeningFactor() { return dampeningFactor; }
-	inline float getMaxTime() { return maxTime; }
 
 private:
 	// Calculated value to scale graph correctly
 	float a;
-	float startValue;
-	float endValue;
-	float maxTime;
-	int dampeningFactor;
+	float startValue = 0;
+	float endValue = 0;
+	int dampeningFactor = 1;
 };
 
 /*
@@ -218,13 +227,14 @@ TFV that starts fast and decelerates.
 
 float startValue
 float endValue
-float maxTime
 int dampeningFactor - range [1, infinity]; no upper limit but ~100 is already pretty high
 */
 class DampenedEndTFV : public TFV {
 public:
-	inline DampenedEndTFV() {}
-	inline DampenedEndTFV(float startValue, float endValue, float maxTime, int dampeningFactor) : dampeningFactor(dampeningFactor), startValue(startValue), endValue(endValue), maxTime(maxTime) {
+	inline DampenedEndTFV() {
+		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
+	}
+	inline DampenedEndTFV(float startValue, float endValue, float maxTime, int dampeningFactor) : TFV(maxTime), dampeningFactor(dampeningFactor), startValue(startValue), endValue(endValue) {
 		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
 	}
 	std::shared_ptr<TFV> clone() override;
@@ -249,19 +259,20 @@ public:
 		this->dampeningFactor = dampeningFactor;
 		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
 	}
-	inline void setMaxTime(float maxTime) { this->maxTime = maxTime; }
+	inline void setMaxTime(float maxTime) override {
+		this->maxTime = maxTime;
+		a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f*dampeningFactor + 1);
+	}
 	inline float getStartValue() { return startValue; }
 	inline float getEndValue() { return endValue; }
 	inline int getDampeningFactor() { return dampeningFactor; }
-	inline float getMaxTime() { return maxTime; }
 
 private:
 	// Calculated value to scale graph correctly
 	float a;
-	float startValue;
-	float endValue;
-	float maxTime;
-	int dampeningFactor;
+	float startValue = 0;
+	float endValue = 0;
+	int dampeningFactor = 1;
 };
 
 /*
@@ -270,13 +281,14 @@ Will reach the midpoint of the start and end value at half the max time.
 
 float startValue
 float endValue
-float maxTime
 int dampeningFactor - range [1, infinity]; no upper limit but ~100 is already pretty high
 */
 class DoubleDampenedTFV : public TFV {
 public:
-	inline DoubleDampenedTFV() {}
-	inline DoubleDampenedTFV(float startValue, float endValue, float maxTime, int dampeningFactor) : dampeningFactor(dampeningFactor), startValue(startValue), endValue(endValue), maxTime(maxTime) {
+	inline DoubleDampenedTFV() {
+		a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f*dampeningFactor + 1);
+	}
+	inline DoubleDampenedTFV(float startValue, float endValue, float maxTime, int dampeningFactor) : TFV(maxTime), dampeningFactor(dampeningFactor), startValue(startValue), endValue(endValue) {
 		a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f*dampeningFactor + 1);
 	}
 	std::shared_ptr<TFV> clone() override;
@@ -295,29 +307,30 @@ public:
 
 	inline void setStartValue(float startValue) {
 		this->startValue = startValue;
-		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
+		a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f*dampeningFactor + 1);
 	}
 	inline void setEndValue(float endValue) {
 		this->endValue = endValue;
-		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
+		a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f*dampeningFactor + 1);
 	}
 	inline void setDampeningFactor(int dampeningFactor) {
 		this->dampeningFactor = dampeningFactor;
-		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
+		a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f*dampeningFactor + 1);
 	}
-	inline void setMaxTime(float maxTime) { this->maxTime = maxTime; }
+	inline void setMaxTime(float maxTime) override {
+		this->maxTime = maxTime;
+		a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f*dampeningFactor + 1);
+	}
 	inline float getStartValue() { return startValue; }
 	inline float getEndValue() { return endValue; }
 	inline int getDampeningFactor() { return dampeningFactor; }
-	inline float getMaxTime() { return maxTime; }
 
 private:
 	// Calculated value to scale graph correctly
 	float a;
-	float startValue;
-	float endValue;
-	float maxTime;
-	int dampeningFactor;
+	float startValue = 0;
+	float endValue = 0;
+	int dampeningFactor = 1;
 };
 
 /*
@@ -395,6 +408,8 @@ private:
 /*
 TFV that connects multiple TFVs together in piecewise fashion.
 Each TFV segment in PiecewiseTFV will be evaluated based on time since the start of that segment, not time since the start of PiecewiseTFV.
+
+Some functions here have an optional parameter totalLifespan, which if set to be the maximum lifespan of the entire PiecewiseTFV will recalculate the maxTime of every segment.
 */
 class PiecewiseTFV : public TFV {
 public:
@@ -403,7 +418,14 @@ public:
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
-	std::string getName() override { return "Piecewise"; }
+	std::string getName() override {
+		if (segments.size() > 1) {
+			return "Piecewise";
+		} else if (segments.size() == 1) {
+			return segments[0].second->getName();
+		}
+		return "None";
+	}
 
 	float evaluate(float time) override;
 
@@ -415,43 +437,54 @@ public:
 
 	/*
 	This function should only be used for testing purposes.
+	This function also recalculates the maxTime of every segment.
 
 	segment - a pair with the float representing the lifespan of the TFV
 	*/
-	void insertSegment(int index, std::pair<float, std::shared_ptr<TFV>> segment);
+	void insertSegment(int index, std::pair<float, std::shared_ptr<TFV>> segment, float totalLifespan = -1);
 
 	/*
+	This function also recalculates the maxTime of every segment.
+
 	segment - a pair with the float representing the start time of the TFV
 	*/
-	void insertSegment(std::pair<float, std::shared_ptr<TFV>> segment);
+	void insertSegment(std::pair<float, std::shared_ptr<TFV>> segment, float totalLifespan = -1);
 
-	void removeSegment(int index);
+	/*
+	This function also recalculates the maxTime of every segment, except the one that was removed.
+	*/
+	void removeSegment(int index, float totalLifespan = -1);
+
+	/*
+	This function also recalculates the maxTime of every segment.
+	*/
+	void changeSegment(int index, std::shared_ptr<TFV> newTFV, float totalLifespan = -1);
 
 	/*
 	Return the new index of the modified segment in the segment list.
+	This function also recalculates the maxTime of every segment.
 	*/
-	int changeSegmentStartTime(int segmentIndex, float newStartTime);
+	int changeSegmentStartTime(int segmentIndex, float newStartTime, float totalLifespan = -1);
 
 	std::pair<float, std::shared_ptr<TFV>> getSegment(int index);
 
 	int getSegmentsCount();
+	void setMaxTime(float maxTime) override { 
+		this->maxTime = maxTime;
+		recalculateMaxTimes(maxTime);
+	}
 
 private:
-	struct SegmentComparator {
-		bool operator()(const std::pair<float, std::shared_ptr<TFV>>& a, float b) {
-			return a.first < b;
-		}
-		bool operator()(float a, const std::pair<float, std::shared_ptr<TFV>>& b) {
-			return a < b.first;
-		}
-		int operator()(const std::pair<float, std::shared_ptr<TFV>>& a, const std::pair<float, std::shared_ptr<TFV>>& b) {
-			return a.first < b.first;
-		}
-	};
-
 	// Vector of pairs of when the TFV becomes active and the TFV. The first item should become active at t=0.
 	// Sorted in ascending order
 	std::vector<std::pair<float, std::shared_ptr<TFV>>> segments;
+
+	/*
+	Recalculate the maxTimes of every segment
+
+	totalLifespan - the total lifespan of this TFV
+	*/
+	void recalculateMaxTimes(float totalLifespan);
 };
 
 class TFVFactory {

@@ -1419,8 +1419,6 @@ void AttackEditor::selectEMPA(int index) {
 	empiActionsAddBelow->setText("Add below");
 	empiActionsDelete->setEnabled(true);
 
-	//TODO setTFV for the rest
-
 	empaiDurationLabel->setVisible(true);
 	empaiDuration->setVisible(true);
 	if (dynamic_cast<MoveCustomPolarEMPA*>(selectedEMPA.get())) {
@@ -1448,13 +1446,16 @@ void AttackEditor::selectEMPA(int index) {
 			+ "\nBezier movement action");
 		populateEmpaiBezierControlPoints(selectedEMPA);
 	} else if (dynamic_cast<MovePlayerHomingEMPA*>(selectedEMPA.get())) {
+		MovePlayerHomingEMPA* concreteEMPA = dynamic_cast<MovePlayerHomingEMPA*>(selectedEMPA.get());
 		empaiPolarDistance->setVisible(false);
 		empaiPolarAngle->setVisible(false);
 		empaiBezierControlPoints->setVisible(false);
 		empaiEditBezierControlPoints->setVisible(false);
 		empaiAngleOffset->setVisible(false);
 		empaiHomingStrength->setVisible(true);
+		empaiHomingStrength->setTFV(concreteEMPA->getHomingStrength(), selectedEMPA->getTime(), "homingStrength");
 		empaiHomingSpeed->setVisible(true);
+		empaiHomingSpeed->setTFV(concreteEMPA->getSpeed(), selectedEMPA->getTime(), "speed");
 		empaiInfo->setText("Attack ID: " + tos(selectedAttack->getID()) + "\nMovable point ID: " + tos(selectedEMP->getID())
 			+ "\nHoming movement action");
 	} else if (dynamic_cast<StayStillAtLastPositionEMPA*>(selectedEMPA.get())) {
@@ -1481,6 +1482,7 @@ void AttackEditor::selectEMPA(int index) {
 		// This means you forgot to add a case
 		assert(false);
 	}
+	//TODO: add EMPAs to this if any other EMPAs also use TFVs
 	empaiDurationLabel->setVisible(empaiDuration->isVisible());
 	empaiPolarDistanceLabel->setVisible(empaiPolarDistance->isVisible());
 	empaiPolarAngleLabel->setVisible(empaiPolarAngle->isVisible());
@@ -2070,10 +2072,34 @@ void AttackEditor::onEmpaiDurationChange(float value) {
 	mainWindowUndoStack.execute(UndoableCommand(
 		[this, &selectedEMPA = this->selectedEMPA, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, value]() {
 		selectedEMPA->setTime(value);
+
+		if (dynamic_cast<MoveCustomPolarEMPA*>(selectedEMPA.get()) != nullptr) {
+			auto ptr = dynamic_cast<MoveCustomPolarEMPA*>(selectedEMPA.get());
+			ptr->getDistance()->setMaxTime(value);
+			ptr->getAngle()->setMaxTime(value);
+		} else if (dynamic_cast<MovePlayerHomingEMPA*>(selectedEMPA.get()) != nullptr) {
+			auto ptr = dynamic_cast<MovePlayerHomingEMPA*>(selectedEMPA.get());
+			ptr->getHomingStrength()->setMaxTime(value);
+			ptr->getSpeed()->setMaxTime(value);
+		}
+		//TODO: add EMPAs to this if any other EMPAs also use TFVs
+
 		setEMPAWidgetValues(selectedEMPA, selectedEMP, selectedAttack);
 	},
 		[this, &selectedEMPA = this->selectedEMPA, &selectedEMP = this->selectedEMP, &selectedAttack = this->selectedAttack, oldValue]() {
 		selectedEMPA->setTime(oldValue);
+
+		if (dynamic_cast<MoveCustomPolarEMPA*>(selectedEMPA.get()) != nullptr) {
+			auto ptr = dynamic_cast<MoveCustomPolarEMPA*>(selectedEMPA.get());
+			ptr->getDistance()->setMaxTime(oldValue);
+			ptr->getAngle()->setMaxTime(oldValue);
+		} else if (dynamic_cast<MovePlayerHomingEMPA*>(selectedEMPA.get()) != nullptr) {
+			auto ptr = dynamic_cast<MovePlayerHomingEMPA*>(selectedEMPA.get());
+			ptr->getHomingStrength()->setMaxTime(oldValue);
+			ptr->getSpeed()->setMaxTime(oldValue);
+		}
+		//TODO: add EMPAs to this if any other EMPAs also use TFVs
+
 		setEMPAWidgetValues(selectedEMPA, selectedEMP, selectedAttack);
 	}));
 }
@@ -2150,5 +2176,5 @@ void AttackEditor::onTFVEditingSave(std::shared_ptr<TFV> oldTFV, std::shared_ptr
 			setEMPAWidgetValues(selectedEMPA, selectedEMP, selectedAttack);
 		}));
 	}
-	//TODO: add more EMPAs if any
+	//TODO: add EMPAs to this if any other EMPAs also use TFVs
 }

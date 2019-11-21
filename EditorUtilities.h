@@ -331,9 +331,9 @@ private:
 	std::shared_ptr<tgui::Button> finishEditing;
 	std::shared_ptr<tgui::Button> saveTFV;
 
-	//TODO add these
 	std::shared_ptr<tgui::Button> addSegment;
 	std::shared_ptr<tgui::Button> deleteSegment;
+	std::shared_ptr<tgui::Label> startTimeLabel;
 	std::shared_ptr<SliderWithEditBox> startTime;
 	std::shared_ptr<tgui::Button> changeSegmentType;
 	std::shared_ptr<ScrollableListBox> segmentTypePopup;

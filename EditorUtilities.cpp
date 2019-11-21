@@ -111,8 +111,10 @@ std::vector<std::pair<std::vector<float>, std::vector<float>>> generateMPLPoints
 
 		singleSegmentX.push_back(pos.x);
 		singleSegmentY.push_back(pos.y);
+		std::cout << pos.x << ", " << pos.y << ": " << valueAndSegmentIndex.second << std::endl;
 		time += timeResolution;
 	}
+	std::cout << "done" << std::endl;
 	ret.push_back(std::make_pair(singleSegmentX, singleSegmentY));
 	return ret;
 }
@@ -499,15 +501,19 @@ void SoundSettingsGroup::onPitchChange(float pitch) {
 
 NumericalEditBoxWithLimits::NumericalEditBoxWithLimits() {
 	connect("ReturnKeyPressed", [&](std::string text) {
-		float value = stof(text);
-		if (hasMax && value > max) {
-			value = max;
+		try {
+			float value = stof(text);
+			if (hasMax && value > max) {
+				value = max;
+			}
+			if (hasMin && value < min) {
+				value = min;
+			}
+			setText(formatNum(value));
+			onValueSet->publish(value);
+		} catch (...) {
+
 		}
-		if (hasMin && value < min) {
-			value = min;
-		}
-		setText(formatNum(value));
-		onValueSet->publish(value);
 	});
 	updateInputValidator();
 }
@@ -633,13 +639,14 @@ TFVGroup::TFVGroup(std::shared_ptr<std::recursive_mutex> tguiMutex, float paddin
 	addSegment->setText("Add");
 	addSegment->connect("Pressed", [&]() {
 		if (ignoreSignal) return;
+
 		std::lock_guard<std::recursive_mutex> lock(tfvMutex);
 
 		float time = 0;
 		if (selectedSegment) {
 			time = tfv->getSegment(selectedSegmentIndex).first;
 		}
-		tfv->insertSegment(std::make_pair(time, std::make_shared<ConstantTFV>(0)));
+		tfv->insertSegment(std::make_pair(time, std::make_shared<ConstantTFV>(0)), tfvLifespan);
 		if (selectedSegment) {
 			selectSegment(selectedSegmentIndex + 1);
 		}
@@ -652,7 +659,7 @@ TFVGroup::TFVGroup(std::shared_ptr<std::recursive_mutex> tguiMutex, float paddin
 	deleteSegment->connect("Pressed", [&]() {
 		std::lock_guard<std::recursive_mutex> lock(tfvMutex);
 
-		tfv->removeSegment(selectedSegmentIndex);
+		tfv->removeSegment(selectedSegmentIndex, tfvLifespan);
 		populateSegmentList();
 		if (tfv->getSegmentsCount() == 1) {
 			selectSegment(0);
@@ -708,16 +715,14 @@ TFVGroup::TFVGroup(std::shared_ptr<std::recursive_mutex> tguiMutex, float paddin
 		undoStack.execute(UndoableCommand(
 			[this, oldStartTime, newTFV, selectedSegmentIndex]() {
 			std::lock_guard<std::recursive_mutex> lock(tfvMutex);
-			tfv->removeSegment(selectedSegmentIndex);
-			tfv->insertSegment(std::make_pair(oldStartTime, newTFV));
+			tfv->changeSegment(selectedSegmentIndex, newTFV, tfvLifespan);
 			// Reselect to reload widgets
 			selectSegment(selectedSegmentIndex);
 			populateSegmentList();
 		},
 			[this, oldStartTime, oldClone, selectedSegmentIndex]() {
 			std::lock_guard<std::recursive_mutex> lock(tfvMutex);
-			tfv->removeSegment(selectedSegmentIndex);
-			tfv->insertSegment(std::make_pair(oldStartTime, oldClone));
+			tfv->changeSegment(selectedSegmentIndex, oldClone, tfvLifespan);
 			// Reselect to reload widgets
 			selectSegment(selectedSegmentIndex);
 			populateSegmentList();
@@ -741,6 +746,9 @@ TFVGroup::TFVGroup(std::shared_ptr<std::recursive_mutex> tguiMutex, float paddin
 	tfvFloat3Label = tgui::Label::create();
 	tfvFloat4Label = tgui::Label::create();
 	tfvInt1Label = tgui::Label::create();
+	startTimeLabel = tgui::Label::create();
+	startTimeLabel->setText("Start time");
+	startTimeLabel->setTextSize(TEXT_SIZE);
 	tfvFloat1Label->setTextSize(TEXT_SIZE);
 	tfvFloat2Label->setTextSize(TEXT_SIZE);
 	tfvFloat3Label->setTextSize(TEXT_SIZE);
@@ -751,6 +759,7 @@ TFVGroup::TFVGroup(std::shared_ptr<std::recursive_mutex> tguiMutex, float paddin
 	panel->add(tfvFloat3Label);
 	panel->add(tfvFloat4Label);
 	panel->add(tfvInt1Label);
+	panel->add(startTimeLabel);
 
 	tfvFloat1Slider = std::make_shared<SliderWithEditBox>();
 	tfvFloat2Slider = std::make_shared<SliderWithEditBox>();
@@ -795,6 +804,7 @@ void TFVGroup::beginEditing() {
 	tfvEditorWindowThread.detach();
 
 	onEditingStart->publish();
+	deselectSegment();
 }
 
 void TFVGroup::endEditing(bool saveEditedTFV) {
@@ -830,7 +840,7 @@ void TFVGroup::setTFV(std::shared_ptr<TFV> tfv, float tfvLifespan, std::string t
 		this->tfv = std::dynamic_pointer_cast<PiecewiseTFV>(tfv->clone());
 	} else {
 		this->tfv = std::make_shared<PiecewiseTFV>();
-		this->tfv->insertSegment(0, std::make_pair(0, tfv->clone()));
+		this->tfv->insertSegment(0, std::make_pair(0, tfv->clone()), tfvLifespan);
 	}
 	tfvShortDescription->setText(tfv->getName());
 
@@ -842,6 +852,8 @@ void TFVGroup::deselectSegment() {
 	selectedSegmentIndex = -1;
 	selectedSegment = nullptr;
 	deleteSegment->setEnabled(false);
+	changeSegmentType->setVisible(false);
+	segmentList->getListBox()->deselectItem();
 	bool f1 = false, f2 = false, f3 = false, f4 = false, i1 = false;
 	tfvFloat1Label->setVisible(f1);
 	tfvFloat1Slider->setVisible(f1);
@@ -853,6 +865,7 @@ void TFVGroup::deselectSegment() {
 	tfvFloat4Slider->setVisible(f4);
 	tfvInt1Label->setVisible(i1);
 	tfvInt1Slider->setVisible(i1);
+	startTimeLabel->setVisible(false);
 	startTime->setVisible(false);
 }
 
@@ -863,6 +876,7 @@ void TFVGroup::selectSegment(int index) {
 	selectedSegment = tfv->getSegment(index).second;
 	// Cannot delete the last segment
 	deleteSegment->setEnabled(tfv->getSegmentsCount() != 1);
+	changeSegmentType->setVisible(true);
 
 	ignoreSignal = true;
 	segmentList->getListBox()->setSelectedItemById(std::to_string(index));
@@ -911,38 +925,38 @@ void TFVGroup::selectSegment(int index) {
 		tfvFloat2Slider->setValue(ptr->getInitialVelocity());
 		tfvFloat3Slider->setValue(ptr->getAcceleration());
 	} else if (dynamic_cast<DampenedStartTFV*>(selectedSegment.get()) != nullptr) {
-		f1 = f2 = f3 = true;
+		f1 = f2 = i1 = true;
 
 		tfvFloat1Label->setText("Start value");
 		tfvFloat2Label->setText("End value");
-		tfvFloat3Label->setText("Dampening factor");
+		tfvInt1Label->setText("Dampening factor");
 
 		auto ptr = dynamic_cast<DampenedStartTFV*>(selectedSegment.get());
 		tfvFloat1Slider->setValue(ptr->getStartValue());
 		tfvFloat2Slider->setValue(ptr->getEndValue());
-		tfvFloat3Slider->setValue(ptr->getDampeningFactor());
+		tfvInt1Slider->setValue(ptr->getDampeningFactor());
 	} else if (dynamic_cast<DampenedEndTFV*>(selectedSegment.get()) != nullptr) {
-		f1 = f2 = f3 = f4 = true;
+		f1 = f2 = i1 = true;
 
 		tfvFloat1Label->setText("Start value");
 		tfvFloat2Label->setText("End value");
-		tfvFloat3Label->setText("Dampening factor");
+		tfvInt1Label->setText("Dampening factor");
 
 		auto ptr = dynamic_cast<DampenedEndTFV*>(selectedSegment.get());
 		tfvFloat1Slider->setValue(ptr->getStartValue());
 		tfvFloat2Slider->setValue(ptr->getEndValue());
-		tfvFloat3Slider->setValue(ptr->getDampeningFactor());
+		tfvInt1Slider->setValue(ptr->getDampeningFactor());
 	} else if (dynamic_cast<DoubleDampenedTFV*>(selectedSegment.get()) != nullptr) {
-		f1 = f2 = f3 = f4 = true;
+		f1 = f2 = i1 = true;
 
 		tfvFloat1Label->setText("Start value");
 		tfvFloat2Label->setText("End value");
-		tfvFloat4Label->setText("Dampening factor");
+		tfvInt1Label->setText("Dampening factor");
 
 		auto ptr = dynamic_cast<DoubleDampenedTFV*>(selectedSegment.get());
 		tfvFloat1Slider->setValue(ptr->getStartValue());
 		tfvFloat2Slider->setValue(ptr->getEndValue());
-		tfvFloat3Slider->setValue(ptr->getDampeningFactor());
+		tfvInt1Slider->setValue(ptr->getDampeningFactor());
 	}
 	startTime->setValue(tfv->getSegment(index).first);
 	//TODO: add to this if more TFVs are made
@@ -958,6 +972,7 @@ void TFVGroup::selectSegment(int index) {
 	tfvInt1Label->setVisible(i1);
 	tfvInt1Slider->setVisible(i1);
 	// Cannot change start time of the first segment
+	startTimeLabel->setVisible(index != 0);
 	startTime->setVisible(index != 0);
 
 	ignoreSignal = false;
@@ -1012,9 +1027,10 @@ void TFVGroup::onTFVEditorWindowResize(int windowWidth, int windowHeight) {
 	int segmentListRightBoundary = segmentList->getPosition().x + segmentList->getSize().x + paddingX;
 	changeSegmentType->setPosition(segmentListRightBoundary, tgui::bindTop(segmentList));
 
-	startTime->setPosition(segmentListRightBoundary, changeSegmentType->getPosition().y + paddingY*2);
+	startTimeLabel->setPosition(segmentListRightBoundary ,tgui::bindBottom(changeSegmentType) + paddingY * 2);
+	startTime->setPosition(segmentListRightBoundary, startTimeLabel->getPosition().y + startTimeLabel->getSize().y + paddingY);
 
-	tfvFloat1Label->setPosition(segmentListRightBoundary, tgui::bindBottom(startTime) + paddingY * 2);
+	tfvFloat1Label->setPosition(segmentListRightBoundary, tgui::bindBottom(startTime) + paddingY*2);
 	tfvFloat1Slider->setPosition(segmentListRightBoundary, tfvFloat1Label->getPosition().y + tfvFloat1Label->getSize().y + paddingY);
 
 	tfvFloat2Label->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat1Slider) + paddingY);
@@ -1031,6 +1047,8 @@ void TFVGroup::onTFVEditorWindowResize(int windowWidth, int windowHeight) {
 }
 
 void TFVGroup::onTFVFloat1SliderChange(float value) {
+	if (ignoreSignal) return;
+
 	if (dynamic_cast<LinearTFV*>(selectedSegment.get()) != nullptr) {
 		auto ptr = dynamic_cast<LinearTFV*>(selectedSegment.get());
 		float oldValue = ptr->getStartValue();
@@ -1105,6 +1123,8 @@ void TFVGroup::onTFVFloat1SliderChange(float value) {
 }
 
 void TFVGroup::onTFVFloat2SliderChange(float value) {
+	if (ignoreSignal) return;
+
 	if (dynamic_cast<LinearTFV*>(selectedSegment.get()) != nullptr) {
 		auto ptr = dynamic_cast<LinearTFV*>(selectedSegment.get());
 		float oldValue = ptr->getEndValue();
@@ -1169,6 +1189,8 @@ void TFVGroup::onTFVFloat2SliderChange(float value) {
 }
 
 void TFVGroup::onTFVFloat3SliderChange(float value) {
+	if (ignoreSignal) return;
+
 	if (dynamic_cast<SineWaveTFV*>(selectedSegment.get()) != nullptr) {
 		auto ptr = dynamic_cast<SineWaveTFV*>(selectedSegment.get());
 		float oldValue = ptr->getValueShift();
@@ -1189,10 +1211,12 @@ void TFVGroup::onTFVFloat3SliderChange(float value) {
 			[this, &ptr = ptr, oldValue]() {
 			ptr->setAcceleration(oldValue);
 		}));
-	}
+	} 
 }
 
 void TFVGroup::onTFVFloat4SliderChange(float value) {
+	if (ignoreSignal) return;
+
 	if (dynamic_cast<SineWaveTFV*>(selectedSegment.get()) != nullptr) {
 		auto ptr = dynamic_cast<SineWaveTFV*>(selectedSegment.get());
 		float oldValue = ptr->getPhaseShift();
@@ -1207,6 +1231,8 @@ void TFVGroup::onTFVFloat4SliderChange(float value) {
 }
 
 void TFVGroup::onTFVInt1SliderChange(float value) {
+	if (ignoreSignal) return;
+
 	if (dynamic_cast<DampenedStartTFV*>(selectedSegment.get()) != nullptr) {
 		auto ptr = dynamic_cast<DampenedStartTFV*>(selectedSegment.get());
 		float oldValue = ptr->getDampeningFactor();
@@ -1247,12 +1273,12 @@ void TFVGroup::onSelectedSegmentStartTimeChange(float value) {
 	undoStack.execute(UndoableCommand(
 		[this, &selectedSegmentIndex = this->selectedSegmentIndex, value]() {
 		std::lock_guard<std::recursive_mutex> lock(tfvMutex);
-		selectSegment(tfv->changeSegmentStartTime(selectedSegmentIndex, value));
+		selectSegment(tfv->changeSegmentStartTime(selectedSegmentIndex, value, tfvLifespan));
 		populateSegmentList();
 	},
 		[this, &selectedSegmentIndex = this->selectedSegmentIndex, oldValue]() {
 		std::lock_guard<std::recursive_mutex> lock(tfvMutex);
-		selectSegment(tfv->changeSegmentStartTime(selectedSegmentIndex, oldValue));
+		selectSegment(tfv->changeSegmentStartTime(selectedSegmentIndex, oldValue, tfvLifespan));
 		populateSegmentList();
 	}));
 }

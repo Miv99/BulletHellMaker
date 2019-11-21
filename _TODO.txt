@@ -69,14 +69,7 @@ cur todo:
 	 can call onTFVEditingEnd(); (look at how gameplaytestwindow's close signal in AttackEditor causes bezier stuff to close)
 
 big todo:
--implement these in PiecewiseTFV: void changeSegmentStartTime(int index, float newStartTime); segment list should be updated after every call
-	-cannot change max time of any TFV but can change any TFV's start time (when they become active). 
-		-start time of the first segment must be 0; cannot be changed
-		-chage start time of segment index [i] -> if new start time < that of [i - 1], swap [i] and [i - 1]; 
-			if new start time > that of [i + 1], swap [i] and [i + 1] in PiecewiseTFV's segment vector
-	-if any TFV has a max time var, that var should be changed automatically as TFV start times are modified
-		-ie modify start time of [i] -> update max time of [i - 1] and [i]; also update when any swaps occur
-
+-change lifespan of empa -> linearly scale segments' start times to be same % of lifespan
 -piecewise tfv name displayed as name of first segment if only one segment
 -disable keyboard commands when screen is blocked (ibPanel is visible) in AttackEditor
 -disable keyboard commands when confirmation prompt is up in UndoableEditorWindow
@@ -101,6 +94,10 @@ big todo:
  is drawn from the source; if an EMPA is selected, the dots of that particular EMPA are colored differently
 
 TODO:
+-TFVGroup add/delete aren't adding to undo stack
+-control+c -> see what is selected (start from the lowest: EMPA -> EMP -> Attack) -> add that thing to the clipboard
+ control+v -> paste a clone of whatever is in clipboard if the above level is selected. ie if EMPA is in clipboard, 
+	paste a clone of the EMPA to the selectedEMP only if selectedEMP != nullptr. Attack is always pasteable. 
 -disable undo while test is in progress in gameplay test window
 -animatables can't have backslashes in name
 -change all setposition and setsize to use "25%" or whatever
