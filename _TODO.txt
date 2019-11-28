@@ -69,7 +69,8 @@ cur todo:
 	 can call onTFVEditingEnd(); (look at how gameplaytestwindow's close signal in AttackEditor causes bezier stuff to close)
 
 big todo:
--change lifespan of empa -> linearly scale segments' start times to be same % of lifespan
+-change lifespan of empa -> linearly scale segments' start times to be same % of lifespan; store % of original for each segment
+ so that float imprecisions don't ruin the start times as piecewisetfv maxtime keeps changing
 -piecewise tfv name displayed as name of first segment if only one segment
 -disable keyboard commands when screen is blocked (ibPanel is visible) in AttackEditor
 -disable keyboard commands when confirmation prompt is up in UndoableEditorWindow

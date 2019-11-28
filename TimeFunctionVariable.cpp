@@ -286,6 +286,11 @@ int PiecewiseTFV::getSegmentsCount() {
 	return segments.size();
 }
 
+void PiecewiseTFV::setMaxTime(float maxTime) {
+	this->maxTime = maxTime;
+	recalculateMaxTimes(maxTime);
+}
+
 void PiecewiseTFV::recalculateMaxTimes(float totalLifespan) {
 	int index = 0;
 	for (int i = 0; i < segments.size(); i++) {

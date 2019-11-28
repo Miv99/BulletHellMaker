@@ -469,15 +469,14 @@ public:
 	std::pair<float, std::shared_ptr<TFV>> getSegment(int index);
 
 	int getSegmentsCount();
-	void setMaxTime(float maxTime) override { 
-		this->maxTime = maxTime;
-		recalculateMaxTimes(maxTime);
-	}
+	void setMaxTime(float maxTime) override;
 
 private:
 	// Vector of pairs of when the TFV becomes active and the TFV. The first item should become active at t=0.
 	// Sorted in ascending order
 	std::vector<std::pair<float, std::shared_ptr<TFV>>> segments;
+	// Maintained to be in parallel with segments. Corresponds to the proportion of the maxTime of this PiecewiseTFV that the segment takes up.
+	std::vector<float> segmentStartTimePercentages;
 
 	/*
 	Recalculate the maxTimes of every segment
