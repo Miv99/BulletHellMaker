@@ -212,6 +212,8 @@ void PiecewiseTFV::insertSegment(int index, std::pair<float, std::shared_ptr<TFV
 	}
 	if (index != 0) {
 		segment.first += segments[index - 1].first;
+	} else {
+		segment.first = 0;
 	}
 	segments.insert(segments.begin() + index, segment);
 	recalculateMaxTimes(totalLifespan);
