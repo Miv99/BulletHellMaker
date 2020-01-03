@@ -7,6 +7,7 @@
 #include <functional>
 #include <memory>
 #include "TextMarshallable.h"
+#include "SpriteLoader.h"
 
 class Level;
 
@@ -38,7 +39,7 @@ private:
 	// [1, inf]; determines how much the sprite and its "bloom shadow" glows
 	float glowStrength;
 	// [0, 1]; determines how much to darken only the sprite
-	float minBright; 
+	float minBright;
 	// blend mode used when drawing the unblurred texture; saved as an int
 	sf::BlendMode blendMode = DEFAULT_BLEND_MODE;
 };
@@ -54,7 +55,7 @@ public:
 
 	background - the background of the map
 	*/
-	RenderSystem(entt::DefaultRegistry& registry, sf::RenderWindow& window, float playAreaWidth, float playAreaHeight);
+	RenderSystem(entt::DefaultRegistry& registry, sf::RenderWindow& window, SpriteLoader& spriteLoader, float resolutionMultiplier = 1.0f);
 	void update(float deltaTime);
 
 	/*
@@ -68,10 +69,20 @@ public:
 	This doesn't change the size of the window. It only affects the gameplay quality.
 	Resolutions that are too small won't work. 1600x900, 1024x768, and anything higher will work.
 	*/
-	void setResolution(int newPlayAreaWidth, int newPlayAreaHeight);
+	void setResolution(SpriteLoader& spriteLoader, float resolutionMultiplier);
 	void setBackground(sf::Texture background);
 	inline void setBackgroundScrollSpeedX(float backgroundScrollSpeedX) { this->backgroundScrollSpeedX = backgroundScrollSpeedX; }
 	inline void setBackgroundScrollSpeedY(float backgroundScrollSpeedY) { this->backgroundScrollSpeedY = backgroundScrollSpeedY; }
+	inline void setBackgroundTextureWidth(float backgroundTextureWidth) {
+		this->backgroundTextureWidth = backgroundTextureWidth;
+		backgroundSprite.setScale(MAP_WIDTH / backgroundTextureWidth * resolutionMultiplier, MAP_HEIGHT / backgroundTextureHeight * resolutionMultiplier);
+	}
+	inline void setBackgroundTextureHeight(float backgroundTextureHeight) {
+		this->backgroundTextureHeight = backgroundTextureHeight;
+		backgroundSprite.setScale(MAP_WIDTH / backgroundTextureWidth * resolutionMultiplier, MAP_HEIGHT / backgroundTextureHeight * resolutionMultiplier);
+	}
+
+	sf::Vector2u getResolution();
 
 private:
 	entt::DefaultRegistry& registry;
@@ -104,16 +115,21 @@ private:
 	// Temporary layer texture for using multiple shaders
 	sf::RenderTexture tempLayerTexture;
 	sf::RenderTexture tempLayerTexture2;
+	// Temporary layer texture just for the background
+	sf::RenderTexture backgroundTempLayerTexture;
 
 	// Black magic needed to scale texture conversion into sprites correctly since views do not match the texture size
 	// I actually don't know why this is needed only when using 2 or more global shaders on a texture
 	float spriteHorizontalScale;
 	float spriteVerticalScale;
 
+	float resolutionMultiplier = 1.0f;
+
 	sf::Texture background;
 	// The background as a sprite
 	sf::Sprite backgroundSprite;
 	float backgroundScrollSpeedX, backgroundScrollSpeedY;
+	float backgroundTextureWidth, backgroundTextureHeight;
 	// Current position of top-left corner of the screen relative to the top-left corner of the background
 	float backgroundX = 0, backgroundY = 0;
 	float backgroundTextureSizeX, backgroundTextureSizeY;

@@ -16,6 +16,7 @@ std::string Level::format() const {
 	res += "(" + bombItem->format() + ")" + tm_delim;
 	res += "(" + musicSettings.format() + ")" + tm_delim;
 	res += "(" + backgroundFileName + ")" + tm_delim + tos(backgroundScrollSpeedX) + tm_delim + tos(backgroundScrollSpeedY) + tm_delim;
+	res += tos(backgroundTextureWidth) + tm_delim + tos(backgroundTextureHeight) + tm_delim;
 	res += tos(bossNameColor.r) + tm_delim + tos(bossNameColor.g) + tm_delim + tos(bossNameColor.b) + tm_delim + tos(bossNameColor.a) + tm_delim;
 	res += tos(bossHPBarColor.r) + tm_delim + tos(bossHPBarColor.g) + tm_delim + tos(bossHPBarColor.b) + tm_delim + tos(bossHPBarColor.a) = tm_delim;
 	res += tos(bloomLayerSettings.size());
@@ -52,6 +53,8 @@ void Level::load(std::string formattedString) {
 	backgroundFileName = items[i++];
 	backgroundScrollSpeedX = std::stof(items[i++]);
 	backgroundScrollSpeedY = std::stof(items[i++]);
+	backgroundTextureWidth = std::stof(items[i++]);
+	backgroundTextureHeight = std::stof(items[i++]);
 	bossNameColor = sf::Color(std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]));
 	bossHPBarColor = sf::Color(std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]));
 	bloomLayerSettings = std::vector<BloomSettings>(HIGHEST_RENDER_LAYER + 1, BloomSettings());
@@ -63,7 +66,7 @@ void Level::load(std::string formattedString) {
 }
 
 bool Level::legal(std::string & message) const {
-	bool good = true;	
+	bool good = true;
 	//TODO
 	//TODO check packs' animatables can be opened
 	return good;

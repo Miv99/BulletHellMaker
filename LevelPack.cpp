@@ -49,9 +49,9 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	attack2emp0->setBulletModel(model1);
 	attack2emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
 	auto distanceSegments = std::make_shared<PiecewiseTFV>();
-	distanceSegments->insertSegment(0, std::make_pair(1, std::make_shared<LinearTFV>(0, 100, 1)));
-	distanceSegments->insertSegment(1, std::make_pair(2, std::make_shared<LinearTFV>(100, 200, 2)));
-	distanceSegments->insertSegment(2, std::make_pair(3, std::make_shared<LinearTFV>(200, 300, 3)));
+	distanceSegments->insertSegment(std::make_pair(0, std::make_shared<LinearTFV>(0, 100, 1)));
+	distanceSegments->insertSegment(std::make_pair(1, std::make_shared<LinearTFV>(100, 200, 2)));
+	distanceSegments->insertSegment(std::make_pair(3, std::make_shared<LinearTFV>(200, 300, 3)), 6);
 	attack2emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(distanceSegments, std::make_shared<ConstantTFV>(-PI), 6));
 	attack2emp0->setOnCollisionAction(PIERCE_ENTITY);
 

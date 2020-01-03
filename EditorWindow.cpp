@@ -885,7 +885,7 @@ void GameplayTestWindow::onRenderWindowInitialization() {
 	updateWindowView(window->getSize().x, window->getSize().y);
 
 	//TODO: these numbers should come from settings like in GameInstance
-	renderSystem = std::make_unique<RenderSystem>(registry, *window, 1024, 768);
+	renderSystem = std::make_unique<RenderSystem>(registry, *window, *spriteLoader, 1.0f);
 	renderSystem->loadLevelRenderSettings(nullptr);
 
 	debugRenderSystem = std::make_unique<DebugRenderSystem>(registry, *window, MAP_WIDTH, MAP_HEIGHT);

@@ -17,7 +17,8 @@
 #include <iostream>
 
 void GameInstance::updateWindowView(int windowWidth, int windowHeight) {
-	sf::View view = window->getView();
+	sf::Vector2u resolution = renderSystem->getResolution();
+	sf::View view(sf::FloatRect(0, 0, resolution.x, resolution.y));
 
 	// Compares the aspect ratio of the window to the aspect ratio of the view,
 	// and sets the view's viewport accordingly in order to archieve a letterbox effect.
@@ -158,8 +159,6 @@ GameInstance::GameInstance(std::string levelPackName) {
 	scoreLabel->setMaximumTextWidth(0);
 	scoreLabel->setText((boost::format("Score\n%010d") % 0).str());
 
-	updateWindowView(window->getSize().x, window->getSize().y);
-
 	windowHeight = window->getSize().y;
 
 	queue = std::make_unique<EntityCreationQueue>(registry);
@@ -169,7 +168,7 @@ GameInstance::GameInstance(std::string levelPackName) {
 
 	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
 	//TODO: these numbers should come from settings
-	renderSystem = std::make_unique<RenderSystem>(registry, *window, 1024, 768);
+	renderSystem = std::make_unique<RenderSystem>(registry, *window, *spriteLoader, 1.0f);
 	collisionSystem = std::make_unique<CollisionSystem>(*levelPack, *queue, *spriteLoader, registry, MAP_WIDTH, MAP_HEIGHT);
 	despawnSystem = std::make_unique<DespawnSystem>(registry);
 	enemySystem = std::make_unique<EnemySystem>(*queue, *spriteLoader, *levelPack, registry);
@@ -179,6 +178,8 @@ GameInstance::GameInstance(std::string levelPackName) {
 	collectibleSystem = std::make_unique<CollectibleSystem>(*queue, registry, *levelPack, MAP_WIDTH, MAP_HEIGHT);
 
 	// GUI stuff
+
+	updateWindowView(window->getSize().x, window->getSize().y);
 
 	// Note: "GUI region" refers to the right side of the window that doesn't contain the stuff from RenderSystem
 	smoothPlayerHPBar = levelPack->getPlayer().getSmoothPlayerHPBar();
@@ -415,6 +416,8 @@ void GameInstance::loadLevel(int levelIndex) {
 	renderSystem->setBackground(std::move(background));
 	renderSystem->setBackgroundScrollSpeedX(level->getBackgroundScrollSpeedX());
 	renderSystem->setBackgroundScrollSpeedY(level->getBackgroundScrollSpeedY());
+	renderSystem->setBackgroundTextureWidth(level->getBackgroundTextureWidth());
+	renderSystem->setBackgroundTextureHeight(level->getBackgroundTextureHeight());
 
 	// Initialize gui stuff
 	onPlayerHPChange(registry.get<HealthComponent>(registry.attachee<PlayerTag>()).getHealth(), registry.get<HealthComponent>(registry.attachee<PlayerTag>()).getMaxHealth());

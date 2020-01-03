@@ -35,19 +35,19 @@ public:
 		if (!pointPack) {
 			pointPack = std::make_shared<PointsPackItem>();
 		}
-		return pointPack; 
+		return pointPack;
 	}
-	inline std::shared_ptr<PowerPackItem> getPowerPack() { 
+	inline std::shared_ptr<PowerPackItem> getPowerPack() {
 		if (!powerPack) {
 			powerPack = std::make_shared<PowerPackItem>();
 		}
-		return powerPack; 
+		return powerPack;
 	}
 	inline std::shared_ptr<BombItem> getBombItem() {
 		if (!bombItem) {
 			bombItem = std::make_shared<BombItem>();
 		}
-		return bombItem; 
+		return bombItem;
 	}
 	/*
 	Returns a reference to the music settings.
@@ -60,6 +60,8 @@ public:
 	inline sf::Color getBossHPBarColor() const { return bossHPBarColor; }
 	// Returns a reference
 	inline std::vector<BloomSettings> getBloomLayerSettings() const { return bloomLayerSettings; }
+	inline float getBackgroundTextureWidth() const { return backgroundTextureWidth; }
+	inline float getBackgroundTextureHeight() const { return backgroundTextureHeight; }
 
 	inline void setName(std::string name) { this->name = name; }
 	inline void setBackgroundFileName(std::string backgroundFileName) { this->backgroundFileName = backgroundFileName; }
@@ -67,10 +69,12 @@ public:
 	inline void setBackgroundScrollSpeedY(float backgroundScrollSpeedY) { this->backgroundScrollSpeedY = backgroundScrollSpeedY; }
 	inline void setBossNameColor(sf::Color bossNameColor) { this->bossNameColor = bossNameColor; }
 	inline void setBossHPBarColor(sf::Color bossHPBarColor) { this->bossHPBarColor = bossHPBarColor; }
+	inline float setBackgroundTextureWidth(float backgroundTextureWidth) { this->backgroundTextureWidth = backgroundTextureWidth; }
+	inline float setBackgroundTextureHeight(float backgroundTextureHeight) { this->backgroundTextureHeight = backgroundTextureHeight; }
 
 	// Inserts a spawn condition and enemies such that the new condition and enemies are at the specified index
 	inline void insertEnemySpawns(int conditionIndex, std::shared_ptr<EnemySpawnCondition> spawnCondition, std::vector<EnemySpawnInfo> enemies) {
-		enemyGroups.insert(enemyGroups.begin() + conditionIndex, std::make_pair(spawnCondition, enemies)); 
+		enemyGroups.insert(enemyGroups.begin() + conditionIndex, std::make_pair(spawnCondition, enemies));
 	}
 	// Adds an enemy into an already existing spawn condition
 	inline void addEnemy(int conditionIndex, EnemySpawnInfo enemy) {
@@ -100,6 +104,9 @@ private:
 	std::string backgroundFileName;
 	float backgroundScrollSpeedX = 0;
 	float backgroundScrollSpeedY = 0;
+	// How many pixels in the background image will be shown on screen at any given time
+	float backgroundTextureWidth = MAP_WIDTH;
+	float backgroundTextureHeight = MAP_HEIGHT;
 
 	// Boss name and hp bar colors are in Level instead of in Enemy because they are drawn in the playing area, 
 	// on top of the background, so they should be up to Level to decide

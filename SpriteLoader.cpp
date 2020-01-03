@@ -15,7 +15,8 @@ static const std::string SPRITE_COLOR_TAG = "Color";
 static const std::string SPRITE_SIZE_TAG = "SpriteSize";
 static const std::string SPRITE_ORIGIN_TAG = "Origin";
 
-std::vector<int> extractInts(const std::string& str) {	std::vector<int> vect;
+std::vector<int> extractInts(const std::string& str) {
+	std::vector<int> vect;
 	std::stringstream ss(str);
 
 	int i;
@@ -48,12 +49,12 @@ std::shared_ptr<sf::Sprite> SpriteSheet::getSprite(const std::string& spriteName
 		// Insert texture into map
 		textures[area] = texture;
 	}
-	
+
 	// Create sprite
 	std::shared_ptr<sf::Sprite> sprite = std::make_shared<sf::Sprite>();
 	sprite->setTexture(*textures[area]);
 	sprite->setColor(data->getColor());
-	sprite->setScale((float)data->getSpriteWidth() / area.width, (float)data->getSpriteHeight() / area.height);
+	sprite->setScale((float)data->getSpriteWidth() / area.width * globalSpriteScale, (float)data->getSpriteHeight() / area.height * globalSpriteScale);
 	sprite->setOrigin(data->getSpriteOriginX(), data->getSpriteOriginY());
 	return sprite;
 }
@@ -96,6 +97,15 @@ void SpriteSheet::preloadTextures() {
 	}
 }
 
+void SpriteSheet::setGlobalSpriteScale(float scale) {
+	globalSpriteScale = scale;
+	for (auto it = spriteData.begin(); it != spriteData.end(); it++) {
+		ComparableIntRect area = it->second->getArea();
+		getSprite(it->first)->setScale((float)it->second->getSpriteWidth() / area.width * globalSpriteScale, (float)it->second->getSpriteHeight() / area.height * globalSpriteScale);
+
+	}
+}
+
 bool SpriteData::operator==(const SpriteData & other) const {
 	return this->area == other.area && this->color == other.color;
 }
@@ -130,6 +140,12 @@ void SpriteLoader::clearSpriteSheets() {
 	spriteSheets.clear();
 }
 
+void SpriteLoader::setGlobalSpriteScale(float scale) {
+	for (auto it = spriteSheets.begin(); it != spriteSheets.end(); it++) {
+		it->second->setGlobalSpriteScale(scale);
+	}
+}
+
 bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, const std::string& spriteSheetImageFileName) {
 	std::ifstream metafile(levelPackRelativePath + "\\" + spriteSheetMetaFileName);
 	if (!metafile) {
@@ -161,11 +177,13 @@ bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, c
 					auto temp = extractInts(animationIterator->second->at(SPRITE_TOPLEFT_COORDS_TAG));
 					if (temp.size() != 2) {
 						throw "Sprite \"" + name + "\"'s " + SPRITE_TOPLEFT_COORDS_TAG + " property has an invalid format";
-					} else {
+					}
+					else {
 						area.left = temp[0];
 						area.top = temp[1];
 					}
-				} else {
+				}
+				else {
 					throw "Sprite \"" + name + "\" is missing property " + SPRITE_TOPLEFT_COORDS_TAG;
 				}
 				// area's width and height
@@ -173,11 +191,13 @@ bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, c
 					auto temp = extractInts(animationIterator->second->at(SPRITE_TEXTURE_BOUNDS_TAG));
 					if (temp.size() != 2) {
 						throw "Sprite \"" + name + "\"'s " + SPRITE_TEXTURE_BOUNDS_TAG + " property has an invalid format";
-					} else {
+					}
+					else {
 						area.width = temp[0];
 						area.height = temp[1];
 					}
-				} else {
+				}
+				else {
 					throw "Sprite \"" + name + "\" is missing property " + SPRITE_TEXTURE_BOUNDS_TAG;
 				}
 				// color
@@ -186,7 +206,8 @@ bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, c
 					auto temp = extractInts(animationIterator->second->at(SPRITE_COLOR_TAG));
 					if (temp.size() != 4) {
 						throw "Sprite \"" + name + "\"'s " + SPRITE_COLOR_TAG + " property has an invalid format";
-					} else {
+					}
+					else {
 						color.r = temp[0];
 						color.g = temp[1];
 						color.b = temp[2];
@@ -199,20 +220,23 @@ bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, c
 					auto temp = extractInts(animationIterator->second->at(SPRITE_SIZE_TAG));
 					if (temp.size() != 2) {
 						throw "Sprite \"" + name + "\"'s " + SPRITE_SIZE_TAG + " property has an invalid format";
-					} else {
+					}
+					else {
 						spriteWidth = temp[0];
 						spriteHeight = temp[1];
 					}
-				} else {
+				}
+				else {
 					throw "Sprite \"" + name + "\" is missing property " + SPRITE_SIZE_TAG;
 				}
 				// sprite origin
-				float originX = area.width /2.0f, originY = area.height/2.0f;
+				float originX = area.width / 2.0f, originY = area.height / 2.0f;
 				if (animationIterator->second->find(SPRITE_ORIGIN_TAG) != animationIterator->second->end()) {
 					auto temp = extractInts(animationIterator->second->at(SPRITE_ORIGIN_TAG));
 					if (temp.size() != 2) {
 						throw "Sprite \"" + name + "\"'s " + SPRITE_ORIGIN_TAG + " property has an invalid format";
-					} else {
+					}
+					else {
 						originX = temp[0];
 						originY = temp[1];
 					}
@@ -247,7 +271,8 @@ bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, c
 		}
 
 		spriteSheets[spriteSheetName] = sheet;
-	} catch (std::exception e) {
+	}
+	catch (std::exception e) {
 		BOOST_LOG_TRIVIAL(error) << "Invalid format in \"" + spriteSheetMetaFileName + "\"; " + e.what();
 		metafile.close();
 		return false;

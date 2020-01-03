@@ -33,7 +33,7 @@ private:
 	std::string spriteName;
 	ComparableIntRect area;
 	sf::Color color;
-	// Size that the sprite will be; not to be confused with the area containing the sprite's texture in the image
+	// Size that the sprite will be, without accounting for global scale; not to be confused with the area containing the sprite's texture in the image
 	int spriteWidth;
 	int spriteHeight;
 	// Local position of the sprite's origin
@@ -69,6 +69,8 @@ public:
 	void insertAnimation(const std::string&, std::shared_ptr<AnimationData>);
 	bool loadImage(const std::string& imageFileName);
 	void preloadTextures();
+	// Scale all sprites by the same amount
+	void setGlobalSpriteScale(float scale);
 
 	inline const std::map<std::string, std::shared_ptr<SpriteData>> getSpriteData() { return spriteData; }
 	inline const std::map<std::string, std::shared_ptr<AnimationData>> getAnimationData() { return animationData; }
@@ -85,8 +87,13 @@ private:
 	std::map<std::string, std::shared_ptr<AnimationData>> animationData;
 	// Maps an animation name to a list of pairs of sprites and for how long each sprite appears for
 	std::map<std::string, std::vector<std::pair<float, std::shared_ptr<sf::Sprite>>>> animationSprites;
+
+	float globalSpriteScale = 1.0f;
 };
 
+/*
+Note that if the SpriteLoader object goes out of scope, all Sprites loaded from it will not display correctly.
+*/
 class SpriteLoader {
 public:
 	// spriteSheetNames - vector of pairs of SpriteSheet meta file names and SpriteSheet image file names
@@ -97,6 +104,8 @@ public:
 	inline const std::map<std::string, std::shared_ptr<SpriteSheet>> getSpriteSheets() { return spriteSheets; }
 	void preloadTextures();
 	void clearSpriteSheets();
+	// Scale all sprites by the same amount
+	void setGlobalSpriteScale(float scale);
 
 private:
 	// Relative path to the level path containing the files

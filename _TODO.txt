@@ -43,12 +43,12 @@ Notes for me:
 -Item path is in Components::CollectibleComponent::update and EntityCreationQueue::EMPDropItemCommand::execute
 -Player invulnerability sprite effect animation is in CollisionSystem
 
--TreeView double click on emptiness --> crash
--TreeView node icon hitbox only in upper half
--TreeView default (when there are no textures) icon bounds incorrect size if setItemHeight is called after setSize
--attack ID 13 is messed up
+-kill enemy with no movement path -> ondeath stuff broke; fix this by making sure all entities always have some movement path
+-viewport not being set correctly until window already is loaded. causes this bug:
+	-when the window is first created, the RenderWindow view is incorrect
 
 cur todo:
+-gui stuff for game instance
 -TFV editing
 	-in attackeditor: simply an "Edit TFV" button; the entire window is passed as a parameter into EditorUtilities::TFVGroup
 	 so that TFVGroup can cache all widgets and display a custom gui just for editing TFVs. Then GameplayTestWindow is turned
