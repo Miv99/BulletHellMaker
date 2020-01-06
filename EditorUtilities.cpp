@@ -1381,7 +1381,7 @@ void Slider::setStep(float step) {
 	m_step = step;
 }
 
-SimpleEngineRenderer::SimpleEngineRenderer(sf::RenderWindow & parentWindow) : parentWindow(parentWindow), paused(true) {
+SimpleEngineRenderer::SimpleEngineRenderer(sf::RenderWindow & parentWindow, bool useDebugRenderSystem) : parentWindow(parentWindow), paused(true) {
 	audioPlayer = std::make_unique<AudioPlayer>();
 	//TODO: change to "Default"
 	levelPack = std::make_shared<LevelPack>(*audioPlayer, "test pack");
@@ -1392,7 +1392,11 @@ SimpleEngineRenderer::SimpleEngineRenderer(sf::RenderWindow & parentWindow) : pa
 
 	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
 	//TODO: these numbers should come from settings
-	renderSystem = std::make_unique<RenderSystem>(registry, parentWindow, *spriteLoader, 1.0f);
+	if (useDebugRenderSystem) {
+		renderSystem = std::make_unique<DebugRenderSystem>(registry, parentWindow, *spriteLoader, 1.0f);
+	} else {
+		renderSystem = std::make_unique<RenderSystem>(registry, parentWindow, *spriteLoader, 1.0f);
+	}
 	collisionSystem = std::make_unique<CollisionSystem>(*levelPack, *queue, *spriteLoader, registry, MAP_WIDTH, MAP_HEIGHT);
 	despawnSystem = std::make_unique<DespawnSystem>(registry);
 	enemySystem = std::make_unique<EnemySystem>(*queue, *spriteLoader, *levelPack, registry);
