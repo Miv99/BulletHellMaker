@@ -8,6 +8,17 @@
 #include "AudioPlayer.h"
 #include "TimeFunctionVariable.h"
 #include "UndoStack.h"
+#include "MovementSystem.h"
+#include "RenderSystem.h"
+#include "CollisionSystem.h"
+#include "EnemySystem.h"
+#include "DespawnSystem.h"
+#include "SpriteAnimationSystem.h"
+#include "EntityCreationQueue.h"
+#include "ShadowTrailSystem.h"
+#include "PlayerSystem.h"
+#include "AudioPlayer.h"
+#include "CollectibleSystem.h"
 #include "DebugRenderSystem.h"
 #include "RenderSystem.h"
 #include "Attack.h"
@@ -414,4 +425,44 @@ private:
 	// Signal emitted AFTER a change is made to the EMPAAngleOffset
 	// 2 parameters in order: the old EMPAAngleOffset with no changes applied and the old EMPAAngleOffset with changes applied
 	std::shared_ptr<entt::SigH<void(std::shared_ptr<EMPAAngleOffset>, std::shared_ptr<EMPAAngleOffset>)>> onAngleOffsetChange;
+};
+
+class SimpleEngineRenderer : public tgui::Panel {
+public:
+	SimpleEngineRenderer(sf::RenderWindow& parentWindow);
+	inline static std::shared_ptr<SimpleEngineRenderer> create(sf::RenderWindow& parentWindow) {
+		return std::make_shared<SimpleEngineRenderer>(parentWindow);
+	}
+
+	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+
+protected:
+
+private:
+	sf::RenderWindow& parentWindow;
+
+	bool paused;
+
+	std::shared_ptr<LevelPack> levelPack;
+	std::unique_ptr<SpriteLoader> spriteLoader;
+	std::unique_ptr<EntityCreationQueue> queue;
+
+	mutable entt::DefaultRegistry registry;
+
+	sf::FloatRect viewportFloatRect, viewFloatRect;
+
+	//TODO: handle events somehow
+	std::unique_ptr<MovementSystem> movementSystem;
+	std::unique_ptr<RenderSystem> renderSystem;
+	std::unique_ptr<CollisionSystem> collisionSystem;
+	std::unique_ptr<DespawnSystem> despawnSystem;
+	std::unique_ptr<EnemySystem> enemySystem;
+	std::unique_ptr<SpriteAnimationSystem> spriteAnimationSystem;
+	std::unique_ptr<ShadowTrailSystem> shadowTrailSystem;
+	std::unique_ptr<PlayerSystem> playerSystem;
+	std::unique_ptr<CollectibleSystem> collectibleSystem;
+	std::unique_ptr<AudioPlayer> audioPlayer;
+
+	void physicsUpdate(float deltaTime) const;
+	void updateWindowView();
 };

@@ -458,6 +458,10 @@ void RenderSystem::setResolution(SpriteLoader& spriteLoader, float resolutionMul
 	}
 
 	backgroundSprite.setScale(MAP_WIDTH / backgroundTextureWidth * resolutionMultiplier, MAP_HEIGHT / backgroundTextureHeight * resolutionMultiplier);
+
+	if (onResolutionChange) {
+		onResolutionChange->publish();
+	}
 }
 
 void RenderSystem::loadLevelRenderSettings(std::shared_ptr<Level> level) {
@@ -493,6 +497,13 @@ void RenderSystem::setBackground(sf::Texture background) {
 
 sf::Vector2u RenderSystem::getResolution() {
 	return tempLayerTexture.getSize();
+}
+
+std::shared_ptr<entt::SigH<void()>> RenderSystem::getOnResolutionChange() {
+	if (!onResolutionChange) {
+		onResolutionChange = std::make_shared<entt::SigH<void()>>();
+	}
+	return onResolutionChange;
 }
 
 std::string BloomSettings::format() const {

@@ -83,6 +83,7 @@ public:
 	}
 
 	sf::Vector2u getResolution();
+	std::shared_ptr<entt::SigH<void()>> getOnResolutionChange();
 
 private:
 	entt::DefaultRegistry& registry;
@@ -133,4 +134,6 @@ private:
 	// Current position of top-left corner of the screen relative to the top-left corner of the background
 	float backgroundX = 0, backgroundY = 0;
 	float backgroundTextureSizeX, backgroundTextureSizeY;
+
+	std::shared_ptr<entt::SigH<void()>> onResolutionChange;
 };

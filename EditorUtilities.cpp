@@ -4,7 +4,7 @@
 #include <map>
 #include <boost/filesystem.hpp>
 #include <iostream>
-#include "matplotlibcpp.h"
+//#include "matplotlibcpp.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -604,6 +604,7 @@ TFVGroup::TFVGroup(std::shared_ptr<std::recursive_mutex> tguiMutex, float paddin
 	showGraph->setText("Show graph");
 	showGraph->connect("Pressed", [&]() {
 		auto points = generateMPLPoints(tfv, tfvLifespan, TFV_TIME_RESOLUTION);
+		/*
 		matplotlibcpp::clf();
 		matplotlibcpp::close();
 		for (int i = 0; i < points.size(); i++) {
@@ -614,6 +615,7 @@ TFVGroup::TFVGroup(std::shared_ptr<std::recursive_mutex> tguiMutex, float paddin
 			}
 		}
 		matplotlibcpp::show();
+		*/
 	});
 	panel->add(showGraph);
 
@@ -1377,4 +1379,173 @@ void Slider::setValue(float value) {
 
 void Slider::setStep(float step) {
 	m_step = step;
+}
+
+SimpleEngineRenderer::SimpleEngineRenderer(sf::RenderWindow & parentWindow) : parentWindow(parentWindow), paused(true) {
+	audioPlayer = std::make_unique<AudioPlayer>();
+	//TODO: change to "Default"
+	levelPack = std::make_shared<LevelPack>(*audioPlayer, "test pack");
+	queue = std::make_unique<EntityCreationQueue>(registry);
+
+	spriteLoader = levelPack->createSpriteLoader();
+	spriteLoader->preloadTextures();
+
+	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
+	//TODO: these numbers should come from settings
+	renderSystem = std::make_unique<RenderSystem>(registry, parentWindow, *spriteLoader, 1.0f);
+	collisionSystem = std::make_unique<CollisionSystem>(*levelPack, *queue, *spriteLoader, registry, MAP_WIDTH, MAP_HEIGHT);
+	despawnSystem = std::make_unique<DespawnSystem>(registry);
+	enemySystem = std::make_unique<EnemySystem>(*queue, *spriteLoader, *levelPack, registry);
+	spriteAnimationSystem = std::make_unique<SpriteAnimationSystem>(*spriteLoader, registry);
+	shadowTrailSystem = std::make_unique<ShadowTrailSystem>(*queue, registry);
+	playerSystem = std::make_unique<PlayerSystem>(*levelPack, *queue, *spriteLoader, registry);
+	collectibleSystem = std::make_unique<CollectibleSystem>(*queue, registry, *levelPack, MAP_WIDTH, MAP_HEIGHT);
+
+	connect("PositionChanged", [&]() {
+		updateWindowView();
+	});
+	connect("SizeChanged", [&]() {
+		updateWindowView();
+	});
+
+	renderSystem->getOnResolutionChange()->sink().connect<SimpleEngineRenderer, &SimpleEngineRenderer::updateWindowView>(this);
+
+
+
+
+	{
+		std::shared_ptr<Level> level = levelPack->getLevel(0);
+
+		// Load bloom settings
+		renderSystem->loadLevelRenderSettings(level);
+
+		// Remove all existing entities from the registry
+		registry.reset();
+		reserveMemory(registry, INITIAL_ENTITY_RESERVATION);
+
+		// Create the level manager
+		registry.reserve<LevelManagerTag>(1);
+		registry.reserve(registry.alive() + 1);
+		uint32_t levelManager = registry.create();
+		auto& levelManagerTag = registry.assign<LevelManagerTag>(entt::tag_t{}, levelManager, &(*levelPack), level);
+
+		// Create the player
+		auto params = levelPack->getPlayer();
+		registry.reserve(1);
+		registry.reserve<PlayerTag>(1);
+		registry.reserve<AnimatableSetComponent>(1);
+		registry.reserve<HealthComponent>(1);
+		registry.reserve<HitboxComponent>(1);
+		registry.reserve<PositionComponent>(1);
+		registry.reserve<SpriteComponent>(1);
+		auto player = registry.create();
+		registry.assign<AnimatableSetComponent>(player);
+		auto& playerTag = registry.assign<PlayerTag>(entt::tag_t{}, player, registry, *levelPack, player, params.getSpeed(), params.getFocusedSpeed(), params.getInvulnerabilityTime(),
+			params.getPowerTiers(), params.getHurtSound(), params.getDeathSound(), params.getInitialBombs(), params.getMaxBombs(), params.getBombInvincibilityTime());
+		auto& health = registry.assign<HealthComponent>(player, params.getInitialHealth(), params.getMaxHealth());
+		// Hitbox temporarily at 0, 0 until an Animatable is assigned to the player later
+		registry.assign<HitboxComponent>(player, LOCK_ROTATION, params.getHitboxRadius(), 0, 0);
+		registry.assign<PositionComponent>(player, PLAYER_SPAWN_X - params.getHitboxPosX(), PLAYER_SPAWN_Y - params.getHitboxPosY());
+		registry.assign<SpriteComponent>(player, PLAYER_LAYER, 0);
+
+		// Play level music
+		levelPack->playMusic(level->getMusicSettings());
+
+		// Set the background
+		std::string backgroundFileName = level->getBackgroundFileName();
+		sf::Texture background;
+		if (!background.loadFromFile("Level Packs\\" + levelPack->getName() + "\\Backgrounds\\" + backgroundFileName)) {
+			//TODO: load a default background
+		}
+		background.setRepeated(true);
+		background.setSmooth(true);
+		renderSystem->setBackground(std::move(background));
+		renderSystem->setBackgroundScrollSpeedX(level->getBackgroundScrollSpeedX());
+		renderSystem->setBackgroundScrollSpeedY(level->getBackgroundScrollSpeedY());
+		renderSystem->setBackgroundTextureWidth(level->getBackgroundTextureWidth());
+		renderSystem->setBackgroundTextureHeight(level->getBackgroundTextureHeight());
+
+		paused = false;
+	}
+}
+
+void SimpleEngineRenderer::updateWindowView() {
+	auto windowSize = parentWindow.getSize();
+	auto size = getSize();
+	float sizeRatio = size.x / (float)size.y;
+	sf::Vector2u resolution = renderSystem->getResolution();
+	float playAreaViewRatio = resolution.x / (float)resolution.y;
+
+	if (sizeRatio > playAreaViewRatio) {
+		float viewHeight = resolution.y;
+		float viewWidth = resolution.y * size.x / (float)size.y;
+		float viewX = -(viewWidth - resolution.x) / 2.0f;
+		float viewY = 0;
+		viewFloatRect = sf::FloatRect(viewX, viewY, viewWidth, viewHeight);
+	} else {
+		float viewWidth = resolution.x;
+		float viewHeight = resolution.x * size.y / (float)size.x;
+		float viewX = 0;
+		float viewY = -(viewHeight - resolution.y) / 2.0f;
+		viewFloatRect = sf::FloatRect(viewX, viewY, viewWidth, viewHeight);
+	}
+
+	float viewportX = getAbsolutePosition().x / windowSize.x;
+	float viewportY = getAbsolutePosition().y / windowSize.y;
+	float viewportWidth = getSize().x / windowSize.x;
+	float viewportHeight = getSize().y / windowSize.y;
+	viewportFloatRect = sf::FloatRect(viewportX, viewportY, viewportWidth, viewportHeight);
+}
+
+void SimpleEngineRenderer::draw(sf::RenderTarget & target, sf::RenderStates states) const {
+	tgui::Panel::draw(target, states);
+
+	sf::Clock deltaClock;
+	float secondsSinceLastRender = 0;
+	while (secondsSinceLastRender < RENDER_INTERVAL) {
+		float dt = std::min(MAX_PHYSICS_DELTA_TIME, deltaClock.restart().asSeconds());
+		physicsUpdate(dt);
+		secondsSinceLastRender += dt;
+	}
+
+	// Viewport is set here because tgui::Gui's draw function changes it right before renderSystem is updated or something
+	sf::View originalView = parentWindow.getView();
+	sf::View view(viewFloatRect);
+	view.setViewport(viewportFloatRect);
+	parentWindow.setView(view);
+	if (!paused) {
+		spriteAnimationSystem->update(secondsSinceLastRender);
+	}
+	renderSystem->update(secondsSinceLastRender);
+	parentWindow.setView(originalView);
+}
+
+void SimpleEngineRenderer::physicsUpdate(float deltaTime) const {
+	if (!paused) {
+		audioPlayer->update(deltaTime);
+
+		collisionSystem->update(deltaTime);
+		queue->executeAll();
+
+		registry.get<LevelManagerTag>().update(*queue, *spriteLoader, registry, deltaTime);
+		queue->executeAll();
+
+		despawnSystem->update(deltaTime);
+		queue->executeAll();
+
+		shadowTrailSystem->update(deltaTime);
+		queue->executeAll();
+
+		movementSystem->update(deltaTime);
+		queue->executeAll();
+
+		collectibleSystem->update(deltaTime);
+		queue->executeAll();
+
+		playerSystem->update(deltaTime);
+		queue->executeAll();
+
+		enemySystem->update(deltaTime);
+		queue->executeAll();
+	}
 }
