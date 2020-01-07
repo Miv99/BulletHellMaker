@@ -55,8 +55,8 @@ public:
 
 	background - the background of the map
 	*/
-	RenderSystem(entt::DefaultRegistry& registry, sf::RenderWindow& window, SpriteLoader& spriteLoader, float resolutionMultiplier = 1.0f);
-	void update(float deltaTime);
+	RenderSystem(entt::DefaultRegistry& registry, sf::RenderWindow& window, SpriteLoader& spriteLoader, float resolutionMultiplier = 1.0f, bool initShaders = true);
+	virtual void update(float deltaTime);
 
 	/*
 	Load bloom shaders to match a level's bloom settings.
@@ -69,7 +69,8 @@ public:
 	This doesn't change the size of the window. It only affects the gameplay quality.
 	Resolutions that are too small won't work. 1600x900, 1024x768, and anything higher will work.
 	*/
-	void setResolution(SpriteLoader& spriteLoader, float resolutionMultiplier);
+	virtual void setResolution(SpriteLoader& spriteLoader, float resolutionMultiplier);
+	
 	void setBackground(sf::Texture background);
 	inline void setBackgroundScrollSpeedX(float backgroundScrollSpeedX) { this->backgroundScrollSpeedX = backgroundScrollSpeedX; }
 	inline void setBackgroundScrollSpeedY(float backgroundScrollSpeedY) { this->backgroundScrollSpeedY = backgroundScrollSpeedY; }
@@ -85,7 +86,7 @@ public:
 	sf::Vector2u getResolution();
 	std::shared_ptr<entt::SigH<void()>> getOnResolutionChange();
 
-private:
+protected:
 	entt::DefaultRegistry& registry;
 	sf::RenderWindow& window;
 

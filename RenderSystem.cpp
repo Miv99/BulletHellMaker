@@ -4,7 +4,7 @@
 #include <cmath>
 #include "Level.h"
 
-RenderSystem::RenderSystem(entt::DefaultRegistry & registry, sf::RenderWindow & window, SpriteLoader& spriteLoader, float resolutionMultiplier) : registry(registry), window(window), resolutionMultiplier(resolutionMultiplier) {
+RenderSystem::RenderSystem(entt::DefaultRegistry & registry, sf::RenderWindow & window, SpriteLoader& spriteLoader, float resolutionMultiplier, bool initShaders) : registry(registry), window(window), resolutionMultiplier(resolutionMultiplier) {
 	// Initialize layers to be size of the max layer
 	layers = std::vector<std::pair<int, std::vector<std::reference_wrapper<SpriteComponent>>>>(HIGHEST_RENDER_LAYER + 1);
 	layers[SHADOW_LAYER] = std::make_pair(SHADOW_LAYER, std::vector<std::reference_wrapper<SpriteComponent>>());
@@ -18,64 +18,65 @@ RenderSystem::RenderSystem(entt::DefaultRegistry & registry, sf::RenderWindow & 
 	setResolution(spriteLoader, resolutionMultiplier);
 
 	// Initialize global shaders
+	if (initShaders) {
+		// Shadow shaders
+		{
+			std::unique_ptr<sf::Shader> shadowBlurHorizontal = std::make_unique<sf::Shader>();
+			if (!shadowBlurHorizontal->loadFromFile("Shaders/gaussian_blur.frag", sf::Shader::Fragment)) {
+				throw "Could not load Shaders/gaussian_blur.frag";
+			}
+			shadowBlurHorizontal->setUniform("texture", sf::Shader::CurrentTexture);
+			shadowBlurHorizontal->setUniform("resolution", sf::Vector2f(layerTextures[SHADOW_LAYER].getSize().x, layerTextures[SHADOW_LAYER].getSize().y));
+			shadowBlurHorizontal->setUniform("direction", sf::Vector2f(1, 0));
+			shadowBlurHorizontal->setUniform("mode", 0);
+			globalShaders[SHADOW_LAYER].push_back(std::move(shadowBlurHorizontal));
 
-	// Shadow shaders
-	{
-		std::unique_ptr<sf::Shader> shadowBlurHorizontal = std::make_unique<sf::Shader>();
-		if (!shadowBlurHorizontal->loadFromFile("Shaders/gaussian_blur.frag", sf::Shader::Fragment)) {
-			throw "Could not load Shaders/gaussian_blur.frag";
+			std::unique_ptr<sf::Shader> shadowBlurVertical = std::make_unique<sf::Shader>();
+			if (!shadowBlurVertical->loadFromFile("Shaders/gaussian_blur.frag", sf::Shader::Fragment)) {
+				throw "Could not load Shaders/gaussian_blur.frag";
+			}
+			shadowBlurVertical->setUniform("texture", sf::Shader::CurrentTexture);
+			shadowBlurVertical->setUniform("resolution", sf::Vector2f(layerTextures[SHADOW_LAYER].getSize().x, layerTextures[SHADOW_LAYER].getSize().y));
+			shadowBlurVertical->setUniform("direction", sf::Vector2f(0, 1));
+			shadowBlurVertical->setUniform("mode", 0);
+			globalShaders[SHADOW_LAYER].push_back(std::move(shadowBlurVertical));
 		}
-		shadowBlurHorizontal->setUniform("texture", sf::Shader::CurrentTexture);
-		shadowBlurHorizontal->setUniform("resolution", sf::Vector2f(layerTextures[SHADOW_LAYER].getSize().x, layerTextures[SHADOW_LAYER].getSize().y));
-		shadowBlurHorizontal->setUniform("direction", sf::Vector2f(1, 0));
-		shadowBlurHorizontal->setUniform("mode", 0);
-		globalShaders[SHADOW_LAYER].push_back(std::move(shadowBlurHorizontal));
 
-		std::unique_ptr<sf::Shader> shadowBlurVertical = std::make_unique<sf::Shader>();
-		if (!shadowBlurVertical->loadFromFile("Shaders/gaussian_blur.frag", sf::Shader::Fragment)) {
-			throw "Could not load Shaders/gaussian_blur.frag";
+		// Bloom blur shaders
+		{
+			std::unique_ptr<sf::Shader> blurHorizontal = std::make_unique<sf::Shader>();
+			if (!blurHorizontal->loadFromFile("Shaders/n_linear_blur.frag", sf::Shader::Fragment)) {
+				throw "Could not load Shaders/n_linear_blur.frag";
+			}
+			blurHorizontal->setUniform("texture", sf::Shader::CurrentTexture);
+			blurHorizontal->setUniform("resolution", sf::Vector2f(layerTextures[SHADOW_LAYER].getSize().x, layerTextures[SHADOW_LAYER].getSize().y));
+			blurHorizontal->setUniform("direction", sf::Vector2f(1, 0));
+			blurHorizontal->setUniform("n", 15);
+			bloomBlurShaders.push_back(std::move(blurHorizontal));
+
+			std::unique_ptr<sf::Shader> blurVertical = std::make_unique<sf::Shader>();
+			if (!blurVertical->loadFromFile("Shaders/n_linear_blur.frag", sf::Shader::Fragment)) {
+				throw "Could not load Shaders/n_linear_blur.frag";
+			}
+			blurVertical->setUniform("texture", sf::Shader::CurrentTexture);
+			blurVertical->setUniform("resolution", sf::Vector2f(layerTextures[SHADOW_LAYER].getSize().x, layerTextures[SHADOW_LAYER].getSize().y));
+			blurVertical->setUniform("direction", sf::Vector2f(0, 1));
+			blurVertical->setUniform("n", 15);
+			bloomBlurShaders.push_back(std::move(blurVertical));
 		}
-		shadowBlurVertical->setUniform("texture", sf::Shader::CurrentTexture);
-		shadowBlurVertical->setUniform("resolution", sf::Vector2f(layerTextures[SHADOW_LAYER].getSize().x, layerTextures[SHADOW_LAYER].getSize().y));
-		shadowBlurVertical->setUniform("direction", sf::Vector2f(0, 1));
-		shadowBlurVertical->setUniform("mode", 0);
-		globalShaders[SHADOW_LAYER].push_back(std::move(shadowBlurVertical));
-	}
 
-	// Bloom blur shaders
-	{
-		std::unique_ptr<sf::Shader> blurHorizontal = std::make_unique<sf::Shader>();
-		if (!blurHorizontal->loadFromFile("Shaders/n_linear_blur.frag", sf::Shader::Fragment)) {
-			throw "Could not load Shaders/n_linear_blur.frag";
+		// Bloom bright shader
+		if (!bloomDarkShader.loadFromFile("Shaders/bright.frag", sf::Shader::Fragment)) {
+			throw "Could not load Shaders/bright.frag";
 		}
-		blurHorizontal->setUniform("texture", sf::Shader::CurrentTexture);
-		blurHorizontal->setUniform("resolution", sf::Vector2f(layerTextures[SHADOW_LAYER].getSize().x, layerTextures[SHADOW_LAYER].getSize().y));
-		blurHorizontal->setUniform("direction", sf::Vector2f(1, 0));
-		blurHorizontal->setUniform("n", 15);
-		bloomBlurShaders.push_back(std::move(blurHorizontal));
+		bloomDarkShader.setUniform("texture", sf::Shader::CurrentTexture);
 
-		std::unique_ptr<sf::Shader> blurVertical = std::make_unique<sf::Shader>();
-		if (!blurVertical->loadFromFile("Shaders/n_linear_blur.frag", sf::Shader::Fragment)) {
-			throw "Could not load Shaders/n_linear_blur.frag";
+		// Bloom glow shader
+		if (!bloomGlowShader.loadFromFile("Shaders/glow.frag", sf::Shader::Fragment)) {
+			throw "Could not load Shaders/glow.frag";
 		}
-		blurVertical->setUniform("texture", sf::Shader::CurrentTexture);
-		blurVertical->setUniform("resolution", sf::Vector2f(layerTextures[SHADOW_LAYER].getSize().x, layerTextures[SHADOW_LAYER].getSize().y));
-		blurVertical->setUniform("direction", sf::Vector2f(0, 1));
-		blurVertical->setUniform("n", 15);
-		bloomBlurShaders.push_back(std::move(blurVertical));
+		bloomGlowShader.setUniform("texture", sf::Shader::CurrentTexture);
 	}
-
-	// Bloom bright shader
-	if (!bloomDarkShader.loadFromFile("Shaders/bright.frag", sf::Shader::Fragment)) {
-		throw "Could not load Shaders/bright.frag";
-	}
-	bloomDarkShader.setUniform("texture", sf::Shader::CurrentTexture);
-
-	// Bloom glow shader
-	if (!bloomGlowShader.loadFromFile("Shaders/glow.frag", sf::Shader::Fragment)) {
-		throw "Could not load Shaders/glow.frag";
-	}
-	bloomGlowShader.setUniform("texture", sf::Shader::CurrentTexture);
 }
 
 void RenderSystem::update(float deltaTime) {
@@ -471,8 +472,7 @@ void RenderSystem::loadLevelRenderSettings(std::shared_ptr<Level> level) {
 		for (int i = 0; i < levelBloomSettings.size(); i++) {
 			bloom[i] = levelBloomSettings[i];
 		}
-	}
-	else {
+	} else {
 		bloom = std::vector<BloomSettings>(HIGHEST_RENDER_LAYER + 1, BloomSettings());
 		BloomSettings bloomSettings;
 		bloomSettings.setUsesBloom(false);

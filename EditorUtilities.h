@@ -432,7 +432,7 @@ A panel that can load Levels and play them while rendering it either normally or
 */
 class SimpleEngineRenderer : public tgui::Panel {
 public:
-	SimpleEngineRenderer(sf::RenderWindow& parentWindow);
+	SimpleEngineRenderer(sf::RenderWindow& parentWindow, bool useDebugRenderSystem = true);
 	inline static std::shared_ptr<SimpleEngineRenderer> create(sf::RenderWindow& parentWindow) {
 		return std::make_shared<SimpleEngineRenderer>(parentWindow);
 	}
@@ -463,7 +463,7 @@ private:
 
 	sf::FloatRect viewportFloatRect, viewFloatRect;
 
-	//TODO: handle events somehow
+	bool useDebugRenderSystem;
 	std::unique_ptr<MovementSystem> movementSystem;
 	std::unique_ptr<RenderSystem> renderSystem;
 	std::unique_ptr<CollisionSystem> collisionSystem;

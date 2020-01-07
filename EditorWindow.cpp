@@ -888,7 +888,7 @@ void GameplayTestWindow::onRenderWindowInitialization() {
 	renderSystem = std::make_unique<RenderSystem>(registry, *window, *spriteLoader, 1.0f);
 	renderSystem->loadLevelRenderSettings(nullptr);
 
-	debugRenderSystem = std::make_unique<DebugRenderSystem>(registry, *window, MAP_WIDTH, MAP_HEIGHT);
+	debugRenderSystem = std::make_unique<DebugRenderSystem>(registry, *window, *spriteLoader, 1.0f);
 
 	// Set the background
 	std::shared_ptr<Level> level = levelPack->getLevel(0);
