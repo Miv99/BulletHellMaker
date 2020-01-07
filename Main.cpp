@@ -19,6 +19,10 @@ int main() {
 	gui.add(p);
 	gui.setTarget(window);
 
+	p->loadLevelPack("test pack");
+	p->loadLevel(0);
+	p->unpause();
+
 	// Limit the framerate to 60 frames per second (this step is optional)
 	window.setFramerateLimit(60);
 	// The main loop - ends as soon as the window is closed

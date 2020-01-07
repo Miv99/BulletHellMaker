@@ -1383,23 +1383,7 @@ void Slider::setStep(float step) {
 
 SimpleEngineRenderer::SimpleEngineRenderer(sf::RenderWindow & parentWindow) : parentWindow(parentWindow), paused(true) {
 	audioPlayer = std::make_unique<AudioPlayer>();
-	//TODO: change to "Default"
-	levelPack = std::make_shared<LevelPack>(*audioPlayer, "test pack");
 	queue = std::make_unique<EntityCreationQueue>(registry);
-
-	spriteLoader = levelPack->createSpriteLoader();
-	spriteLoader->preloadTextures();
-
-	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
-	//TODO: these numbers should come from settings
-	renderSystem = std::make_unique<RenderSystem>(registry, parentWindow, *spriteLoader, 1.0f);
-	collisionSystem = std::make_unique<CollisionSystem>(*levelPack, *queue, *spriteLoader, registry, MAP_WIDTH, MAP_HEIGHT);
-	despawnSystem = std::make_unique<DespawnSystem>(registry);
-	enemySystem = std::make_unique<EnemySystem>(*queue, *spriteLoader, *levelPack, registry);
-	spriteAnimationSystem = std::make_unique<SpriteAnimationSystem>(*spriteLoader, registry);
-	shadowTrailSystem = std::make_unique<ShadowTrailSystem>(*queue, registry);
-	playerSystem = std::make_unique<PlayerSystem>(*levelPack, *queue, *spriteLoader, registry);
-	collectibleSystem = std::make_unique<CollectibleSystem>(*queue, registry, *levelPack, MAP_WIDTH, MAP_HEIGHT);
 
 	connect("PositionChanged", [&]() {
 		updateWindowView();
@@ -1407,69 +1391,13 @@ SimpleEngineRenderer::SimpleEngineRenderer(sf::RenderWindow & parentWindow) : pa
 	connect("SizeChanged", [&]() {
 		updateWindowView();
 	});
-
-	renderSystem->getOnResolutionChange()->sink().connect<SimpleEngineRenderer, &SimpleEngineRenderer::updateWindowView>(this);
-
-
-
-
-	{
-		std::shared_ptr<Level> level = levelPack->getLevel(0);
-
-		// Load bloom settings
-		renderSystem->loadLevelRenderSettings(level);
-
-		// Remove all existing entities from the registry
-		registry.reset();
-		reserveMemory(registry, INITIAL_ENTITY_RESERVATION);
-
-		// Create the level manager
-		registry.reserve<LevelManagerTag>(1);
-		registry.reserve(registry.alive() + 1);
-		uint32_t levelManager = registry.create();
-		auto& levelManagerTag = registry.assign<LevelManagerTag>(entt::tag_t{}, levelManager, &(*levelPack), level);
-
-		// Create the player
-		auto params = levelPack->getPlayer();
-		registry.reserve(1);
-		registry.reserve<PlayerTag>(1);
-		registry.reserve<AnimatableSetComponent>(1);
-		registry.reserve<HealthComponent>(1);
-		registry.reserve<HitboxComponent>(1);
-		registry.reserve<PositionComponent>(1);
-		registry.reserve<SpriteComponent>(1);
-		auto player = registry.create();
-		registry.assign<AnimatableSetComponent>(player);
-		auto& playerTag = registry.assign<PlayerTag>(entt::tag_t{}, player, registry, *levelPack, player, params.getSpeed(), params.getFocusedSpeed(), params.getInvulnerabilityTime(),
-			params.getPowerTiers(), params.getHurtSound(), params.getDeathSound(), params.getInitialBombs(), params.getMaxBombs(), params.getBombInvincibilityTime());
-		auto& health = registry.assign<HealthComponent>(player, params.getInitialHealth(), params.getMaxHealth());
-		// Hitbox temporarily at 0, 0 until an Animatable is assigned to the player later
-		registry.assign<HitboxComponent>(player, LOCK_ROTATION, params.getHitboxRadius(), 0, 0);
-		registry.assign<PositionComponent>(player, PLAYER_SPAWN_X - params.getHitboxPosX(), PLAYER_SPAWN_Y - params.getHitboxPosY());
-		registry.assign<SpriteComponent>(player, PLAYER_LAYER, 0);
-
-		// Play level music
-		levelPack->playMusic(level->getMusicSettings());
-
-		// Set the background
-		std::string backgroundFileName = level->getBackgroundFileName();
-		sf::Texture background;
-		if (!background.loadFromFile("Level Packs\\" + levelPack->getName() + "\\Backgrounds\\" + backgroundFileName)) {
-			//TODO: load a default background
-		}
-		background.setRepeated(true);
-		background.setSmooth(true);
-		renderSystem->setBackground(std::move(background));
-		renderSystem->setBackgroundScrollSpeedX(level->getBackgroundScrollSpeedX());
-		renderSystem->setBackgroundScrollSpeedY(level->getBackgroundScrollSpeedY());
-		renderSystem->setBackgroundTextureWidth(level->getBackgroundTextureWidth());
-		renderSystem->setBackgroundTextureHeight(level->getBackgroundTextureHeight());
-
-		paused = false;
-	}
 }
 
 void SimpleEngineRenderer::updateWindowView() {
+	if (!renderSystem) {
+		return;
+	}
+
 	auto windowSize = parentWindow.getSize();
 	auto size = getSize();
 	float sizeRatio = size.x / (float)size.y;
@@ -1518,6 +1446,113 @@ void SimpleEngineRenderer::draw(sf::RenderTarget & target, sf::RenderStates stat
 	}
 	renderSystem->update(secondsSinceLastRender);
 	parentWindow.setView(originalView);
+}
+
+void SimpleEngineRenderer::loadLevelPack(std::string name) {
+	registry.reset();
+
+	levelPack = std::make_shared<LevelPack>(*audioPlayer, name);
+	spriteLoader = levelPack->createSpriteLoader();
+	spriteLoader->preloadTextures();
+
+	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
+	//TODO: these numbers should come from settings
+	renderSystem = std::make_unique<RenderSystem>(registry, parentWindow, *spriteLoader, 1.0f);
+	collisionSystem = std::make_unique<CollisionSystem>(*levelPack, *queue, *spriteLoader, registry, MAP_WIDTH, MAP_HEIGHT);
+	despawnSystem = std::make_unique<DespawnSystem>(registry);
+	enemySystem = std::make_unique<EnemySystem>(*queue, *spriteLoader, *levelPack, registry);
+	spriteAnimationSystem = std::make_unique<SpriteAnimationSystem>(*spriteLoader, registry);
+	shadowTrailSystem = std::make_unique<ShadowTrailSystem>(*queue, registry);
+	playerSystem = std::make_unique<PlayerSystem>(*levelPack, *queue, *spriteLoader, registry);
+	collectibleSystem = std::make_unique<CollectibleSystem>(*queue, registry, *levelPack, MAP_WIDTH, MAP_HEIGHT);
+
+	renderSystem->getOnResolutionChange()->sink().connect<SimpleEngineRenderer, &SimpleEngineRenderer::updateWindowView>(this);
+	updateWindowView();
+}
+
+void SimpleEngineRenderer::loadLevelPack(std::shared_ptr<LevelPack> levelPack) {
+	this->levelPack = levelPack;
+	registry.reset();
+
+	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
+	//TODO: these numbers should come from settings
+	renderSystem = std::make_unique<RenderSystem>(registry, parentWindow, *spriteLoader, 1.0f);
+	collisionSystem = std::make_unique<CollisionSystem>(*levelPack, *queue, *spriteLoader, registry, MAP_WIDTH, MAP_HEIGHT);
+	despawnSystem = std::make_unique<DespawnSystem>(registry);
+	enemySystem = std::make_unique<EnemySystem>(*queue, *spriteLoader, *levelPack, registry);
+	spriteAnimationSystem = std::make_unique<SpriteAnimationSystem>(*spriteLoader, registry);
+	shadowTrailSystem = std::make_unique<ShadowTrailSystem>(*queue, registry);
+	playerSystem = std::make_unique<PlayerSystem>(*levelPack, *queue, *spriteLoader, registry);
+	collectibleSystem = std::make_unique<CollectibleSystem>(*queue, registry, *levelPack, MAP_WIDTH, MAP_HEIGHT);
+
+	renderSystem->getOnResolutionChange()->sink().connect<SimpleEngineRenderer, &SimpleEngineRenderer::updateWindowView>(this);
+	updateWindowView();
+}
+
+void SimpleEngineRenderer::loadLevel(int levelIndex) {
+	if (!levelPack->hasLevel(levelIndex)) {
+		throw "The level does not exist";
+	}
+	loadLevel(levelPack->getLevel(levelIndex));
+}
+
+void SimpleEngineRenderer::loadLevel(std::shared_ptr<Level> level) {
+	// Load bloom settings
+	renderSystem->loadLevelRenderSettings(level);
+
+	// Remove all existing entities from the registry
+	registry.reset();
+	reserveMemory(registry, INITIAL_EDITOR_ENTITY_RESERVATION);
+
+	// Create the level manager
+	registry.reserve<LevelManagerTag>(1);
+	registry.reserve(registry.alive() + 1);
+	uint32_t levelManager = registry.create();
+	auto& levelManagerTag = registry.assign<LevelManagerTag>(entt::tag_t{}, levelManager, &(*levelPack), level);
+
+	// Create the player
+	auto params = levelPack->getPlayer();
+	registry.reserve(1);
+	registry.reserve<PlayerTag>(1);
+	registry.reserve<AnimatableSetComponent>(1);
+	registry.reserve<HealthComponent>(1);
+	registry.reserve<HitboxComponent>(1);
+	registry.reserve<PositionComponent>(1);
+	registry.reserve<SpriteComponent>(1);
+	auto player = registry.create();
+	registry.assign<AnimatableSetComponent>(player);
+	auto& playerTag = registry.assign<PlayerTag>(entt::tag_t{}, player, registry, *levelPack, player, params.getSpeed(), params.getFocusedSpeed(), params.getInvulnerabilityTime(),
+		params.getPowerTiers(), params.getHurtSound(), params.getDeathSound(), params.getInitialBombs(), params.getMaxBombs(), params.getBombInvincibilityTime());
+	auto& health = registry.assign<HealthComponent>(player, params.getInitialHealth(), params.getMaxHealth());
+	// Hitbox temporarily at 0, 0 until an Animatable is assigned to the player later
+	registry.assign<HitboxComponent>(player, LOCK_ROTATION, params.getHitboxRadius(), 0, 0);
+	registry.assign<PositionComponent>(player, PLAYER_SPAWN_X - params.getHitboxPosX(), PLAYER_SPAWN_Y - params.getHitboxPosY());
+	registry.assign<SpriteComponent>(player, PLAYER_LAYER, 0);
+
+	// Play level music
+	levelPack->playMusic(level->getMusicSettings());
+
+	// Set the background
+	std::string backgroundFileName = level->getBackgroundFileName();
+	sf::Texture background;
+	if (!background.loadFromFile("Level Packs\\" + levelPack->getName() + "\\Backgrounds\\" + backgroundFileName)) {
+		//TODO: load a default background
+	}
+	background.setRepeated(true);
+	background.setSmooth(true);
+	renderSystem->setBackground(std::move(background));
+	renderSystem->setBackgroundScrollSpeedX(level->getBackgroundScrollSpeedX());
+	renderSystem->setBackgroundScrollSpeedY(level->getBackgroundScrollSpeedY());
+	renderSystem->setBackgroundTextureWidth(level->getBackgroundTextureWidth());
+	renderSystem->setBackgroundTextureHeight(level->getBackgroundTextureHeight());
+}
+
+void SimpleEngineRenderer::pause() {
+	paused = true;
+}
+
+void SimpleEngineRenderer::unpause() {
+	paused = false;
 }
 
 void SimpleEngineRenderer::physicsUpdate(float deltaTime) const {

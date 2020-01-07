@@ -427,6 +427,9 @@ private:
 	std::shared_ptr<entt::SigH<void(std::shared_ptr<EMPAAngleOffset>, std::shared_ptr<EMPAAngleOffset>)>> onAngleOffsetChange;
 };
 
+/*
+A panel that can load Levels and play them while rendering it either normally or in debug mode.
+*/
 class SimpleEngineRenderer : public tgui::Panel {
 public:
 	SimpleEngineRenderer(sf::RenderWindow& parentWindow);
@@ -435,6 +438,15 @@ public:
 	}
 
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+
+	void loadLevelPack(std::string name);
+	void loadLevelPack(std::shared_ptr<LevelPack> levelPack);
+
+	void loadLevel(int levelIndex);
+	void loadLevel(std::shared_ptr<Level> level);
+
+	void pause();
+	void unpause();
 
 protected:
 
