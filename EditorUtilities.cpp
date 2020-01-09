@@ -1381,9 +1381,14 @@ void Slider::setStep(float step) {
 	m_step = step;
 }
 
-SimpleEngineRenderer::SimpleEngineRenderer(sf::RenderWindow & parentWindow, bool useDebugRenderSystem) : parentWindow(parentWindow), paused(true), useDebugRenderSystem(useDebugRenderSystem) {
+SimpleEngineRenderer::SimpleEngineRenderer(sf::RenderWindow & parentWindow, bool userControlledView, bool useDebugRenderSystem) : parentWindow(parentWindow), 
+paused(true), userControlledView(userControlledView), useDebugRenderSystem(useDebugRenderSystem) {
 	audioPlayer = std::make_unique<AudioPlayer>();
 	queue = std::make_unique<EntityCreationQueue>(registry);
+
+	if (userControlledView) {
+		viewController = std::make_unique<ViewController>(parentWindow);
+	}
 
 	connect("PositionChanged", [&]() {
 		updateWindowView();
@@ -1404,18 +1409,23 @@ void SimpleEngineRenderer::updateWindowView() {
 	sf::Vector2u resolution = renderSystem->getResolution();
 	float playAreaViewRatio = resolution.x / (float)resolution.y;
 
+	float viewWidth, viewHeight;
 	if (sizeRatio > playAreaViewRatio) {
-		float viewHeight = resolution.y;
-		float viewWidth = resolution.y * size.x / (float)size.y;
+		viewHeight = resolution.y;
+		viewWidth = resolution.y * size.x / (float)size.y;
 		float viewX = -(viewWidth - resolution.x) / 2.0f;
 		float viewY = 0;
 		viewFloatRect = sf::FloatRect(viewX, viewY, viewWidth, viewHeight);
 	} else {
-		float viewWidth = resolution.x;
-		float viewHeight = resolution.x * size.y / (float)size.x;
+		viewWidth = resolution.x;
+		viewHeight = resolution.x * size.y / (float)size.x;
 		float viewX = 0;
 		float viewY = -(viewHeight - resolution.y) / 2.0f;
 		viewFloatRect = sf::FloatRect(viewX, viewY, viewWidth, viewHeight);
+	}
+
+	if (viewController) {
+		viewController->setOriginalViewSize(viewWidth, viewHeight);
 	}
 
 	float viewportX = getAbsolutePosition().x / windowSize.x;
@@ -1423,6 +1433,9 @@ void SimpleEngineRenderer::updateWindowView() {
 	float viewportWidth = getSize().x / windowSize.x;
 	float viewportHeight = getSize().y / windowSize.y;
 	viewportFloatRect = sf::FloatRect(viewportX, viewportY, viewportWidth, viewportHeight);
+
+	viewFromViewController = sf::View(viewFloatRect);
+	viewFromViewController.setViewport(viewportFloatRect);
 }
 
 void SimpleEngineRenderer::draw(sf::RenderTarget & target, sf::RenderStates states) const {
@@ -1438,14 +1451,24 @@ void SimpleEngineRenderer::draw(sf::RenderTarget & target, sf::RenderStates stat
 
 	// Viewport is set here because tgui::Gui's draw function changes it right before renderSystem is updated or something
 	sf::View originalView = parentWindow.getView();
-	sf::View view(viewFloatRect);
-	view.setViewport(viewportFloatRect);
-	parentWindow.setView(view);
+	if (viewController) {
+		parentWindow.setView(viewFromViewController);
+	} else {
+		sf::View view(viewFloatRect);
+		view.setViewport(viewportFloatRect);
+		parentWindow.setView(view);
+	}
 	if (!paused) {
 		spriteAnimationSystem->update(secondsSinceLastRender);
 	}
 	renderSystem->update(secondsSinceLastRender);
 	parentWindow.setView(originalView);
+}
+
+void SimpleEngineRenderer::handleEvent(sf::Event event) {
+	if (viewController) {
+		viewFromViewController = viewController->handleEvent(viewFromViewController, event);
+	}
 }
 
 void SimpleEngineRenderer::loadLevelPack(std::string name) {

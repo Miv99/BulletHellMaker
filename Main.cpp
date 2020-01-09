@@ -3,6 +3,8 @@
 #include <SFML/Graphics.hpp>
 #include "GameInstance.h"
 
+#include <iostream>
+
 int main() {
 	//GameInstance a("test pack");
 	//a.loadLevel(0);
@@ -33,6 +35,9 @@ int main() {
 			// Request for closing the window
 			if (event.type == sf::Event::Closed)
 				window.close();
+
+			p->handleEvent(event);
+			std::cout << window.getView().getCenter().x << ", " << window.getView().getCenter().y << "; " << window.getView().getSize().x << ", " << window.getView().getSize().y << std::endl;
 		}
 		// Clear the whole window before rendering a new frame
 		window.clear();

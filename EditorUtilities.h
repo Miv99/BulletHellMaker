@@ -25,6 +25,7 @@
 #include "EditorMovablePointAction.h"
 #include "EditorMovablePoint.h"
 #include "MovablePoint.h"
+#include "ViewController.h"
 #include <memory>
 #include <thread>
 #include <mutex>
@@ -432,12 +433,14 @@ A panel that can load Levels and play them while rendering it either normally or
 */
 class SimpleEngineRenderer : public tgui::Panel {
 public:
-	SimpleEngineRenderer(sf::RenderWindow& parentWindow, bool useDebugRenderSystem = true);
+	SimpleEngineRenderer(sf::RenderWindow& parentWindow, bool userControlleView = true, bool useDebugRenderSystem = true);
 	inline static std::shared_ptr<SimpleEngineRenderer> create(sf::RenderWindow& parentWindow) {
 		return std::make_shared<SimpleEngineRenderer>(parentWindow);
 	}
 
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+
+	void handleEvent(sf::Event event);
 
 	void loadLevelPack(std::string name);
 	void loadLevelPack(std::shared_ptr<LevelPack> levelPack);
@@ -474,6 +477,10 @@ private:
 	std::unique_ptr<PlayerSystem> playerSystem;
 	std::unique_ptr<CollectibleSystem> collectibleSystem;
 	std::unique_ptr<AudioPlayer> audioPlayer;
+
+	bool userControlledView;
+	std::unique_ptr<ViewController> viewController;
+	sf::View viewFromViewController;
 
 	void physicsUpdate(float deltaTime) const;
 	void updateWindowView();
