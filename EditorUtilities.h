@@ -485,3 +485,42 @@ private:
 	void physicsUpdate(float deltaTime) const;
 	void updateWindowView();
 };
+
+class TabsWithPanel : public tgui::Group {
+public:
+	TabsWithPanel();
+	inline static std::shared_ptr<TabsWithPanel> create() {
+		return std::make_shared<TabsWithPanel>();
+	}
+
+	/*
+	tabName - the unique name of the new tab
+	associatedPanel - the Panel that will be shown when the tab is selected
+	autoSelect - whether to select the new tab immediately
+	*/
+	void addTab(std::string tabName, std::shared_ptr<tgui::Panel> associatedPanel, bool autoSelect = true);
+	/*
+	Selects a tab.
+	tabName - the unique name of the tab
+	*/
+	void selectTab(std::string tabName);
+	/*
+	Removes the tab.
+	tabName - the unique name of the tab
+	*/
+	void removeTab(std::string tabName);
+	/*
+	Removes all tabs.
+	*/
+	void removeAllTabs();
+
+private:
+	std::shared_ptr<tgui::Tabs> tabs;
+	// Maps tab name to the Panel that will be showed when the tab is selected
+	std::map<std::string, std::shared_ptr<tgui::Panel>> panelsMap;
+
+	// Panel that is currently active
+	std::shared_ptr<tgui::Panel> currentPanel;
+
+	void onTabSelected(std::string tabName);
+};

@@ -1615,3 +1615,57 @@ void SimpleEngineRenderer::physicsUpdate(float deltaTime) const {
 		queue->executeAll();
 	}
 }
+
+TabsWithPanel::TabsWithPanel() {
+	tabs = tgui::Tabs::create();
+	tabs->setPosition(0, 0);
+	tabs->connect("TabSelected", &TabsWithPanel::onTabSelected, this);
+	add(tabs);
+}
+
+void TabsWithPanel::addTab(std::string tabName, std::shared_ptr<tgui::Panel> associatedPanel, bool autoSelect) {
+	assert(panelsMap.count(tabName) == 0);
+
+	panelsMap[tabName] = associatedPanel;
+	associatedPanel->setPosition(0, tgui::bindBottom(tabs));
+	associatedPanel->setVisible(autoSelect);
+	tabs->add(tabName, autoSelect);
+	add(associatedPanel);
+}
+
+void TabsWithPanel::selectTab(std::string tabName) {
+	assert(panelsMap.count(tabName) != 0);
+
+	tabs->select(tabName);
+}
+
+void TabsWithPanel::removeTab(std::string tabName) {
+	assert(panelsMap.count(tabName) != 0);
+
+	if (currentPanel == panelsMap[tabName]) {
+		currentPanel = nullptr;
+	}
+	panelsMap.erase(tabName);
+	tabs->remove(tabName);
+}
+
+void TabsWithPanel::removeAllTabs() {
+	panelsMap.clear();
+	if (currentPanel) {
+		currentPanel = nullptr;
+	}
+	tabs->removeAll();
+}
+
+void TabsWithPanel::onTabSelected(std::string tabName) {
+	assert(panelsMap.count(tabName) != 0);
+
+	// Hide currently open panel
+	if (currentPanel) {
+		currentPanel->setVisible(false);
+	}
+
+	// Show the selected tab's panel
+	currentPanel = panelsMap[tabName];
+	currentPanel->setVisible(true);
+}
