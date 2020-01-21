@@ -60,6 +60,7 @@ colors - the list of colors that will be looped to determine the color of each s
 */
 std::vector<std::pair<std::vector<float>, std::vector<float>>> generateMPLPoints(std::shared_ptr<PiecewiseTFV> tfv, float tfvLifespan, float timeResolution);
 
+class EditorWindow;
 class UndoableEditorWindow;
 
 /*
@@ -268,6 +269,10 @@ The ListBox from getListBox() does not have to be added to a container, since it
 class ScrollableListBox : public tgui::ScrollablePanel {
 public:
 	ScrollableListBox();
+	static std::shared_ptr<ScrollableListBox> create() {
+		return std::make_shared<ScrollableListBox>();
+	}
+
 	/*
 	Should be called anytime an item is added, removed, or changed from the ListBox.
 	*/
@@ -486,11 +491,15 @@ private:
 	void updateWindowView();
 };
 
+/*
+A widget with tabs that, when one is selected, shows a Panel associated with that tab.
+Warning: undefined behavior when there are multiple tabs with the same name.
+*/
 class TabsWithPanel : public tgui::Group {
 public:
-	TabsWithPanel();
-	inline static std::shared_ptr<TabsWithPanel> create() {
-		return std::make_shared<TabsWithPanel>();
+	TabsWithPanel(EditorWindow& parentWindow);
+	inline static std::shared_ptr<TabsWithPanel> create(EditorWindow& parentWindow) {
+		return std::make_shared<TabsWithPanel>(parentWindow);
 	}
 
 	/*
@@ -515,12 +524,21 @@ public:
 	void removeAllTabs();
 
 private:
+	const float MIN_TAB_WIDTH = 100.0f;
+
 	std::shared_ptr<tgui::Tabs> tabs;
 	// Maps tab name to the Panel that will be showed when the tab is selected
 	std::map<std::string, std::shared_ptr<tgui::Panel>> panelsMap;
+	std::vector<std::string> tabsOrdering;
 
 	// Panel that is currently active
 	std::shared_ptr<tgui::Panel> currentPanel;
 
+	// Button that shows all tabs that can't fit in this widget
+	std::shared_ptr<tgui::Button> moreTabsButton;
+	// The ScrollableListBox that is shown when moreTabsButton is clicked
+	std::shared_ptr<ScrollableListBox> moreTabsList;
+
 	void onTabSelected(std::string tabName);
+	void updateMoreTabsList();
 };

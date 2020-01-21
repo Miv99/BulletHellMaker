@@ -4,6 +4,7 @@
 #include <map>
 #include <boost/filesystem.hpp>
 #include <iostream>
+#include <algorithm>
 //#include "matplotlibcpp.h"
 
 #ifdef _WIN32
@@ -1616,11 +1617,34 @@ void SimpleEngineRenderer::physicsUpdate(float deltaTime) const {
 	}
 }
 
-TabsWithPanel::TabsWithPanel() {
+TabsWithPanel::TabsWithPanel(EditorWindow& parentWindow) {
 	tabs = tgui::Tabs::create();
 	tabs->setPosition(0, 0);
 	tabs->connect("TabSelected", &TabsWithPanel::onTabSelected, this);
 	add(tabs);
+
+	moreTabsList = ScrollableListBox::create();
+	moreTabsList->setTextSize(TEXT_SIZE);
+	moreTabsList->getListBox()->setItemHeight(TEXT_SIZE * 1.5f);
+	moreTabsList->getListBox()->connect("ItemSelected", [&](std::string tabName) {
+		selectTab(tabName);
+	});
+
+	moreTabsButton = tgui::Button::create();
+	//TODO: image on this instead of a V
+	moreTabsButton->setText("V");
+	moreTabsButton->connect("Pressed", [&]() {
+		// Set moreTabsList's position releative to the absolute position of the moreTabsButton since it will be a top-level widget
+		moreTabsList->setPosition(moreTabsButton->getAbsolutePosition().x, moreTabsButton->getAbsolutePosition().y + moreTabsButton->getSize().y);
+		parentWindow.addPopupWidget(moreTabsList);
+	});
+	add(moreTabsButton);
+
+	connect("SizeChanged", [&](sf::Vector2f newSize) {
+		tabs->setMaximumTabWidth(std::max(MIN_TAB_WIDTH, (newSize.x - moreTabsButton->getSize().x) / tabs->getTabsCount()));
+		moreTabsButton->setSize(tabs->getSize().y, tabs->getSize().y);
+		moreTabsButton->setPosition(getSize().x - moreTabsButton->getSize().x, tgui::bindTop(tabs));
+	});
 }
 
 void TabsWithPanel::addTab(std::string tabName, std::shared_ptr<tgui::Panel> associatedPanel, bool autoSelect) {
@@ -1631,6 +1655,9 @@ void TabsWithPanel::addTab(std::string tabName, std::shared_ptr<tgui::Panel> ass
 	associatedPanel->setVisible(autoSelect);
 	tabs->add(tabName, autoSelect);
 	add(associatedPanel);
+
+	tabsOrdering.push_back(tabName);
+	updateMoreTabsList();
 }
 
 void TabsWithPanel::selectTab(std::string tabName) {
@@ -1647,6 +1674,13 @@ void TabsWithPanel::removeTab(std::string tabName) {
 	}
 	panelsMap.erase(tabName);
 	tabs->remove(tabName);
+
+	int pos;
+	for (pos = 0; pos < tabsOrdering.size(); pos++) {
+		if (tabsOrdering[pos] == tabName) break;
+	}
+	tabsOrdering.erase(tabsOrdering.begin() + pos);
+	updateMoreTabsList();
 }
 
 void TabsWithPanel::removeAllTabs() {
@@ -1668,4 +1702,14 @@ void TabsWithPanel::onTabSelected(std::string tabName) {
 	// Show the selected tab's panel
 	currentPanel = panelsMap[tabName];
 	currentPanel->setVisible(true);
+
+	moreTabsList->getListBox()->setSelectedItem(tabName);
+}
+
+void TabsWithPanel::updateMoreTabsList() {
+	moreTabsList->getListBox()->removeAllItems();
+	for (int i = 0; i < tabsOrdering.size(); i++) {
+		moreTabsList->getListBox()->addItem(tabsOrdering[i], tabsOrdering[i]);
+	}
+	moreTabsList->setSize(300, moreTabsList->getListBox()->getItemHeight() * moreTabsList->getListBox()->getItemCount());
 }
