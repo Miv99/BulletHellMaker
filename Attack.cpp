@@ -81,6 +81,11 @@ std::shared_ptr<EditorMovablePoint> EditorAttack::searchEMP(int id) const {
 	return mainEMP->searchID(id);
 }
 
-std::vector<std::vector<sf::String>> EditorAttack::generateTreeViewEmpHierarchy(std::function<sf::String(const EditorMovablePoint&)> nodeText) const {
-	return mainEMP->generateTreeViewEmpHierarchy(nodeText, {});
+std::vector<std::vector<sf::String>> EditorAttack::generateTreeViewHierarchy(std::function<sf::String(const EditorAttack&)> attackText, std::function<sf::String(const EditorMovablePoint&)> empText) const {
+	std::string thisAttackText = attackText(*this);
+	auto empTree = mainEMP->generateTreeViewEmpHierarchy(empText, {});
+	for (std::vector<sf::String>& v : empTree) {
+		v.insert(v.begin(), thisAttackText);
+	}
+	return empTree;
 }
