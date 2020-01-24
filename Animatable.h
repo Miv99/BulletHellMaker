@@ -24,10 +24,10 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	inline std::string getAnimatableName() { return animatableName; }
-	inline std::string getSpriteSheetName() { return spriteSheetName; }
-	inline bool isSprite() { return animatableIsSprite; }
-	inline ROTATION_TYPE getRotationType() { return rotationType; }
+	inline std::string getAnimatableName() const { return animatableName; }
+	inline std::string getSpriteSheetName() const { return spriteSheetName; }
+	inline bool isSprite() const { return animatableIsSprite; }
+	inline ROTATION_TYPE getRotationType() const { return rotationType; }
 
 private:
 	// Name of sprite/animation
