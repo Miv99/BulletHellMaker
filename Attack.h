@@ -56,11 +56,12 @@ public:
 
 	/*
 	Generates a list of string vectors such that, when each all the string vectors are added to a tgui::TreeView,
-	the tree hierarchy of the EMPs of this attack is created. Each entry is an EMP's ID.
+	the tree hierarchy of this EditorAttack, including all its EMPs, is created. Each entry is an EMP's ID.
 
-	nodeText - a function that takes an EMP and returns a string -- the text in the tgui::TreeView for the node for that EMP
+	attackText - a function that takes an EditorAttack and returns a string -- the text in the tgui::TreeView for that EditorAttack
+	empText - a function that takes an EMP and returns a string -- the text in the tgui::TreeView for that EMP
 	*/
-	std::vector<std::vector<sf::String>> generateTreeViewEmpHierarchy(std::function<sf::String(const EditorMovablePoint&)> nodeText) const;
+	std::vector<std::vector<sf::String>> generateTreeViewHierarchy(std::function<sf::String(const EditorAttack&)> attackText, std::function<sf::String(const EditorMovablePoint&)> empText) const;
 
 private:
 	// The ID of the next EMP created in this attack.

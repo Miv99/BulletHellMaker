@@ -22,6 +22,8 @@ const static float SHADOW_TRAIL_MAX_OPACITY = 0.75f;
 
 // Amount of entities to reserve space for on level start (1,000,000 entities ~ 700Mb RAM)
 const static int INITIAL_ENTITY_RESERVATION = 500000;
+// Amount of entities to reserve space for when editing a LevelPack
+const static int INITIAL_EDITOR_ENTITY_RESERVATION = 5000;
 // Additional amount of entities to reserve space for when current limit is exceeded
 const static int ENTITY_RESERVATION_INCREMENT = 50000;
 

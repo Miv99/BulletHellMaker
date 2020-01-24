@@ -154,6 +154,7 @@ public:
 	inline bool hasAttackPattern(int id) { return attackPatterns.count(id) != 0; }
 	inline bool hasAttack(int id) { return attacks.count(id) != 0; }
 	inline bool hasBulletModel(int id) { return bulletModels.count(id) != 0; }
+	inline bool hasLevel(int levelIndex) { return levels.size() > levelIndex; }
 
 	inline std::string getName() { return name; }
 	inline std::shared_ptr<Level> getLevel(int levelIndex) const { return levels[levelIndex]; }

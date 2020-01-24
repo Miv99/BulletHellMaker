@@ -25,6 +25,7 @@
 #include "EditorMovablePointAction.h"
 #include "EditorMovablePoint.h"
 #include "MovablePoint.h"
+#include "ViewController.h"
 #include <memory>
 #include <thread>
 #include <mutex>
@@ -59,6 +60,7 @@ colors - the list of colors that will be looped to determine the color of each s
 */
 std::vector<std::pair<std::vector<float>, std::vector<float>>> generateMPLPoints(std::shared_ptr<PiecewiseTFV> tfv, float tfvLifespan, float timeResolution);
 
+class EditorWindow;
 class UndoableEditorWindow;
 
 /*
@@ -267,6 +269,10 @@ The ListBox from getListBox() does not have to be added to a container, since it
 class ScrollableListBox : public tgui::ScrollablePanel {
 public:
 	ScrollableListBox();
+	static std::shared_ptr<ScrollableListBox> create() {
+		return std::make_shared<ScrollableListBox>();
+	}
+
 	/*
 	Should be called anytime an item is added, removed, or changed from the ListBox.
 	*/
@@ -427,14 +433,28 @@ private:
 	std::shared_ptr<entt::SigH<void(std::shared_ptr<EMPAAngleOffset>, std::shared_ptr<EMPAAngleOffset>)>> onAngleOffsetChange;
 };
 
+/*
+A panel that can load Levels and play them while rendering it either normally or in debug mode.
+*/
 class SimpleEngineRenderer : public tgui::Panel {
 public:
-	SimpleEngineRenderer(sf::RenderWindow& parentWindow, bool useDebugRenderSystem = true);
+	SimpleEngineRenderer(sf::RenderWindow& parentWindow, bool userControlleView = true, bool useDebugRenderSystem = true);
 	inline static std::shared_ptr<SimpleEngineRenderer> create(sf::RenderWindow& parentWindow) {
 		return std::make_shared<SimpleEngineRenderer>(parentWindow);
 	}
 
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+
+	void handleEvent(sf::Event event);
+
+	void loadLevelPack(std::string name);
+	void loadLevelPack(std::shared_ptr<LevelPack> levelPack);
+
+	void loadLevel(int levelIndex);
+	void loadLevel(std::shared_ptr<Level> level);
+
+	void pause();
+	void unpause();
 
 protected:
 
@@ -451,7 +471,7 @@ private:
 
 	sf::FloatRect viewportFloatRect, viewFloatRect;
 
-	//TODO: handle events somehow
+	bool useDebugRenderSystem;
 	std::unique_ptr<MovementSystem> movementSystem;
 	std::unique_ptr<RenderSystem> renderSystem;
 	std::unique_ptr<CollisionSystem> collisionSystem;
@@ -463,6 +483,62 @@ private:
 	std::unique_ptr<CollectibleSystem> collectibleSystem;
 	std::unique_ptr<AudioPlayer> audioPlayer;
 
+	bool userControlledView;
+	std::unique_ptr<ViewController> viewController;
+	sf::View viewFromViewController;
+
 	void physicsUpdate(float deltaTime) const;
 	void updateWindowView();
+};
+
+/*
+A widget with tabs that, when one is selected, shows a Panel associated with that tab.
+Warning: undefined behavior when there are multiple tabs with the same name.
+*/
+class TabsWithPanel : public tgui::Group {
+public:
+	TabsWithPanel(EditorWindow& parentWindow);
+	inline static std::shared_ptr<TabsWithPanel> create(EditorWindow& parentWindow) {
+		return std::make_shared<TabsWithPanel>(parentWindow);
+	}
+
+	/*
+	tabName - the unique name of the new tab
+	associatedPanel - the Panel that will be shown when the tab is selected
+	autoSelect - whether to select the new tab immediately
+	*/
+	void addTab(std::string tabName, std::shared_ptr<tgui::Panel> associatedPanel, bool autoSelect = true);
+	/*
+	Selects a tab.
+	tabName - the unique name of the tab
+	*/
+	void selectTab(std::string tabName);
+	/*
+	Removes the tab.
+	tabName - the unique name of the tab
+	*/
+	void removeTab(std::string tabName);
+	/*
+	Removes all tabs.
+	*/
+	void removeAllTabs();
+
+private:
+	const float MIN_TAB_WIDTH = 100.0f;
+
+	std::shared_ptr<tgui::Tabs> tabs;
+	// Maps tab name to the Panel that will be showed when the tab is selected
+	std::map<std::string, std::shared_ptr<tgui::Panel>> panelsMap;
+	std::vector<std::string> tabsOrdering;
+
+	// Panel that is currently active
+	std::shared_ptr<tgui::Panel> currentPanel;
+
+	// Button that shows all tabs that can't fit in this widget
+	std::shared_ptr<tgui::Button> moreTabsButton;
+	// The ScrollableListBox that is shown when moreTabsButton is clicked
+	std::shared_ptr<ScrollableListBox> moreTabsList;
+
+	void onTabSelected(std::string tabName);
+	void updateMoreTabsList();
 };
