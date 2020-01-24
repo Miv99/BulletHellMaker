@@ -205,8 +205,8 @@ public:
 
 
 	/*
-	Generates a list of string vectors such that, when each all the string vectors are added to a tgui::TreeView,
-	the tree hierarchy of the EMPs of this attack is created. Each entry is an EMP's ID.
+	Generates a list of string vectors such that, when each of the string vectors are added to a tgui::TreeView,
+	the tree hierarchy of the EMPs of this attack is created.
 
 	nodeText - a function that takes an EMP and returns a string -- the text in the tgui::TreeView for the node for that EMP
 	pathToThisEmp - the ordered series of strings from the root of the tree this EMP is part of, to this EMP.

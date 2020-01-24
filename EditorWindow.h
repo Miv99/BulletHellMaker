@@ -12,6 +12,10 @@
 #include "DebugRenderSystem.h"
 #include "EditorUtilities.h"
 #include "Constants.h"
+#include "LevelPack.h"
+#include "Attack.h"
+#include "EditorMovablePoint.h"
+#include "AudioPlayer.h"
 #include <map>
 #include <memory>
 #include <string>
@@ -25,9 +29,10 @@
 /*
 If the underlying RenderWindow is closed, one only needs to call start() or startAndHide() again to reopen the RenderWindow.
 */
-class EditorWindow {
+class EditorWindow : public std::enable_shared_from_this<EditorWindow> {
 public:
 	/*
+	tguiMutex - mutex for when creating TGUI objects
 	renderInterval - time between each render call. If the gui has a ListBox, renderInterval should be some relatively large number (~0.1) because tgui gets
 		messed up with multithreading.
 	*/
@@ -65,6 +70,13 @@ public:
 	*/
 	std::shared_ptr<entt::SigH<void(bool)>> promptConfirmation(std::string message);
 
+	/*
+	Add a popup as a top-level widget in the Gui.
+	*/
+	void addPopupWidget(std::shared_ptr<tgui::Widget> popup);
+	/*
+	Add a popup as a child of the popupContainer.
+	*/
 	void addPopupWidget(std::shared_ptr<tgui::Container> popupContainer, std::shared_ptr<tgui::Widget> popup);
 	void closePopupWidget();
 
@@ -95,6 +107,7 @@ public:
 
 protected:
 	std::shared_ptr<sf::RenderWindow> window;
+	std::shared_ptr<tgui::Gui> gui;
 
 	virtual void physicsUpdate(float deltaTime);
 	virtual void render(float deltaTime);
@@ -115,7 +128,6 @@ private:
 	std::string windowTitle;
 	int windowWidth, windowHeight;
 
-	std::shared_ptr<tgui::Gui> gui;
 	// The popup widget, if one exists.
 	// Only one popup widget can exist at any time. If a new widget pops up,
 	// the old one is removed from the Gui. When the user clicks outside the popup
@@ -544,4 +556,34 @@ private:
 	This function also recalculates the path if the path is already visible.
 	*/
 	void showBezierMovementPath();
+};
+
+class MainEditorWindow : public EditorWindow {
+public:
+	MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL);
+	inline static std::shared_ptr<MainEditorWindow> create(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL) {
+		return std::make_shared<MainEditorWindow>(tguiMutex, windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval);
+	}
+
+	void loadLevelPack(std::string levelPackName);
+
+private:
+	std::shared_ptr<AudioPlayer> audioPlayer;
+	std::shared_ptr<LevelPack> levelPack;
+	std::shared_ptr<SpriteLoader> spriteLoader;
+
+	std::shared_ptr<TabsWithPanel> mainPanel;
+	std::shared_ptr<TabsWithPanel> leftPanel;
+
+	std::shared_ptr<tgui::Panel> attacksTreeViewPanel;
+	std::shared_ptr<tgui::TreeView> attacksTreeView;
+
+	/*
+	Returns the string to be shown for each EditorAttack in the attack list in the attack tab.
+	*/
+	static sf::String getAttackTextInAttackList(const EditorAttack& attack);
+	/*
+	Returns the string to be shown for each EditorMovablePoint in the attack list in the attack tab.
+	*/
+	static sf::String getEMPTextInAttackList(const EditorMovablePoint& emp);
 };

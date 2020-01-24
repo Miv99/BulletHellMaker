@@ -15,6 +15,7 @@ int main() {
 	sf::RenderWindow window(sf::VideoMode(800, 600), "SFML window");
 
 	tgui::Gui gui;
+	/*
 	auto p = SimpleEngineRenderer::create(window);
 	p->setSize("50%", "50%");
 	p->setPosition("25%", "25%");
@@ -24,7 +25,13 @@ int main() {
 	p->loadLevelPack("test pack");
 	p->loadLevel(0);
 	p->unpause();
+	*/
+	auto mutex = std::make_shared<std::recursive_mutex>();
+	auto p = MainEditorWindow::create(mutex, "title", 1024, 768);
+	p->loadLevelPack("test pack");
+	p->start();
 
+	/*
 	// Limit the framerate to 60 frames per second (this step is optional)
 	window.setFramerateLimit(60);
 	// The main loop - ends as soon as the window is closed
@@ -35,9 +42,9 @@ int main() {
 			// Request for closing the window
 			if (event.type == sf::Event::Closed)
 				window.close();
-
-			p->handleEvent(event);
-			std::cout << window.getView().getCenter().x << ", " << window.getView().getCenter().y << "; " << window.getView().getSize().x << ", " << window.getView().getSize().y << std::endl;
+			
+			//p->handleEvent(event);
+			//std::cout << window.getView().getCenter().x << ", " << window.getView().getCenter().y << "; " << window.getView().getSize().x << ", " << window.getView().getSize().y << std::endl;
 		}
 		// Clear the whole window before rendering a new frame
 		window.clear();
@@ -45,6 +52,7 @@ int main() {
 		// End the current frame and display its contents on screen
 		window.display();
 	}
+	*/
 
 	std::system("pause");
 	return 0;

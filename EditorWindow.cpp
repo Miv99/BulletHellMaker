@@ -187,6 +187,15 @@ std::shared_ptr<entt::SigH<void(bool)>> EditorWindow::promptConfirmation(std::st
 	return confirmationSignal;
 }
 
+void EditorWindow::addPopupWidget(std::shared_ptr<tgui::Widget> popup) {
+	if (this->popup) {
+		closePopupWidget();
+	}
+	this->popup = popup;
+	popupContainer = nullptr;
+	gui->add(popup);
+}
+
 void EditorWindow::addPopupWidget(std::shared_ptr<tgui::Container> popupContainer, std::shared_ptr<tgui::Widget> popup) {
 	if (this->popup) {
 		closePopupWidget();
@@ -197,7 +206,12 @@ void EditorWindow::addPopupWidget(std::shared_ptr<tgui::Container> popupContaine
 }
 
 void EditorWindow::closePopupWidget() {
-	popupContainer->remove(popup);
+	if (popupContainer) {
+		popupContainer->remove(popup);
+	} else {
+		// If not in the popupContainer, it must be in the Gui
+		gui->remove(popup);
+	}
 	popup = nullptr;
 	popupContainer = nullptr;
 }
@@ -1873,4 +1887,52 @@ sf::VertexArray GameplayTestWindow::BezierControlPointPlaceholder::getMovementPa
 	// It's all wack because BezierControlPointPlaceholders don't have info on the entire bezier movement path so it has to be implemented as a
 	// special case from GameplayTestWindow::showPlaceholderMovementPath(placeholder)
 	return sf::VertexArray();
+}
+
+MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval)
+	: EditorWindow(tguiMutex, windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval) {
+	std::lock_guard<std::recursive_mutex> lock(*tguiMutex);
+
+	leftPanel = TabsWithPanel::create(*this);
+	leftPanel->setPosition(0, 0);
+	leftPanel->setSize("20%", "100%");
+	leftPanel->setVisible(true);
+	gui->add(leftPanel);
+
+	attacksTreeViewPanel = tgui::Panel::create();
+	attacksTreeView = tgui::TreeView::create();
+	attacksTreeView->setPosition(0, 0);
+	attacksTreeView->setSize("100%", "100%");
+	attacksTreeViewPanel->add(attacksTreeView);
+	leftPanel->addTab("Attacks", attacksTreeViewPanel);
+
+	mainPanel = TabsWithPanel::create(*this);
+	mainPanel->setPosition(tgui::bindRight(leftPanel), tgui::bindTop(leftPanel));
+	mainPanel->setSize("80%", "100%");
+	mainPanel->setVisible(true);
+	gui->add(mainPanel);
+}
+
+void MainEditorWindow::loadLevelPack(std::string levelPackName) {
+	audioPlayer = std::make_shared<AudioPlayer>();
+	levelPack = std::make_shared<LevelPack>(*audioPlayer, levelPackName);
+	spriteLoader = levelPack->createSpriteLoader();
+	spriteLoader->preloadTextures();
+
+	// Populate attacks tree view
+	for (auto it = levelPack->getAttackIteratorBegin(); it != levelPack->getAttackIteratorEnd(); it++) {
+		for (std::vector<sf::String> item : it->second->generateTreeViewHierarchy(&MainEditorWindow::getAttackTextInAttackList, &MainEditorWindow::getEMPTextInAttackList)) {
+			attacksTreeView->addItem(item);
+		}
+	}
+}
+
+sf::String MainEditorWindow::getAttackTextInAttackList(const EditorAttack& attack) {
+	return "[" + std::to_string(attack.getID()) + "] " + attack.getName();
+}
+
+sf::String MainEditorWindow::getEMPTextInAttackList(const EditorMovablePoint& emp) {
+	std::string bulletStr = emp.getIsBullet() ? "[X]" : "[-]";
+	std::string idStr = "[" + std::to_string(emp.getID()) + "]";
+	return bulletStr + " " + idStr;
 }

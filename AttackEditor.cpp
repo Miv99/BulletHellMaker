@@ -1799,9 +1799,9 @@ void AttackEditor::setEMPAWidgetValues(std::shared_ptr<EMPAction> empa, std::sha
 
 void AttackEditor::buildEMPTree() {
 	emplTree->removeAllItems();
-	for (std::vector<sf::String> item : selectedAttack->generateTreeViewEmpHierarchy(&AttackEditor::getEMPTreeNodeText)) {
-		emplTree->addItem(item);
-	}
+	//for (std::vector<sf::String> item : selectedAttack->generateTreeViewEmpHierarchy(&AttackEditor::getEMPTreeNodeText)) {
+	//	emplTree->addItem(item);
+	//}
 
 	emplTree->deselectItem();
 	if (selectedEMP) {
