@@ -1,5 +1,8 @@
 #include "EditorWindow.h"
 #include "Components.h"
+#include "Enemy.h"
+#include "EnemyPhase.h"
+#include "Level.h"
 #include <algorithm>
 #include <boost/date_time.hpp>
 #include <sstream>
@@ -1406,9 +1409,9 @@ void GameplayTestWindow::selectPlaceholder(std::shared_ptr<EntityPlaceholder> pl
 				testModeIDLabel->setText("Attack ID");
 				for (auto it = levelPack->getAttackIteratorBegin(); it != levelPack->getAttackIteratorEnd(); it++) {
 					std::string ignoreThis; // useless var
-					if (it->second->legal(*levelPack, *spriteLoader, ignoreThis)) {
-						testModeID->getListBox()->addItem(it->second->getName() + " [id=" + std::to_string(it->second->getID()) + "]", std::to_string(it->second->getID()));
-					}
+					//if (it->second->legal(*levelPack, *spriteLoader, ignoreThis)) {
+					//	testModeID->getListBox()->addItem(it->second->getName() + " [id=" + std::to_string(it->second->getID()) + "]", std::to_string(it->second->getID()));
+					//}
 				}
 				showMovementPathLabel->setVisible(false);
 				showMovementPath->setVisible(false);
@@ -1678,10 +1681,10 @@ void GameplayTestWindow::PlayerEntityPlaceholder::runTest(std::shared_ptr<std::r
 
 	EditorPlayer params;
 	std::string message; // does nothing
-	if (!useDefaultTestPlayer && levelPack.getPlayer().legal(spriteLoader, message)) {
-		params = levelPack.getPlayer();
-	}
-	else {
+	//if (!useDefaultTestPlayer && levelPack.getPlayer().legal(spriteLoader, message)) {
+	//	params = *levelPack.getPlayer();
+	//}
+	//else {
 		// Create default player params
 		auto playerAP = levelPack.createTempAttackPattern();
 		auto playerAttack1 = levelPack.createTempAttack();
@@ -1712,7 +1715,7 @@ void GameplayTestWindow::PlayerEntityPlaceholder::runTest(std::shared_ptr<std::r
 
 		params = EditorPlayer(10, 11, 300, 100, 5, 0, 0, 2.0f, std::vector<PlayerPowerTier>{ PlayerPowerTier(pset1, playerAP->getID(), 0.1f, playerAP->getID(), 0.5f, bombAP->getID(), 5.0f) }, SoundSettings("oof.wav", 10), SoundSettings("death.ogg"), Animatable("heart.png", "", true, LOCK_ROTATION),
 			3, 10, Animatable("bomb.png", "", true, LOCK_ROTATION), SoundSettings("bomb_ready.wav"), 5.0f);
-	}
+	//}
 
 	testEntity = registry.create();
 	registry.assign<AnimatableSetComponent>(testEntity);
@@ -1815,7 +1818,7 @@ bool GameplayTestWindow::EnemyEntityPlaceholder::legalCheck(std::string & messag
 				message += "[id=" + std::to_string(id) + "] Attack pattern ID " + std::to_string(testModeID) + " no longer exists.\n";
 				good = false;
 			} else {
-				good = good && levelPack.getAttack(testModeID)->legal(levelPack, spriteLoader, message);
+				//good = good && levelPack.getAttack(testModeID)->legal(levelPack, spriteLoader, message);
 			}
 		}
 	}
@@ -1859,7 +1862,8 @@ Animatable GameplayTestWindow::EMPTestEntityPlaceholder::getVisualEntityAnimatab
 }
 
 bool GameplayTestWindow::EMPTestEntityPlaceholder::legalCheck(std::string & message, LevelPack & levelPack, SpriteLoader & spriteLoader) {
-	return emp->legal(levelPack, spriteLoader, message);
+	//return emp->legal(levelPack, spriteLoader, message);
+	return false;
 }
 
 sf::VertexArray GameplayTestWindow::EMPTestEntityPlaceholder::getMovementPath(float timeResolution, float playerX, float playerY) {

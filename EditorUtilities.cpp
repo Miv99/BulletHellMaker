@@ -5,6 +5,7 @@
 #include <boost/filesystem.hpp>
 #include <iostream>
 #include <algorithm>
+#include "Level.h"
 //#include "matplotlibcpp.h"
 
 #ifdef _WIN32
@@ -1553,12 +1554,12 @@ void SimpleEngineRenderer::loadLevel(std::shared_ptr<Level> level) {
 	registry.reserve<SpriteComponent>(1);
 	auto player = registry.create();
 	registry.assign<AnimatableSetComponent>(player);
-	auto& playerTag = registry.assign<PlayerTag>(entt::tag_t{}, player, registry, *levelPack, player, params.getSpeed(), params.getFocusedSpeed(), params.getInvulnerabilityTime(),
-		params.getPowerTiers(), params.getHurtSound(), params.getDeathSound(), params.getInitialBombs(), params.getMaxBombs(), params.getBombInvincibilityTime());
-	auto& health = registry.assign<HealthComponent>(player, params.getInitialHealth(), params.getMaxHealth());
+	auto& playerTag = registry.assign<PlayerTag>(entt::tag_t{}, player, registry, *levelPack, player, params->getSpeed(), params->getFocusedSpeed(), params->getInvulnerabilityTime(),
+		params->getPowerTiers(), params->getHurtSound(), params->getDeathSound(), params->getInitialBombs(), params->getMaxBombs(), params->getBombInvincibilityTime());
+	auto& health = registry.assign<HealthComponent>(player, params->getInitialHealth(), params->getMaxHealth());
 	// Hitbox temporarily at 0, 0 until an Animatable is assigned to the player later
-	registry.assign<HitboxComponent>(player, LOCK_ROTATION, params.getHitboxRadius(), 0, 0);
-	registry.assign<PositionComponent>(player, PLAYER_SPAWN_X - params.getHitboxPosX(), PLAYER_SPAWN_Y - params.getHitboxPosY());
+	registry.assign<HitboxComponent>(player, LOCK_ROTATION, params->getHitboxRadius(), 0, 0);
+	registry.assign<PositionComponent>(player, PLAYER_SPAWN_X - params->getHitboxPosX(), PLAYER_SPAWN_Y - params->getHitboxPosY());
 	registry.assign<SpriteComponent>(player, PLAYER_LAYER, 0);
 
 	// Play level music

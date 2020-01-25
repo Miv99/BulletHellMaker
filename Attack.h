@@ -7,10 +7,11 @@
 #include "SpriteLoader.h"
 #include "TextMarshallable.h"
 #include "EntityCreationQueue.h"
+#include "LevelPackObject.h"
 
 class EditorMovablePoint;
 
-class EditorAttack : public TextMarshallable {
+class EditorAttack : public LevelPackObject, public TextMarshallable {
 public:
 	inline EditorAttack() {}
 	EditorAttack(int id);
@@ -20,7 +21,7 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	bool legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::string& message) const;
+	std::pair<bool, std::string> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
 
 	void loadEMPBulletModels(const LevelPack& levelPack);
 

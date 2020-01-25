@@ -1,6 +1,15 @@
 #include "LevelPack.h"
 #include <fstream>
 #include "TextFileParser.h"
+#include "Attack.h"
+#include "AttackPattern.h"
+#include "EditorMovablePoint.h"
+#include "EditorMovablePointAction.h"
+#include "EditorMovablePointSpawnType.h"
+#include "Enemy.h"
+#include "EnemyPhase.h"
+#include "Player.h"
+#include "Level.h"
 //TODO delete these
 #include "EnemySpawn.h"
 #include "EnemySpawnCondition.h"
@@ -214,7 +223,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	level->getBloomLayerSettings()[ITEM_LAYER] = BloomSettings(1.3f, 0.0f);
 	*/
 	this->insertLevel(0, level);
-	this->setPlayer(EditorPlayer(10, 11, 300, 100, 5, 0, 0, 2.0f, std::vector<PlayerPowerTier>{ PlayerPowerTier(pset1, playerAP->getID(), 0.1f, playerFocusedAP->getID(), 0.5f, bombAP->getID(), 5.0f),
+	this->setPlayer(std::make_shared<EditorPlayer>(10, 11, 300, 100, 5, 0, 0, 2.0f, std::vector<PlayerPowerTier>{ PlayerPowerTier(pset1, playerAP->getID(), 0.1f, playerFocusedAP->getID(), 0.5f, bombAP->getID(), 5.0f),
 		PlayerPowerTier(pset2, playerAP2->getID(), 0.01f, playerFocusedAP->getID(), 0.5f, bombAP->getID(), 5.0f) }, SoundSettings("oof.wav", 10), SoundSettings("death.ogg"), Animatable("heart.png", "", true, LOCK_ROTATION),
 		3, 10, Animatable("bomb.png", "", true, LOCK_ROTATION), SoundSettings("bomb_ready.wav"), 5.0f));
 	
@@ -406,6 +415,206 @@ std::unique_ptr<SpriteLoader> LevelPack::createSpriteLoader() {
 	return std::move(spriteLoader);
 }
 
+void LevelPack::insertLevel(int index, std::shared_ptr<Level> level) {
+	levels.insert(levels.begin() + index, level);
+}
+
+std::shared_ptr<EditorAttack> LevelPack::createAttack(bool addAttackToLevelPack) {
+	auto attack = std::make_shared<EditorAttack>(nextAttackID++);
+	if (addAttackToLevelPack) {
+		attacks[attack->getID()] = attack;
+	}
+	return attack;
+}
+
+void LevelPack::updateAttack(std::shared_ptr<EditorAttack> attack) {
+	attacks[attack->getID()] = attack;
+	onChange->publish();
+}
+
+std::shared_ptr<EditorAttackPattern> LevelPack::createAttackPattern() {
+	auto attackPattern = std::make_shared<EditorAttackPattern>(nextAttackPatternID++);
+	attackPatterns[attackPattern->getID()] = attackPattern;
+	return attackPattern;
+}
+
+std::shared_ptr<EditorEnemy> LevelPack::createEnemy() {
+	auto enemy = std::make_shared<EditorEnemy>(nextEnemyID++);
+	enemies[enemy->getID()] = enemy;
+	return enemy;
+}
+
+std::shared_ptr<EditorEnemyPhase> LevelPack::createEnemyPhase() {
+	auto enemyPhase = std::make_shared<EditorEnemyPhase>(nextEnemyPhaseID++);
+	enemyPhases[enemyPhase->getID()] = enemyPhase;
+	return enemyPhase;
+}
+
+std::shared_ptr<BulletModel> LevelPack::createBulletModel() {
+	auto bulletModel = std::make_shared<BulletModel>(nextBulletModelID++);
+	bulletModels[bulletModel->getID()] = bulletModel;
+	return bulletModel;
+}
+
+std::shared_ptr<EditorAttack> LevelPack::createTempAttack() {
+	auto attack = std::make_shared<EditorAttack>(nextTempAttackID--);
+	attacks[attack->getID()] = attack;
+	return attack;
+}
+
+std::shared_ptr<EditorAttackPattern> LevelPack::createTempAttackPattern() {
+	auto attackPattern = std::make_shared<EditorAttackPattern>(nextTempAttackPatternID--);
+	attackPatterns[attackPattern->getID()] = attackPattern;
+	return attackPattern;
+}
+
+std::shared_ptr<EditorEnemy> LevelPack::createTempEnemy() {
+	auto enemy = std::make_shared<EditorEnemy>(nextTempEnemyID--);
+	enemies[enemy->getID()] = enemy;
+	return enemy;
+}
+
+std::shared_ptr<EditorEnemyPhase> LevelPack::createTempEnemyPhase() {
+	auto enemyPhase = std::make_shared<EditorEnemyPhase>(nextTempEnemyPhaseID--);
+	enemyPhases[enemyPhase->getID()] = enemyPhase;
+	return enemyPhase;
+}
+
+void LevelPack::deleteLevel(int levelIndex) {
+	levels.erase(levels.begin() + levelIndex);
+}
+
+void LevelPack::deleteAttack(int id) {
+	attacks.erase(id);
+}
+
+void LevelPack::deleteAttackPattern(int id) {
+	attackPatterns.erase(id);
+}
+
+void LevelPack::deleteEnemy(int id) {
+	enemies.erase(id);
+}
+
+void LevelPack::deleteEnemyPhase(int id) {
+	enemyPhases.erase(id);
+}
+
+bool LevelPack::hasEnemy(int id) {
+	return enemies.count(id) != 0;
+}
+
+bool LevelPack::hasEnemyPhase(int id) {
+	return enemyPhases.count(id) != 0;
+}
+
+bool LevelPack::hasAttackPattern(int id) {
+	return attackPatterns.count(id) != 0;
+}
+
+bool LevelPack::hasAttack(int id) {
+	return attacks.count(id) != 0;
+}
+
+bool LevelPack::hasBulletModel(int id) {
+	return bulletModels.count(id) != 0;
+}
+
+bool LevelPack::hasLevel(int levelIndex) {
+	return levels.size() > levelIndex;
+}
+
+std::string LevelPack::getName() {
+	return name;
+}
+
+std::shared_ptr<Level> LevelPack::getLevel(int levelIndex) const {
+	return levels[levelIndex];
+}
+
+std::shared_ptr<const EditorAttack> LevelPack::getAttack(int id) const {
+	return attacks.at(id);
+}
+
+std::shared_ptr<EditorAttackPattern> LevelPack::getAttackPattern(int id) const {
+	return attackPatterns.at(id);
+}
+
+std::shared_ptr<EditorEnemy> LevelPack::getEnemy(int id) const {
+	return enemies.at(id);
+}
+
+std::shared_ptr<EditorEnemyPhase> LevelPack::getEnemyPhase(int id) const {
+	return enemyPhases.at(id);
+}
+
+std::shared_ptr<BulletModel> LevelPack::getBulletModel(int id) const {
+	return bulletModels.at(id);
+}
+
+std::shared_ptr<EditorPlayer> LevelPack::getPlayer() {
+	return metadata.getPlayer();
+}
+
+std::string LevelPack::getFontFileName() {
+	return fontFileName;
+}
+
+std::map<int, std::shared_ptr<EditorAttack>>::iterator LevelPack::getAttackIteratorBegin() {
+	return attacks.begin();
+}
+
+std::map<int, std::shared_ptr<EditorAttack>>::iterator LevelPack::getAttackIteratorEnd() {
+	return attacks.end();
+}
+
+std::map<int, std::shared_ptr<EditorAttackPattern>>::iterator LevelPack::getAttackPatternIteratorBegin() {
+	return attackPatterns.begin();
+}
+
+std::map<int, std::shared_ptr<EditorAttackPattern>>::iterator LevelPack::getAttackPatternIteratorEnd() {
+	return attackPatterns.end();
+}
+
+std::map<int, std::shared_ptr<EditorEnemy>>::iterator LevelPack::getEnemyIteratorBegin() {
+	return enemies.begin();
+}
+
+std::map<int, std::shared_ptr<EditorEnemy>>::iterator LevelPack::getEnemyIteratorEnd() {
+	return enemies.end();
+}
+
+std::map<int, std::shared_ptr<EditorEnemyPhase>>::iterator LevelPack::getEnemyPhaseIteratorBegin() {
+	return enemyPhases.begin();
+}
+
+std::map<int, std::shared_ptr<EditorEnemyPhase>>::iterator LevelPack::getEnemyPhaseIteratorEnd() {
+	return enemyPhases.end();
+}
+
+std::map<int, std::shared_ptr<BulletModel>>::iterator LevelPack::getBulletModelIteratorBegin() {
+	return bulletModels.begin();
+}
+
+std::map<int, std::shared_ptr<BulletModel>>::iterator LevelPack::getBulletModelIteratorEnd() {
+	return bulletModels.end();
+}
+
+std::shared_ptr<entt::SigH<void()>> LevelPack::getOnChange() {
+	if (!onChange) {
+		onChange = std::make_shared<entt::SigH<void()>>();
+	}
+	return onChange;
+}
+
+bool LevelPack::hasBulletModel(int id) const {
+	return bulletModels.count(id) > 0;
+}
+
+void LevelPack::setPlayer(std::shared_ptr<EditorPlayer> player) {
+	metadata.setPlayer(player);
+}
+
 float LevelPack::searchLargestBulletHitbox() const {
 	float max = 0;
 	for (auto p : attacks) {
@@ -451,7 +660,7 @@ void LevelPack::playMusic(const MusicSettings & musicSettings) const {
 }
 
 std::string LevelPackMetadata::format() const {
-	std::string ret = "(" + player.format() + ")" + tm_delim;
+	std::string ret = "(" + player->format() + ")" + tm_delim;
 	ret += tos(spriteSheets.size());
 	for (auto p : spriteSheets) {
 		ret += tm_delim + "(" + p.first + ")" + tm_delim + "(" + p.second + ")";
@@ -461,9 +670,17 @@ std::string LevelPackMetadata::format() const {
 
 void LevelPackMetadata::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
-	player.load(items[0]);
+	player->load(items[0]);
 	int i;
 	for (i = 2; i < std::stoi(items[1]) + 2; i++) {
 		addSpriteSheet(items[i], items[i + 1]);
 	}
+}
+
+std::shared_ptr<EditorPlayer> LevelPackMetadata::getPlayer() {
+	return player;
+}
+
+void LevelPackMetadata::setPlayer(std::shared_ptr<EditorPlayer> player) {
+	this->player = player;
 }

@@ -37,7 +37,7 @@ void PlayerSystem::update(float deltaTime) {
 
 	if (playerTag.update(deltaTime, levelPack, queue, spriteLoader, registry, playerEntity) && playerTag.getBombCount() > 0) {
 		// Play bomb ready sound
-		levelPack.playSound(levelPack.getPlayer().getBombReadySound());
+		levelPack.playSound(levelPack.getPlayer()->getBombReadySound());
 	}
 
 	// Movement

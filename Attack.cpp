@@ -41,21 +41,23 @@ void EditorAttack::load(std::string formattedString) {
 	}
 }
 
-bool EditorAttack::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::string& message) const {
+std::pair<bool, std::string> EditorAttack::legal(LevelPack & levelPack, SpriteLoader & spriteLoader) const {
 	bool good = true;
+	std::string message = "";
 	if (contains(name, '(') || contains(name, ')') || contains(name, '\\')) {
 		message += "Attack \"" + name + "\" cannot have the character '(', ')', or '\' in its name\n";
 		good = false;
 	}
 	if (mainEMP) {
-		if (!mainEMP->legal(levelPack, spriteLoader, message)) {
+		auto mainEMPLegal = mainEMP->legal(levelPack, spriteLoader);
+		if (!mainEMPLegal.first) {
 			good = false;
+			message += tabEveryLine(mainEMPLegal.second);
 		}
 	} else {
 		message += "Attack \"" + name + "\" is missing its mainEMP\n";
 	}
-	//TODO: check that each sound file is a valid file
-	return good;
+	return std::make_pair(good, message);
 }
 
 void EditorAttack::loadEMPBulletModels(const LevelPack & levelPack) {

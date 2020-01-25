@@ -13,6 +13,9 @@
 #include "LevelPack.h"
 #include "Constants.h"
 #include "Player.h"
+#include "Level.h"
+#include "Enemy.h"
+#include "EnemyPhaseStartCondition.h"
 
 #include <iostream>
 
@@ -65,7 +68,7 @@ void GameInstance::updateWindowView(int windowWidth, int windowHeight) {
 
 	levelNameLabel->setMaximumTextWidth(guiRegionWidth - guiPaddingX * 2.0f);
 
-	bombPictureSize = std::max(bombPictureSizeMin, std::min(bombPictureSizeMax, (guiRegionWidth - guiPaddingX * 2) / levelPack->getPlayer().getMaxBombs()));
+	bombPictureSize = std::max(bombPictureSizeMin, std::min(bombPictureSizeMax, (guiRegionWidth - guiPaddingX * 2) / levelPack->getPlayer()->getMaxBombs()));
 	bombPictureDisplayMax = (int)(guiRegionWidth - 2 * guiPaddingX) / (bombPictureSize + guiPaddingX);
 	for (int i = 0; i < bombPictures.size(); i++) {
 		bombPictures[i]->setSize(bombPictureSize, bombPictureSize);
@@ -79,7 +82,7 @@ void GameInstance::updateWindowView(int windowWidth, int windowHeight) {
 	if (playerHPProgressBar) {
 		playerHPProgressBar->setSize(guiRegionWidth - guiPaddingX * 2.0f, 22);
 	} else {
-		playerHPPictureSize = std::max(playerHPPictureSizeMin, std::min(playerHPPictureSizeMax, (guiRegionWidth - guiPaddingX * 2) / levelPack->getPlayer().getMaxHealth()));
+		playerHPPictureSize = std::max(playerHPPictureSizeMin, std::min(playerHPPictureSizeMax, (guiRegionWidth - guiPaddingX * 2) / levelPack->getPlayer()->getMaxHealth()));
 		playerHPPictureDisplayMax = (int)(guiRegionWidth - 2 * guiPaddingX) / (playerHPPictureSize + guiPaddingX);
 		for (int i = 0; i < playerHPPictures.size(); i++) {
 			playerHPPictures[i]->setSize(playerHPPictureSize, playerHPPictureSize);
@@ -132,10 +135,10 @@ GameInstance::GameInstance(std::string levelPackName) {
 	bombLabel = tgui::Label::create();
 	bossLabel = tgui::Label::create();
 	sf::Texture bombTexture;
-	if (!bombTexture.loadFromFile("Level Packs\\" + levelPack->getName() + "\\" + levelPack->getPlayer().getBombSprite().getAnimatableName())) {
+	if (!bombTexture.loadFromFile("Level Packs\\" + levelPack->getName() + "\\" + levelPack->getPlayer()->getBombSprite().getAnimatableName())) {
 		//TODO: error handling
 	}
-	for (int i = 0; i < levelPack->getPlayer().getMaxBombs(); i++) {
+	for (int i = 0; i < levelPack->getPlayer()->getMaxBombs(); i++) {
 		auto bombPicture = tgui::Picture::create(bombTexture);
 		bombPicture->setSize(bombPictureSize, bombPictureSize);
 		bombPictures.push_back(bombPicture);
@@ -144,11 +147,11 @@ GameInstance::GameInstance(std::string levelPackName) {
 		playerHPPictureGrid = tgui::Grid::create();
 
 		sf::Texture playerHPTexture;
-		if (!playerHPTexture.loadFromFile("Level Packs\\" + levelPack->getName() + "\\" + levelPack->getPlayer().getDiscretePlayerHPSprite().getAnimatableName())) {
+		if (!playerHPTexture.loadFromFile("Level Packs\\" + levelPack->getName() + "\\" + levelPack->getPlayer()->getDiscretePlayerHPSprite().getAnimatableName())) {
 			//TODO: error handling
 		}
 
-		for (int i = 0; i < levelPack->getPlayer().getMaxHealth(); i++) {
+		for (int i = 0; i < levelPack->getPlayer()->getMaxHealth(); i++) {
 			auto playerHPPicture = tgui::Picture::create(playerHPTexture);
 			playerHPPicture->setSize(playerHPPictureSize, playerHPPictureSize);
 			playerHPPictures.push_back(playerHPPicture);
@@ -182,7 +185,7 @@ GameInstance::GameInstance(std::string levelPackName) {
 	updateWindowView(window->getSize().x, window->getSize().y);
 
 	// Note: "GUI region" refers to the right side of the window that doesn't contain the stuff from RenderSystem
-	smoothPlayerHPBar = levelPack->getPlayer().getSmoothPlayerHPBar();
+	smoothPlayerHPBar = levelPack->getPlayer()->getSmoothPlayerHPBar();
 
 	gui->setFont(tgui::Font("Level Packs\\" + levelPack->getName() + "\\" + levelPack->getFontFileName()));
 
@@ -225,7 +228,7 @@ GameInstance::GameInstance(std::string levelPackName) {
 		playerHPProgressBar = tgui::ProgressBar::create();
 		playerHPProgressBar->setFillDirection(tgui::ProgressBar::FillDirection::LeftToRight);
 		playerHPProgressBar->setMinimum(0);
-		playerHPProgressBar->setMaximum(levelPack->getPlayer().getMaxHealth());
+		playerHPProgressBar->setMaximum(levelPack->getPlayer()->getMaxHealth());
 		playerHPProgressBar->setSize(guiRegionWidth - guiPaddingX * 2.0f, 22);
 		playerHPProgressBar->setPosition({ tgui::bindLeft(levelNameLabel), guiRegionHeight - playerHPProgressBar->getSize().y - guiPaddingY });
 		playerHPProgressBar->getRenderer()->setBackgroundColor(tgui::Color(sf::Color(255, 170, 170, 255)));
@@ -397,7 +400,7 @@ void GameInstance::loadLevel(int levelIndex) {
 	auto& levelManagerTag = registry.assign<LevelManagerTag>(entt::tag_t{}, levelManager, &(*levelPack), level);
 
 	// Create the player
-	createPlayer(levelPack->getPlayer());
+	createPlayer(*levelPack->getPlayer());
 
 	// Create the points change listener
 	levelManagerTag.getPointsChangeSignal()->sink().connect<GameInstance, &GameInstance::onPointsChange>(this);

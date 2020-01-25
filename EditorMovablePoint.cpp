@@ -124,8 +124,9 @@ void EditorMovablePoint::load(std::string formattedString) {
 	}
 }
 
-bool EditorMovablePoint::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::string & message) {
+std::pair<bool, std::string> EditorMovablePoint::legal(LevelPack & levelPack, SpriteLoader & spriteLoader) const {
 	bool good = true;
+	std::string message = "";
 	if (actions.size() == 0) {
 		// Add a tab to show that this EMP is from the parent attack
 		message += "\tMovablePoint id " + tos(id) + " must not have an empty list of actions\n";
@@ -173,8 +174,10 @@ bool EditorMovablePoint::legal(LevelPack& levelPack, SpriteLoader& spriteLoader,
 		good = false;
 	}
 	for (auto child : children) {
-		if (!child->legal(levelPack, spriteLoader, message)) {
+		auto childLegal = child->legal(levelPack, spriteLoader);
+		if (!childLegal.first) {
 			good = false;
+			message += tabEveryLine(childLegal.second);
 		}
 	}
 
@@ -184,7 +187,7 @@ bool EditorMovablePoint::legal(LevelPack& levelPack, SpriteLoader& spriteLoader,
 		good = false;
 	}
 
-	return good;
+	return std::make_pair(good, message);
 }
 
 void EditorMovablePoint::dfsLoadBulletModel(const LevelPack & levelPack) {

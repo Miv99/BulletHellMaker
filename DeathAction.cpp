@@ -1,6 +1,8 @@
 #include "DeathAction.h"
 #include "Components.h"
 #include "LevelPack.h"
+#include "Attack.h"
+#include "Enemy.h"
 #include "EntityCreationQueue.h"
 
 std::string PlayAnimatableDeathAction::format() const {

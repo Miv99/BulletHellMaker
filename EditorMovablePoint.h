@@ -13,6 +13,7 @@
 #include "Components.h"
 #include "CollisionSystem.h"
 #include "AudioPlayer.h"
+#include "LevelPackObject.h"
 
 class EMPSpawnType;
 class EditorMovablePoint;
@@ -93,7 +94,7 @@ EMP for short.
 
 If an EMP uses a bullet model, make sure to call loadBulletModel() every time the bullet model changes.
 */
-class EditorMovablePoint : public TextMarshallable, public std::enable_shared_from_this<EditorMovablePoint> {
+class EditorMovablePoint : public LevelPackObject, public TextMarshallable, public std::enable_shared_from_this<EditorMovablePoint> {
 public:
 	/*
 	setID - whether the ID of this EMP should be set with this constructor. setID should be false if load() will be called right after.
@@ -104,7 +105,7 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	bool legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::string& message);
+	std::pair<bool, std::string> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
 
 	/*
 	Loads this EMP and its children's bullet models into the EMP, it they use models.
