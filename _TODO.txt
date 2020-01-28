@@ -46,10 +46,9 @@ Notes for me:
 -kill enemy with no movement path -> ondeath stuff broke; fix this by making sure all entities always have some movement path
 
 cur todo:
--give SimpleEngineRenderer option to have a free camera, in which case all relevant inputs from
- SimpleEngineRenderer's signals are captured by a ViewController object that moves a view around
-	-ViewController has public funcs: onMouseReleased, etc; it is SimpleEngineRenderer's job to connect its signals 
-	 to ViewController object's funcs
+-Check if ScrollabeListBox is still necessary; if yes, turn ScrollableListBox into ScrollableListView
+-Make sure all sliders in editor stuff are just numerical textboxes
+-For every level pack object except Level, keep track of who's using it (eg attack 3 might be used by attack patterns 1, 2, 5, 7)
 
 big todo:
 -change lifespan of empa -> linearly scale segments' start times to be same % of lifespan; store % of original for each segment

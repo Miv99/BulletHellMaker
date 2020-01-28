@@ -1646,6 +1646,8 @@ TabsWithPanel::TabsWithPanel(EditorWindow& parentWindow) {
 		moreTabsButton->setSize(tabs->getSize().y, tabs->getSize().y);
 		moreTabsButton->setPosition(getSize().x - moreTabsButton->getSize().x, tgui::bindTop(tabs));
 	});
+
+	updateMoreTabsList();
 }
 
 void TabsWithPanel::addTab(std::string tabName, std::shared_ptr<tgui::Panel> associatedPanel, bool autoSelect) {
@@ -1713,4 +1715,6 @@ void TabsWithPanel::updateMoreTabsList() {
 		moreTabsList->getListBox()->addItem(tabsOrdering[i], tabsOrdering[i]);
 	}
 	moreTabsList->setSize(300, moreTabsList->getListBox()->getItemHeight() * moreTabsList->getListBox()->getItemCount());
+
+	moreTabsButton->setVisible(tabsOrdering.size() > 0);
 }
