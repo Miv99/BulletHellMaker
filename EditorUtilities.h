@@ -41,6 +41,12 @@ Returns a tooltip containing some text.
 */
 std::shared_ptr<tgui::Label> createToolTip(std::string text);
 /*
+Returns a menu popup with clickable buttons.
+
+elements - a vector of pairs containing the text of the button and the function to be called when the button is pressed
+*/
+std::shared_ptr<tgui::ListBox> createMenuPopup(std::vector<std::pair<std::string, std::function<void()>>> elements);
+/*
 Returns a sf::VertexArray that contains the positions that an entity following the array of EMPAs will be in over time.
 Note that there must be an entity with the PlayerTag component if any of the EMPAs or their EMPAAngleOffsets require the player's position.
 The vertices linearly interpolate from startColor to endColor as the path progresses.

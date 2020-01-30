@@ -43,6 +43,23 @@ std::shared_ptr<tgui::Label> createToolTip(std::string text) {
 	return tooltip;
 }
 
+std::shared_ptr<tgui::ListBox> createMenuPopup(std::vector<std::pair<std::string, std::function<void()>>> elements) {
+	auto popup = tgui::ListBox::create();
+	int i = 0;
+	int longestStringLength = 0;
+	for (std::pair<std::string, std::function<void()>> element : elements) {
+		longestStringLength = std::max(longestStringLength, (int)element.first.length());
+		popup->addItem(element.first, std::to_string(i));
+		i++;
+	}
+	popup->setItemHeight(20);
+	popup->setSize(std::max(150, (int)(longestStringLength * popup->getTextSize())), popup->getItemHeight() * popup->getItemCount() + 5);
+	popup->connect("MousePressed", [elements](std::string item, std::string id) {
+		elements[std::stoi(id)].second();
+	});
+	return popup;
+}
+
 sf::VertexArray generateVertexArray(std::vector<std::shared_ptr<EMPAction>> actions, float timeResolution, float x, float y, float playerX, float playerY, sf::Color startColor, sf::Color endColor) {
 	float totalTime = 0;
 	for (auto action : actions) {
