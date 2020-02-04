@@ -1705,10 +1705,52 @@ void TabsWithPanel::removeTab(std::string tabName) {
 
 void TabsWithPanel::removeAllTabs() {
 	panelsMap.clear();
+	tabsOrdering.clear();
 	if (currentPanel) {
 		currentPanel = nullptr;
 	}
 	tabs->removeAll();
+	updateMoreTabsList();
+}
+
+void TabsWithPanel::cacheTabs(std::string tabsSetIdentifier) {
+	std::vector<std::pair<std::string, std::shared_ptr<tgui::Panel>>> tabsData;
+	for (auto tabName : tabsOrdering) {
+		tabsData.push_back(std::make_pair(tabName, panelsMap[tabName]));
+	}
+	tabsCache.insert(tabsSetIdentifier, {tabs->getSelected(), tabsData});
+}
+
+bool TabsWithPanel::isCached(std::string tabsSetIdentifier) {
+	return tabsCache.contains(tabsSetIdentifier);
+}
+
+bool TabsWithPanel::loadCachedTabsSet(std::string tabsSetIdentifier) {
+	if (!tabsCache.contains(tabsSetIdentifier)) {
+		return false;
+	}
+
+	removeAllTabs();
+
+	CachedTabsValue data = tabsCache.get(tabsSetIdentifier);
+	for (std::pair<std::string, std::shared_ptr<tgui::Panel>> p : data.tabs) {
+		addTab(p.first, p.second, p.first == data.currentlySelectedTab);
+	}
+	updateMoreTabsList();
+}
+
+void TabsWithPanel::removeCachedTabsSet(std::string tabsSetIdentifier) {
+	if (tabsCache.contains(tabsSetIdentifier)) {
+		tabsCache.remove(tabsSetIdentifier);
+	}
+}
+
+void TabsWithPanel::clearTabsCache() {
+	tabsCache.clear();
+}
+
+std::string TabsWithPanel::getSelectedTab() {
+	return tabs->getSelected();
 }
 
 void TabsWithPanel::onTabSelected(std::string tabName) {

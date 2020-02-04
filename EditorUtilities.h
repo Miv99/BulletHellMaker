@@ -26,6 +26,7 @@
 #include "EditorMovablePoint.h"
 #include "MovablePoint.h"
 #include "ViewController.h"
+#include "LRUCache.h"
 #include <memory>
 #include <thread>
 #include <mutex>
@@ -500,7 +501,8 @@ private:
 
 /*
 A widget with tabs that, when one is selected, shows a Panel associated with that tab.
-Warning: undefined behavior when there are multiple tabs with the same name.
+Warning: undefined behavior when there are multiple tabs with the same name, or when 
+a tab has an empty string for a name.
 */
 class TabsWithPanel : public tgui::Group {
 public:
@@ -530,12 +532,58 @@ public:
 	*/
 	void removeAllTabs();
 
+	/*
+	Caches all currently added tabs so that the current set of tabs can be reopened at a later time.
+	If tabsSetIdentifier already refers to some set of tabs, the old set of tabs will be overriden.
+
+	tabsSetIdentifier - the unique identifier that will later be used to reopen the cached tabs
+	*/
+	void cacheTabs(std::string tabsSetIdentifier);
+	/*
+	Returns whether tabsSetIdentifier refers to any set of cached tabs.
+
+	See cacheTabs() for more info on tabsSetIdentifier.
+	*/
+	bool isCached(std::string tabsSetIdentifier);
+	/*
+	Removes all current tabs and reopens the set of tabs referred to by tabsSetIdentifier.
+	If tabsSetIdentifier does not refer to any set of tabs, this function will do nothing and return false.
+	Otherwise, if it returns true.
+
+	See cacheTabs() for more info on tabsSetIdentifier.
+	*/
+	bool loadCachedTabsSet(std::string tabsSetIdentifier);
+	/*
+	Removes the set of tabs that tabsSetIdentifier refers to from the cache.
+	If tabsSetIdentifier does not refer to any set of tabs, this function will do nothing.
+
+	See cacheTabs() for more info on tabsSetIdentifier.
+	*/
+	void removeCachedTabsSet(std::string tabsSetIdentifier);
+	/*
+	Clears the tabs cache.
+	*/
+	void clearTabsCache();
+
+	/*
+	Returns the unique name of the currently selected tab.
+	*/
+	std::string getSelectedTab();
+
 private:
+	// The value part of the key:value pairing in the tabsCache cache
+	struct CachedTabsValue {
+		std::string currentlySelectedTab;
+		// Should be ordered the same as tabsOrdering at the time of caching
+		// A vector of pairs, a pair for every tab: the tab name and the associated panel
+		std::vector<std::pair<std::string, std::shared_ptr<tgui::Panel>>> tabs;
+	};
 	const float MIN_TAB_WIDTH = 100.0f;
 
 	std::shared_ptr<tgui::Tabs> tabs;
 	// Maps tab name to the Panel that will be showed when the tab is selected
 	std::map<std::string, std::shared_ptr<tgui::Panel>> panelsMap;
+	// Tracks the order of the tabs in moreTabsList
 	std::vector<std::string> tabsOrdering;
 
 	// Panel that is currently active
@@ -545,6 +593,10 @@ private:
 	std::shared_ptr<tgui::Button> moreTabsButton;
 	// The ScrollableListBox that is shown when moreTabsButton is clicked
 	std::shared_ptr<ScrollableListBox> moreTabsList;
+
+	// Maps a tab set identifier string to a vector
+	// panelsMap, tabsOrdering, the name of the tab that was open (empty string if none)
+ 	Cache<std::string, CachedTabsValue> tabsCache;
 
 	void onTabSelected(std::string tabName);
 	void updateMoreTabsList();
