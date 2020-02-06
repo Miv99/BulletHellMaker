@@ -17,53 +17,21 @@ EditorMovablePoint::EditorMovablePoint(int & nextID, std::weak_ptr<EditorMovable
 std::string EditorMovablePoint::format() const {
 	std::string res = "";
 
-	res += "(" + tos(id) + ")" + tm_delim;
-	res += "(" + tos(hitboxRadius) + ")" + tm_delim;
-	res += "(" + tos(despawnTime) + ")" + tm_delim;
-
-	res += "(" + tos(children.size()) + ")";
+	res += tos(id) + tos(hitboxRadius) + tos(despawnTime) + tos(children.size());
 	for (auto emp : children) {
-		res += tm_delim + "(" + emp->format() + ")";
+		res += formatTMObject(*emp);
 	}
 
-	res += tm_delim + "(" + tos(actions.size()) + ")";
+	res += tos(actions.size());
 	for (auto action : actions) {
-		res += tm_delim + "(" + action->format() + ")";
+		res += formatTMObject(*action);
 	}
 
-	res += tm_delim + "(" + spawnType->format() + ")";
-
-	res += tm_delim + "(" + tos(shadowTrailInterval) + ")";
-	res += tm_delim + "(" + tos(shadowTrailLifespan) + ")";
-
-	res += tm_delim + "(" + animatable.format() + ")";
-	if (loopAnimation) {
-		res += tm_delim + "1";
-	} else {
-		res += tm_delim + "0";
-	}
-	res += tm_delim + "(" + baseSprite.format() + ")";
-	res += tm_delim + tos(damage);
-
-	res += tm_delim + tos(static_cast<int>(onCollisionAction));
-	res += tm_delim + tos(pierceResetTime);
-
-	res += tm_delim + "(" + soundSettings.format() + ")";
-	
-	res += tm_delim + tos(bulletModelID);
-	res += tm_delim + (inheritRadius ? "1" : "0");
-	res += tm_delim + (inheritDespawnTime ? "1" : "0");
-	res += tm_delim + (inheritShadowTrailInterval ? "1" : "0");
-	res += tm_delim + (inheritShadowTrailLifespan ? "1" : "0");
-	res += tm_delim + (inheritAnimatables ? "1" : "0");
-	res += tm_delim + (inheritDamage ? "1" : "0");
-	res += tm_delim + (inheritSoundSettings ? "1" : "0");
-
-	if (isBullet) {
-		res += tm_delim + "1";
-	} else {
-		res += tm_delim + "0";
-	}
+	res += formatTMObject(*spawnType) + tos(shadowTrailInterval) + tos(shadowTrailLifespan) + formatTMObject(animatable)
+		+ formatBool(loopAnimation) + formatTMObject(baseSprite) + tos(damage) + tos(static_cast<int>(onCollisionAction))
+		+ tos(pierceResetTime) + formatTMObject(soundSettings) + tos(bulletModelID) + formatBool(inheritRadius)
+		+ formatBool(inheritDespawnTime) + formatBool(inheritShadowTrailInterval) + formatBool(inheritShadowTrailLifespan)
+		+ formatBool(inheritAnimatables) + formatBool(inheritDamage) + formatBool(inheritSoundSettings) + formatBool(isBullet);
 
 	return res;
 }
@@ -109,19 +77,14 @@ void EditorMovablePoint::load(std::string formattedString) {
 	soundSettings.load(items[i++]);
 
 	bulletModelID = std::stoi(items[i++]);
-	inheritRadius = (std::stoi(items[i++]) == 1);
-	inheritDespawnTime = (std::stoi(items[i++]) == 1);
-	inheritShadowTrailInterval = (std::stoi(items[i++]) == 1);
-	inheritShadowTrailLifespan = (std::stoi(items[i++]) == 1);
-	inheritAnimatables = (std::stoi(items[i++]) == 1);
-	inheritDamage = (std::stoi(items[i++]) == 1);
-	inheritSoundSettings = (std::stoi(items[i++]) == 1);
-
-	if (std::stoi(items[i++]) == 1) {
-		isBullet = true;
-	} else {
-		isBullet = false;
-	}
+	inheritRadius = unformatBool(items[i++]);
+	inheritDespawnTime = unformatBool(items[i++]);
+	inheritShadowTrailInterval = unformatBool(items[i++]);
+	inheritShadowTrailLifespan = unformatBool(items[i++]);
+	inheritAnimatables = unformatBool(items[i++]);
+	inheritDamage = unformatBool(items[i++]);
+	inheritSoundSettings = unformatBool(items[i++]);
+	isBullet = unformatBool(items[i++]);
 }
 
 std::pair<bool, std::string> EditorMovablePoint::legal(LevelPack & levelPack, SpriteLoader & spriteLoader) const {
@@ -327,33 +290,9 @@ std::vector<sf::String> EditorMovablePoint::generatePathToThisEmp(std::function<
 }
 
 std::string BulletModel::format() const {
-	std::string res = "";
-
-	res += "(" + tos(id) + ")" + tm_delim;
-	res += "(" + name + ")" + tm_delim;
-	res += "(" + tos(hitboxRadius) + ")" + tm_delim;
-	res += "(" + tos(despawnTime) + ")" + tm_delim;
-
-	res += "(" + tos(shadowTrailInterval) + ")" + tm_delim;
-	res += "(" + tos(shadowTrailLifespan) + ")" + tm_delim;
-
-	res += "(" + animatable.format() + ")" + tm_delim;
-	if (loopAnimation) {
-		res += "1" + tm_delim;
-	} else {
-		res += "0" + tm_delim;
-	}
-	res += "(" + baseSprite.format() + ")" + tm_delim;
-	res += tos(damage) + tm_delim;
-
-	if (playSoundOnSpawn) {
-		res += "1" + tm_delim;
-	} else {
-		res += "0" + tm_delim;
-	}
-	res += "(" + soundSettings.format() + ")";
-
-	return res;
+	return tos(id) + formatString(name) + tos(hitboxRadius) + tos(despawnTime) + tos(shadowTrailInterval) + tos(shadowTrailLifespan)
+		+ formatTMObject(animatable) + formatBool(loopAnimation) + formatTMObject(baseSprite) + tos(damage) + formatBool(playSoundOnSpawn)
+		+ formatTMObject(soundSettings);
 }
 
 void BulletModel::load(std::string formattedString) {
@@ -368,20 +307,12 @@ void BulletModel::load(std::string formattedString) {
 	shadowTrailLifespan = std::stof(items[5]);
 
 	animatable.load(items[6]);
-	if (std::stoi(items[7]) == 0) {
-		loopAnimation = false;
-	} else {
-		loopAnimation = true;
-	}
+	loopAnimation = unformatBool(items[7]);
 	baseSprite.load(items[8]);
 
 	damage = std::stoi(items[9]);
 
-	if (std::stoi(items[10]) == 1) {
-		playSoundOnSpawn = true;
-	} else {
-		playSoundOnSpawn = false;
-	}
+	playSoundOnSpawn = unformatBool(items[10]);
 	soundSettings.load(items[11]);
 }
 

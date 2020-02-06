@@ -507,18 +507,10 @@ std::shared_ptr<entt::SigH<void()>> RenderSystem::getOnResolutionChange() {
 }
 
 std::string BloomSettings::format() const {
-	std::string ret = "";
-	if (useBloom) {
-		ret += "1" + tm_delim;
-	}
-	else {
-		ret += "0" + tm_delim;
-	}
-	ret += tos(glowStrength) + tm_delim;
-	ret += tos(minBright) + tm_delim;
-	ret += tos(static_cast<int>(blendMode.colorSrcFactor)) + tm_delim + tos(static_cast<int>(blendMode.colorDstFactor)) + tm_delim + tos(static_cast<int>(blendMode.colorEquation)) + tm_delim + tos(static_cast<int>(blendMode.alphaSrcFactor));
-	ret += tos(static_cast<int>(blendMode.alphaDstFactor)) + tm_delim + tos(static_cast<int>(blendMode.alphaEquation));
-	return ret;
+	return formatBool(useBloom) + tos(glowStrength) + tos(minBright) + tos(static_cast<int>(blendMode.colorSrcFactor))
+		+ tos(static_cast<int>(blendMode.colorDstFactor)) + tos(static_cast<int>(blendMode.colorEquation))
+		+ tos(static_cast<int>(blendMode.alphaSrcFactor)) + tos(static_cast<int>(blendMode.alphaDstFactor))
+		+ tos(static_cast<int>(blendMode.alphaEquation));
 }
 
 void BloomSettings::load(std::string formattedString) {

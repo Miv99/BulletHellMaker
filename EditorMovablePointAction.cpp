@@ -7,11 +7,7 @@ std::shared_ptr<EMPAAngleOffset> EMPAAngleOffsetToPlayer::clone() {
 }
 
 std::string EMPAAngleOffsetToPlayer::format() const {
-	std::string res = "";
-	res += "EMPAAngleOffsetToPlayer" + tm_delim;
-	res += "(" + tos(xOffset) + ")" + tm_delim;
-	res += "(" + tos(yOffset) + ")";
-	return res;
+	return formatString("EMPAAngleOffsetToPlayer") + tos(xOffset) + tos(yOffset);
 }
 
 void EMPAAngleOffsetToPlayer::load(std::string formattedString) {
@@ -35,11 +31,7 @@ std::shared_ptr<EMPAAngleOffset> EMPAAngleOffsetToGlobalPosition::clone() {
 }
 
 std::string EMPAAngleOffsetToGlobalPosition::format() const {
-	std::string res = "";
-	res += "EMPAAngleOffsetToGlobalPosition" + tm_delim;
-	res += "(" + tos(x) + ")" + tm_delim;
-	res += "(" + tos(y) + ")";
-	return res;
+	return formatString("EMPAAngleOffsetToGlobalPosition") + tos(x) + tos(y);
 }
 
 void EMPAAngleOffsetToGlobalPosition::load(std::string formattedString) {
@@ -61,19 +53,18 @@ std::shared_ptr<EMPAAngleOffset> EMPAAngleOffsetZero::clone() {
 }
 
 std::string EMPAAngleOffsetZero::format() const {
-	return "EMPAAngleOffsetZero";
+	return formatString("EMPAAngleOffsetZero");
 }
 
 void EMPAAngleOffsetZero::load(std::string formattedString) {
 }
-
 
 std::shared_ptr<EMPAAngleOffset> EMPAngleOffsetPlayerSpriteAngle::clone() {
 	return std::make_shared<EMPAngleOffsetPlayerSpriteAngle>();
 }
 
 std::string EMPAngleOffsetPlayerSpriteAngle::format() const {
-	return "EMPAngleOffsetPlayerSpriteAngle";
+	return formatString("EMPAngleOffsetPlayerSpriteAngle");
 }
 
 void EMPAngleOffsetPlayerSpriteAngle::load(std::string formattedString) {
@@ -90,7 +81,7 @@ float EMPAngleOffsetPlayerSpriteAngle::evaluate(float xFrom, float yFrom, float 
 
 
 std::string DetachFromParentEMPA::format() const {
-	return "DetachFromParentEMPA";
+	return formatString("DetachFromParentEMPA");
 }
 
 void DetachFromParentEMPA::load(std::string formattedString) {
@@ -118,7 +109,7 @@ std::shared_ptr<MovablePoint> DetachFromParentEMPA::generateStandaloneMP(float x
 }
 
 std::string StayStillAtLastPositionEMPA::format() const {
-	return "StayStillAtLastPositionEMPA" + tm_delim + tos(duration);
+	return formatString("StayStillAtLastPositionEMPA") + tos(duration);
 }
 
 void StayStillAtLastPositionEMPA::load(std::string formattedString) {
@@ -146,7 +137,7 @@ std::shared_ptr<MovablePoint> StayStillAtLastPositionEMPA::generateStandaloneMP(
 }
 
 std::string MoveCustomPolarEMPA::format() const {
-	return "MoveCustomPolarEMPA" + tm_delim + "(" + distance->format() + ")" + tm_delim + "(" + angle->format() + ")" + tm_delim + "(" + tos(time) + ")";
+	return formatString("MoveCustomPolarEMPA") + formatTMObject(*distance) + formatTMObject(*angle) + tos(time);
 }
 
 void MoveCustomPolarEMPA::load(std::string formattedString) {
@@ -191,10 +182,10 @@ std::shared_ptr<MovablePoint> MoveCustomPolarEMPA::generateStandaloneMP(float x,
 }
 
 std::string MoveCustomBezierEMPA::format() const {
-	std::string ret = "MoveCustomBezierEMPA" + tm_delim;
-	ret += "(" + tos(time) + ")";
+	std::string ret = formatString("MoveCustomBezierEMPA");
+	ret += tos(time);
 	for (auto p : unrotatedControlPoints) {
-		ret += tm_delim + "(" + tos(p.x) + ")" + tm_delim + "(" + tos(p.y) + ")";
+		ret += tos(p.x) + tos(p.y);
 	}
 	return ret;
 }
@@ -252,7 +243,7 @@ std::shared_ptr<MovablePoint> MoveCustomBezierEMPA::generateStandaloneMP(float x
 }
 
 std::string MovePlayerHomingEMPA::format() const {
-	return "MovePlayerHomingEMPA" + tm_delim + "(" + homingStrength->format() + ")" + tm_delim + "(" + speed->format() + ")" + tm_delim + tos(time);
+	return formatString("MovePlayerHomingEMPA") + formatTMObject(*homingStrength) + formatTMObject(*speed) + tos(time);
 }
 
 void MovePlayerHomingEMPA::load(std::string formattedString) {

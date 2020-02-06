@@ -1,22 +1,14 @@
 #include "Player.h"
 
 std::string EditorPlayer::format() const {
-	std::string ret = tos(initialHealth) + tm_delim + tos(maxHealth) + tm_delim + tos(speed) + tm_delim + tos(focusedSpeed) + tm_delim + tos(hitboxRadius) + tm_delim + tos(hitboxPosX) + tm_delim + tos(hitboxPosY) + tm_delim + tos(invulnerabilityTime);
+	std::string ret = tos(initialHealth) + tos(maxHealth) + tos(speed) + tos(focusedSpeed) + tos(hitboxRadius)
+		+ tos(hitboxPosX) + tos(hitboxPosY) + tos(invulnerabilityTime) + tos(powerTiers.size());
 	for (PlayerPowerTier tier : powerTiers) {
-		ret += tm_delim + "(" + tier.format() + ")";
+		ret += formatTMObject(tier);
 	}
-	ret += tm_delim + "(" + hurtSound.format() + ")";
-	ret += tm_delim + "(" + deathSound.format() + ")";
-	if (smoothPlayerHPBar) {
-		ret += "1" + tm_delim;
-	} else {
-		ret += "0" + tm_delim;
-	}
-	ret += tos(playerHPBarColor.r) + tm_delim + tos(playerHPBarColor.g) + tm_delim + tos(playerHPBarColor.b) + tm_delim + tos(playerHPBarColor.a) + tm_delim;
-	ret += "(" + discretePlayerHPSprite.format() + ")" + tm_delim;
-	ret += tos(initialBombs) + tm_delim + tos(maxBombs) + tm_delim;
-	ret += "(" + bombSprite.format() + ")" + tm_delim;
-	ret += "(" + bombReadySound.format() + ")";
+	ret += formatTMObject(hurtSound) + formatTMObject(deathSound) + formatBool(smoothPlayerHPBar) + tos(playerHPBarColor.r) + tos(playerHPBarColor.g)
+		+ tos(playerHPBarColor.b) + tos(playerHPBarColor.a) + formatTMObject(discretePlayerHPSprite) + tos(initialBombs) + tos(maxBombs)
+		+ formatTMObject(bombSprite) + formatTMObject(bombReadySound);
 	return ret;
 }
 
@@ -31,18 +23,14 @@ void EditorPlayer::load(std::string formattedString) {
 	hitboxPosY = std::stof(items[6]);
 	invulnerabilityTime = std::stof(items[7]);
 	int i;
-	for (i = 8; i < items.size(); i++) {
+	for (i = 9; i < std::stoi(items[8]) + 9; i++) {
 		PlayerPowerTier tier;
 		tier.load(items[i]);
 		powerTiers.push_back(tier);
 	}
 	hurtSound.load(items[i++]);
 	deathSound.load(items[i++]);
-	if (std::stoi(items[i++]) == 1) {
-		smoothPlayerHPBar = true;
-	} else {
-		smoothPlayerHPBar = false;
-	}
+	smoothPlayerHPBar = unformatBool(items[i++]);
 	playerHPBarColor = sf::Color(std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]));
 	discretePlayerHPSprite.load(items[i++]);
 	initialBombs = std::stoi(items[i++]);
@@ -57,7 +45,8 @@ bool EditorPlayer::legal(SpriteLoader & spriteLoader, std::string & message) {
 }
 
 std::string PlayerPowerTier::format() const {
-	return "(" + animatableSet.format() + ")" + tm_delim + tos(attackPatternID) + tm_delim + tos(attackPatternLoopDelay) + tm_delim + tos(focusedAttackPatternID) + tm_delim + tos(focusedAttackPatternLoopDelay) + tm_delim + tos(bombAttackPatternID) + tm_delim + tos(bombCooldown);
+	return formatTMObject(animatableSet) + tos(attackPatternID) + tos(attackPatternLoopDelay) + tos(focusedAttackPatternID)
+		+ tos(focusedAttackPatternLoopDelay) + tos(bombAttackPatternID) + tos(bombCooldown);
 
 }
 

@@ -18,7 +18,7 @@ std::shared_ptr<Item> ItemFactory::create(std::string formattedString) {
 }
 
 std::string HealthPackItem::format() const {
-	return "HealthPackItem" + tm_delim + "(" + animatable.format() + ")" + tm_delim + tos(hitboxRadius) + tm_delim + tos(activationRadius) + tm_delim + "(" + onCollectSound.format() + ")";
+	return formatString("HealthPackItem") + formatTMObject(animatable) + tos(hitboxRadius) + tos(activationRadius) + formatTMObject(onCollectSound);
 }
 
 void HealthPackItem::load(std::string formattedString) {
@@ -35,7 +35,7 @@ void HealthPackItem::onPlayerContact(entt::DefaultRegistry & registry, uint32_t 
 }
 
 std::string PowerPackItem::format() const {
-	return "PowerPackItem" + tm_delim + "(" + animatable.format() + ")" + tm_delim + tos(hitboxRadius) + tm_delim + tos(activationRadius) + tm_delim + "(" + onCollectSound.format() + ")";
+	return formatString("PowerPackItem") + formatTMObject(animatable) + tos(hitboxRadius) + tos(activationRadius) + formatTMObject(onCollectSound);
 }
 
 void PowerPackItem::load(std::string formattedString) {
@@ -52,7 +52,7 @@ void PowerPackItem::onPlayerContact(entt::DefaultRegistry & registry, uint32_t p
 }
 
 std::string PointsPackItem::format() const {
-	return "PointsPackItem" + tm_delim + "(" + animatable.format() + ")" + tm_delim + tos(hitboxRadius) + tm_delim + tos(activationRadius) + tm_delim + "(" + onCollectSound.format() + ")";
+	return formatString("PointsPackItem") + formatTMObject(animatable) + tos(hitboxRadius) + tos(activationRadius) + formatTMObject(onCollectSound);
 }
 
 void PointsPackItem::load(std::string formattedString) {
@@ -69,7 +69,7 @@ void PointsPackItem::onPlayerContact(entt::DefaultRegistry & registry, uint32_t 
 }
 
 std::string BombItem::format() const {
-	return "BombItem" + tm_delim + "(" + animatable.format() + ")" + tm_delim + tos(hitboxRadius) + tm_delim + tos(activationRadius) + tm_delim + "(" + onCollectSound.format() + ")";
+	return formatString("BombItem") + formatTMObject(animatable) + tos(hitboxRadius) + tos(activationRadius) + formatTMObject(onCollectSound);
 }
 
 void BombItem::load(std::string formattedString) {

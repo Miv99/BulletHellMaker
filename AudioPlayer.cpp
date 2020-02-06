@@ -7,13 +7,7 @@ float soundVolume = 0.2f;
 float musicVolume = 0.2f;
 
 std::string SoundSettings::format() const {
-	std::string ret = "(" + fileName + ")" + tm_delim + tos(volume) + tm_delim + tos(pitch) + tm_delim;
-	if (disabled) {
-		ret += "1";
-	} else {
-		ret += "0";
-	}
-	return ret;
+	return formatString(fileName) + tos(volume) + tos(pitch) + formatBool(disabled);
 }
 
 void SoundSettings::load(std::string formattedString) {
@@ -21,49 +15,22 @@ void SoundSettings::load(std::string formattedString) {
 	fileName = items[0];
 	volume = std::stof(items[1]);
 	pitch = std::stof(items[2]);
-	if (std::stoi(items[3]) == 1) {
-		disabled = true;
-	} else {
-		disabled = false;
-	}
+	disabled = unformatBool(items[3]);
 }
 
 std::string MusicSettings::format() const {
-	std::string ret = "";
-	ret += "(" + fileName + ")" + tm_delim;
-	if (loops) {
-		ret += "1";
-	} else {
-		ret += "0";
-	}
-	ret += tm_delim + tos(loopStartMilliseconds);
-	ret += tm_delim + tos(loopLengthMilliseconds);
-	ret += tm_delim + tos(volume) + tm_delim + tos(pitch) + tm_delim;
-	if (disabled) {
-		ret += "1";
-	} else {
-		ret += "0";
-	}
-	return ret;
+	return formatString(fileName) + formatBool(loops) + tos(loopStartMilliseconds) + tos(loopLengthMilliseconds) + tos(volume) + tos(pitch) + formatBool(disabled);
 }
 
 void MusicSettings::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	fileName = items[0];
-	if (std::stoi(items[1]) == 1) {
-		loops = true;
-	} else {
-		loops = false;
-	}
+	loops = unformatBool(items[1]);
 	loopStartMilliseconds = std::stoi(items[2]);
 	loopLengthMilliseconds = std::stoi(items[3]);
 	volume = std::stof(items[4]);
 	pitch = std::stof(items[5]);
-	if (std::stoi(items[6]) == 1) {
-		disabled = true;
-	} else {
-		disabled = false;
-	}
+	disabled = unformatBool(items[6]);
 }
 
 void AudioPlayer::update(float deltaTime) {
