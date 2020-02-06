@@ -2,10 +2,7 @@
 #include "Components.h"
 
 std::string GlobalTimeBasedEnemySpawnCondition::format() const {
-	std::string res = "";
-	res += "GlobalTimeBasedEnemySpawnCondition" + tm_delim;
-	res += "(" + tos(time) + ")";
-	return res;
+	return formatString("GlobalTimeBasedEnemySpawnCondition") + tos(time);
 }
 
 void GlobalTimeBasedEnemySpawnCondition::load(std::string formattedString) {
@@ -18,10 +15,7 @@ bool GlobalTimeBasedEnemySpawnCondition::satisfied(entt::DefaultRegistry & regis
 }
 
 std::string EnemyCountBasedEnemySpawnCondition::format() const {
-	std::string res = "";
-	res += "EnemyCountBasedEnemySpawnCondition" + tm_delim;
-	res += "(" + tos(enemyCount) + ")";
-	return res;
+	return formatString("EnemyCountBasedEnemySpawnCondition") + tos(enemyCount);
 }
 
 void EnemyCountBasedEnemySpawnCondition::load(std::string formattedString) {
@@ -34,10 +28,7 @@ bool EnemyCountBasedEnemySpawnCondition::satisfied(entt::DefaultRegistry & regis
 }
 
 std::string TimeBasedEnemySpawnCondition::format() const {
-	std::string res = "";
-	res += "TimeBasedEnemySpawnCondition" + tm_delim;
-	res += "(" + tos(time) + ")";
-	return res;
+	return formatString("TimeBasedEnemySpawnCondition") + tos(time);
 }
 
 void TimeBasedEnemySpawnCondition::load(std::string formattedString) {

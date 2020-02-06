@@ -8,7 +8,7 @@ EntityAnimatableSet::EntityAnimatableSet(Animatable idle, Animatable movement, A
 }
 
 std::string EntityAnimatableSet::format() const {
-	return "(" + idleAnimatable.format() + ")" + tm_delim + "(" + movementAnimatable.format() + ")" + tm_delim + "(" + attackAnimatable.format() + ")" + tm_delim + "(" + deathAction->format() + ")";
+	return formatTMObject(idleAnimatable) + formatTMObject(movementAnimatable) + formatTMObject(attackAnimatable) + formatTMObject(*deathAction);
 }
 
 void EntityAnimatableSet::load(std::string formattedString) {

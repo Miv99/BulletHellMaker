@@ -2,21 +2,11 @@
 #include "LevelPack.h"
 
 std::string EditorEnemyPhase::format() const {
-	std::string res = "";
-	res += "(" + std::to_string(id) + ")" + tm_delim;
-	res += "(" + name + ")" + tm_delim;
-	res += "(" + phaseBeginAction->format() + ")" + tm_delim;
-	res += "(" + phaseEndAction->format() + ")" + tm_delim;
-	res += tos(attackPatternIds.size());
+	std::string res = tos(id) + formatString(name) + formatTMObject(*phaseBeginAction) + formatTMObject(*phaseEndAction) + tos(attackPatternIds.size());
 	for (auto p : attackPatternIds) {
-		res += tm_delim + "(" + tos(p.first) + ")" + tm_delim + "(" + tos(p.second) + ")";
+		res += tos(p.first) + tos(p.second);
 	}
-	if (playMusic) {
-		res += tm_delim + "1";
-	} else {
-		res += tm_delim + "0";
-	}
-	res += tm_delim + "(" + musicSettings.format() + ")";
+	res += formatBool(playMusic) + formatTMObject(musicSettings);
 	return res;
 }
 
@@ -31,11 +21,7 @@ void EditorEnemyPhase::load(std::string formattedString) {
 		attackPatternIds.push_back(std::make_pair(std::stof(items[i]), std::stoi(items[i + 1])));
 		i += 2;
 	}
-	if (std::stoi(items[i++]) == 1) {
-		playMusic = true;
-	} else {
-		playMusic = false;
-	}
+	playMusic = unformatBool(items[i++]);
 	musicSettings.load(items[i++]);
 }
 

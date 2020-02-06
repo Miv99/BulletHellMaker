@@ -1,12 +1,7 @@
 #include "EditorMovablePointSpawnType.h"
 
 std::string SpecificGlobalEMPSpawn::format() const {
-	std::string res = "";
-	res += "SpecificGlobalEMPSpawn" + tm_delim;
-	res += tos(x) + tm_delim;
-	res += tos(y) + tm_delim;
-	res += tos(time);
-	return res;
+	return formatString("SpecificGlobalEMPSpawn") + tos(x) + tos(y) + tos(time);
 }
 
 void SpecificGlobalEMPSpawn::load(std::string formattedString) {
@@ -25,12 +20,7 @@ MPSpawnInformation SpecificGlobalEMPSpawn::getForcedDetachmentSpawnInfo(entt::De
 }
 
 std::string EntityRelativeEMPSpawn::format() const {
-	std::string res = "";
-	res += "EntityRelativeEMPSpawn" + tm_delim;
-	res += tos(x) + tm_delim;
-	res += tos(y) + tm_delim;
-	res += tos(time);
-	return res;
+	return formatString("EntityRelativeEMPSpawn") + tos(x) + tos(y) + tos(time);
 }
 
 void EntityRelativeEMPSpawn::load(std::string formattedString) {
@@ -62,12 +52,7 @@ MPSpawnInformation EntityRelativeEMPSpawn::getForcedDetachmentSpawnInfo(entt::De
 }
 
 std::string EntityAttachedEMPSpawn::format() const {
-	std::string res = "";
-	res += "EntityAttachedEMPSpawn" + tm_delim;
-	res += tos(x) + tm_delim;
-	res += tos(y) + tm_delim;
-	res += tos(time);
-	return res;
+	return formatString("EntityAttachedEMPSpawn") + tos(x) + tos(y) + tos(time);
 }
 
 void EntityAttachedEMPSpawn::load(std::string formattedString) {

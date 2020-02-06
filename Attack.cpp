@@ -14,17 +14,7 @@ EditorAttack::EditorAttack(std::shared_ptr<const EditorAttack> copy) {
 }
 
 std::string EditorAttack::format() const {
-	std::string res = "";
-	res += "(" + tos(id) + ")" + tm_delim;
-	res += "(" + tos(nextEMPID) + ")" + tm_delim;
-	res += "(" + name + ")" + tm_delim;
-	res += "(" + mainEMP->format() + ")" + tm_delim;
-	if (playAttackAnimation) {
-		res += "1";
-	} else {
-		res += "0";
-	}
-	return res;
+	return tos(id) + tos(nextEMPID) + formatString(name) + formatTMObject(*mainEMP) + formatBool(playAttackAnimation);
 }
 
 void EditorAttack::load(std::string formattedString) {
@@ -34,11 +24,7 @@ void EditorAttack::load(std::string formattedString) {
 	name = items[2];
 	mainEMP = std::make_shared<EditorMovablePoint>(nextEMPID, false);
 	mainEMP->load(items[3]);
-	if (items[4] == "1") {
-		playAttackAnimation = true;
-	} else {
-		playAttackAnimation = false;
-	}
+	playAttackAnimation = unformatBool(items[4]);
 }
 
 std::pair<bool, std::string> EditorAttack::legal(LevelPack & levelPack, SpriteLoader & spriteLoader) const {

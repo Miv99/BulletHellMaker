@@ -1,27 +1,15 @@
 #include "Enemy.h"
 
 std::string EditorEnemy::format() const {
-	std::string res = "";
-	res += "(" + tos(id) + ")" + tm_delim;
-	res += "(" + name + ")" + tm_delim;
-	res += "(" + tos(hitboxRadius) + ")" + tm_delim;
-	res += "(" + tos(health) + ")" + tm_delim;
-	res += "(" + tos(despawnTime) + ")" + tm_delim;
-	res += "(" + tos(phaseIDs.size()) + ")";
+	std::string res = tos(id) + formatString(name) + tos(hitboxRadius) + tos(health) + tos(despawnTime) + tos(phaseIDs.size());
 	for (auto t : phaseIDs) {
-		res += tm_delim + "(" + std::get<0>(t)->format() + ")" + tm_delim + "(" + tos(std::get<1>(t)) + ")" + tm_delim + "(" + std::get<2>(t).format() + ")";
+		res += formatTMObject(*std::get<0>(t)) + tos(std::get<1>(t)) + formatTMObject(std::get<2>(t));
 	}
-	res += tm_delim + "(" + tos(deathActions.size()) + ")";
+	res += tos(deathActions.size());
 	for (auto action : deathActions) {
-		res += tm_delim + "(" + action->format() + ")";
+		res += formatTMObject(*action);
 	}
-	if (isBoss) {
-		res += tm_delim + "1";
-	} else {
-		res += tm_delim + "0";
-	}
-	res += tm_delim + "(" + hurtSound.format() + ")";
-	res += tm_delim + "(" + deathSound.format() + ")";
+	res += formatBool(isBoss) + formatTMObject(hurtSound) + formatTMObject(deathSound);
 	return res;
 }
 
@@ -43,11 +31,7 @@ void EditorEnemy::load(std::string formattedString) {
 	for (i = next + 1; i < std::stoi(items[next]) + next + 1; i++) {
 		deathActions.push_back(DeathActionFactory::create(items[i]));
 	}
-	if (std::stoi(items[i++])) {
-		isBoss = true;
-	} else {
-		isBoss = false;
-	}
+	isBoss = unformatBool(items[i++]);
 	hurtSound.load(items[i++]);
 	deathSound.load(items[i++]);
 }

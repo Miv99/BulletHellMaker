@@ -2,10 +2,7 @@
 #include "Components.h"
 
 std::string TimeBasedEnemyPhaseStartCondition::format() const {
-	std::string res = "";
-	res += "TimeBasedEnemyPhaseStartCondition" + tm_delim;
-	res += "(" + tos(time) + ")";
-	return res;
+	return formatString("TimeBasedEnemyPhaseStartCondition") + tos(time);
 }
 
 void TimeBasedEnemyPhaseStartCondition::load(std::string formattedString) {
@@ -18,10 +15,7 @@ bool TimeBasedEnemyPhaseStartCondition::satisfied(entt::DefaultRegistry & regist
 }
 
 std::string HPBasedEnemyPhaseStartCondition::format() const {
-	std::string res = "";
-	res += "HPBasedEnemyPhaseStartCondition" + tm_delim;
-	res += "(" + tos(ratio) + ")";
-	return res;
+	return formatString("HPBasedEnemyPhaseStartCondition") + tos(ratio);
 }
 
 void HPBasedEnemyPhaseStartCondition::load(std::string formattedString) {
@@ -35,10 +29,7 @@ bool HPBasedEnemyPhaseStartCondition::satisfied(entt::DefaultRegistry & registry
 }
 
 std::string EnemyCountBasedEnemyPhaseStartCondition::format() const {
-	std::string res = "";
-	res += "EnemyCountBasedEnemyPhaseStartCondition" + tm_delim;
-	res += "(" + tos(enemyCount) + ")";
-	return res;
+	return formatString("EnemyCountBasedEnemyPhaseStartCondition") + tos(enemyCount);
 }
 
 void EnemyCountBasedEnemyPhaseStartCondition::load(std::string formattedString) {

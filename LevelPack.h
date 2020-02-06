@@ -40,7 +40,7 @@ public:
 
 private:
 	std::shared_ptr<EditorPlayer> player;
-	// Maps sprite sheet metadata file names to sprite sheet image file names
+	// Pairs of sheet metadata file name and sprite sheet image file name, in that order
 	std::vector<std::pair<std::string, std::string>> spriteSheets;
 };
 

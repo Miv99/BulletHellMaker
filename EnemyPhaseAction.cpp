@@ -2,11 +2,11 @@
 #include "Components.h"
 
 std::string NullEPA::format() const {
-	return "NullEPA";
+	return formatString("NullEPA");
 }
 
 std::string DespawnEPA::format() const {
-	return "DespawnEPA";
+	return formatString("DespawnEPA");
 }
 
 void DespawnEPA::load(std::string formattedString) {
@@ -21,7 +21,7 @@ void DespawnEPA::execute(entt::DefaultRegistry & registry, uint32_t entity) {
 }
 
 std::string DestroyEnemyBulletsEPA::format() const {
-	return "DestroyEnemyBulletsEPA";
+	return formatString("DestroyEnemyBulletsEPA");
 }
 
 void DestroyEnemyBulletsEPA::load(std::string formattedString) {

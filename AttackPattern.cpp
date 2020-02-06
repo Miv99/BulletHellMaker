@@ -3,22 +3,18 @@
 #include "EditorMovablePointSpawnType.h"
 
 std::string EditorAttackPattern::format() const {
-	std::string res = "";
-	res += "(" + tos(id) + ")" + tm_delim;
-	res += "(" + name + ")" + tm_delim;
-
-	res += "(" + tos(attackIDs.size()) + ")" + tm_delim;
+	std::string res = tos(id) + formatString(name) + tos(attackIDs.size());
 	for (auto p : attackIDs) {
-		res += "(" + tos(p.first) + ")" + tm_delim + "(" + tos(p.second) + ")" + tm_delim;
+		res += tos(p.first) + tos(p.second);
 	}
 
-	res += "(" + tos(actions.size()) + ")";
+	res += tos(actions.size());
 	for (auto p : actions) {
-		res += tm_delim + "(" + p->format() + ")";
+		res += formatTMObject(*p);
 	}
 
-	res += tm_delim + tos(shadowTrailInterval);
-	res += tm_delim + tos(shadowTrailLifespan);
+	res += tos(shadowTrailInterval);
+	res += tos(shadowTrailLifespan);
 
 	return res;
 }
