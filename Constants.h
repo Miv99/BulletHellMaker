@@ -67,3 +67,4 @@ const static float TEXT_BUTTON_HEIGHT = 16;
 const static float SLIDER_HEIGHT = 15;
 const static int TEXT_SIZE = 12;
 const static float CHECKBOX_SIZE = 15;
+const static float SMALL_BUTTON_SIZE = 20;
