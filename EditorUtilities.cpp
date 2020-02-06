@@ -43,6 +43,23 @@ std::shared_ptr<tgui::Label> createToolTip(std::string text) {
 	return tooltip;
 }
 
+std::shared_ptr<tgui::ListBox> createMenuPopup(std::vector<std::pair<std::string, std::function<void()>>> elements) {
+	auto popup = tgui::ListBox::create();
+	int i = 0;
+	int longestStringLength = 0;
+	for (std::pair<std::string, std::function<void()>> element : elements) {
+		longestStringLength = std::max(longestStringLength, (int)element.first.length());
+		popup->addItem(element.first, std::to_string(i));
+		i++;
+	}
+	popup->setItemHeight(20);
+	popup->setSize(std::max(150, (int)(longestStringLength * popup->getTextSize())), popup->getItemHeight() * popup->getItemCount() + 5);
+	popup->connect("MousePressed", [elements](std::string item, std::string id) {
+		elements[std::stoi(id)].second();
+	});
+	return popup;
+}
+
 sf::VertexArray generateVertexArray(std::vector<std::shared_ptr<EMPAction>> actions, float timeResolution, float x, float y, float playerX, float playerY, sf::Color startColor, sf::Color endColor) {
 	float totalTime = 0;
 	for (auto action : actions) {
@@ -1622,7 +1639,14 @@ TabsWithPanel::TabsWithPanel(EditorWindow& parentWindow) {
 	tabs = tgui::Tabs::create();
 	tabs->setPosition(0, 0);
 	tabs->connect("TabSelected", &TabsWithPanel::onTabSelected, this);
+	tabs->setTextSize(TEXT_SIZE);
+	// Clamp tab size
+	tabs->setMinimumTabWidth(TAB_WIDTH);
+	tabs->setMaximumTabWidth(TAB_WIDTH);
 	add(tabs);
+
+	// Make room for the close button for every tab
+	tabNameAppendedSpaces = std::string((int)std::ceil((float)SMALL_BUTTON_SIZE/tabs->getTextSize()), ' ');
 
 	moreTabsList = ScrollableListBox::create();
 	moreTabsList->setTextSize(TEXT_SIZE);
@@ -1636,13 +1660,19 @@ TabsWithPanel::TabsWithPanel(EditorWindow& parentWindow) {
 	moreTabsButton->setText("V");
 	moreTabsButton->connect("Pressed", [&]() {
 		// Set moreTabsList's position releative to the absolute position of the moreTabsButton since it will be a top-level widget
-		moreTabsList->setPosition(moreTabsButton->getAbsolutePosition().x, moreTabsButton->getAbsolutePosition().y + moreTabsButton->getSize().y);
+		if (moreTabsListAlignment == MoreTabsListAlignment::Left) {
+			moreTabsList->setPosition(moreTabsButton->getAbsolutePosition().x - moreTabsList->getSize().x + moreTabsButton->getSize().x, moreTabsButton->getAbsolutePosition().y + moreTabsButton->getSize().y);
+		} else if (moreTabsListAlignment == MoreTabsListAlignment::Right) {
+			moreTabsList->setPosition(moreTabsButton->getAbsolutePosition().x, moreTabsButton->getAbsolutePosition().y + moreTabsButton->getSize().y);
+		} else {
+			// You forgot a case
+			assert(false);
+		}
 		parentWindow.addPopupWidget(moreTabsList);
 	});
 	add(moreTabsButton);
 
 	connect("SizeChanged", [&](sf::Vector2f newSize) {
-		tabs->setMaximumTabWidth(std::max(MIN_TAB_WIDTH, (newSize.x - moreTabsButton->getSize().x) / tabs->getTabsCount()));
 		moreTabsButton->setSize(tabs->getSize().y, tabs->getSize().y);
 		moreTabsButton->setPosition(getSize().x - moreTabsButton->getSize().x, tgui::bindTop(tabs));
 	});
@@ -1650,7 +1680,8 @@ TabsWithPanel::TabsWithPanel(EditorWindow& parentWindow) {
 	updateMoreTabsList();
 }
 
-void TabsWithPanel::addTab(std::string tabName, std::shared_ptr<tgui::Panel> associatedPanel, bool autoSelect) {
+void TabsWithPanel::addTab(std::string tabName, std::shared_ptr<tgui::Panel> associatedPanel, bool autoSelect, bool closeable) {
+	tabName += tabNameAppendedSpaces;
 	assert(panelsMap.count(tabName) == 0);
 
 	panelsMap[tabName] = associatedPanel;
@@ -1660,16 +1691,41 @@ void TabsWithPanel::addTab(std::string tabName, std::shared_ptr<tgui::Panel> ass
 	add(associatedPanel);
 
 	tabsOrdering.push_back(tabName);
+	if (closeable) {
+		createCloseButton(tabs->getTabsCount() - 1);
+	}
+	updateMoreTabsList();
+}
+
+void TabsWithPanel::insertTab(std::string tabName, std::shared_ptr<tgui::Panel> associatedPanel, int index, bool autoSelect, bool closeable) {
+	tabName += tabNameAppendedSpaces;
+	assert(panelsMap.count(tabName) == 0);
+
+	panelsMap[tabName] = associatedPanel;
+	associatedPanel->setPosition(0, tgui::bindBottom(tabs));
+	associatedPanel->setVisible(autoSelect);
+	tabs->insert(index, tabName, autoSelect);
+	add(associatedPanel);
+
+	tabsOrdering.insert(tabsOrdering.begin(), tabName);
+	if (closeable) {
+		createCloseButton(index);
+	}
 	updateMoreTabsList();
 }
 
 void TabsWithPanel::selectTab(std::string tabName) {
+	if (tabName == "") {
+		return;
+	}
+	tabName += tabNameAppendedSpaces;
 	assert(panelsMap.count(tabName) != 0);
 
 	tabs->select(tabName);
 }
 
 void TabsWithPanel::removeTab(std::string tabName) {
+	tabName += tabNameAppendedSpaces;
 	assert(panelsMap.count(tabName) != 0);
 
 	if (currentPanel == panelsMap[tabName]) {
@@ -1683,15 +1739,85 @@ void TabsWithPanel::removeTab(std::string tabName) {
 		if (tabsOrdering[pos] == tabName) break;
 	}
 	tabsOrdering.erase(tabsOrdering.begin() + pos);
+	// Remove the tab's close button
+	remove(closeButtons[pos].first);
+	closeButtons.erase(closeButtons.begin() + pos);
 	updateMoreTabsList();
 }
 
 void TabsWithPanel::removeAllTabs() {
 	panelsMap.clear();
+	tabsOrdering.clear();
+	for (std::pair<std::shared_ptr<tgui::Button>, std::string> closeButtonAndPrompt : closeButtons) {
+		remove(closeButtonAndPrompt.first);
+	}
+	closeButtons.clear();
 	if (currentPanel) {
 		currentPanel = nullptr;
 	}
 	tabs->removeAll();
+	updateMoreTabsList();
+}
+
+void TabsWithPanel::setTabCloseButtonConfirmationPrompt(std::string tabName, std::string message) {
+	int pos;
+	for (pos = 0; pos < tabsOrdering.size(); pos++) {
+		if (tabsOrdering[pos] == tabName) break;
+	}
+	setTabCloseButtonConfirmationPrompt(pos, message);
+}
+
+void TabsWithPanel::cacheTabs(std::string tabsSetIdentifier) {
+	std::vector<std::pair<std::string, std::shared_ptr<tgui::Panel>>> tabsData;
+	for (auto tabName : tabsOrdering) {
+		tabsData.push_back(std::make_pair(tabName, panelsMap[tabName]));
+	}
+	std::vector<std::string> closeButtonPrompts;
+	for (std::pair<std::shared_ptr<tgui::Button>, std::string> buttonAndPrompt : closeButtons) {
+		closeButtonPrompts.push_back(buttonAndPrompt.second);
+	}
+	tabsCache.insert(tabsSetIdentifier, { tabs->getSelected(), tabsData, closeButtonPrompts });
+}
+
+bool TabsWithPanel::isCached(std::string tabsSetIdentifier) {
+	return tabsCache.contains(tabsSetIdentifier);
+}
+
+bool TabsWithPanel::loadCachedTabsSet(std::string tabsSetIdentifier) {
+	if (!tabsCache.contains(tabsSetIdentifier)) {
+		return false;
+	}
+
+	removeAllTabs();
+
+	CachedTabsValue data = tabsCache.get(tabsSetIdentifier);
+	for (std::pair<std::string, std::shared_ptr<tgui::Panel>> p : data.tabs) {
+		addTab(p.first, p.second, p.first == data.currentlySelectedTab);
+	}
+	int i = 0;
+	for (std::string message : data.closeButtonConfirmationPrompts) {
+		setTabCloseButtonConfirmationPrompt(i, message);
+		i++;
+	}
+	updateMoreTabsList();
+}
+
+void TabsWithPanel::removeCachedTabsSet(std::string tabsSetIdentifier) {
+	if (tabsCache.contains(tabsSetIdentifier)) {
+		tabsCache.remove(tabsSetIdentifier);
+	}
+}
+
+void TabsWithPanel::clearTabsCache() {
+	tabsCache.clear();
+}
+
+std::string TabsWithPanel::getSelectedTab() {
+	return tabs->getSelected();
+}
+
+void TabsWithPanel::setMoreTabsListAlignment(MoreTabsListAlignment moreTabsListAlignment) {
+	this->moreTabsListAlignment = moreTabsListAlignment;
 }
 
 void TabsWithPanel::onTabSelected(std::string tabName) {
@@ -1717,6 +1843,29 @@ void TabsWithPanel::updateMoreTabsList() {
 	moreTabsList->setSize(300, moreTabsList->getListBox()->getItemHeight() * moreTabsList->getListBox()->getItemCount());
 
 	moreTabsButton->setVisible(tabsOrdering.size() > 0);
+}
+
+void TabsWithPanel::setTabCloseButtonConfirmationPrompt(int index, std::string message) {
+}
+
+void TabsWithPanel::createCloseButton(int index) {
+	// Create close button
+	std::string tabName = tabs->getText(index);
+	std::shared_ptr<tgui::Button> closeButton = tgui::Button::create();
+	closeButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
+	closeButton->setTextSize(TEXT_SIZE);
+	closeButton->setText("X");
+	closeButton->setPosition((index + 1) * TAB_WIDTH - closeButton->getSize().x, tgui::bindTop(tabs));
+	closeButton->connect("Pressed", [&]() {
+		int pos;
+		for (pos = 0; pos < tabsOrdering.size(); pos++) {
+			if (tabsOrdering[pos] == tabName) break;
+		}
+		std::string fullTabName = tabs->getText(pos); // Includes the spaces, so remove them
+		onTabClose.emit(this, fullTabName.substr(0, fullTabName.length() - tabNameAppendedSpaces.length()));
+	});
+	closeButtons.push_back(std::make_pair(closeButton, ""));
+	add(closeButton);
 }
 
 ClickableTimeline::ClickableTimeline() {
