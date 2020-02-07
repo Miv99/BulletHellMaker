@@ -1652,7 +1652,8 @@ TabsWithPanel::TabsWithPanel(EditorWindow& parentWindow) {
 	moreTabsList->setTextSize(TEXT_SIZE);
 	moreTabsList->getListBox()->setItemHeight(TEXT_SIZE * 1.5f);
 	moreTabsList->getListBox()->connect("ItemSelected", [&](std::string tabName) {
-		selectTab(tabName);
+		// Remove spaces from the end since selectTab() readds them
+		selectTab(tabName.substr(0, tabName.length() - tabNameAppendedSpaces.length()));
 	});
 
 	moreTabsButton = tgui::Button::create();
