@@ -71,9 +71,13 @@ public:
 	std::shared_ptr<entt::SigH<void(bool)>> promptConfirmation(std::string message);
 
 	/*
-	Add a popup as a top-level widget in the Gui.
+	Add a popup as a top-level widget in the Gui. If part of the popup 
+
+	preferredX, preferredY - the preferred position of the popup; cannot be less than 0
+	preferredWidth, preferredHeight - the preferred size of the popup; cannot be less than 0
+	maxWidthFraction, maxHeightFraction - the maximum size of the popup as a multiplier of the window width/height
 	*/
-	void addPopupWidget(std::shared_ptr<tgui::Widget> popup);
+	void addPopupWidget(std::shared_ptr<tgui::Widget> popup, float preferredX, float preferredY, float preferredWidth, float preferredHeight, float maxWidthFraction = 1.0f, float maxHeightFraction = 1.0f);
 	/*
 	Add a popup as a child of the popupContainer.
 	*/

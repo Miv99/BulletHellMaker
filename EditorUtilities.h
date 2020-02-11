@@ -42,7 +42,8 @@ Returns a tooltip containing some text.
 */
 std::shared_ptr<tgui::Label> createToolTip(std::string text);
 /*
-Returns a menu popup with clickable buttons.
+Returns a menu popup with clickable buttons. The height of the popup will always be the exact height needed to fit
+all menu items without needing a scrollbar.
 
 elements - a vector of pairs containing the text of the button and the function to be called when the button is pressed
 */
@@ -271,8 +272,8 @@ private:
 
 
 /*
-A tgui::ListBox that can scroll horizontally as well as vertically.
-The ListBox from getListBox() does not have to be added to a container, since it is already a part of the super ScrollablePanel.
+A ScrollablePanel that can scroll horizontally as well as vertically and contains a ListBox.
+The ListBox from getListBox() does not have to be added to a container, since it is already a part of this ScrollablePanel.
 */
 class ScrollableListBox : public tgui::ScrollablePanel {
 public:
@@ -465,21 +466,9 @@ public:
 	void unpause();
 
 protected:
-
-private:
-	sf::RenderWindow& parentWindow;
-
-	bool paused;
-
 	std::shared_ptr<LevelPack> levelPack;
-	std::unique_ptr<SpriteLoader> spriteLoader;
-	std::unique_ptr<EntityCreationQueue> queue;
-
 	mutable entt::DefaultRegistry registry;
 
-	sf::FloatRect viewportFloatRect, viewFloatRect;
-
-	bool useDebugRenderSystem;
 	std::unique_ptr<MovementSystem> movementSystem;
 	std::unique_ptr<RenderSystem> renderSystem;
 	std::unique_ptr<CollisionSystem> collisionSystem;
@@ -490,6 +479,18 @@ private:
 	std::unique_ptr<PlayerSystem> playerSystem;
 	std::unique_ptr<CollectibleSystem> collectibleSystem;
 	std::unique_ptr<AudioPlayer> audioPlayer;
+
+private:
+	sf::RenderWindow& parentWindow;
+
+	bool paused;
+
+	std::unique_ptr<SpriteLoader> spriteLoader;
+	std::unique_ptr<EntityCreationQueue> queue;
+
+	sf::FloatRect viewportFloatRect, viewFloatRect;
+
+	bool useDebugRenderSystem;
 
 	bool userControlledView;
 	std::unique_ptr<ViewController> viewController;
@@ -618,23 +619,33 @@ private:
 		// confirmation prompt, with an empty string meaning a prompt shouldn't be displayed
 		std::vector<std::string> closeButtonConfirmationPrompts;
 	};
-	const float TAB_WIDTH = 100.0f;
+	const float EXTRA_HEIGHT_FROM_SCROLLBAR = 16;
 	// Spaces appended to every tab name to make room for the close button
 	// If font size changes, the number of spaces should be updated and every tab
 	// name also should be updated accordingly (even the ones that are cached).
 	// This is a lot of work, so it's better to just never change tabs' text size
 	std::string tabNameAppendedSpaces;
 
+	// The tab name (without the tabNameAppendedSpaces) of the tab who is being closed
+	// and has its confirmation prompt up
+	std::string closeButtonConfirmationPromptTargetTabShortenedName;
+
+	EditorWindow& parentWindow;
+
+	// The ScrollablePanel that serves as a container for the tabs object
+	std::shared_ptr<tgui::ScrollablePanel> tabsContainer;
+	// The actual tabs object
 	std::shared_ptr<tgui::Tabs> tabs;
 	// Maps tab name to the Panel that will be showed when the tab is selected
 	std::map<std::string, std::shared_ptr<tgui::Panel>> panelsMap;
 	// Tracks the order of the tabs in moreTabsList
 	std::vector<std::string> tabsOrdering;
-	// The close buttons, one for every tab. The index for closeButtons should match
-	// the index for tabsOrdering
+	// A vector of pairs of close button and the confirmation prompt message to be shown, one pair for every tab. 
+	// The index for closeButtons should match the index for tabsOrdering.
+	// An empty confirmation prompt message means no confirmation prompt will be shown if the close button is pressed.
 	std::vector<std::pair<std::shared_ptr<tgui::Button>, std::string>> closeButtons;
 
-	// Panel that is currently active
+	// Panel (that belongs to a tab) that is currently active
 	std::shared_ptr<tgui::Panel> currentPanel;
 
 	// Button that shows all tabs that can't fit in this widget
@@ -653,7 +664,10 @@ private:
 	tgui::SignalString onTabClose = { "TabClosed" };
 
 	void onTabSelected(std::string tabName);
-	void updateMoreTabsList();
+	// Should be called whenever there's an update to the tabs
+	void onTabsChange();
+	// Called when a confirmation prompt for a close button is answered
+	void onCloseButtonConfirmationPromptAnswer(bool confirmed);
 	/*
 	Mark/Unmark a specific tab as requiring pressing "Yes" to a confirmation prompt before
 	the tab is actually closed. This function does nothing if hasCloseButtons is false.

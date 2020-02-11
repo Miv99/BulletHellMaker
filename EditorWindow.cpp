@@ -190,10 +190,25 @@ std::shared_ptr<entt::SigH<void(bool)>> EditorWindow::promptConfirmation(std::st
 	return confirmationSignal;
 }
 
-void EditorWindow::addPopupWidget(std::shared_ptr<tgui::Widget> popup) {
+void EditorWindow::addPopupWidget(std::shared_ptr<tgui::Widget> popup, float preferredX, float preferredY, float preferredWidth, float preferredHeight, float maxWidthFraction, float maxHeightFraction) {
 	if (this->popup) {
 		closePopupWidget();
 	}
+
+	// Set popup position
+	popup->setPosition(preferredX, preferredY);
+	// Set popup size
+	float popupWidth = std::min(preferredWidth, windowWidth * maxWidthFraction);
+	float popupHeight = std::min(preferredHeight, windowHeight * maxHeightFraction);
+	// Popup width/height can't be such that part of the popup goes past the window width/height
+	float oldWidth = popupWidth;
+	popupWidth = std::min(popupWidth, windowWidth - popup->getAbsolutePosition().x);
+	float oldHeight = popupHeight;
+	popupHeight = std::min(popupHeight, windowHeight - popup->getAbsolutePosition().y);
+	// If it was going to go past the window width/height, move the popup back the amount it was going to go past the window width/height
+	popup->setPosition(std::max(0.0f, popup->getPosition().x - (oldWidth - popupWidth)), std::max(0.0f, popup->getPosition().y - (oldHeight - popupHeight)));
+	popup->setSize(popupWidth, popupHeight);
+
 	this->popup = popup;
 	popupContainer = nullptr;
 	gui->add(popup);
