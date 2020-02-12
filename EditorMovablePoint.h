@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
+#include <map>
 #include <set>
 #include <limits>
 #include "TextMarshallable.h"
@@ -97,10 +98,20 @@ If an EMP uses a bullet model, make sure to call loadBulletModel() every time th
 class EditorMovablePoint : public LevelPackObject, public TextMarshallable, public std::enable_shared_from_this<EditorMovablePoint> {
 public:
 	/*
+	Constructor only to be used for EditorMovablePoints with no parent.
+
 	setID - whether the ID of this EMP should be set with this constructor. setID should be false if load() will be called right after.
+	bulletModelsCount - reference to the map that maps the bullet model ids used by this EMP and all children EMP to the number of times
+		that bullet model id is used.
 	*/
-	EditorMovablePoint(int& nextID, bool setID);
-	EditorMovablePoint(int& nextID, std::weak_ptr<EditorMovablePoint> parent);
+	EditorMovablePoint(int& nextID, bool setID, std::map<int, int>& bulletModelsCount);
+	/*
+	Constructor for EditorMovablePoints with a parent.
+
+	bulletModelsCount - reference to the map that maps the bullet model ids used by this EMP and all children EMP to the number of times
+		that bullet model id is used.
+	*/
+	EditorMovablePoint(int& nextID, std::weak_ptr<EditorMovablePoint> parent, std::map<int, int>& bulletModelsCount);
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
@@ -310,4 +321,10 @@ private:
 	bool inheritAnimatables = true;
 	bool inheritDamage = true;
 	bool inheritSoundSettings = true;
+	// ---------------------------------------------------------------
+
+	// Reference to the map that maps the bullet model ids used by this EMP and all children EMP to the number of times
+	// that bullet model id is used.
+	// This map will not be saved when format() is called, but will be rebuilt in load().
+	std::map<int, int>& bulletModelsCount;
 };

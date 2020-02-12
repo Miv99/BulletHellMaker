@@ -75,10 +75,26 @@ public:
 	// Inserts a spawn condition and enemies such that the new condition and enemies are at the specified index
 	inline void insertEnemySpawns(int conditionIndex, std::shared_ptr<EnemySpawnCondition> spawnCondition, std::vector<EnemySpawnInfo> enemies) {
 		enemyGroups.insert(enemyGroups.begin() + conditionIndex, std::make_pair(spawnCondition, enemies));
+
+		for (auto& enemy : enemies) {
+			int enemyID = enemy.getEnemyID();
+			if (enemyIDCount.count(enemyID) == 0) {
+				enemyIDCount[enemyID] = 1;
+			} else {
+				enemyIDCount[enemyID]++;
+			}
+		}
 	}
 	// Adds an enemy into an already existing spawn condition
 	inline void addEnemy(int conditionIndex, EnemySpawnInfo enemy) {
 		enemyGroups[conditionIndex].second.push_back(enemy);
+
+		int enemyID = enemy.getEnemyID();
+		if (enemyIDCount.count(enemyID) == 0) {
+			enemyIDCount[enemyID] = 1;
+		} else {
+			enemyIDCount[enemyID]++;
+		}
 	}
 
 	inline bool conditionSatisfied(int conditionIndex, entt::DefaultRegistry& registry) const { return enemyGroups[conditionIndex].first->satisfied(registry); }
@@ -115,4 +131,8 @@ private:
 
 	// Bloom settings for the level; each index is a separate layer
 	std::vector<BloomSettings> bloomLayerSettings = std::vector<BloomSettings>(HIGHEST_RENDER_LAYER + 1, BloomSettings());
+
+	// Maps an EditorEnemy ID to the number of times it will be spawned in enemyGroups.
+	// This is not saved on format() but is reconstructed in load().
+	std::map<int, int> enemyIDCount;
 };

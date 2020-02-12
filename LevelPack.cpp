@@ -78,11 +78,11 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 
 	//bool alt = false;
 	//for (float time = 0; time < 5; time += 1.0f) {
-	//	//ap1->addAttackID(time, attack2->getID());
+	//	//ap1->addAttack(time, attack2->getID());
 	//	if (alt) {
-	//		ap1->addAttackID(time, attack1->getID());
+	//		ap1->addAttack(time, attack1->getID());
 	//	} else {
-	//		ap1->addAttackID(time, attack2->getID());
+	//		ap1->addAttack(time, attack2->getID());
 	//	}
 	//	alt = !alt;
 	//}
@@ -148,10 +148,10 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	//pemp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
 	//pemp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 2), std::make_shared<ConstantTFV>(PI/2.0f), 2.0f));
 	//pemp0->setOnCollisionAction(PIERCE_ENTITY);
-	//playerAP->addAttackID(0.1f, playerAttack1->getID());
+	//playerAP->addAttack(0.1f, playerAttack1->getID());
 
 	//auto playerAP2 = createAttackPattern();
-	//playerAP2->addAttackID(0.01f, playerAttack1->getID());
+	//playerAP2->addAttack(0.01f, playerAttack1->getID());
 
 	//auto playerFocusedAP = createAttackPattern();
 	//auto playerAttack2 = createAttack();
@@ -161,7 +161,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	//p2emp1->setHitboxRadius(30);
 	//p2emp1->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
 	//p2emp1->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 1.1f), std::make_shared<ConstantTFV>(PI / 2.0f), 1.1f));
-	//playerFocusedAP->addAttackID(1.0f, attack1->getID());
+	//playerFocusedAP->addAttack(1.0f, attack1->getID());
 
 	//auto bombAP = createAttackPattern();
 	//for (int i = 0; i < 10; i++) {
@@ -172,7 +172,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	//	b1emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
 	//	b1emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 1000, 2), std::make_shared<ConstantTFV>(1.0f + i*0.13f), 2.0f));
 	//	b1emp0->setOnCollisionAction(PIERCE_ENTITY);
-	//	bombAP->addAttackID(0, bombAttack1->getID());
+	//	bombAP->addAttack(0, bombAttack1->getID());
 	//}
 
 	//auto pset1 = e1set;
@@ -502,6 +502,56 @@ void LevelPack::deleteEnemy(int id) {
 
 void LevelPack::deleteEnemyPhase(int id) {
 	enemyPhases.erase(id);
+}
+
+std::vector<int>& LevelPack::getEnemyUsers(int enemyID) {
+	std::vector<int> results;
+	for (int i = 0; i < levels.size(); i++) {
+		if (levels[i]->usesEnemy(enemyID)) {
+			results.push_back(i);
+		}
+	}
+	return results;
+}
+
+std::vector<int>& LevelPack::getEditorEnemyUsers(int editorEnemyPhaseID) {
+	std::vector<int> results;
+	for (auto it = enemies.begin(); it != enemies.end(); it++) {
+		if (it->second->usesEnemyPhase(editorEnemyPhaseID)) {
+			results.push_back(it->first);
+		}
+	}
+	return results;
+}
+
+std::vector<int>& LevelPack::getAttackPatternEnemyUsers(int attackPatternID) {
+	std::vector<int> results;
+	for (auto it = enemyPhases.begin(); it != enemyPhases.end(); it++) {
+		if (it->second->usesAttackPattern(attackPatternID)) {
+			results.push_back(it->first);
+		}
+	}
+	return results;
+}
+
+std::vector<int>& LevelPack::getAttackUsers(int attackID) {
+	std::vector<int> results;
+	for (auto it = attackPatterns.begin(); it != attackPatterns.end(); it++) {
+		if (it->second->usesAttack(attackID)) {
+			results.push_back(it->first);
+		}
+	}
+	return results;
+}
+
+std::vector<int>& LevelPack::getBulletModelUsers(int bulletModelID) {
+	std::vector<int> results;
+	for (auto it = attacks.begin(); it != attacks.end(); it++) {
+		if (it->second->usesBulletModel(bulletModelID)) {
+			results.push_back(it->first);
+		}
+	}
+	return results;
 }
 
 bool LevelPack::hasEnemy(int id) {

@@ -2,16 +2,34 @@
 #include "EditorMovablePointSpawnType.h"
 #include "LevelPack.h"
 
-EditorMovablePoint::EditorMovablePoint(int & nextID, bool setID) : nextID(nextID) {
+EditorMovablePoint::EditorMovablePoint(int & nextID, bool setID, std::map<int, int>& bulletModelsCount) : nextID(nextID), bulletModelsCount(bulletModelsCount) {
 	if (setID) {
 		id = nextID++;
 	}
 	spawnType = std::make_shared<EntityRelativeEMPSpawn>(0.0f, 0.0f, 0.0f);
+
+	// Update bulletModelsCount
+	if (bulletModelID >= 0) {
+		if (bulletModelsCount.count(bulletModelID) == 0) {
+			bulletModelsCount[bulletModelID] = 1;
+		} else {
+			bulletModelsCount[bulletModelID]++;
+		}
+	}
 }
 
-EditorMovablePoint::EditorMovablePoint(int & nextID, std::weak_ptr<EditorMovablePoint> parent) : nextID(nextID), parent(parent) {
+EditorMovablePoint::EditorMovablePoint(int & nextID, std::weak_ptr<EditorMovablePoint> parent, std::map<int, int>& bulletModelsCount) : nextID(nextID), parent(parent), bulletModelsCount(bulletModelsCount) {
 	id = nextID++;
 	spawnType = std::make_shared<EntityRelativeEMPSpawn>(0.0f, 0.0f, 0.0f);
+
+	// Update bulletModelsCount
+	if (bulletModelID >= 0) {
+		if (bulletModelsCount.count(bulletModelID) == 0) {
+			bulletModelsCount[bulletModelID] = 1;
+		} else {
+			bulletModelsCount[bulletModelID]++;
+		}
+	}
 }
 
 std::string EditorMovablePoint::format() const {
@@ -45,7 +63,7 @@ void EditorMovablePoint::load(std::string formattedString) {
 
 	int i;
 	for (i = 4; i < stoi(items[3]) + 4; i++) {
-		std::shared_ptr<EditorMovablePoint> emp = std::make_shared<EditorMovablePoint>(nextID, shared_from_this());
+		std::shared_ptr<EditorMovablePoint> emp = std::make_shared<EditorMovablePoint>(nextID, shared_from_this(), bulletModelsCount);
 		emp->load(items[i]);
 		children.push_back(emp);
 	}
@@ -185,6 +203,13 @@ void EditorMovablePoint::loadBulletModel(const LevelPack & levelPack) {
 void EditorMovablePoint::setBulletModel(std::shared_ptr<BulletModel> model) {
 	bulletModelID = model->getID();
 
+	// Update bulletModelsCount
+	if (bulletModelsCount.count(bulletModelID) == 0) {
+		bulletModelsCount[bulletModelID] = 1;
+	} else {
+		bulletModelsCount[bulletModelID]++;
+	}
+
 	// Add this EMP to the model's set of model users
 	model->addModelUser(shared_from_this());
 
@@ -244,7 +269,7 @@ void EditorMovablePoint::detachFromParent() {
 }
 
 std::shared_ptr<EditorMovablePoint> EditorMovablePoint::createChild(bool addToChildrenList) {
-	std::shared_ptr<EditorMovablePoint> child = std::make_shared<EditorMovablePoint>(nextID, shared_from_this());
+	std::shared_ptr<EditorMovablePoint> child = std::make_shared<EditorMovablePoint>(nextID, shared_from_this(), bulletModelsCount);
 	if (addToChildrenList) {
 		addChild(child);
 	}

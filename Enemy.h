@@ -41,6 +41,7 @@ public:
 	inline SoundSettings& getHurtSound() { return hurtSound; }
 	// Returns a reference
 	inline SoundSettings& getDeathSound() { return deathSound; }
+	inline bool usesEnemyPhase(int enemyPhaseID) { return enemyPhaseCount.count(enemyPhaseID) > 0 && enemyPhaseCount[enemyPhaseID] > 0; }
 
 	inline void addDeathAction(std::shared_ptr<DeathAction> action) { deathActions.push_back(action); }
 	inline void removeDeathAction(int index) { deathActions.erase(deathActions.begin() + index); }
@@ -53,9 +54,22 @@ public:
 
 	inline void addPhaseID(int index, std::shared_ptr<EnemyPhaseStartCondition> startCondition, int phaseID, EntityAnimatableSet animatableSet) {
 		phaseIDs.insert(phaseIDs.begin() + index, std::make_tuple(startCondition, phaseID, animatableSet));
+
+		if (enemyPhaseCount.count(phaseID) == 0) {
+			enemyPhaseCount[phaseID] = 1;
+		} else {
+			enemyPhaseCount[phaseID]++;
+		}
 	}
 	inline void removePhaseID(int index) {
+		int phaseID = std::get<1>(phaseIDs[index]);
 		phaseIDs.erase(phaseIDs.begin() + index);
+
+		if (enemyPhaseCount.count(phaseID) == 0) {
+			enemyPhaseCount[phaseID] = 1;
+		} else {
+			enemyPhaseCount[phaseID]++;
+		}
 	}
 
 private:
@@ -79,4 +93,8 @@ private:
 
 	SoundSettings hurtSound;
 	SoundSettings deathSound;
+
+	// Maps EditorEnemyPhaseID to the number of times it appears in phaseIDs.
+	// This map is not saved in format() but is reconstructed in load().
+	std::map<int, int> enemyPhaseCount;
 };

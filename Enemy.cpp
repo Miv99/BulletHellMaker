@@ -20,11 +20,20 @@ void EditorEnemy::load(std::string formattedString) {
 	hitboxRadius = std::stof(items[2]);
 	health = std::stof(items[3]);
 	despawnTime = std::stof(items[4]);
+
+	enemyPhaseCount.clear();
 	int i = 6;
 	for (int a = 0; a < std::stoi(items[5]); a++) {
 		EntityAnimatableSet animatableSet;
 		animatableSet.load(items[i + 2]);
-		phaseIDs.push_back(std::make_tuple(EnemyPhaseStartConditionFactory::create(items[i]), std::stoi(items[i + 1]), animatableSet));
+		int phaseID = std::stoi(items[i + 1]);
+		phaseIDs.push_back(std::make_tuple(EnemyPhaseStartConditionFactory::create(items[i]), phaseID, animatableSet));
+
+		if (enemyPhaseCount.count(phaseID) == 0) {
+			enemyPhaseCount[phaseID] = 1;
+		} else {
+			enemyPhaseCount[phaseID]++;
+		}
 		i += 3;
 	}
 	int next = i;

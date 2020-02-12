@@ -26,6 +26,7 @@ public:
 
 	inline int getID() const { return id; }
 	inline std::string getName() const { return name; }
+	inline const std::vector<std::pair<float, int>>& getAttacks() { return attackIDs; }
 	inline std::pair<float, int> getAttackData(int index) const { return attackIDs[index]; }
 	inline std::shared_ptr<EMPAction> getAction(int index) const { return actions[index]; }
 	inline const std::vector<std::shared_ptr<EMPAction>> getActions() const { return actions; }
@@ -34,11 +35,22 @@ public:
 	inline float getShadowTrailInterval() const { return shadowTrailInterval; }
 	inline float getShadowTrailLifespan() const { return shadowTrailLifespan; }
 	inline float getActionsTotalTime() const { return actionsTotalTime; }
+	inline bool usesAttack(int attackID) { return attackIDCount.count(attackID) > 0 && attackIDCount[attackID] > 0; }
 
 	inline void setShadowTrailInterval(float shadowTrailInterval) { this->shadowTrailInterval = shadowTrailInterval; }
 	inline void setShadowTrailLifespan(float shadowTrailLifespan) { this->shadowTrailLifespan = shadowTrailLifespan; }
 
-	void addAttackID(float time, int id);
+	/*
+	Add an EditorAttack to this attack pattern.
+
+	time - seconds after the start of the EditorAttackPattern that the EditorAttack is executed
+	id - the ID of the EditorAttack
+	*/
+	void addAttack(float time, int id);
+	/*
+	Removes the EditorAttack at the specified index from the list of EditorAttacks to be executed.
+	*/
+	void removeAttack(int index);
 	// Inserts an EMPAction such that the new action is at the specified index
 	void insertAction(int index, std::shared_ptr<EMPAction> action);
 	void removeAction(int index);
@@ -61,4 +73,8 @@ private:
 	float shadowTrailInterval = 0.15f;
 	// Set to 0 or a negative number to disable shadow trail
 	float shadowTrailLifespan = 0;
+
+	// Maps an attack ID to the number of times it appears in attackIDs.
+	// Not saved in format(), but reconstructed in load().
+	std::map<int, int> attackIDCount;
 };

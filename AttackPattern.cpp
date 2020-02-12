@@ -25,8 +25,16 @@ void EditorAttackPattern::load(std::string formattedString) {
 	name = items[1];
 
 	int i = 3;
+	attackIDCount.clear();
 	for (int a = 0; a < std::stoi(items[2]); a++) {
-		attackIDs.push_back(std::make_pair(std::stof(items[i]), std::stoi(items[i + 1])));
+		int attackID = std::stoi(items[i + 1]);
+		attackIDs.push_back(std::make_pair(std::stof(items[i]), attackID));
+
+		if (attackIDCount.count(attackID) == 0) {
+			attackIDCount[attackID] = 1;
+		} else {
+			attackIDCount[attackID]++;
+		}
 		i += 2;
 	}
 
@@ -64,9 +72,21 @@ void EditorAttackPattern::changeEntityPathToAttackPatternActions(EntityCreationQ
 	registry.replace<MovementPathComponent>(entity, queue, entity, registry, entity, std::make_shared<SpecificGlobalEMPSpawn>(0, pos.getX(), pos.getY()), actions, timeLag);
 }
 
-void EditorAttackPattern::addAttackID(float time, int id) {
+void EditorAttackPattern::addAttack(float time, int id) {
 	auto item = std::make_pair(time, id);
 	attackIDs.insert(std::upper_bound(attackIDs.begin(), attackIDs.end(), item), item);
+
+	if (attackIDCount.count(id) == 0) {
+		attackIDCount[id] = 1;
+	} else {
+		attackIDCount[id]++;
+	}
+}
+
+void EditorAttackPattern::removeAttack(int index) {
+	int attackID = attackIDs[index].second;
+	attackIDs.erase(attackIDs.begin() + index);
+	attackIDCount[attackID]--;
 }
 
 void EditorAttackPattern::insertAction(int index, std::shared_ptr<EMPAction> action) {

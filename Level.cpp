@@ -21,6 +21,8 @@ std::string Level::format() const {
 void Level::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	name = items[0];
+
+	enemyIDCount.clear();
 	int i;
 	for (i = 2; i < std::stoi(items[1]) + 2;) {
 		std::shared_ptr<EnemySpawnCondition> condition = EnemySpawnConditionFactory::create(items[i++]);
@@ -30,6 +32,13 @@ void Level::load(std::string formattedString) {
 			EnemySpawnInfo info;
 			info.load(items[i++]);
 			enemies.push_back(info);
+
+			int enemyID = info.getEnemyID();
+			if (enemyIDCount.count(enemyID) == 0) {
+				enemyIDCount[enemyID] = 1;
+			} else {
+				enemyIDCount[enemyID]++;
+			}
 		}
 		enemyGroups.push_back(std::make_pair(condition, enemies));
 	}

@@ -44,6 +44,11 @@ public:
 	*/
 	void EditorAttack::executeAsPlayer(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, uint32_t entity, float timeLag, int attackPatternID) const;
 
+	/*
+	Returns whether this EditorAttack and any of its its children EMPs uses the BulletModel
+	with ID bulletModelID.
+	*/
+	inline const bool usesBulletModel(int bulletModelID) { return bulletModelsCount.count(bulletModelID) > 0 && bulletModelsCount[bulletModelID] > 0; }
 	inline int getID() const { return id; }
 	inline std::string getName() const { return name; }
 	inline bool getPlayAttackAnimation() const { return playAttackAnimation; }
@@ -77,4 +82,9 @@ private:
 	std::shared_ptr<EditorMovablePoint> mainEMP;
 	// Whether or not to play the enemy's attack animation with this attack
 	bool playAttackAnimation;
+
+	// Map that maps the bullet model ids used by this EMP and all children EMP to the number of times
+	// that bullet model id is used.
+	// This map will not be saved when format() is called, but will be rebuilt in load().
+	std::map<int, int> bulletModelsCount;
 };

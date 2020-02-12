@@ -1694,7 +1694,7 @@ void GameplayTestWindow::PlayerEntityPlaceholder::runTest(std::shared_ptr<std::r
 		pemp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
 		pemp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 2), std::make_shared<ConstantTFV>(PI / 2.0f), 2.0f));
 		pemp0->setOnCollisionAction(PIERCE_ENTITY);
-		playerAP->addAttackID(0.1f, playerAttack1->getID());
+		playerAP->addAttack(0.1f, playerAttack1->getID());
 
 		auto bombAP = levelPack.createTempAttackPattern();
 		for (int i = 0; i < 10; i++) {
@@ -1705,7 +1705,7 @@ void GameplayTestWindow::PlayerEntityPlaceholder::runTest(std::shared_ptr<std::r
 			b1emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
 			b1emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 1000, 2), std::make_shared<ConstantTFV>(1.0f + i * 0.13f), 2.0f));
 			b1emp0->setOnCollisionAction(PIERCE_ENTITY);
-			bombAP->addAttackID(0, bombAttack1->getID());
+			bombAP->addAttack(0, bombAttack1->getID());
 		}
 
 		auto pset1 = EntityAnimatableSet(Animatable("Player Placeholder", "Default", true, ROTATE_WITH_MOVEMENT),
@@ -1757,7 +1757,7 @@ void GameplayTestWindow::EnemyEntityPlaceholder::runTest(std::shared_ptr<std::re
 		info = EnemySpawnInfo(enemy->getID(), x, y, std::vector<std::pair<std::shared_ptr<Item>, int>>());
 	} else {
 		std::shared_ptr<EditorAttackPattern> attackPattern = levelPack.createTempAttackPattern();
-		attackPattern->addAttackID(0, testModeID);
+		attackPattern->addAttack(0, testModeID);
 
 		std::shared_ptr<EditorEnemyPhase> phase = levelPack.createTempEnemyPhase();
 		phase->addAttackPatternID(0, attackPattern->getID());
