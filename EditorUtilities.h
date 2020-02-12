@@ -26,6 +26,7 @@
 #include "EditorMovablePoint.h"
 #include "MovablePoint.h"
 #include "ViewController.h"
+#include "EventCapturable.h"
 #include "LRUCache.h"
 #include <memory>
 #include <thread>
@@ -444,6 +445,7 @@ private:
 
 /*
 A panel that can load Levels and play them while rendering it either normally or in debug mode.
+A LevelPack must be loaded before anything can be done.
 */
 class SimpleEngineRenderer : public tgui::Panel {
 public:
@@ -508,7 +510,7 @@ a tab has an empty string for a name.
 This widget is intended to be used for a small number of tabs. It might get
 laggy when there's a lot.
 */
-class TabsWithPanel : public tgui::Group {
+class TabsWithPanel : public tgui::Group, public EventCapturable {
 public:
 	enum MoreTabsListAlignment {
 		Left, // The right side of moreTabsList will be x-aligned with the right side of moreTabsButton
@@ -562,6 +564,11 @@ public:
 		Set to an empty string to disable the confirmation prompt.
 	*/
 	void setTabCloseButtonConfirmationPrompt(std::string tabName, std::string message);
+	/*
+	Returns whether the tab exists.
+	tabName - the unique name of the tab
+	*/
+	bool hasTab(std::string tabName);
 
 	/*
 	Caches all currently added tabs so that the current set of tabs can be reopened at a later time.
@@ -605,6 +612,8 @@ public:
 	more tabs button.
 	*/
 	void setMoreTabsListAlignment(MoreTabsListAlignment moreTabsListAlignment);
+
+	bool handleEvent(sf::Event event);
 
 private:
 	// The value part of the key:value pairing in the tabsCache cache

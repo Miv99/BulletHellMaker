@@ -3,10 +3,12 @@
 #include "Enemy.h"
 #include "EnemyPhase.h"
 #include "Level.h"
+#include "AttackEditorPanel.h"
 #include <algorithm>
 #include <boost/date_time.hpp>
 #include <sstream>
 #include <iterator>
+#include <set>
 
 EditorWindow::EditorWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval) :
 	tguiMutex(tguiMutex), windowTitle(windowTitle), windowWidth(width), windowHeight(height), scaleWidgetsOnResize(scaleWidgetsOnResize), letterboxingEnabled(letterboxingEnabled), renderInterval(renderInterval) {
@@ -1924,19 +1926,114 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 	leftPanel->setPosition(0, 0);
 	leftPanel->setSize("20%", "100%");
 	leftPanel->setVisible(true);
+	leftPanel->setMoreTabsListAlignment(TabsWithPanel::MoreTabsListAlignment::Right);
 	gui->add(leftPanel);
 
-	attacksTreeViewPanel = tgui::Panel::create();
-	attacksTreeView = tgui::TreeView::create();
-	attacksTreeView->setPosition(0, 0);
-	attacksTreeView->setSize("100%", "100%");
-	attacksTreeViewPanel->add(attacksTreeView);
-	leftPanel->addTab("Attacks", attacksTreeViewPanel);
+	{
+		// Attacks tab in left panel
+		attacksListViewPanel = tgui::ScrollablePanel::create();
+		{
+			// Add button
+			auto attacksAddButton = tgui::Button::create();
+			attacksAddButton->setText("+");
+			attacksAddButton->setPosition(0, 0);
+			attacksAddButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
+			attacksAddButton->connect("Pressed", [&]() {
+				
+				reloadLeftPanelAttackList();
+			});
+			attacksListViewPanel->add(attacksAddButton);
+
+			// Save all button
+			auto attacksSaveAllButton = tgui::Button::create();
+			attacksSaveAllButton->setText("S");
+			attacksSaveAllButton->setPosition(tgui::bindRight(attacksAddButton), 0);
+			attacksSaveAllButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
+			attacksListViewPanel->add(attacksSaveAllButton);
+
+			// List view
+			attacksListView = tgui::ListView::create();
+			attacksListView->setMultiSelect(true);
+			attacksListView->setPosition(0, tgui::bindBottom(attacksAddButton));
+			attacksListView->setSize("100%", "100%");
+			{
+				// Right click menu
+				// Menu for single attack selection
+				auto rightClickMenuPopupSingleSelection = createMenuPopup({
+					std::make_pair("Open", [&]() {
+						
+					}),
+					std::make_pair("Copy", [&]() {
+						
+					}),
+					std::make_pair("Delete", [&]() {
+						
+					}),
+					std::make_pair("Paste", [&]() {
+						
+					}),
+					std::make_pair("Paste (override this)", [&]() {
+						
+					}),
+					std::make_pair("Save", [&]() {
+						
+					})
+				});
+				// Menu for multiple attack selections
+				auto rightClickMenuPopupMultiSelection = createMenuPopup({
+					std::make_pair("Copy", [&]() {
+
+					}),
+					std::make_pair("Delete", [&]() {
+
+					}),
+					std::make_pair("Paste", [&]() {
+
+					}),
+					std::make_pair("Paste (override these)", [&]() {
+
+					}),
+					std::make_pair("Save", [&]() {
+
+					})
+				});
+				attacksListView->connect("RightClicked", [&, rightClickMenuPopupSingleSelection, rightClickMenuPopupMultiSelection](int index) {
+					std::set<std::size_t> selectedItemIndices = attacksListView->getSelectedItemIndices();
+					if (selectedItemIndices.find(index) != selectedItemIndices.end()) {
+						// Right clicked a selected item
+
+						// Open the corresponding menu
+						if (selectedItemIndices.size() == 1) {
+							addPopupWidget(rightClickMenuPopupSingleSelection, mousePos.x, mousePos.y, 150, rightClickMenuPopupSingleSelection->getSize().y);
+						} else {
+							addPopupWidget(rightClickMenuPopupMultiSelection, mousePos.x, mousePos.y, 150, rightClickMenuPopupMultiSelection->getSize().y);
+						}
+					} else {
+						// Right clicked a nonselected item
+
+						// Select the right clicked item
+						attacksListView->setSelectedItem(index);
+
+						// Open the menu normally
+						addPopupWidget(rightClickMenuPopupSingleSelection, mousePos.x, mousePos.y, 150, rightClickMenuPopupSingleSelection->getSize().y);
+					}
+
+					
+				});
+			}
+			attacksListView->connect("DoubleClicked", [&](int index) {
+				openLeftPanelAttack(attacksListViewIndexToAttackIDMap[index]);
+			});
+			attacksListViewPanel->add(attacksListView);
+		}
+		leftPanel->addTab(LEFT_PANEL_ATTACK_LIST_TAB_NAME, attacksListViewPanel, true);
+	}
 
 	mainPanel = TabsWithPanel::create(*this);
 	mainPanel->setPosition(tgui::bindRight(leftPanel), tgui::bindTop(leftPanel));
 	mainPanel->setSize("80%", "100%");
 	mainPanel->setVisible(true);
+	mainPanel->setMoreTabsListAlignment(TabsWithPanel::MoreTabsListAlignment::Left);
 	gui->add(mainPanel);
 }
 
@@ -1946,16 +2043,60 @@ void MainEditorWindow::loadLevelPack(std::string levelPackName) {
 	spriteLoader = levelPack->createSpriteLoader();
 	spriteLoader->preloadTextures();
 
-	// Populate attacks tree view
-	for (auto it = levelPack->getAttackIteratorBegin(); it != levelPack->getAttackIteratorEnd(); it++) {
-		for (std::vector<sf::String> item : it->second->generateTreeViewHierarchy(&MainEditorWindow::getAttackTextInAttackList, &MainEditorWindow::getEMPTextInAttackList)) {
-			attacksTreeView->addItem(item);
-		}
+	reloadLeftPanelAttackList();
+}
+
+void MainEditorWindow::handleEvent(sf::Event event) {
+	EditorWindow::handleEvent(event);
+
+	if (leftPanel->mouseOnWidget(lastMousePressPos)) {
+		leftPanel->handleEvent(event);
+	} else if (mainPanel->mouseOnWidget(lastMousePressPos)) {
+		mainPanel->handleEvent(event);
 	}
 }
 
-sf::String MainEditorWindow::getAttackTextInAttackList(const EditorAttack& attack) {
-	return "[" + std::to_string(attack.getID()) + "] " + attack.getName();
+void MainEditorWindow::reloadLeftPanelAttackList() {
+	attackIDToAttacksListViewIndexMap.clear();
+	attacksListViewIndexToAttackIDMap.clear();
+	attacksListView->removeAllItems();
+
+	int i = 0;
+	for (auto it = levelPack->getAttackIteratorBegin(); it != levelPack->getAttackIteratorEnd(); it++) {
+		attacksListView->addItem("[" + std::to_string(it->second->getID()) + "] " + it->second->getName());
+		attackIDToAttacksListViewIndexMap[it->second->getID()] = i;
+		attacksListViewIndexToAttackIDMap[i] = it->second->getID();
+		i++;
+	}
+}
+
+void MainEditorWindow::openLeftPanelAttack(int attackID) {
+	// Open attacks tab in left panel if not already open
+	if (leftPanel->getSelectedTab() != LEFT_PANEL_ATTACK_LIST_TAB_NAME) {
+		leftPanel->selectTab(LEFT_PANEL_ATTACK_LIST_TAB_NAME);
+	}
+	// Select the attack in attacksListView
+	attacksListView->setSelectedItem(attackIDToAttacksListViewIndexMap[attackID]);
+
+	// Get the attack
+	if (unsavedAttacks.count(attackID) > 0) {
+		// There are unsaved changes for this attack, so open the one with unsaved changes
+		openedAttack = unsavedAttacks[attackID];
+	} else {
+		// Make a copy of the attack in the LevelPack so that changes can be applied/discarded
+		// whenever the user wants instead of modifying the LevelPack directly.
+		openedAttack = std::make_shared<EditorAttack>(levelPack->getAttack(attackID));
+	}
+
+	// Open the tab in mainPanel
+	if (mainPanel->hasTab(format(MAIN_PANEL_ATTACK_TAB_NAME_FORMAT, attackID))) {
+		// Tab already exists, so just select it
+		mainPanel->selectTab(format(MAIN_PANEL_ATTACK_TAB_NAME_FORMAT, attackID));
+	} else {
+		// Create the tab
+		std::shared_ptr<AttackEditorPanel> attackEditorPanel = AttackEditorPanel::create(*this, openedAttack);
+		mainPanel->addTab(format(MAIN_PANEL_ATTACK_TAB_NAME_FORMAT, attackID), attackEditorPanel, true, true);
+	}
 }
 
 sf::String MainEditorWindow::getEMPTextInAttackList(const EditorMovablePoint& emp) {

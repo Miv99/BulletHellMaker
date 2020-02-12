@@ -1796,6 +1796,10 @@ void TabsWithPanel::setTabCloseButtonConfirmationPrompt(std::string tabName, std
 	setTabCloseButtonConfirmationPrompt(pos, message);
 }
 
+bool TabsWithPanel::hasTab(std::string tabName) {
+	return panelsMap.count(tabName + tabNameAppendedSpaces) > 0;
+}
+
 void TabsWithPanel::cacheTabs(std::string tabsSetIdentifier) {
 	std::vector<std::pair<std::string, std::shared_ptr<tgui::Panel>>> tabsData;
 	for (auto tabName : tabsOrdering) {
@@ -1847,6 +1851,17 @@ std::string TabsWithPanel::getSelectedTab() {
 
 void TabsWithPanel::setMoreTabsListAlignment(MoreTabsListAlignment moreTabsListAlignment) {
 	this->moreTabsListAlignment = moreTabsListAlignment;
+}
+
+bool TabsWithPanel::handleEvent(sf::Event event) {
+	// Let the currently opened panel handle the event, if it can
+	if (currentPanel) {
+		std::shared_ptr<EventCapturable> eventCapturer = std::dynamic_pointer_cast<EventCapturable>(currentPanel);
+		if (eventCapturer) {
+			return eventCapturer->handleEvent(event);
+		}
+	}
+	return false;
 }
 
 void TabsWithPanel::onTabSelected(std::string tabName) {
