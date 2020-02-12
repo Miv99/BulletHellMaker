@@ -338,6 +338,14 @@ void EditorWindow::render(float deltaTime) {
 
 void EditorWindow::handleEvent(sf::Event event) {
 	std::lock_guard<std::recursive_mutex> lock(*tguiMutex);
+
+	if (event.type == sf::Event::MouseMoved) {
+		mousePos.x = event.mouseMove.x;
+		mousePos.y = event.mouseMove.y;
+	} else if (event.type == sf::Event::MouseButtonPressed) {
+		lastMousePressPos = mousePos;
+	}
+
 	gui->handleEvent(event);
 }
 

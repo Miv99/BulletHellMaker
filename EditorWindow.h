@@ -113,6 +113,11 @@ protected:
 	std::shared_ptr<sf::RenderWindow> window;
 	std::shared_ptr<tgui::Gui> gui;
 
+	// The last known position of the mouse
+	sf::Vector2f mousePos = sf::Vector2f(0, 0);
+	// The position of the mouse at the last mouse press
+	sf::Vector2f lastMousePressPos = sf::Vector2f(0, 0);
+
 	virtual void physicsUpdate(float deltaTime);
 	virtual void render(float deltaTime);
 	virtual void handleEvent(sf::Event event);
