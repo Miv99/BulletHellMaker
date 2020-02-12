@@ -68,3 +68,5 @@ const static float SLIDER_HEIGHT = 15;
 const static int TEXT_SIZE = 12;
 const static float CHECKBOX_SIZE = 15;
 const static float SMALL_BUTTON_SIZE = 20;
+// Width of every tab in a tguI::Tabs button
+const static float TAB_WIDTH = 100.0f;

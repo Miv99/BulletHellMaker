@@ -26,6 +26,8 @@
 #include <TGUI/TGUI.hpp>
 #include <entt/entt.hpp>
 
+class AttackEditorPanel;
+
 /*
 If the underlying RenderWindow is closed, one only needs to call start() or startAndHide() again to reopen the RenderWindow.
 */
@@ -71,9 +73,13 @@ public:
 	std::shared_ptr<entt::SigH<void(bool)>> promptConfirmation(std::string message);
 
 	/*
-	Add a popup as a top-level widget in the Gui.
+	Add a popup as a top-level widget in the Gui. If part of the popup 
+
+	preferredX, preferredY - the preferred position of the popup; cannot be less than 0
+	preferredWidth, preferredHeight - the preferred size of the popup; cannot be less than 0
+	maxWidthFraction, maxHeightFraction - the maximum size of the popup as a multiplier of the window width/height
 	*/
-	void addPopupWidget(std::shared_ptr<tgui::Widget> popup);
+	void addPopupWidget(std::shared_ptr<tgui::Widget> popup, float preferredX, float preferredY, float preferredWidth, float preferredHeight, float maxWidthFraction = 1.0f, float maxHeightFraction = 1.0f);
 	/*
 	Add a popup as a child of the popupContainer.
 	*/
@@ -108,6 +114,11 @@ public:
 protected:
 	std::shared_ptr<sf::RenderWindow> window;
 	std::shared_ptr<tgui::Gui> gui;
+
+	// The last known position of the mouse
+	sf::Vector2f mousePos = sf::Vector2f(0, 0);
+	// The position of the mouse at the last mouse press
+	sf::Vector2f lastMousePressPos = sf::Vector2f(0, 0);
 
 	virtual void physicsUpdate(float deltaTime);
 	virtual void render(float deltaTime);
@@ -567,7 +578,18 @@ public:
 
 	void loadLevelPack(std::string levelPackName);
 
+protected:
+	void handleEvent(sf::Event event) override;
+
 private:
+	const std::string LEFT_PANEL_ATTACK_LIST_TAB_NAME = "Attacks";
+	// The string format used as the tab set identifier for caching the mainPanel
+	// tabs when closing an opened attack.
+	// %d = the attack's ID
+	const std::string LEFT_PANEL_ATTACK_TABS_SET_IDENTIFIER_FORMAT = "Attack %d";
+
+	const std::string MAIN_PANEL_ATTACK_TAB_NAME_FORMAT = "Attack %d";
+
 	std::shared_ptr<AudioPlayer> audioPlayer;
 	std::shared_ptr<LevelPack> levelPack;
 	std::shared_ptr<SpriteLoader> spriteLoader;
@@ -575,13 +597,37 @@ private:
 	std::shared_ptr<TabsWithPanel> mainPanel;
 	std::shared_ptr<TabsWithPanel> leftPanel;
 
-	std::shared_ptr<tgui::Panel> attacksTreeViewPanel;
-	std::shared_ptr<tgui::TreeView> attacksTreeView;
+	// -------------------- Part of leftPanel --------------------
+	std::shared_ptr<tgui::Panel> attacksListViewPanel;
+	std::shared_ptr<tgui::ListView> attacksListView;
+	
+	// -------------------- Part of mainPanel --------------------
+	// Only at most one of the opened_____ objects (ie openedAttack, openedAttackPattern, ...)
+	// can be a non nullptr at any given time.
+	// The attack whose tabs are currently opened in mainPanel
+	std::shared_ptr<EditorAttack> openedAttack;
+
+	// Maps an EditorAttack ID to its index in attacksListView
+	std::map<int, int> attackIDToAttacksListViewIndexMap;
+	// Maps an index in attacksListView to the associated EditorAtack ID
+	std::map<int, int> attacksListViewIndexToAttackIDMap;
+	// Maps an EditorAttack ID to the EditorAttack object that has unsaved changes.
+	// If the ID doesn't exist in this map, then there are no unsaved changes
+	// for that ID.
+	std::map<int, std::shared_ptr<EditorAttack>> unsavedAttacks;
+	// ------------------------------------------------------------
 
 	/*
-	Returns the string to be shown for each EditorAttack in the attack list in the attack tab.
+	Repopulate the attack list in the left panel.
 	*/
-	static sf::String getAttackTextInAttackList(const EditorAttack& attack);
+	void reloadLeftPanelAttackList();
+
+	/*
+	Open a single attack in the left panel's attack list so that
+	its corresponding tab appears in the main panel.
+	*/
+	void openLeftPanelAttack(int attackID);
+
 	/*
 	Returns the string to be shown for each EditorMovablePoint in the attack list in the attack tab.
 	*/
