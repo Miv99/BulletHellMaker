@@ -1750,6 +1750,7 @@ void TabsWithPanel::removeTab(std::string tabName) {
 	tabName += tabNameAppendedSpaces;
 	assert(panelsMap.count(tabName) != 0);
 
+	remove(panelsMap[tabName]);
 	if (currentPanel == panelsMap[tabName]) {
 		currentPanel = nullptr;
 	}
@@ -1773,15 +1774,16 @@ void TabsWithPanel::removeTab(std::string tabName) {
 }
 
 void TabsWithPanel::removeAllTabs() {
+	for (auto it = panelsMap.begin(); it != panelsMap.end(); it++) {
+		remove(it->second);
+	}
 	panelsMap.clear();
 	tabsOrdering.clear();
 	for (std::pair<std::shared_ptr<tgui::Button>, std::string> closeButtonAndPrompt : closeButtons) {
 		currentPanel->remove(closeButtonAndPrompt.first);
 	}
 	closeButtons.clear();
-	if (currentPanel) {
-		currentPanel = nullptr;
-	}
+	currentPanel = nullptr;
 	tabs->removeAll();
 
 	onTabsChange();
