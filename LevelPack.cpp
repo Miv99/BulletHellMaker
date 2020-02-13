@@ -524,6 +524,10 @@ std::vector<int>& LevelPack::getEditorEnemyUsers(int editorEnemyPhaseID) {
 	return results;
 }
 
+bool LevelPack::attackPatternIsUsedByPlayer(int attackPatternID) {
+	return getPlayer()->usesAttackPattern(attackPatternID);
+}
+
 std::vector<int>& LevelPack::getAttackPatternEnemyUsers(int attackPatternID) {
 	std::vector<int> results;
 	for (auto it = enemyPhases.begin(); it != enemyPhases.end(); it++) {

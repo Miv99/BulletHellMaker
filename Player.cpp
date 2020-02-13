@@ -22,11 +22,20 @@ void EditorPlayer::load(std::string formattedString) {
 	hitboxPosX = std::stof(items[5]);
 	hitboxPosY = std::stof(items[6]);
 	invulnerabilityTime = std::stof(items[7]);
+
+	attackPatternIDCount.clear();
 	int i;
 	for (i = 9; i < std::stoi(items[8]) + 9; i++) {
 		PlayerPowerTier tier;
 		tier.load(items[i]);
 		powerTiers.push_back(tier);
+
+		int attackPatternID = tier.getAttackPatternID();
+		if (attackPatternIDCount.count(attackPatternID) == 0) {
+			attackPatternIDCount[attackPatternID] = 1;
+		} else {
+			attackPatternIDCount[attackPatternID]++;
+		}
 	}
 	hurtSound.load(items[i++]);
 	deathSound.load(items[i++]);

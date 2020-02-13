@@ -50,16 +50,6 @@ private:
 class EditorPlayer : public TextMarshallable {
 public:
 	inline EditorPlayer() {}
-	inline EditorPlayer(float initialHealth, float maxHealth, float speed, float focusedSpeed, float hitboxRadius, float hitboxPosX, float hitboxPosY, float invulnerabilityTime, 
-		std::vector<PlayerPowerTier> powerTiers, SoundSettings hurtSound, SoundSettings deathSound, int initialBombs, int maxBombs, Animatable bombSprite, SoundSettings bombReadySound, float bombInvincibilityTime) :
-		initialHealth(initialHealth), maxHealth(maxHealth), speed(speed), focusedSpeed(focusedSpeed), hitboxRadius(hitboxRadius), hitboxPosX(hitboxPosX), hitboxPosY(hitboxPosY), 
-		invulnerabilityTime(invulnerabilityTime), powerTiers(powerTiers), hurtSound(hurtSound), deathSound(deathSound), smoothPlayerHPBar(true),
-		initialBombs(initialBombs), maxBombs(maxBombs), bombSprite(bombSprite), bombReadySound(bombReadySound), bombInvincibilityTime(bombInvincibilityTime) {}
-	inline EditorPlayer(float initialHealth, float maxHealth, float speed, float focusedSpeed, float hitboxRadius, float hitboxPosX, float hitboxPosY, float invulnerabilityTime, 
-		std::vector<PlayerPowerTier> powerTiers, SoundSettings hurtSound, SoundSettings deathSound, Animatable discretePlayerHPSprite, int initialBombs, int maxBombs, Animatable bombSprite, SoundSettings bombReadySound, float bombInvincibilityTime) :
-		initialHealth(initialHealth), maxHealth(maxHealth), speed(speed), focusedSpeed(focusedSpeed), hitboxRadius(hitboxRadius), hitboxPosX(hitboxPosX), hitboxPosY(hitboxPosY), 
-		invulnerabilityTime(invulnerabilityTime), powerTiers(powerTiers), hurtSound(hurtSound), deathSound(deathSound), smoothPlayerHPBar(false), discretePlayerHPSprite(discretePlayerHPSprite),
-		initialBombs(initialBombs), maxBombs(maxBombs), bombSprite(bombSprite), bombReadySound(bombReadySound), bombInvincibilityTime(bombInvincibilityTime) {}
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
@@ -88,6 +78,7 @@ public:
 	// Returns a reference
 	inline SoundSettings& getBombReadySound() { return bombReadySound; }
 	inline float getBombInvincibilityTime() { return bombInvincibilityTime; }
+	inline bool usesAttackPattern(int attackPatternID) { return attackPatternIDCount.count(attackPatternID) > 0 && attackPatternIDCount[attackPatternID] > 0; }
 
 	/*
 	Returns a reference to the power tier.
@@ -102,8 +93,21 @@ public:
 	inline void setHitboxPosX(float hitboxPosX) { this->hitboxPosX = hitboxPosX; }
 	inline void setHitboxPosY(float hitboxPosY) { this->hitboxPosY = hitboxPosY; }
 	inline void setInvulnerabilityTime(float invulnerabilityTime) { this->invulnerabilityTime = invulnerabilityTime; }
-	inline void insertPowerTier(int index, PlayerPowerTier powerTier) { powerTiers.insert(powerTiers.begin() + index, powerTier); }
-	inline void removePowerTier(int index) { powerTiers.erase(powerTiers.begin() + index); }
+	inline void insertPowerTier(int index, PlayerPowerTier powerTier) { 
+		powerTiers.insert(powerTiers.begin() + index, powerTier);
+
+		int attackPatternID = powerTier.getAttackPatternID();
+		if (attackPatternIDCount.count(attackPatternID) == 0) {
+			attackPatternIDCount[attackPatternID] = 1;
+		} else {
+			attackPatternIDCount[attackPatternID]++;
+		}
+	}
+	inline void removePowerTier(int index) {
+		int attackPatternID = powerTiers[index].getAttackPatternID();
+		powerTiers.erase(powerTiers.begin() + index);
+		attackPatternIDCount[attackPatternID]--;
+	}
 	inline void setSmoothPlayerHPBar(bool smoothPlayerHPBar) { this->smoothPlayerHPBar = smoothPlayerHPBar; }
 	inline void setPlayerHPBarColor(sf::Color playerHPBarColor) { this->playerHPBarColor = playerHPBarColor; }
 	inline void setDiscretePlayerHPSprite(Animatable discretePlayerHPSprite) { this->discretePlayerHPSprite = discretePlayerHPSprite; }
@@ -153,4 +157,8 @@ private:
 
 	// Amount of time player is invincible for after activating a bomb
 	float bombInvincibilityTime = 5.0f;
+
+	// Maps an EditorAttackPattern's ID to the number of times it appears in powerTiers.
+	// This map isn't saved in format() but is reconstructed in load().
+	std::map<int, int> attackPatternIDCount;
 };

@@ -105,12 +105,10 @@ public:
 	*/
 	std::vector<int>& getEditorEnemyUsers(int editorEnemyPhaseID);
 	/*
-	Returns a list of IDs of Players that use the EditorAttackPattern
+	Returns whether the LevelPack's EditorPlayer uses the EditorAttackPattern
 	with ID attackPatternID.
-
-	TODO: make Player objects have IDs and stuff
 	*/
-	std::vector<int>& getAttackPatternPlayerUsers(int attackPatternID);
+	bool attackPatternIsUsedByPlayer(int attackPatternID);
 	/*
 	Returns a list of IDs of EditorEnemyPhases that use the EditorAttackPattern
 	with ID attackPatternID.

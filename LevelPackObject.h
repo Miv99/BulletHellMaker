@@ -20,6 +20,5 @@ public:
 	Legality check for the usage of the LevelPackObject.
 	Returns a pair indicating whether the object is legal and the message explaining errors, if the object is not legal.
 	*/
-	//TODO: make completley virtual =0
 	virtual std::pair<bool, std::string> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const = 0;
 };

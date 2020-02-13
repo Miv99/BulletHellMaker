@@ -59,7 +59,7 @@ public:
 	inline sf::Color getBossNameColor() const { return bossNameColor; }
 	inline sf::Color getBossHPBarColor() const { return bossHPBarColor; }
 	// Returns a reference
-	inline std::vector<BloomSettings> getBloomLayerSettings() const { return bloomLayerSettings; }
+	inline std::vector<BloomSettings>& getBloomLayerSettings() { return bloomLayerSettings; }
 	inline float getBackgroundTextureWidth() const { return backgroundTextureWidth; }
 	inline float getBackgroundTextureHeight() const { return backgroundTextureHeight; }
 	inline bool usesEnemy(int enemyID) { return enemyIDCount.count(enemyID) > 0 && enemyIDCount[enemyID] > 0; }
