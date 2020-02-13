@@ -35,7 +35,7 @@ public:
 	inline float getShadowTrailInterval() const { return shadowTrailInterval; }
 	inline float getShadowTrailLifespan() const { return shadowTrailLifespan; }
 	inline float getActionsTotalTime() const { return actionsTotalTime; }
-	inline bool usesAttack(int attackID) { return attackIDCount.count(attackID) > 0 && attackIDCount[attackID] > 0; }
+	inline bool usesAttack(int attackID) const { return attackIDCount.count(attackID) > 0 && attackIDCount.at(attackID) > 0; }
 
 	inline void setShadowTrailInterval(float shadowTrailInterval) { this->shadowTrailInterval = shadowTrailInterval; }
 	inline void setShadowTrailLifespan(float shadowTrailLifespan) { this->shadowTrailLifespan = shadowTrailLifespan; }

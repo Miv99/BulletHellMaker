@@ -41,7 +41,7 @@ public:
 	inline SoundSettings& getHurtSound() { return hurtSound; }
 	// Returns a reference
 	inline SoundSettings& getDeathSound() { return deathSound; }
-	inline bool usesEnemyPhase(int enemyPhaseID) { return enemyPhaseCount.count(enemyPhaseID) > 0 && enemyPhaseCount[enemyPhaseID] > 0; }
+	inline bool usesEnemyPhase(int enemyPhaseID) const { return enemyPhaseCount.count(enemyPhaseID) > 0 && enemyPhaseCount.at(enemyPhaseID) > 0; }
 
 	inline void addDeathAction(std::shared_ptr<DeathAction> action) { deathActions.push_back(action); }
 	inline void removeDeathAction(int index) { deathActions.erase(deathActions.begin() + index); }

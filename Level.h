@@ -62,7 +62,7 @@ public:
 	inline std::vector<BloomSettings>& getBloomLayerSettings() { return bloomLayerSettings; }
 	inline float getBackgroundTextureWidth() const { return backgroundTextureWidth; }
 	inline float getBackgroundTextureHeight() const { return backgroundTextureHeight; }
-	inline bool usesEnemy(int enemyID) { return enemyIDCount.count(enemyID) > 0 && enemyIDCount[enemyID] > 0; }
+	inline bool usesEnemy(int enemyID) const { return enemyIDCount.count(enemyID) > 0 && enemyIDCount.at(enemyID) > 0; }
 
 	inline void setName(std::string name) { this->name = name; }
 	inline void setBackgroundFileName(std::string backgroundFileName) { this->backgroundFileName = backgroundFileName; }

@@ -56,29 +56,26 @@ public:
 
 	bool legal(SpriteLoader& spriteLoader, std::string& message);
 
-	inline int getInitialHealth() { return initialHealth; }
-	inline int getMaxHealth() { return maxHealth; }
-	inline float getSpeed() { return speed; }
-	inline float getFocusedSpeed() { return focusedSpeed; }
-	inline const std::vector<PlayerPowerTier> getPowerTiers() { return powerTiers; }
-	inline float getHitboxRadius() { return hitboxRadius; }
-	inline float getHitboxPosX() { return hitboxPosX; }
-	inline float getHitboxPosY() { return hitboxPosY; }
-	inline float getInvulnerabilityTime() { return invulnerabilityTime; }
-	// Returns a reference
-	inline SoundSettings& getHurtSound() { return hurtSound; }
-	// Returns a reference
-	inline SoundSettings& getDeathSound() { return deathSound; }
-	inline bool getSmoothPlayerHPBar() { return smoothPlayerHPBar; }
-	inline sf::Color getPlayerHPBarColor() { return playerHPBarColor; }
-	inline Animatable getDiscretePlayerHPSprite() { return discretePlayerHPSprite; }
-	inline int getInitialBombs() { return initialBombs; }
-	inline int getMaxBombs() { return maxBombs; }
-	inline Animatable getBombSprite() { return bombSprite; }
-	// Returns a reference
-	inline SoundSettings& getBombReadySound() { return bombReadySound; }
-	inline float getBombInvincibilityTime() { return bombInvincibilityTime; }
-	inline bool usesAttackPattern(int attackPatternID) { return attackPatternIDCount.count(attackPatternID) > 0 && attackPatternIDCount[attackPatternID] > 0; }
+	inline int getInitialHealth() const { return initialHealth; }
+	inline int getMaxHealth() const { return maxHealth; }
+	inline float getSpeed() const { return speed; }
+	inline float getFocusedSpeed() const { return focusedSpeed; }
+	inline const std::vector<PlayerPowerTier>& getPowerTiers() const { return powerTiers; }
+	inline float getHitboxRadius() const { return hitboxRadius; }
+	inline float getHitboxPosX() const { return hitboxPosX; }
+	inline float getHitboxPosY() const { return hitboxPosY; }
+	inline float getInvulnerabilityTime() const { return invulnerabilityTime; }
+	inline SoundSettings getHurtSound() const { return hurtSound; }
+	inline SoundSettings getDeathSound() const { return deathSound; }
+	inline bool getSmoothPlayerHPBar() const { return smoothPlayerHPBar; }
+	inline sf::Color getPlayerHPBarColor() const { return playerHPBarColor; }
+	inline Animatable getDiscretePlayerHPSprite() const { return discretePlayerHPSprite; }
+	inline int getInitialBombs() const { return initialBombs; }
+	inline int getMaxBombs() const { return maxBombs; }
+	inline Animatable getBombSprite() const { return bombSprite; }
+	inline SoundSettings getBombReadySound() const { return bombReadySound; }
+	inline float getBombInvincibilityTime() const { return bombInvincibilityTime; }
+	inline bool usesAttackPattern(int attackPatternID) const { return attackPatternIDCount.count(attackPatternID) > 0 && attackPatternIDCount.at(attackPatternID) > 0; }
 
 	/*
 	Returns a reference to the power tier.

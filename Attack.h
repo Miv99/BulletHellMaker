@@ -48,7 +48,7 @@ public:
 	Returns whether this EditorAttack and any of its its children EMPs uses the BulletModel
 	with ID bulletModelID.
 	*/
-	inline const bool usesBulletModel(int bulletModelID) { return bulletModelsCount.count(bulletModelID) > 0 && bulletModelsCount[bulletModelID] > 0; }
+	inline const bool usesBulletModel(int bulletModelID) const { return bulletModelsCount.count(bulletModelID) > 0 && bulletModelsCount.at(bulletModelID) > 0; }
 	inline int getID() const { return id; }
 	inline std::string getName() const { return name; }
 	inline bool getPlayAttackAnimation() const { return playAttackAnimation; }

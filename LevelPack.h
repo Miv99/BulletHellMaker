@@ -48,51 +48,83 @@ class LevelPack {
 public:
 	LevelPack(AudioPlayer& audioPlayer, std::string name);
 
+	/*
+	Load the LevelPack from its folder.
+	*/
 	void load();
+	/*
+	Save the LevelPack into its folder.
+	*/
 	void save();
-
-	void deleteTemporaryEditorObjecs();
 
 	/*
 	Creates the sprite loader that contains info for all animatables that are used in this level pack.
 	*/
 	std::unique_ptr<SpriteLoader> createSpriteLoader();
 
+	/*
+	Insert a Level into this LevelPack at the specified index.
+	*/
 	void insertLevel(int index, std::shared_ptr<Level> level);
-	std::shared_ptr<EditorAttack> createAttack(bool addAttackToLevelPack = true);
+
+	/*
+	Create an EditorAttack and add it to this LevelPack.
+	*/
+	std::shared_ptr<EditorAttack> createAttack();
+	/*
+	Create an EditorAttackPattern and add it to this LevelPack.
+	*/
+	std::shared_ptr<EditorAttackPattern> createAttackPattern();
+	/*
+	Create an EditorEnemy and add it to this LevelPack.
+	*/
+	std::shared_ptr<EditorEnemy> createEnemy();
+	/*
+	Create an EditorEnemyPhase and add it to this LevelPack.
+	*/
+	std::shared_ptr<EditorEnemyPhase> createEnemyPhase();
+	/*
+	Create an BulletModel and add it to this LevelPack.
+	*/
+	std::shared_ptr<BulletModel> createBulletModel();
+
 	/*
 	Updates an attack.
 	If the attack ID is already in the LevelPack, overwrite the attack.
 	If the attack ID is not in the LevelPack, add in the attack.
 	*/
 	void updateAttack(std::shared_ptr<EditorAttack> attack);
-	std::shared_ptr<EditorAttackPattern> createAttackPattern();
-	std::shared_ptr<EditorEnemy> createEnemy();
-	std::shared_ptr<EditorEnemyPhase> createEnemyPhase();
-	std::shared_ptr<BulletModel> createBulletModel();
-
 	/*
-	Creates a temporary EditorAttack that will not be saved.
+	Updates an attack pattern.
+	If the attack pattern ID is already in the LevelPack, overwrite the attack pattern.
+	If the attack pattern ID is not in the LevelPack, add in the attack pattern.
 	*/
-	std::shared_ptr<EditorAttack> createTempAttack();
+	void updateAttackPattern(std::shared_ptr<EditorAttackPattern> attackPattern);
 	/*
-	Creates a temporary EditorAttackPattern that will not be saved.
+	Updates an enemy.
+	If the enemy ID is already in the LevelPack, overwrite the enemy.
+	If the enemy ID is not in the LevelPack, add in the enemy.
 	*/
-	std::shared_ptr<EditorAttackPattern> createTempAttackPattern();
+	void updateEnemy(std::shared_ptr<EditorEnemy> enemy);
 	/*
-	Creates a temporary EditorEnemy that will not be saved.
+	Updates an enemy phase.
+	If the enemy phase ID is already in the LevelPack, overwrite the enemy phase.
+	If the enemy phase ID is not in the LevelPack, add in the enemy phase.
 	*/
-	std::shared_ptr<EditorEnemy> createTempEnemy();
+	void updateEnemyPhase(std::shared_ptr<EditorEnemyPhase> enemyPhase);
 	/*
-	Creates a temporary EditorEnemyPhase that will not be saved.
+	Updates a bullet model.
+	If the bullet model ID is already in the LevelPack, overwrite the bullet model.
+	If the bullet model ID is not in the LevelPack, add in the bullet model.
 	*/
-	std::shared_ptr<EditorEnemyPhase> createTempEnemyPhase();
+	void updateBulletModel(std::shared_ptr<BulletModel> bulletModel);
 
 	void deleteLevel(int levelIndex);
 	void deleteAttack(int id);
 	void deleteAttackPattern(int id);
 	void deleteEnemy(int id);
 	void deleteEnemyPhase(int id);
+	void deleteBulletModel(int id);
 
 	/*
 	Returns a list of indices of Levels that use the EditorEnemy
@@ -131,10 +163,11 @@ public:
 	bool hasAttack(int id);
 	bool hasBulletModel(int id);
 	bool hasLevel(int levelIndex);
+	bool hasBulletModel(int id) const;
 
 	std::string getName();
 	std::shared_ptr<Level> getLevel(int levelIndex) const;
-	std::shared_ptr<const EditorAttack> getAttack(int id) const;
+	std::shared_ptr<EditorAttack> getAttack(int id) const;
 	std::shared_ptr<EditorAttackPattern> getAttackPattern(int id) const;
 	std::shared_ptr<EditorEnemy> getEnemy(int id) const;
 	std::shared_ptr<EditorEnemyPhase> getEnemyPhase(int id) const;
@@ -160,8 +193,6 @@ public:
 	int getNextBulletModelID() const { return nextBulletModelID; }
 
 	std::shared_ptr<entt::SigH<void()>> getOnChange();
-
-	bool hasBulletModel(int id) const;
 
 	void setPlayer(std::shared_ptr<EditorPlayer> player);
 	void setFontFileName(std::string fontFileName) { this->fontFileName = fontFileName; }
@@ -189,11 +220,6 @@ private:
 	int nextEnemyPhaseID = 0;
 	int nextBulletModelID = 0;
 
-	int nextTempAttackID = -1;
-	int nextTempAttackPatternID = -1;
-	int nextTempEnemyID = -1;
-	int nextTempEnemyPhaseID = -1;
-
 	// ordered levels
 	std::vector<std::shared_ptr<Level>> levels;
 	// The IDs of EditorAttack/EditorAttackPattern/EditorEnemy/EditorEnemyPhase are always positive, unless it is a temporary object.
@@ -211,6 +237,9 @@ private:
 
 	std::string fontFileName = "font.ttf";
 
-	// Called when a change is made to the level pack
+	// Called when a change is made to one of the level pack objects, which
+	// includes EditorAttack, EditorAttackPattern, EditorEnemy, EditorEnemyPhase,
+	// Level, BulletModel, and EditorPlayer.
+	//TODO: publish this signal in update______()
 	std::shared_ptr<entt::SigH<void()>> onChange;
 };

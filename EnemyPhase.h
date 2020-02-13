@@ -46,7 +46,7 @@ public:
 	Returns a reference to the music settings.
 	*/
 	inline MusicSettings& getMusicSettings() { return musicSettings; }
-	inline bool usesAttackPattern(int attackPatternID) { return attackPatternIDCount.count(attackPatternID) > 0 && attackPatternIDCount[attackPatternID] > 0; }
+	inline bool usesAttackPattern(int attackPatternID) { return attackPatternIDCount.count(attackPatternID) > 0 && attackPatternIDCount.at(attackPatternID) > 0; }
 
 	/*
 	Add an EditorAttackPattern to this enemy phase.
