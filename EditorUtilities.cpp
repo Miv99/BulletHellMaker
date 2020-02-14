@@ -1847,6 +1847,13 @@ void TabsWithPanel::clearTabsCache() {
 	tabsCache.clear();
 }
 
+tgui::Signal & TabsWithPanel::getSignal(std::string signalName) {
+	if (signalName == tgui::toLower(onTabClose.getName())) {
+		return onTabClose;
+	}
+	return tgui::Group::getSignal(signalName);
+}
+
 std::string TabsWithPanel::getSelectedTab() {
 	return tabs->getSelected();
 }

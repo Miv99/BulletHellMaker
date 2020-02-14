@@ -603,6 +603,7 @@ public:
 	*/
 	void clearTabsCache();
 
+	tgui::Signal& getSignal(std::string signalName) override;
 	/*
 	Returns the unique name of the currently selected tab.
 	*/
