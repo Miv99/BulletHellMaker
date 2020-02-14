@@ -1,6 +1,6 @@
 #include "AttackEditorPanel.h"
 
-AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& levelPack, std::shared_ptr<EditorAttack> attack, int undoStackSize) : levelPack(levelPack), undoStack(UndoStack(undoStackSize)), attack(attack) {
+AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& levelPack, std::shared_ptr<EditorAttack> attack, int undoStackSize) : parentWindow(parentWindow), levelPack(levelPack), undoStack(UndoStack(undoStackSize)), attack(attack) {
 	tabs = TabsWithPanel::create(parentWindow);
 	tabs->setPosition(0, 0);
 	tabs->setSize("100%", "100%");
@@ -13,7 +13,7 @@ AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& leve
 		std::shared_ptr<tgui::Label> nameLabel = tgui::Label::create();
 		std::shared_ptr<tgui::EditBox> name = tgui::EditBox::create();
 		std::shared_ptr<tgui::Label> usedByLabel = tgui::Label::create();
-		usedBy = ListBoxScrollablePanel::create();
+		usedBy = ListViewScrollablePanel::create();
 
 		id->setText("Attack ID " + std::to_string(attack->getID()));
 		nameLabel->setText("Name");
@@ -24,7 +24,7 @@ AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& leve
 		nameLabel->setTextSize(TEXT_SIZE);
 		name->setTextSize(TEXT_SIZE);
 		usedByLabel->setTextSize(TEXT_SIZE);
-		usedBy->getListBox()->setTextSize(TEXT_SIZE);
+		usedBy->getListView()->setTextSize(TEXT_SIZE);
 
 		id->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
 		nameLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(id) + GUI_PADDING_Y);
@@ -64,17 +64,34 @@ AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& leve
 		// Initial population
 		populatePropertiesUsedByList();
 
-		usedBy->getListBox()->connect("DoubleClicked", [&](int index) {
+		usedBy->getListView()->connect("DoubleClicked", [&](int index) {
 			if (usedByIDMap.count(index) > 0) {
-				onAttackPatternDoubleClick.emit(this, usedByIDMap[index]);
+				onAttackPatternBeginEdit.emit(this, usedByIDMap[index]);
 			}
 		});
+
+		{
+			// Right click menu for usedBy
+			auto rightClickMenuPopup = createMenuPopup({
+				std::make_pair("Edit", [this]() {
+					this->onAttackPatternBeginEdit.emit(this, usedByRightClickedAttackPatternID);
+				})
+			});
+			usedBy->getListView()->connect("RightClicked", [this, rightClickMenuPopup](int index) {
+				if (this->usedByIDMap.count(index) > 0) {
+					this->usedByRightClickedAttackPatternID = usedByIDMap[index];
+					// Open right click menu
+					this->parentWindow.addPopupWidget(rightClickMenuPopup, this->parentWindow.getMousePos().x, this->parentWindow.getMousePos().y, 150, rightClickMenuPopup->getSize().y);
+				}
+			});
+		}
 	}
 	{
 		// EMP tree view
 		std::shared_ptr<tgui::Panel> emps = tgui::Panel::create();
 		std::shared_ptr<tgui::Label> empsTreeViewLabel = tgui::Label::create();
 		std::shared_ptr<tgui::TreeView> empsTreeView = tgui::TreeView::create();
+
 	}
 }
 
@@ -92,8 +109,8 @@ bool AttackEditorPanel::handleEvent(sf::Event event) {
 }
 
 tgui::Signal& AttackEditorPanel::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onAttackPatternDoubleClick.getName())) {
-		return onAttackPatternDoubleClick;
+	if (signalName == tgui::toLower(onAttackPatternBeginEdit.getName())) {
+		return onAttackPatternBeginEdit;
 	} else if (signalName == tgui::toLower(onAttackModify.getName())) {
 		return onAttackModify;
 	}
@@ -102,12 +119,18 @@ tgui::Signal& AttackEditorPanel::getSignal(std::string signalName) {
 
 void AttackEditorPanel::populatePropertiesUsedByList() {
 	usedByIDMap.clear();
-	usedBy->getListBox()->removeAllItems();
+	usedBy->getListView()->removeAllItems();
 	auto attackPatternIDs = levelPack.getAttackUsers(attack->getID());
 	for (int i = 0; i < attackPatternIDs.size(); i++) {
 		int id = attackPatternIDs[i];
 		usedByIDMap[i] = id;
-		usedBy->getListBox()->addItem("Attack pattern ID " + std::to_string(id));
+		usedBy->getListView()->addItem("Attack pattern ID " + std::to_string(id));
 	}
-	usedBy->onListBoxItemsUpdate();
+	usedBy->onListViewItemsUpdate();
+}
+
+sf::String AttackEditorPanel::getEMPTextInAttackList(const EditorMovablePoint& emp) {
+	std::string bulletStr = emp.getIsBullet() ? "[X]" : "[-]";
+	std::string idStr = "[" + std::to_string(emp.getID()) + "]";
+	return bulletStr + " " + idStr;
 }

@@ -278,6 +278,9 @@ The ListBox from getListBox() does not have to be added to a container, since it
 
 This widget can be treated as a normal ListBox, with the exception that onListBoxItemsUpdate() should be called
 anytime an item is added, removed, or changed from the ListBox.
+
+The only advantage of a ListBox over a ListView is that items can be identified by a
+unique id string. This can be easily implemented with your own std::map, however.
 */
 class ListBoxScrollablePanel : public tgui::ScrollablePanel {
 public:
@@ -307,6 +310,9 @@ The ListView from getListView() does not have to be added to a container, since 
 
 This widget can be treated as a normal ListView, with the exception that onListViewItemsUpdate() should be called
 anytime an item is added, removed, or changed from the ListView.
+
+The only advantage of a ListBox over a ListView is that items can be identified by a
+unique id string. This can be easily implemented with your own std::map, however.
 */
 class ListViewScrollablePanel : public tgui::ScrollablePanel {
 public:

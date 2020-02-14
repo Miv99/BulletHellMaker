@@ -110,6 +110,7 @@ public:
 	std::shared_ptr<entt::SigH<void(int, int)>> getResizeSignal();
 	std::shared_ptr<entt::SigH<void()>> getCloseSignal();
 	inline std::shared_ptr<sf::RenderWindow> getWindow() { return window; }
+	inline sf::Vector2f getMousePos() { return mousePos; }
 
 protected:
 	std::shared_ptr<sf::RenderWindow> window;
@@ -627,9 +628,4 @@ private:
 	so that its corresponding tab appears in the main panel.
 	*/
 	void openLeftPanelAttackPattern(int attackPatternID);
-
-	/*
-	Returns the string to be shown for each EditorMovablePoint in the attack list in the attack tab.
-	*/
-	static sf::String getEMPTextInAttackList(const EditorMovablePoint& emp);
 };

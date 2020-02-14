@@ -54,8 +54,9 @@ std::shared_ptr<tgui::ListBox> createMenuPopup(std::vector<std::pair<std::string
 	}
 	popup->setItemHeight(20);
 	popup->setSize(std::max(150, (int)(longestStringLength * popup->getTextSize())), (popup->getItemHeight() + 1) * popup->getItemCount());
-	popup->connect("MousePressed", [elements](std::string item, std::string id) {
+	popup->connect("MousePressed", [popup, elements](std::string item, std::string id) {
 		elements[std::stoi(id)].second();
+		popup->deselectItem();
 	});
 	return popup;
 }

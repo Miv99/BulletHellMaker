@@ -1958,6 +1958,7 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 			attacksListView->setSize("100%", tgui::bindHeight(attacksListViewPanel) - tgui::bindBottom(attacksAddButton));
 			{
 				// Right click menu
+				//TODO
 				// Menu for single attack selection
 				auto rightClickMenuPopupSingleSelection = createMenuPopup({
 					std::make_pair("Open", [&]() {
@@ -2017,8 +2018,6 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 						// Open the menu normally
 						addPopupWidget(rightClickMenuPopupSingleSelection, mousePos.x, mousePos.y, 150, rightClickMenuPopupSingleSelection->getSize().y);
 					}
-
-					
 				});
 			}
 			attacksListView->getListView()->connect("DoubleClicked", [&](int index) {
@@ -2103,7 +2102,7 @@ void MainEditorWindow::openLeftPanelAttack(int attackID) {
 	} else {
 		// Create the tab
 		std::shared_ptr<AttackEditorPanel> attackEditorPanel = AttackEditorPanel::create(*this, *levelPack, openedAttack);
-		attackEditorPanel->connect("AttackPatternDoubleClicked", [&](int attackPatternID) {
+		attackEditorPanel->connect("AttackPatternBeginEdit", [&](int attackPatternID) {
 			openLeftPanelAttackPattern(attackPatternID);
 		});
 		attackEditorPanel->connect("AttackModified", [&](std::shared_ptr<EditorAttack> attack) {
@@ -2118,10 +2117,4 @@ void MainEditorWindow::openLeftPanelAttack(int attackID) {
 
 void MainEditorWindow::openLeftPanelAttackPattern(int attackPatternID) {
 	//TODO
-}
-
-sf::String MainEditorWindow::getEMPTextInAttackList(const EditorMovablePoint& emp) {
-	std::string bulletStr = emp.getIsBullet() ? "[X]" : "[-]";
-	std::string idStr = "[" + std::to_string(emp.getID()) + "]";
-	return bulletStr + " " + idStr;
 }
