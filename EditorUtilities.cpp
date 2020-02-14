@@ -1707,6 +1707,7 @@ void TabsWithPanel::addTab(std::string tabName, std::shared_ptr<tgui::Panel> ass
 
 	panelsMap[tabName] = associatedPanel;
 	associatedPanel->setPosition(0, tgui::bindBottom(tabsContainer));
+	associatedPanel->setSize("100%", tgui::bindHeight(shared_from_this()) - tgui::bindBottom(tabsContainer));
 	associatedPanel->setVisible(autoSelect);
 	tabs->add(tabName, autoSelect);
 	add(associatedPanel);
@@ -1726,6 +1727,7 @@ void TabsWithPanel::insertTab(std::string tabName, std::shared_ptr<tgui::Panel> 
 
 	panelsMap[tabName] = associatedPanel;
 	associatedPanel->setPosition(0, tgui::bindBottom(tabsContainer));
+	associatedPanel->setSize("100%", tgui::bindHeight(shared_from_this()) - tgui::bindBottom(tabsContainer));
 	associatedPanel->setVisible(autoSelect);
 	tabs->insert(index, tabName, autoSelect);
 	add(associatedPanel);
