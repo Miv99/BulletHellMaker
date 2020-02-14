@@ -32,9 +32,23 @@ AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& leve
 		usedByLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(name) + GUI_PADDING_Y);
 		usedBy->setPosition(tgui::bindLeft(id), tgui::bindBottom(usedByLabel) + GUI_LABEL_PADDING_Y);
 
-		name->connect("ReturnKeyPressed", [&](std::string text) {
-			this->attack->setName(text);
-			onAttackModify.emit(this, this->attack);
+		properties->connect("SizeChanged", [this, name](sf::Vector2f newSize) {
+			float fillX = newSize.x - GUI_PADDING_X * 2;
+			name->setSize(fillX, name->getSize().y);
+			this->usedBy->setSize(fillX, newSize.y - this->usedBy->getPosition().y - GUI_PADDING_Y * 2);
+		});
+
+		name->connect("ReturnKeyPressed", [this, name](std::string text) {
+			std::string oldName = this->attack->getName();
+			undoStack.execute(UndoableCommand([this, name, text]() {
+				this->attack->setName(text);
+				name->setText(text);
+				onAttackModify.emit(this, this->attack);
+			}, [this, name, oldName]() {
+				this->attack->setName(oldName);
+				name->setText(oldName);
+				onAttackModify.emit(this, this->attack);
+			}));
 		});
 
 		properties->add(id);
@@ -59,6 +73,15 @@ AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& leve
 }
 
 bool AttackEditorPanel::handleEvent(sf::Event event) {
+	if (event.type == sf::Event::KeyPressed) {
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
+			if (event.key.code == sf::Keyboard::Z) {
+				undoStack.undo();
+			} else if (event.key.code == sf::Keyboard::Y) {
+				undoStack.redo();
+			}
+		}
+	}
 	return false;
 }
 

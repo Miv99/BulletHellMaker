@@ -1931,7 +1931,7 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 
 	{
 		// Attacks tab in left panel
-		attacksListViewPanel = tgui::ScrollablePanel::create();
+		attacksListViewPanel = tgui::Panel::create();
 		{
 			// Add button
 			auto attacksAddButton = tgui::Button::create();
@@ -1955,7 +1955,7 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 			attacksListView = tgui::ListView::create();
 			attacksListView->setMultiSelect(true);
 			attacksListView->setPosition(0, tgui::bindBottom(attacksAddButton));
-			attacksListView->setSize("100%", "100%");
+			attacksListView->setSize("100%", tgui::bindHeight(attacksListViewPanel) - tgui::bindBottom(attacksAddButton));
 			{
 				// Right click menu
 				// Menu for single attack selection
@@ -2110,6 +2110,8 @@ void MainEditorWindow::openLeftPanelAttack(int attackID) {
 		});
 		mainPanel->addTab(format(MAIN_PANEL_ATTACK_TAB_NAME_FORMAT, attackID), attackEditorPanel, true, true);
 	}
+
+	//TODO: load attack in preview panel; AttackModified -> update it
 }
 
 void MainEditorWindow::openLeftPanelAttackPattern(int attackPatternID) {
