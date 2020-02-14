@@ -70,3 +70,8 @@ const static float CHECKBOX_SIZE = 15;
 const static float SMALL_BUTTON_SIZE = 20;
 // Width of every tab in a tguI::Tabs button
 const static float TAB_WIDTH = 100.0f;
+// Padding around widgets, when applicable
+const static float GUI_PADDING_X = 20;
+const static float GUI_PADDING_Y = 10;
+// Y padding inbetween labels and the widget they're explaining
+const static float GUI_LABEL_PADDING_Y = 5;

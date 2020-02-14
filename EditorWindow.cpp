@@ -2063,7 +2063,12 @@ void MainEditorWindow::reloadLeftPanelAttackList() {
 
 	int i = 0;
 	for (auto it = levelPack->getAttackIteratorBegin(); it != levelPack->getAttackIteratorEnd(); it++) {
-		attacksListView->addItem("[" + std::to_string(it->second->getID()) + "] " + it->second->getName());
+		// If the attack is in unsavedAttacks, signify it is unsaved with an asterisk
+		if (unsavedAttacks.count(it->first) > 0) {
+			attacksListView->addItem("*[" + std::to_string(it->second->getID()) + "] " + it->second->getName());
+		} else {
+			attacksListView->addItem("[" + std::to_string(it->second->getID()) + "] " + it->second->getName());
+		}
 		attackIDToAttacksListViewIndexMap[it->second->getID()] = i;
 		attacksListViewIndexToAttackIDMap[i] = it->second->getID();
 		i++;
@@ -2079,6 +2084,7 @@ void MainEditorWindow::openLeftPanelAttack(int attackID) {
 	attacksListView->setSelectedItem(attackIDToAttacksListViewIndexMap[attackID]);
 
 	// Get the attack
+	std::shared_ptr<EditorAttack> openedAttack;
 	if (unsavedAttacks.count(attackID) > 0) {
 		// There are unsaved changes for this attack, so open the one with unsaved changes
 		openedAttack = unsavedAttacks[attackID];
@@ -2094,9 +2100,20 @@ void MainEditorWindow::openLeftPanelAttack(int attackID) {
 		mainPanel->selectTab(format(MAIN_PANEL_ATTACK_TAB_NAME_FORMAT, attackID));
 	} else {
 		// Create the tab
-		std::shared_ptr<AttackEditorPanel> attackEditorPanel = AttackEditorPanel::create(*this, openedAttack);
+		std::shared_ptr<AttackEditorPanel> attackEditorPanel = AttackEditorPanel::create(*this, *levelPack, openedAttack);
+		attackEditorPanel->connect("AttackPatternDoubleClicked", [&](int attackPatternID) {
+			openLeftPanelAttackPattern(attackPatternID);
+		});
+		attackEditorPanel->connect("AttackModified", [&](std::shared_ptr<EditorAttack> attack) {
+			unsavedAttacks[attack->getID()] = attack;
+			reloadLeftPanelAttackList();
+		});
 		mainPanel->addTab(format(MAIN_PANEL_ATTACK_TAB_NAME_FORMAT, attackID), attackEditorPanel, true, true);
 	}
+}
+
+void MainEditorWindow::openLeftPanelAttackPattern(int attackPatternID) {
+	//TODO
 }
 
 sf::String MainEditorWindow::getEMPTextInAttackList(const EditorMovablePoint& emp) {

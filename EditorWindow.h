@@ -602,11 +602,6 @@ private:
 	std::shared_ptr<tgui::ListView> attacksListView;
 	
 	// -------------------- Part of mainPanel --------------------
-	// Only at most one of the opened_____ objects (ie openedAttack, openedAttackPattern, ...)
-	// can be a non nullptr at any given time.
-	// The attack whose tabs are currently opened in mainPanel
-	std::shared_ptr<EditorAttack> openedAttack;
-
 	// Maps an EditorAttack ID to its index in attacksListView
 	std::map<int, int> attackIDToAttacksListViewIndexMap;
 	// Maps an index in attacksListView to the associated EditorAtack ID
@@ -627,6 +622,11 @@ private:
 	its corresponding tab appears in the main panel.
 	*/
 	void openLeftPanelAttack(int attackID);
+	/*
+	Open a single attack pattern in the left panel's attack pattern list
+	so that its corresponding tab appears in the main panel.
+	*/
+	void openLeftPanelAttackPattern(int attackPatternID);
 
 	/*
 	Returns the string to be shown for each EditorMovablePoint in the attack list in the attack tab.
