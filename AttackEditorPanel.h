@@ -55,7 +55,7 @@ private:
 
 	std::shared_ptr<TabsWithPanel> tabs;
 	// Lists the EditorAttackPatterns that use the EditorAttack being edited.
-	std::shared_ptr<tgui::ListView> usedBy;
+	std::shared_ptr<ListBoxScrollablePanel> usedBy;
 	// Maps an index in usedBy to the ID of the EditorAttackPattern being shown in that index
 	std::map<int, int> usedByIDMap;
 

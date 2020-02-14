@@ -274,23 +274,22 @@ private:
 
 /*
 A ScrollablePanel that can scroll horizontally as well as vertically and contains a ListBox.
-The ListBox from getListBox() does not have to be added to a container, since it is already a part of this ScrollablePanel.
+The ListBox from getListBox() does not have to be added to a container, since it is already part of this ScrollablePanel.
+
+This widget can be treated as a normal ListBox, with the exception that onListBoxItemsUpdate() should be called
+anytime an item is added, removed, or changed from the ListBox.
 */
-class ScrollableListBox : public tgui::ScrollablePanel {
+class ListBoxScrollablePanel : public tgui::ScrollablePanel {
 public:
-	ScrollableListBox();
-	static std::shared_ptr<ScrollableListBox> create() {
-		return std::make_shared<ScrollableListBox>();
+	ListBoxScrollablePanel();
+	static std::shared_ptr<ListBoxScrollablePanel> create() {
+		return std::make_shared<ListBoxScrollablePanel>();
 	}
 
 	/*
 	Should be called anytime an item is added, removed, or changed from the ListBox.
 	*/
-	void onListBoxItemsChange();
-	/*
-	Should be called after the ScrollableListBox is resized.
-	*/
-	inline void onResize() { onListBoxItemsChange(); }
+	void onListBoxItemsUpdate();
 	bool mouseWheelScrolled(float delta, tgui::Vector2f pos) override;
 
 	void setTextSize(int textSize);
@@ -298,6 +297,35 @@ public:
 
 private:
 	std::shared_ptr<tgui::ListBox> listBox;
+	std::shared_ptr<tgui::Label> textWidthChecker;
+	float longestWidth;
+};
+
+/*
+A ScrollablePanel that can scroll horizontally as well as vertically and contains a ListView.
+The ListView from getListView() does not have to be added to a container, since it is already part of this ScrollablePanel.
+
+This widget can be treated as a normal ListView, with the exception that onListViewItemsUpdate() should be called
+anytime an item is added, removed, or changed from the ListView.
+*/
+class ListViewScrollablePanel : public tgui::ScrollablePanel {
+public:
+	ListViewScrollablePanel();
+	static std::shared_ptr<ListViewScrollablePanel> create() {
+		return std::make_shared<ListViewScrollablePanel>();
+	}
+
+	/*
+	Should be called anytime an item is added, removed, or has its text changed from the ListView.
+	*/
+	void onListViewItemsUpdate();
+	bool mouseWheelScrolled(float delta, tgui::Vector2f pos) override;
+
+	void setTextSize(int textSize);
+	inline std::shared_ptr<tgui::ListView> getListView() { return listView; }
+
+private:
+	std::shared_ptr<tgui::ListView> listView;
 	std::shared_ptr<tgui::Label> textWidthChecker;
 	float longestWidth;
 };
@@ -363,9 +391,9 @@ private:
 	std::shared_ptr<tgui::Label> startTimeLabel;
 	std::shared_ptr<SliderWithEditBox> startTime;
 	std::shared_ptr<tgui::Button> changeSegmentType;
-	std::shared_ptr<ScrollableListBox> segmentTypePopup;
+	std::shared_ptr<ListBoxScrollablePanel> segmentTypePopup;
 
-	std::shared_ptr<ScrollableListBox> segmentList; // Each item ID is the index of the segment in tfv's segment vector
+	std::shared_ptr<ListBoxScrollablePanel> segmentList; // Each item ID is the index of the segment in tfv's segment vector
 	std::shared_ptr<tgui::Label> tfvFloat1Label;
 	std::shared_ptr<SliderWithEditBox> tfvFloat1Slider;
 	std::shared_ptr<tgui::Label> tfvFloat2Label;
@@ -660,8 +688,8 @@ private:
 
 	// Button that shows all tabs that can't fit in this widget
 	std::shared_ptr<tgui::Button> moreTabsButton;
-	// The ScrollableListBox that is shown when moreTabsButton is clicked
-	std::shared_ptr<ScrollableListBox> moreTabsList;
+	// The ListBoxScrollablePanel that is shown when moreTabsButton is clicked
+	std::shared_ptr<ListBoxScrollablePanel> moreTabsList;
 	// Alignment of the moreTabsList
 	MoreTabsListAlignment moreTabsListAlignment = MoreTabsListAlignment::Left;
 

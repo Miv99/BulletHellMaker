@@ -389,7 +389,7 @@ void UndoableEditorWindow::handleEvent(sf::Event event) {
 //
 //	leftPanel = tgui::ScrollablePanel::create();
 //	entityPlaceholdersListLabel = tgui::Label::create();
-//	entityPlaceholdersList = std::make_shared<ScrollableListBox>();
+//	entityPlaceholdersList = std::make_shared<ListBoxScrollablePanel>();
 //	newEnemyPlaceholder = tgui::Button::create();
 //	deleteEnemyPlaceholder = tgui::Button::create();
 //	startAndEndTest = tgui::Button::create();
@@ -405,8 +405,8 @@ void UndoableEditorWindow::handleEvent(sf::Event event) {
 //	entityPlaceholderManualSet = tgui::Button::create();
 //	setEnemyPlaceholderTestMode = tgui::Button::create();
 //	testModeIDLabel = tgui::Label::create();
-//	testModeID = std::make_shared<ScrollableListBox>();
-//	testModePopup = std::make_shared<ScrollableListBox>();
+//	testModeID = std::make_shared<ListBoxScrollablePanel>();
+//	testModePopup = std::make_shared<ListBoxScrollablePanel>();
 //	showMovementPathLabel = tgui::Label::create();
 //	showMovementPath = tgui::CheckBox::create();
 //
@@ -1952,8 +1952,8 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 			attacksListViewPanel->add(attacksSaveAllButton);
 
 			// List view
-			attacksListView = tgui::ListView::create();
-			attacksListView->setMultiSelect(true);
+			attacksListView = ListViewScrollablePanel::create();
+			attacksListView->getListView()->setMultiSelect(true);
 			attacksListView->setPosition(0, tgui::bindBottom(attacksAddButton));
 			attacksListView->setSize("100%", tgui::bindHeight(attacksListViewPanel) - tgui::bindBottom(attacksAddButton));
 			{
@@ -1997,8 +1997,8 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 
 					})
 				});
-				attacksListView->connect("RightClicked", [&, rightClickMenuPopupSingleSelection, rightClickMenuPopupMultiSelection](int index) {
-					std::set<std::size_t> selectedItemIndices = attacksListView->getSelectedItemIndices();
+				attacksListView->getListView()->connect("RightClicked", [&, rightClickMenuPopupSingleSelection, rightClickMenuPopupMultiSelection](int index) {
+					std::set<std::size_t> selectedItemIndices = attacksListView->getListView()->getSelectedItemIndices();
 					if (selectedItemIndices.find(index) != selectedItemIndices.end()) {
 						// Right clicked a selected item
 
@@ -2012,7 +2012,7 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 						// Right clicked a nonselected item
 
 						// Select the right clicked item
-						attacksListView->setSelectedItem(index);
+						attacksListView->getListView()->setSelectedItem(index);
 
 						// Open the menu normally
 						addPopupWidget(rightClickMenuPopupSingleSelection, mousePos.x, mousePos.y, 150, rightClickMenuPopupSingleSelection->getSize().y);
@@ -2021,7 +2021,7 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 					
 				});
 			}
-			attacksListView->connect("DoubleClicked", [&](int index) {
+			attacksListView->getListView()->connect("DoubleClicked", [&](int index) {
 				openLeftPanelAttack(attacksListViewIndexToAttackIDMap[index]);
 			});
 			attacksListViewPanel->add(attacksListView);
@@ -2059,20 +2059,22 @@ void MainEditorWindow::handleEvent(sf::Event event) {
 void MainEditorWindow::reloadLeftPanelAttackList() {
 	attackIDToAttacksListViewIndexMap.clear();
 	attacksListViewIndexToAttackIDMap.clear();
-	attacksListView->removeAllItems();
+	attacksListView->getListView()->removeAllItems();
 
 	int i = 0;
 	for (auto it = levelPack->getAttackIteratorBegin(); it != levelPack->getAttackIteratorEnd(); it++) {
 		// If the attack is in unsavedAttacks, signify it is unsaved with an asterisk
 		if (unsavedAttacks.count(it->first) > 0) {
-			attacksListView->addItem("*[" + std::to_string(it->second->getID()) + "] " + it->second->getName());
+			attacksListView->getListView()->addItem("*[" + std::to_string(it->second->getID()) + "] " + unsavedAttacks[it->first]->getName());
 		} else {
-			attacksListView->addItem("[" + std::to_string(it->second->getID()) + "] " + it->second->getName());
+			attacksListView->getListView()->addItem("[" + std::to_string(it->second->getID()) + "] " + it->second->getName());
 		}
 		attackIDToAttacksListViewIndexMap[it->second->getID()] = i;
 		attacksListViewIndexToAttackIDMap[i] = it->second->getID();
 		i++;
 	}
+
+	attacksListView->onListViewItemsUpdate();
 }
 
 void MainEditorWindow::openLeftPanelAttack(int attackID) {
@@ -2081,7 +2083,7 @@ void MainEditorWindow::openLeftPanelAttack(int attackID) {
 		leftPanel->selectTab(LEFT_PANEL_ATTACK_LIST_TAB_NAME);
 	}
 	// Select the attack in attacksListView
-	attacksListView->setSelectedItem(attackIDToAttacksListViewIndexMap[attackID]);
+	attacksListView->getListView()->setSelectedItem(attackIDToAttacksListViewIndexMap[attackID]);
 
 	// Get the attack
 	std::shared_ptr<EditorAttack> openedAttack;

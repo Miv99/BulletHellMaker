@@ -162,7 +162,7 @@ private:
 	std::shared_ptr<SliderWithEditBox> empiDespawnTime;
 	std::shared_ptr<tgui::Label> empiActionsLabel;
 	// Entry ID is index in list of the EMP's actions
-	std::shared_ptr<ScrollableListBox> empiActions;
+	std::shared_ptr<ListBoxScrollablePanel> empiActions;
 	// if no EMPA is selected, this button adds a new EMPA at index 0; otherwise add at selectedEMPAIndex - 1
 	std::shared_ptr<tgui::Button> empiActionsAddAbove;
 	// if no EMPA is selected, this button adds a new EMPA at last index; otherwise add at selectedEMPAIndex + 1
@@ -230,7 +230,7 @@ private:
 	//------------------ Attack list widgets (al__) --------------------------------
 	std::shared_ptr<tgui::ScrollablePanel> alPanel;
 
-	std::shared_ptr<ScrollableListBox> alList;
+	std::shared_ptr<ListBoxScrollablePanel> alList;
 	std::shared_ptr<tgui::Button> alSaveAll;
 	std::shared_ptr<tgui::Button> alDiscardAll;
 	std::shared_ptr<tgui::Button> alCreateAttack;
@@ -256,7 +256,7 @@ private:
 	std::shared_ptr<TFVGroup> empaiPolarAngle; // only for MoveCustomPolarEMPA
 	std::shared_ptr<tgui::Label> empaiBezierControlPointsLabel;
 	// ID in each item is the control point index
-	std::shared_ptr<ScrollableListBox> empaiBezierControlPoints; // only for MoveCustomBezierEMPA
+	std::shared_ptr<ListBoxScrollablePanel> empaiBezierControlPoints; // only for MoveCustomBezierEMPA
 	//TODO: button to add/delete bezier control points
 	std::shared_ptr<tgui::Label> empaiAngleOffsetLabel;
 	std::shared_ptr<EMPAAngleOffsetGroup> empaiAngleOffset; // for MoveCustomPolarEMPA and MoveCustomBezierEMPA

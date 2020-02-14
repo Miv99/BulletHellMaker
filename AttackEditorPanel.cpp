@@ -13,7 +13,7 @@ AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& leve
 		std::shared_ptr<tgui::Label> nameLabel = tgui::Label::create();
 		std::shared_ptr<tgui::EditBox> name = tgui::EditBox::create();
 		std::shared_ptr<tgui::Label> usedByLabel = tgui::Label::create();
-		usedBy = tgui::ListView::create();
+		usedBy = ListBoxScrollablePanel::create();
 
 		id->setText("Attack ID " + std::to_string(attack->getID()));
 		nameLabel->setText("Name");
@@ -24,7 +24,7 @@ AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& leve
 		nameLabel->setTextSize(TEXT_SIZE);
 		name->setTextSize(TEXT_SIZE);
 		usedByLabel->setTextSize(TEXT_SIZE);
-		usedBy->setTextSize(TEXT_SIZE);
+		usedBy->getListBox()->setTextSize(TEXT_SIZE);
 
 		id->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
 		nameLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(id) + GUI_PADDING_Y);
@@ -64,11 +64,17 @@ AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& leve
 		// Initial population
 		populatePropertiesUsedByList();
 
-		usedBy->connect("DoubleClicked", [&](int index) {
+		usedBy->getListBox()->connect("DoubleClicked", [&](int index) {
 			if (usedByIDMap.count(index) > 0) {
 				onAttackPatternDoubleClick.emit(this, usedByIDMap[index]);
 			}
 		});
+	}
+	{
+		// EMP tree view
+		std::shared_ptr<tgui::Panel> emps = tgui::Panel::create();
+		std::shared_ptr<tgui::Label> empsTreeViewLabel = tgui::Label::create();
+		std::shared_ptr<tgui::TreeView> empsTreeView = tgui::TreeView::create();
 	}
 }
 
@@ -96,11 +102,12 @@ tgui::Signal& AttackEditorPanel::getSignal(std::string signalName) {
 
 void AttackEditorPanel::populatePropertiesUsedByList() {
 	usedByIDMap.clear();
-	usedBy->removeAllItems();
+	usedBy->getListBox()->removeAllItems();
 	auto attackPatternIDs = levelPack.getAttackUsers(attack->getID());
 	for (int i = 0; i < attackPatternIDs.size(); i++) {
 		int id = attackPatternIDs[i];
 		usedByIDMap[i] = id;
-		usedBy->addItem("Attack pattern ID " + std::to_string(id));
+		usedBy->getListBox()->addItem("Attack pattern ID " + std::to_string(id));
 	}
+	usedBy->onListBoxItemsUpdate();
 }

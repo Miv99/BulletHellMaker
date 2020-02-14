@@ -699,7 +699,7 @@ TFVGroup::TFVGroup(std::shared_ptr<std::recursive_mutex> tguiMutex, float paddin
 	});
 	panel->add(changeSegmentType);
 
-	segmentTypePopup = std::make_shared<ScrollableListBox>();
+	segmentTypePopup = std::make_shared<ListBoxScrollablePanel>();
 	segmentTypePopup->getListBox()->addItem("LinearTFV", "1");
 	segmentTypePopup->getListBox()->addItem("ConstantTFV", "2");
 	segmentTypePopup->getListBox()->addItem("SineWaveTFV", "3");
@@ -750,7 +750,7 @@ TFVGroup::TFVGroup(std::shared_ptr<std::recursive_mutex> tguiMutex, float paddin
 		}));
 	});
 
-	segmentList = std::make_shared<ScrollableListBox>();
+	segmentList = std::make_shared<ListBoxScrollablePanel>();
 	segmentList->setTextSize(TEXT_SIZE);
 	segmentList->getListBox()->connect("ItemSelected", [&](std::string item, std::string id) {
 		if (ignoreSignal) return;
@@ -1037,7 +1037,6 @@ void TFVGroup::onTFVEditorWindowResize(int windowWidth, int windowHeight) {
 	showGraph->setPosition(paddingX, paddingY);
 
 	segmentList->setSize("40%", saveTFV->getPosition().y - paddingY - showGraph->getPosition().y - showGraph->getSize().y - paddingY*2 - (TEXT_BUTTON_HEIGHT + paddingY)*2);
-	segmentList->onResize();
 	segmentList->setPosition(tgui::bindLeft(showGraph), tgui::bindBottom(showGraph) + paddingY);
 
 	addSegment->setSize(100, TEXT_BUTTON_HEIGHT);
@@ -1331,16 +1330,20 @@ void EMPAAngleOffsetGroup::setEMPAAngleOffset(std::shared_ptr<EMPAAngleOffset> o
 	//TODO: init values of widgets
 }
 
-ScrollableListBox::ScrollableListBox() {
+ListBoxScrollablePanel::ListBoxScrollablePanel() {
 	listBox = tgui::ListBox::create();
 	add(listBox);
 	listBox->setSize("100%", "100%");
 
 	textWidthChecker = tgui::Label::create();
 	textWidthChecker->setMaximumTextWidth(0);
+
+	connect("SizeChanged", [&]() {
+		onListBoxItemsUpdate();
+	});
 }
 
-void ScrollableListBox::onListBoxItemsChange() {
+void ListBoxScrollablePanel::onListBoxItemsUpdate() {
 	float largestWidth = 0;
 	for (auto str : listBox->getItems()) {
 		textWidthChecker->setText(str);
@@ -1349,7 +1352,7 @@ void ScrollableListBox::onListBoxItemsChange() {
 	listBox->setSize(std::max(getSize().x, largestWidth), "100%");
 }
 
-bool ScrollableListBox::mouseWheelScrolled(float delta, tgui::Vector2f pos) {
+bool ListBoxScrollablePanel::mouseWheelScrolled(float delta, tgui::Vector2f pos) {
 	// This override makes it so if mouse wheel is scrolled when the scrollbar can't be scrolled any more,
 	// the event is not consumed so that this widget's parent can handle the event.
 
@@ -1371,8 +1374,57 @@ bool ScrollableListBox::mouseWheelScrolled(float delta, tgui::Vector2f pos) {
 	}
 }
 
-void ScrollableListBox::setTextSize(int textSize) {
+void ListBoxScrollablePanel::setTextSize(int textSize) {
 	listBox->setTextSize(textSize);
+	textWidthChecker->setTextSize(textSize);
+}
+
+ListViewScrollablePanel::ListViewScrollablePanel() {
+	listView = tgui::ListView::create();
+	add(listView);
+	listView->setSize("100%", "100%");
+
+	textWidthChecker = tgui::Label::create();
+	textWidthChecker->setMaximumTextWidth(0);
+
+	connect("SizeChanged", [&]() {
+		onListViewItemsUpdate();
+	});
+}
+
+void ListViewScrollablePanel::onListViewItemsUpdate() {
+	float largestWidth = 0;
+	for (auto str : listView->getItems()) {
+		textWidthChecker->setText(str);
+		largestWidth = std::max(largestWidth, textWidthChecker->getSize().x);
+	}
+	listView->setSize(std::max(getSize().x, largestWidth), "100%");
+}
+
+bool ListViewScrollablePanel::mouseWheelScrolled(float delta, tgui::Vector2f pos) {
+	// This override makes it so if mouse wheel is scrolled when the scrollbar can't be scrolled any more,
+	// the event is not consumed so that this widget's parent can handle the event.
+
+	if (delta < 0) {
+		// Super ghetto way of checking if scroll is already at max
+		auto oldScrollbarValue = listView->getVerticalScrollbarValue();
+		listView->setVerticalScrollbarValue(2000000000);
+		if (listView->getVerticalScrollbarValue() == oldScrollbarValue) {
+			listView->setVerticalScrollbarValue(oldScrollbarValue);
+			return false;
+		} else {
+			listView->setVerticalScrollbarValue(oldScrollbarValue);
+			return tgui::ScrollablePanel::mouseWheelScrolled(delta, pos);
+		}
+	} else if (listView->getVerticalScrollbarValue() == 0) {
+		return false;
+	} else {
+		return tgui::ScrollablePanel::mouseWheelScrolled(delta, pos);
+	}
+}
+
+void ListViewScrollablePanel::setTextSize(int textSize) {
+	listView->setTextSize(textSize);
 	textWidthChecker->setTextSize(textSize);
 }
 
@@ -1655,7 +1707,7 @@ TabsWithPanel::TabsWithPanel(EditorWindow& parentWindow) : parentWindow(parentWi
 	// Make room for the close button for every tab
 	tabNameAppendedSpaces = std::string((int)std::ceil((float)tabs->getSize().y /tabs->getTextSize()), ' ');
 
-	moreTabsList = ScrollableListBox::create();
+	moreTabsList = ListBoxScrollablePanel::create();
 	moreTabsList->setTextSize(TEXT_SIZE);
 	moreTabsList->getListBox()->setItemHeight(TEXT_SIZE * 1.5f);
 	moreTabsList->getListBox()->connect("ItemSelected", [&](std::string tabName) {
