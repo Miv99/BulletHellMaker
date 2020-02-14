@@ -130,12 +130,12 @@ public:
 	Returns a list of indices of Levels that use the EditorEnemy
 	with ID enemyID.
 	*/
-	std::vector<int>& getEnemyUsers(int enemyID);
+	std::vector<int> getEnemyUsers(int enemyID);
 	/*
 	Returns a list of IDs of EditorEnemies that use the EditorEnemyPhase
 	with ID editorEnemyPhaseID.
 	*/
-	std::vector<int>& getEditorEnemyUsers(int editorEnemyPhaseID);
+	std::vector<int> getEditorEnemyUsers(int editorEnemyPhaseID);
 	/*
 	Returns whether the LevelPack's EditorPlayer uses the EditorAttackPattern
 	with ID attackPatternID.
@@ -145,17 +145,17 @@ public:
 	Returns a list of IDs of EditorEnemyPhases that use the EditorAttackPattern
 	with ID attackPatternID.
 	*/
-	std::vector<int>& getAttackPatternEnemyUsers(int attackPatternID);
+	std::vector<int> getAttackPatternEnemyUsers(int attackPatternID);
 	/*
 	Returns a list of IDs of EditorAttackPatterns that use the EditorAttack
 	with ID attackID.
 	*/
-	std::vector<int>& getAttackUsers(int attackID);
+	std::vector<int> getAttackUsers(int attackID);
 	/*
 	Returns a list of IDs of EditorAttacks that use the BulletModel
 	with ID bulletModelID.
 	*/
-	std::vector<int>& getBulletModelUsers(int bulletModelID);
+	std::vector<int> getBulletModelUsers(int bulletModelID);
 
 	bool hasEnemy(int id);
 	bool hasEnemyPhase(int id);

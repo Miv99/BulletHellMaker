@@ -82,6 +82,9 @@ public:
 	*/
 	inline PlayerPowerTier& getPowerTier(int index) { return powerTiers[index]; }
 
+	inline void setHurtSound(SoundSettings hurtSound) { this->hurtSound = hurtSound; }
+	inline void setDeathSound(SoundSettings deathSound) { this->deathSound = deathSound; }
+	inline void setBombReadySound(SoundSettings bombReadySound) { this->bombReadySound = bombReadySound; }
 	inline void setInitialHealth(int initialHealth) { this->initialHealth = initialHealth; }
 	inline void setMaxHealth(int maxHealth) { this->maxHealth = maxHealth; }
 	inline void setSpeed(float speed) { this->speed = speed; }
