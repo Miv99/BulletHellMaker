@@ -1768,6 +1768,8 @@ void TabsWithPanel::addTab(std::string tabName, std::shared_ptr<tgui::Panel> ass
 	tabsOrdering.push_back(tabName);
 	if (closeable) {
 		createCloseButton(tabs->getTabsCount() - 1);
+	} else {
+		closeButtons.push_back(std::make_pair(nullptr, ""));
 	}
 	onTabsChange();
 }
@@ -1788,6 +1790,8 @@ void TabsWithPanel::insertTab(std::string tabName, std::shared_ptr<tgui::Panel> 
 	tabsOrdering.insert(tabsOrdering.begin(), tabName);
 	if (closeable) {
 		createCloseButton(index);
+	} else {
+		closeButtons.push_back(std::make_pair(nullptr, ""));
 	}
 	onTabsChange();
 }
