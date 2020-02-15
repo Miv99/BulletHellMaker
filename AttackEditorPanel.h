@@ -37,6 +37,8 @@ public:
 	tgui::Signal& getSignal(std::string signalName) override;
 
 private:
+	const std::string EMP_TAB_NAME_FORMAT = "EMP %d";
+
 	EditorWindow& parentWindow;
 	LevelPack& levelPack;
 	UndoStack undoStack;
@@ -52,6 +54,7 @@ private:
 	*/
 	tgui::SignalEditorAttack onAttackModify = { "AttackModified" };
 
+	// The EditorAttack being edited
 	std::shared_ptr<EditorAttack> attack;
 
 	std::shared_ptr<TabsWithPanel> tabs;
@@ -62,14 +65,36 @@ private:
 	// Maps an index in usedBy to the ID of the EditorAttackPattern being shown in that index
 	std::map<int, int> usedByIDMap;
 
+	// A TreeView of all the EMPs of the EditorAttack being edited
+	std::shared_ptr<tgui::TreeView> empsTreeView;
+	// The hierarchy of the node in empsTreeView that was just right clicked
+	std::vector<sf::String> empRightClickedNodeHierarchy;
+
+	/*
+	Opens a tab for editing an EMP of the attack being edited.
+
+	empHierarchy - the hierarchy in empsTreeView to the node that represents the EMP to be edited
+	*/
+	void openEMPTab(std::vector<sf::String> empHierarchy);
+
 	/*
 	Clear and populate usedBy, the list of EditorAttackPatterns that use the 
 	EditorAttack being edited.
 	*/
 	void populatePropertiesUsedByList();
+	/*
+	Clear and populate empsTree.
+	*/
+	void populateEMPsTreeView();
 
 	/*
-	Returns the string to be shown for each EditorMovablePoint in the attack list in the attack tab.
+	Returns the string to be shown for each EditorMovablePoint in empsTreeView.
 	*/
-	static sf::String getEMPTextInAttackList(const EditorMovablePoint& emp);
+	static sf::String getEMPTextInTreeView(const EditorMovablePoint& emp);
+	/*
+	Returns the ID of an EMP, extracted from the string returned by getEMPTextInTreeView().
+
+	text - the string returned by getEMPTextInTreeView()
+	*/
+	static int getEMPIDFromTreeViewText(std::string text);
 };

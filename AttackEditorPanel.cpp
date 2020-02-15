@@ -32,11 +32,8 @@ AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& leve
 		usedByLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(name) + GUI_PADDING_Y);
 		usedBy->setPosition(tgui::bindLeft(id), tgui::bindBottom(usedByLabel) + GUI_LABEL_PADDING_Y);
 
-		properties->connect("SizeChanged", [this, name](sf::Vector2f newSize) {
-			float fillX = newSize.x - GUI_PADDING_X * 2;
-			name->setSize(fillX, name->getSize().y);
-			this->usedBy->setSize(fillX, newSize.y - this->usedBy->getPosition().y - GUI_PADDING_Y * 2);
-		});
+		name->setSize(tgui::bindWidth(properties) - GUI_PADDING_X * 2, tgui::bindHeight(name));
+		usedBy->setSize(tgui::bindWidth(properties) - GUI_PADDING_X * 2, tgui::bindHeight(properties) - tgui::bindTop(usedBy) - GUI_PADDING_Y);
 
 		name->connect("ReturnKeyPressed", [this, name](std::string text) {
 			std::string oldName = this->attack->getName();
@@ -56,7 +53,6 @@ AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& leve
 		properties->add(name);
 		properties->add(usedByLabel);
 		properties->add(usedBy);
-		
 		tabs->addTab("Properties", properties);
 
 		// Populate the usedBy list when the level pack is changed
@@ -90,8 +86,41 @@ AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& leve
 		// EMP tree view
 		std::shared_ptr<tgui::Panel> emps = tgui::Panel::create();
 		std::shared_ptr<tgui::Label> empsTreeViewLabel = tgui::Label::create();
-		std::shared_ptr<tgui::TreeView> empsTreeView = tgui::TreeView::create();
+		empsTreeView = tgui::TreeView::create();
 
+		empsTreeViewLabel->setText("Movable points");
+
+		empsTreeViewLabel->setTextSize(TEXT_SIZE);
+		empsTreeView->setTextSize(TEXT_SIZE);
+
+		empsTreeViewLabel->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
+		empsTreeView->setPosition(tgui::bindLeft(empsTreeViewLabel), tgui::bindBottom(empsTreeViewLabel) + GUI_LABEL_PADDING_Y);
+		empsTreeView->setSize(tgui::bindWidth(emps) - GUI_PADDING_X * 2, tgui::bindHeight(emps) - tgui::bindTop(empsTreeView) - GUI_PADDING_Y);
+
+		emps->add(empsTreeViewLabel);
+		emps->add(empsTreeView);
+		tabs->addTab("MPs", emps, false);
+
+		// Populate the usedBy list when the level pack is changed
+		levelPack.getOnChange()->sink().connect<AttackEditorPanel, &AttackEditorPanel::populatePropertiesUsedByList>(this);
+		// Initial population
+		populateEMPsTreeView();
+
+		{
+			// Right click menu for empsTreeView
+			auto rightClickMenuPopup = createMenuPopup({
+				std::make_pair("Edit", [this]() {
+					this->openEMPTab(empRightClickedNodeHierarchy);
+				})
+			});
+			empsTreeView->connect("RightClicked", [this, rightClickMenuPopup](std::vector<sf::String> nodeHierarchy) {
+				if (nodeHierarchy.size() > 0) {
+					this->empRightClickedNodeHierarchy = nodeHierarchy;
+					// Open right click menu
+					this->parentWindow.addPopupWidget(rightClickMenuPopup, this->parentWindow.getMousePos().x, this->parentWindow.getMousePos().y, 150, rightClickMenuPopup->getSize().y);
+				}
+			});
+		}
 	}
 }
 
@@ -117,6 +146,23 @@ tgui::Signal& AttackEditorPanel::getSignal(std::string signalName) {
 	return tgui::Panel::getSignal(signalName);
 }
 
+void AttackEditorPanel::openEMPTab(std::vector<sf::String> empHierarchy) {
+	// Open the tab in mainPanel
+	int empID = getEMPIDFromTreeViewText(empHierarchy[empHierarchy.size() - 1]);
+	if (tabs->hasTab(format(EMP_TAB_NAME_FORMAT, empID))) {
+		// Tab already exists, so just select it
+		tabs->selectTab(format(EMP_TAB_NAME_FORMAT, empID));
+	} else {
+		// Create the tab
+		std::shared_ptr<EditorMovablePointPanel> empEditorPanel = EditorMovablePointPanel::create(parentWindow, levelPack, attack->searchEMP(empID));
+		empEditorPanel->connect("EMPModified", [&](std::shared_ptr<EditorMovablePoint> emp) {
+			populateEMPsTreeView();
+			onAttackModify.emit(this, this->attack);
+		});
+		tabs->addTab(format(EMP_TAB_NAME_FORMAT, empID), empEditorPanel, true, true);
+	}
+}
+
 void AttackEditorPanel::populatePropertiesUsedByList() {
 	usedByIDMap.clear();
 	usedBy->getListView()->removeAllItems();
@@ -129,8 +175,20 @@ void AttackEditorPanel::populatePropertiesUsedByList() {
 	usedBy->onListViewItemsUpdate();
 }
 
-sf::String AttackEditorPanel::getEMPTextInAttackList(const EditorMovablePoint& emp) {
+void AttackEditorPanel::populateEMPsTreeView() {
+	empsTreeView->removeAllItems();
+	std::vector<std::vector<sf::String>> paths = attack->getMainEMP()->generateTreeViewEmpHierarchy(getEMPTextInTreeView, {});
+	for (std::vector<sf::String> path : paths) {
+		empsTreeView->addItem(path);
+	}
+}
+
+sf::String AttackEditorPanel::getEMPTextInTreeView(const EditorMovablePoint& emp) {
 	std::string bulletStr = emp.getIsBullet() ? "[X]" : "[-]";
 	std::string idStr = "[" + std::to_string(emp.getID()) + "]";
 	return bulletStr + " " + idStr;
+}
+
+int AttackEditorPanel::getEMPIDFromTreeViewText(std::string text) {
+	return std::stoi(text.substr(5, text.length() - 5));
 }
