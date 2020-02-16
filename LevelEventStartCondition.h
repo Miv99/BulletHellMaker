@@ -5,7 +5,7 @@
 #include <entt/entt.hpp>
 #include "TextMarshallable.h"
 
-class EnemySpawnCondition : public TextMarshallable {
+class LevelEventStartCondition : public TextMarshallable {
 public:
 	std::string format() const = 0;
 	void load(std::string formattedString) = 0;
@@ -14,9 +14,9 @@ public:
 };
 
 /*
-EnemySpawnCondition that depends on the time since the start of the level.
+LevelEventStartCondition that depends on the time since the start of the level.
 */
-class GlobalTimeBasedEnemySpawnCondition : public EnemySpawnCondition {
+class GlobalTimeBasedEnemySpawnCondition : public LevelEventStartCondition {
 public:
 	inline GlobalTimeBasedEnemySpawnCondition() {}
 	inline GlobalTimeBasedEnemySpawnCondition(float time) : time(time) {}
@@ -32,9 +32,9 @@ private:
 };
 
 /*
-EnemySpawnCondition that depends on the time since the last enemy spawn.
+LevelEventStartCondition that depends on the time since the last enemy spawn.
 */
-class TimeBasedEnemySpawnCondition : public EnemySpawnCondition {
+class TimeBasedEnemySpawnCondition : public LevelEventStartCondition {
 public:
 	inline TimeBasedEnemySpawnCondition() {}
 	inline TimeBasedEnemySpawnCondition(float time) : time(time) {}
@@ -50,9 +50,9 @@ private:
 };
 
 /*
-EnemySpawnCondition that depends on the number of enemies alive.
+LevelEventStartCondition that depends on the number of enemies alive.
 */
-class EnemyCountBasedEnemySpawnCondition : public EnemySpawnCondition {
+class EnemyCountBasedEnemySpawnCondition : public LevelEventStartCondition {
 public:
 	inline EnemyCountBasedEnemySpawnCondition() {}
 	inline EnemyCountBasedEnemySpawnCondition(int enemyCount) : enemyCount(enemyCount) {}
@@ -73,5 +73,5 @@ Creates the correct concrete EnemyPhaseStartConditions using the formatted strin
 */
 class EnemySpawnConditionFactory {
 public:
-	static std::shared_ptr<EnemySpawnCondition> create(std::string formattedString);
+	static std::shared_ptr<LevelEventStartCondition> create(std::string formattedString);
 };

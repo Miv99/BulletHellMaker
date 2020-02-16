@@ -5,10 +5,11 @@
 #include <entt/entt.hpp>
 #include <SFML/Graphics.hpp>
 #include <memory>
-#include "EnemySpawnCondition.h"
+#include "LevelEventStartCondition.h"
 #include "EnemySpawn.h"
 #include "TextMarshallable.h"
 #include "Item.h"
+#include "LevelEvent.h"
 #include "RenderSystem.h"
 #include "AudioPlayer.h"
 
@@ -22,9 +23,15 @@ public:
 
 	bool legal(std::string& message) const;
 
+	/*
+	Execute the LevelEvent at index eventIndex.
+	*/
+	inline void executeEvent(int eventIndex, SpriteLoader& spriteLoader, LevelPack& levelPack, entt::DefaultRegistry& registry, EntityCreationQueue& queue) {
+		events[eventIndex].second->execute(spriteLoader, levelPack, registry, queue);
+	}
+
 	inline std::string getName() const { return name; }
-	inline const std::vector<EnemySpawnInfo>& getEnemyGroupSpawnInfo(int conditionIndex) const { return enemyGroups[conditionIndex].second; }
-	inline int getEnemyGroupsCount() const { return enemyGroups.size(); }
+	inline int getEventsCount() const { return events.size(); }
 	inline std::shared_ptr<HealthPackItem> getHealthPack() {
 		if (!healthPack) {
 			healthPack = std::make_shared<HealthPackItem>();
@@ -73,42 +80,30 @@ public:
 	inline float setBackgroundTextureWidth(float backgroundTextureWidth) { this->backgroundTextureWidth = backgroundTextureWidth; }
 	inline float setBackgroundTextureHeight(float backgroundTextureHeight) { this->backgroundTextureHeight = backgroundTextureHeight; }
 
-	// Inserts a spawn condition and enemies such that the new condition and enemies are at the specified index
-	inline void insertEnemySpawns(int conditionIndex, std::shared_ptr<EnemySpawnCondition> spawnCondition, std::vector<EnemySpawnInfo> enemies) {
-		enemyGroups.insert(enemyGroups.begin() + conditionIndex, std::make_pair(spawnCondition, enemies));
+	/*
+	Insert a LevelEvent at index eventIndex.
 
-		for (auto& enemy : enemies) {
-			int enemyID = enemy.getEnemyID();
-			if (enemyIDCount.count(enemyID) == 0) {
-				enemyIDCount[enemyID] = 1;
-			} else {
-				enemyIDCount[enemyID]++;
-			}
-		}
-	}
-	// Adds an enemy into an already existing spawn condition
-	inline void addEnemy(int conditionIndex, EnemySpawnInfo enemy) {
-		enemyGroups[conditionIndex].second.push_back(enemy);
+	startCondition - the start condition of the event
+	event - the LevelEvent
+	*/
+	void insertEvent(int eventIndex, std::shared_ptr<LevelEventStartCondition> startCondition, std::shared_ptr<LevelEvent> event);
+	/*
+	Remove the LevelEvent at index eventIndex.
+	*/
+	void removeEvent(int eventIndex);
 
-		int enemyID = enemy.getEnemyID();
-		if (enemyIDCount.count(enemyID) == 0) {
-			enemyIDCount[enemyID] = 1;
-		} else {
-			enemyIDCount[enemyID]++;
-		}
-	}
-
-	inline bool conditionSatisfied(int conditionIndex, entt::DefaultRegistry& registry) const { return enemyGroups[conditionIndex].first->satisfied(registry); }
+	/*
+	Returns whether the start condition for the LevelEvent at index conditionIndex has been satisfied.
+	*/
+	inline bool conditionSatisfied(int conditionIndex, entt::DefaultRegistry& registry) const { return events[conditionIndex].first->satisfied(registry); }
 
 private:
 	// Name of the level
 	std::string name;
 
-	// Enemy spawns and when they appear (t=0 is start of level)
-	// Multiple enemy spawns can depend on a single enemy spawn condition (eg spawn 5 enemies if enemyCount == 0) 
 	// Sorted ascending by time of occurrence
-	// The next spawn condition cannot be satisfied until the previous one is
-	std::vector<std::pair<std::shared_ptr<EnemySpawnCondition>, std::vector<EnemySpawnInfo>>> enemyGroups;
+	// The next start condition cannot be satisfied until the previous one is
+	std::vector<std::pair<std::shared_ptr<LevelEventStartCondition>, std::shared_ptr<LevelEvent>>> events;
 
 	std::shared_ptr<HealthPackItem> healthPack;
 	std::shared_ptr<PointsPackItem> pointPack;
@@ -133,7 +128,7 @@ private:
 	// Bloom settings for the level; each index is a separate layer
 	std::vector<BloomSettings> bloomLayerSettings = std::vector<BloomSettings>(HIGHEST_RENDER_LAYER + 1, BloomSettings());
 
-	// Maps an EditorEnemy ID to the number of times it will be spawned in enemyGroups.
+	// Maps an EditorEnemy ID to the number of times it will be spawned in events.
 	// This is not saved on format() but is reconstructed in load().
 	std::map<int, int> enemyIDCount;
 };

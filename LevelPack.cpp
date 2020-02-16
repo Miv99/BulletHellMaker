@@ -12,11 +12,12 @@
 #include "Level.h"
 //TODO delete these
 #include "EnemySpawn.h"
-#include "EnemySpawnCondition.h"
+#include "LevelEventStartCondition.h"
 #include "EntityAnimatableSet.h"
 #include "Animatable.h"
 #include "DeathAction.h"
 #include "RenderSystem.h"
+#include "LevelEvent.h"
 #include "Constants.h"
 #include "EditorMovablePointAction.h"
 #include "EntityCreationQueue.h"
@@ -190,7 +191,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	items.push_back(std::make_pair(level->getPowerPack(), 60));
 	items.push_back(std::make_pair(level->getBombItem(), 2));
 	v1.push_back(EnemySpawnInfo(enemy1->getID(), 300, 350, items));
-	level->insertEnemySpawns(0, std::make_shared<TimeBasedEnemySpawnCondition>(0), v1);
+	level->insertEvent(0, std::make_shared<TimeBasedEnemySpawnCondition>(0), std::make_shared<SpawnEnemiesLevelEvent>(v1));
 
 	level->getHealthPack()->setActivationRadius(150);
 	level->getHealthPack()->setAnimatable(Animatable("Health", "sheet1", true, LOCK_ROTATION));

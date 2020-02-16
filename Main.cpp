@@ -1,15 +1,26 @@
-#include "EditorInstance.h"
 #include <TGUI/TGUI.hpp>
 #include <SFML/Graphics.hpp>
 #include "GameInstance.h"
 
 #include <iostream>
+#include "TextMarshallable.h"
+#include "Attack.h"
 
 int main() {
 	GameInstance a("test pack");
 	a.loadLevel(0);
 	a.start();
 	//EditorInstance a("test pack");
+
+	/*
+	auto atk = std::make_shared<EditorAttack>(3);
+	atk->setName("test name");
+	atk->setPlayAttackAnimation(true);
+	atk->getMainEMP()->setDamage(42.5f);
+
+	auto formatted = atk->format();
+	auto items = split(formatted, DELIMITER);
+	*/
 
 	/*
 	// Declare and create a new render-window

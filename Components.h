@@ -631,8 +631,8 @@ private:
 	float timeSinceLastEnemySpawn = 0;
 
 	std::shared_ptr<Level> level;
-	// Current index in list of groups of enemies to be spawned from the level
-	int currentEnemyGroupSpawnIndex = -1;
+	// Current index in list of LevelEvents
+	int currentLevelEventsIndex = -1;
 
 	// Points earned so far
 	int points = 0;

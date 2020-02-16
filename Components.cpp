@@ -276,13 +276,10 @@ void LevelManagerTag::update(EntityCreationQueue& queue, SpriteLoader& spriteLoa
 	timeSinceStartOfLevel += deltaTime;
 	timeSinceLastEnemySpawn += deltaTime;
 
-	while (currentEnemyGroupSpawnIndex + 1 < level->getEnemyGroupsCount()) {
-		if (level->conditionSatisfied(currentEnemyGroupSpawnIndex + 1, registry)) {
-			for (EnemySpawnInfo info : level->getEnemyGroupSpawnInfo(currentEnemyGroupSpawnIndex + 1)) {
-				info.spawnEnemy(spriteLoader, *levelPack, registry, queue);
-			}
-
-			currentEnemyGroupSpawnIndex++;
+	while (currentLevelEventsIndex + 1 < level->getEventsCount()) {
+		if (level->conditionSatisfied(currentLevelEventsIndex + 1, registry)) {
+			level->executeEvent(currentLevelEventsIndex + 1, spriteLoader, *levelPack, registry, queue);
+			currentLevelEventsIndex++;
 		} else {
 			break;
 		}
