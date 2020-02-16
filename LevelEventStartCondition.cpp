@@ -40,7 +40,7 @@ bool TimeBasedEnemySpawnCondition::satisfied(entt::DefaultRegistry & registry) {
 	return registry.get<LevelManagerTag>().getTimeSinceLastEnemySpawn() >= time;
 }
 
-std::shared_ptr<LevelEventStartCondition> EnemySpawnConditionFactory::create(std::string formattedString) {
+std::shared_ptr<LevelEventStartCondition> LevelEventStartConditionFactory::create(std::string formattedString) {
 	auto name = split(formattedString, DELIMITER)[0];
 	std::shared_ptr<LevelEventStartCondition> ptr;
 	if (name == "GlobalTimeBasedEnemySpawnCondition") {

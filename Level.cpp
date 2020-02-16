@@ -22,7 +22,7 @@ void Level::load(std::string formattedString) {
 	enemyIDCount.clear();
 	int i;
 	for (i = 2; i < std::stoi(items[1]) + 2;) {
-		std::shared_ptr<LevelEventStartCondition> condition = EnemySpawnConditionFactory::create(items[i++]);
+		std::shared_ptr<LevelEventStartCondition> condition = LevelEventStartConditionFactory::create(items[i++]);
 		std::shared_ptr<LevelEvent> event = LevelEventFactory::create(items[i++]);
 		events.push_back(std::make_pair(condition, event));
 

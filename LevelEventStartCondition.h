@@ -71,7 +71,7 @@ private:
 The factory for creating EnemyPhaseStartConditions.
 Creates the correct concrete EnemyPhaseStartConditions using the formatted string.
 */
-class EnemySpawnConditionFactory {
+class LevelEventStartConditionFactory {
 public:
 	static std::shared_ptr<LevelEventStartCondition> create(std::string formattedString);
 };
