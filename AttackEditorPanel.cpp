@@ -1,5 +1,8 @@
 #include "AttackEditorPanel.h"
 
+const std::string AttackEditorPanel::PROPERTIES_TAB_NAME = "Atk. Properties";
+const std::string AttackEditorPanel::EMP_TAB_NAME_FORMAT = "EMP %d";
+
 AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& levelPack, std::shared_ptr<EditorAttack> attack, int undoStackSize) : parentWindow(parentWindow), levelPack(levelPack), undoStack(UndoStack(undoStackSize)), attack(attack) {
 	tabs = TabsWithPanel::create(parentWindow);
 	tabs->setPosition(0, 0);
@@ -53,7 +56,7 @@ AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& leve
 		properties->add(name);
 		properties->add(usedByLabel);
 		properties->add(usedBy);
-		tabs->addTab("Properties", properties);
+		tabs->addTab(PROPERTIES_TAB_NAME, properties);
 
 		// Populate the usedBy list when the level pack is changed
 		levelPack.getOnChange()->sink().connect<AttackEditorPanel, &AttackEditorPanel::populatePropertiesUsedByList>(this);
@@ -125,12 +128,17 @@ AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& leve
 }
 
 bool AttackEditorPanel::handleEvent(sf::Event event) {
+	if (tabs->handleEvent(event)) {
+		return true;
+	}
 	if (event.type == sf::Event::KeyPressed) {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
 			if (event.key.code == sf::Keyboard::Z) {
 				undoStack.undo();
+				return true;
 			} else if (event.key.code == sf::Keyboard::Y) {
 				undoStack.redo();
+				return true;
 			}
 		}
 	}

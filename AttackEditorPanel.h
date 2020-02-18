@@ -37,7 +37,8 @@ public:
 	tgui::Signal& getSignal(std::string signalName) override;
 
 private:
-	const std::string EMP_TAB_NAME_FORMAT = "EMP %d";
+	static const std::string PROPERTIES_TAB_NAME;
+	static const std::string EMP_TAB_NAME_FORMAT;
 
 	EditorWindow& parentWindow;
 	LevelPack& levelPack;
