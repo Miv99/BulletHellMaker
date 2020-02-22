@@ -28,6 +28,7 @@
 #include "ViewController.h"
 #include "EventCapturable.h"
 #include "LRUCache.h"
+#include "ExtraSignals.h"
 #include <memory>
 #include <thread>
 #include <mutex>
@@ -86,6 +87,153 @@ public:
 };
 
 /*
+A Slider that waits for some time after its value stops changing before actually emitting
+the ValueChanged signal.
+
+Signals:
+	ValueChanged - emitted VALUE_CHANGE_WINDOW seconds after the slider value is changed.
+		Optional parameter: the new value of the slider as a float
+*/
+class DelayedSlider : public Slider {
+public:
+	DelayedSlider();
+	static std::shared_ptr<DelayedSlider> create() {
+		return std::make_shared<DelayedSlider>();
+	}
+
+	void update(sf::Time elapsedTime) override;
+	tgui::Signal& getSignal(std::string signalName) override;
+
+private:
+	// The amount of time that must pass since the last slider value change before
+	// the onValueChange signal is emitted
+	const float VALUE_CHANGE_WINDOW = 0.2f;
+
+	// Emitted VALUE_CHANGE_WINDOW seconds after the slider value is changed
+	tgui::SignalFloat onValueChange = {"ValueChanged"};
+	// The amount of time that has elapsed in seconds since the last slider value change
+	float timeElapsedSinceLastValueChange = 0;
+	// Whether the onValueChange signal has been emitted since the last slider value change
+	bool valueChangeSignalEmitted = false;
+
+	// Used for a small hack to have getSignal() return tgui::Slider's onValueChange
+	// signal rather than DelayedSlider's onValueChange when this bool is true
+	bool ignoreDelayedSliderSignalName;
+};
+
+/*
+An edit box that accepts only numbers and can have upper/lower limits.
+
+Signals:
+	ValueChanged - emitted when the edit box value is changed.
+		Optional parameter: the value in the edit box as a float. If this edit box is
+		in integer mode, the value can just be cast to an int.
+*/
+class NumericalEditBoxWithLimits : public tgui::EditBox {
+public:
+	NumericalEditBoxWithLimits();
+	static std::shared_ptr<NumericalEditBoxWithLimits> create() {
+		return std::make_shared<NumericalEditBoxWithLimits>();
+	}
+
+	float getValue();
+	void setValue(int value);
+	void setValue(float value);
+	/*
+	Sets the min value of the edit box.
+	*/
+	void setMin(float min);
+	/*
+	Sets the max value of the edit box.
+	*/
+	void setMax(float max);
+	/*
+	Removes the min value limit on the edit box.
+	*/
+	void removeMin();
+	/*
+	Removes the max value limit on the edit box.
+	*/
+	void removeMax();
+	/*
+	Makes the edit box accept only integers.
+	This is false by default.
+	*/
+	void setIntegerMode(bool intMode);
+
+	inline bool getHasMin() { return hasMin; }
+	inline bool getHasMax() { return hasMax; }
+
+	tgui::Signal& getSignal(std::string signalName) override;
+
+private:
+	void updateInputValidator();
+
+	// Emitted when the edit box value is changed
+	tgui::SignalFloat onValueChange = { "ValueChanged" };
+
+	bool hasMin = false, hasMax = false;
+	float min, max;
+	// if true, the inputted number must be an integer
+	bool mustBeInt = false;
+
+	// bool used to ignore signals to prevent infinite loops
+	bool ignoreSignals = false;
+};
+
+/*
+A Group containing a DelayedSlider whose value can be set with a 
+NumericalEditBoxWithLimits located on its right.
+
+ValueChanged - emitted VALUE_CHANGE_WINDOW seconds after the slider value or edit box value is changed.
+		Optional parameter: the new value as a float
+*/
+class SliderWithEditBox : public tgui::Group {
+public:
+	SliderWithEditBox();
+	static std::shared_ptr<SliderWithEditBox> create() {
+		return std::make_shared<SliderWithEditBox>();
+	}
+
+	float getValue();
+	void setValue(int value);
+	void setValue(float value);
+	/*
+	Sets the min value of the slider and edit box.
+	*/
+	void setMin(float min);
+	/*
+	Sets the max value of the slider and edit box.
+	*/
+	void setMax(float max);
+	/*
+	Sets the step of the slider.
+	*/
+	void setStep(float step);
+	/*
+	Whether the slider and edit box can accept only integers.
+	*/
+	void setIntegerMode(bool intMode);
+	/*
+	Sets the text size of the edit box.
+	*/
+	void setTextSize(int textSize);
+
+	tgui::Signal& getSignal(std::string signalName) override;
+
+private:
+	std::shared_ptr<DelayedSlider> slider;
+	std::shared_ptr<NumericalEditBoxWithLimits> editBox;
+
+	tgui::SignalFloat onValueChange = { "ValueChanged" };
+
+	float lastKnownValue;
+
+	// bool used to ignore signals to prevent infinite loops
+	bool ignoreSignals = false;
+};
+
+/*
 A tgui::Picture that is able to display animations.
 
 Warning: This widget's update() must be called every render call.
@@ -102,49 +250,7 @@ private:
 };
 
 /*
-An edit box that accepts only numbers and can have upper/lower limits.
-
-Note: connect() should not be used; use getOnValueSet()'s signal instead.
-setText() should not be used either; use setValue() instead.
-*/
-class NumericalEditBoxWithLimits : public tgui::EditBox {
-public:
-	NumericalEditBoxWithLimits();
-
-	float getValue();
-	void setValue(int value);
-	void setValue(float value);
-	void setMin(float min);
-	void setMax(float max);
-	void removeMin();
-	void removeMax();
-	/*
-	Makes the edit box accept only integers.
-	This is false by default.
-	*/
-	void setIntegerMode(bool intMode);
-
-	inline bool getHasMin() { return hasMin; }
-	inline bool getHasMax() { return hasMax; }
-
-	std::shared_ptr<entt::SigH<void(float)>> getOnValueSet();
-
-private:
-	using tgui::EditBox::connect;
-	using tgui::EditBox::setText;
-
-	void updateInputValidator();
-
-	std::shared_ptr<entt::SigH<void(float)>> onValueSet;
-
-	bool hasMin = false, hasMax = false;
-	float min, max;
-	// if true, the inputted number must be an integer
-	bool mustBeInt = false;
-};
-
-/*
-Widget that 
+Widget that
 The AnimatablePicture from getAnimatablePicture() is not added to the AnimatableChooser Group, so it must be added to the AnimatableChooser's
 container separately. For the same reason, its size and positions do not change with AnimatableChooser's changes.
 */
@@ -194,71 +300,31 @@ private:
 };
 
 /*
-A slider whose value can be set with a NumericalEditBoxWithLimits located on its right.
+Used to edit a SoundSettings object.
 
-The EditBox from getEditBox() is not added to the SliderWithEditBox since SliderWithEditBox is not a container,
-so the EditBox must be added to the SliderWithEditBox's container separately. 
-
-Note: connect() should not be used on neither this nor the edit box; use getOnValueSet()'s signal instead.
-To get the value, use tgui::Slider::getValue(), not the edit box's value.
-Only SliderWithEditBox::setSize() and setPosition() should be called, not any of tgui::Slider's setSize()'s or setPosition()'s
-*/
-class SliderWithEditBox : public Slider {
-public:
-	SliderWithEditBox(float paddingX = 20);
-
-	void setSize(float x, float y);
-	void setPosition(float x, float y);
-	void setValue(float value);
-	void setEnabled(bool enabled);
-	void setIntegerMode(bool intMode);
-
-	inline std::shared_ptr<tgui::EditBox> getEditBox() { return editBox; }
-	inline std::shared_ptr<entt::SigH<void(float)>> getOnValueSet();
-
-	void setVisible(bool visible);
-
-private:
-	using tgui::Slider::connect;
-	void onEditBoxValueSet(float value);
-
-	// func takes 1 arg: the new value
-	std::shared_ptr<entt::SigH<void(float)>> onValueSet;
-
-	float paddingX;
-
-	std::shared_ptr<NumericalEditBoxWithLimits> editBox;
-};
-
-/*
-Used to edit SoundSettings
+Signals:
+	ValueChanged - emitted when a change is made to the SoundSettings object being edited
+	Optional parameter: the new SoundSettings object
 */
 class SoundSettingsGroup : public tgui::Group {
 public:
-	SoundSettingsGroup(std::string pathToSoundsFolder, float paddingX = 20, float paddingY = 10);
-	void initSettings(SoundSettings init);
-	void populateFileNames(std::string pathToSoundsFolder);
-
+	SoundSettingsGroup(std::string pathToSoundsFolder);
 	/*
-	Should be called whenever this widget's container is resized.
-	This function automatically sets the height of this widget.
+	Initialize the widgets in this group to some SoundSettings's values
 	*/
-	void onContainerResize(int containerWidth, int containerHeight);
-
-	std::shared_ptr<entt::SigH<void(SoundSettings)>> getOnNewSoundSettingsSignal();
+	void initSettings(SoundSettings init);
+	/*
+	Populate the file names list with all supported sound files in the directory
+	*/
+	void populateFileNames(std::string pathToSoundsFolder);
 
 	void setEnabled(bool enabled);
 
+	tgui::Signal& getSignal(std::string signalName) override;
+
 private:
-	void onVolumeChange(float volume);
-	void onPitchChange(float pitch);
-
-	bool ignoreSignal = false;
-
-	float paddingX, paddingY;
-
-	// func takes 1 arg: the new SoundSettings
-	std::shared_ptr<entt::SigH<void(SoundSettings)>> onNewSoundSettings;
+	// Emitted when a change is made to the SoundSettings object being edited
+	tgui::SignalSoundSettings onValueChange = { "ValueChanged" };
 
 	std::shared_ptr<tgui::CheckBox> enableAudio;
 	std::shared_ptr<tgui::ComboBox> fileName;
@@ -269,6 +335,9 @@ private:
 	std::shared_ptr<tgui::Label> fileNameLabel;
 	std::shared_ptr<tgui::Label> volumeLabel;
 	std::shared_ptr<tgui::Label> pitchLabel;
+
+	// bool used to ignore signals to prevent infinite loops
+	bool ignoreSignals = false;
 };
 
 
@@ -395,21 +464,21 @@ private:
 	std::shared_ptr<tgui::Button> addSegment;
 	std::shared_ptr<tgui::Button> deleteSegment;
 	std::shared_ptr<tgui::Label> startTimeLabel;
-	std::shared_ptr<SliderWithEditBox> startTime;
+	std::shared_ptr<NumericalEditBoxWithLimits> startTime;
 	std::shared_ptr<tgui::Button> changeSegmentType;
 	std::shared_ptr<ListBoxScrollablePanel> segmentTypePopup;
 
 	std::shared_ptr<ListBoxScrollablePanel> segmentList; // Each item ID is the index of the segment in tfv's segment vector
 	std::shared_ptr<tgui::Label> tfvFloat1Label;
-	std::shared_ptr<SliderWithEditBox> tfvFloat1Slider;
+	std::shared_ptr<NumericalEditBoxWithLimits> tfvFloat1Slider;
 	std::shared_ptr<tgui::Label> tfvFloat2Label;
-	std::shared_ptr<SliderWithEditBox> tfvFloat2Slider;
+	std::shared_ptr<NumericalEditBoxWithLimits> tfvFloat2Slider;
 	std::shared_ptr<tgui::Label> tfvFloat3Label;
-	std::shared_ptr<SliderWithEditBox> tfvFloat3Slider;
+	std::shared_ptr<NumericalEditBoxWithLimits> tfvFloat3Slider;
 	std::shared_ptr<tgui::Label> tfvFloat4Label;
-	std::shared_ptr<SliderWithEditBox> tfvFloat4Slider;
+	std::shared_ptr<NumericalEditBoxWithLimits> tfvFloat4Slider;
 	std::shared_ptr<tgui::Label> tfvInt1Label;
-	std::shared_ptr<SliderWithEditBox> tfvInt1Slider;
+	std::shared_ptr<NumericalEditBoxWithLimits> tfvInt1Slider;
 
 	std::shared_ptr<TFV> oldTFV; // Should never be modified after setTFV() is called
 	std::shared_ptr<PiecewiseTFV> tfv;
@@ -429,19 +498,15 @@ private:
 	// Signal emitted after the user saves the TFV
 	std::shared_ptr<entt::SigH<void(std::shared_ptr<TFV>, std::shared_ptr<TFV>, std::string)>> onSave;
 
-	bool ignoreSignal = false;
+	// bool used to ignore signals to prevent infinite loops
+	bool ignoreSignals = false;
 
 	void deselectSegment();
 	void selectSegment(int index);
 	void populateSegmentList();
 
+	//TODO: make this automatic with tgui bind
 	void onTFVEditorWindowResize(int windowWidth, int windowHeight);
-	void onTFVFloat1SliderChange(float value);
-	void onTFVFloat2SliderChange(float value);
-	void onTFVFloat3SliderChange(float value);
-	void onTFVFloat4SliderChange(float value);
-	void onTFVInt1SliderChange(float value);
-	void onSelectedSegmentStartTimeChange(float value);
 };
 
 /*

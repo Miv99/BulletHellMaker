@@ -297,7 +297,6 @@ void GameInstance::start() {
 			}
 
 			float dt = std::min(MAX_PHYSICS_DELTA_TIME, deltaClock.restart().asSeconds());
-			std::cout << dt << std::endl;
 			//float dt = 1 / 120.0f;
 			//std::cout << registry.alive() << std::endl;
 			physicsUpdate(dt);

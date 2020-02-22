@@ -14,6 +14,7 @@
 #include <map>
 #include <memory>
 #include "Attack.h"
+#include "AudioPlayer.h"
 #include "EditorMovablePoint.h"
 
 namespace tgui {
@@ -77,6 +78,7 @@ namespace tgui {
 
 	EXTRA_SIGNAL_VALUE_DECLARATION(EditorAttack, std::shared_ptr<EditorAttack>)
 	EXTRA_SIGNAL_VALUE_DECLARATION(EditorMovablePoint, std::shared_ptr<EditorMovablePoint>)
+	EXTRA_SIGNAL_VALUE_DECLARATION(SoundSettings, SoundSettings)
 
 	class SignalTwoInts : public Signal {
 		public:
