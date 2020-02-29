@@ -41,6 +41,7 @@ namespace tgui {
 	TGUI_SIGNAL_VALUE_CONNECT_DEFINITION(EditorAttack, std::shared_ptr<EditorAttack>)
 	TGUI_SIGNAL_VALUE_CONNECT_DEFINITION(EditorMovablePoint, std::shared_ptr<EditorMovablePoint>)
 	TGUI_SIGNAL_VALUE_CONNECT_DEFINITION(SoundSettings, SoundSettings)
+	TGUI_SIGNAL_VALUE_CONNECT_DEFINITION(Animatable, Animatable)
 
 	unsigned int SignalEditorAttack::validateTypes(std::initializer_list<std::type_index> unboundParameters) const {
 		if ((unboundParameters.size() == 1) && checkParamType<std::shared_ptr<EditorAttack>>(unboundParameters.begin()))
@@ -58,6 +59,13 @@ namespace tgui {
 
 	unsigned int SignalSoundSettings::validateTypes(std::initializer_list<std::type_index> unboundParameters) const {
 		if ((unboundParameters.size() == 1) && checkParamType<SoundSettings>(unboundParameters.begin()))
+			return 1;
+		else
+			return Signal::validateTypes(unboundParameters);
+	}
+
+	unsigned int SignalAnimatable::validateTypes(std::initializer_list<std::type_index> unboundParameters) const {
+		if ((unboundParameters.size() == 1) && checkParamType<Animatable>(unboundParameters.begin()))
 			return 1;
 		else
 			return Signal::validateTypes(unboundParameters);

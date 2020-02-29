@@ -99,6 +99,9 @@ public:
 	// spriteSheetNames - vector of pairs of SpriteSheet meta file names and SpriteSheet image file names
 	SpriteLoader(const std::string& levelPackRelativePath, const std::vector<std::pair<std::string, std::string>>& spriteSheetNamePairs);
 
+	/*
+	Returns an entirely new sf::Sprite.
+	*/
 	std::shared_ptr<sf::Sprite> getSprite(const std::string& spriteName, const std::string& spriteSheetName);
 	std::unique_ptr<Animation> getAnimation(const std::string& animationName, const std::string& spriteSheetName, bool loop);
 	inline const std::map<std::string, std::shared_ptr<SpriteSheet>> getSpriteSheets() { return spriteSheets; }

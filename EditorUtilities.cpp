@@ -137,10 +137,18 @@ std::vector<std::pair<std::vector<float>, std::vector<float>>> generateMPLPoints
 	return ret;
 }
 
-AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprite, float paddingX, float paddingY) : spriteLoader(spriteLoader), forceSprite(forceSprite), paddingX(paddingX), paddingY(paddingY) {
-	onValueSet = std::make_shared<entt::SigH<void(Animatable)>>();
+AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprite) : spriteLoader(spriteLoader), forceSprite(forceSprite) {
+	animatablePicture = AnimatablePicture::create();
 	animatable = tgui::ComboBox::create();
 	rotationType = tgui::ComboBox::create();
+
+	animatablePicture->setPosition(0, 0);
+	animatable->setPosition(tgui::bindLeft(animatablePicture), tgui::bindBottom(animatablePicture) + GUI_PADDING_Y);
+	rotationType->setPosition(tgui::bindLeft(animatable), tgui::bindBottom(animatable) + GUI_PADDING_Y);
+
+	animatablePicture->setSize(300, 300);
+	animatable->setSize("100%", TEXT_BOX_HEIGHT);
+	rotationType->setSize("100%", TEXT_BOX_HEIGHT);
 
 	animatable->setChangeItemOnScroll(false);
 	rotationType->setChangeItemOnScroll(false);
@@ -162,14 +170,9 @@ AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprit
 	}
 
 	rotationType->addItem("Rotate with movement", std::to_string(static_cast<int>(ROTATE_WITH_MOVEMENT)));
-	rotationType->addItem("Never roate", std::to_string(static_cast<int>(LOCK_ROTATION)));
+	rotationType->addItem("Never rotate", std::to_string(static_cast<int>(LOCK_ROTATION)));
 	rotationType->addItem("Face horizontal movement", std::to_string(static_cast<int>(LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT)));
 
-	animatable->setChangeItemOnScroll(false);
-	animatable->setExpandDirection(tgui::ComboBox::ExpandDirection::Down);
-	animatable->connect("MouseEntered", [&]() {
-		calculateItemsToDisplay();
-	});
 	animatable->connect("ItemSelected", [&](std::string itemText, std::string id) {
 		// ID is in format "spriteSheetName\animatableName"
 		std::string spriteSheetName = id.substr(0, id.find_first_of('\\'));
@@ -179,26 +182,48 @@ AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprit
 			animatable->deselectItem();
 		} else {
 			// Item text is in format "[S]spriteName" or "[A]animationName"
-			onValueSet->publish(Animatable(itemText.substr(3), spriteSheetName, itemText[1] == 'S', static_cast<ROTATION_TYPE>(std::stoi(std::string(rotationType->getSelectedItemId())))));
+			if (itemText[1] == 'S') {
+				animatablePicture->setSprite(spriteLoader, itemText.substr(3), spriteSheetName);
+			} else {
+				animatablePicture->setAnimation(spriteLoader, itemText.substr(3), spriteSheetName);
+			}
+			onValueChange.emit(this, Animatable(itemText.substr(3), spriteSheetName, itemText[1] == 'S', static_cast<ROTATION_TYPE>(std::stoi(std::string(rotationType->getSelectedItemId())))));
 		}
+
+	});
+
+	animatable->setChangeItemOnScroll(false);
+	animatable->setExpandDirection(tgui::ComboBox::ExpandDirection::Down);
+	animatable->connect("Focused", [&]() {
+		calculateItemsToDisplay();
 	});
 
 	rotationType->setChangeItemOnScroll(false);
 	rotationType->setExpandDirection(tgui::ComboBox::ExpandDirection::Down);
-	rotationType->connect("MouseEntered", [&]() {
+	rotationType->connect("Focused", [&]() {
 		calculateItemsToDisplay();
 	});
 	rotationType->connect("ItemSelected", [&](std::string item, std::string id) {
-		if (animatable->getSelectedItem() != "" && !(rotationType->getSelectedItem() == item && rotationType->getSelectedItemId() == id)) {
+		if (animatable->getSelectedItem() == "") {
+			onValueChange.emit(this, Animatable("", "", false, static_cast<ROTATION_TYPE>(std::stoi(std::string(id)))));
+		} else {
 			std::string spriteSheetName = std::string(animatable->getSelectedItemId()).substr(0, std::string(animatable->getSelectedItemId()).find_first_of('\\'));
 
-			onValueSet->publish(Animatable(std::string(animatable->getSelectedItem()).substr(3), spriteSheetName, animatable->getSelectedItem()[1] == 'S', static_cast<ROTATION_TYPE>(std::stoi(std::string(id)))));
+			onValueChange.emit(this, Animatable(std::string(animatable->getSelectedItem()).substr(3), spriteSheetName, animatable->getSelectedItem()[1] == 'S', static_cast<ROTATION_TYPE>(std::stoi(std::string(id)))));
 		}
 	});
 	rotationType->setSelectedItemById(std::to_string(static_cast<int>(LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT)));
 
 	add(animatable);
 	add(rotationType);
+	add(animatablePicture);
+
+	animatablePicture->connect("SizeChanged", [this](sf::Vector2f newSize) {
+		this->setSize(this->getSizeLayout().x, tgui::bindBottom(this->rotationType));
+	});
+	connect("SizeChanged", [this](sf::Vector2f newSize) {
+		calculateItemsToDisplay();
+	});
 }
 
 void AnimatableChooser::calculateItemsToDisplay() {
@@ -226,46 +251,13 @@ void AnimatableChooser::calculateItemsToDisplay() {
 	}
 }
 
-void AnimatableChooser::setSelectedItem(Animatable animatable) {
+void AnimatableChooser::setValue(Animatable animatable) {
 	if (animatable.getAnimatableName() == "") {
 		this->animatable->deselectItem();
 	} else if (animatable.getSpriteSheetName() + "\\" + animatable.getAnimatableName() != this->animatable->getSelectedItemId()) {
 		this->animatable->setSelectedItemById(animatable.getSpriteSheetName() + "\\" + animatable.getAnimatableName());
 	}
-}
-
-void AnimatableChooser::onContainerResize(int containerWidth, int containerHeight) {
-	animatable->setSize(containerWidth - paddingX * 2, TEXT_BOX_HEIGHT);
-	rotationType->setSize(containerWidth - paddingX * 2, TEXT_BOX_HEIGHT);
-
-	animatable->setPosition(paddingX, paddingY);
-	rotationType->setPosition(tgui::bindLeft(animatable), tgui::bindBottom(animatable) + paddingY);
-
-	setSize(containerWidth - paddingX, rotationType->getPosition().y + rotationType->getSize().y + paddingY);
-	calculateItemsToDisplay();
-}
-
-std::shared_ptr<AnimatablePicture> AnimatableChooser::getAnimatablePicture() {
-	if (!animatablePicture) {
-		animatablePicture = std::make_shared<AnimatablePicture>();
-		animatable->connect("ItemSelected", [&](std::string itemText, std::string id) {
-			// ID is in format "spriteSheetName\animatableName"
-			std::string spriteSheetName = id.substr(0, id.find_first_of('\\'));
-
-			// The only items without an ID are sprite sheet name indicators, so if ID is empty, this item shouldn't be selectable
-			if (spriteSheetName == "") {
-				animatable->deselectItem();
-			} else {
-				// Item text is in format "[S]spriteName" or "[A]animationName"
-				if (itemText[1] == 'S') {
-					animatablePicture->setSprite(spriteLoader, itemText.substr(3), spriteSheetName);
-				} else {
-					animatablePicture->setAnimation(spriteLoader, itemText.substr(3), spriteSheetName);
-				}
-			}
-		});
-	}
-	return animatablePicture;
+	rotationType->setSelectedItemById(std::to_string(static_cast<int>(animatable.getRotationType())));
 }
 
 Animatable AnimatableChooser::getValue() {
@@ -304,11 +296,60 @@ void AnimatableChooser::setEnabled(bool enabled) {
 	rotationType->setEnabled(enabled);
 }
 
-void AnimatablePicture::update(float deltaTime) {
-	if (animation) {
-		std::shared_ptr<sf::Sprite> sprite = animation->update(deltaTime);
-		getRenderer()->setTexture(*sprite->getTexture());
+void AnimatableChooser::setAnimatablePictureSize(tgui::Layout width, tgui::Layout height) {
+	animatablePicture->setSize(width, height);
+}
+
+void AnimatableChooser::setAnimatablePictureSize(const tgui::Layout2d & size) {
+	animatablePicture->setSize(size);
+}
+
+tgui::Signal & AnimatableChooser::getSignal(std::string signalName) {
+	if (signalName == tgui::toLower(onValueChange.getName())) {
+		return onValueChange;
 	}
+	return Group::getSignal(signalName);
+}
+
+AnimatablePicture::AnimatablePicture() {
+	connect("SizeChanged", [&]() {
+		resizeCurSpriteToFitWidget();
+	});
+}
+
+AnimatablePicture::AnimatablePicture(const AnimatablePicture & other) {
+}
+
+void AnimatablePicture::update(sf::Time elapsedTime) {
+	if (animation) {
+		std::shared_ptr<sf::Sprite> prevSprite = curSprite;
+		curSprite = animation->update(elapsedTime.asSeconds());
+		if (curSprite != prevSprite) {
+			resizeCurSpriteToFitWidget();
+		}
+	}
+}
+
+void AnimatablePicture::draw(sf::RenderTarget & target, sf::RenderStates states) const {
+	if (curSprite) {
+		if (spriteScaledToFitHorizontal) {
+			curSprite->setPosition(getPosition().x + getSize().x / 2, getPosition().y + curSprite->getOrigin().y * curSprite->getScale().y);
+		} else {
+			curSprite->setPosition(getPosition().x + curSprite->getOrigin().x * curSprite->getScale().x, getPosition().y + getSize().y / 2);
+		}
+		target.draw(*curSprite, states);
+	}
+}
+
+tgui::Widget::Ptr AnimatablePicture::clone() const {
+	return std::make_shared<AnimatablePicture>(*this);
+}
+
+bool AnimatablePicture::mouseOnWidget(tgui::Vector2f pos) const {
+	if (tgui::FloatRect{ 0, 0, getSize().x, getSize().y }.contains(pos)) {
+		return true;
+	}
+	return false;
 }
 
 void AnimatablePicture::setAnimation(SpriteLoader& spriteLoader, const std::string& animationName, const std::string& spriteSheetName) {
@@ -316,9 +357,27 @@ void AnimatablePicture::setAnimation(SpriteLoader& spriteLoader, const std::stri
 }
 
 void AnimatablePicture::setSprite(SpriteLoader& spriteLoader, const std::string& spriteName, const std::string& spriteSheetName) {
-	getRenderer()->setTexture(*spriteLoader.getSprite(spriteName, spriteSheetName)->getTexture());
-	
+	curSprite = spriteLoader.getSprite(spriteName, spriteSheetName);
 	animation = nullptr;
+	resizeCurSpriteToFitWidget();
+}
+
+void AnimatablePicture::resizeCurSpriteToFitWidget() {
+	if (!curSprite) {
+		return;
+	}
+	
+	float width = curSprite->getLocalBounds().width * curSprite->getScale().x;
+	float height = curSprite->getLocalBounds().height * curSprite->getScale().y;
+	float scaleAmount;
+	if (width > height) {
+		scaleAmount = getSize().x / width;
+		spriteScaledToFitHorizontal = true;
+	} else {
+		scaleAmount = getSize().y / height;
+		spriteScaledToFitHorizontal = false;
+	}
+	curSprite->scale(scaleAmount, scaleAmount);
 }
 
 SliderWithEditBox::SliderWithEditBox() {

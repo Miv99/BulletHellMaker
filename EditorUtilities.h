@@ -234,50 +234,68 @@ private:
 };
 
 /*
-A tgui::Picture that is able to display animations.
-
-Warning: This widget's update() must be called every render call.
+A widget used to display Animatables.
 */
-class AnimatablePicture : public tgui::Picture {
+class AnimatablePicture : public tgui::Widget {
 public:
-	void update(float deltaTime);
+	AnimatablePicture();
+	AnimatablePicture(const AnimatablePicture& other);
+	static std::shared_ptr<AnimatablePicture> create() {
+		return std::make_shared<AnimatablePicture>();
+	}
+
+	void update(sf::Time elapsedTime) override;
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+	virtual tgui::Widget::Ptr clone() const override;
+	virtual bool mouseOnWidget(tgui::Vector2f pos) const override;
 
 	void setAnimation(SpriteLoader& spriteLoader, const std::string& animationName, const std::string& spriteSheetName);
 	void setSprite(SpriteLoader& spriteLoader, const std::string& spriteName, const std::string& spriteSheetName);
 
 private:
 	std::unique_ptr<Animation> animation;
+	std::shared_ptr<sf::Sprite> curSprite;
+
+	bool spriteScaledToFitHorizontal;
+
+	void resizeCurSpriteToFitWidget();
 };
 
 /*
-Widget that
-The AnimatablePicture from getAnimatablePicture() is not added to the AnimatableChooser Group, so it must be added to the AnimatableChooser's
-container separately. For the same reason, its size and positions do not change with AnimatableChooser's changes.
+Widget for choosing an Animatable from the list of all Animatables in a SpriteLoader.
+
+Signals:
+	ValueChanged - emitted when a change is made to the Animatable object being edited
+	Optional parameter: the new Animatable object
+
+The height of this widget will always be just enough to fit all 
+the widgets in it, so changing the height of this widget will do nothing.
 */
 class AnimatableChooser : public tgui::Group {
 public:
 	/*
 	forceSprite - if true, the user is forced to choose between sprites instead of being able to choose between sprites and animations
 	*/
-	AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprite = false, float guiPaddingX = 20, float guiPaddingY = 10);
-
-	void setSelectedItem(Animatable animatable);
+	AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprite = false);
+	static std::shared_ptr<AnimatableChooser> create(SpriteLoader& spriteLoader, bool forceSprite = false) {
+		return std::make_shared<AnimatableChooser>(spriteLoader, forceSprite);
+	}
 
 	/*
-	Should be called whenever this widget's container is resized.
-	This function automatically sets the height of this widget.
+	Sets the value of the Animatable being edited.
 	*/
-	void onContainerResize(int containerWidth, int containerHeight);
-
-	std::shared_ptr<AnimatablePicture> getAnimatablePicture();
+	void setValue(Animatable animatable);
 	/*
 	Returns an Animatable with empty sprite name and sprite sheet name if none is selected.
 	*/
 	Animatable getValue();
-	inline std::shared_ptr<entt::SigH<void(Animatable)>> getOnValueSet() { return onValueSet; }
 
 	void setVisible(bool visible);
 	void setEnabled(bool enabled);
+	void setAnimatablePictureSize(tgui::Layout width, tgui::Layout height);
+	void setAnimatablePictureSize(const tgui::Layout2d& size);
+
+	tgui::Signal& getSignal(std::string signalName) override;
 
 private:
 	/*
@@ -293,10 +311,7 @@ private:
 
 	std::shared_ptr<AnimatablePicture> animatablePicture;
 
-	float paddingX, paddingY;
-
-	// func takes 1 arg: the new Animatable
-	std::shared_ptr<entt::SigH<void(Animatable)>> onValueSet;
+	tgui::SignalAnimatable onValueChange = { "ValueChanged" };
 };
 
 /*
