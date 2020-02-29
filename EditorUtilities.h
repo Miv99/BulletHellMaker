@@ -873,3 +873,29 @@ private:
 
 	void updateButtonsPositionsAndSizes();
 };
+
+/*
+A tgui::Label that shows text over time rather than all at once.
+*/
+class TimedLabel : public tgui::Label {
+public:
+	inline TimedLabel(float charDelay = 1 / 9.0f) : charDelay(charDelay) {}
+	static std::shared_ptr<TimedLabel> create(float charDelay = 1 / 9.0f) {
+		return std::make_shared<TimedLabel>(charDelay);
+	}
+
+	void update(sf::Time elapsedTime) override;
+	void setText(const sf::String& text);
+
+private:
+	// The full text to be shown
+	std::string text;
+	// Number of characters in text
+	int textNumChars = 0;
+	// Current number of visible characters
+	int numVisibleChars = 0;
+	// Time in seconds since the last char was shown
+	float timeSinceLastChar = 0;
+	// Time in seconds before the next character is shown
+	float charDelay;
+};

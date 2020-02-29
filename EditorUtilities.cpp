@@ -2239,6 +2239,27 @@ void ClickableTimeline::updateButtonsPositionsAndSizes() {
 	}
 }
 
+void TimedLabel::update(sf::Time elapsedTime) {
+	timeSinceLastChar += elapsedTime.asSeconds();
+	int numCharsToBeShown = (int)(timeSinceLastChar / charDelay);
+	if (numCharsToBeShown > 0) {
+		numVisibleChars = std::min(numVisibleChars + numCharsToBeShown, textNumChars);
+		Label::setText(text.substr(0, numVisibleChars));
+	}
+	timeSinceLastChar = std::fmod(timeSinceLastChar, charDelay);
+
+	Label::update(elapsedTime);
+}
+
+void TimedLabel::setText(const sf::String& text) {
+	this->text = text;
+	textNumChars = text.getSize();
+	timeSinceLastChar = 0;
+	numVisibleChars = 0;
+
+	Label::setText("");
+}
+
 DelayedSlider::DelayedSlider() {
 	// connect() will call DelayedSlider::getSignal(), so we set ignoreDelayedSliderSignalName
 	// to true to get the tgui::Slider's ValueChanged signal just for this call
