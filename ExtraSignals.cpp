@@ -42,6 +42,33 @@ namespace tgui {
 	TGUI_SIGNAL_VALUE_CONNECT_DEFINITION(EditorMovablePoint, std::shared_ptr<EditorMovablePoint>)
 	TGUI_SIGNAL_VALUE_CONNECT_DEFINITION(SoundSettings, SoundSettings)
 	TGUI_SIGNAL_VALUE_CONNECT_DEFINITION(Animatable, Animatable)
+	TGUI_SIGNAL_VALUE_CONNECT_DEFINITION(EMPA, std::shared_ptr<EMPAction>)
+
+	unsigned int SignalTFVPair::connect(const DelegateTFVPair& handler)
+    { 
+        const auto id = generateUniqueId(); 
+        m_handlers[id] = [handler](){ handler(internal_signal::dereference<std::pair<std::shared_ptr<TFV>, std::shared_ptr<TFV>>>(internal_signal::parameters[1])); };
+        return id; 
+    } 
+    
+    unsigned int SignalTFVPair::connect(const DelegateTFVPairEx& handler)
+    { 
+        const auto id = generateUniqueId(); 
+        m_handlers[id] = [handler, name=m_name](){ handler(getWidget(), name, internal_signal::dereference<std::pair<std::shared_ptr<TFV>, std::shared_ptr<TFV>>>(internal_signal::parameters[1])); };
+        return id; 
+    }
+
+	unsigned int SignalEMPAAngleOffsetPair::connect(const DelegateEMPAAngleOffsetPair& handler) {
+		const auto id = generateUniqueId();
+		m_handlers[id] = [handler]() { handler(internal_signal::dereference<std::pair<std::shared_ptr<EMPAAngleOffset>, std::shared_ptr<EMPAAngleOffset>>>(internal_signal::parameters[1])); };
+		return id;
+	}
+
+	unsigned int SignalEMPAAngleOffsetPair::connect(const DelegateEMPAAngleOffsetPairEx& handler) {
+		const auto id = generateUniqueId();
+		m_handlers[id] = [handler, name = m_name]() { handler(getWidget(), name, internal_signal::dereference<std::pair<std::shared_ptr<EMPAAngleOffset>, std::shared_ptr<EMPAAngleOffset>>>(internal_signal::parameters[1])); };
+		return id;
+	}
 
 	unsigned int SignalEditorAttack::validateTypes(std::initializer_list<std::type_index> unboundParameters) const {
 		if ((unboundParameters.size() == 1) && checkParamType<std::shared_ptr<EditorAttack>>(unboundParameters.begin()))
@@ -66,6 +93,27 @@ namespace tgui {
 
 	unsigned int SignalAnimatable::validateTypes(std::initializer_list<std::type_index> unboundParameters) const {
 		if ((unboundParameters.size() == 1) && checkParamType<Animatable>(unboundParameters.begin()))
+			return 1;
+		else
+			return Signal::validateTypes(unboundParameters);
+	}
+
+	unsigned int SignalTFVPair::validateTypes(std::initializer_list<std::type_index> unboundParameters) const {
+		if ((unboundParameters.size() == 1) && checkParamType<std::pair<std::shared_ptr<TFV>, std::shared_ptr<TFV>>>(unboundParameters.begin()))
+			return 1;
+		else
+			return Signal::validateTypes(unboundParameters);
+	}
+
+	unsigned int SignalEMPAAngleOffsetPair::validateTypes(std::initializer_list<std::type_index> unboundParameters) const {
+		if ((unboundParameters.size() == 1) && checkParamType<std::pair<std::shared_ptr<EMPAAngleOffset>, std::shared_ptr<EMPAAngleOffset>>>(unboundParameters.begin()))
+			return 1;
+		else
+			return Signal::validateTypes(unboundParameters);
+	}
+
+	unsigned int SignalEMPA::validateTypes(std::initializer_list<std::type_index> unboundParameters) const {
+		if ((unboundParameters.size() == 1) && checkParamType<std::shared_ptr<EMPAction>>(unboundParameters.begin()))
 			return 1;
 		else
 			return Signal::validateTypes(unboundParameters);
