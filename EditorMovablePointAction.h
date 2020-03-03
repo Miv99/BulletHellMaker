@@ -116,6 +116,8 @@ EMPA for short.
 */
 class EMPAction : public TextMarshallable {
 public:
+	virtual std::shared_ptr<EMPAction> clone() = 0;
+
 	virtual std::string format() const = 0;
 	virtual void load(std::string formattedString) = 0;
 	// Time for the action to be completed
@@ -149,6 +151,7 @@ Cannot be used by by enemies.
 class DetachFromParentEMPA : public EMPAction {
 public:
 	inline DetachFromParentEMPA() {}
+	std::shared_ptr<EMPAction> clone() override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
@@ -168,6 +171,7 @@ class StayStillAtLastPositionEMPA : public EMPAction {
 public:
 	inline StayStillAtLastPositionEMPA() {}
 	inline StayStillAtLastPositionEMPA(float duration) : duration(duration) {}
+	std::shared_ptr<EMPAction> clone() override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
@@ -191,6 +195,7 @@ public:
 	inline MoveCustomPolarEMPA() {}
 	inline MoveCustomPolarEMPA(std::shared_ptr<TFV> distance, std::shared_ptr<TFV> angle, float time) : distance(distance), angle(angle), time(time) {}
 	inline MoveCustomPolarEMPA(std::shared_ptr<TFV> distance, std::shared_ptr<TFV> angle, float time, std::shared_ptr<EMPAAngleOffset> angleOffset) : distance(distance), angle(angle), time(time), angleOffset(angleOffset) {}
+	std::shared_ptr<EMPAction> clone() override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
@@ -229,6 +234,7 @@ public:
 	inline MoveCustomBezierEMPA(std::vector<sf::Vector2f> unrotatedControlPoints, float time, std::shared_ptr<EMPAAngleOffset> rotationAngle) : time(time), rotationAngle(rotationAngle) {
 		setUnrotatedControlPoints(unrotatedControlPoints);
 	}
+	std::shared_ptr<EMPAction> clone() override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
@@ -266,6 +272,7 @@ public:
 	homingStrength - determines how quickly the entity homes in on the player; in range (0, 1]. A value of 0.02 is already pretty strong.
 	*/
 	inline MovePlayerHomingEMPA(std::shared_ptr<TFV> homingStrength, std::shared_ptr<TFV> speed, float time) : homingStrength(homingStrength), speed(speed), time(time) {}
+	std::shared_ptr<EMPAction> clone() override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;

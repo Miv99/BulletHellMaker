@@ -80,6 +80,12 @@ float EMPAngleOffsetPlayerSpriteAngle::evaluate(float xFrom, float yFrom, float 
 }
 
 
+std::shared_ptr<EMPAction> DetachFromParentEMPA::clone() {
+	std::shared_ptr<DetachFromParentEMPA> copy = std::make_shared<DetachFromParentEMPA>();
+	copy->load(format());
+	return copy;
+}
+
 std::string DetachFromParentEMPA::format() const {
 	return formatString("DetachFromParentEMPA");
 }
@@ -108,6 +114,12 @@ std::shared_ptr<MovablePoint> DetachFromParentEMPA::generateStandaloneMP(float x
 	return std::make_shared<StationaryMP>(sf::Vector2f(x, y), 0);
 }
 
+std::shared_ptr<EMPAction> StayStillAtLastPositionEMPA::clone() {
+	std::shared_ptr<StayStillAtLastPositionEMPA> copy = std::make_shared<StayStillAtLastPositionEMPA>();
+	copy->load(format());
+	return copy;
+}
+
 std::string StayStillAtLastPositionEMPA::format() const {
 	return formatString("StayStillAtLastPositionEMPA") + tos(duration);
 }
@@ -134,6 +146,12 @@ std::shared_ptr<MovablePoint> StayStillAtLastPositionEMPA::execute(EntityCreatio
 
 std::shared_ptr<MovablePoint> StayStillAtLastPositionEMPA::generateStandaloneMP(float x, float y, float playerX, float playerY) {
 	return std::make_shared<StationaryMP>(sf::Vector2f(x, y), duration);
+}
+
+std::shared_ptr<EMPAction> MoveCustomPolarEMPA::clone() {
+	std::shared_ptr<MoveCustomPolarEMPA> copy = std::make_shared<MoveCustomPolarEMPA>();
+	copy->load(format());
+	return copy;
 }
 
 std::string MoveCustomPolarEMPA::format() const {
@@ -179,6 +197,12 @@ std::shared_ptr<MovablePoint> MoveCustomPolarEMPA::generateStandaloneMP(float x,
 
 		return std::make_shared<PolarMP>(time, distance, angleWithOffset);
 	}
+}
+
+std::shared_ptr<EMPAction> MoveCustomBezierEMPA::clone() {
+	std::shared_ptr<MoveCustomBezierEMPA> copy = std::make_shared<MoveCustomBezierEMPA>();
+	copy->load(format());
+	return copy;
 }
 
 std::string MoveCustomBezierEMPA::format() const {
@@ -240,6 +264,12 @@ std::shared_ptr<MovablePoint> MoveCustomBezierEMPA::generateStandaloneMP(float x
 	} else {
 		return std::make_shared<BezierMP>(time, unrotatedControlPoints);
 	}
+}
+
+std::shared_ptr<EMPAction> MovePlayerHomingEMPA::clone() {
+	std::shared_ptr<MovePlayerHomingEMPA> copy = std::make_shared<MovePlayerHomingEMPA>();
+	copy->load(format());
+	return copy;
 }
 
 std::string MovePlayerHomingEMPA::format() const {
