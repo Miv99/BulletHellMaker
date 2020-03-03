@@ -174,6 +174,10 @@ AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprit
 	rotationType->addItem("Face horizontal movement", std::to_string(static_cast<int>(LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT)));
 
 	animatable->connect("ItemSelected", [&](std::string itemText, std::string id) {
+		if (ignoreSignals) {
+			return;
+		}
+
 		// ID is in format "spriteSheetName\animatableName"
 		std::string spriteSheetName = id.substr(0, id.find_first_of('\\'));
 
@@ -204,6 +208,10 @@ AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprit
 		calculateItemsToDisplay();
 	});
 	rotationType->connect("ItemSelected", [&](std::string item, std::string id) {
+		if (ignoreSignals) {
+			return;
+		}
+
 		if (animatable->getSelectedItem() == "") {
 			onValueChange.emit(this, Animatable("", "", false, static_cast<ROTATION_TYPE>(std::stoi(std::string(id)))));
 		} else {
@@ -212,7 +220,9 @@ AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprit
 			onValueChange.emit(this, Animatable(std::string(animatable->getSelectedItem()).substr(3), spriteSheetName, animatable->getSelectedItem()[1] == 'S', static_cast<ROTATION_TYPE>(std::stoi(std::string(id)))));
 		}
 	});
+	ignoreSignals = true;
 	rotationType->setSelectedItemById(std::to_string(static_cast<int>(LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT)));
+	ignoreSignals = false;
 
 	add(animatable);
 	add(rotationType);

@@ -312,6 +312,8 @@ private:
 	std::shared_ptr<AnimatablePicture> animatablePicture;
 
 	tgui::SignalAnimatable onValueChange = { "ValueChanged" };
+
+	bool ignoreSignals = false;
 };
 
 /*
