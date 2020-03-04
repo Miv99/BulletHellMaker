@@ -75,6 +75,22 @@ class EditorWindow;
 class UndoableEditorWindow;
 
 /*
+A tgui::Group whose size will be (0, 0) while invisible.
+*/
+class HideableGroup : public tgui::Group {
+public:
+	const tgui::Layout2d& getSizeLayout() const;
+
+	void setSize(const tgui::Layout2d& size) override;
+	void setSize(tgui::Layout width, tgui::Layout height);
+	void setVisible(bool visible) override;
+
+private:
+	// The size of this widget right before setVisible(false) is called
+	tgui::Layout2d savedSize;
+};
+
+/*
 A tgui::Slider that allows for values not limited by multiples of the slider's step.
 */
 class Slider : public tgui::Slider {
@@ -188,7 +204,7 @@ NumericalEditBoxWithLimits located on its right.
 ValueChanged - emitted VALUE_CHANGE_WINDOW seconds after the slider value or edit box value is changed.
 		Optional parameter: the new value as a float
 */
-class SliderWithEditBox : public tgui::Group {
+class SliderWithEditBox : public HideableGroup {
 public:
 	SliderWithEditBox();
 	static std::shared_ptr<SliderWithEditBox> create() {
@@ -271,7 +287,7 @@ Signals:
 The height of this widget will always be just enough to fit all 
 the widgets in it, so changing the height of this widget will do nothing.
 */
-class AnimatableChooser : public tgui::Group {
+class AnimatableChooser : public HideableGroup {
 public:
 	/*
 	forceSprite - if true, the user is forced to choose between sprites instead of being able to choose between sprites and animations
@@ -290,7 +306,6 @@ public:
 	*/
 	Animatable getValue();
 
-	void setVisible(bool visible);
 	void setEnabled(bool enabled);
 	void setAnimatablePictureSize(tgui::Layout width, tgui::Layout height);
 	void setAnimatablePictureSize(const tgui::Layout2d& size);
@@ -323,7 +338,7 @@ Signals:
 	ValueChanged - emitted when a change is made to the SoundSettings object being edited
 	Optional parameter: the new SoundSettings object
 */
-class SoundSettingsGroup : public tgui::Group {
+class SoundSettingsGroup : public HideableGroup {
 public:
 	SoundSettingsGroup(std::string pathToSoundsFolder);
 	/*

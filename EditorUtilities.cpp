@@ -137,6 +137,45 @@ std::vector<std::pair<std::vector<float>, std::vector<float>>> generateMPLPoints
 	return ret;
 }
 
+
+const tgui::Layout2d & HideableGroup::getSizeLayout() const {
+	if (!isVisible()) {
+		return savedSize;
+	}
+	return tgui::Group::getSizeLayout();
+}
+
+void HideableGroup::setSize(const tgui::Layout2d & size) {
+	// Ignore resizes until widget is set to visible again
+	if (!isVisible()) {
+		savedSize = size;
+	} else {
+		tgui::Group::setSize(size);
+	}
+}
+
+void HideableGroup::setSize(tgui::Layout width, tgui::Layout height) {
+	// Ignore resizes until widget is set to visible again
+	if (!isVisible()) {
+		savedSize = { width, height };
+	} else {
+		tgui::Group::setSize(width, height);
+	}
+}
+
+void HideableGroup::setVisible(bool visible) {
+	bool wasVisible = isVisible();
+
+	tgui::Group::setVisible(visible);
+	// Set width and height to 0 if this widget becomes invisible
+	if (!visible && wasVisible) {
+		savedSize = this->getSizeLayout();
+		tgui::Group::setSize({ 0, 0 });
+	} else if (visible) {
+		tgui::Group::setSize(savedSize);
+	}
+}
+
 AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprite) : spriteLoader(spriteLoader), forceSprite(forceSprite) {
 	animatablePicture = AnimatablePicture::create();
 	animatable = tgui::ComboBox::create();
@@ -293,11 +332,6 @@ Animatable AnimatableChooser::getValue() {
 	}
 
 	return Animatable(itemText.substr(3), spriteSheetName, itemText[1] == 'S', static_cast<ROTATION_TYPE>(std::stoi(std::string(rotationType->getSelectedItemId()))));
-}
-
-void AnimatableChooser::setVisible(bool visible) {
-	tgui::Group::setVisible(visible);
-	animatablePicture->setVisible(visible);
 }
 
 void AnimatableChooser::setEnabled(bool enabled) {
