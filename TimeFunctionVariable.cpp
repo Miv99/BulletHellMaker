@@ -66,14 +66,15 @@ std::shared_ptr<TFV> DampenedStartTFV::clone() {
 }
 
 std::string DampenedStartTFV::format() const {
-	return formatString("DampenedStartTFV") + tos(a) + tos(startValue) + tos(dampeningFactor);
+	return formatString("DampenedStartTFV") + tos(a) + tos(startValue) + tos(endValue) + tos(dampeningFactor);
 }
 
 void DampenedStartTFV::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	a = std::stof(items[1]);
 	startValue = std::stof(items[2]);
-	dampeningFactor = std::stoi(items[3]);
+	endValue = std::stof(items[3]);
+	dampeningFactor = std::stoi(items[4]);
 }
 
 std::shared_ptr<TFV> DampenedEndTFV::clone() {
@@ -83,15 +84,16 @@ std::shared_ptr<TFV> DampenedEndTFV::clone() {
 }
 
 std::string DampenedEndTFV::format() const {
-	return formatString("DampenedEndTFV") + tos(a) + tos(endValue) + tos(maxTime) + tos(dampeningFactor);
+	return formatString("DampenedEndTFV") + tos(a) + tos(startValue) + tos(endValue) + tos(maxTime) + tos(dampeningFactor);
 }
 
 void DampenedEndTFV::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	a = std::stof(items[1]);
-	endValue = std::stof(items[2]);
-	maxTime = std::stof(items[3]);
-	dampeningFactor = std::stoi(items[4]);
+	startValue = std::stof(items[2]);
+	endValue = std::stof(items[3]);
+	maxTime = std::stof(items[4]);
+	dampeningFactor = std::stoi(items[5]);
 }
 
 std::shared_ptr<TFV> DoubleDampenedTFV::clone() {
