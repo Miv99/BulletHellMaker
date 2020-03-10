@@ -149,7 +149,7 @@ public:
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
-	std::string getName() override { return "Distance due to simulated gravity"; }
+	std::string getName() override { return "Distance from acceleration"; }
 	
 	inline float evaluate(float time) override {
 		return initialDistance + initialVelocity * time + 0.5f*acceleration*time*time;
