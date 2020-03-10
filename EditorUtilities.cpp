@@ -428,7 +428,6 @@ SliderWithEditBox::SliderWithEditBox() {
 	slider = std::make_shared<DelayedSlider>();
 	editBox = std::make_shared<NumericalEditBoxWithLimits>();
 
-	slider->setPosition(0, 0);
 	editBox->setPosition(tgui::bindRight(slider) + GUI_PADDING_X, 0);
 
     slider->setChangeValueOnScroll(false);
@@ -463,7 +462,9 @@ SliderWithEditBox::SliderWithEditBox() {
 
 	connect("SizeChanged", [&](sf::Vector2f newSize) {
 		editBox->setSize(tgui::bindMin(200, "30%"), "100%");
-		slider->setSize(newSize.x - tgui::bindWidth(editBox) - GUI_PADDING_X, "100%");
+		// The sliding part of the slider extends upwards and downwards a bit, so make room for it
+		slider->setSize(newSize.x - tgui::bindWidth(editBox) - GUI_PADDING_X - 4, newSize.y - 6);
+		slider->setPosition(4, 3);
 	});
 
 	setMin(0);
