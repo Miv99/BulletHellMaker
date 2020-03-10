@@ -169,7 +169,7 @@ void HideableGroup::setVisible(bool visible) {
 	tgui::Group::setVisible(visible);
 	// Set width and height to 0 if this widget becomes invisible
 	if (!visible && wasVisible) {
-		savedSize = this->getSizeLayout();
+		savedSize = tgui::Group::getSizeLayout();
 		tgui::Group::setSize({ 0, 0 });
 	} else if (visible) {
 		tgui::Group::setSize(savedSize);
