@@ -209,7 +209,7 @@ void EditorWindow::addPopupWidget(std::shared_ptr<tgui::Widget> popup, float pre
 	popupHeight = std::min(popupHeight, windowHeight - popup->getAbsolutePosition().y);
 	// If it was going to go past the window width/height, move the popup back the amount it was going to go past the window width/height
 	popup->setPosition(std::max(0.0f, popup->getPosition().x - (oldWidth - popupWidth)), std::max(0.0f, popup->getPosition().y - (oldHeight - popupHeight)));
-	popup->setSize(popupWidth, popupHeight);
+	popup->setSize(oldWidth, oldHeight);
 
 	this->popup = popup;
 	popupContainer = nullptr;
