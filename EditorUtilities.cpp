@@ -1134,7 +1134,7 @@ TFVGroup::TFVGroup(EditorWindow& parentWindow) : parentWindow(parentWindow) {
 		tfvInt1Slider->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvInt1Label) + GUI_LABEL_PADDING_Y);
 
 		segmentList->setSize(segmentList->getSize().x, tgui::bindBottom(this->tfvInt1Slider));
-		this->setSize(this->getSizeLayout().x, tgui::bindBottom(this->changeSegmentType));
+		this->setSize(this->getSizeLayout().x, changeSegmentType->getPosition().y + changeSegmentType->getSize().y);
 		ignoreResizeSignal = false;
 	});
 
