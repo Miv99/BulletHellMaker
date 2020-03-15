@@ -193,6 +193,8 @@ public:
 	// Inserts an EMPAction such that the new action is at the specified index
 	void insertAction(int index, std::shared_ptr<EMPAction> action);
 	void removeAction(int index);
+	// Replace the EMPAction at some index
+	void replaceAction(int index, std::shared_ptr<EMPAction> action);
 	/*
 	Removes a child.
 

@@ -252,6 +252,10 @@ void EditorMovablePoint::removeAction(int index) {
 	actions.erase(actions.begin() + index);
 }
 
+void EditorMovablePoint::replaceAction(int index, std::shared_ptr<EMPAction> action) {
+	actions[index] = action;
+}
+
 void EditorMovablePoint::removeChild(int id) {
 	int pos = 0;
 	for (pos = 0; pos < children.size(); pos++) {

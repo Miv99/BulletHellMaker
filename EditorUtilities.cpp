@@ -835,8 +835,6 @@ TFVGroup::TFVGroup(EditorWindow& parentWindow) : parentWindow(parentWindow) {
 			std::lock_guard<std::recursive_mutex> lock(tfvMutex);
 
 			std::shared_ptr<TFV> newTFV = std::make_shared<LinearTFV>();
-			// Replace selected segment with new type
-			std::shared_ptr<TFV> oldClone = selectedSegment->clone();
 			float oldStartTime = tfv->getSegment(selectedSegmentIndex).first;
 			int selectedSegmentIndex = this->selectedSegmentIndex;
 			tfv->changeSegment(selectedSegmentIndex, newTFV, tfvLifespan);
@@ -849,7 +847,6 @@ TFVGroup::TFVGroup(EditorWindow& parentWindow) : parentWindow(parentWindow) {
 			std::lock_guard<std::recursive_mutex> lock(tfvMutex);
 
 			std::shared_ptr<TFV> newTFV = std::make_shared<ConstantTFV>();
-			std::shared_ptr<TFV> oldClone = selectedSegment->clone();
 			float oldStartTime = tfv->getSegment(selectedSegmentIndex).first;
 			int selectedSegmentIndex = this->selectedSegmentIndex;
 			tfv->changeSegment(selectedSegmentIndex, newTFV, tfvLifespan);
@@ -861,7 +858,6 @@ TFVGroup::TFVGroup(EditorWindow& parentWindow) : parentWindow(parentWindow) {
 			std::lock_guard<std::recursive_mutex> lock(tfvMutex);
 
 			std::shared_ptr<TFV> newTFV = std::make_shared<SineWaveTFV>();
-			std::shared_ptr<TFV> oldClone = selectedSegment->clone();
 			float oldStartTime = tfv->getSegment(selectedSegmentIndex).first;
 			int selectedSegmentIndex = this->selectedSegmentIndex;
 			tfv->changeSegment(selectedSegmentIndex, newTFV, tfvLifespan);
@@ -873,7 +869,6 @@ TFVGroup::TFVGroup(EditorWindow& parentWindow) : parentWindow(parentWindow) {
 			std::lock_guard<std::recursive_mutex> lock(tfvMutex);
 
 			std::shared_ptr<TFV> newTFV = std::make_shared<ConstantAccelerationDistanceTFV>();
-			std::shared_ptr<TFV> oldClone = selectedSegment->clone();
 			float oldStartTime = tfv->getSegment(selectedSegmentIndex).first;
 			int selectedSegmentIndex = this->selectedSegmentIndex;
 			tfv->changeSegment(selectedSegmentIndex, newTFV, tfvLifespan);
@@ -885,7 +880,6 @@ TFVGroup::TFVGroup(EditorWindow& parentWindow) : parentWindow(parentWindow) {
 			std::lock_guard<std::recursive_mutex> lock(tfvMutex);
 
 			std::shared_ptr<TFV> newTFV = std::make_shared<DampenedStartTFV>();
-			std::shared_ptr<TFV> oldClone = selectedSegment->clone();
 			float oldStartTime = tfv->getSegment(selectedSegmentIndex).first;
 			int selectedSegmentIndex = this->selectedSegmentIndex;
 			tfv->changeSegment(selectedSegmentIndex, newTFV, tfvLifespan);
@@ -897,7 +891,6 @@ TFVGroup::TFVGroup(EditorWindow& parentWindow) : parentWindow(parentWindow) {
 			std::lock_guard<std::recursive_mutex> lock(tfvMutex);
 
 			std::shared_ptr<TFV> newTFV = std::make_shared<DampenedEndTFV>();
-			std::shared_ptr<TFV> oldClone = selectedSegment->clone();
 			float oldStartTime = tfv->getSegment(selectedSegmentIndex).first;
 			int selectedSegmentIndex = this->selectedSegmentIndex;
 			tfv->changeSegment(selectedSegmentIndex, newTFV, tfvLifespan);
@@ -909,14 +902,13 @@ TFVGroup::TFVGroup(EditorWindow& parentWindow) : parentWindow(parentWindow) {
 			std::lock_guard<std::recursive_mutex> lock(tfvMutex);
 
 			std::shared_ptr<TFV> newTFV = std::make_shared<DoubleDampenedTFV>();
-			std::shared_ptr<TFV> oldClone = selectedSegment->clone();
 			float oldStartTime = tfv->getSegment(selectedSegmentIndex).first;
 			int selectedSegmentIndex = this->selectedSegmentIndex;
 			tfv->changeSegment(selectedSegmentIndex, newTFV, tfvLifespan);
 			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
 			selectSegment(selectedSegmentIndex);
 			populateSegmentList();
-		}),
+		})
 	});
 	segmentTypePopup->setPosition(tgui::bindLeft(changeSegmentType), tgui::bindTop(changeSegmentType));
 
@@ -1144,7 +1136,6 @@ TFVGroup::TFVGroup(EditorWindow& parentWindow) : parentWindow(parentWindow) {
 void TFVGroup::setTFV(std::shared_ptr<TFV> tfv, float tfvLifespan) {
 	oldTFV = tfv;
 	this->tfvLifespan = tfvLifespan;
-	this->tfvIdentifier = tfvIdentifier;
 	if (dynamic_cast<PiecewiseTFV*>(tfv.get()) != nullptr) {
 		this->tfv = std::dynamic_pointer_cast<PiecewiseTFV>(tfv->clone());
 	} else {
@@ -1325,28 +1316,108 @@ void TFVGroup::populateSegmentList() {
 	ignoreSignals = false;
 }
 
-EMPAAngleOffsetGroup::EMPAAngleOffsetGroup() {
-	offsetType = tgui::ComboBox::create();
-	offsetType->setTextSize(TEXT_SIZE);
-	// ID are from getID()
-	offsetType->addItem("No offset", "1");
-	offsetType->addItem("To player", "2");
-	offsetType->addItem("To global position", "3");
-	offsetType->addItem("Player sprite angle", "4");
-	offsetType->connect("ItemSelected", [&](std::string item, std::string id) {
-		onValueChange.emit(this, std::make_pair(oldAngleOffset, angleOffset));
+EMPAAngleOffsetGroup::EMPAAngleOffsetGroup(EditorWindow & parentWindow) : parentWindow(parentWindow) {
+	changeType = tgui::Button::create();
+	changeType->setText("Change type");
+	changeType->connect("Pressed", [&]() {
+		parentWindow.addPopupWidget(typePopup, parentWindow.getMousePos().x, parentWindow.getMousePos().y, 200, typePopup->getSize().y);
+	});
+	add(changeType);
+
+	typePopup = createMenuPopup({
+		std::make_pair("No offset", [&]() {
+			this->offset = std::make_shared<EMPAAngleOffsetZero>();
+			onValueChange.emit(this, std::make_pair(oldOffset, offset));
+			updateWidgets();
+		}),
+		std::make_pair("Relative to player", [&]() {
+			this->offset = std::make_shared<EMPAAngleOffsetToPlayer>();
+			onValueChange.emit(this, std::make_pair(oldOffset, offset));
+			updateWidgets();
+		}),
+		std::make_pair("Absolute position", [&]() {
+			this->offset = std::make_shared<EMPAAngleOffsetToGlobalPosition>();
+			onValueChange.emit(this, std::make_pair(oldOffset, offset));
+			updateWidgets();
+		}),
+		std::make_pair("Bind to player's direction", [&]() {
+			this->offset = std::make_shared<EMPAngleOffsetPlayerSpriteAngle>();
+			onValueChange.emit(this, std::make_pair(oldOffset, offset));
+			updateWidgets();
+		})
+	});
+	typePopup->setPosition(tgui::bindLeft(changeType), tgui::bindTop(changeType));
+
+	offsetName = tgui::Label::create();
+	xLabel = tgui::Label::create();
+	yLabel = tgui::Label::create();
+	offsetName->setTextSize(TEXT_SIZE);
+	xLabel->setTextSize(TEXT_SIZE);
+	yLabel->setTextSize(TEXT_SIZE);
+	add(offsetName);
+	add(xLabel);
+	add(yLabel);
+
+	x = NumericalEditBoxWithLimits::create();
+	y = NumericalEditBoxWithLimits::create();
+	x->connect("ValueChanged", [&](float value) {
+		if (ignoreSignals) return;
+
+		if (dynamic_cast<EMPAAngleOffsetToPlayer*>(offset.get()) != nullptr) {
+			auto ptr = dynamic_cast<EMPAAngleOffsetToPlayer*>(offset.get());
+			ptr->setXOffset(value);
+			onValueChange.emit(this, std::make_pair(oldOffset, offset));
+		} else if (dynamic_cast<EMPAAngleOffsetToGlobalPosition*>(offset.get()) != nullptr) {
+			auto ptr = dynamic_cast<EMPAAngleOffsetToGlobalPosition*>(offset.get());
+			ptr->setX(value);
+			onValueChange.emit(this, std::make_pair(oldOffset, offset));
+		}
+	});
+	y->connect("ValueChanged", [&](float value) {
+		if (ignoreSignals) return;
+
+		if (dynamic_cast<EMPAAngleOffsetToPlayer*>(offset.get()) != nullptr) {
+			auto ptr = dynamic_cast<EMPAAngleOffsetToPlayer*>(offset.get());
+			ptr->setYOffset(value);
+			onValueChange.emit(this, std::make_pair(oldOffset, offset));
+		} else if (dynamic_cast<EMPAAngleOffsetToGlobalPosition*>(offset.get()) != nullptr) {
+			auto ptr = dynamic_cast<EMPAAngleOffsetToGlobalPosition*>(offset.get());
+			ptr->setY(value);
+			onValueChange.emit(this, std::make_pair(oldOffset, offset));
+		}
+	});
+	x->setTextSize(TEXT_SIZE);
+	y->setTextSize(TEXT_SIZE);
+	add(x);
+	add(y);
+
+	connect("SizeChanged", [&](sf::Vector2f newSize) {
+		if (ignoreResizeSignal) {
+			return;
+		}
+
+		ignoreResizeSignal = true;
+
+		offsetName->setPosition(0, 0);
+
+		changeType->setSize(100, TEXT_BUTTON_HEIGHT);
+		changeType->setPosition(tgui::bindLeft(offsetName), tgui::bindBottom(offsetName) + GUI_PADDING_Y);
+
+		xLabel->setPosition(tgui::bindLeft(offsetName), tgui::bindBottom(changeType) + GUI_PADDING_Y);
+		x->setPosition(tgui::bindLeft(offsetName), tgui::bindBottom(xLabel) + GUI_LABEL_PADDING_Y);
+		yLabel->setPosition(tgui::bindLeft(offsetName), tgui::bindBottom(x) + GUI_PADDING_Y);
+		y->setPosition(tgui::bindLeft(offsetName), tgui::bindBottom(yLabel) + GUI_LABEL_PADDING_Y);
+
+		this->setSize(this->getSizeLayout().x, y->getPosition().y + y->getSize().y);
+		ignoreResizeSignal = false;
 	});
 }
 
-void EMPAAngleOffsetGroup::onContainerResize(int containerWidth, int containerHeight) {
-	//TODO
-}
-
 void EMPAAngleOffsetGroup::setEMPAAngleOffset(std::shared_ptr<EMPAAngleOffset> offset) {
-	oldAngleOffset = offset;
-	angleOffset = offset->clone();
+	oldOffset = offset;
+	this->offset = offset->clone();
 
-	//TODO: init values of widgets
+	updateWidgets();
 }
 
 tgui::Signal & EMPAAngleOffsetGroup::getSignal(std::string signalName) {
@@ -1354,6 +1425,51 @@ tgui::Signal & EMPAAngleOffsetGroup::getSignal(std::string signalName) {
 		return onValueChange;
 	}
 	return tgui::Group::getSignal(signalName);
+}
+
+void EMPAAngleOffsetGroup::updateWidgets() {
+	ignoreSignals = true;
+
+	offsetName->setText(offset->getName());
+
+	if (dynamic_cast<EMPAAngleOffsetToPlayer*>(offset.get()) != nullptr) {
+		auto ptr = dynamic_cast<EMPAAngleOffsetToPlayer*>(offset.get());
+		xLabel->setText("X offset");
+		yLabel->setText("Y offset");
+		x->setValue(ptr->getXOffset());
+		y->setValue(ptr->getYOffset());
+
+		xLabel->setVisible(true);
+		yLabel->setVisible(true);
+		x->setVisible(true);
+		y->setVisible(true);
+	} else if (dynamic_cast<EMPAAngleOffsetToGlobalPosition*>(offset.get()) != nullptr) {
+		auto ptr = dynamic_cast<EMPAAngleOffsetToGlobalPosition*>(offset.get());
+		xLabel->setText("X");
+		yLabel->setText("Y");
+		x->setValue(ptr->getX());
+		y->setValue(ptr->getY());
+
+		xLabel->setVisible(true);
+		yLabel->setVisible(true);
+		x->setVisible(true);
+		y->setVisible(true);
+	} else if (dynamic_cast<EMPAAngleOffsetZero*>(offset.get()) != nullptr) {
+		xLabel->setVisible(false);
+		yLabel->setVisible(false);
+		x->setVisible(false);
+		y->setVisible(false);
+	} else if (dynamic_cast<EMPAngleOffsetPlayerSpriteAngle*>(offset.get()) != nullptr) {
+		xLabel->setVisible(false);
+		yLabel->setVisible(false);
+		x->setVisible(false);
+		y->setVisible(false);
+	} else {
+		// You forgot a case
+		assert(false);
+	}
+
+	ignoreSignals = false;
 }
 
 ListBoxScrollablePanel::ListBoxScrollablePanel() {

@@ -455,6 +455,7 @@ public:
 	/*
 	Initialize this widget to tfv's values.
 	tfv won't be modified by this widget.
+	The old TFV emitted in the ValueChanged signal will tfv until the next setTFV() call.
 
 	tfvLifespan - the max lifespan of tfv. If the TFV is in an EMPA, this value
 		should be EMPA::getTime().
@@ -492,12 +493,9 @@ private:
 
 	std::shared_ptr<TFV> oldTFV; // Should never be modified after setTFV() is called
 	std::shared_ptr<PiecewiseTFV> tfv;
-	std::string tfvIdentifier;
 	std::shared_ptr<TFV> selectedSegment;
 	int selectedSegmentIndex = -1;
 	float tfvLifespan; // Shouldn't be modified except by setTFV()
-
-	std::shared_ptr<tgui::Button> beginEditingButton;
 
 	/*
 	Signal emitted when a change is made to the TFV being edited.
@@ -519,45 +517,53 @@ private:
 Used to edit EMPAAngleOffsets.
 
 Signals:
-	ValueChanged - emitted AFTER a change is made to the EMPAAngleOffset
-		Optional parameter: a pair of shared_ptr to the old EMPAAngleOffset and a
-			shared_ptr to the new EMPAAngleOffset
+	ValueChanged - emitted when a change is made to the EMPAAngleOffset being edited.
+		Optional parameter: a pair of a shared_ptr to the old EMPAAngleOffset object
+			and shared_ptr to the new EMPAAngleOffset object
 */
 class EMPAAngleOffsetGroup : public HideableGroup {
 public:
-	EMPAAngleOffsetGroup();
-	static std::shared_ptr<EMPAAngleOffsetGroup> create() {
-		return std::make_shared<EMPAAngleOffsetGroup>();
+	EMPAAngleOffsetGroup(EditorWindow& parentWindow);
+	static std::shared_ptr<EMPAAngleOffsetGroup> create(EditorWindow& parentWindow) {
+		return std::make_shared<EMPAAngleOffsetGroup>(parentWindow);
 	}
 
 	/*
-	Should be called whenever this widget's container is resized.
-	This function automatically sets the height of this widget.
-	*/
-	void onContainerResize(int containerWidth, int containerHeight);
-
-	/*
 	Initialize this widget to offset's values.
-	offset won't be modified by this widget
+	offset won't be modified by this widget.
+
+	The old offset emitted in the ValueChanged signal will offset until the next setEMPAAngleOffset() call.
 	*/
 	void setEMPAAngleOffset(std::shared_ptr<EMPAAngleOffset> offset);
 
 	tgui::Signal& getSignal(std::string signalName) override;
 
 private:
-	std::shared_ptr<EMPAAngleOffset> oldAngleOffset; // Should never be modified after setEMPAAngleOffset() is called
-	std::shared_ptr<EMPAAngleOffset> angleOffset;
+	EditorWindow& parentWindow;
 
-	std::shared_ptr<tgui::ComboBox> offsetType;
-	std::shared_ptr<SliderWithEditBox> x;
-	std::shared_ptr<SliderWithEditBox> y;
+	std::shared_ptr<tgui::Label> offsetName;
+	std::shared_ptr<tgui::Button> changeType;
+	std::shared_ptr<tgui::ListBox> typePopup;
+	std::shared_ptr<tgui::Label> xLabel;
+	std::shared_ptr<tgui::Label> yLabel;
+	std::shared_ptr<NumericalEditBoxWithLimits> x;
+	std::shared_ptr<NumericalEditBoxWithLimits> y;
+
+	std::shared_ptr<EMPAAngleOffset> oldOffset; // Should never be modified after setTFV() is called
+	std::shared_ptr<EMPAAngleOffset> offset;
 
 	/*
-	Signal emitted AFTER a change is made to the EMPAAngleOffset
-	Optional parameter: a pair of shared_ptr to the old EMPAAngleOffset and a
-		shared_ptr to the new EMPAAngleOffset
+	Signal emitted when a change is made to the EMPAAngleOffset being edited.
+	Optional parameter: a pair of a shared_ptr to the old EMPAAngleOffset object
+		and shared_ptr to the new EMPAAngleOffset object
 	*/
 	tgui::SignalEMPAAngleOffsetPair onValueChange = { "ValueChanged" };
+
+	// bool used to ignore signals to prevent infinite loops
+	bool ignoreSignals = false;
+	bool ignoreResizeSignal = false;
+
+	void updateWidgets();
 };
 
 /*

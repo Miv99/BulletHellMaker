@@ -43,38 +43,18 @@ Notes for me:
 -Item path is in Components::CollectibleComponent::update and EntityCreationQueue::EMPDropItemCommand::execute
 -Player invulnerability sprite effect animation is in CollisionSystem
 
--kill enemy with no movement path -> ondeath stuff broke; fix this by making sure all entities always have some movement path
-
-cur todo:
--Check if ScrollabeListBox is still necessary; if yes, turn ScrollableListBox into ScrollableListView
--Make sure all sliders in editor stuff are just numerical textboxes
--For every level pack object except Level, keep track of who's using it (eg attack 3 might be used by attack patterns 1, 2, 5, 7)
-
 big todo:
 -change lifespan of empa -> linearly scale segments' start times to be same % of lifespan; store % of original for each segment
  so that float imprecisions don't ruin the start times as piecewisetfv maxtime keeps changing
--piecewise tfv name displayed as name of first segment if only one segment
--disable keyboard commands when screen is blocked (ibPanel is visible) in AttackEditor
 -disable keyboard commands when confirmation prompt is up in UndoableEditorWindow
--Remove start test button when editing CPs
 -An EditorAttackPattern "finishes" when all its EMPAs have been executed (actionsTotalTime seconds after the start of the attack pattern).
  Attacks that execute more than [actionsTotalTime] seconds after the start of the attack pattern will not execute.
 	-so, in attack pattern editor, make names of all attacks that execute after [actionsTotalTime] have a red name
--improve how popups in editor windows work (how right now mousepressed is the event that chooses the option)
--add to attack editor: 
-	-test EMP button
-		-places a single placeholder in the gameplay test window in a special EMP test mode (this test mode can't be chosen by user) that tests
-		 am EMP and plots its movement (even before test starts)
-			-the EMP object is stored in the placeholder; no IDs are stored so that test EMPA button can be implemented easily
-			-test mode and ID of this special placeholder can't be changed
 -call LevelPack::deleteTemporaryEditorObjecs() when test ends or when an editor instance is closed
 -control+s to save current attack; control+shift+s to save all attacks
 	-when saving a single attack, do legal check on that attack only
 -disable time thing (empiSpawnTypeTime) if it's the main EMP
 -when empiActions changes, make sure Detach option is still valid; turn text red if not
--select EMPA --> EMPA is shown on gameplay windows
- a draggable/movable dot labeled "source" is shown (if EMP spawn type is global, the source isn't movable); the total path (a bunch of dots at an adjustable time interval)  
- is drawn from the source; if an EMPA is selected, the dots of that particular EMPA are colored differently
 
 TODO:
 -TFVGroup add/delete aren't adding to undo stack

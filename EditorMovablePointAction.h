@@ -24,6 +24,8 @@ public:
 	inline EMPAAngleOffset() {}
 	virtual std::shared_ptr<EMPAAngleOffset> clone() = 0;
 
+	virtual std::string getName() = 0;
+
 	virtual std::string format() const = 0;
 	virtual void load(std::string formattedString) = 0;
 
@@ -40,12 +42,19 @@ public:
 	inline EMPAAngleOffsetToPlayer(float xOffset = 0, float yOffset = 0) : xOffset(xOffset), yOffset(yOffset) {}
 	std::shared_ptr<EMPAAngleOffset> clone() override;
 
+	inline std::string getName() override { return "Relative to player"; }
+
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
 	// Returns the angle in radians from coordinates (xFrom, yFrom) to the player plus the player offset (player.x + xOffset, player.y + yOffset)
 	float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override;
 	float evaluate(float xFrom, float yFrom, float playerX, float playerY) override;
+
+	void setXOffset(float x) { xOffset = x; }
+	void setYOffset(float y) { yOffset = y; }
+	float getXOffset() { return xOffset; }
+	float getYOffset() { return yOffset; }
 
 private:
 	float xOffset = 0;
@@ -61,6 +70,8 @@ public:
 	inline EMPAAngleOffsetToGlobalPosition(float x, float y) : x(x), y(y) {}
 	std::shared_ptr<EMPAAngleOffset> clone() override;
 
+	inline std::string getName() override { return "Absolute position"; }
+
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
@@ -68,9 +79,14 @@ public:
 	float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override;
 	float evaluate(float xFrom, float yFrom, float playerX, float playerY) override;
 
+	void setX(float x) { this->x = x; }
+	void setY(float y) { this->y = y; }
+	float getX() { return x; }
+	float getY() { return y; }
+
 private:
-	float x;
-	float y;
+	float x = 0;
+	float y = 0;
 };
 
 /*
@@ -80,6 +96,8 @@ class EMPAAngleOffsetZero : public EMPAAngleOffset {
 public:
 	inline EMPAAngleOffsetZero() {}
 	std::shared_ptr<EMPAAngleOffset> clone() override;
+
+	inline std::string getName() override { return "No offset"; }
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
@@ -96,6 +114,8 @@ class EMPAngleOffsetPlayerSpriteAngle : public EMPAAngleOffset {
 public:
 	inline EMPAngleOffsetPlayerSpriteAngle() {}
 	std::shared_ptr<EMPAAngleOffset> clone() override;
+
+	inline std::string getName() override { return "Bind to player's direction"; }
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
@@ -193,7 +213,7 @@ EMPA for custom movement in polar coordinates.
 class MoveCustomPolarEMPA : public EMPAction {
 public:
 	inline MoveCustomPolarEMPA() {}
-	inline MoveCustomPolarEMPA(std::shared_ptr<TFV> distance, std::shared_ptr<TFV> angle, float time) : distance(distance), angle(angle), time(time) {}
+	inline MoveCustomPolarEMPA(std::shared_ptr<TFV> distance, std::shared_ptr<TFV> angle, float time) : distance(distance), angle(angle), time(time), angleOffset(std::make_shared<EMPAAngleOffsetZero>()) {}
 	inline MoveCustomPolarEMPA(std::shared_ptr<TFV> distance, std::shared_ptr<TFV> angle, float time, std::shared_ptr<EMPAAngleOffset> angleOffset) : distance(distance), angle(angle), time(time), angleOffset(angleOffset) {}
 	std::shared_ptr<EMPAction> clone() override;
 
@@ -202,6 +222,7 @@ public:
 	std::string getGuiFormat() override;
 	inline std::shared_ptr<TFV> getDistance() { return distance; }
 	inline std::shared_ptr<TFV> getAngle() { return angle; }
+	inline std::shared_ptr<EMPAAngleOffset> getAngleOffset() { return angleOffset; }
 
 	inline float getTime() override { return time; }
 	inline void setTime(float duration) override { this->time = duration; }
@@ -228,7 +249,7 @@ The first control point must be at (0, 0) because all movement is done relative 
 class MoveCustomBezierEMPA : public EMPAction {
 public:
 	inline MoveCustomBezierEMPA() {}
-	inline MoveCustomBezierEMPA(std::vector<sf::Vector2f> unrotatedControlPoints, float time) : time(time) {
+	inline MoveCustomBezierEMPA(std::vector<sf::Vector2f> unrotatedControlPoints, float time) : time(time), rotationAngle(std::make_shared<EMPAAngleOffsetZero>()) {
 		setUnrotatedControlPoints(unrotatedControlPoints);
 	}
 	inline MoveCustomBezierEMPA(std::vector<sf::Vector2f> unrotatedControlPoints, float time, std::shared_ptr<EMPAAngleOffset> rotationAngle) : time(time), rotationAngle(rotationAngle) {
@@ -240,6 +261,7 @@ public:
 	void load(std::string formattedString) override;
 	inline float getTime() override { return time; }
 	std::string getGuiFormat() override;
+	inline std::shared_ptr<EMPAAngleOffset> getRotationAngle() { return rotationAngle; }
 
 	inline void setTime(float duration) override { this->time = duration; }
 	inline void setUnrotatedControlPoints(std::vector<sf::Vector2f> unrotatedControlPoints) { 
