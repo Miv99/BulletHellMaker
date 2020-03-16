@@ -570,7 +570,7 @@ private:
 A panel that can load Levels and play them while rendering it either normally or in debug mode.
 A LevelPack must be loaded before anything can be done.
 */
-class SimpleEngineRenderer : public tgui::Panel {
+class SimpleEngineRenderer : public tgui::Panel, public EventCapturable {
 public:
 	SimpleEngineRenderer(sf::RenderWindow& parentWindow, bool userControlleView = true, bool useDebugRenderSystem = true);
 	inline static std::shared_ptr<SimpleEngineRenderer> create(sf::RenderWindow& parentWindow) {
@@ -579,7 +579,7 @@ public:
 
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
-	void handleEvent(sf::Event event);
+	bool handleEvent(sf::Event event) override;
 
 	void loadLevelPack(std::string name);
 	void loadLevelPack(std::shared_ptr<LevelPack> levelPack);

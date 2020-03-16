@@ -6,10 +6,11 @@ public:
 	inline ViewController(const sf::RenderWindow& window) : window(window) {}
 
 	/*
-	Returns the new view.
+	Modifies view.
 	Should be called whenever the window receives an event.
+	Returns whether the event should be consumed by this handleEvent() call.
 	*/
-	sf::View handleEvent(sf::View view, sf::Event event);
+	bool handleEvent(sf::View& view, sf::Event event);
 
 	/*
 	Sets the size of the view at 1x camera zoom.

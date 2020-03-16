@@ -1678,10 +1678,11 @@ void SimpleEngineRenderer::draw(sf::RenderTarget & target, sf::RenderStates stat
 	parentWindow.setView(originalView);
 }
 
-void SimpleEngineRenderer::handleEvent(sf::Event event) {
+bool SimpleEngineRenderer::handleEvent(sf::Event event) {
 	if (viewController) {
-		viewFromViewController = viewController->handleEvent(viewFromViewController, event);
+		return viewController->handleEvent(viewFromViewController, event);
 	}
+	return false;
 }
 
 void SimpleEngineRenderer::loadLevelPack(std::string name) {
