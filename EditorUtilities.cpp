@@ -764,7 +764,7 @@ void NumericalEditBoxWithLimits::updateInputValidator() {
 	if (mustBeInt) {
 		setInputValidator("^-?[0-9]*$");
 	} else {
-		setInputValidator("^[0-9]*(\.[0-9]*)?$");
+		setInputValidator("^-?[0-9]*(\.[0-9]*)?$");
 	}
 }
 
