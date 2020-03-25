@@ -4,6 +4,8 @@
 /*
 Signifies that the object that inherits this class is able to capture
 GUI events.
+
+Note that you'll have to call handleEvent() yourself.
 */
 class EventCapturable {
 public:

@@ -20,6 +20,8 @@ public:
 		originalViewHeight = height;
 	}
 
+	inline float getZoomAmount() { return cameraZoom; }
+
 private:
 	const sf::RenderWindow& window;
 

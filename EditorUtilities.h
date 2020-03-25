@@ -141,7 +141,8 @@ private:
 An edit box that accepts only numbers and can have upper/lower limits.
 
 Signals:
-	ValueChanged - emitted when the edit box value is changed.
+	ValueChanged - emitted when the edit box value is changed, either when the enter
+		key is pressed or the widget is unfocused.
 		Optional parameter: the value in the edit box as a float. If this edit box is
 		in integer mode, the value can just be cast to an int.
 */
@@ -630,6 +631,9 @@ A widget with tabs that, when one is selected, shows a Panel associated with tha
 Warning: undefined behavior when there are multiple tabs with the same name, or when 
 a tab has an empty string for a name.
 
+This widget will automatically call the selected tab's handleEvent() when this
+widget's handleEvent() is called.
+
 This widget is intended to be used for a small number of tabs. It might get
 laggy when there's a lot.
 */
@@ -907,4 +911,105 @@ private:
 	float timeSinceLastChar = 0;
 	// Time in seconds before the next character is shown
 	float charDelay;
+};
+
+/*
+A panel used to place markers on a 2D area. The ordering of the markers is maintained.
+
+Note for me: the markers are stored internally with a negative y position than what is inserted
+to maintain a standard coordinate system. getMarkerPositions() will return the originally inputted
+positions.
+*/
+class MarkerPlacer : public tgui::Panel, public EventCapturable {
+public:
+	MarkerPlacer(sf::RenderWindow& parentWindow, sf::Vector2u resolution = sf::Vector2u(MAP_WIDTH, MAP_HEIGHT), int undoStackSize = 50);
+	static std::shared_ptr<MarkerPlacer> create(sf::RenderWindow& parentWindow, sf::Vector2u resolution = sf::Vector2u(MAP_WIDTH, MAP_HEIGHT), int undoStackSize = 50) {
+		return std::make_shared<MarkerPlacer>(parentWindow, resolution, undoStackSize);
+	}
+
+	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+	bool handleEvent(sf::Event event) override;
+
+	void lookAt(sf::Vector2f pos);
+
+	void setMarkers(std::vector<std::pair<sf::Vector2f, sf::Color>> markers);
+	void setMarker(int index, sf::Vector2f position, sf::Color color);
+	sf::CircleShape getMarker(int index);
+	void insertMarker(int index, sf::Vector2f position, sf::Color color);
+	void removeMarker(int index);
+	void removeMarkers();
+	std::vector<sf::Vector2f> getMarkerPositions();
+
+	void setCircleRadius(float circleRadius);
+	void setOutlineThickness(float outlineThickness);
+	/*
+	Sets the color that future markers from the "Add" button will be.
+	Default is red.
+	*/
+	void setAddButtonMarkerColor(sf::Color color);
+
+protected:
+	// The color of the selected marker
+	sf::Color selectedMarkerColor = sf::Color::Green;
+	// The color of future markers from the "Add" button
+	sf::Color addButtonMarkerColor = sf::Color::Red;
+
+	virtual void setSelectedMarkerXWidgetValue(float value);
+	virtual void setSelectedMarkerYWidgetValue(float value);
+	virtual void updateMarkersListView();
+
+private:
+	const static std::string MARKERS_LIST_VIEW_ITEM_FORMAT;
+	const sf::Vector2u resolution;
+	sf::RenderWindow& parentWindow;
+	UndoStack undoStack;
+
+	// Widgets
+	std::shared_ptr<tgui::ScrollablePanel> leftPanel;
+	std::shared_ptr<ListViewScrollablePanel> markersListView;
+	std::shared_ptr<tgui::Button> addMarker;
+	std::shared_ptr<tgui::Button> deleteMarker;
+	std::shared_ptr<tgui::Label> selectedMarkerXLabel;
+	std::shared_ptr<tgui::Label> selectedMarkerYLabel;
+	std::shared_ptr<NumericalEditBoxWithLimits> selectedMarkerX;
+	std::shared_ptr<NumericalEditBoxWithLimits> selectedMarkerY;
+
+	float circleRadius = 10.0f;
+	float outlineThickness = 3.0f;
+	std::vector<sf::CircleShape> markers;
+
+	sf::FloatRect viewportFloatRect, viewFloatRect;
+
+	std::unique_ptr<ViewController> viewController;
+	sf::View viewFromViewController;
+
+	// Radius will be < 0 if no cursor
+	sf::CircleShape currentCursor;
+
+	// Index of the selected marker. -1 if nothing is selected.
+	int selectedMarkerIndex = -1;
+	bool draggingMarker = false;
+	// World pos of the placeholder being dragged at the moment it started being dragged
+	sf::Vector2f markerPosBeforeDragging;
+
+	// Set to true while left mouse is held down right after selecting a placeholder.
+	// Used for preventing deselection from occurring in the same mouse press/release sequence that triggers selection.
+	bool justSelectedMarker = false;
+
+	// Screen coordinates of the mouse in the last MouseMove event while
+	// draggingMarker was true
+	int previousMarkerDragCoordsX, previousMarkerDragCoordsY;
+	// Screen coordinates of the first left  mouse pressed event since the last left mouse released event
+	int initialMousePressX, initialMousePressY;
+
+	// Whether the user is currently placing a new marker. Should be modified only through setter.
+	bool placingNewMarker = false;
+
+	bool ignoreSignals = false;
+
+	void selectMarker(int index);
+	void setPlacingNewMarker(bool placingNewMarker);
+	void deselectMarker();
+	void updateWindowView();
+	void updateMarkersListViewItem(int index);
 };

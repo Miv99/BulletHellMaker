@@ -958,7 +958,6 @@ TFVGroup::TFVGroup(EditorWindow& parentWindow) : parentWindow(parentWindow) {
 			auto ptr = dynamic_cast<LinearTFV*>(selectedSegment.get());
 			ptr->setStartValue(value);
 			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
-			//TODO: update oldTFV after this?
 		} else if (dynamic_cast<ConstantTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<ConstantTFV*>(selectedSegment.get());
 			ptr->setValue(value);
@@ -1269,11 +1268,13 @@ void TFVGroup::selectSegment(int index) {
 		tfvFloat1Slider->setValue(ptr->getStartValue());
 		tfvFloat2Slider->setValue(ptr->getEndValue());
 		tfvInt1Slider->setValue(ptr->getDampeningFactor());
+	} else {
+		// You missed a case
+		assert(false);
 	}
 	startTime->setValue(tfv->getSegment(index).first);
 	startTime->setMin(0);
 	startTime->setMax(tfvLifespan);
-	//TODO: add to this if more TFVs are made
 
 	tfvFloat1Label->setVisible(f1);
 	tfvFloat1Slider->setVisible(f1);
@@ -2316,4 +2317,443 @@ tgui::Signal & DelayedSlider::getSignal(std::string signalName) {
 		return onValueChange;
 	}
 	return Slider::getSignal(signalName);
+}
+
+// Index, x, and y in that order
+const std::string MarkerPlacer::MARKERS_LIST_VIEW_ITEM_FORMAT = "%d (%.2f, %.2f)";
+
+MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, sf::Vector2u resolution, int undoStackSize) : parentWindow(parentWindow), resolution(resolution), undoStack(UndoStack(undoStackSize)) {
+	currentCursor = sf::CircleShape(circleRadius);
+	currentCursor.setOutlineColor(selectedMarkerColor);
+	currentCursor.setOutlineThickness(outlineThickness);
+	currentCursor.setFillColor(sf::Color::Transparent);
+	
+	viewController = std::make_unique<ViewController>(parentWindow);
+	leftPanel = tgui::ScrollablePanel::create();
+	markersListView = ListViewScrollablePanel::create();
+	addMarker = tgui::Button::create();
+	deleteMarker = tgui::Button::create();
+	selectedMarkerXLabel = tgui::Label::create();
+	selectedMarkerYLabel = tgui::Label::create();
+	selectedMarkerX = NumericalEditBoxWithLimits::create();
+	selectedMarkerY = NumericalEditBoxWithLimits::create();
+
+	markersListView->setTextSize(TEXT_SIZE);
+	addMarker->setTextSize(TEXT_SIZE);
+	deleteMarker->setTextSize(TEXT_SIZE);
+	selectedMarkerXLabel->setTextSize(TEXT_SIZE);
+	selectedMarkerYLabel->setTextSize(TEXT_SIZE);
+	selectedMarkerX->setTextSize(TEXT_SIZE);
+	selectedMarkerY->setTextSize(TEXT_SIZE);
+
+	selectedMarkerXLabel->setText("X");
+	selectedMarkerYLabel->setText("Y");
+	addMarker->setText("Add");
+	deleteMarker->setText("Delete");
+
+	markersListView->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
+	addMarker->setPosition(GUI_PADDING_X, tgui::bindBottom(markersListView) + GUI_PADDING_Y);
+	deleteMarker->setPosition(tgui::bindRight(addMarker) + GUI_PADDING_X, tgui::bindTop(addMarker));
+	selectedMarkerXLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(deleteMarker) + GUI_PADDING_Y);
+	selectedMarkerX->setPosition(tgui::bindLeft(selectedMarkerXLabel), tgui::bindBottom(selectedMarkerXLabel) + GUI_LABEL_PADDING_Y);
+	selectedMarkerYLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(selectedMarkerX) + GUI_PADDING_Y);
+	selectedMarkerY->setPosition(tgui::bindLeft(selectedMarkerYLabel), tgui::bindBottom(selectedMarkerYLabel) + GUI_LABEL_PADDING_Y);
+
+	leftPanel->setSize(tgui::bindMin("25%", 200), "100%");
+	leftPanel->connect("SizeChanged", [&](sf::Vector2f newSize) {
+		// Height of left panel minus y needed for the widgets that are not the list view
+		float markersListViewHeight = newSize.y - GUI_PADDING_Y * 5 - GUI_LABEL_PADDING_Y * 2 - selectedMarkerXLabel->getSize().y * 2 - selectedMarkerX->getSize().y * 2 - addMarker->getSize().y;
+		markersListView->setSize(newSize.x - GUI_PADDING_X * 2, std::max(markersListViewHeight, markersListView->getListView()->getItemHeight() * 6.0f));
+		float buttonWidth = (markersListView->getSize().x - GUI_PADDING_X) / 2.0f;
+		addMarker->setSize(buttonWidth, TEXT_BUTTON_HEIGHT);
+		deleteMarker->setSize(buttonWidth, TEXT_BUTTON_HEIGHT);
+		selectedMarkerX->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+		selectedMarkerY->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+	});
+
+	markersListView->getListView()->connect("ItemSelected", [&](int index) {
+		if (ignoreSignals) {
+			return;
+		}
+		if (index < 0) {
+			deselectMarker();
+		} else {
+			selectMarker(index);
+		}
+	});
+	markersListView->getListView()->connect("DoubleClicked", [&](int index) {
+		if (ignoreSignals) {
+			return;
+		}
+		if (index < 0) {
+			deselectMarker();
+		} else {
+			// Invert y because lookAt() inverts y already
+			lookAt(sf::Vector2f(markers[index].getPosition().x, -markers[index].getPosition().y));
+		}
+	});
+	addMarker->connect("Pressed", [&]() {
+		if (ignoreSignals) {
+			return;
+		}
+		setPlacingNewMarker(true);
+	});
+	deleteMarker->connect("Pressed", [&]() {
+		if (ignoreSignals) {
+			return;
+		}
+		removeMarker(selectedMarkerIndex);
+	});
+	selectedMarkerX->connect("ValueChanged", [&](float value) {
+		if (ignoreSignals) {
+			return;
+		}
+		markers[selectedMarkerIndex].setPosition(value, markers[selectedMarkerIndex].getPosition().y);
+		updateMarkersListViewItem(selectedMarkerIndex);
+	});
+	selectedMarkerY->connect("ValueChanged", [&](float value) {
+		if (ignoreSignals) {
+			return;
+		}
+		markers[selectedMarkerIndex].setPosition(markers[selectedMarkerIndex].getPosition().x, -value);
+		updateMarkersListViewItem(selectedMarkerIndex);
+	});
+
+	leftPanel->add(markersListView);
+	leftPanel->add(addMarker);
+	leftPanel->add(deleteMarker);
+	leftPanel->add(selectedMarkerXLabel);
+	leftPanel->add(selectedMarkerYLabel);
+	leftPanel->add(selectedMarkerX);
+	leftPanel->add(selectedMarkerY);
+	add(leftPanel);
+
+	connect("PositionChanged", [&]() {
+		updateWindowView();
+	});
+	connect("SizeChanged", [&]() {
+		updateWindowView();
+	});
+
+	deselectMarker();
+}
+
+bool MarkerPlacer::handleEvent(sf::Event event) {
+	if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left && leftPanel->mouseOnWidget(sf::Vector2f(event.mouseButton.x, event.mouseButton.y))) {
+		return true;
+	} else if (viewController->handleEvent(viewFromViewController, event)) {
+		return true;
+	}
+
+	if (event.type == sf::Event::MouseButtonPressed) {
+		if (event.mouseButton.button == sf::Mouse::Right) {
+			setPlacingNewMarker(false);
+			deselectMarker();
+		} else if (event.mouseButton.button == sf::Mouse::Left) {
+			sf::View originalView = parentWindow.getView();
+			parentWindow.setView(viewFromViewController);
+			sf::Vector2f mouseWorldPos = parentWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y));
+			parentWindow.setView(originalView);
+
+			if (placingNewMarker) {
+				setPlacingNewMarker(false);
+				int newIndex;
+				if (selectedMarkerIndex == -1) {
+					newIndex = markers.size();
+				} else {
+					newIndex = selectedMarkerIndex;
+				}
+				undoStack.execute(UndoableCommand(
+					[this, newIndex, mouseWorldPos]() {
+					// Negate y because insertMarker() negates y already
+					insertMarker(newIndex, sf::Vector2f(mouseWorldPos.x, -mouseWorldPos.y), addButtonMarkerColor);
+				},
+					[this, newIndex]() {
+					removeMarker(newIndex);
+				}));
+			} else {
+				int i = 0;
+				for (auto p : markers) {
+					if (std::sqrt((mouseWorldPos.x - p.getPosition().x - p.getRadius() / 2.0f)*(mouseWorldPos.x - p.getPosition().x - p.getRadius() / 2.0f) + (mouseWorldPos.y - p.getPosition().y - p.getRadius() / 2.0f)*(mouseWorldPos.y - p.getPosition().y - p.getRadius() / 2.0f)) <= p.getRadius()) {
+						if (selectedMarkerIndex == i) {
+							draggingMarker = true;
+							previousMarkerDragCoordsX = event.mouseButton.x;
+							previousMarkerDragCoordsY = event.mouseButton.y;
+							markerPosBeforeDragging = markers[selectedMarkerIndex].getPosition();
+						} else {
+							selectMarker(i);
+							justSelectedMarker = true;
+						}
+						return true;
+					}
+					i++;
+				}
+
+				initialMousePressX = event.mouseButton.x;
+				initialMousePressY = event.mouseButton.y;
+			}
+		}
+	} else if (event.type == sf::Event::MouseMoved) {
+		if (draggingMarker) {
+			// Move selected placeholder depending on difference in world coordinates between event.mouseMove.x/y and previousPlaceholderDragCoordsX/Y
+			sf::View originalView = parentWindow.getView();
+			parentWindow.setView(viewFromViewController);
+			sf::Vector2f diff = parentWindow.mapPixelToCoords(sf::Vector2i(previousMarkerDragCoordsX, previousMarkerDragCoordsY)) - parentWindow.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
+			parentWindow.setView(originalView);
+			sf::Vector2f prevPos = markers[selectedMarkerIndex].getPosition();
+			markers[selectedMarkerIndex].setPosition(sf::Vector2f(prevPos.x - diff.x, prevPos.y - diff.y));
+			setSelectedMarkerXWidgetValue(markers[selectedMarkerIndex].getPosition().x);
+			setSelectedMarkerYWidgetValue(-markers[selectedMarkerIndex].getPosition().y);
+		}
+
+		if (draggingMarker) {
+			previousMarkerDragCoordsX = event.mouseMove.x;
+			previousMarkerDragCoordsY = event.mouseMove.y;
+		}
+	} else if (event.type == sf::Event::MouseButtonReleased) {
+		if (event.mouseButton.button == sf::Mouse::Left) {
+			// Release event was from left mouse
+
+			// Check if initial press was in gameplay area and in relative spatial proximity to mouse release
+			float screenDist = std::sqrt((initialMousePressX - event.mouseButton.x)*(initialMousePressX - event.mouseButton.x) + (initialMousePressY - event.mouseButton.y)*(initialMousePressY - event.mouseButton.y));
+			if (!justSelectedMarker && screenDist < 15) {
+				deselectMarker();
+			}
+
+			if (draggingMarker) {
+				draggingMarker = false;
+
+				if (selectedMarkerIndex != -1) {
+					sf::Vector2f endPos = markers[selectedMarkerIndex].getPosition();
+					undoStack.execute(UndoableCommand(
+						[this, endPos]() {
+							markers[selectedMarkerIndex].setPosition(endPos);
+							setSelectedMarkerXWidgetValue(endPos.x);
+							setSelectedMarkerYWidgetValue(-endPos.y);
+						},
+						[this]() {
+							markers[selectedMarkerIndex].setPosition(markerPosBeforeDragging);
+							setSelectedMarkerXWidgetValue(markerPosBeforeDragging.x);
+							setSelectedMarkerYWidgetValue(-markerPosBeforeDragging.y);
+					}));
+				}
+			}
+
+			justSelectedMarker = false;
+		}
+	}
+
+	return false;
+}
+
+void MarkerPlacer::selectMarker(int index) {
+	deselectMarker();
+	selectedMarkerIndex = index;
+
+	ignoreSignals = true;
+	
+	deleteMarker->setEnabled(true);
+	setSelectedMarkerXWidgetValue(markers[index].getPosition().x);
+	setSelectedMarkerYWidgetValue(-markers[index].getPosition().y);
+	markersListView->getListView()->setSelectedItem(index);
+
+	selectedMarkerXLabel->setVisible(true);
+	selectedMarkerX->setVisible(true);
+	selectedMarkerYLabel->setVisible(true);
+	selectedMarkerY->setVisible(true);
+	
+	ignoreSignals = false;
+}
+
+void MarkerPlacer::setPlacingNewMarker(bool placingNewMarker) {
+	deselectMarker();
+	this->placingNewMarker = placingNewMarker;
+	if (placingNewMarker) {
+		currentCursor.setRadius(circleRadius);
+	} else {
+		currentCursor.setRadius(-1);
+	}
+}
+
+void MarkerPlacer::deselectMarker() {
+	currentCursor.setRadius(-1);
+	selectedMarkerIndex = -1;
+	markersListView->getListView()->deselectItems();
+	deleteMarker->setEnabled(false);
+	selectedMarkerXLabel->setVisible(false);
+	selectedMarkerX->setVisible(false);
+	selectedMarkerYLabel->setVisible(false);
+	selectedMarkerY->setVisible(false);
+}
+
+void MarkerPlacer::lookAt(sf::Vector2f pos) {
+	viewFromViewController.setCenter(sf::Vector2f(pos.x, -pos.y));
+}
+
+void MarkerPlacer::setMarkers(std::vector<std::pair<sf::Vector2f, sf::Color>> markers) {
+	this->markers.clear();
+	for (auto p : markers) {
+		auto shape = sf::CircleShape(circleRadius);
+		shape.setFillColor(sf::Color::Transparent);
+		shape.setOrigin(circleRadius, circleRadius);
+		shape.setPosition(p.first.x, -p.first.y);
+		shape.setOutlineColor(p.second);
+		shape.setOutlineThickness(outlineThickness);
+		this->markers.push_back(shape);
+	}
+}
+
+void MarkerPlacer::setMarker(int index, sf::Vector2f position, sf::Color color) {
+	auto shape = sf::CircleShape(circleRadius);
+	shape.setFillColor(sf::Color::Transparent);
+	shape.setOrigin(circleRadius, circleRadius);
+	shape.setPosition(position.x, -position.y);
+	shape.setOutlineColor(color);
+	shape.setOutlineThickness(outlineThickness);
+	markers[index] = shape;
+}
+
+sf::CircleShape MarkerPlacer::getMarker(int index) {
+	return markers[index];
+}
+
+void MarkerPlacer::insertMarker(int index, sf::Vector2f position, sf::Color color) {
+	auto shape = sf::CircleShape(circleRadius);
+	shape.setFillColor(sf::Color::Transparent);
+	shape.setOrigin(circleRadius, circleRadius);
+	shape.setPosition(position.x, -position.y);
+	shape.setOutlineColor(color);
+	shape.setOutlineThickness(outlineThickness);
+	markers.insert(markers.begin() + index, shape);
+	updateMarkersListView();
+}
+
+void MarkerPlacer::removeMarker(int index) {
+	markers.erase(markers.begin() + index);
+	updateMarkersListView();
+}
+
+void MarkerPlacer::removeMarkers() {
+	markers.clear();
+}
+
+std::vector<sf::Vector2f> MarkerPlacer::getMarkerPositions() {
+	auto res = std::vector<sf::Vector2f>();
+	for (auto p : markers) {
+		res.push_back(sf::Vector2f(p.getPosition().x, -p.getPosition().y));
+	}
+	return res;
+}
+
+void MarkerPlacer::setCircleRadius(float circleRadius) {
+	this->circleRadius = circleRadius;
+	for (auto marker : markers) {
+		marker.setRadius(circleRadius);
+		marker.setOrigin(circleRadius, circleRadius);
+	}
+	currentCursor.setRadius(circleRadius);
+	currentCursor.setOrigin(circleRadius, circleRadius);
+}
+
+void MarkerPlacer::setOutlineThickness(float outlineThickness) {
+	this->outlineThickness = outlineThickness;
+	for (auto marker : markers) {
+		marker.setOutlineThickness(outlineThickness);
+	}
+	currentCursor.setOutlineThickness(outlineThickness);
+}
+
+void MarkerPlacer::setAddButtonMarkerColor(sf::Color color) {
+	addButtonMarkerColor = color;
+}
+
+void MarkerPlacer::setSelectedMarkerXWidgetValue(float value) {
+	selectedMarkerX->setValue(value);
+	updateMarkersListViewItem(selectedMarkerIndex);
+}
+
+void MarkerPlacer::setSelectedMarkerYWidgetValue(float value) {
+	selectedMarkerY->setValue(value);
+	updateMarkersListViewItem(selectedMarkerIndex);
+}
+
+void MarkerPlacer::updateMarkersListView() {
+	ignoreSignals = true;
+
+	markersListView->getListView()->removeAllItems();
+	for (int i = 0; i < markers.size(); i++) {
+		markersListView->getListView()->addItem(format(MARKERS_LIST_VIEW_ITEM_FORMAT, i + 1, markers[i].getPosition().x, -markers[i].getPosition().y));
+	}
+	if (selectedMarkerIndex >= 0) {
+		selectMarker(selectedMarkerIndex);
+	}
+
+	ignoreSignals = false;
+}
+
+void MarkerPlacer::updateWindowView() {
+	auto windowSize = parentWindow.getSize();
+	auto size = getSize();
+	float sizeRatio = size.x / (float)size.y;
+	float playAreaViewRatio = resolution.x / (float)resolution.y;
+
+	float viewWidth, viewHeight;
+	if (sizeRatio > playAreaViewRatio) {
+		viewHeight = resolution.y;
+		viewWidth = resolution.y * size.x / (float)size.y;
+		float viewX = -(viewWidth - resolution.x) / 2.0f;
+		float viewY = 0;
+		viewFloatRect = sf::FloatRect(viewX, viewY, viewWidth, viewHeight);
+	} else {
+		viewWidth = resolution.x;
+		viewHeight = resolution.x * size.y / (float)size.x;
+		float viewX = 0;
+		float viewY = -(viewHeight - resolution.y) / 2.0f;
+		viewFloatRect = sf::FloatRect(viewX, viewY, viewWidth, viewHeight);
+	}
+
+	viewController->setOriginalViewSize(viewWidth, viewHeight);
+
+	float viewportX = getAbsolutePosition().x / windowSize.x;
+	float viewportY = getAbsolutePosition().y / windowSize.y;
+	float viewportWidth = getSize().x / windowSize.x;
+	float viewportHeight = getSize().y / windowSize.y;
+	viewportFloatRect = sf::FloatRect(viewportX, viewportY, viewportWidth, viewportHeight);
+
+	viewFromViewController = sf::View(viewFloatRect);
+	viewFromViewController.setViewport(viewportFloatRect);
+}
+
+void MarkerPlacer::updateMarkersListViewItem(int index) {
+	markersListView->getListView()->changeItem(index, { format(MARKERS_LIST_VIEW_ITEM_FORMAT, index + 1, markers[index].getPosition().x, -markers[index].getPosition().y) });
+}
+
+void MarkerPlacer::draw(sf::RenderTarget & target, sf::RenderStates states) const {
+	tgui::Panel::draw(target, states);
+	
+	// Viewport is set here because tgui::Gui's draw function changes it right before renderSystem is updated or something
+	sf::View originalView = parentWindow.getView();
+	parentWindow.setView(viewFromViewController);
+	if (selectedMarkerIndex == -1) {
+		for (int i = 0; i < markers.size(); i++) {
+			parentWindow.draw(markers[i]);
+		}
+	} else {
+		sf::CircleShape selectedShape = sf::CircleShape(markers[selectedMarkerIndex]);
+		selectedShape.setOutlineColor(selectedMarkerColor);
+		for (int i = 0; i < markers.size(); i++) {
+			if (i != selectedMarkerIndex) {
+				parentWindow.draw(markers[i]);
+			}
+		}
+		// Draw selected placeholder on top
+		parentWindow.draw(selectedShape);
+	}
+	if (currentCursor.getRadius() > 0) {
+		auto pos = sf::Mouse::getPosition(parentWindow);
+		sf::CircleShape currentCursor = sf::CircleShape(this->currentCursor);
+		currentCursor.setPosition(parentWindow.mapPixelToCoords(pos) - sf::Vector2f(circleRadius, circleRadius));
+		parentWindow.draw(currentCursor);
+	}
+	parentWindow.setView(originalView);
 }
