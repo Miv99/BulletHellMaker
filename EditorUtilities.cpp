@@ -212,6 +212,17 @@ AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprit
 	rotationType->addItem("Never rotate", std::to_string(static_cast<int>(LOCK_ROTATION)));
 	rotationType->addItem("Face horizontal movement", std::to_string(static_cast<int>(LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT)));
 
+	if (forceSprite) {
+		animatable->setToolTip(createToolTip("The selected sprite."));
+	} else {
+		animatable->setToolTip(createToolTip("The selected sprite or animation. Sprites are denoted with [S] and animations with [A]."));
+	}
+	rotationType->setToolTip(createToolTip("The behavior of an entity with this sprite/animation in terms of rotation.\n\
+\tRotate with movement - The entity's angle of rotation will be the angle of its current direction of movement.\n\
+\tNever rotate - The entity's angle of rotation will always be 0.\n\
+\tFace horizontal movement - The entity's angle of rotation will be either 0 (when it is moving at an angle in range (0, 90) \
+or (270, 360)) or 180 (when it is moving at angle in range (90, 270))."));
+
 	animatable->connect("ItemSelected", [&](std::string itemText, std::string id) {
 		if (ignoreSignals) {
 			return;
@@ -532,6 +543,12 @@ SoundSettingsGroup::SoundSettingsGroup(std::string pathToSoundsFolder) {
 	fileNameLabel = tgui::Label::create();
 	volumeLabel = tgui::Label::create();
 	pitchLabel = tgui::Label::create();
+	//TODO: add a play/stop button to test sounds and a progressbar to see the length of the selected audio
+
+	enableAudioLabel->setToolTip(createToolTip("Whether to enable audio."));
+	fileNameLabel->setToolTip(createToolTip("The name of the audio file. Only WAV, OGG/Vorbis, and FLAC files are supported."));
+	volumeLabel->setToolTip(createToolTip("The volume of the audio when it is played."));
+	pitchLabel->setToolTip(createToolTip("The pitch of the audio when it is played."));
 
 	volume->setMin(0);
 	volume->setMax(1.0f);
@@ -771,6 +788,8 @@ void NumericalEditBoxWithLimits::updateInputValidator() {
 TFVGroup::TFVGroup(EditorWindow& parentWindow) : parentWindow(parentWindow) {
 	showGraph = tgui::Button::create();
 	showGraph->setText("Show graph");
+	showGraph->setToolTip(createToolTip("Plots the graph of this value with the x-axis representing time in seconds and the y-axis representing the result of this value's evaluation. \
+This might take a while to load the first time."));
 	showGraph->connect("Pressed", [&]() {
 		auto points = generateMPLPoints(tfv, tfvLifespan, TFV_TIME_RESOLUTION);
 		matplotlibcpp::clf();
@@ -788,6 +807,7 @@ TFVGroup::TFVGroup(EditorWindow& parentWindow) : parentWindow(parentWindow) {
 
 	addSegment = tgui::Button::create();
 	addSegment->setText("Add");
+	addSegment->setToolTip(createToolTip("Adds a new segment to this value."));
 	addSegment->connect("Pressed", [&]() {
 		if (ignoreSignals) return;
 
@@ -797,7 +817,6 @@ TFVGroup::TFVGroup(EditorWindow& parentWindow) : parentWindow(parentWindow) {
 		if (selectedSegment) {
 			time = tfv->getSegment(selectedSegmentIndex).first;
 		}
-		tfv->insertSegment(std::make_pair(time, std::make_shared<ConstantTFV>(0)), tfvLifespan);
 		onValueChange.emit(this, std::make_pair(oldTFV, tfv));
 		if (selectedSegment) {
 			selectSegment(selectedSegmentIndex + 1);
@@ -808,6 +827,7 @@ TFVGroup::TFVGroup(EditorWindow& parentWindow) : parentWindow(parentWindow) {
 
 	deleteSegment = tgui::Button::create();
 	deleteSegment->setText("Delete");
+	deleteSegment->setToolTip(createToolTip("Deletes the selected segment."));
 	deleteSegment->connect("Pressed", [&]() {
 		std::lock_guard<std::recursive_mutex> lock(tfvMutex);
 
@@ -825,6 +845,7 @@ TFVGroup::TFVGroup(EditorWindow& parentWindow) : parentWindow(parentWindow) {
 
 	changeSegmentType = tgui::Button::create();
 	changeSegmentType->setText("Change type");
+	changeSegmentType->setToolTip(createToolTip("Changes the selected segment's type."));
 	changeSegmentType->connect("Pressed", [&]() {
 		parentWindow.addPopupWidget(segmentTypePopup, parentWindow.getMousePos().x, parentWindow.getMousePos().y, 200, segmentTypePopup->getSize().y);
 	});
@@ -910,10 +931,20 @@ TFVGroup::TFVGroup(EditorWindow& parentWindow) : parentWindow(parentWindow) {
 			populateSegmentList();
 		})
 	});
+	segmentTypePopup->setToolTip(createToolTip("Linear - Straight line, of form y = A + (B - A)(x / T).\n\
+Constant - Straight line, of form y = C.\n\
+Sine wave - Sine function, of form y = A*sin(x*2*pi/T + P) + C.\n\
+Distance from acceleration - Standard distance formula, of form y = C + V*x + 0.5*A*(T^2).\n\
+Dampened start - A curve whose value changes slowly at the beginning, of form y = (B - A) / T^(0.08*D + 1) * x^(0.08f*D + 1) + A.\n\
+Dampened end - A curve whose value changes slowly at the end, of form y = (B - A) / T^(0.08*D + 1) * (T - x)^(0.08f*D + 1) + B.\n\
+Double dampened - An S-shaped curve, of form y = DampenedStart(x, A, B, D, T/2) if x <= T/2; y = DampenedEnd(x, A, B, D, T/2) if x > T/2.\
+The evaluation of this value will return the currently active segment's evaluation at time t-T0, where T0 is the start time of the segment. In every equation above, T is the lifespan in seconds of the segment."));
 	segmentTypePopup->setPosition(tgui::bindLeft(changeSegmentType), tgui::bindTop(changeSegmentType));
 
 	segmentList = std::make_shared<ListBoxScrollablePanel>();
 	segmentList->setTextSize(TEXT_SIZE);
+	segmentList->setToolTip(createToolTip("The list of segments in this value. \"(t=A to t=B)\" denotes the time range in seconds in which the segment is active. \
+The evaluation of this value will return the currently active segment's evaluation at time t-A, where A is the start time of the segment."));
 	segmentList->getListBox()->connect("ItemSelected", [&](std::string item, std::string id) {
 		if (ignoreSignals) return;
 		if (id != "") {
@@ -1062,6 +1093,7 @@ TFVGroup::TFVGroup(EditorWindow& parentWindow) : parentWindow(parentWindow) {
 		}
 		populateSegmentList();
 	});
+	startTime->setToolTip(createToolTip("The time in seconds at which this segment becomes active."));
 	tfvFloat1Slider->setTextSize(TEXT_SIZE);
 	tfvFloat2Slider->setTextSize(TEXT_SIZE);
 	tfvFloat3Slider->setTextSize(TEXT_SIZE);
@@ -1201,6 +1233,9 @@ void TFVGroup::selectSegment(int index) {
 		tfvFloat1Label->setText("Start value");
 		tfvFloat2Label->setText("End value");
 
+		tfvFloat1Label->setToolTip(createToolTip("The value of A in y = A + (B - A)(x / T)."));
+		tfvFloat2Label->setToolTip(createToolTip("The value of B in y = A + (B - A)(x / T)."));
+
 		auto ptr = dynamic_cast<LinearTFV*>(selectedSegment.get());
 		tfvFloat1Slider->setValue(ptr->getStartValue());
 		tfvFloat2Slider->setValue(ptr->getEndValue());
@@ -1208,6 +1243,7 @@ void TFVGroup::selectSegment(int index) {
 		f1 = true;
 
 		tfvFloat1Label->setText("Value");
+		tfvFloat1Label->setToolTip(createToolTip("The value of C in y = C."));
 
 		auto ptr = dynamic_cast<ConstantTFV*>(selectedSegment.get());
 		tfvFloat1Slider->setValue(ptr->getValue());
@@ -1216,8 +1252,13 @@ void TFVGroup::selectSegment(int index) {
 
 		tfvFloat1Label->setText("Period");
 		tfvFloat2Label->setText("Amplitude");
-		tfvFloat3Label->setText("ValueShift");
-		tfvFloat4Label->setText("PhaseShift");
+		tfvFloat3Label->setText("Value shift");
+		tfvFloat4Label->setText("Phase shift");
+
+		tfvFloat1Label->setToolTip(createToolTip("The value of in seconds T in y = A*sin(x*2*pi/T + P) + C."));
+		tfvFloat2Label->setToolTip(createToolTip("The value of A in y = A*sin(x*2*pi/T + P) + C."));
+		tfvFloat3Label->setToolTip(createToolTip("The value of C in y = A*sin(x*2*pi/T + P) + C."));
+		tfvFloat4Label->setToolTip(createToolTip("The value in seconds of P in y = A*sin(x*2*pi/T + P) + C."));
 
 		auto ptr = dynamic_cast<SineWaveTFV*>(selectedSegment.get());
 		tfvFloat1Slider->setValue(ptr->getPeriod());
@@ -1231,6 +1272,10 @@ void TFVGroup::selectSegment(int index) {
 		tfvFloat2Label->setText("Initial velocity");
 		tfvFloat3Label->setText("Acceleration");
 
+		tfvFloat1Label->setToolTip(createToolTip("The value of C in y = C + V*x + 0.5*A*(T^2), where T is the lifespan in seconds of this segment."));
+		tfvFloat2Label->setToolTip(createToolTip("The value of V in y = C + V*x + 0.5*A*(T^2), where T is the lifespan in seconds of this segment."));
+		tfvFloat3Label->setToolTip(createToolTip("The value of A in y = C + V*x + 0.5*A*(T^2), where T is the lifespan in seconds of this segment."));
+
 		auto ptr = dynamic_cast<ConstantAccelerationDistanceTFV*>(selectedSegment.get());
 		tfvFloat1Slider->setValue(ptr->getInitialDistance());
 		tfvFloat2Slider->setValue(ptr->getInitialVelocity());
@@ -1241,6 +1286,10 @@ void TFVGroup::selectSegment(int index) {
 		tfvFloat1Label->setText("Start value");
 		tfvFloat2Label->setText("End value");
 		tfvInt1Label->setText("Dampening factor");
+
+		tfvFloat1Label->setToolTip(createToolTip("The value of A in y = (B - A) / T^(0.08*D + 1) * x^(0.08f*D + 1) + A, where T is the lifespan in seconds of this segment."));
+		tfvFloat2Label->setToolTip(createToolTip("The value of B in y = (B - A) / T^(0.08*D + 1) * x^(0.08f*D + 1) + A, where T is the lifespan in seconds of this segment."));
+		tfvInt1Label->setToolTip(createToolTip("The integer value of D in y = (B - A) / T^(0.08*D + 1) * x^(0.08f*D + 1) + A, where T is the lifespan in seconds of this segment."));
 
 		auto ptr = dynamic_cast<DampenedStartTFV*>(selectedSegment.get());
 		tfvFloat1Slider->setValue(ptr->getStartValue());
@@ -1253,6 +1302,10 @@ void TFVGroup::selectSegment(int index) {
 		tfvFloat2Label->setText("End value");
 		tfvInt1Label->setText("Dampening factor");
 
+		tfvFloat1Label->setToolTip(createToolTip("The value of A in y = (B - A) / T^(0.08*D + 1) * (T - x)^(0.08f*D + 1) + B, where T is the lifespan in seconds of this segment."));
+		tfvFloat2Label->setToolTip(createToolTip("The value of B in y = (B - A) / T^(0.08*D + 1) * (T - x)^(0.08f*D + 1) + B, where T is the lifespan in seconds of this segment."));
+		tfvInt1Label->setToolTip(createToolTip("The integer value of D in y = (B - A) / T^(0.08*D + 1) * (T - x)^(0.08f*D + 1) + B, where T is the lifespan in seconds of this segment."));
+
 		auto ptr = dynamic_cast<DampenedEndTFV*>(selectedSegment.get());
 		tfvFloat1Slider->setValue(ptr->getStartValue());
 		tfvFloat2Slider->setValue(ptr->getEndValue());
@@ -1263,6 +1316,10 @@ void TFVGroup::selectSegment(int index) {
 		tfvFloat1Label->setText("Start value");
 		tfvFloat2Label->setText("End value");
 		tfvInt1Label->setText("Dampening factor");
+
+		tfvFloat1Label->setToolTip(createToolTip("The value of A in y = DampenedStart(x, A, B, D, T/2) if x <= T/2; y = DampenedEnd(x, A, B, D, T/2) if x > T/2, where T is the lifespan in seconds of this segment."));
+		tfvFloat2Label->setToolTip(createToolTip("The value of B in y = DampenedStart(x, A, B, D, T/2) if x <= T/2; y = DampenedEnd(x, A, B, D, T/2) if x > T/2, where T is the lifespan in seconds of this segment."));
+		tfvInt1Label->setToolTip(createToolTip("The integer value of D in y = DampenedStart(x, A, B, D, T/2) if x <= T/2; y = DampenedEnd(x, A, B, D, T/2) if x > T/2, where T is the lifespan in seconds of this segment."));
 
 		auto ptr = dynamic_cast<DoubleDampenedTFV*>(selectedSegment.get());
 		tfvFloat1Slider->setValue(ptr->getStartValue());
@@ -1320,14 +1377,20 @@ void TFVGroup::populateSegmentList() {
 EMPAAngleOffsetGroup::EMPAAngleOffsetGroup(EditorWindow & parentWindow) : parentWindow(parentWindow) {
 	changeType = tgui::Button::create();
 	changeType->setText("Change type");
+	changeType->setToolTip(createToolTip("Changes the type of this angle evaluator."));
 	changeType->connect("Pressed", [&]() {
 		parentWindow.addPopupWidget(typePopup, parentWindow.getMousePos().x, parentWindow.getMousePos().y, 200, typePopup->getSize().y);
 	});
 	add(changeType);
 
 	typePopup = createMenuPopup({
-		std::make_pair("No offset", [&]() {
+		std::make_pair("No evaluation", [&]() {
 			this->offset = std::make_shared<EMPAAngleOffsetZero>();
+			onValueChange.emit(this, std::make_pair(oldOffset, offset));
+			updateWidgets();
+		}),
+		std::make_pair("Constant value", [&]() {
+			this->offset = std::make_shared<EMPAAngleOffsetConstant>();
 			onValueChange.emit(this, std::make_pair(oldOffset, offset));
 			updateWidgets();
 		}),
@@ -1347,6 +1410,12 @@ EMPAAngleOffsetGroup::EMPAAngleOffsetGroup(EditorWindow & parentWindow) : parent
 			updateWidgets();
 		})
 	});
+	typePopup->setToolTip(createToolTip("No evaluation - This function will return 0.\n\
+Constant value - This function will return a constant value.\n\
+Relative to player - This function will return the angle from (evaluator.x, evaluator.y) to (player.x + x, player.y + y).\n\
+Absolute position - This function will return the angle from (evaluator.x, evalutor.y) to (x, y).\n\
+Bind to player's direction - This function will return the rotation angle of the player.\n\
+Evaluator refers to the entity that is evaluating this function, and player refers to the player entity."));
 	typePopup->setPosition(tgui::bindLeft(changeType), tgui::bindTop(changeType));
 
 	offsetName = tgui::Label::create();
@@ -1372,6 +1441,10 @@ EMPAAngleOffsetGroup::EMPAAngleOffsetGroup(EditorWindow & parentWindow) : parent
 			auto ptr = dynamic_cast<EMPAAngleOffsetToGlobalPosition*>(offset.get());
 			ptr->setX(value);
 			onValueChange.emit(this, std::make_pair(oldOffset, offset));
+		} else if (dynamic_cast<EMPAAngleOffsetConstant*>(offset.get()) != nullptr) {
+			auto ptr = dynamic_cast<EMPAAngleOffsetConstant*>(offset.get());
+			ptr->setValue(value);
+			onValueChange.emit(this, std::make_pair(oldOffset, offset));
 		}
 	});
 	y->connect("ValueChanged", [&](float value) {
@@ -1389,6 +1462,8 @@ EMPAAngleOffsetGroup::EMPAAngleOffsetGroup(EditorWindow & parentWindow) : parent
 	});
 	x->setTextSize(TEXT_SIZE);
 	y->setTextSize(TEXT_SIZE);
+	x->setSize("100%", TEXT_BOX_HEIGHT);
+	y->setSize("100%", TEXT_BOX_HEIGHT);
 	add(x);
 	add(y);
 
@@ -1402,7 +1477,7 @@ EMPAAngleOffsetGroup::EMPAAngleOffsetGroup(EditorWindow & parentWindow) : parent
 		offsetName->setPosition(0, 0);
 
 		changeType->setSize(100, TEXT_BUTTON_HEIGHT);
-		changeType->setPosition(tgui::bindLeft(offsetName), tgui::bindBottom(offsetName) + GUI_PADDING_Y);
+		changeType->setPosition(tgui::bindLeft(offsetName), tgui::bindBottom(offsetName) + GUI_LABEL_PADDING_Y);
 
 		xLabel->setPosition(tgui::bindLeft(offsetName), tgui::bindBottom(changeType) + GUI_PADDING_Y);
 		x->setPosition(tgui::bindLeft(offsetName), tgui::bindBottom(xLabel) + GUI_LABEL_PADDING_Y);
@@ -1440,6 +1515,9 @@ void EMPAAngleOffsetGroup::updateWidgets() {
 		x->setValue(ptr->getXOffset());
 		y->setValue(ptr->getYOffset());
 
+		xLabel->setToolTip(createToolTip("The value of x in this function's evaluation of the angle from (evaluator.x, evaluator.y) to (player.x + x, player.y + y)."));
+		yLabel->setToolTip(createToolTip("The value of y in this function's evaluation of the angle from (evaluator.x, evaluator.y) to (player.x + x, player.y + y)."));
+
 		xLabel->setVisible(true);
 		yLabel->setVisible(true);
 		x->setVisible(true);
@@ -1451,6 +1529,9 @@ void EMPAAngleOffsetGroup::updateWidgets() {
 		x->setValue(ptr->getX());
 		y->setValue(ptr->getY());
 
+		xLabel->setToolTip(createToolTip("The value of x in this function's evaluation of the angle from (evaluator.x, evaluator.y) to (x, y)."));
+		yLabel->setToolTip(createToolTip("The value of y in this function's evaluation of the angle from (evaluator.x, evaluator.y) to (x, y)."));
+
 		xLabel->setVisible(true);
 		yLabel->setVisible(true);
 		x->setVisible(true);
@@ -1459,6 +1540,17 @@ void EMPAAngleOffsetGroup::updateWidgets() {
 		xLabel->setVisible(false);
 		yLabel->setVisible(false);
 		x->setVisible(false);
+		y->setVisible(false);
+	} else if (dynamic_cast<EMPAAngleOffsetConstant*>(offset.get()) != nullptr) {
+		auto ptr = dynamic_cast<EMPAAngleOffsetConstant*>(offset.get());
+		xLabel->setText("Degrees");
+		x->setValue(ptr->getValue());
+
+		xLabel->setToolTip(createToolTip("The constant value in degrees to be returned by this function."));
+
+		xLabel->setVisible(true);
+		yLabel->setVisible(false);
+		x->setVisible(true);
 		y->setVisible(false);
 	} else if (dynamic_cast<EMPAngleOffsetPlayerSpriteAngle*>(offset.get()) != nullptr) {
 		xLabel->setVisible(false);

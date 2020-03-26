@@ -373,7 +373,6 @@ private:
 	bool ignoreSignals = false;
 };
 
-
 /*
 A ScrollablePanel that can scroll horizontally as well as vertically and contains a ListBox.
 The ListBox from getListBox() does not have to be added to a container, since it is already part of this ScrollablePanel.
