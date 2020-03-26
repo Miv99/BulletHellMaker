@@ -324,6 +324,8 @@ private:
 
 	std::shared_ptr<tgui::ComboBox> animatable;
 	std::shared_ptr<tgui::ComboBox> rotationType;
+	// The ID of the previously selected animatable item
+	std::string previousAnimatableSelection = "";
 
 	std::shared_ptr<AnimatablePicture> animatablePicture;
 

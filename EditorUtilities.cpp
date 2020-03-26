@@ -195,7 +195,7 @@ AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprit
 	const std::map<std::string, std::shared_ptr<SpriteSheet>> sheets = spriteLoader.getSpriteSheets();
 	for (auto it = sheets.begin(); it != sheets.end(); it++) {
 		const std::map<std::string, std::shared_ptr<SpriteData>> spriteData = it->second->getSpriteData();
-		animatable->addItem(it->first);
+		animatable->addItem(it->first, "Sheet");
 		for (auto it2 = spriteData.begin(); it2 != spriteData.end(); it2++) {
 			animatable->addItem("[S]" + it2->first, it->first + "\\" + it2->first);
 		}
@@ -224,16 +224,30 @@ AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprit
 or (270, 360)) or 180 (when it is moving at angle in range (90, 270))."));
 
 	animatable->connect("ItemSelected", [&](std::string itemText, std::string id) {
-		if (ignoreSignals) {
-			return;
-		}
-
 		// ID is in format "spriteSheetName\animatableName"
 		std::string spriteSheetName = id.substr(0, id.find_first_of('\\'));
 
+		// If id is "Sheet", a sheet was selected, so reselect the previous selection
+		if (id == "Sheet" && !ignoreSignals) {
+			ignoreSignals = true;
+			animatable->setSelectedItemById(previousAnimatableSelection);
+			ignoreSignals = false;
+			return;
+		}
+
 		// The only items without an ID are sprite sheet name indicators, so if ID is empty, this item shouldn't be selectable
-		if (spriteSheetName == "") {
+		if (spriteSheetName == "" && !ignoreSignals) {
 			animatable->deselectItem();
+		} else if (!ignoreSignals) {
+			previousAnimatableSelection = id;
+			// Item text is in format "[S]spriteName" or "[A]animationName"
+			if (itemText[1] == 'S') {
+				animatablePicture->setSprite(spriteLoader, itemText.substr(3), spriteSheetName);
+			} else {
+				animatablePicture->setAnimation(spriteLoader, itemText.substr(3), spriteSheetName);
+			}
+
+			onValueChange.emit(this, Animatable(itemText.substr(3), spriteSheetName, itemText[1] == 'S', static_cast<ROTATION_TYPE>(std::stoi(std::string(rotationType->getSelectedItemId())))));
 		} else {
 			// Item text is in format "[S]spriteName" or "[A]animationName"
 			if (itemText[1] == 'S') {
@@ -241,7 +255,6 @@ or (270, 360)) or 180 (when it is moving at angle in range (90, 270))."));
 			} else {
 				animatablePicture->setAnimation(spriteLoader, itemText.substr(3), spriteSheetName);
 			}
-			onValueChange.emit(this, Animatable(itemText.substr(3), spriteSheetName, itemText[1] == 'S', static_cast<ROTATION_TYPE>(std::stoi(std::string(rotationType->getSelectedItemId())))));
 		}
 
 	});
@@ -312,12 +325,14 @@ void AnimatableChooser::calculateItemsToDisplay() {
 }
 
 void AnimatableChooser::setValue(Animatable animatable) {
+	ignoreSignals = true;
 	if (animatable.getAnimatableName() == "") {
 		this->animatable->deselectItem();
 	} else if (animatable.getSpriteSheetName() + "\\" + animatable.getAnimatableName() != this->animatable->getSelectedItemId()) {
 		this->animatable->setSelectedItemById(animatable.getSpriteSheetName() + "\\" + animatable.getAnimatableName());
 	}
 	rotationType->setSelectedItemById(std::to_string(static_cast<int>(animatable.getRotationType())));
+	ignoreSignals = false;
 }
 
 Animatable AnimatableChooser::getValue() {
