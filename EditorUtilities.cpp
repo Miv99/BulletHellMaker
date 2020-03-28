@@ -2505,11 +2505,18 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, sf::Vector2u resoluti
 		}
 		setPlacingNewMarker(true);
 	});
-	deleteMarker->connect("Pressed", [&]() {
+	deleteMarker->connect("Pressed", [&, &selectedMarkerIndex = this->selectedMarkerIndex]() {
 		if (ignoreSignals) {
 			return;
 		}
-		removeMarker(selectedMarkerIndex);
+		sf::CircleShape markerToBeDeleted = markers[selectedMarkerIndex];
+		undoStack.execute(UndoableCommand(
+			[this, selectedMarkerIndex]() {
+			removeMarker(selectedMarkerIndex);
+		},
+			[this, markerToBeDeleted, selectedMarkerIndex]() {
+			insertMarker(selectedMarkerIndex, sf::Vector2f(markerToBeDeleted.getPosition().x, -markerToBeDeleted.getPosition().y), markerToBeDeleted.getOutlineColor());
+		}));
 	});
 	selectedMarkerX->connect("ValueChanged", [&](float value) {
 		if (ignoreSignals) {
@@ -2552,7 +2559,17 @@ bool MarkerPlacer::handleEvent(sf::Event event) {
 		return true;
 	}
 
-	if (event.type == sf::Event::MouseButtonPressed) {
+	if (event.type == sf::Event::KeyPressed) {
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
+			if (event.key.code == sf::Keyboard::Z) {
+				undoStack.undo();
+				return true;
+			} else if (event.key.code == sf::Keyboard::Y) {
+				undoStack.redo();
+				return true;
+			}
+		}
+	} else if (event.type == sf::Event::MouseButtonPressed) {
 		if (event.mouseButton.button == sf::Mouse::Right) {
 			setPlacingNewMarker(false);
 			deselectMarker();
@@ -2632,16 +2649,17 @@ bool MarkerPlacer::handleEvent(sf::Event event) {
 
 				if (selectedMarkerIndex != -1) {
 					sf::Vector2f endPos = markers[selectedMarkerIndex].getPosition();
+					sf::Vector2f prevPos = sf::Vector2f(markerPosBeforeDragging);
 					undoStack.execute(UndoableCommand(
 						[this, endPos]() {
 							markers[selectedMarkerIndex].setPosition(endPos);
 							setSelectedMarkerXWidgetValue(endPos.x);
 							setSelectedMarkerYWidgetValue(-endPos.y);
 						},
-						[this]() {
-							markers[selectedMarkerIndex].setPosition(markerPosBeforeDragging);
-							setSelectedMarkerXWidgetValue(markerPosBeforeDragging.x);
-							setSelectedMarkerYWidgetValue(-markerPosBeforeDragging.y);
+						[this, prevPos]() {
+							markers[selectedMarkerIndex].setPosition(prevPos);
+							setSelectedMarkerXWidgetValue(prevPos.x);
+							setSelectedMarkerYWidgetValue(-prevPos.y);
 					}));
 				}
 			}
@@ -2742,6 +2760,11 @@ void MarkerPlacer::insertMarker(int index, sf::Vector2f position, sf::Color colo
 
 void MarkerPlacer::removeMarker(int index) {
 	markers.erase(markers.begin() + index);
+	if (markers.size() == 0) {
+		deselectMarker();
+	} else if (selectedMarkerIndex >= markers.size()) {
+		selectedMarkerIndex = markers.size() - 1;
+	}
 	updateMarkersListView();
 }
 
