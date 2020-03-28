@@ -2430,7 +2430,7 @@ tgui::Signal & DelayedSlider::getSignal(std::string signalName) {
 const std::string MarkerPlacer::MARKERS_LIST_VIEW_ITEM_FORMAT = "%d (%.2f, %.2f)";
 
 MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, sf::Vector2u resolution, int undoStackSize) : parentWindow(parentWindow), resolution(resolution), undoStack(UndoStack(undoStackSize)) {
-	currentCursor = sf::CircleShape(circleRadius);
+	currentCursor = sf::CircleShape(-1);
 	currentCursor.setOutlineColor(selectedMarkerColor);
 	currentCursor.setOutlineThickness(outlineThickness);
 	currentCursor.setFillColor(sf::Color::Transparent);
@@ -2546,7 +2546,7 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, sf::Vector2u resoluti
 }
 
 bool MarkerPlacer::handleEvent(sf::Event event) {
-	if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left && leftPanel->mouseOnWidget(sf::Vector2f(event.mouseButton.x, event.mouseButton.y))) {
+	if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left && leftPanel->mouseOnWidget(sf::Vector2f(event.mouseButton.x, event.mouseButton.y) - getAbsolutePosition())) {
 		return true;
 	} else if (viewController->handleEvent(viewFromViewController, event)) {
 		return true;
@@ -2581,7 +2581,7 @@ bool MarkerPlacer::handleEvent(sf::Event event) {
 			} else {
 				int i = 0;
 				for (auto p : markers) {
-					if (std::sqrt((mouseWorldPos.x - p.getPosition().x - p.getRadius() / 2.0f)*(mouseWorldPos.x - p.getPosition().x - p.getRadius() / 2.0f) + (mouseWorldPos.y - p.getPosition().y - p.getRadius() / 2.0f)*(mouseWorldPos.y - p.getPosition().y - p.getRadius() / 2.0f)) <= p.getRadius()) {
+					if (std::sqrt((mouseWorldPos.x - p.getPosition().x)*(mouseWorldPos.x - p.getPosition().x) + (mouseWorldPos.y - p.getPosition().y)*(mouseWorldPos.y - p.getPosition().y)) <= p.getRadius()) {
 						if (selectedMarkerIndex == i) {
 							draggingMarker = true;
 							previousMarkerDragCoordsX = event.mouseButton.x;
@@ -2623,7 +2623,7 @@ bool MarkerPlacer::handleEvent(sf::Event event) {
 
 			// Check if initial press was in gameplay area and in relative spatial proximity to mouse release
 			float screenDist = std::sqrt((initialMousePressX - event.mouseButton.x)*(initialMousePressX - event.mouseButton.x) + (initialMousePressY - event.mouseButton.y)*(initialMousePressY - event.mouseButton.y));
-			if (!justSelectedMarker && screenDist < 15) {
+			if (!justSelectedMarker && screenDist < 15 && !leftPanel->mouseOnWidget(sf::Vector2f(event.mouseButton.x, event.mouseButton.y))) {
 				deselectMarker();
 			}
 
@@ -2683,7 +2683,6 @@ void MarkerPlacer::setPlacingNewMarker(bool placingNewMarker) {
 }
 
 void MarkerPlacer::deselectMarker() {
-	currentCursor.setRadius(-1);
 	selectedMarkerIndex = -1;
 	markersListView->getListView()->deselectItems();
 	deleteMarker->setEnabled(false);
@@ -2697,6 +2696,10 @@ void MarkerPlacer::lookAt(sf::Vector2f pos) {
 	viewFromViewController.setCenter(sf::Vector2f(pos.x, -pos.y));
 }
 
+void MarkerPlacer::clearUndoStack() {
+	undoStack.clear();
+}
+
 void MarkerPlacer::setMarkers(std::vector<std::pair<sf::Vector2f, sf::Color>> markers) {
 	this->markers.clear();
 	for (auto p : markers) {
@@ -2708,6 +2711,7 @@ void MarkerPlacer::setMarkers(std::vector<std::pair<sf::Vector2f, sf::Color>> ma
 		shape.setOutlineThickness(outlineThickness);
 		this->markers.push_back(shape);
 	}
+	updateMarkersListView();
 }
 
 void MarkerPlacer::setMarker(int index, sf::Vector2f position, sf::Color color) {
@@ -2718,6 +2722,7 @@ void MarkerPlacer::setMarker(int index, sf::Vector2f position, sf::Color color) 
 	shape.setOutlineColor(color);
 	shape.setOutlineThickness(outlineThickness);
 	markers[index] = shape;
+	updateMarkersListViewItem(index);
 }
 
 sf::CircleShape MarkerPlacer::getMarker(int index) {
@@ -2742,6 +2747,7 @@ void MarkerPlacer::removeMarker(int index) {
 
 void MarkerPlacer::removeMarkers() {
 	markers.clear();
+	updateMarkersListView();
 }
 
 std::vector<sf::Vector2f> MarkerPlacer::getMarkerPositions() {
@@ -2758,7 +2764,9 @@ void MarkerPlacer::setCircleRadius(float circleRadius) {
 		marker.setRadius(circleRadius);
 		marker.setOrigin(circleRadius, circleRadius);
 	}
-	currentCursor.setRadius(circleRadius);
+	if (currentCursor.getRadius() > 0) {
+		currentCursor.setRadius(circleRadius);
+	}
 	currentCursor.setOrigin(circleRadius, circleRadius);
 }
 
@@ -2863,4 +2871,7 @@ void MarkerPlacer::draw(sf::RenderTarget & target, sf::RenderStates states) cons
 		parentWindow.draw(currentCursor);
 	}
 	parentWindow.setView(originalView);
+
+	// Draw left panel again so that it covers the markers
+	leftPanel->draw(target, states);
 }

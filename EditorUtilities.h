@@ -932,6 +932,7 @@ public:
 	bool handleEvent(sf::Event event) override;
 
 	void lookAt(sf::Vector2f pos);
+	void clearUndoStack();
 
 	void setMarkers(std::vector<std::pair<sf::Vector2f, sf::Color>> markers);
 	void setMarker(int index, sf::Vector2f position, sf::Color color);
