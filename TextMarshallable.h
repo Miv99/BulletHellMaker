@@ -55,9 +55,7 @@ Format a number for display only.
 */
 template<typename T>
 std::string formatNum(const T &n) {
-	std::ostringstream oss;
-	oss << n;
-	std::string s = oss.str();
+	std::string s = std::to_string(n);
 	int dotpos = s.find_first_of('.');
 	if (dotpos != std::string::npos) {
 		int ipos = s.size() - 1;
@@ -72,6 +70,9 @@ std::string formatNum(const T &n) {
 		int i = s.size() - 1;
 		while (i > 0 && (s[i] == '0' || s[i] == '.')) {
 			i--;
+			if (s[i + 1] == '.') {
+				break;
+			}
 		}
 
 		return s.substr(0, i + 1);
