@@ -2835,8 +2835,10 @@ void MarkerPlacer::updateWindowView() {
 	float viewportHeight = getSize().y / windowSize.y;
 	viewportFloatRect = sf::FloatRect(viewportX, viewportY, viewportWidth, viewportHeight);
 
+	sf::Vector2f oldCenter = viewFromViewController.getCenter();
 	viewFromViewController = sf::View(viewFloatRect);
 	viewFromViewController.setViewport(viewportFloatRect);
+	viewFromViewController.setCenter(oldCenter);
 }
 
 void MarkerPlacer::updateMarkersListViewItem(int index) {
