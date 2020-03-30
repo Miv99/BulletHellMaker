@@ -2628,6 +2628,7 @@ bool MarkerPlacer::handleEvent(sf::Event event) {
 			markers[selectedMarkerIndex].setPosition(sf::Vector2f(prevPos.x - diff.x, prevPos.y - diff.y));
 			setSelectedMarkerXWidgetValue(markers[selectedMarkerIndex].getPosition().x);
 			setSelectedMarkerYWidgetValue(-markers[selectedMarkerIndex].getPosition().y);
+			updateMarkersListViewItem(selectedMarkerIndex);
 		}
 
 		if (draggingMarker) {
@@ -2655,11 +2656,13 @@ bool MarkerPlacer::handleEvent(sf::Event event) {
 							markers[selectedMarkerIndex].setPosition(endPos);
 							setSelectedMarkerXWidgetValue(endPos.x);
 							setSelectedMarkerYWidgetValue(-endPos.y);
+							updateMarkersListViewItem(selectedMarkerIndex);
 						},
 						[this, prevPos]() {
 							markers[selectedMarkerIndex].setPosition(prevPos);
 							setSelectedMarkerXWidgetValue(prevPos.x);
 							setSelectedMarkerYWidgetValue(-prevPos.y);
+							updateMarkersListViewItem(selectedMarkerIndex);
 					}));
 				}
 			}
@@ -2807,12 +2810,10 @@ void MarkerPlacer::setAddButtonMarkerColor(sf::Color color) {
 
 void MarkerPlacer::setSelectedMarkerXWidgetValue(float value) {
 	selectedMarkerX->setValue(value);
-	updateMarkersListViewItem(selectedMarkerIndex);
 }
 
 void MarkerPlacer::setSelectedMarkerYWidgetValue(float value) {
 	selectedMarkerY->setValue(value);
-	updateMarkersListViewItem(selectedMarkerIndex);
 }
 
 void MarkerPlacer::updateMarkersListView() {
@@ -2823,7 +2824,7 @@ void MarkerPlacer::updateMarkersListView() {
 		markersListView->getListView()->addItem(format(MARKERS_LIST_VIEW_ITEM_FORMAT, i + 1, markers[i].getPosition().x, -markers[i].getPosition().y));
 	}
 	if (selectedMarkerIndex >= 0) {
-		selectMarker(selectedMarkerIndex);
+		markersListView->getListView()->setSelectedItem(selectedMarkerIndex);
 	}
 
 	ignoreSignals = false;
@@ -2899,4 +2900,125 @@ void MarkerPlacer::draw(sf::RenderTarget & target, sf::RenderStates states) cons
 
 	// Draw left panel again so that it covers the markers
 	leftPanel->draw(target, states);
+}
+
+BezierControlPointsPlacer::BezierControlPointsPlacer(sf::RenderWindow & parentWindow, sf::Vector2u resolution, int undoStackSize) : MarkerPlacer(parentWindow, resolution, undoStackSize) {
+	timeResolution = SliderWithEditBox::create();
+	evaluator = SliderWithEditBox::create();
+	evaluatorResult = tgui::Label::create();
+
+	timeResolution->setToolTip(createToolTip("Amount of time in seconds between each movement dot"));
+	evaluator->setToolTip(createToolTip("Evaluates a position given some time in seconds"));
+	evaluatorResult->setToolTip(createToolTip("The result of the evaluation relative to the first control point"));
+
+	timeResolution->setTextSize(TEXT_SIZE);
+	evaluator->setTextSize(TEXT_SIZE);
+	evaluatorResult->setTextSize(TEXT_SIZE);
+
+	evaluatorResult->setText("Result:                   ");
+
+	timeResolution->setPosition(tgui::bindRight(leftPanel), tgui::bindTop(leftPanel));
+	evaluator->setPosition(tgui::bindLeft(timeResolution), tgui::bindBottom(timeResolution) + GUI_LABEL_PADDING_Y);
+	evaluatorResult->setPosition(tgui::bindRight(evaluator) + GUI_PADDING_X, tgui::bindTop(evaluator));
+
+	timeResolution->setIntegerMode(false);
+	timeResolution->setMin(MAX_PHYSICS_DELTA_TIME);
+	timeResolution->setMax(1);
+	timeResolution->setStep(MAX_PHYSICS_DELTA_TIME);
+
+	evaluator->setIntegerMode(false);
+	evaluator->setMin(0);
+	evaluator->setMax(0);
+	evaluator->setStep(MAX_PHYSICS_DELTA_TIME);
+
+	timeResolution->connect("ValueChanged", [&]() {
+		updatePath();
+	});
+	evaluator->connect("ValueChanged", [&](float value) {
+		std::shared_ptr<BezierMP> mp = std::make_shared<BezierMP>(movementPathTime, getMarkerPositions());
+		sf::Vector2f res = mp->compute(sf::Vector2f(0, 0), value);
+		evaluatorResult->setText(format("Result: (%.3f, %.3f)", res.x, res.y));
+		evaluator->setSize(std::min((getSize().x - leftPanel->getSize().x) / 2.0f, (getSize().x - leftPanel->getSize().x) - evaluatorResult->getSize().x - GUI_PADDING_X), TEXT_BOX_HEIGHT);
+	});
+	connect("SizeChanged", [&](sf::Vector2f newSize) {
+		timeResolution->setSize(newSize.x - tgui::bindWidth(leftPanel), SLIDER_HEIGHT);
+		evaluator->setSize(std::min((newSize.x - leftPanel->getSize().x)/2.0f, (newSize.x - leftPanel->getSize().x) - evaluatorResult->getSize().x - GUI_PADDING_X), TEXT_BOX_HEIGHT);
+	});
+
+	add(timeResolution);
+	add(evaluator);
+	add(evaluatorResult);
+}
+
+void BezierControlPointsPlacer::draw(sf::RenderTarget & target, sf::RenderStates states) const {
+	MarkerPlacer::draw(target, states);
+
+	// Draw movement path
+	sf::View originalView = parentWindow.getView();
+	parentWindow.setView(viewFromViewController);
+	target.draw(movementPath, states);
+	parentWindow.setView(originalView);
+}
+
+void BezierControlPointsPlacer::setMovementDuration(float time) {
+	movementPathTime = time;
+	evaluator->setMin(0);
+	evaluator->setMax(time);
+	updatePath();
+}
+
+std::vector<sf::Vector2f> BezierControlPointsPlacer::getMarkerPositions() {
+	auto res = std::vector<sf::Vector2f>();
+	for (auto p : markers) {
+		res.push_back(sf::Vector2f(p.getPosition().x - markers[0].getPosition().x, -(p.getPosition().y - markers[0].getPosition().y)));
+	}
+	return res;
+}
+
+void BezierControlPointsPlacer::setSelectedMarkerXWidgetValue(float value) {
+	selectedMarkerX->setValue(value - markers[0].getPosition().x);
+}
+
+void BezierControlPointsPlacer::setSelectedMarkerYWidgetValue(float value) {
+	selectedMarkerY->setValue(-value - markers[0].getPosition().y);
+}
+
+void BezierControlPointsPlacer::updateMarkersListView() {
+	ignoreSignals = true;
+
+	markersListView->getListView()->removeAllItems();
+	for (int i = 0; i < markers.size(); i++) {
+		markersListView->getListView()->addItem(format(MARKERS_LIST_VIEW_ITEM_FORMAT, i + 1, markers[i].getPosition().x - markers[0].getPosition().x, -(markers[i].getPosition().y - markers[0].getPosition().y)));
+	}
+	if (selectedMarkerIndex >= 0) {
+		markersListView->getListView()->setSelectedItem(selectedMarkerIndex);
+	}
+	updatePath();
+
+	ignoreSignals = false;
+}
+
+void BezierControlPointsPlacer::updateMarkersListViewItem(int index) {
+	updateMarkersListView();
+}
+
+void BezierControlPointsPlacer::updatePath() {
+	if (markers.size() == 0) {
+		movementPath = sf::VertexArray();
+		return;
+	}
+	auto markerPositions = std::vector<sf::Vector2f>();
+	for (auto p : markers) {
+		markerPositions.push_back(p.getPosition());
+	}
+
+	std::shared_ptr<EMPAction> empa = std::make_shared<MoveCustomBezierEMPA>(markerPositions, movementPathTime);
+	// magic numbers; i actually have no idea why -205 and -66 in particular
+	movementPath = generateVertexArray(empa, timeResolution->getValue(), -205, -66, 0, 0, sf::Color::Red, sf::Color::Blue);
+	movementPath.setPrimitiveType(sf::PrimitiveType::Points);
+
+	std::shared_ptr<BezierMP> mp = std::make_shared<BezierMP>(movementPathTime, getMarkerPositions());
+	sf::Vector2f res = mp->compute(sf::Vector2f(0, 0), evaluator->getValue());
+	evaluatorResult->setText(format("Result: (%.3f, %.3f)", res.x, res.y));
+	evaluator->setSize(std::min((getSize().x - leftPanel->getSize().x) / 2.0f, (getSize().x - leftPanel->getSize().x) - evaluatorResult->getSize().x - GUI_PADDING_X), TEXT_BOX_HEIGHT);
 }

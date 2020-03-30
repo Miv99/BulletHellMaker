@@ -940,7 +940,7 @@ public:
 	void insertMarker(int index, sf::Vector2f position, sf::Color color);
 	void removeMarker(int index);
 	void removeMarkers();
-	std::vector<sf::Vector2f> getMarkerPositions();
+	virtual std::vector<sf::Vector2f> getMarkerPositions();
 
 	void setCircleRadius(float circleRadius);
 	void setOutlineThickness(float outlineThickness);
@@ -951,45 +951,52 @@ public:
 	void setAddButtonMarkerColor(sf::Color color);
 
 protected:
+	const static std::string MARKERS_LIST_VIEW_ITEM_FORMAT;
+	sf::RenderWindow& parentWindow;
+
 	// The color of the selected marker
 	sf::Color selectedMarkerColor = sf::Color::Green;
 	// The color of future markers from the "Add" button
 	sf::Color addButtonMarkerColor = sf::Color::Red;
 
+	// Index of the selected marker. -1 if nothing is selected.
+	int selectedMarkerIndex = -1;
+
+	std::vector<sf::CircleShape> markers;
+	std::shared_ptr<tgui::ScrollablePanel> leftPanel;
+	std::shared_ptr<ListViewScrollablePanel> markersListView;
+	std::shared_ptr<NumericalEditBoxWithLimits> selectedMarkerX;
+	std::shared_ptr<NumericalEditBoxWithLimits> selectedMarkerY;
+
+	sf::View viewFromViewController;
+
+	void selectMarker(int index);
 	virtual void setSelectedMarkerXWidgetValue(float value);
 	virtual void setSelectedMarkerYWidgetValue(float value);
 	virtual void updateMarkersListView();
+	virtual void updateMarkersListViewItem(int index);
+
+	bool ignoreSignals = false;
 
 private:
-	const static std::string MARKERS_LIST_VIEW_ITEM_FORMAT;
 	const sf::Vector2u resolution;
-	sf::RenderWindow& parentWindow;
 	UndoStack undoStack;
 
-	// Widgets
-	std::shared_ptr<tgui::ScrollablePanel> leftPanel;
-	std::shared_ptr<ListViewScrollablePanel> markersListView;
 	std::shared_ptr<tgui::Button> addMarker;
 	std::shared_ptr<tgui::Button> deleteMarker;
 	std::shared_ptr<tgui::Label> selectedMarkerXLabel;
 	std::shared_ptr<tgui::Label> selectedMarkerYLabel;
-	std::shared_ptr<NumericalEditBoxWithLimits> selectedMarkerX;
-	std::shared_ptr<NumericalEditBoxWithLimits> selectedMarkerY;
 
 	float circleRadius = 10.0f;
 	float outlineThickness = 3.0f;
-	std::vector<sf::CircleShape> markers;
 
 	sf::FloatRect viewportFloatRect, viewFloatRect;
 
 	std::unique_ptr<ViewController> viewController;
-	sf::View viewFromViewController;
 
 	// Radius will be < 0 if no cursor
 	sf::CircleShape currentCursor;
 
-	// Index of the selected marker. -1 if nothing is selected.
-	int selectedMarkerIndex = -1;
 	bool draggingMarker = false;
 	// World pos of the placeholder being dragged at the moment it started being dragged
 	sf::Vector2f markerPosBeforeDragging;
@@ -1007,11 +1014,43 @@ private:
 	// Whether the user is currently placing a new marker. Should be modified only through setter.
 	bool placingNewMarker = false;
 
-	bool ignoreSignals = false;
-
-	void selectMarker(int index);
 	void setPlacingNewMarker(bool placingNewMarker);
 	void deselectMarker();
 	void updateWindowView();
-	void updateMarkersListViewItem(int index);
+};
+
+class BezierControlPointsPlacer : public MarkerPlacer {
+public:
+	BezierControlPointsPlacer(sf::RenderWindow& parentWindow, sf::Vector2u resolution = sf::Vector2u(MAP_WIDTH, MAP_HEIGHT), int undoStackSize = 50);
+	static std::shared_ptr<BezierControlPointsPlacer> create(sf::RenderWindow& parentWindow, sf::Vector2u resolution = sf::Vector2u(MAP_WIDTH, MAP_HEIGHT), int undoStackSize = 50) {
+		return std::make_shared<BezierControlPointsPlacer>(parentWindow, resolution, undoStackSize);
+	}
+
+	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+
+	/*
+	Sets the duration of the bezier movement.
+	*/
+	void setMovementDuration(float time);
+
+	std::vector<sf::Vector2f> getMarkerPositions() override;
+
+protected:
+	void setSelectedMarkerXWidgetValue(float value) override;
+	void setSelectedMarkerYWidgetValue(float value) override;
+	void updateMarkersListView() override;
+	void updateMarkersListViewItem(int index) override;
+
+private:
+	sf::VertexArray movementPath;
+	float movementPathTime;
+
+	std::shared_ptr<SliderWithEditBox> timeResolution;
+	std::shared_ptr<SliderWithEditBox> evaluator;
+	std::shared_ptr<tgui::Label> evaluatorResult;
+
+	/*
+	Update the movement path to reflect changes in the markers.
+	*/
+	void updatePath();
 };
