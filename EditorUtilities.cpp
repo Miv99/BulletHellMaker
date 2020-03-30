@@ -171,7 +171,7 @@ void HideableGroup::setVisible(bool visible) {
 	if (!visible && wasVisible) {
 		savedSize = tgui::Group::getSizeLayout();
 		tgui::Group::setSize({ 0, 0 });
-	} else if (visible) {
+	} else if (visible && !wasVisible) {
 		tgui::Group::setSize(savedSize);
 	}
 }
