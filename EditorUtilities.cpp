@@ -75,7 +75,7 @@ sf::VertexArray generateVertexArray(std::vector<std::shared_ptr<EMPAction>> acti
 		auto mp = action->generateStandaloneMP(curX, curY, playerX, playerY); 
 		while (time < action->getTime()) {
 			sf::Vector2f pos = mp->compute(sf::Vector2f(0, 0), time);
-			sf::Color color = sf::Color((endColor.r - startColor.r)*(totalTimeElapsed / totalTime) + startColor.r, (endColor.r - startColor.r)*(totalTimeElapsed / totalTime) + startColor.r, (endColor.b - startColor.b)*(totalTimeElapsed / totalTime) + startColor.b, (endColor.a - startColor.a)*(totalTimeElapsed / totalTime) + startColor.a);
+			sf::Color color = sf::Color((endColor.r - startColor.r)*(totalTimeElapsed / totalTime) + startColor.r, (endColor.g - startColor.g)*(totalTimeElapsed / totalTime) + startColor.g, (endColor.b - startColor.b)*(totalTimeElapsed / totalTime) + startColor.b, (endColor.a - startColor.a)*(totalTimeElapsed / totalTime) + startColor.a);
 			ret.append(sf::Vertex(pos + sf::Vector2f(curX, curY), color));
 			time += timeResolution;
 			totalTimeElapsed += timeResolution;
@@ -96,7 +96,7 @@ sf::VertexArray generateVertexArray(std::shared_ptr<EMPAction> action, float tim
 	auto mp = action->generateStandaloneMP(x, y, playerX, playerY);
 	while (time < action->getTime()) {
 		sf::Vector2f pos = mp->compute(sf::Vector2f(0, 0), time);
-		sf::Color color = sf::Color((endColor.r - startColor.r)*(totalTimeElapsed / totalTime) + startColor.r, (endColor.r - startColor.r)*(totalTimeElapsed / totalTime) + startColor.r, (endColor.b - startColor.b)*(totalTimeElapsed / totalTime) + startColor.b, (endColor.a - startColor.a)*(totalTimeElapsed / totalTime) + startColor.a);
+		sf::Color color = sf::Color((endColor.r - startColor.r)*(totalTimeElapsed / totalTime) + startColor.r, (endColor.g - startColor.g)*(totalTimeElapsed / totalTime) + startColor.g, (endColor.b - startColor.b)*(totalTimeElapsed / totalTime) + startColor.b, (endColor.a - startColor.a)*(totalTimeElapsed / totalTime) + startColor.a);
 		ret.append(sf::Vertex(pos + sf::Vector2f(x, y), color));
 		time += timeResolution;
 		totalTimeElapsed += timeResolution;
