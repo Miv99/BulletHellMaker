@@ -75,3 +75,5 @@ const static float GUI_PADDING_X = 20;
 const static float GUI_PADDING_Y = 10;
 // Y padding inbetween labels and the widget they're explaining
 const static float GUI_LABEL_PADDING_Y = 5;
+// Scroll amount for every Panel
+const static float SCROLL_AMOUNT = 20;
