@@ -59,6 +59,19 @@ std::string EMPAAngleOffsetZero::format() const {
 void EMPAAngleOffsetZero::load(std::string formattedString) {
 }
 
+std::shared_ptr<EMPAAngleOffset> EMPAAngleOffsetConstant::clone() {
+	return std::make_shared<EMPAAngleOffsetConstant>(value);
+}
+
+std::string EMPAAngleOffsetConstant::format() const {
+	return formatString("EMPAAngleOffsetConstant") + tos(value);
+}
+
+void EMPAAngleOffsetConstant::load(std::string formattedString) {
+	auto items = split(formattedString, DELIMITER);
+	value = std::stof(items[1]);
+}
+
 std::shared_ptr<EMPAAngleOffset> EMPAngleOffsetPlayerSpriteAngle::clone() {
 	return std::make_shared<EMPAngleOffsetPlayerSpriteAngle>();
 }
@@ -303,17 +316,13 @@ std::shared_ptr<EMPAction> EMPActionFactory::create(std::string formattedString)
 	std::shared_ptr<EMPAction> ptr;
 	if (name == "DetachFromParentEMPA") {
 		ptr = std::make_shared<DetachFromParentEMPA>();
-	}
-	else if (name == "StayStillAtLastPositionEMPA") {
+	} else if (name == "StayStillAtLastPositionEMPA") {
 		ptr = std::make_shared<StayStillAtLastPositionEMPA>();
-	}
-	else if (name == "MoveCustomPolarEMPA") {
+	} else if (name == "MoveCustomPolarEMPA") {
 		ptr = std::make_shared<MoveCustomPolarEMPA>();
-	}
-	else if (name == "MoveCustomBezierEMPA") {
+	} else if (name == "MoveCustomBezierEMPA") {
 		ptr = std::make_shared<MoveCustomBezierEMPA>();
-	}
-	else if (name == "MovePlayerHomingEMPA") {
+	} else if (name == "MovePlayerHomingEMPA") {
 		ptr = std::make_shared<MovePlayerHomingEMPA>();
 	}
 	ptr->load(formattedString);
@@ -325,15 +334,14 @@ std::shared_ptr<EMPAAngleOffset> EMPAngleOffsetFactory::create(std::string forma
 	std::shared_ptr<EMPAAngleOffset> ptr;
 	if (name == "EMPAAngleOffsetToPlayer") {
 		ptr = std::make_shared<EMPAAngleOffsetToPlayer>();
-	}
-	else if (name == "EMPAAngleOffsetToGlobalPosition") {
+	} else if (name == "EMPAAngleOffsetToGlobalPosition") {
 		ptr = std::make_shared<EMPAAngleOffsetToGlobalPosition>();
-	}
-	else if (name == "EMPAAngleOffsetZero") {
+	} else if (name == "EMPAAngleOffsetZero") {
 		ptr = std::make_shared<EMPAAngleOffsetZero>();
-	}
-	else if (name == "EMPAngleOffsetPlayerSpriteAngle") {
+	} else if (name == "EMPAngleOffsetPlayerSpriteAngle") {
 		ptr = std::make_shared<EMPAngleOffsetPlayerSpriteAngle>();
+	} else if (name == "EMPAAngleOffsetConstant") {
+		ptr = std::make_shared<EMPAAngleOffsetConstant>();
 	}
 	ptr->load(formattedString);
 	return ptr;

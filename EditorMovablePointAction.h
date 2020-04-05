@@ -17,7 +17,7 @@ struct EMPActionExecutionInfo {
 };
 
 /*
-Angle in radians to some position.
+Base class used to determine an angle in radians.
 */
 class EMPAAngleOffset : public TextMarshallable {
 public:
@@ -105,6 +105,30 @@ public:
 	// Returns 0
 	inline float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override { return 0; }
 	inline float evaluate(float xFrom, float yFrom, float playerX, float playerY) override { return 0; }
+};
+
+/*
+Angle offset that always returns a constant, in radians.
+*/
+class EMPAAngleOffsetConstant : public EMPAAngleOffset {
+public:
+	inline EMPAAngleOffsetConstant() {}
+	inline EMPAAngleOffsetConstant(float value) : value(value) {}
+	std::shared_ptr<EMPAAngleOffset> clone() override;
+
+	inline std::string getName() override { return "Constant"; }
+
+	std::string format() const override;
+	void load(std::string formattedString) override;
+
+	inline float getValue() const { return value; }
+	inline void setValue(float value) { this->value = value; }
+
+	inline float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override { return value; }
+	inline float evaluate(float xFrom, float yFrom, float playerX, float playerY) override { return value; }
+
+private:
+	float value = 0;
 };
 
 /*
