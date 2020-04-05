@@ -77,7 +77,7 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 			std::shared_ptr<EMPAction> oldEMPA = this->empa;
 			undoStack.execute(UndoableCommand(
 				[this]() {
-				this->empa = std::make_shared<StayStillAtLastPositionEMPA>();
+				this->empa = std::make_shared<StayStillAtLastPositionEMPA>(empaiDuration->getValue());
 				onEMPATypeChange();
 				onEMPAModify.emit(this, this->empa);
 			},
@@ -508,7 +508,8 @@ will then be rotated about the first control point (0, 0) when this movement act
 
 		empaiAngleOffsetLabel->setVisible(false);
 	} else if (dynamic_cast<StayStillAtLastPositionEMPA*>(empa.get())) {
-		empaiDuration->setVisible(false);
+		empaiDuration->setVisible(true);
+		empaiDuration->setValue(empa->getTime());
 		empaiPolarDistance->setVisible(false);
 		empaiPolarAngle->setVisible(false);
 		empaiBezierControlPoints->setVisible(false);
