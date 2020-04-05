@@ -2037,11 +2037,11 @@ void TabsWithPanel::insertTab(std::string tabName, std::shared_ptr<tgui::Panel> 
 	tabs->insert(index, tabName, autoSelect);
 	add(associatedPanel);
 
-	tabsOrdering.insert(tabsOrdering.begin(), tabName);
+	tabsOrdering.insert(tabsOrdering.begin() + index, tabName);
 	if (closeable) {
 		createCloseButton(index);
 	} else {
-		closeButtons.push_back(std::make_pair(nullptr, ""));
+		closeButtons.insert(closeButtons.begin() + index, std::make_pair(nullptr, ""));
 	}
 	onTabsChange();
 }
@@ -2096,6 +2096,25 @@ void TabsWithPanel::removeAllTabs() {
 	tabs->removeAll();
 
 	onTabsChange();
+}
+
+void TabsWithPanel::renameTab(std::string oldTabName, std::string newTabName) {
+	std::string oldTabInternalName = oldTabName + tabNameAppendedSpaces;
+	int tabIndex = -1;
+	for (int i = 0; i < tabsOrdering.size(); i++) {
+		if (tabsOrdering[i] == oldTabInternalName) {
+			tabIndex = i;
+			break;
+		}
+	}
+
+	std::shared_ptr<tgui::Panel> panel = panelsMap[oldTabInternalName];
+	bool closeable = (closeButtons[tabIndex].first != nullptr);
+	std::string closeButtonConfirmationPrompt = closeButtons[tabIndex].second;
+
+	removeTab(oldTabName);
+	insertTab(newTabName, panel, tabIndex, tabs->getSelectedIndex() == tabIndex, closeable);
+	setTabCloseButtonConfirmationPrompt(newTabName, closeButtonConfirmationPrompt);
 }
 
 void TabsWithPanel::setTabCloseButtonConfirmationPrompt(std::string tabName, std::string message) {
@@ -2169,6 +2188,14 @@ std::string TabsWithPanel::getSelectedTab() {
 
 void TabsWithPanel::setMoreTabsListAlignment(MoreTabsListAlignment moreTabsListAlignment) {
 	this->moreTabsListAlignment = moreTabsListAlignment;
+}
+
+std::vector<std::string> TabsWithPanel::getTabNames() {
+	std::vector<std::string> res;
+	for (int i = 0; i < panelsMap.size(); i++) {
+		res.push_back(tabs->getText(i));
+	}
+	return res;
 }
 
 bool TabsWithPanel::handleEvent(sf::Event event) {

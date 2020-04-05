@@ -683,6 +683,11 @@ public:
 	*/
 	void removeAllTabs();
 	/*
+	Rename a tab.
+	Undefined behavior if newTabName is already an existing tab name or if oldTabName does not exist.
+	*/
+	void renameTab(std::string oldTabName, std::string newTabName);
+	/*
 	Mark/Unmark a specific tab as requiring pressing "Yes" to a confirmation prompt before
 	the tab is actually closed. This function does nothing if hasCloseButtons is false.
 	By default, no tab requires a confirmation prompt.
@@ -741,6 +746,10 @@ public:
 	more tabs button.
 	*/
 	void setMoreTabsListAlignment(MoreTabsListAlignment moreTabsListAlignment);
+	/*
+	Returns the names of every tab ordered by tab index.
+	*/
+	std::vector<std::string> getTabNames();
 
 	bool handleEvent(sf::Event event);
 
@@ -758,7 +767,7 @@ private:
 		std::vector<std::string> closeButtonConfirmationPrompts;
 	};
 	const float EXTRA_HEIGHT_FROM_SCROLLBAR = 16;
-	// Spaces appended to every tab name to make room for the close button
+	// Spaces appended to the end of every tab name to make room for the close button
 	// If font size changes, the number of spaces should be updated and every tab
 	// name also should be updated accordingly (even the ones that are cached).
 	// This is a lot of work, so it's better to just never change tabs' text size
@@ -776,7 +785,7 @@ private:
 	std::shared_ptr<tgui::Tabs> tabs;
 	// Maps tab name to the Panel that will be showed when the tab is selected
 	std::map<std::string, std::shared_ptr<tgui::Panel>> panelsMap;
-	// Tracks the order of the tabs in moreTabsList
+	// Tracks the order of the tabs in moreTabsList. Each entry is a tab name at some index.
 	std::vector<std::string> tabsOrdering;
 	// A vector of pairs of close button and the confirmation prompt message to be shown, one pair for every tab. 
 	// The index for closeButtons should match the index for tabsOrdering.
