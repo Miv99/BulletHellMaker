@@ -3049,3 +3049,10 @@ void BezierControlPointsPlacer::updatePath() {
 	evaluatorResult->setText(format("Result: (%.3f, %.3f)", res.x, res.y));
 	evaluator->setSize(std::min((getSize().x - leftPanel->getSize().x) / 2.0f, (getSize().x - leftPanel->getSize().x) - evaluatorResult->getSize().x - GUI_PADDING_X), TEXT_BOX_HEIGHT);
 }
+
+SingleMarkerPlacer::SingleMarkerPlacer(sf::RenderWindow & parentWindow, sf::Vector2u resolution, int undoStackSize) : MarkerPlacer(parentWindow, resolution, undoStackSize) {
+	addMarker->setVisible(false);
+	deleteMarker->setVisible(false);
+
+	setMarkers({ std::make_pair(sf::Vector2f(0, 0), sf::Color::Red) });
+}

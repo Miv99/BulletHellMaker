@@ -976,6 +976,8 @@ protected:
 	std::shared_ptr<ListViewScrollablePanel> markersListView;
 	std::shared_ptr<NumericalEditBoxWithLimits> selectedMarkerX;
 	std::shared_ptr<NumericalEditBoxWithLimits> selectedMarkerY;
+	std::shared_ptr<tgui::Button> addMarker;
+	std::shared_ptr<tgui::Button> deleteMarker;
 
 	sf::View viewFromViewController;
 
@@ -991,8 +993,6 @@ private:
 	const sf::Vector2u resolution;
 	UndoStack undoStack;
 
-	std::shared_ptr<tgui::Button> addMarker;
-	std::shared_ptr<tgui::Button> deleteMarker;
 	std::shared_ptr<tgui::Label> selectedMarkerXLabel;
 	std::shared_ptr<tgui::Label> selectedMarkerYLabel;
 
@@ -1028,6 +1028,9 @@ private:
 	void updateWindowView();
 };
 
+/*
+A MarkerPlacer used to edit the control points of a bezier curve.
+*/
 class BezierControlPointsPlacer : public MarkerPlacer {
 public:
 	BezierControlPointsPlacer(sf::RenderWindow& parentWindow, sf::Vector2u resolution = sf::Vector2u(MAP_WIDTH, MAP_HEIGHT), int undoStackSize = 50);
@@ -1042,6 +1045,10 @@ public:
 	*/
 	void setMovementDuration(float time);
 
+	/*
+	The first marker returned by this function is always at (0, 0) and
+	every other marker's position is relative to the first marker.
+	*/
 	std::vector<sf::Vector2f> getMarkerPositions() override;
 
 protected:
@@ -1062,4 +1069,15 @@ private:
 	Update the movement path to reflect changes in the markers.
 	*/
 	void updatePath();
+};
+
+/*
+A MarkerPlacer limited to editing only a single marker.
+*/
+class SingleMarkerPlacer : public MarkerPlacer {
+public:
+	SingleMarkerPlacer(sf::RenderWindow& parentWindow, sf::Vector2u resolution = sf::Vector2u(MAP_WIDTH, MAP_HEIGHT), int undoStackSize = 50);
+	static std::shared_ptr<SingleMarkerPlacer> create(sf::RenderWindow& parentWindow, sf::Vector2u resolution = sf::Vector2u(MAP_WIDTH, MAP_HEIGHT), int undoStackSize = 50) {
+		return std::make_shared<SingleMarkerPlacer>(parentWindow, resolution, undoStackSize);
+	}
 };
