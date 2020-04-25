@@ -103,6 +103,15 @@ void EditorMovablePoint::load(std::string formattedString) {
 	inheritDamage = unformatBool(items[i++]);
 	inheritSoundSettings = unformatBool(items[i++]);
 	isBullet = unformatBool(items[i++]);
+
+	// Update bulletModelsCount
+	if (bulletModelID > 0) {
+		if (bulletModelsCount.count(bulletModelID) == 0) {
+			bulletModelsCount[bulletModelID] = 1;
+		} else {
+			bulletModelsCount[bulletModelID]++;
+		}
+	}
 }
 
 std::pair<bool, std::string> EditorMovablePoint::legal(LevelPack & levelPack, SpriteLoader & spriteLoader) const {
@@ -201,6 +210,11 @@ void EditorMovablePoint::loadBulletModel(const LevelPack & levelPack) {
 }
 
 void EditorMovablePoint::setBulletModel(std::shared_ptr<BulletModel> model) {
+	// Decrement bulletModelsCount of old model, if any
+	if (bulletModelID >= 0) {
+		bulletModelsCount[bulletModelID]--;
+	}
+
 	bulletModelID = model->getID();
 
 	// Update bulletModelsCount
@@ -229,6 +243,11 @@ void EditorMovablePoint::setBulletModel(std::shared_ptr<BulletModel> model) {
 }
 
 void EditorMovablePoint::removeBulletModel() {
+	// Decrement bulletModelsCount of old model, if any
+	if (bulletModelID >= 0) {
+		bulletModelsCount[bulletModelID]--;
+	}
+
 	bulletModelID = -1;
 }
 
