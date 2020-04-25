@@ -91,10 +91,12 @@ private:
 };
 
 /*
-A tgui::Slider that allows for values not limited by multiples of the slider's step.
+A tgui::Slider that allows for values not limited by multiples of the slider's step and has is slightly transparent when disabled.
 */
 class Slider : public tgui::Slider {
 public:
+	Slider();
+
 	void setValue(float value);
 	using tgui::Slider::setValue;
 
@@ -344,6 +346,10 @@ Signals:
 class SoundSettingsGroup : public HideableGroup {
 public:
 	SoundSettingsGroup(std::string pathToSoundsFolder);
+	static std::shared_ptr<SoundSettingsGroup> create(std::string pathToSoundsFolder) {
+		return std::make_shared<SoundSettingsGroup>(pathToSoundsFolder);
+	}
+
 	/*
 	Initialize the widgets in this group to some SoundSettings's values
 	*/

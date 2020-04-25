@@ -287,6 +287,9 @@ or (270, 360)) or 180 (when it is moving at angle in range (90, 270))."));
 	rotationType->setSelectedItemById(std::to_string(static_cast<int>(LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT)));
 	ignoreSignals = false;
 
+	animatable->getSharedRenderer()->setOpacityDisabled(WIDGET_OPACITY_DISABLED);
+	rotationType->getSharedRenderer()->setOpacityDisabled(WIDGET_OPACITY_DISABLED);
+
 	add(animatable);
 	add(rotationType);
 	add(animatablePicture);
@@ -361,7 +364,7 @@ Animatable AnimatableChooser::getValue() {
 }
 
 void AnimatableChooser::setEnabled(bool enabled) {
-	tgui::Group::setEnabled(enabled);
+	HideableGroup::setEnabled(enabled);
 	animatable->setEnabled(enabled);
 	rotationType->setEnabled(enabled);
 }
@@ -378,7 +381,7 @@ tgui::Signal & AnimatableChooser::getSignal(std::string signalName) {
 	if (signalName == tgui::toLower(onValueChange.getName())) {
 		return onValueChange;
 	}
-	return Group::getSignal(signalName);
+	return HideableGroup::getSignal(signalName);
 }
 
 AnimatablePicture::AnimatablePicture() {
@@ -1515,7 +1518,7 @@ tgui::Signal & EMPAAngleOffsetGroup::getSignal(std::string signalName) {
 	if (signalName == tgui::toLower(onValueChange.getName())) {
 		return onValueChange;
 	}
-	return tgui::Group::getSignal(signalName);
+	return HideableGroup::getSignal(signalName);
 }
 
 void EMPAAngleOffsetGroup::updateWidgets() {
@@ -1676,6 +1679,10 @@ bool ListViewScrollablePanel::mouseWheelScrolled(float delta, tgui::Vector2f pos
 void ListViewScrollablePanel::setTextSize(int textSize) {
 	listView->setTextSize(textSize);
 	textWidthChecker->setTextSize(textSize);
+}
+
+Slider::Slider() {
+	getSharedRenderer()->setOpacityDisabled(WIDGET_OPACITY_DISABLED);
 }
 
 void Slider::setValue(float value) {
