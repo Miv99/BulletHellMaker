@@ -792,7 +792,7 @@ tgui::Signal & NumericalEditBoxWithLimits::getSignal(std::string signalName) {
 	if (signalName == tgui::toLower(onValueChange.getName())) {
 		return onValueChange;
 	}
-	return EditBox::getSignal(signalName);
+	return tgui::EditBox::getSignal(signalName);
 }
 
 void NumericalEditBoxWithLimits::updateInputValidator() {
@@ -3062,4 +3062,20 @@ SingleMarkerPlacer::SingleMarkerPlacer(sf::RenderWindow & parentWindow, sf::Vect
 	deleteMarker->setVisible(false);
 
 	setMarkers({ std::make_pair(sf::Vector2f(0, 0), sf::Color::Red) });
+}
+
+EditBox::EditBox() {
+	connect("Unfocused", [this]() {
+		onValueChange.emit(this, this->getText());
+	});
+	connect("ReturnKeyPressed", [this](std::string text) {
+		onValueChange.emit(this, text);
+	});
+}
+
+tgui::Signal & EditBox::getSignal(std::string signalName) {
+	if (signalName == tgui::toLower(onValueChange.getName())) {
+		return onValueChange;
+	}
+	return tgui::EditBox::getSignal(signalName);
 }

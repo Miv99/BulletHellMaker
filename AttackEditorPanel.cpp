@@ -14,7 +14,7 @@ AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& leve
 		std::shared_ptr<tgui::ScrollablePanel> properties = tgui::ScrollablePanel::create();
 		std::shared_ptr<tgui::Label> id = tgui::Label::create();
 		std::shared_ptr<tgui::Label> nameLabel = tgui::Label::create();
-		std::shared_ptr<tgui::EditBox> name = tgui::EditBox::create();
+		std::shared_ptr<EditBox> name = EditBox::create();
 		std::shared_ptr<tgui::Label> usedByLabel = tgui::Label::create();
 		usedBy = ListViewScrollablePanel::create();
 
@@ -38,7 +38,7 @@ AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& leve
 		name->setSize(tgui::bindWidth(properties) - GUI_PADDING_X * 2, tgui::bindHeight(name));
 		usedBy->setSize(tgui::bindWidth(properties) - GUI_PADDING_X * 2, tgui::bindHeight(properties) - tgui::bindTop(usedBy) - GUI_PADDING_Y);
 
-		name->connect("ReturnKeyPressed", [this, name](std::string text) {
+		name->connect("ValueChanged", [this, name](std::string text) {
 			std::string oldName = this->attack->getName();
 			undoStack.execute(UndoableCommand([this, name, text]() {
 				this->attack->setName(text);
