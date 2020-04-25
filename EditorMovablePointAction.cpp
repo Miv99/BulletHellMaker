@@ -107,7 +107,7 @@ void DetachFromParentEMPA::load(std::string formattedString) {
 }
 
 std::string DetachFromParentEMPA::getGuiFormat() {
-	return "Detach [d=0]";
+	return "Detach";
 }
 
 std::shared_ptr<MovablePoint> DetachFromParentEMPA::execute(EntityCreationQueue& queue, entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
@@ -143,7 +143,7 @@ void StayStillAtLastPositionEMPA::load(std::string formattedString) {
 }
 
 std::string StayStillAtLastPositionEMPA::getGuiFormat() {
-	return "Stay still [d=" + formatNum(duration) + "]";
+	return "Stay still";
 }
 
 std::shared_ptr<MovablePoint> StayStillAtLastPositionEMPA::execute(EntityCreationQueue& queue, entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
@@ -179,7 +179,7 @@ void MoveCustomPolarEMPA::load(std::string formattedString) {
 }
 
 std::string MoveCustomPolarEMPA::getGuiFormat() {
-	return "Polar movement [d=" + formatNum(time) + "]";
+	return "Polar movement";
 }
 
 std::shared_ptr<MovablePoint> MoveCustomPolarEMPA::execute(EntityCreationQueue& queue, entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {		
@@ -236,7 +236,7 @@ void MoveCustomBezierEMPA::load(std::string formattedString) {
 }
 
 std::string MoveCustomBezierEMPA::getGuiFormat() {
-	return "Bezier movement [d=" + formatNum(time) + "]";
+	return "Bezier movement";
 }
 
 std::shared_ptr<MovablePoint> MoveCustomBezierEMPA::execute(EntityCreationQueue & queue, entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
@@ -297,7 +297,7 @@ void MovePlayerHomingEMPA::load(std::string formattedString) {
 }
 
 std::string MovePlayerHomingEMPA::getGuiFormat() {
-	return "Homing [d=" + formatNum(time)  + "]";
+	return "Homing";
 }
 
 std::shared_ptr<MovablePoint> MovePlayerHomingEMPA::execute(EntityCreationQueue & queue, entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {

@@ -2101,7 +2101,7 @@ void MainEditorWindow::openLeftPanelAttack(int attackID) {
 		mainPanel->selectTab(format(MAIN_PANEL_ATTACK_TAB_NAME_FORMAT, attackID));
 	} else {
 		// Create the tab
-		std::shared_ptr<AttackEditorPanel> attackEditorPanel = AttackEditorPanel::create(*this, *levelPack, openedAttack);
+		std::shared_ptr<AttackEditorPanel> attackEditorPanel = AttackEditorPanel::create(*this, *levelPack, *spriteLoader, openedAttack);
 		attackEditorPanel->connect("AttackPatternBeginEdit", [&](int attackPatternID) {
 			openLeftPanelAttackPattern(attackPatternID);
 		});

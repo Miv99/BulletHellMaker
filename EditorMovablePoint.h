@@ -142,7 +142,9 @@ public:
 	inline float getDespawnTime() const { return despawnTime; }
 	inline const std::shared_ptr<EMPSpawnType> getSpawnType() { return spawnType; }
 	inline const std::vector<std::shared_ptr<EditorMovablePoint>> getChildren() { return children; }
+	inline std::shared_ptr<EMPAction> getAction(int index) { return actions[index]; }
 	inline const std::vector<std::shared_ptr<EMPAction>> getActions() { return actions; }
+	inline const int getActionsCount() const { return actions.size(); }
 	inline float getShadowTrailInterval() const { return shadowTrailInterval; }
 	inline float getShadowTrailLifespan() const { return shadowTrailLifespan; }
 	inline float getTotalPathTime() const {

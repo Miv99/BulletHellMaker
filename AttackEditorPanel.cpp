@@ -3,7 +3,7 @@
 const std::string AttackEditorPanel::PROPERTIES_TAB_NAME = "Atk. Properties";
 const std::string AttackEditorPanel::EMP_TAB_NAME_FORMAT = "EMP %d";
 
-AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& levelPack, std::shared_ptr<EditorAttack> attack, int undoStackSize) : parentWindow(parentWindow), levelPack(levelPack), undoStack(UndoStack(undoStackSize)), attack(attack) {
+AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, std::shared_ptr<EditorAttack> attack, int undoStackSize) : parentWindow(parentWindow), levelPack(levelPack), spriteLoader(spriteLoader), undoStack(UndoStack(undoStackSize)), attack(attack) {
 	tabs = TabsWithPanel::create(parentWindow);
 	tabs->setPosition(0, 0);
 	tabs->setSize("100%", "100%");
@@ -162,7 +162,7 @@ void AttackEditorPanel::openEMPTab(std::vector<sf::String> empHierarchy) {
 		tabs->selectTab(format(EMP_TAB_NAME_FORMAT, empID));
 	} else {
 		// Create the tab
-		std::shared_ptr<EditorMovablePointPanel> empEditorPanel = EditorMovablePointPanel::create(parentWindow, levelPack, attack->searchEMP(empID));
+		std::shared_ptr<EditorMovablePointPanel> empEditorPanel = EditorMovablePointPanel::create(parentWindow, levelPack, spriteLoader, attack->searchEMP(empID));
 		empEditorPanel->connect("EMPModified", [&](std::shared_ptr<EditorMovablePoint> emp) {
 			populateEMPsTreeView();
 			onAttackModify.emit(this, this->attack);

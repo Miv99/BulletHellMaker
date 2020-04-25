@@ -58,6 +58,10 @@ const static int ENEMY_BULLET_LAYER = 7;
 
 const static int HIGHEST_RENDER_LAYER = ENEMY_BULLET_LAYER;
 
+// ----------------- Level pack stuff ----------------
+// The %s in everything below represents the level pack name
+const static std::string LEVEL_PACK_SOUND_FOLDER_PATH = "Level Packs\\%s\\Sounds";
+
 // ----------------- GUI stuff -----------------------
 // Height of any tgui::Widget that involves text, excluding buttons
 const static float TEXT_BOX_HEIGHT = 16;
@@ -77,3 +81,5 @@ const static float GUI_PADDING_Y = 10;
 const static float GUI_LABEL_PADDING_Y = 5;
 // Scroll amount for every Panel
 const static float SCROLL_AMOUNT = 20;
+// Opacity of a disabled widget
+const static float WIDGET_OPACITY_DISABLED = 0.6f;

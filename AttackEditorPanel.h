@@ -27,9 +27,9 @@ public:
 	attack - the EditorAttack that is being edited
 	undoStackSize - the maximum number of undos stored
 	*/
-	AttackEditorPanel(EditorWindow& parentWindow, LevelPack& levelPack, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50);
-	static std::shared_ptr<AttackEditorPanel> create(EditorWindow& parentWindow, LevelPack& levelPack, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50) {
-		return std::make_shared<AttackEditorPanel>(parentWindow, levelPack, attack, undoStackSize);
+	AttackEditorPanel(EditorWindow& parentWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50);
+	static std::shared_ptr<AttackEditorPanel> create(EditorWindow& parentWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50) {
+		return std::make_shared<AttackEditorPanel>(parentWindow, levelPack, spriteLoader, attack, undoStackSize);
 	}
 
 	bool handleEvent(sf::Event event) override;
@@ -42,6 +42,7 @@ private:
 
 	EditorWindow& parentWindow;
 	LevelPack& levelPack;
+	SpriteLoader& spriteLoader;
 	UndoStack undoStack;
 
 	/*
