@@ -520,14 +520,14 @@ void SliderWithEditBox::setValue(float value) {
 	editBox->setValue(value);
 }
 
-void SliderWithEditBox::setMin(float min) {
+void SliderWithEditBox::setMin(float min, bool emitValueChanged) {
 	editBox->setMin(min);
-	slider->setMinimum(min);
+	slider->setMinimum(min, emitValueChanged);
 }
 
-void SliderWithEditBox::setMax(float max) {
+void SliderWithEditBox::setMax(float max, bool emitValueChanged) {
 	editBox->setMax(max);
-	slider->setMaximum(max);
+	slider->setMaximum(max, emitValueChanged);
 }
 
 void SliderWithEditBox::setStep(float step) {
@@ -567,12 +567,12 @@ SoundSettingsGroup::SoundSettingsGroup(std::string pathToSoundsFolder) {
 	fileNameLabel->setToolTip(createToolTip("The name of the audio file. Only WAV, OGG/Vorbis, and FLAC files are supported."));
 	volumeLabel->setToolTip(createToolTip("The volume of the audio when it is played."));
 	pitchLabel->setToolTip(createToolTip("The pitch of the audio when it is played."));
-
-	volume->setMin(0);
-	volume->setMax(1.0f);
+	
+	volume->setMin(0, false);
+	volume->setMax(1.0f, false);
 	volume->setStep(0.01f);
-	pitch->setMin(1);
-	pitch->setMax(10);
+	pitch->setMin(1, false);
+	pitch->setMax(10, false);
 	pitch->setStep(0.01f);
 
 	enableAudioLabel->setTextSize(TEXT_SIZE);
@@ -2437,6 +2437,10 @@ DelayedSlider::DelayedSlider() {
 	// to true to get the tgui::Slider's ValueChanged signal just for this call
 	ignoreDelayedSliderSignalName = true;
 	connect("ValueChanged", [this]() {
+		if (ignoreSignals) {
+			return;
+		}
+
 		this->timeElapsedSinceLastValueChange = 0;
 		this->valueChangeSignalEmitted = false;
 	});
@@ -2458,6 +2462,18 @@ tgui::Signal & DelayedSlider::getSignal(std::string signalName) {
 		return onValueChange;
 	}
 	return Slider::getSignal(signalName);
+}
+
+void DelayedSlider::setMinimum(float minimum, bool emitValueChanged) {
+	ignoreSignals = !emitValueChanged;
+	Slider::setMinimum(minimum);
+	ignoreSignals = false;
+}
+
+void DelayedSlider::setMaximum(float maximum, bool emitValueChanged) {
+	ignoreSignals = !emitValueChanged;
+	Slider::setMaximum(maximum);
+	ignoreSignals = false;
 }
 
 // Index, x, and y in that order

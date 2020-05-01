@@ -122,6 +122,17 @@ public:
 	void update(sf::Time elapsedTime) override;
 	tgui::Signal& getSignal(std::string signalName) override;
 
+	/*
+	emitValueChanged - if the value of the slider changes as a result of changing the min/max, 
+		this determines whether ValueChanged signal should be emitted
+	*/
+	void setMinimum(float minimum, bool emitValueChanged = true);
+	/*
+	emitValueChanged - if the value of the slider changes as a result of changing the min/max,
+		this determines whether ValueChanged signal should be emitted
+	*/
+	void setMaximum(float maximum, bool emitValueChanged = true);
+
 private:
 	// The amount of time that must pass since the last slider value change before
 	// the onValueChange signal is emitted
@@ -132,11 +143,13 @@ private:
 	// The amount of time that has elapsed in seconds since the last slider value change
 	float timeElapsedSinceLastValueChange = 0;
 	// Whether the onValueChange signal has been emitted since the last slider value change
-	bool valueChangeSignalEmitted = false;
+	bool valueChangeSignalEmitted = true;
 
 	// Used for a small hack to have getSignal() return tgui::Slider's onValueChange
 	// signal rather than DelayedSlider's onValueChange when this bool is true
 	bool ignoreDelayedSliderSignalName;
+
+	bool ignoreSignals = false;
 };
 
 /*
@@ -226,8 +239,9 @@ private:
 A Group containing a DelayedSlider whose value can be set with a 
 NumericalEditBoxWithLimits located on its right.
 
-ValueChanged - emitted VALUE_CHANGE_WINDOW seconds after the slider value or edit box value is changed.
-		Optional parameter: the new value as a float
+Signals:
+	ValueChanged - emitted VALUE_CHANGE_WINDOW seconds after the slider value or edit box value is changed.
+			Optional parameter: the new value as a float
 */
 class SliderWithEditBox : public HideableGroup {
 public:
@@ -241,12 +255,18 @@ public:
 	void setValue(float value);
 	/*
 	Sets the min value of the slider and edit box.
+
+	emitValueChanged - if the value of the slider changes as a result of changing the min/max,
+		this determines whether ValueChanged signal should be emitted
 	*/
-	void setMin(float min);
+	void setMin(float min, bool emitValueChanged = true);
 	/*
 	Sets the max value of the slider and edit box.
+
+	emitValueChanged - if the value of the slider changes as a result of changing the min/max,
+		this determines whether ValueChanged signal should be emitted
 	*/
-	void setMax(float max);
+	void setMax(float max, bool emitValueChanged = true);
 	/*
 	Sets the step of the slider.
 	*/
@@ -461,8 +481,10 @@ public:
 	void setTextSize(int textSize);
 	inline std::shared_ptr<tgui::ListView> getListView() { return listView; }
 
-private:
+protected:
 	std::shared_ptr<tgui::ListView> listView;
+
+private:
 	std::shared_ptr<tgui::Label> textWidthChecker;
 	float longestWidth;
 };
