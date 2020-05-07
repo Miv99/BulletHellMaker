@@ -423,6 +423,14 @@ std::shared_ptr<EditorAttack> LevelPack::createAttack() {
 	return attack;
 }
 
+std::shared_ptr<EditorAttack> LevelPack::createAttack(int id) {
+	nextAttackID = std::max(nextAttackID, id + 1);
+	auto attack = std::make_shared<EditorAttack>(id);
+	attacks[attack->getID()] = attack;
+	onChange->publish();
+	return attack;
+}
+
 std::shared_ptr<EditorAttackPattern> LevelPack::createAttackPattern() {
 	auto attackPattern = std::make_shared<EditorAttackPattern>(nextAttackPatternID++);
 	attackPatterns[attackPattern->getID()] = attackPattern;
@@ -452,6 +460,7 @@ std::shared_ptr<BulletModel> LevelPack::createBulletModel() {
 }
 
 void LevelPack::updateAttack(std::shared_ptr<EditorAttack> attack) {
+	nextAttackID = std::max(nextAttackID, attack->getID() + 1);
 	attacks[attack->getID()] = attack;
 	onChange->publish();
 }

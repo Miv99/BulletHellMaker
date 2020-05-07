@@ -72,6 +72,12 @@ public:
 	*/
 	std::shared_ptr<EditorAttack> createAttack();
 	/*
+	Create an EditorAttack and add it to this LevelPack.
+	id - the ID of the new attack. If it is already in use, the old EditorAttack
+		with this ID will be overwritten.
+	*/
+	std::shared_ptr<EditorAttack> createAttack(int id);
+	/*
 	Create an EditorAttackPattern and add it to this LevelPack.
 	*/
 	std::shared_ptr<EditorAttackPattern> createAttackPattern();
