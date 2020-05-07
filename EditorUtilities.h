@@ -752,6 +752,12 @@ public:
 	tabName - the unique name of the tab
 	*/
 	bool hasTab(std::string tabName);
+	/*
+	Returns the index of some tab, or -1 if the tab with the given tab name does
+	not exist.
+	tabName - the unique name of the tab
+	*/
+	int getTabIndex(std::string tabName);
 
 	/*
 	Caches all currently added tabs so that the current set of tabs can be reopened at a later time.

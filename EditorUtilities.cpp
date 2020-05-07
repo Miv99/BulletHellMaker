@@ -2137,6 +2137,16 @@ bool TabsWithPanel::hasTab(std::string tabName) {
 	return panelsMap.count(tabName + tabNameAppendedSpaces) > 0;
 }
 
+int TabsWithPanel::getTabIndex(std::string tabName) {
+	tabName += tabNameAppendedSpaces;
+	for (int i = 0; i < tabsOrdering.size(); i++) {
+		if (tabsOrdering[i] == tabName) {
+			return i;
+		}
+	}
+	return -1;
+}
+
 void TabsWithPanel::cacheTabs(std::string tabsSetIdentifier) {
 	std::vector<std::pair<std::string, std::shared_ptr<tgui::Panel>>> tabsData;
 	for (auto tabName : tabsOrdering) {
