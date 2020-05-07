@@ -50,6 +50,10 @@ public:
 	*/
 	inline const bool usesBulletModel(int bulletModelID) const { return bulletModelsCount.count(bulletModelID) > 0 && bulletModelsCount.at(bulletModelID) > 0; }
 	inline int getID() const { return id; }
+	/*
+	This shouldn't be used if the EditorAttack already belongs to a LevelPack.
+	*/
+	inline void setID(int id) { this->id = id; }
 	inline std::string getName() const { return name; }
 	inline bool getPlayAttackAnimation() const { return playAttackAnimation; }
 	inline std::shared_ptr<EditorMovablePoint> getMainEMP() const { return mainEMP; }

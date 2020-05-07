@@ -11,6 +11,7 @@ std::string SpawnEnemiesLevelEvent::format() const {
 void SpawnEnemiesLevelEvent::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	int numInfo = std::stoi(items[1]);
+	spawnInfo.clear();
 	for (int i = 2; i < numInfo + 2; i++) {
 		EnemySpawnInfo info;
 		info.load(items[i]);

@@ -43,6 +43,7 @@ std::string ExecuteAttacksDeathAction::format() const {
 
 void ExecuteAttacksDeathAction::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
+	attackIDs.clear();
 	for (int i = 2; i < std::stoi(items[1]) + 2; i++) {
 		attackIDs.push_back(std::stoi(items[i]));
 	}

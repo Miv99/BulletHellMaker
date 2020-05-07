@@ -19,6 +19,7 @@ void Level::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	name = items[0];
 
+	events.clear();
 	enemyIDCount.clear();
 	int i;
 	for (i = 2; i < std::stoi(items[1]) + 2;) {

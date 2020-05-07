@@ -21,6 +21,7 @@ void EditorEnemy::load(std::string formattedString) {
 	health = std::stof(items[3]);
 	despawnTime = std::stof(items[4]);
 
+	phaseIDs.clear();
 	enemyPhaseCount.clear();
 	int i = 6;
 	for (int a = 0; a < std::stoi(items[5]); a++) {
@@ -37,6 +38,7 @@ void EditorEnemy::load(std::string formattedString) {
 		i += 3;
 	}
 	int next = i;
+	deathActions.clear();
 	for (i = next + 1; i < std::stoi(items[next]) + next + 1; i++) {
 		deathActions.push_back(DeathActionFactory::create(items[i]));
 	}

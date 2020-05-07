@@ -230,6 +230,8 @@ std::string MoveCustomBezierEMPA::format() const {
 void MoveCustomBezierEMPA::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	time = std::stof(items[1]);
+	controlPoints.clear();
+	unrotatedControlPoints.clear();
 	for (int i = 2; i < items.size(); i += 2) {
 		unrotatedControlPoints.push_back(sf::Vector2f(std::stof(items[i]), std::stof(items[i + 1])));
 	}

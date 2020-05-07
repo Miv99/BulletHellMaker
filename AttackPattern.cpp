@@ -25,6 +25,7 @@ void EditorAttackPattern::load(std::string formattedString) {
 	name = items[1];
 
 	int i = 3;
+	attackIDs.clear();
 	attackIDCount.clear();
 	for (int a = 0; a < std::stoi(items[2]); a++) {
 		int attackID = std::stoi(items[i + 1]);
@@ -40,6 +41,7 @@ void EditorAttackPattern::load(std::string formattedString) {
 
 	int actionsSize = std::stoi(items[i]);
 	int last = i + 1;
+	actions.clear();
 	for (i = last; i < actionsSize + last; i++) {
 		actions.push_back(EMPActionFactory::create(items[i]));
 	}

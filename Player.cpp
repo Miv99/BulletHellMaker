@@ -23,6 +23,7 @@ void EditorPlayer::load(std::string formattedString) {
 	hitboxPosY = std::stof(items[6]);
 	invulnerabilityTime = std::stof(items[7]);
 
+	powerTiers.clear();
 	attackPatternIDCount.clear();
 	int i;
 	for (i = 9; i < std::stoi(items[8]) + 9; i++) {

@@ -62,6 +62,7 @@ void EditorMovablePoint::load(std::string formattedString) {
 	despawnTime = std::stof(items[2]);
 
 	int i;
+	children.clear();
 	for (i = 4; i < stoi(items[3]) + 4; i++) {
 		std::shared_ptr<EditorMovablePoint> emp = std::make_shared<EditorMovablePoint>(nextID, shared_from_this(), bulletModelsCount);
 		emp->load(items[i]);
@@ -70,6 +71,7 @@ void EditorMovablePoint::load(std::string formattedString) {
 
 	int last = i;
 	int actionsSize = stoi(items[i++]);
+	actions.clear();
 	for (i = last + 1; i < actionsSize + last + 1; i++) {
 		actions.push_back(EMPActionFactory::create(items[i]));
 	}
@@ -93,6 +95,11 @@ void EditorMovablePoint::load(std::string formattedString) {
 	pierceResetTime = std::stof(items[i++]);
 
 	soundSettings.load(items[i++]);
+
+	// If load() is being called while this object is already loaded, decrement bulletModelsCount to prevent double-counting
+	if (bulletModelID > 0 && bulletModelsCount.count(bulletModelID) > 0) {
+		bulletModelsCount[bulletModelID]--;
+	}
 
 	bulletModelID = std::stoi(items[i++]);
 	inheritRadius = unformatBool(items[i++]);
