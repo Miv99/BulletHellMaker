@@ -25,6 +25,7 @@ public:
 	emp - the EditorMovablePoint being edited
 	*/
 	EditorMovablePointPanel(EditorWindow& parentWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, int undoStackSize = 50);
+	~EditorMovablePointPanel();
 	inline static std::shared_ptr<EditorMovablePointPanel> create(EditorWindow& parentWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, int undoStackSize = 50) {
 		return std::make_shared<EditorMovablePointPanel>(parentWindow, levelPack, spriteLoader, emp, undoStackSize);
 	}

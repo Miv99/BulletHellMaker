@@ -28,6 +28,7 @@ public:
 	undoStackSize - the maximum number of undos stored
 	*/
 	AttackEditorPanel(EditorWindow& parentWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50);
+	~AttackEditorPanel();
 	static std::shared_ptr<AttackEditorPanel> create(EditorWindow& parentWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50) {
 		return std::make_shared<AttackEditorPanel>(parentWindow, levelPack, spriteLoader, attack, undoStackSize);
 	}

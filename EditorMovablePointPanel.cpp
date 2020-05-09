@@ -1296,6 +1296,10 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 	}
 }
 
+EditorMovablePointPanel::~EditorMovablePointPanel() {
+	levelPack.getOnChange()->sink().disconnect<EditorMovablePointPanel, &EditorMovablePointPanel::onLevelPackChange>(this);
+}
+
 bool EditorMovablePointPanel::handleEvent(sf::Event event) {
 	if (placingSpawnLocation) {
 		if (spawnTypePositionMarkerPlacer->handleEvent(event)) {

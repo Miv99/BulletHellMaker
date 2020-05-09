@@ -104,11 +104,6 @@ AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& leve
 		emps->add(empsTreeView);
 		tabs->addTab("MPs", emps, false);
 
-		// Populate the usedBy list when the level pack is changed
-		levelPack.getOnChange()->sink().connect<AttackEditorPanel, &AttackEditorPanel::populatePropertiesUsedByList>(this);
-		// Initial population
-		populateEMPsTreeView();
-
 		{
 			// Right click menu for empsTreeView
 			auto rightClickMenuPopup = createMenuPopup({
@@ -125,6 +120,10 @@ AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& leve
 			});
 		}
 	}
+}
+
+AttackEditorPanel::~AttackEditorPanel() {
+	levelPack.getOnChange()->sink().disconnect<AttackEditorPanel, &AttackEditorPanel::populatePropertiesUsedByList>(this);
 }
 
 bool AttackEditorPanel::handleEvent(sf::Event event) {
