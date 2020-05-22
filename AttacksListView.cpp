@@ -1,8 +1,7 @@
 #include "AttacksListView.h"
 #include "EditorWindow.h"
 
-AttacksListView::AttacksListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, std::map<int, std::shared_ptr<EditorAttack>>& unsavedAttacks) : ListViewScrollablePanel(), CopyPasteable("AttacksListView"), 
-levelPack(nullptr), mainEditorWindow(mainEditorWindow), clipboard(clipboard), unsavedAttacks(unsavedAttacks) {
+AttacksListView::AttacksListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard) : ListViewScrollablePanel(), CopyPasteable("AttacksListView"), levelPack(nullptr), mainEditorWindow(mainEditorWindow), clipboard(clipboard) {
 	getListView()->setMultiSelect(true);
 }
 
@@ -10,6 +9,7 @@ std::shared_ptr<CopiedObject> AttacksListView::copyFrom() {
 	std::set<size_t> selectedIndices = listView->getSelectedItemIndices();
 	if (selectedIndices.size() > 0) {
 		std::vector<std::shared_ptr<EditorAttack>> attacks;
+		auto& unsavedAttacks = mainEditorWindow.getUnsavedAttacks();
 		for (int selectedIndex : selectedIndices) {
 			// Assume every item name is in format "[id]..."
 			std::string name = listView->getItem(selectedIndex);
@@ -76,6 +76,8 @@ void AttacksListView::reload() {
 	attacksListViewIndexToAttackIDMap.clear();
 	listView->removeAllItems();
 
+	auto& unsavedAttacks = mainEditorWindow.getUnsavedAttacks();
+
 	int i = 0;
 	for (auto it = levelPack->getAttackIteratorBegin(); it != levelPack->getAttackIteratorEnd(); it++) {
 		// If the attack is in unsavedAttacks, signify it is unsaved with an asterisk
@@ -87,6 +89,15 @@ void AttacksListView::reload() {
 		attackIDToAttacksListViewIndexMap[it->second->getID()] = i;
 		attacksListViewIndexToAttackIDMap[i] = it->second->getID();
 		i++;
+	}
+
+	// Prevent selecting indices that are out of bounds
+	for (auto it = selectedIndices.begin(); it != selectedIndices.end();) {
+		if (*it >= listView->getItemCount()) {
+			selectedIndices.erase(it++);
+		} else {
+			it++;
+		}
 	}
 
 	listView->setSelectedItems(selectedIndices);

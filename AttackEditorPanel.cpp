@@ -3,8 +3,8 @@
 const std::string AttackEditorPanel::PROPERTIES_TAB_NAME = "Atk. Properties";
 const std::string AttackEditorPanel::EMP_TAB_NAME_FORMAT = "EMP %d";
 
-AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, std::shared_ptr<EditorAttack> attack, int undoStackSize) : parentWindow(parentWindow), levelPack(levelPack), spriteLoader(spriteLoader), undoStack(UndoStack(undoStackSize)), attack(attack) {
-	tabs = TabsWithPanel::create(parentWindow);
+AttackEditorPanel::AttackEditorPanel(MainEditorWindow& mainEditorWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, std::shared_ptr<EditorAttack> attack, int undoStackSize) : mainEditorWindow(mainEditorWindow), levelPack(levelPack), spriteLoader(spriteLoader), undoStack(UndoStack(undoStackSize)), attack(attack) {
+	tabs = TabsWithPanel::create(mainEditorWindow);
 	tabs->setPosition(0, 0);
 	tabs->setSize("100%", "100%");
 	add(tabs);
@@ -80,7 +80,7 @@ AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& leve
 				if (this->usedByIDMap.count(index) > 0) {
 					this->usedByRightClickedAttackPatternID = usedByIDMap[index];
 					// Open right click menu
-					this->parentWindow.addPopupWidget(rightClickMenuPopup, this->parentWindow.getMousePos().x, this->parentWindow.getMousePos().y, 150, rightClickMenuPopup->getSize().y);
+					this->mainEditorWindow.addPopupWidget(rightClickMenuPopup, this->mainEditorWindow.getMousePos().x, this->mainEditorWindow.getMousePos().y, 150, rightClickMenuPopup->getSize().y);
 				}
 			});
 		}
@@ -115,7 +115,7 @@ AttackEditorPanel::AttackEditorPanel(EditorWindow& parentWindow, LevelPack& leve
 				if (nodeHierarchy.size() > 0) {
 					this->empRightClickedNodeHierarchy = nodeHierarchy;
 					// Open right click menu
-					this->parentWindow.addPopupWidget(rightClickMenuPopup, this->parentWindow.getMousePos().x, this->parentWindow.getMousePos().y, 150, rightClickMenuPopup->getSize().y);
+					this->mainEditorWindow.addPopupWidget(rightClickMenuPopup, this->mainEditorWindow.getMousePos().x, this->mainEditorWindow.getMousePos().y, 150, rightClickMenuPopup->getSize().y);
 				}
 			});
 		}
@@ -137,6 +137,9 @@ bool AttackEditorPanel::handleEvent(sf::Event event) {
 				return true;
 			} else if (event.key.code == sf::Keyboard::Y) {
 				undoStack.redo();
+				return true;
+			} else if (event.key.code == sf::Keyboard::S) {
+				manualSave();
 				return true;
 			}
 		}
@@ -161,7 +164,7 @@ void AttackEditorPanel::openEMPTab(std::vector<sf::String> empHierarchy) {
 		tabs->selectTab(format(EMP_TAB_NAME_FORMAT, empID));
 	} else {
 		// Create the tab
-		std::shared_ptr<EditorMovablePointPanel> empEditorPanel = EditorMovablePointPanel::create(parentWindow, levelPack, spriteLoader, attack->searchEMP(empID));
+		std::shared_ptr<EditorMovablePointPanel> empEditorPanel = EditorMovablePointPanel::create(mainEditorWindow, levelPack, spriteLoader, attack->searchEMP(empID));
 		empEditorPanel->connect("EMPModified", [&](std::shared_ptr<EditorMovablePoint> emp) {
 			populateEMPsTreeView();
 			onAttackModify.emit(this, this->attack);
@@ -188,6 +191,19 @@ void AttackEditorPanel::populateEMPsTreeView() {
 	for (std::vector<sf::String> path : paths) {
 		empsTreeView->addItem(path);
 	}
+}
+
+void AttackEditorPanel::manualSave() {
+	auto& unsavedAttacks = mainEditorWindow.getUnsavedAttacks();
+	int id = attack->getID();
+
+	if (unsavedAttacks.count(id) > 0) {
+		levelPack.updateAttack(unsavedAttacks[id]);
+		unsavedAttacks.erase(id);
+	}
+	// Do nothing if the attack doesn't have any unsaved changes
+
+	mainEditorWindow.getAttacksListView()->reload();
 }
 
 sf::String AttackEditorPanel::getEMPTextInTreeView(const EditorMovablePoint& emp) {

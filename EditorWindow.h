@@ -209,18 +209,53 @@ An EventCapturable basic tgui::Panel to be used by MainEditorWindow for viewing 
 */
 class AttacksListPanel : public tgui::Panel, public EventCapturable {
 public:
-	AttacksListPanel(std::shared_ptr<AttacksListView> attacksListView, Clipboard& clipboard, int undoStackSize = 50);
-	static std::shared_ptr<AttacksListPanel> create(std::shared_ptr<AttacksListView> attacksListView, Clipboard& clipboard, int undoStackSize = 50) {
-		return std::make_shared<AttacksListPanel>(attacksListView, clipboard, undoStackSize);
+	/*
+	mainEditorWindow - the parent MainEditorWindow
+	*/
+	AttacksListPanel(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, int undoStackSize = 50);
+	static std::shared_ptr<AttacksListPanel> create(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, int undoStackSize = 50) {
+		return std::make_shared<AttacksListPanel>(mainEditorWindow, clipboard, undoStackSize);
 	}
 
 	bool handleEvent(sf::Event event) override;
 	UndoStack& getUndoStack();
 
+	/*
+	Does the copy command on this widget.
+	*/
+	void manualCopy();
+	/*
+	Does the delete command on this widget.
+	*/
+	void manualDelete();
+	/*
+	Does the paste command on this widget.
+	*/
+	void manualPaste();
+	/*
+	Does the paste2 command on this widget.
+	*/
+	void manualPaste2();
+	/*
+	Does the save command on this widget.
+	*/
+	void manualSave();
+	/*
+	Does the save all command on this widget.
+	*/
+	void manualSaveAll();
+	/*
+	Does the select all command on this widget.
+	*/
+	void manualSelectAll();
+
+	void setLevelPack(LevelPack* levelPack);
+
 private:
-	std::shared_ptr<AttacksListView> attacksListView;
+	MainEditorWindow& mainEditorWindow;
 	UndoStack undoStack;
 	Clipboard& clipboard;
+	LevelPack* levelPack;
 };
 
 class MainEditorWindow : public EditorWindow {
@@ -248,9 +283,12 @@ public:
 	void overwriteAttacks(std::vector<std::shared_ptr<EditorAttack>> attacks);
 	/*
 	Reloads an attack tab to reflect new changes to the associated EditorAttack that didn't come from
-	the tab itself.
+	the tab itself. If the EditorAttack no longer exists, the tab will be removed.
 	*/
 	void reloadAttackTab(int attackID);
+
+	std::shared_ptr<AttacksListView> getAttacksListView();
+	std::map<int, std::shared_ptr<EditorAttack>>& getUnsavedAttacks();
 
 protected:
 	void handleEvent(sf::Event event) override;
@@ -276,7 +314,7 @@ private:
 
 	// -------------------- Part of leftPanel --------------------
 	std::shared_ptr<AttacksListPanel> attacksListViewPanel;
-	std::shared_ptr<AttacksListView> attacksListView;
+	std::shared_ptr<AttacksListView> attacksListView; // child of attacksListViewPanel
 	
 	// -------------------- Part of mainPanel --------------------
 	// Maps an EditorAttack ID to the EditorAttack object that has unsaved changes.

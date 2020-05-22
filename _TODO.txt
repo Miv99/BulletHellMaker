@@ -20,6 +20,16 @@ Documentation to put in the editor somewhere:
 
 Tips to put in editor somewhere:
 -For a classic bullet hell, all enemy bullets should do 1 damage
+-In MainEditorWindow:
+    -Last mouse press was on attacks list:
+        -control+s -> save selected attacks
+        -control+shift+s -> save all unsaved attacks
+        -control+a -> select all attacks
+        -control+c -> copy selected attacks
+        -control+v -> paste selected attacks as new attacks
+        -control+shift+v -> paste selected attacks, overriding currently selected attacks
+    -Last mouse press was on an attack tab:
+        -control+s -> save the open attack
 
 Notes for me:
 -The mainEMP of an attack is always spawned at the exact same time of an attack; spawnType's time is ignored
@@ -57,14 +67,9 @@ big todo:
 -when empiActions changes, make sure Detach option is still valid; turn text red if not
 
 TODO:
--TFVGroup add/delete aren't adding to undo stack
 -control+c -> see what is selected (start from the lowest: EMPA -> EMP -> Attack) -> add that thing to the clipboard
  control+v -> paste a clone of whatever is in clipboard if the above level is selected. ie if EMPA is in clipboard, 
 	paste a clone of the EMPA to the selectedEMP only if selectedEMP != nullptr. Attack is always pasteable. 
--disable undo while test is in progress in gameplay test window
--animatables can't have backslashes in name
--change all setposition and setsize to use "25%" or whatever
--change size of animatablepicture to match texture's aspect ratio
 -SpriteSheetLoader emits some signal every time a change is made (sprite/spritesheet added/deleted)
 -legal checks for everything should make sure all IDs used (ie attack IDs in attack patterns) are valid
 -LevelPack emits signals for Attack/AttackPattern/Enemy/EnemyPhase/BulletModel every time one is changed (unique signal for each)

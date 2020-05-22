@@ -22,15 +22,15 @@ AttackModified - emitted when the EditorAttack being edited is modified.
 class AttackEditorPanel : public tgui::Panel, public EventCapturable {
 public:
 	/*
-	parentWindow - the EditorWindow this widget is in
+	mainEditorWindow - the EditorWindow this widget is in
 	levelPack - the LevelPack that attack belongs to
 	attack - the EditorAttack that is being edited
 	undoStackSize - the maximum number of undos stored
 	*/
-	AttackEditorPanel(EditorWindow& parentWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50);
+	AttackEditorPanel(MainEditorWindow& mainEditorWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50);
 	~AttackEditorPanel();
-	static std::shared_ptr<AttackEditorPanel> create(EditorWindow& parentWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50) {
-		return std::make_shared<AttackEditorPanel>(parentWindow, levelPack, spriteLoader, attack, undoStackSize);
+	static std::shared_ptr<AttackEditorPanel> create(MainEditorWindow& mainEditorWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50) {
+		return std::make_shared<AttackEditorPanel>(mainEditorWindow, levelPack, spriteLoader, attack, undoStackSize);
 	}
 
 	bool handleEvent(sf::Event event) override;
@@ -41,7 +41,7 @@ private:
 	static const std::string PROPERTIES_TAB_NAME;
 	static const std::string EMP_TAB_NAME_FORMAT;
 
-	EditorWindow& parentWindow;
+	MainEditorWindow& mainEditorWindow;
 	LevelPack& levelPack;
 	SpriteLoader& spriteLoader;
 	UndoStack undoStack;
@@ -89,6 +89,11 @@ private:
 	Clear and populate empsTree.
 	*/
 	void populateEMPsTreeView();
+
+	/*
+	Does the save command on this widget.
+	*/
+	void manualSave();
 
 	/*
 	Returns the string to be shown for each EditorMovablePoint in empsTreeView.

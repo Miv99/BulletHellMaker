@@ -14,11 +14,10 @@ public:
 	/*
 	mainEditorWindow - the parent MainEditorWindow using this widget
 	clipboard - the parent Clipboard
-	unsavedAttacks - the unsavedAttacks field from mainEditorWindow
 	*/
-	AttacksListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, std::map<int, std::shared_ptr<EditorAttack>>& unsavedAttacks);
-	static std::shared_ptr<AttacksListView> create(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, std::map<int, std::shared_ptr<EditorAttack>>& unsavedAttacks) {
-		return std::make_shared<AttacksListView>(mainEditorWindow, clipboard, unsavedAttacks);
+	AttacksListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard);
+	static std::shared_ptr<AttacksListView> create(MainEditorWindow& mainEditorWindow, Clipboard& clipboard) {
+		return std::make_shared<AttacksListView>(mainEditorWindow, clipboard);
 	}
 
 	std::shared_ptr<CopiedObject> copyFrom() override;
@@ -39,8 +38,6 @@ private:
 	MainEditorWindow& mainEditorWindow;
 	LevelPack* levelPack;
 	Clipboard& clipboard;
-	// From MainEditorWindow
-	std::map<int, std::shared_ptr<EditorAttack>>& unsavedAttacks;
 
 	// Maps an EditorAttack ID to its index
 	std::map<int, int> attackIDToAttacksListViewIndexMap;
