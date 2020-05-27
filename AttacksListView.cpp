@@ -1,7 +1,7 @@
 #include "AttacksListView.h"
 #include "EditorWindow.h"
 
-AttacksListView::AttacksListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard) : ListViewScrollablePanel(), CopyPasteable("AttacksListView"), levelPack(nullptr), mainEditorWindow(mainEditorWindow), clipboard(clipboard) {
+AttacksListView::AttacksListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard) : ListViewScrollablePanel(), CopyPasteable("EditorAttack"), levelPack(nullptr), mainEditorWindow(mainEditorWindow), clipboard(clipboard) {
 	getListView()->setMultiSelect(true);
 }
 

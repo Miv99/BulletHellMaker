@@ -45,6 +45,10 @@ public:
 	*/
 	void paste2(std::shared_ptr<CopyPasteable> target);
 
+	void copy(CopyPasteable* source);
+	void paste(CopyPasteable* target);
+	void paste2(CopyPasteable* target);
+
 	void clear();
 
 private:

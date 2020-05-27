@@ -15,16 +15,28 @@ std::string CopiedObject::getCopiedFromID() {
 }
 
 void Clipboard::copy(std::shared_ptr<CopyPasteable> source) {
-	copied = source->copyFrom();
+	copy(source.get());
 }
 
 void Clipboard::paste(std::shared_ptr<CopyPasteable> target) {
+	paste(target.get());
+}
+
+void Clipboard::paste2(std::shared_ptr<CopyPasteable> target) {
+	paste2(target.get());
+}
+
+void Clipboard::copy(CopyPasteable * source) {
+	copied = source->copyFrom();
+}
+
+void Clipboard::paste(CopyPasteable * target) {
 	if (copied && copied->getCopiedFromID() == target->getID()) {
 		target->pasteInto(copied);
 	}
 }
 
-void Clipboard::paste2(std::shared_ptr<CopyPasteable> target) {
+void Clipboard::paste2(CopyPasteable * target) {
 	if (copied && copied->getCopiedFromID() == target->getID()) {
 		target->paste2Into(copied);
 	}

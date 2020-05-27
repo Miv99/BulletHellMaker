@@ -10,8 +10,57 @@
 #include <TGUI/TGUI.hpp>
 #include <memory>
 
+
 /*
-Panel that contains everything needed to edit an EditorAttack.
+Empty panel that captures undo/redo/copy/paste commands and whose purpose is for
+AttackEditorPanel to show the properties of an EditorAttack.
+Should be used only by AttackEditorPanel.
+
+Signals:
+AttackModified - emitted when the EditorAttack being edited is modified.
+*/
+class AttackEditorPropertiesPanel : public tgui::ScrollablePanel, public EventCapturable, public CopyPasteable {
+public:
+	/*
+	mainEditorWindow - the parent MainEditorWindow
+	clipboard - the parent Clipboard
+	attack - the EditorAttack being edited
+	undoStackSize - the max size of this widget's undo stack
+	*/
+	AttackEditorPropertiesPanel(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50);
+	static std::shared_ptr<AttackEditorPropertiesPanel> create(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50) {
+		return std::make_shared<AttackEditorPropertiesPanel>(mainEditorWindow, clipboard, attack, undoStackSize);
+	}
+
+	std::shared_ptr<CopiedObject> copyFrom() override;
+	void pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
+	void paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
+
+	bool handleEvent(sf::Event event) override;
+
+	tgui::Signal& getSignal(std::string signalName) override;
+
+	void manualPaste();
+
+	std::shared_ptr<ListViewScrollablePanel> getUsedByPanel();
+
+private:
+	MainEditorWindow& mainEditorWindow;
+	Clipboard& clipboard;
+	std::shared_ptr<EditorAttack> attack;
+	UndoStack undoStack;
+
+	// Lists the EditorAttackPatterns that use the EditorAttack being edited
+	std::shared_ptr<ListViewScrollablePanel> usedBy;
+
+	tgui::Signal onAttackModify = { "AttackModified" };
+
+	void manualUndo();
+	void manualRedo();
+};
+
+/*
+Panel that contains everything needed to edit a specific EditorAttack.
 
 Signals:
 AttackPatternDoubleClicked - emitted when an EditorAttackPattern in the list of attack users is to be edited.
@@ -24,14 +73,22 @@ public:
 	/*
 	mainEditorWindow - the EditorWindow this widget is in
 	levelPack - the LevelPack that attack belongs to
+	clipboard - the parent Clipboard
 	attack - the EditorAttack that is being edited
 	undoStackSize - the maximum number of undos stored
 	*/
-	AttackEditorPanel(MainEditorWindow& mainEditorWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50);
+	AttackEditorPanel(MainEditorWindow& mainEditorWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50);
 	~AttackEditorPanel();
-	static std::shared_ptr<AttackEditorPanel> create(MainEditorWindow& mainEditorWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50) {
-		return std::make_shared<AttackEditorPanel>(mainEditorWindow, levelPack, spriteLoader, attack, undoStackSize);
+	static std::shared_ptr<AttackEditorPanel> create(MainEditorWindow& mainEditorWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50) {
+		return std::make_shared<AttackEditorPanel>(mainEditorWindow, levelPack, spriteLoader, clipboard, attack, undoStackSize);
 	}
+
+	/*
+	Returns the ID of an EMP, extracted from the string returned by getEMPTextInTreeView().
+
+	text - the string returned by getEMPTextInTreeView()
+	*/
+	static int getEMPIDFromTreeViewText(std::string text);
 
 	bool handleEvent(sf::Event event) override;
 
@@ -44,6 +101,7 @@ private:
 	MainEditorWindow& mainEditorWindow;
 	LevelPack& levelPack;
 	SpriteLoader& spriteLoader;
+	Clipboard& clipboard;
 	UndoStack undoStack;
 
 	/*
@@ -61,8 +119,8 @@ private:
 	std::shared_ptr<EditorAttack> attack;
 
 	std::shared_ptr<TabsWithPanel> tabs;
-	// Lists the EditorAttackPatterns that use the EditorAttack being edited.
-	std::shared_ptr<ListViewScrollablePanel> usedBy;
+	// The properties tab
+	std::shared_ptr<AttackEditorPropertiesPanel> properties;
 	// The ID of the EditorAttackPattern in usedBy that was just right clicked
 	int usedByRightClickedAttackPatternID;
 	// Maps an index in usedBy to the ID of the EditorAttackPattern being shown in that index
@@ -99,10 +157,68 @@ private:
 	Returns the string to be shown for each EditorMovablePoint in empsTreeView.
 	*/
 	static sf::String getEMPTextInTreeView(const EditorMovablePoint& emp);
-	/*
-	Returns the ID of an EMP, extracted from the string returned by getEMPTextInTreeView().
+};
 
-	text - the string returned by getEMPTextInTreeView()
+/*
+Empty panel that captures undo/redo/copy/paste commands and whose purpose is for
+AttackEditorPanel to show the EMP tree of an EditorAttack.
+Should be used only by AttackEditorPanel.
+
+Signals:
+MainEMPModified - emitted when the mainEMP of the EditorAttack being edited is modified
+	by this widget.
+MainEMPChildDeleted - emitted when some child EMP of the mainEMP of the EditorAttack
+	being edited is deleted. The MainEMPModified signal will be emitted right before
+	this one is.
+	Optional parameter: the ID of the EMP that was deleted.
+*/
+class EditorMovablePointTreePanel : public tgui::Panel, public EventCapturable, public CopyPasteable {
+public:
+	/*
+	clipboard - the parent Clipboard
+	attack - the EditorAttack whose EMP tree is being viewed
 	*/
-	static int getEMPIDFromTreeViewText(std::string text);
+	EditorMovablePointTreePanel(Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50);
+	static std::shared_ptr<EditorMovablePointTreePanel> create(Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50) {
+		return std::make_shared<EditorMovablePointTreePanel>(clipboard, attack, undoStackSize);
+	}
+
+	std::shared_ptr<CopiedObject> copyFrom() override;
+	void pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
+	void paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
+
+	bool handleEvent(sf::Event event) override;
+
+	tgui::Signal& getSignal(std::string signalName) override;
+
+	std::shared_ptr<tgui::TreeView> getEmpsTreeView();
+
+private:
+	UndoStack undoStack;
+	Clipboard& clipboard;
+	std::shared_ptr<EditorAttack> attack;
+	std::shared_ptr<tgui::TreeView> empsTreeView;
+
+	tgui::Signal onMainEMPModify = { "MainEMPModified" };
+	tgui::SignalInt onMainEMPChildDeletion = { "MainEMPChildDeleted" };
+
+	void manualDelete();
+	void manualUndo();
+	void manualRedo();
+	void manualCopy();
+	void manualPaste();
+	void manualPaste2();
+};
+
+class CopiedEditorMovablePoint : public CopiedObject {
+public:
+	/*
+	attacks - a list of the copied EditorAttacks. Every EditorAttack in here will be deep-copied.
+	*/
+	CopiedEditorMovablePoint(std::string copiedFromID, std::vector<std::shared_ptr<EditorMovablePoint>> emps);
+
+	std::vector<std::shared_ptr<EditorAttack>> getAttacks();
+
+private:
+	std::vector<std::shared_ptr<EditorAttack>> attacks;
 };

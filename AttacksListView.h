@@ -8,6 +8,7 @@ class MainEditorWindow;
 /*
 A ListViewScrollablePanel of EditorAttacks, for use by MainEditorWindow.
 Items should not be added or removed from this with the exception of from reload().
+The copying/pasting are done from EditorWindow::AttacksListPanel.
 */
 class AttacksListView : public ListViewScrollablePanel, public CopyPasteable {
 public:

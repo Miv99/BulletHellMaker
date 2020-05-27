@@ -700,9 +700,6 @@ void MainEditorWindow::handleEvent(sf::Event event) {
 	} else if (mainPanel->mouseOnWidget(lastMousePressPos)) {
 		mainPanel->handleEvent(event);
 	}
-	// TODO: if last-clicked widget was attacksListView and control+c/v,
-	// clipboard.copy/paste(attacksListView)
-	// control+shift+v for paste2 (override)
 }
 
 void MainEditorWindow::openLeftPanelAttack(int attackID) {
@@ -730,7 +727,7 @@ void MainEditorWindow::openLeftPanelAttack(int attackID) {
 		mainPanel->selectTab(format(MAIN_PANEL_ATTACK_TAB_NAME_FORMAT, attackID));
 	} else {
 		// Create the tab
-		std::shared_ptr<AttackEditorPanel> attackEditorPanel = AttackEditorPanel::create(*this, *levelPack, *spriteLoader, openedAttack);
+		std::shared_ptr<AttackEditorPanel> attackEditorPanel = AttackEditorPanel::create(*this, *levelPack, *spriteLoader, clipboard, openedAttack);
 		attackEditorPanel->connect("AttackPatternBeginEdit", [&](int attackPatternID) {
 			openLeftPanelAttackPattern(attackPatternID);
 		});
@@ -772,7 +769,7 @@ void MainEditorWindow::reloadAttackTab(int attackID) {
 		}
 
 		// Create the tab
-		std::shared_ptr<AttackEditorPanel> attackEditorPanel = AttackEditorPanel::create(*this, *levelPack, *spriteLoader, openedAttack);
+		std::shared_ptr<AttackEditorPanel> attackEditorPanel = AttackEditorPanel::create(*this, *levelPack, *spriteLoader, clipboard, openedAttack);
 		attackEditorPanel->connect("AttackPatternBeginEdit", [&](int attackPatternID) {
 			openLeftPanelAttackPattern(attackPatternID);
 		});
