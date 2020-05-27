@@ -71,7 +71,11 @@ void AttackEditorPropertiesPanel::paste2Into(std::shared_ptr<CopiedObject> paste
 	if (derived) {
 		std::vector<std::shared_ptr<EditorAttack>> copiedAttacks = derived->getAttacks();
 		if (copiedAttacks.size() > 0) {
-			mainEditorWindow.overwriteAttacks({ copiedAttacks[0] });
+			std::shared_ptr<EditorAttack> newAttack = std::make_shared<EditorAttack>(attack);
+			newAttack->setName(copiedAttacks[0]->getName());
+
+			mainEditorWindow.promptConfirmation("Overwrite this Attack's properties with those of Attack \"" + copiedAttacks[0]->getName() + "\" (ID " + std::to_string(copiedAttacks[0]->getID()) + ")? This action cannot be undone.", newAttack)->sink()
+				.connect<AttackEditorPropertiesPanel, &AttackEditorPropertiesPanel::onPasteIntoConfirmation>(this);
 		}
 	}
 }
@@ -115,6 +119,13 @@ void AttackEditorPropertiesPanel::manualUndo() {
 
 void AttackEditorPropertiesPanel::manualRedo() {
 	undoStack.redo();
+}
+
+void AttackEditorPropertiesPanel::onPasteIntoConfirmation(bool confirmed, std::shared_ptr<EditorAttack> newAttack) {
+	if (confirmed) {
+		// Overwrite everything in the attack's properties
+		mainEditorWindow.overwriteAttacks({ newAttack }, nullptr);
+	}
 }
 
 AttackEditorPanel::AttackEditorPanel(MainEditorWindow& mainEditorWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize) : mainEditorWindow(mainEditorWindow), levelPack(levelPack), 

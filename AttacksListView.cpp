@@ -6,6 +6,7 @@ AttacksListView::AttacksListView(MainEditorWindow& mainEditorWindow, Clipboard& 
 }
 
 std::shared_ptr<CopiedObject> AttacksListView::copyFrom() {
+	// Copy every selected EditorAttack
 	std::set<size_t> selectedIndices = listView->getSelectedItemIndices();
 	if (selectedIndices.size() > 0) {
 		std::vector<std::shared_ptr<EditorAttack>> attacks;
@@ -40,6 +41,7 @@ void AttacksListView::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
 }
 
 void AttacksListView::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+	// Paste the new EditorAttacks such that they overwrite the selected EditorAttacks
 	std::set<size_t> selectedIndices = listView->getSelectedItemIndices();
 	auto derived = std::static_pointer_cast<CopiedEditorAttack>(pastedObject);
 	if (selectedIndices.size() > 0 && derived) {
@@ -61,7 +63,7 @@ void AttacksListView::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 			i++;
 		}
 
-		mainEditorWindow.overwriteAttacks(newAttacks);
+		mainEditorWindow.overwriteAttacks(newAttacks, &mainEditorWindow.getAttacksListPanel()->getUndoStack());
 		reload();
 	}
 }
