@@ -73,6 +73,15 @@ public:
 	Each call to promptConfirmation() returns a new signal.
 	*/
 	std::shared_ptr<entt::SigH<void(bool)>> promptConfirmation(std::string message);
+	/*
+	Disables all widgets and then prompts the user with a custom message to which the user can respond with either a yes or a no.
+	A signal with two parameters is returned. The signal will be published only once, when the user responds. The bool parameter
+	will be true if the user responds with yes, false if no. The user object parameter will contain a copy of the userObject parameter.
+	After the user response, all widgets' enabled/disabled statuses are set back to what they were before this function call.
+	Each call to promptConfirmation() returns a new signal.
+	*/
+	template<class T>
+	std::shared_ptr<entt::SigH<void(bool, T)>> promptConfirmation(std::string message, T userObject);
 
 	/*
 	Add a popup as a top-level widget in the Gui. If part of the popup 
@@ -175,8 +184,6 @@ private:
 	std::shared_ptr<entt::SigH<void(int, int)>> resizeSignal;
 	// Signal that's emitted right before the window closes
 	std::shared_ptr<entt::SigH<void()>> closeSignal;
-	// Signal for confirmation popup. See promptConfirmation().
-	std::shared_ptr<entt::SigH<void(bool)>> confirmationSignal;
 
 	/*
 	Call to stop the confirmation prompt started by promptConfirmation().
@@ -279,8 +286,9 @@ public:
 	/*
 	Overwrite existing EditorAttacks with deep copies of new ones as an undoable/redoable action.
 	attacks - the list of only the new EditorAttacks
+	undoStack - the UndoStack to add the action to; set to nullptr if the action should not be able to be undone
 	*/
-	void overwriteAttacks(std::vector<std::shared_ptr<EditorAttack>> attacks);
+	void overwriteAttacks(std::vector<std::shared_ptr<EditorAttack>> attacks, UndoStack* undoStack);
 	/*
 	Reloads an attack tab to reflect new changes to the associated EditorAttack that didn't come from
 	the tab itself. If the EditorAttack no longer exists, the tab will be removed.
@@ -288,6 +296,7 @@ public:
 	void reloadAttackTab(int attackID);
 
 	std::shared_ptr<AttacksListView> getAttacksListView();
+	std::shared_ptr<AttacksListPanel> getAttacksListPanel();
 	std::map<int, std::shared_ptr<EditorAttack>>& getUnsavedAttacks();
 
 protected:
@@ -313,8 +322,8 @@ private:
 	Clipboard clipboard;
 
 	// -------------------- Part of leftPanel --------------------
-	std::shared_ptr<AttacksListPanel> attacksListViewPanel;
-	std::shared_ptr<AttacksListView> attacksListView; // child of attacksListViewPanel
+	std::shared_ptr<AttacksListPanel> attacksListPanel; // Container for attacksListView
+	std::shared_ptr<AttacksListView> attacksListView; // Child of attacksListPanel
 	
 	// -------------------- Part of mainPanel --------------------
 	// Maps an EditorAttack ID to the EditorAttack object that has unsaved changes.
@@ -334,3 +343,31 @@ private:
 	*/
 	void openLeftPanelAttackPattern(int attackPatternID);
 };
+
+template<class T>
+inline std::shared_ptr<entt::SigH<void(bool, T)>> EditorWindow::promptConfirmation(std::string message, T userObject) {
+	std::shared_ptr<entt::SigH<void(bool, T)>> confirmationSignal = std::make_shared<entt::SigH<void(bool, T)>>();
+
+	// Disable all widgets
+	widgetsToBeEnabledAfterConfirmationPrompt.clear();
+	for (std::shared_ptr<tgui::Widget> ptr : gui->getWidgets()) {
+		if (ptr->isEnabled()) {
+			widgetsToBeEnabledAfterConfirmationPrompt.push_back(ptr);
+		}
+		ptr->setEnabled(false);
+	}
+
+	confirmationYes->connect("Pressed", [this, confirmationSignal, userObject]() {
+		confirmationSignal->publish(true, userObject);
+		closeConfirmationPanel();
+	});
+	confirmationNo->connect("Pressed", [this, confirmationSignal, userObject]() {
+		confirmationSignal->publish(false, userObject);
+		closeConfirmationPanel();
+	});
+
+	confirmationText->setText(message);
+	gui->add(confirmationPanel);
+
+	return confirmationSignal;
+}

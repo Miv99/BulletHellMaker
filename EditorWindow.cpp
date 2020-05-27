@@ -29,17 +29,6 @@ EditorWindow::EditorWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std:
 	confirmationYes->setSize(100.0f, TEXT_BUTTON_HEIGHT);
 	confirmationNo->setSize(100.0f, TEXT_BUTTON_HEIGHT);
 
-	confirmationYes->connect("Pressed", [&]() {
-		assert(confirmationSignal); // This button cannot be pressed unless promptConfirmation() was called first
-		confirmationSignal->publish(true);
-		closeConfirmationPanel();
-	});
-	confirmationNo->connect("Pressed", [&]() {
-		assert(confirmationSignal); // This button cannot be pressed unless promptConfirmation() was called first
-		confirmationSignal->publish(false);
-		closeConfirmationPanel();
-	});
-
 	confirmationPanel->add(confirmationText);
 	confirmationPanel->add(confirmationYes);
 	confirmationPanel->add(confirmationNo);
@@ -175,7 +164,7 @@ void EditorWindow::show() {
 }
 
 std::shared_ptr<entt::SigH<void(bool)>> EditorWindow::promptConfirmation(std::string message) {
-	confirmationSignal = std::make_shared<entt::SigH<void(bool)>>();
+	std::shared_ptr<entt::SigH<void(bool)>> confirmationSignal = std::make_shared<entt::SigH<void(bool)>>();
 
 	// Disable all widgets
 	widgetsToBeEnabledAfterConfirmationPrompt.clear();
@@ -185,6 +174,15 @@ std::shared_ptr<entt::SigH<void(bool)>> EditorWindow::promptConfirmation(std::st
 		}
 		ptr->setEnabled(false);
 	}
+
+	confirmationYes->connect("Pressed", [&]() {
+		confirmationSignal->publish(true);
+		closeConfirmationPanel();
+	});
+	confirmationNo->connect("Pressed", [&]() {
+		confirmationSignal->publish(false);
+		closeConfirmationPanel();
+	});
 
 	confirmationText->setText(message);
 	gui->add(confirmationPanel);
@@ -528,7 +526,7 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 	{
 		// Attacks tab in left panel
 		attacksListView = AttacksListView::create(*this, clipboard);
-		attacksListViewPanel = AttacksListPanel::create(*this, clipboard);
+		attacksListPanel = AttacksListPanel::create(*this, clipboard);
 		{
 			// Add button
 			auto attacksAddButton = tgui::Button::create();
@@ -538,18 +536,18 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 			attacksAddButton->connect("Pressed", [&]() {
 				createAttack();
 			});
-			attacksListViewPanel->add(attacksAddButton);
+			attacksListPanel->add(attacksAddButton);
 
 			// Save all button
 			auto attacksSaveAllButton = tgui::Button::create();
 			attacksSaveAllButton->setText("S");
 			attacksSaveAllButton->setPosition(tgui::bindRight(attacksAddButton), 0);
 			attacksSaveAllButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
-			attacksListViewPanel->add(attacksSaveAllButton);
+			attacksListPanel->add(attacksSaveAllButton);
 
 			// List view
 			attacksListView->setPosition(0, tgui::bindBottom(attacksAddButton));
-			attacksListView->setSize("100%", tgui::bindHeight(attacksListViewPanel) - tgui::bindBottom(attacksAddButton));
+			attacksListView->setSize("100%", tgui::bindHeight(attacksListPanel) - tgui::bindBottom(attacksAddButton));
 			{
 				// Right click menu
 				// Menu for single attack selection
@@ -558,37 +556,37 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 						openLeftPanelAttack(attacksListView->getAttackIDFromIndex(attacksListView->getListView()->getSelectedItemIndex()));
 					}),
 					std::make_pair("Copy", [&]() {
-						attacksListViewPanel->manualCopy();
+						attacksListPanel->manualCopy();
 					}),
 					std::make_pair("Delete", [&]() {
-						attacksListViewPanel->manualDelete();
+						attacksListPanel->manualDelete();
 					}),
 					std::make_pair("Paste", [&]() {
-						attacksListViewPanel->manualPaste();
+						attacksListPanel->manualPaste();
 					}),
 					std::make_pair("Paste (override this)", [&]() {
-						attacksListViewPanel->manualPaste2();
+						attacksListPanel->manualPaste2();
 					}),
 					std::make_pair("Save", [&]() {
-						attacksListViewPanel->manualSave();
+						attacksListPanel->manualSave();
 					})
 				});
 				// Menu for multiple attack selections
 				auto rightClickMenuPopupMultiSelection = createMenuPopup({
 					std::make_pair("Copy", [&]() {
-						attacksListViewPanel->manualCopy();
+						attacksListPanel->manualCopy();
 					}),
 					std::make_pair("Delete", [&]() {
-						attacksListViewPanel->manualDelete();
+						attacksListPanel->manualDelete();
 					}),
 					std::make_pair("Paste", [&]() {
-						attacksListViewPanel->manualPaste();
+						attacksListPanel->manualPaste();
 					}),
 					std::make_pair("Paste (override these)", [&]() {
-						attacksListViewPanel->manualPaste2();
+						attacksListPanel->manualPaste2();
 					}),
 					std::make_pair("Save", [&]() {
-						attacksListViewPanel->manualSave();
+						attacksListPanel->manualSave();
 					})
 				});
 				attacksListView->getListView()->connect("RightClicked", [&, rightClickMenuPopupSingleSelection, rightClickMenuPopupMultiSelection](int index) {
@@ -616,9 +614,9 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 			attacksListView->getListView()->connect("DoubleClicked", [&](int index) {
 				openLeftPanelAttack(attacksListView->getAttackIDFromIndex(index));
 			});
-			attacksListViewPanel->add(attacksListView);
+			attacksListPanel->add(attacksListView);
 		}
-		leftPanel->addTab(LEFT_PANEL_ATTACK_LIST_TAB_NAME, attacksListViewPanel, true);
+		leftPanel->addTab(LEFT_PANEL_ATTACK_LIST_TAB_NAME, attacksListPanel, true);
 	}
 
 	mainPanel = TabsWithPanel::create(*this);
@@ -635,14 +633,14 @@ void MainEditorWindow::loadLevelPack(std::string levelPackName) {
 	spriteLoader = levelPack->createSpriteLoader();
 	spriteLoader->preloadTextures();
 
-	attacksListViewPanel->setLevelPack(levelPack.get());
+	attacksListPanel->setLevelPack(levelPack.get());
 	attacksListView->setLevelPack(levelPack.get());
 	attacksListView->reload();
 }
 
 void MainEditorWindow::createAttack(std::shared_ptr<EditorAttack> copyOf) {
 	int id = copyOf->getID();
-	attacksListViewPanel->getUndoStack().execute(UndoableCommand([this, copyOf]() {
+	attacksListPanel->getUndoStack().execute(UndoableCommand([this, copyOf]() {
 		levelPack->updateAttack(std::make_shared<EditorAttack>(copyOf));
 		attacksListView->reload();
 	}, [this, id]() {
@@ -651,7 +649,7 @@ void MainEditorWindow::createAttack(std::shared_ptr<EditorAttack> copyOf) {
 	}));
 }
 
-void MainEditorWindow::overwriteAttacks(std::vector<std::shared_ptr<EditorAttack>> attacks) {
+void MainEditorWindow::overwriteAttacks(std::vector<std::shared_ptr<EditorAttack>> attacks, UndoStack* undoStack) {
 	std::vector<std::shared_ptr<EditorAttack>> oldAttacks;
 	for (std::shared_ptr<EditorAttack> attack : attacks) {
 		int id = attack->getID();
@@ -662,7 +660,39 @@ void MainEditorWindow::overwriteAttacks(std::vector<std::shared_ptr<EditorAttack
 		}
 	}
 
-	attacksListViewPanel->getUndoStack().execute(UndoableCommand([this, attacks]() {
+	if (undoStack) {
+		undoStack->execute(UndoableCommand([this, attacks]() {
+			for (std::shared_ptr<EditorAttack> attack : attacks) {
+				int id = attack->getID();
+
+				// Overwrite existing EditorAttack
+				if (unsavedAttacks.count(id) > 0) {
+					unsavedAttacks[id]->load(attack->format());
+				} else {
+					unsavedAttacks[id] = std::make_shared<EditorAttack>(attack);
+				}
+
+				reloadAttackTab(id);
+				attacksListView->reload();
+			}
+		}, [this, oldAttacks]() {
+			for (std::shared_ptr<EditorAttack> attack : oldAttacks) {
+				int id = attack->getID();
+
+				// Overwrite existing EditorAttack
+				if (unsavedAttacks.count(id) > 0) {
+					unsavedAttacks[id]->load(attack->format());
+				} else {
+					unsavedAttacks[id] = std::make_shared<EditorAttack>(attack);
+				}
+
+				reloadAttackTab(id);
+				attacksListView->reload();
+			}
+		}));
+	} else {
+		// Overwrite without pushing to an undo stack
+
 		for (std::shared_ptr<EditorAttack> attack : attacks) {
 			int id = attack->getID();
 
@@ -674,22 +704,9 @@ void MainEditorWindow::overwriteAttacks(std::vector<std::shared_ptr<EditorAttack
 			}
 
 			reloadAttackTab(id);
+			attacksListView->reload();
 		}
-	}, [this, oldAttacks]() {
-		for (std::shared_ptr<EditorAttack> attack : oldAttacks) {
-			int id = attack->getID();
-
-			// Overwrite existing EditorAttack
-			if (unsavedAttacks.count(id) > 0) {
-				unsavedAttacks[id]->load(attack->format());
-			} else {
-				unsavedAttacks[id] = std::make_shared<EditorAttack>(attack);
-			}
-
-			reloadAttackTab(id);
-		}
-	}));
-	
+	}
 }
 
 void MainEditorWindow::handleEvent(sf::Event event) {
@@ -785,13 +802,17 @@ std::shared_ptr<AttacksListView> MainEditorWindow::getAttacksListView() {
 	return attacksListView;
 }
 
+std::shared_ptr<AttacksListPanel> MainEditorWindow::getAttacksListPanel() {
+	return attacksListPanel;
+}
+
 std::map<int, std::shared_ptr<EditorAttack>>& MainEditorWindow::getUnsavedAttacks() {
 	return unsavedAttacks;
 }
 
 void MainEditorWindow::createAttack() {
 	int id = levelPack->getNextAttackID();
-	attacksListViewPanel->getUndoStack().execute(UndoableCommand([this, id]() {
+	attacksListPanel->getUndoStack().execute(UndoableCommand([this, id]() {
 		levelPack->createAttack(id);
 		attacksListView->reload();
 	}, [this, id]() {
