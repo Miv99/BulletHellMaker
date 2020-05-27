@@ -2200,7 +2200,7 @@ tgui::Signal & TabsWithPanel::getSignal(std::string signalName) {
 }
 
 std::string TabsWithPanel::getSelectedTab() {
-	return tabs->getSelected();
+	return tabs->getSelected().substring(0, tabs->getSelected().getSize() - tabNameAppendedSpaces.size());
 }
 
 void TabsWithPanel::setMoreTabsListAlignment(MoreTabsListAlignment moreTabsListAlignment) {
