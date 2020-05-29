@@ -1,35 +1,40 @@
 #include "EditorMovablePoint.h"
 #include "EditorMovablePointSpawnType.h"
+#include "Attack.h"
 #include "LevelPack.h"
 
-EditorMovablePoint::EditorMovablePoint(int & nextID, bool setID, std::map<int, int>& bulletModelsCount) : nextID(nextID), bulletModelsCount(bulletModelsCount) {
+EditorMovablePoint::EditorMovablePoint(int* nextID, bool setID, std::map<int, int>* bulletModelsCount) : nextID(nextID), bulletModelsCount(bulletModelsCount) {
 	if (setID) {
-		id = nextID++;
+		id = (*nextID)++;
 	}
 	spawnType = std::make_shared<EntityRelativeEMPSpawn>(0.0f, 0.0f, 0.0f);
 
 	// Update bulletModelsCount
 	if (bulletModelID >= 0) {
-		if (bulletModelsCount.count(bulletModelID) == 0) {
-			bulletModelsCount[bulletModelID] = 1;
+		if (bulletModelsCount->count(bulletModelID) == 0) {
+			bulletModelsCount->emplace(bulletModelID, 1);
 		} else {
-			bulletModelsCount[bulletModelID]++;
+			bulletModelsCount->at(bulletModelID)++;
 		}
 	}
 }
 
-EditorMovablePoint::EditorMovablePoint(int & nextID, std::weak_ptr<EditorMovablePoint> parent, std::map<int, int>& bulletModelsCount) : nextID(nextID), parent(parent), bulletModelsCount(bulletModelsCount) {
-	id = nextID++;
+EditorMovablePoint::EditorMovablePoint(int* nextID, std::weak_ptr<EditorMovablePoint> parent, std::map<int, int>* bulletModelsCount) : nextID(nextID), parent(parent), bulletModelsCount(bulletModelsCount) {
+	id = (*nextID)++;
 	spawnType = std::make_shared<EntityRelativeEMPSpawn>(0.0f, 0.0f, 0.0f);
 
 	// Update bulletModelsCount
 	if (bulletModelID >= 0) {
-		if (bulletModelsCount.count(bulletModelID) == 0) {
-			bulletModelsCount[bulletModelID] = 1;
+		if (bulletModelsCount->count(bulletModelID) == 0) {
+			bulletModelsCount->emplace(bulletModelID, 1);
 		} else {
-			bulletModelsCount[bulletModelID]++;
+			bulletModelsCount->at(bulletModelID)++;
 		}
 	}
+}
+
+EditorMovablePoint::EditorMovablePoint(std::shared_ptr<const EditorMovablePoint> copy) : nextID(copy->nextID), bulletModelsCount(copy->bulletModelsCount) {
+	copyConstructorLoad(copy->format());
 }
 
 std::string EditorMovablePoint::format() const {
@@ -64,7 +69,7 @@ void EditorMovablePoint::load(std::string formattedString) {
 	int i;
 	children.clear();
 	for (i = 4; i < stoi(items[3]) + 4; i++) {
-		std::shared_ptr<EditorMovablePoint> emp = std::make_shared<EditorMovablePoint>(nextID, shared_from_this(), bulletModelsCount);
+		std::shared_ptr<EditorMovablePoint> emp = std::make_shared<EditorMovablePoint>(nextID, weak_from_this(), bulletModelsCount);
 		emp->load(items[i]);
 		children.push_back(emp);
 	}
@@ -97,8 +102,8 @@ void EditorMovablePoint::load(std::string formattedString) {
 	soundSettings.load(items[i++]);
 
 	// If load() is being called while this object is already loaded, decrement bulletModelsCount to prevent double-counting
-	if (bulletModelID > 0 && bulletModelsCount.count(bulletModelID) > 0) {
-		bulletModelsCount[bulletModelID]--;
+	if (bulletModelID > 0 && bulletModelsCount->count(bulletModelID) > 0) {
+		bulletModelsCount->at(bulletModelID)--;
 	}
 
 	bulletModelID = std::stoi(items[i++]);
@@ -113,10 +118,10 @@ void EditorMovablePoint::load(std::string formattedString) {
 
 	// Update bulletModelsCount
 	if (bulletModelID > 0) {
-		if (bulletModelsCount.count(bulletModelID) == 0) {
-			bulletModelsCount[bulletModelID] = 1;
+		if (bulletModelsCount->count(bulletModelID) == 0) {
+			bulletModelsCount->emplace(bulletModelID, 1);
 		} else {
-			bulletModelsCount[bulletModelID]++;
+			bulletModelsCount->at(bulletModelID)++;
 		}
 	}
 }
@@ -219,16 +224,16 @@ void EditorMovablePoint::loadBulletModel(const LevelPack & levelPack) {
 void EditorMovablePoint::setBulletModel(std::shared_ptr<BulletModel> model) {
 	// Decrement bulletModelsCount of old model, if any
 	if (bulletModelID >= 0) {
-		bulletModelsCount[bulletModelID]--;
+		bulletModelsCount->at(bulletModelID)--;
 	}
 
 	bulletModelID = model->getID();
 
 	// Update bulletModelsCount
-	if (bulletModelsCount.count(bulletModelID) == 0) {
-		bulletModelsCount[bulletModelID] = 1;
+	if (bulletModelsCount->count(bulletModelID) == 0) {
+		bulletModelsCount->emplace(bulletModelID, 1);
 	} else {
-		bulletModelsCount[bulletModelID]++;
+		bulletModelsCount->at(bulletModelID)++;
 	}
 
 	// Add this EMP to the model's set of model users
@@ -252,7 +257,7 @@ void EditorMovablePoint::setBulletModel(std::shared_ptr<BulletModel> model) {
 void EditorMovablePoint::removeBulletModel() {
 	// Decrement bulletModelsCount of old model, if any
 	if (bulletModelID >= 0) {
-		bulletModelsCount[bulletModelID]--;
+		bulletModelsCount->at(bulletModelID)--;
 	}
 
 	bulletModelID = -1;
@@ -318,6 +323,19 @@ void EditorMovablePoint::addChild(std::shared_ptr<EditorMovablePoint> child) {
 	children.insert(children.begin() + indexToInsert, child);
 }
 
+void EditorMovablePoint::onNewParentEditorAttack(std::shared_ptr<EditorAttack> newAttack) {
+	// Update the references to this EMP's parent EditorAttack values
+	nextID = newAttack->getNextEMPID();
+	bulletModelsCount = newAttack->getBulletModelsCount();
+
+	// Update ID of this EMP
+	id = (*nextID)++;
+
+	for (auto child : children) {
+		child->onNewParentEditorAttack(newAttack);
+	}
+}
+
 std::vector<std::vector<sf::String>> EditorMovablePoint::generateTreeViewEmpHierarchy(std::function<sf::String(const EditorMovablePoint&)> nodeText, std::vector<sf::String> pathToThisEmp) {
 	pathToThisEmp.push_back(nodeText(*this));
 	if (children.size() == 0) {
@@ -342,6 +360,76 @@ std::vector<sf::String> EditorMovablePoint::generatePathToThisEmp(std::function<
 	}
 
 	return ret;
+}
+
+void EditorMovablePoint::copyConstructorLoad(std::string formattedString) {
+	auto items = split(formattedString, DELIMITER);
+
+	int dummyID = -1;
+	nextID = &dummyID;
+
+	id = -1;
+	hitboxRadius = std::stof(items[1]);
+	despawnTime = std::stof(items[2]);
+
+	int i;
+	children.clear();
+	for (i = 4; i < stoi(items[3]) + 4; i++) {
+		std::shared_ptr<EditorMovablePoint> emp = std::make_shared<EditorMovablePoint>(nextID, weak_from_this(), bulletModelsCount);
+		emp->load(items[i]);
+		children.push_back(emp);
+	}
+
+	int last = i;
+	int actionsSize = stoi(items[i++]);
+	actions.clear();
+	for (i = last + 1; i < actionsSize + last + 1; i++) {
+		actions.push_back(EMPActionFactory::create(items[i]));
+	}
+
+	spawnType = EMPSpawnTypeFactory::create(items[i++]);
+
+	shadowTrailInterval = std::stof(items[i++]);
+	shadowTrailLifespan = std::stof(items[i++]);
+
+	animatable.load(items[i++]);
+	if (std::stoi(items[i++]) == 0) {
+		loopAnimation = false;
+	} else {
+		loopAnimation = true;
+	}
+	baseSprite.load(items[i++]);
+
+	damage = std::stoi(items[i++]);
+
+	onCollisionAction = static_cast<BULLET_ON_COLLISION_ACTION>(std::stoi(items[i++]));
+	pierceResetTime = std::stof(items[i++]);
+
+	soundSettings.load(items[i++]);
+
+	// If load() is being called while this object is already loaded, decrement bulletModelsCount to prevent double-counting
+	if (bulletModelID > 0 && bulletModelsCount->count(bulletModelID) > 0) {
+		bulletModelsCount->at(bulletModelID)--;
+	}
+
+	bulletModelID = std::stoi(items[i++]);
+	inheritRadius = unformatBool(items[i++]);
+	inheritDespawnTime = unformatBool(items[i++]);
+	inheritShadowTrailInterval = unformatBool(items[i++]);
+	inheritShadowTrailLifespan = unformatBool(items[i++]);
+	inheritAnimatables = unformatBool(items[i++]);
+	inheritDamage = unformatBool(items[i++]);
+	inheritSoundSettings = unformatBool(items[i++]);
+	isBullet = unformatBool(items[i++]);
+
+	// Update bulletModelsCount
+	if (bulletModelID > 0) {
+		if (bulletModelsCount->count(bulletModelID) == 0) {
+			bulletModelsCount->emplace(bulletModelID, 1);
+		} else {
+			bulletModelsCount->at(bulletModelID)++;
+		}
+	}
 }
 
 std::string BulletModel::format() const {

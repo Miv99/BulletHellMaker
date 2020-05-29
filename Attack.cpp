@@ -3,7 +3,7 @@
 
 EditorAttack::EditorAttack(int id) : id(id) {
 	nextEMPID = 0;
-	mainEMP = std::make_shared<EditorMovablePoint>(nextEMPID, true, bulletModelsCount);
+	mainEMP = std::make_shared<EditorMovablePoint>(&nextEMPID, true, &bulletModelsCount);
 }
 
 EditorAttack::EditorAttack(std::shared_ptr<const EditorAttack> copy) {
@@ -23,7 +23,7 @@ void EditorAttack::load(std::string formattedString) {
 	nextEMPID = std::stoi(items[1]);
 	name = items[2];
 	bulletModelsCount.clear();
-	mainEMP = std::make_shared<EditorMovablePoint>(nextEMPID, false, bulletModelsCount);
+	mainEMP = std::make_shared<EditorMovablePoint>(&nextEMPID, false, &bulletModelsCount);
 	mainEMP->load(items[3]);
 	playAttackAnimation = unformatBool(items[4]);
 }

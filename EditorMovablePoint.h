@@ -104,14 +104,20 @@ public:
 	bulletModelsCount - reference to the map that maps the bullet model ids used by this EMP and all children EMP to the number of times
 		that bullet model id is used.
 	*/
-	EditorMovablePoint(int& nextID, bool setID, std::map<int, int>& bulletModelsCount);
+	EditorMovablePoint(int* nextID, bool setID, std::map<int, int>* bulletModelsCount);
 	/*
 	Constructor for EditorMovablePoints with a parent.
 
 	bulletModelsCount - reference to the map that maps the bullet model ids used by this EMP and all children EMP to the number of times
 		that bullet model id is used.
 	*/
-	EditorMovablePoint(int& nextID, std::weak_ptr<EditorMovablePoint> parent, std::map<int, int>& bulletModelsCount);
+	EditorMovablePoint(int* nextID, std::weak_ptr<EditorMovablePoint> parent, std::map<int, int>* bulletModelsCount);
+	/*
+	Copy constructor.
+	Note that this makes a deep copy of everything except nextID and bulletModelsCount, whose references are taken from copy.
+	If this EMP is to be used in a different EditorAttack, onNewParentEditorAttack() should be called.
+	*/
+	EditorMovablePoint(std::shared_ptr<const EditorMovablePoint> copy);
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
@@ -218,6 +224,12 @@ public:
 	Adds an existing EMP to the list of children.
 	*/
 	void addChild(std::shared_ptr<EditorMovablePoint> child);
+	/*
+	Should be called whenever this EMP is changed to be part of a different EditorAttack.
+
+	newAttack - the new EditorAttack that this EMP is a child of
+	*/
+	void onNewParentEditorAttack(std::shared_ptr<EditorAttack> newAttack);
 
 
 	/*
@@ -271,7 +283,8 @@ public:
 private:
 	// ID is unique only to the attack. Not saved
 	int id;
-	int& nextID;
+	// The ID of the next EMP; points to the nextEMPID in the EditorAttack this EMP is a child of
+	int* nextID;
 
 	bool isBullet = true;
 
@@ -330,5 +343,15 @@ private:
 	// Reference to the map that maps the bullet model ids used by this EMP and all children EMP to the number of times
 	// that bullet model id is used.
 	// This map will not be saved when format() is called, but will be rebuilt in load().
-	std::map<int, int>& bulletModelsCount;
+	// Points to the bulletModelsCount in the EditorAttack this EMP is a child of.
+	std::map<int, int>* bulletModelsCount;
+
+	/*
+	A special version of load() intended to be used only by the copy constructor.
+	copyConstructorLoad() does everything load() does, but will not modify the references to any EditorAttack's fields, and this EMP and its
+	children will have ID -1. onNewParentEditorAttack() should be called on this EMP before it is added to any EditorAttack to fix its IDs and references.
+
+	This special version of load() is required only for EMP because this class uses references to a parent EditorAttack's fields.
+	*/
+	void copyConstructorLoad(std::string formattedString);
 };

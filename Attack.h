@@ -15,7 +15,9 @@ class EditorAttack : public LevelPackObject, public TextMarshallable {
 public:
 	inline EditorAttack() {}
 	EditorAttack(int id);
-	// Copy constructor
+	/*
+	Copy constructor.
+	*/
 	EditorAttack(std::shared_ptr<const EditorAttack> copy);
 
 	std::string format() const override;
@@ -57,6 +59,8 @@ public:
 	inline std::string getName() const { return name; }
 	inline bool getPlayAttackAnimation() const { return playAttackAnimation; }
 	inline std::shared_ptr<EditorMovablePoint> getMainEMP() const { return mainEMP; }
+	inline int* getNextEMPID() { return &nextEMPID; }
+	inline std::map<int, int>*  getBulletModelsCount() { return &bulletModelsCount; }
 	inline void setName(std::string name)  { this->name = name; }
 	inline void setPlayAttackAnimation(bool playAttackAnimation) { this->playAttackAnimation = playAttackAnimation; }
 	
