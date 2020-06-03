@@ -28,6 +28,10 @@ public:
 	Returns the next ID to be generated without using it.
 	*/
 	int getNextID() const;
+	/*
+	Returns whether id is being used.
+	*/
+	bool idInUse(int id);
 
 private:
 	std::vector<std::pair<int, int>> ranges;

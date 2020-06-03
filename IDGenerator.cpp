@@ -2,7 +2,6 @@
 #include <limits>
 #include <algorithm>
 #include <cassert>
-#include <iostream>
 
 IDGenerator::IDGenerator() {
 	ranges.push_back(std::make_pair(0, std::numeric_limits<int>::max()));
@@ -13,11 +12,13 @@ int IDGenerator::generateID() {
 	if (ranges.size() == 0) {
 		return -1;
 	}
+
 	int id = ranges[0].first;
 	ranges[0].first++;
 	if (ranges[0].first > ranges[0].second) {
 		ranges.erase(ranges.begin());
 	}
+
 	return id;
 }
 
@@ -48,11 +49,6 @@ void IDGenerator::deleteID(int id) {
 		(it + 1)->first = it->first;
 		ranges.erase(it);
 	}
-
-	std::cout << "deleting " << id << std::endl;
-	for (auto p : ranges) {
-		std::cout << "\t [" << p.first << ", " << p.second << "]" << std::endl;
-	}
 }
 
 void IDGenerator::markIDAsUsed(int id) {
@@ -65,7 +61,7 @@ void IDGenerator::markIDAsUsed(int id) {
 	// Binary search to find first range where range.start >= id
 	auto it = std::lower_bound(ranges.begin(), ranges.end(), idRange);
 	// id can fit into the range of either it, (it - 1), or nothing else
-	if (it == ranges.begin() && it->first > id) {
+	if ((it == ranges.begin() && it->first > id) || it == ranges.end()) {
 		// id can't fit anywhere
 		return;
 	}
@@ -105,4 +101,44 @@ int IDGenerator::getNextID() const {
 		return -1;
 	}
 	return ranges[0].first;
+}
+
+bool IDGenerator::idInUse(int id) {
+	if (ranges.size() == 0) {
+		// Every ID has already been used
+		return true;
+	}
+
+	std::pair<int, int> idRange = std::make_pair(id, id);
+	// Binary search to find first range where range.start >= id
+	auto it = std::lower_bound(ranges.begin(), ranges.end(), idRange);
+	// id can fit into the range of either it, (it - 1), or nothing else
+	if ((it == ranges.begin() && it->first > id) || it == ranges.end()) {
+		// id can't fit anywhere
+		return true;
+	}
+	// Check if id fits into it
+	if (id == it->first && id == it->second) {
+		return false;
+	} else if (id == it->first) {
+		return false;
+	} else if (id == it->second) {
+		return false;
+	} else if (id >= it->first && id <= it->second) {
+		return false;
+	} else {
+		// Check if id fits into (it - 1)
+		it--;
+		if (id == it->first && id == it->second) {
+			return false;
+		} else if (id == it->first) {
+			return false;
+		} else if (id == it->second) {
+			return false;
+		} else if (id >= it->first && id <= it->second) {
+			return false;
+		}
+	}
+	
+	return true;
 }
