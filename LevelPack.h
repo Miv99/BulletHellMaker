@@ -11,6 +11,7 @@
 #include "TextMarshallable.h"
 #include "Components.h"
 #include "AudioPlayer.h"
+#include "IDGenerator.h"
 #include <entt/entt.hpp>
 
 class EditorAttack;
@@ -192,7 +193,7 @@ public:
 	std::map<int, std::shared_ptr<BulletModel>>::iterator getBulletModelIteratorBegin();
 	std::map<int, std::shared_ptr<BulletModel>>::iterator getBulletModelIteratorEnd();
 
-	int getNextAttackID() const { return nextAttackID; }
+	int getNextAttackID() const;
 	int getNextAttackPatternID() const { return nextAttackPatternID; }
 	int getNextEnemyID() const { return nextEnemyID; }
 	int getNextEnemyPhaseID() const { return nextEnemyPhaseID; }
@@ -220,7 +221,7 @@ private:
 
 	LevelPackMetadata metadata;
 
-	int nextAttackID = 0;
+	IDGenerator attackIDGen;
 	int nextAttackPatternID = 0;
 	int nextEnemyID = 0;
 	int nextEnemyPhaseID = 0;

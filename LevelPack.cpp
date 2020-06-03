@@ -299,10 +299,11 @@ void LevelPack::load() {
 	// Read attacks
 	std::ifstream attacksFile("Level Packs\\" + name + "\\attacks.txt");
 	std::getline(attacksFile, line);
-	nextAttackID = std::stoi(line);
 	while (std::getline(attacksFile, line)) {
 		std::shared_ptr<EditorAttack> attack = std::make_shared<EditorAttack>();
 		attack->load(line);
+		// Update attackIDGen with the newly loaded attack ID
+		attackIDGen.markIDAsUsed(attack->getID());
 		// Load bullet models for every EMP
 		attack->loadEMPBulletModels(*this);
 		assert(attacks.count(attack->getID()) == 0 && "Attack ID conflict");
@@ -370,7 +371,6 @@ void LevelPack::save() {
 
 	// Save attacks
 	std::ofstream attacksFile("Level Packs\\" + name + "\\attacks.txt");
-	attacksFile << nextAttackID << std::endl;
 	for (auto p : attacks) {
 		// Skip if ID < 0, because that signifies that it's a temporary EditorAttack
 		if (p.first < 0) continue;
@@ -417,14 +417,14 @@ void LevelPack::insertLevel(int index, std::shared_ptr<Level> level) {
 }
 
 std::shared_ptr<EditorAttack> LevelPack::createAttack() {
-	auto attack = std::make_shared<EditorAttack>(nextAttackID++);
+	auto attack = std::make_shared<EditorAttack>(attackIDGen.generateID());
 	attacks[attack->getID()] = attack;
 	onChange->publish();
 	return attack;
 }
 
 std::shared_ptr<EditorAttack> LevelPack::createAttack(int id) {
-	nextAttackID = std::max(nextAttackID, id + 1);
+	attackIDGen.markIDAsUsed(id);
 	auto attack = std::make_shared<EditorAttack>(id);
 	attacks[attack->getID()] = attack;
 	onChange->publish();
@@ -460,7 +460,7 @@ std::shared_ptr<BulletModel> LevelPack::createBulletModel() {
 }
 
 void LevelPack::updateAttack(std::shared_ptr<EditorAttack> attack) {
-	nextAttackID = std::max(nextAttackID, attack->getID() + 1);
+	attackIDGen.markIDAsUsed(attack->getID());
 	attacks[attack->getID()] = attack;
 	onChange->publish();
 }
@@ -491,6 +491,7 @@ void LevelPack::deleteLevel(int levelIndex) {
 }
 
 void LevelPack::deleteAttack(int id) {
+	attackIDGen.deleteID(id);
 	attacks.erase(id);
 	onChange->publish();
 }
@@ -667,6 +668,10 @@ std::map<int, std::shared_ptr<BulletModel>>::iterator LevelPack::getBulletModelI
 
 std::map<int, std::shared_ptr<BulletModel>>::iterator LevelPack::getBulletModelIteratorEnd() {
 	return bulletModels.end();
+}
+
+int LevelPack::getNextAttackID() const {
+	return attackIDGen.getNextID();
 }
 
 std::shared_ptr<entt::SigH<void()>> LevelPack::getOnChange() {
