@@ -8,6 +8,7 @@
 #include "TextMarshallable.h"
 #include "EntityCreationQueue.h"
 #include "LevelPackObject.h"
+#include "IDGenerator.h"
 
 class EditorMovablePoint;
 
@@ -59,7 +60,7 @@ public:
 	inline std::string getName() const { return name; }
 	inline bool getPlayAttackAnimation() const { return playAttackAnimation; }
 	inline std::shared_ptr<EditorMovablePoint> getMainEMP() const { return mainEMP; }
-	inline int* getNextEMPID() { return &nextEMPID; }
+	inline IDGenerator* getNextEMPID() { return &empIDGen; }
 	inline std::map<int, int>*  getBulletModelsCount() { return &bulletModelsCount; }
 	inline void setName(std::string name)  { this->name = name; }
 	inline void setPlayAttackAnimation(bool playAttackAnimation) { this->playAttackAnimation = playAttackAnimation; }
@@ -78,8 +79,8 @@ public:
 	std::vector<std::vector<sf::String>> generateTreeViewHierarchy(std::function<sf::String(const EditorAttack&)> attackText, std::function<sf::String(const EditorMovablePoint&)> empText) const;
 
 private:
-	// The ID of the next EMP created in this attack.
-	int nextEMPID = 0;
+	// The ID generator for EMPs in this attack
+	IDGenerator empIDGen;
 
 	// ID of the attack
 	int id;

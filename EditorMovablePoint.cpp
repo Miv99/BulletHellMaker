@@ -3,9 +3,12 @@
 #include "Attack.h"
 #include "LevelPack.h"
 
-EditorMovablePoint::EditorMovablePoint(int* nextID, bool setID, std::map<int, int>* bulletModelsCount) : nextID(nextID), bulletModelsCount(bulletModelsCount) {
+EditorMovablePoint::EditorMovablePoint(IDGenerator* idGen, bool setID, std::map<int, int>* bulletModelsCount) : idGen(idGen), bulletModelsCount(bulletModelsCount) {
 	if (setID) {
-		id = (*nextID)++;
+		id = idGen->generateID();
+		idResolved = true;
+	} else {
+		idResolved = false;
 	}
 	spawnType = std::make_shared<EntityRelativeEMPSpawn>(0.0f, 0.0f, 0.0f);
 
@@ -19,8 +22,13 @@ EditorMovablePoint::EditorMovablePoint(int* nextID, bool setID, std::map<int, in
 	}
 }
 
-EditorMovablePoint::EditorMovablePoint(int* nextID, std::weak_ptr<EditorMovablePoint> parent, std::map<int, int>* bulletModelsCount) : nextID(nextID), parent(parent), bulletModelsCount(bulletModelsCount) {
-	id = (*nextID)++;
+EditorMovablePoint::EditorMovablePoint(IDGenerator* idGen, std::weak_ptr<EditorMovablePoint> parent, std::map<int, int>* bulletModelsCount, bool setID) : idGen(idGen), parent(parent), bulletModelsCount(bulletModelsCount) {
+	if (setID) {
+		id = idGen->generateID();
+		idResolved = true;
+	} else {
+		idResolved = false;
+	}
 	spawnType = std::make_shared<EntityRelativeEMPSpawn>(0.0f, 0.0f, 0.0f);
 
 	// Update bulletModelsCount
@@ -33,7 +41,7 @@ EditorMovablePoint::EditorMovablePoint(int* nextID, std::weak_ptr<EditorMovableP
 	}
 }
 
-EditorMovablePoint::EditorMovablePoint(std::shared_ptr<const EditorMovablePoint> copy) : nextID(copy->nextID), bulletModelsCount(copy->bulletModelsCount) {
+EditorMovablePoint::EditorMovablePoint(std::shared_ptr<const EditorMovablePoint> copy) : idGen(copy->idGen), bulletModelsCount(copy->bulletModelsCount) {
 	copyConstructorLoad(copy->format());
 }
 
@@ -62,14 +70,20 @@ std::string EditorMovablePoint::format() const {
 void EditorMovablePoint::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 
+	// Delete IDs from idGen for if load() is overwriting some existing data
+	recursiveDeleteID();
 	id = std::stoi(items[0]);
+	idResolved = false;
+	// Resolve any possible conflicts from loading this ID
+	resolveIDConflicts(false);
+
 	hitboxRadius = std::stof(items[1]);
 	despawnTime = std::stof(items[2]);
 
 	int i;
 	children.clear();
 	for (i = 4; i < stoi(items[3]) + 4; i++) {
-		std::shared_ptr<EditorMovablePoint> emp = std::make_shared<EditorMovablePoint>(nextID, weak_from_this(), bulletModelsCount);
+		std::shared_ptr<EditorMovablePoint> emp = std::make_shared<EditorMovablePoint>(idGen, weak_from_this(), bulletModelsCount, false);
 		emp->load(items[i]);
 		children.push_back(emp);
 	}
@@ -263,6 +277,23 @@ void EditorMovablePoint::removeBulletModel() {
 	bulletModelID = -1;
 }
 
+std::vector<int> EditorMovablePoint::getChildrenIDs() const {
+	std::vector<int> ids;
+	for (auto child : children) {
+		getChildrenIDsHelper(ids);
+	}
+	return ids;
+}
+
+void EditorMovablePoint::setID(int id) {
+	if (idResolved) {
+		idResolved = false;
+		idGen->deleteID(this->id);
+	}
+	this->id = id;
+	resolveIDConflicts(false);
+}
+
 void EditorMovablePoint::setSpawnType(std::shared_ptr<EMPSpawnType> spawnType) {
 	this->spawnType = spawnType;
 
@@ -294,6 +325,7 @@ void EditorMovablePoint::removeChild(int id) {
 			break;
 		}
 	}
+	children[pos]->recursiveDeleteID();
 	children.erase(children.begin() + pos);
 }
 
@@ -303,11 +335,10 @@ void EditorMovablePoint::detachFromParent() {
 	}
 }
 
-std::shared_ptr<EditorMovablePoint> EditorMovablePoint::createChild(bool addToChildrenList) {
-	std::shared_ptr<EditorMovablePoint> child = std::make_shared<EditorMovablePoint>(nextID, shared_from_this(), bulletModelsCount);
-	if (addToChildrenList) {
-		addChild(child);
-	}
+std::shared_ptr<EditorMovablePoint> EditorMovablePoint::createChild() {
+	// Don't set ID for child because addChild() will take care of it
+	std::shared_ptr<EditorMovablePoint> child = std::make_shared<EditorMovablePoint>(idGen, shared_from_this(), bulletModelsCount, false);
+	addChild(child);
 	return child;
 }
 
@@ -321,15 +352,25 @@ void EditorMovablePoint::addChild(std::shared_ptr<EditorMovablePoint> child) {
 		}
 	}
 	children.insert(children.begin() + indexToInsert, child);
+	child->resolveIDConflicts(true);
 }
 
 void EditorMovablePoint::onNewParentEditorAttack(std::shared_ptr<EditorAttack> newAttack) {
 	// Update the references to this EMP's parent EditorAttack values
-	nextID = newAttack->getNextEMPID();
+	idGen = newAttack->getNextEMPID();
 	bulletModelsCount = newAttack->getBulletModelsCount();
 
-	// Update ID of this EMP
-	id = (*nextID)++;
+	// Update bulletModelsCount
+	if (bulletModelID >= 0) {
+		if (bulletModelsCount->count(bulletModelID) == 0) {
+			bulletModelsCount->emplace(bulletModelID, 1);
+		} else {
+			bulletModelsCount->at(bulletModelID)++;
+		}
+	}
+
+	// Update idGen
+	resolveIDConflicts(false);
 
 	for (auto child : children) {
 		child->onNewParentEditorAttack(newAttack);
@@ -365,18 +406,23 @@ std::vector<sf::String> EditorMovablePoint::generatePathToThisEmp(std::function<
 void EditorMovablePoint::copyConstructorLoad(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 
-	int dummyID = -1;
-	nextID = &dummyID;
+	// Use some dummy object for now; idGen shouldn't need to be used until a real idGen is set by onNewParentEditorAttack()
+	IDGenerator dummyID;
+	idGen = &dummyID;
+	// Same thing with bulletModelsCount
+	std::map<int, int> dummyBulletModelsCount;
+	bulletModelsCount = &dummyBulletModelsCount;
 
 	id = -1;
+	idResolved = false;
 	hitboxRadius = std::stof(items[1]);
 	despawnTime = std::stof(items[2]);
 
 	int i;
 	children.clear();
 	for (i = 4; i < stoi(items[3]) + 4; i++) {
-		std::shared_ptr<EditorMovablePoint> emp = std::make_shared<EditorMovablePoint>(nextID, weak_from_this(), bulletModelsCount);
-		emp->load(items[i]);
+		std::shared_ptr<EditorMovablePoint> emp = std::make_shared<EditorMovablePoint>(idGen, weak_from_this(), bulletModelsCount, false);
+		emp->copyConstructorLoad(items[i]);
 		children.push_back(emp);
 	}
 
@@ -407,11 +453,6 @@ void EditorMovablePoint::copyConstructorLoad(std::string formattedString) {
 
 	soundSettings.load(items[i++]);
 
-	// If load() is being called while this object is already loaded, decrement bulletModelsCount to prevent double-counting
-	if (bulletModelID > 0 && bulletModelsCount->count(bulletModelID) > 0) {
-		bulletModelsCount->at(bulletModelID)--;
-	}
-
 	bulletModelID = std::stoi(items[i++]);
 	inheritRadius = unformatBool(items[i++]);
 	inheritDespawnTime = unformatBool(items[i++]);
@@ -421,14 +462,39 @@ void EditorMovablePoint::copyConstructorLoad(std::string formattedString) {
 	inheritDamage = unformatBool(items[i++]);
 	inheritSoundSettings = unformatBool(items[i++]);
 	isBullet = unformatBool(items[i++]);
+}
 
-	// Update bulletModelsCount
-	if (bulletModelID > 0) {
-		if (bulletModelsCount->count(bulletModelID) == 0) {
-			bulletModelsCount->emplace(bulletModelID, 1);
+void EditorMovablePoint::getChildrenIDsHelper(std::vector<int>& arr) const {
+	arr.push_back(id);
+	for (auto child : children) {
+		child->getChildrenIDsHelper(arr);
+	}
+}
+
+void EditorMovablePoint::resolveIDConflicts(bool recurseOnChildren) {
+	if (!idResolved) {
+		if (id < 0 || idGen->idInUse(id)) {
+			id = idGen->generateID();
 		} else {
-			bulletModelsCount->at(bulletModelID)++;
+			idGen->markIDAsUsed(id);
 		}
+		idResolved = true;
+	}
+
+	if (recurseOnChildren) {
+		for (auto child : children) {
+			child->resolveIDConflicts(true);
+		}
+	}
+}
+
+void EditorMovablePoint::recursiveDeleteID() {
+	if (idResolved) {
+		idGen->deleteID(id);
+		idResolved = false;
+	}
+	for (auto child : children) {
+		child->recursiveDeleteID();
 	}
 }
 

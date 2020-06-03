@@ -2,8 +2,7 @@
 #include "EditorMovablePoint.h"
 
 EditorAttack::EditorAttack(int id) : id(id) {
-	nextEMPID = 0;
-	mainEMP = std::make_shared<EditorMovablePoint>(&nextEMPID, true, &bulletModelsCount);
+	mainEMP = std::make_shared<EditorMovablePoint>(&empIDGen, true, &bulletModelsCount);
 }
 
 EditorAttack::EditorAttack(std::shared_ptr<const EditorAttack> copy) {
@@ -14,18 +13,17 @@ EditorAttack::EditorAttack(std::shared_ptr<const EditorAttack> copy) {
 }
 
 std::string EditorAttack::format() const {
-	return tos(id) + tos(nextEMPID) + formatString(name) + formatTMObject(*mainEMP) + formatBool(playAttackAnimation);
+	return tos(id) + formatString(name) + formatTMObject(*mainEMP) + formatBool(playAttackAnimation);
 }
 
 void EditorAttack::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	id = std::stoi(items[0]);
-	nextEMPID = std::stoi(items[1]);
-	name = items[2];
+	name = items[1];
 	bulletModelsCount.clear();
-	mainEMP = std::make_shared<EditorMovablePoint>(&nextEMPID, false, &bulletModelsCount);
-	mainEMP->load(items[3]);
-	playAttackAnimation = unformatBool(items[4]);
+	mainEMP = std::make_shared<EditorMovablePoint>(&empIDGen, false, &bulletModelsCount);
+	mainEMP->load(items[2]);
+	playAttackAnimation = unformatBool(items[3]);
 }
 
 std::pair<bool, std::string> EditorAttack::legal(LevelPack & levelPack, SpriteLoader & spriteLoader) const {

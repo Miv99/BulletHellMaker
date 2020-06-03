@@ -15,6 +15,7 @@
 #include "CollisionSystem.h"
 #include "AudioPlayer.h"
 #include "LevelPackObject.h"
+#include "IDGenerator.h"
 
 class EMPSpawnType;
 class EditorMovablePoint;
@@ -104,17 +105,18 @@ public:
 	bulletModelsCount - reference to the map that maps the bullet model ids used by this EMP and all children EMP to the number of times
 		that bullet model id is used.
 	*/
-	EditorMovablePoint(int* nextID, bool setID, std::map<int, int>* bulletModelsCount);
+	EditorMovablePoint(IDGenerator* idGen, bool setID, std::map<int, int>* bulletModelsCount);
 	/*
 	Constructor for EditorMovablePoints with a parent.
 
 	bulletModelsCount - reference to the map that maps the bullet model ids used by this EMP and all children EMP to the number of times
 		that bullet model id is used.
+	setID - whether the ID of this EMP should be set with this constructor. setID should be false if load() will be called right after.
 	*/
-	EditorMovablePoint(int* nextID, std::weak_ptr<EditorMovablePoint> parent, std::map<int, int>* bulletModelsCount);
+	EditorMovablePoint(IDGenerator* idGen, std::weak_ptr<EditorMovablePoint> parent, std::map<int, int>* bulletModelsCount, bool setID);
 	/*
 	Copy constructor.
-	Note that this makes a deep copy of everything except nextID and bulletModelsCount, whose references are taken from copy.
+	Note that this makes a deep copy of everything except idGen and bulletModelsCount, whose references are taken from copy.
 	If this EMP is to be used in a different EditorAttack, onNewParentEditorAttack() should be called.
 	*/
 	EditorMovablePoint(std::shared_ptr<const EditorMovablePoint> copy);
@@ -177,7 +179,12 @@ public:
 	inline float getPierceResetTime() const { return pierceResetTime; }
 	inline bool getIsBullet() const { return isBullet; }
 	inline bool usesBulletModel() const { return bulletModelID >= 0; }
+	/*
+	Returns the ID of every recursive child in this EMP. Does not include this EMP's ID.
+	*/
+	std::vector<int> getChildrenIDs() const;
 
+	void setID(int id);
 	inline void setPierceResetTime(float pierceResetTime) { this->pierceResetTime = pierceResetTime; }
 	inline void setOnCollisionAction(BULLET_ON_COLLISION_ACTION action) { onCollisionAction = action; }
 	inline void setDamage(float damage) { this->damage = damage; }
@@ -198,13 +205,17 @@ public:
 	inline void setInheritSoundSettings(bool inheritSoundSettings, const LevelPack& levelPack) { this->inheritSoundSettings = inheritSoundSettings; loadBulletModel(levelPack); }
 	inline void setIsBullet(bool isBullet) { this->isBullet = isBullet; }
 	inline void setSoundSettings(SoundSettings soundSettings) { this->soundSettings = soundSettings; }
-	// Inserts an EMPAction such that the new action is at the specified index
+	/*
+	Inserts an EMPAction such that the new action is at the specified index
+	*/
 	void insertAction(int index, std::shared_ptr<EMPAction> action);
 	void removeAction(int index);
-	// Replace the EMPAction at some index
+	/*
+	Replace the EMPAction at some index
+	*/
 	void replaceAction(int index, std::shared_ptr<EMPAction> action);
 	/*
-	Removes a child.
+	Removes a direct child. Undefined behavior if the child doesn't exist.
 
 	id - the ID of the child EMP
 	*/
@@ -214,12 +225,9 @@ public:
 	*/
 	void detachFromParent();
 	/*
-	Creates a child of this EMP.
-
-	addToChildrenList - if true, the new child will be added as a child of this EMP; if false, the user should add it with addChild()
-	Returns the child EMP
+	Creates an EMP and adds it as a child of this EMP.
 	*/
-	std::shared_ptr<EditorMovablePoint> createChild(bool addToChildrenList = true);
+	std::shared_ptr<EditorMovablePoint> createChild();
 	/*
 	Adds an existing EMP to the list of children.
 	*/
@@ -283,8 +291,8 @@ public:
 private:
 	// ID is unique only to the attack. Not saved
 	int id;
-	// The ID of the next EMP; points to the nextEMPID in the EditorAttack this EMP is a child of
-	int* nextID;
+	// Points to the EMP ID generator in the EditorAttack this EMP is a child of
+	IDGenerator* idGen;
 
 	bool isBullet = true;
 
@@ -346,6 +354,9 @@ private:
 	// Points to the bulletModelsCount in the EditorAttack this EMP is a child of.
 	std::map<int, int>* bulletModelsCount;
 
+	// Whether the ID marked as used in idGen was marked from this EMP; not saved in format()
+	bool idResolved;
+
 	/*
 	A special version of load() intended to be used only by the copy constructor.
 	copyConstructorLoad() does everything load() does, but will not modify the references to any EditorAttack's fields, and this EMP and its
@@ -354,4 +365,19 @@ private:
 	This special version of load() is required only for EMP because this class uses references to a parent EditorAttack's fields.
 	*/
 	void copyConstructorLoad(std::string formattedString);
+	/*
+	Helper function for getChildrenIDs(). Populates arr with this EMP's ID and all its
+	recursive children's IDs.
+	*/
+	void getChildrenIDsHelper(std::vector<int>& arr) const;
+	/*
+	Change this EMP's ID to be some unused ID if it is currently in use.
+
+	recurseOnChildren - whether to call this same function on all of this EMP's children
+	*/
+	void resolveIDConflicts(bool recurseOnChildren);
+	/*
+	Recursively deletes this EMP and its children's IDs from idGen.
+	*/
+	void recursiveDeleteID();
 };
