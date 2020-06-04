@@ -287,7 +287,6 @@ void LevelPack::load() {
 	// Read bullet models
 	std::ifstream bulletModelsFile("Level Packs\\" + name + "\\bullet_models.txt");
 	std::getline(bulletModelsFile, line);
-	nextBulletModelID = std::stoi(line);
 	while (std::getline(bulletModelsFile, line)) {
 		std::shared_ptr<BulletModel> bulletModel = std::make_shared<BulletModel>();
 		bulletModel->load(line);
@@ -314,7 +313,6 @@ void LevelPack::load() {
 	// Read attack patterns
 	std::ifstream attackPatternsFile("Level Packs\\" + name + "\\attack_patterns.txt");
 	std::getline(attackPatternsFile, line);
-	nextAttackPatternID = std::stoi(line);
 	while (std::getline(attackPatternsFile, line)) {
 		std::shared_ptr<EditorAttackPattern> attackPattern = std::make_shared<EditorAttackPattern>();
 		attackPattern->load(line);
@@ -326,7 +324,6 @@ void LevelPack::load() {
 	// Read enemies
 	std::ifstream enemiesFile("Level Packs\\" + name + "\\enemies.txt");
 	std::getline(enemiesFile, line);
-	nextEnemyID = std::stoi(line);
 	while (std::getline(enemiesFile, line)) {
 		std::shared_ptr<EditorEnemy> enemy = std::make_shared<EditorEnemy>();
 		enemy->load(line);
@@ -338,7 +335,6 @@ void LevelPack::load() {
 	// Read enemy phases
 	std::ifstream enemyPhasesFile("Level Packs\\" + name + "\\enemy_phases.txt");
 	std::getline(enemyPhasesFile, line);
-	nextEnemyPhaseID = std::stoi(line);
 	while (std::getline(enemyPhasesFile, line)) {
 		std::shared_ptr<EditorEnemyPhase> enemyPhase = std::make_shared<EditorEnemyPhase>();
 		enemyPhase->load(line);
@@ -363,7 +359,6 @@ void LevelPack::save() {
 
 	// Save bullet models
 	std::ofstream bulletModelsFile("Level Packs\\" + name + "\\bullet_models.txt");
-	bulletModelsFile << nextBulletModelID << std::endl;
 	for (auto p : bulletModels) {
 		bulletModelsFile << p.second->format() << std::endl;
 	}
@@ -380,7 +375,6 @@ void LevelPack::save() {
 
 	// Save attack patterns
 	std::ofstream attackPatternsFile("Level Packs\\" + name + "\\attack_patterns.txt");
-	attackPatternsFile << nextAttackPatternID << std::endl;
 	for (auto p : attackPatterns) {
 		if (p.first < 0) continue;
 		attackPatternsFile << p.second->format() << std::endl;
@@ -389,7 +383,6 @@ void LevelPack::save() {
 
 	// Save enemies
 	std::ofstream enemiesFile("Level Packs\\" + name + "\\enemies.txt");
-	enemiesFile << nextEnemyID << std::endl;
 	for (auto p : enemies) {
 		if (p.first < 0) continue;
 		enemiesFile << p.second->format() << std::endl;
@@ -398,7 +391,6 @@ void LevelPack::save() {
 
 	// Save enemy phases
 	std::ofstream enemyPhasesFile("Level Packs\\" + name + "\\enemy_phases.txt");
-	enemyPhasesFile << nextEnemyPhaseID << std::endl;
 	for (auto p : enemyPhases) {
 		if (p.first < 0) continue;
 		enemyPhasesFile << p.second->format() << std::endl;
@@ -432,28 +424,28 @@ std::shared_ptr<EditorAttack> LevelPack::createAttack(int id) {
 }
 
 std::shared_ptr<EditorAttackPattern> LevelPack::createAttackPattern() {
-	auto attackPattern = std::make_shared<EditorAttackPattern>(nextAttackPatternID++);
+	auto attackPattern = std::make_shared<EditorAttackPattern>(attackPatternIDGen.generateID());
 	attackPatterns[attackPattern->getID()] = attackPattern;
 	onChange->publish();
 	return attackPattern;
 }
 
 std::shared_ptr<EditorEnemy> LevelPack::createEnemy() {
-	auto enemy = std::make_shared<EditorEnemy>(nextEnemyID++);
+	auto enemy = std::make_shared<EditorEnemy>(enemyIDGen.generateID());
 	enemies[enemy->getID()] = enemy;
 	onChange->publish();
 	return enemy;
 }
 
 std::shared_ptr<EditorEnemyPhase> LevelPack::createEnemyPhase() {
-	auto enemyPhase = std::make_shared<EditorEnemyPhase>(nextEnemyPhaseID++);
+	auto enemyPhase = std::make_shared<EditorEnemyPhase>(enemyPhaseIDGen.generateID());
 	enemyPhases[enemyPhase->getID()] = enemyPhase;
 	onChange->publish();
 	return enemyPhase;
 }
 
 std::shared_ptr<BulletModel> LevelPack::createBulletModel() {
-	auto bulletModel = std::make_shared<BulletModel>(nextBulletModelID++);
+	auto bulletModel = std::make_shared<BulletModel>(bulletModelIDGen.generateID());
 	bulletModels[bulletModel->getID()] = bulletModel;
 	onChange->publish();
 	return bulletModel;
@@ -497,21 +489,25 @@ void LevelPack::deleteAttack(int id) {
 }
 
 void LevelPack::deleteAttackPattern(int id) {
+	attackPatternIDGen.deleteID(id);
 	attackPatterns.erase(id);
 	onChange->publish();
 }
 
 void LevelPack::deleteEnemy(int id) {
+	enemyIDGen.deleteID (id);
 	enemies.erase(id);
 	onChange->publish();
 }
 
 void LevelPack::deleteEnemyPhase(int id) {
+	enemyPhaseIDGen.deleteID(id);
 	enemyPhases.erase(id);
 	onChange->publish();
 }
 
 void LevelPack::deleteBulletModel(int id) {
+	bulletModelIDGen.deleteID(id);
 	bulletModels.erase(id);
 	onChange->publish();
 }
@@ -672,6 +668,22 @@ std::map<int, std::shared_ptr<BulletModel>>::iterator LevelPack::getBulletModelI
 
 int LevelPack::getNextAttackID() const {
 	return attackIDGen.getNextID();
+}
+
+int LevelPack::getNextAttackPatternID() const {
+	return attackPatternIDGen.getNextID();
+}
+
+int LevelPack::getNextEnemyID() const {
+	return enemyIDGen.getNextID();
+}
+
+int LevelPack::getNextEnemyPhaseID() const {
+	return enemyPhaseIDGen.getNextID();
+}
+
+int LevelPack::getNextBulletModelID() const {
+	return bulletModelIDGen.getNextID();
 }
 
 std::shared_ptr<entt::SigH<void()>> LevelPack::getOnChange() {

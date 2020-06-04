@@ -194,10 +194,10 @@ public:
 	std::map<int, std::shared_ptr<BulletModel>>::iterator getBulletModelIteratorEnd();
 
 	int getNextAttackID() const;
-	int getNextAttackPatternID() const { return nextAttackPatternID; }
-	int getNextEnemyID() const { return nextEnemyID; }
-	int getNextEnemyPhaseID() const { return nextEnemyPhaseID; }
-	int getNextBulletModelID() const { return nextBulletModelID; }
+	int getNextAttackPatternID() const;
+	int getNextEnemyID() const;
+	int getNextEnemyPhaseID() const;
+	int getNextBulletModelID() const;
 
 	std::shared_ptr<entt::SigH<void()>> getOnChange();
 
@@ -222,10 +222,10 @@ private:
 	LevelPackMetadata metadata;
 
 	IDGenerator attackIDGen;
-	int nextAttackPatternID = 0;
-	int nextEnemyID = 0;
-	int nextEnemyPhaseID = 0;
-	int nextBulletModelID = 0;
+	IDGenerator attackPatternIDGen;
+	IDGenerator enemyIDGen;
+	IDGenerator enemyPhaseIDGen;
+	IDGenerator bulletModelIDGen;
 
 	// ordered levels
 	std::vector<std::shared_ptr<Level>> levels;
