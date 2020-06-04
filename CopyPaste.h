@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
-
+#include "EditorMovablePoint.h"
+#include "Attack.h"
 
 class CopiedObject {
 public:
@@ -53,4 +54,36 @@ public:
 
 private:
 	std::shared_ptr<CopiedObject> copied;
+};
+
+class CopiedEditorMovablePoint : public CopiedObject {
+public:
+	/*
+	emp - the EditorMovablePoint that will be deep-copied.
+	*/
+	CopiedEditorMovablePoint(std::string copiedFromID, std::shared_ptr<EditorMovablePoint> emp);
+
+	/*
+	Returns a deep copy of the stored EMP.
+	*/
+	std::shared_ptr<EditorMovablePoint> getEMP();
+
+private:
+	std::shared_ptr<EditorMovablePoint> emp;
+};
+
+class CopiedEditorAttack : public CopiedObject {
+public:
+	/*
+	attacks - a list of the copied EditorAttacks. Every EditorAttack in here will be deep-copied.
+	*/
+	CopiedEditorAttack(std::string copiedFromID, std::vector<std::shared_ptr<EditorAttack>> attacks);
+
+	/*
+	Returns a deep copy of the stored EditorAttacks.
+	*/
+	std::vector<std::shared_ptr<EditorAttack>> getAttacks();
+
+private:
+	std::vector<std::shared_ptr<EditorAttack>> attacks;
 };

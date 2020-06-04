@@ -1,6 +1,10 @@
 #include "AttacksListView.h"
 #include "EditorWindow.h"
 
+// Parameters: ID and name
+const std::string AttacksListView::SAVED_ATTACK_ITEM_FORMAT = "[%d] %s";
+const std::string AttacksListView::UNSAVED_ATTACK_ITEM_FORMAT = "*[%d] %s";
+
 AttacksListView::AttacksListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard) : ListViewScrollablePanel(), CopyPasteable("EditorAttack"), levelPack(nullptr), mainEditorWindow(mainEditorWindow), clipboard(clipboard) {
 	getListView()->setMultiSelect(true);
 }
@@ -12,10 +16,7 @@ std::shared_ptr<CopiedObject> AttacksListView::copyFrom() {
 		std::vector<std::shared_ptr<EditorAttack>> attacks;
 		auto& unsavedAttacks = mainEditorWindow.getUnsavedAttacks();
 		for (int selectedIndex : selectedIndices) {
-			// Assume every item name is in format "[id]..."
-			std::string name = listView->getItem(selectedIndex);
-			int firstBracketIndex = name.find_first_of('[');
-			int id = std::stoi(name.substr(firstBracketIndex + 1, name.find_first_of(']') - firstBracketIndex));
+			int id = getAttackIDFromIndex(selectedIndex);
 			
 			if (unsavedAttacks.count(id) > 0) {
 				attacks.push_back(unsavedAttacks[id]);
@@ -50,10 +51,7 @@ void AttacksListView::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 
 		int i = 0;
 		for (int selectedIndex : selectedIndices) {
-			// Assume every item name is in format "[id]..."
-			std::string name = listView->getItem(selectedIndex);
-			int firstBracketIndex = name.find_first_of('[');
-			int id = std::stoi(name.substr(firstBracketIndex + 1, name.find_first_of(']') - firstBracketIndex));
+			int id = getAttackIDFromIndex(selectedIndex);
 
 			std::shared_ptr<EditorAttack> newAttack = std::make_shared<EditorAttack>(copiedAttacks[i % copiedAttacks.size()]);
 			// Set the ID of the EditorAttack that's overwriting the old to be the old one's ID
@@ -84,9 +82,9 @@ void AttacksListView::reload() {
 	for (auto it = levelPack->getAttackIteratorBegin(); it != levelPack->getAttackIteratorEnd(); it++) {
 		// If the attack is in unsavedAttacks, signify it is unsaved with an asterisk
 		if (unsavedAttacks.count(it->first) > 0) {
-			listView->addItem("*[" + std::to_string(it->second->getID()) + "] " + unsavedAttacks[it->first]->getName());
+			listView->addItem(format(UNSAVED_ATTACK_ITEM_FORMAT, it->second->getID(), unsavedAttacks[it->first]->getName().c_str()));
 		} else {
-			listView->addItem("[" + std::to_string(it->second->getID()) + "] " + it->second->getName());
+			listView->addItem(format(SAVED_ATTACK_ITEM_FORMAT, it->second->getID(), it->second->getName().c_str()));
 		}
 		attackIDToAttacksListViewIndexMap[it->second->getID()] = i;
 		attacksListViewIndexToAttackIDMap[i] = it->second->getID();
@@ -113,15 +111,4 @@ int AttacksListView::getAttackIDFromIndex(int index) {
 
 int AttacksListView::getIndexFromAttackID(int attackID) {
 	return attackIDToAttacksListViewIndexMap[attackID];
-}
-
-CopiedEditorAttack::CopiedEditorAttack(std::string copiedFromID, std::vector<std::shared_ptr<EditorAttack>> attacks) : CopiedObject(copiedFromID) {
-	// Deep copy every attack
-	for (auto attack : attacks) {
-		this->attacks.push_back(std::make_shared<EditorAttack>(attack));
-	}
-}
-
-std::vector<std::shared_ptr<EditorAttack>> CopiedEditorAttack::getAttacks() {
-	return attacks;
 }

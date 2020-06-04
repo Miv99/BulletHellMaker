@@ -8,6 +8,7 @@
 #include "UndoStack.h"
 #include "ExtraSignals.h"
 #include "EditorUtilities.h"
+#include "CopyPaste.h"
 #include <TGUI/TGUI.hpp>
 
 /*
@@ -17,7 +18,7 @@ Signals:
 	EMPModified - emitted when the EMP being edited is modified.
 		Optional parameter: a shared_ptr to the newly modified EditorMovablePoint
 */
-class EditorMovablePointPanel : public tgui::ScrollablePanel, public EventCapturable {
+class EditorMovablePointPanel : public tgui::ScrollablePanel, public EventCapturable, public CopyPasteable {
 public:
 	/*
 	parentWindow - the top level EditorWindow this widget belongs to
@@ -29,6 +30,10 @@ public:
 	inline static std::shared_ptr<EditorMovablePointPanel> create(EditorWindow& parentWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, int undoStackSize = 50) {
 		return std::make_shared<EditorMovablePointPanel>(parentWindow, levelPack, spriteLoader, emp, undoStackSize);
 	}
+
+	std::shared_ptr<CopiedObject> copyFrom() override;
+	void pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
+	void paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
 
 	bool handleEvent(sf::Event event) override;
 
@@ -93,4 +98,17 @@ private:
 
 	void onLevelPackChange();
 	void finishEditingSpawnTypePosition();
+
+	/*
+	Returns the unique ID of a BULLET_ON_COLLISION_ACTION.
+	*/
+	std::string getID(BULLET_ON_COLLISION_ACTION onCollisionAction);
+	/*
+	Returns the BULLET_ON_COLLISION_ACTION corresponding to some unique ID.
+	*/
+	BULLET_ON_COLLISION_ACTION fromID(std::string id);
+	/*
+	Returns the unique ID of an EMPSpawnType.
+	*/
+	std::string getID(std::shared_ptr<EMPSpawnType> spawnType);
 };

@@ -214,16 +214,3 @@ private:
 	void manualPaste();
 	void manualPaste2();
 };
-
-class CopiedEditorMovablePoint : public CopiedObject {
-public:
-	/*
-	attacks - a list of the copied EditorAttacks. Every EditorAttack in here will be deep-copied.
-	*/
-	CopiedEditorMovablePoint(std::string copiedFromID, std::vector<std::shared_ptr<EditorMovablePoint>> emps);
-
-	std::vector<std::shared_ptr<EditorAttack>> getAttacks();
-
-private:
-	std::vector<std::shared_ptr<EditorAttack>> attacks;
-};

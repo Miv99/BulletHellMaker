@@ -45,3 +45,28 @@ void Clipboard::paste2(CopyPasteable * target) {
 void Clipboard::clear() {
 	copied = nullptr;
 }
+
+CopiedEditorMovablePoint::CopiedEditorMovablePoint(std::string copiedFromID, std::shared_ptr<EditorMovablePoint> emp) : CopiedObject(copiedFromID) {
+	this->emp = std::make_shared<EditorMovablePoint>(emp);
+}
+
+std::shared_ptr<EditorMovablePoint> CopiedEditorMovablePoint::getEMP() {
+	// Return a deep copy of the EMP
+	return std::make_shared<EditorMovablePoint>(emp);
+}
+
+CopiedEditorAttack::CopiedEditorAttack(std::string copiedFromID, std::vector<std::shared_ptr<EditorAttack>> attacks) : CopiedObject(copiedFromID) {
+	// Deep copy every attack
+	for (auto attack : attacks) {
+		this->attacks.push_back(std::make_shared<EditorAttack>(attack));
+	}
+}
+
+std::vector<std::shared_ptr<EditorAttack>> CopiedEditorAttack::getAttacks() {
+	// Return deep copies of the attacks
+	std::vector<std::shared_ptr<EditorAttack>> copies;
+	for (auto attack : attacks) {
+		copies.push_back(std::make_shared<EditorAttack>(attack));
+	}
+	return copies;
+}

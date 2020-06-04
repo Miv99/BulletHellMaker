@@ -5,15 +5,15 @@ const std::string EditorMovablePointPanel::PROPERTIES_TAB_NAME = "MP Properties"
 const std::string EditorMovablePointPanel::EMPA_TAB_NAME_FORMAT = "Action %d";
 const int EditorMovablePointPanel::EMPA_TAB_NAME_FORMAT_NUMBER_INDEX = 7;
 
-std::string getID(BULLET_ON_COLLISION_ACTION onCollisionAction) {
+std::string EditorMovablePointPanel::getID(BULLET_ON_COLLISION_ACTION onCollisionAction) {
 	return std::to_string(static_cast<int>(onCollisionAction));
 }
 
-BULLET_ON_COLLISION_ACTION fromID(std::string id) {
+BULLET_ON_COLLISION_ACTION EditorMovablePointPanel::fromID(std::string id) {
 	return static_cast<BULLET_ON_COLLISION_ACTION>(std::stoi(std::string(id)));
 }
 
-std::string getID(std::shared_ptr<EMPSpawnType> spawnType) {
+std::string EditorMovablePointPanel::getID(std::shared_ptr<EMPSpawnType> spawnType) {
 	if (dynamic_cast<SpecificGlobalEMPSpawn*>(spawnType.get())) {
 		return "0";
 	} else if (dynamic_cast<EntityRelativeEMPSpawn*>(spawnType.get())) {
@@ -24,7 +24,7 @@ std::string getID(std::shared_ptr<EMPSpawnType> spawnType) {
 }
 
 EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, LevelPack & levelPack, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, int undoStackSize)
-	: parentWindow(parentWindow), levelPack(levelPack), emp(emp), undoStack(UndoStack(undoStackSize)) {	
+	: CopyPasteable("EditorMovablePoint"), parentWindow(parentWindow), levelPack(levelPack), emp(emp), undoStack(UndoStack(undoStackSize)) {	
 	spawnTypePositionMarkerPlacer = SingleMarkerPlacer::create(*(parentWindow.getWindow()));
 	spawnTypePositionMarkerPlacer->setPosition(0, 0);
 	spawnTypePositionMarkerPlacer->setSize("100%", "100%");
@@ -1298,6 +1298,29 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 
 EditorMovablePointPanel::~EditorMovablePointPanel() {
 	levelPack.getOnChange()->sink().disconnect<EditorMovablePointPanel, &EditorMovablePointPanel::onLevelPackChange>(this);
+}
+
+std::shared_ptr<CopiedObject> EditorMovablePointPanel::copyFrom() {
+	// Can't copy this widget
+	return nullptr;
+}
+
+void EditorMovablePointPanel::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+	// Same functionality as paste2Into()
+	paste2Into(pastedObject);
+}
+
+void EditorMovablePointPanel::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+	//TODO
+	// Paste the first copied EditorMovablePoint to override emp's properties
+	auto derived = std::static_pointer_cast<CopiedEditorMovablePoint>(pastedObject);
+	if (derived) {
+		std::shared_ptr<EditorMovablePoint> copiedEMP = derived->getEMP();
+		//newAttack->setName(copiedAttacks[0]->getName());
+
+		//mainEditorWindow.promptConfirmation("Overwrite this Attack's properties with those of Attack \"" + copiedAttacks[0]->getName() + "\" (ID " + std::to_string(copiedAttacks[0]->getID()) + ")? This action cannot be undone.", newAttack)->sink()
+		//	.connect<AttackEditorPropertiesPanel, &AttackEditorPropertiesPanel::onPasteIntoConfirmation>(this);
+	}
 }
 
 bool EditorMovablePointPanel::handleEvent(sf::Event event) {

@@ -36,6 +36,9 @@ public:
 	int getIndexFromAttackID(int attackID);
 
 private:
+	static const std::string SAVED_ATTACK_ITEM_FORMAT;
+	static const std::string UNSAVED_ATTACK_ITEM_FORMAT;
+
 	MainEditorWindow& mainEditorWindow;
 	LevelPack* levelPack;
 	Clipboard& clipboard;
@@ -44,17 +47,4 @@ private:
 	std::map<int, int> attackIDToAttacksListViewIndexMap;
 	// Maps an index to the associated EditorAtack ID
 	std::map<int, int> attacksListViewIndexToAttackIDMap;
-};
-
-class CopiedEditorAttack : public CopiedObject {
-public:
-	/*
-	attacks - a list of the copied EditorAttacks. Every EditorAttack in here will be deep-copied.
-	*/
-	CopiedEditorAttack(std::string copiedFromID, std::vector<std::shared_ptr<EditorAttack>> attacks);
-
-	std::vector<std::shared_ptr<EditorAttack>> getAttacks();
-
-private:
-	std::vector<std::shared_ptr<EditorAttack>> attacks;
 };
