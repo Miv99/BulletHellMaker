@@ -212,55 +212,25 @@ private:
 
 
 /*
-An EventCapturable basic tgui::Panel to be used by MainEditorWindow for viewing the EditorAttacks list. Handles undo/redo and copy/paste.
+An EventCapturable basic tgui::Panel to be used by MainEditorWindow for viewing the EditorAttacks list.
+This widget's main purpose is to pass events down to the child AttacksListView widget.
 */
 class AttacksListPanel : public tgui::Panel, public EventCapturable {
 public:
 	/*
 	mainEditorWindow - the parent MainEditorWindow
 	*/
-	AttacksListPanel(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, int undoStackSize = 50);
-	static std::shared_ptr<AttacksListPanel> create(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, int undoStackSize = 50) {
-		return std::make_shared<AttacksListPanel>(mainEditorWindow, clipboard, undoStackSize);
+	AttacksListPanel(MainEditorWindow& mainEditorWindow, Clipboard& clipboard);
+	static std::shared_ptr<AttacksListPanel> create(MainEditorWindow& mainEditorWindow, Clipboard& clipboard) {
+		return std::make_shared<AttacksListPanel>(mainEditorWindow, clipboard);
 	}
 
 	bool handleEvent(sf::Event event) override;
-	UndoStack& getUndoStack();
-
-	/*
-	Does the copy command on this widget.
-	*/
-	void manualCopy();
-	/*
-	Does the delete command on this widget.
-	*/
-	void manualDelete();
-	/*
-	Does the paste command on this widget.
-	*/
-	void manualPaste();
-	/*
-	Does the paste2 command on this widget.
-	*/
-	void manualPaste2();
-	/*
-	Does the save command on this widget.
-	*/
-	void manualSave();
-	/*
-	Does the save all command on this widget.
-	*/
-	void manualSaveAll();
-	/*
-	Does the select all command on this widget.
-	*/
-	void manualSelectAll();
 
 	void setLevelPack(LevelPack* levelPack);
 
 private:
 	MainEditorWindow& mainEditorWindow;
-	UndoStack undoStack;
 	Clipboard& clipboard;
 	LevelPack* levelPack;
 };

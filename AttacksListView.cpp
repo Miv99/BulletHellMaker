@@ -5,7 +5,8 @@
 const std::string AttacksListView::SAVED_ATTACK_ITEM_FORMAT = "[%d] %s";
 const std::string AttacksListView::UNSAVED_ATTACK_ITEM_FORMAT = "*[%d] %s";
 
-AttacksListView::AttacksListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard) : ListViewScrollablePanel(), CopyPasteable("EditorAttack"), levelPack(nullptr), mainEditorWindow(mainEditorWindow), clipboard(clipboard) {
+AttacksListView::AttacksListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, int undoStackSize) : ListViewScrollablePanel(), CopyPasteable("EditorAttack"), levelPack(nullptr),
+mainEditorWindow(mainEditorWindow), clipboard(clipboard), undoStack(UndoStack(undoStackSize)) {
 	getListView()->setMultiSelect(true);
 }
 
@@ -67,6 +68,44 @@ void AttacksListView::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 	}
 }
 
+bool AttacksListView::handleEvent(sf::Event event) {
+	if (event.type == sf::Event::KeyPressed) {
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
+			if (event.key.code == sf::Keyboard::Z) {
+				undoStack.undo();
+				return true;
+			} else if (event.key.code == sf::Keyboard::Y) {
+				undoStack.redo();
+				return true;
+			} else if (event.key.code == sf::Keyboard::C) {
+				manualCopy();
+				return true;
+			} else if (event.key.code == sf::Keyboard::V) {
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
+					manualPaste2();
+				} else {
+					manualPaste();
+				}
+				return true;
+			} else if (event.key.code == sf::Keyboard::S) {
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
+					manualSaveAll();
+				} else {
+					manualSave();
+				}
+				return true;
+			} else if (event.key.code == sf::Keyboard::A) {
+				manualSelectAll();
+				return true;
+			}
+		}
+		if (event.key.code == sf::Keyboard::Delete) {
+			manualDelete();
+		}
+	}
+	return false;
+}
+
 void AttacksListView::setLevelPack(LevelPack * levelPack) {
 	this->levelPack = levelPack;
 }
@@ -114,9 +153,107 @@ int AttacksListView::getIndexFromAttackID(int attackID) {
 	return attackIDToAttacksListViewIndexMap[attackID];
 }
 
+UndoStack& AttacksListView::getUndoStack() {
+	return undoStack;
+}
+
+
+void AttacksListView::manualCopy() {
+	clipboard.copy(this);
+}
+
+void AttacksListView::manualPaste() {
+	clipboard.paste(this);
+}
+
+void AttacksListView::manualPaste2() {
+	clipboard.paste2(this);
+}
+
+void AttacksListView::manualDelete() {
+	auto selectedIndices = getListView()->getSelectedItemIndices();
+	if (selectedIndices.size() > 0) {
+		auto& unsavedAttacks = mainEditorWindow.getUnsavedAttacks();
+		// EditorAttack and whether it was in unsavedAttacks
+		std::vector<std::pair<std::shared_ptr<EditorAttack>, bool>> deletedAttacks;
+		for (int index : selectedIndices) {
+			int id = mainEditorWindow.getAttacksListView()->getAttackIDFromIndex(index);
+
+			if (unsavedAttacks.count(id) > 0) {
+				deletedAttacks.push_back(std::make_pair(std::make_shared<EditorAttack>(unsavedAttacks[id]), true));
+			} else {
+				deletedAttacks.push_back(std::make_pair(std::make_shared<EditorAttack>(levelPack->getAttack(id)), false));
+			}
+		}
+
+		undoStack.execute(UndoableCommand([this, selectedIndices]() {
+			auto& unsavedAttacks = mainEditorWindow.getUnsavedAttacks();
+
+			for (int index : selectedIndices) {
+				int id = mainEditorWindow.getAttacksListView()->getAttackIDFromIndex(index);
+
+				if (unsavedAttacks.count(id) > 0) {
+					unsavedAttacks.erase(id);
+				}
+				levelPack->deleteAttack(id);
+
+				mainEditorWindow.reloadAttackTab(id);
+			}
+
+			mainEditorWindow.getAttacksListView()->reload();
+		}, [this, deletedAttacks]() {
+			auto& unsavedAttacks = mainEditorWindow.getUnsavedAttacks();
+
+			for (std::pair<std::shared_ptr<EditorAttack>, bool> pair : deletedAttacks) {
+				levelPack->updateAttack(pair.first);
+				// The attack was originally unsaved, so add it back to unsavedAttacks
+				if (pair.second) {
+					unsavedAttacks[pair.first->getID()] = pair.first;
+				}
+			}
+
+			mainEditorWindow.getAttacksListView()->reload();
+		}));
+	}
+}
+
+void AttacksListView::manualSave() {
+	auto selectedIndices = getListView()->getSelectedItemIndices();
+	if (selectedIndices.size() > 0) {
+		auto& unsavedAttacks = mainEditorWindow.getUnsavedAttacks();
+		for (int index : selectedIndices) {
+			int id = mainEditorWindow.getAttacksListView()->getAttackIDFromIndex(index);
+
+			if (unsavedAttacks.count(id) > 0) {
+				levelPack->updateAttack(unsavedAttacks[id]);
+				unsavedAttacks.erase(id);
+			}
+			// Do nothing if the attack doesn't have any unsaved changes
+		}
+	}
+	mainEditorWindow.getAttacksListView()->reload();
+}
+
+void AttacksListView::manualSaveAll() {
+	auto oldSelectedIndices = getListView()->getSelectedItemIndices();
+	manualSelectAll();
+	manualSave();
+	getListView()->setSelectedItems(oldSelectedIndices);
+}
+
+void AttacksListView::manualSelectAll() {
+	auto attacksListView = mainEditorWindow.getAttacksListView()->getListView();
+	int count = attacksListView->getItemCount();
+	std::set<size_t> selected;
+	for (int i = 0; i < count; i++) {
+		selected.insert(i);
+	}
+	attacksListView->setSelectedItems(selected);
+}
+
 void AttacksListView::onPasteIntoConfirmation(bool confirmed, std::vector<std::shared_ptr<EditorAttack>> newAttacks) {
 	if (confirmed) {
-		mainEditorWindow.overwriteAttacks(newAttacks, &mainEditorWindow.getAttacksListPanel()->getUndoStack());
+		mainEditorWindow.overwriteAttacks(newAttacks, &undoStack);
 		reload();
 	}
 }
