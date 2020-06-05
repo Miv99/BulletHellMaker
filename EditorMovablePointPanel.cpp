@@ -23,9 +23,9 @@ std::string EditorMovablePointPanel::getID(std::shared_ptr<EMPSpawnType> spawnTy
 	}
 }
 
-EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, LevelPack & levelPack, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, int undoStackSize)
-	: CopyPasteable("EditorMovablePoint"), parentWindow(parentWindow), levelPack(levelPack), emp(emp), undoStack(UndoStack(undoStackSize)) {	
-	spawnTypePositionMarkerPlacer = SingleMarkerPlacer::create(*(parentWindow.getWindow()));
+EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWindow, LevelPack & levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorMovablePoint> emp, int undoStackSize)
+	: CopyPasteable("EditorMovablePoint"), mainEditorWindow(mainEditorWindow), levelPack(levelPack), emp(emp), clipboard(clipboard), undoStack(UndoStack(undoStackSize)) {
+	spawnTypePositionMarkerPlacer = SingleMarkerPlacer::create(*(mainEditorWindow.getWindow()));
 	spawnTypePositionMarkerPlacer->setPosition(0, 0);
 	spawnTypePositionMarkerPlacer->setSize("100%", "100%");
 	spawnTypePositionMarkerPlacerFinishEditing = tgui::Button::create();
@@ -36,7 +36,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 		finishEditingSpawnTypePosition();
 	});
 	
-	tabs = TabsWithPanel::create(parentWindow);
+	tabs = TabsWithPanel::create(mainEditorWindow);
 	tabs->setPosition(0, 0);
 	tabs->setSize("100%", "100%");
 	add(tabs);
@@ -46,71 +46,71 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 
 		properties = tgui::ScrollablePanel::create();
 		
-		std::shared_ptr<tgui::Label> id = tgui::Label::create();
-		std::shared_ptr<tgui::Label> empiAnimatableLabel = tgui::Label::create();
-		std::shared_ptr<AnimatableChooser> empiAnimatable = AnimatableChooser::create(spriteLoader);
+		id = tgui::Label::create();
+		empiAnimatableLabel = tgui::Label::create();
+		empiAnimatable = AnimatableChooser::create(spriteLoader);
 		
 		// Invisible if empiAnimatable's value is a sprite
-		std::shared_ptr<tgui::CheckBox> empiLoopAnimation = tgui::CheckBox::create("Loop animation");
+		empiLoopAnimation = tgui::CheckBox::create("Loop animation");
 		
 		// Invisible if loopAnimation is checked or a sprite is selected in empiAnimatable
-		std::shared_ptr<tgui::Label> empiBaseSpriteLabel = tgui::Label::create();
-		std::shared_ptr<AnimatableChooser> empiBaseSprite = AnimatableChooser::create(spriteLoader, true);
+		empiBaseSpriteLabel = tgui::Label::create();
+		empiBaseSprite = AnimatableChooser::create(spriteLoader, true);
 		
-		std::shared_ptr<tgui::CheckBox> isBullet = tgui::CheckBox::create("Is bullet");
-		std::shared_ptr<tgui::Label> empiHitboxRadiusLabel = tgui::Label::create();
-		std::shared_ptr<NumericalEditBoxWithLimits> empiHitboxRadius = NumericalEditBoxWithLimits::create();
+		isBullet = tgui::CheckBox::create("Is bullet");
+		empiHitboxRadiusLabel = tgui::Label::create();
+		empiHitboxRadius = NumericalEditBoxWithLimits::create();
 		
-		std::shared_ptr<tgui::Label> empiActionsLabel = tgui::Label::create();
+		empiActionsLabel = tgui::Label::create();
 		// Entry ID is index in list of the EMP's actions
-		std::shared_ptr<ListBoxScrollablePanel> empiActions = ListBoxScrollablePanel::create();
+		empiActions = ListBoxScrollablePanel::create();
 		
-		std::shared_ptr<tgui::Button> empiActionsAdd = tgui::Button::create();
-		std::shared_ptr<tgui::Button> empiActionsDelete = tgui::Button::create();
+		empiActionsAdd = tgui::Button::create();
+		empiActionsDelete = tgui::Button::create();
 
-		std::shared_ptr<tgui::Label> empiDespawnTimeLabel = tgui::Label::create();
+		empiDespawnTimeLabel = tgui::Label::create();
 		// Max value is sum of time taken for every EMPA in empiActions
 		empiDespawnTime = std::make_shared<SliderWithEditBox>();
 
-		std::shared_ptr<tgui::Label> empiSpawnTypeLabel = tgui::Label::create();
+		empiSpawnTypeLabel = tgui::Label::create();
 		// Entry ID is from getID()
-		std::shared_ptr<tgui::ComboBox> empiSpawnType = tgui::ComboBox::create();
-		std::shared_ptr<tgui::Label> empiSpawnTypeTimeLabel = tgui::Label::create();
-		std::shared_ptr<NumericalEditBoxWithLimits> empiSpawnTypeTime = NumericalEditBoxWithLimits::create();
-		std::shared_ptr<tgui::Label> empiSpawnTypeXLabel = tgui::Label::create();
+		empiSpawnType = tgui::ComboBox::create();
+		empiSpawnTypeTimeLabel = tgui::Label::create();
+		empiSpawnTypeTime = NumericalEditBoxWithLimits::create();
+		empiSpawnTypeXLabel = tgui::Label::create();
 		empiSpawnTypeX = NumericalEditBoxWithLimits::create();
-		std::shared_ptr<tgui::Label> empiSpawnTypeYLabel = tgui::Label::create();
+		empiSpawnTypeYLabel = tgui::Label::create();
 		empiSpawnTypeY = NumericalEditBoxWithLimits::create();
-		std::shared_ptr<tgui::Button> empiSpawnLocationManualSet = tgui::Button::create();
+		empiSpawnLocationManualSet = tgui::Button::create();
 
-		std::shared_ptr<tgui::Label> empiShadowTrailLifespanLabel = tgui::Label::create();
-		std::shared_ptr<NumericalEditBoxWithLimits> empiShadowTrailLifespan = NumericalEditBoxWithLimits::create();
-		std::shared_ptr<tgui::Label> empiShadowTrailIntervalLabel = tgui::Label::create();
-		std::shared_ptr<NumericalEditBoxWithLimits> empiShadowTrailInterval = NumericalEditBoxWithLimits::create();
+		empiShadowTrailLifespanLabel = tgui::Label::create();
+		empiShadowTrailLifespan = NumericalEditBoxWithLimits::create();
+		empiShadowTrailIntervalLabel = tgui::Label::create();
+		empiShadowTrailInterval = NumericalEditBoxWithLimits::create();
 
-		std::shared_ptr<tgui::Label> empiDamageLabel = tgui::Label::create();
-		std::shared_ptr<NumericalEditBoxWithLimits> empiDamage = NumericalEditBoxWithLimits::create();
+		empiDamageLabel = tgui::Label::create();
+		empiDamage = NumericalEditBoxWithLimits::create();
 
-		std::shared_ptr<tgui::Label> empiOnCollisionActionLabel = tgui::Label::create();
+		empiOnCollisionActionLabel = tgui::Label::create();
 		// Entry ID obtained from getID()
-		std::shared_ptr<tgui::ComboBox> empiOnCollisionAction = tgui::ComboBox::create();
+		empiOnCollisionAction = tgui::ComboBox::create();
 
-		std::shared_ptr<tgui::Label> empiPierceResetTimeLabel = tgui::Label::create();
-		std::shared_ptr<NumericalEditBoxWithLimits> empiPierceResetTime = NumericalEditBoxWithLimits::create();
+		empiPierceResetTimeLabel = tgui::Label::create();
+		empiPierceResetTime = NumericalEditBoxWithLimits::create();
 
 		empiSoundSettings = SoundSettingsGroup::create(format(LEVEL_PACK_SOUND_FOLDER_PATH, levelPack.getName().c_str()));
 
-		std::shared_ptr<tgui::Label> empiBulletModelLabel = tgui::Label::create();
+		empiBulletModelLabel = tgui::Label::create();
 		// Entry ID is bullet model ID
 		empiBulletModel = tgui::ComboBox::create();
 
-		std::shared_ptr<tgui::CheckBox> empiInheritRadius = tgui::CheckBox::create();
-		std::shared_ptr<tgui::CheckBox> empiInheritDespawnTime = tgui::CheckBox::create();
-		std::shared_ptr<tgui::CheckBox> empiInheritShadowTrailInterval = tgui::CheckBox::create();
-		std::shared_ptr<tgui::CheckBox> empiInheritShadowTrailLifespan = tgui::CheckBox::create();
-		std::shared_ptr<tgui::CheckBox> empiInheritAnimatables = tgui::CheckBox::create();
-		std::shared_ptr<tgui::CheckBox> empiInheritDamage = tgui::CheckBox::create();
-		std::shared_ptr<tgui::CheckBox> empiInheritSoundSettings = tgui::CheckBox::create();
+		empiInheritRadius = tgui::CheckBox::create();
+		empiInheritDespawnTime = tgui::CheckBox::create();
+		empiInheritShadowTrailInterval = tgui::CheckBox::create();
+		empiInheritShadowTrailLifespan = tgui::CheckBox::create();
+		empiInheritAnimatables = tgui::CheckBox::create();
+		empiInheritDamage = tgui::CheckBox::create();
+		empiInheritSoundSettings = tgui::CheckBox::create();
 
 		properties->setHorizontalScrollAmount(SCROLL_AMOUNT);
 		properties->setVerticalScrollAmount(SCROLL_AMOUNT);
@@ -205,13 +205,13 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 		levelPack.getOnChange()->sink().connect<EditorMovablePointPanel, &EditorMovablePointPanel::onLevelPackChange>(this);
 		emp->loadBulletModel(levelPack);
 		
-		empiAnimatable->connect("ValueChanged", [this, empiAnimatable, empiBaseSpriteLabel, empiLoopAnimation, empiBaseSprite](Animatable value) {
+		empiAnimatable->connect("ValueChanged", [this](Animatable value) {
 			if (this->ignoreSignals) {
 				return;
 			}
 
 			Animatable oldValue = this->emp->getAnimatable();
-			undoStack.execute(UndoableCommand([this, empiAnimatable, empiLoopAnimation, empiBaseSpriteLabel, empiBaseSprite, value]() {
+			undoStack.execute(UndoableCommand([this, value]() {
 				this->emp->setAnimatable(value);
 
 				this->ignoreSignals = true;
@@ -222,7 +222,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				this->ignoreSignals = false;
 
 				onEMPModify.emit(this, this->emp);
-			}, [this, empiAnimatable, empiLoopAnimation, empiBaseSpriteLabel, empiBaseSprite, oldValue]() {
+			}, [this, oldValue]() {
 				this->emp->setAnimatable(oldValue);
 
 				this->ignoreSignals = true;
@@ -235,13 +235,13 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				onEMPModify.emit(this, this->emp);
 			}));
 		});
-		empiLoopAnimation->connect("Changed", [this, empiAnimatable, empiBaseSpriteLabel, empiLoopAnimation, empiBaseSprite](bool value) {
+		empiLoopAnimation->connect("Changed", [this](bool value) {
 			if (this->ignoreSignals) {
 				return;
 			}
 
 			bool oldValue = this->emp->getIsBullet();
-			undoStack.execute(UndoableCommand([this, empiAnimatable, empiBaseSpriteLabel, empiLoopAnimation, empiBaseSprite, value]() {
+			undoStack.execute(UndoableCommand([this, value]() {
 				this->emp->setLoopAnimation(value);
 
 				this->ignoreSignals = true;
@@ -251,7 +251,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				this->ignoreSignals = false;
 
 				onEMPModify.emit(this, this->emp);
-			}, [this, empiAnimatable, empiLoopAnimation, empiBaseSpriteLabel, empiBaseSprite, oldValue]() {
+			}, [this, oldValue]() {
 				this->emp->setLoopAnimation(oldValue);
 
 				this->ignoreSignals = true;
@@ -263,19 +263,19 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				onEMPModify.emit(this, this->emp);
 			}));
 		});
-		empiBaseSprite->connect("ValueChanged", [this, empiBaseSprite](Animatable value) {
+		empiBaseSprite->connect("ValueChanged", [this](Animatable value) {
 			if (this->ignoreSignals) {
 				return;
 			}
 
 			Animatable oldValue = this->emp->getAnimatable();
-			undoStack.execute(UndoableCommand([this, empiBaseSprite, value]() {
+			undoStack.execute(UndoableCommand([this, value]() {
 				this->emp->setBaseSprite(value);
 				this->ignoreSignals = true;
 				empiBaseSprite->setValue(value);
 				this->ignoreSignals = false;
 				onEMPModify.emit(this, this->emp);
-			}, [this, empiBaseSprite, oldValue]() {
+			}, [this, oldValue]() {
 				this->emp->setBaseSprite(oldValue);
 				this->ignoreSignals = true;
 				empiBaseSprite->setValue(oldValue);
@@ -283,19 +283,19 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				onEMPModify.emit(this, this->emp);
 			}));
 		});
-		isBullet->connect("Changed", [this, isBullet](bool value) {
+		isBullet->connect("Changed", [this](bool value) {
 			if (this->ignoreSignals) {
 				return;
 			}
 
 			bool oldValue = this->emp->getIsBullet();
-			undoStack.execute(UndoableCommand([this, isBullet, value]() {
+			undoStack.execute(UndoableCommand([this, value]() {
 				this->emp->setIsBullet(value);
 				this->ignoreSignals = true;
 				isBullet->setChecked(value);
 				this->ignoreSignals = false;
 				onEMPModify.emit(this, this->emp);
-			}, [this, isBullet, oldValue]() {
+			}, [this, oldValue]() {
 				this->emp->setIsBullet(oldValue);
 				this->ignoreSignals = true;
 				isBullet->setChecked(oldValue);
@@ -303,19 +303,19 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				onEMPModify.emit(this, this->emp);
 			}));
 		});
-		empiHitboxRadius->connect("ValueChanged", [this, empiHitboxRadius](float value) {
+		empiHitboxRadius->connect("ValueChanged", [this](float value) {
 			if (this->ignoreSignals) {
 				return;
 			}
 
 			float oldValue = this->emp->getHitboxRadius();
-			undoStack.execute(UndoableCommand([this, empiHitboxRadius, value]() {
+			undoStack.execute(UndoableCommand([this, value]() {
 				this->emp->setHitboxRadius(value);
 				this->ignoreSignals = true;
 				empiHitboxRadius->setValue(value);
 				this->ignoreSignals = false;
 				onEMPModify.emit(this, this->emp);
-			}, [this, empiHitboxRadius, oldValue]() {
+			}, [this, oldValue]() {
 				this->emp->setHitboxRadius(oldValue);
 				this->ignoreSignals = true;
 				empiHitboxRadius->setValue(oldValue);
@@ -326,14 +326,14 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 		empiActions->getListBox()->connect("ItemSelected", [&](int index) {
 			selectedEMPAIndex = index;
 		});
-		empiActions->getListBox()->connect("DoubleClicked", [this, empiActions](std::string item, std::string id) {
+		empiActions->getListBox()->connect("DoubleClicked", [this](std::string item, std::string id) {
 			std::shared_ptr<tgui::Panel> empaPanel = createEMPAPanel(this->emp->getActions()[std::stoi(id)]->clone(), std::stoi(id), empiActions);
-			empaPanel->connect("EMPAModified", [this, empiActions]() {
+			empaPanel->connect("EMPAModified", [this]() {
 				populateEMPAList(empiActions);
 			});
 			tabs->addTab(format(EMPA_TAB_NAME_FORMAT, std::stoi(id)), empaPanel, true, true);
 		});
-		empiActionsAdd->connect("Pressed", [this, empiActions]() {
+		empiActionsAdd->connect("Pressed", [this]() {
 			int newEMPAIndex;
 			if (selectedEMPAIndex == -1) {
 				newEMPAIndex = this->emp->getActionsCount();
@@ -341,7 +341,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				newEMPAIndex = selectedEMPAIndex;
 			}
 
-			undoStack.execute(UndoableCommand([this, newEMPAIndex, empiActions]() {
+			undoStack.execute(UndoableCommand([this, newEMPAIndex]() {
 				this->emp->insertAction(newEMPAIndex, std::make_shared<StayStillAtLastPositionEMPA>(0));
 				onEMPModify.emit(this, this->emp);
 
@@ -363,7 +363,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				}
 
 				this->populateEMPAList(empiActions);
-			}, [this, newEMPAIndex, empiActions]() {
+			}, [this, newEMPAIndex]() {
 				this->emp->removeAction(newEMPAIndex);
 				onEMPModify.emit(this, this->emp);
 
@@ -393,9 +393,9 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				this->populateEMPAList(empiActions);
 			}));
 		});
-		empiActionsDelete->connect("Pressed", [this, empiActions, &index = this->selectedEMPAIndex]() {
+		empiActionsDelete->connect("Pressed", [this, &index = this->selectedEMPAIndex]() {
 			auto oldEMPA = this->emp->getAction(selectedEMPAIndex);
-			undoStack.execute(UndoableCommand([this, empiActions, index]() {
+			undoStack.execute(UndoableCommand([this, index]() {
 				this->emp->removeAction(index);
 				onEMPModify.emit(this, this->emp);
 
@@ -423,7 +423,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				}
 
 				this->populateEMPAList(empiActions);
-			}, [this, empiActions, index, oldEMPA]() {
+			}, [this, index, oldEMPA]() {
 				this->emp->insertAction(index, oldEMPA);
 				onEMPModify.emit(this, this->emp);
 
@@ -451,7 +451,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				this->populateEMPAList(empiActions);
 			}));
 		});
-		empiSpawnType->connect("ItemSelected", [this, empiSpawnTypeTime, empiSpawnType](std::string item, std::string id) {
+		empiSpawnType->connect("ItemSelected", [this](std::string item, std::string id) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -459,7 +459,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 			std::shared_ptr<EMPSpawnType> oldSpawnType = this->emp->getSpawnType();
 			if (id == "0") {
 				undoStack.execute(UndoableCommand(
-					[this, empiSpawnTypeTime, empiSpawnType]() {
+					[this]() {
 					this->emp->setSpawnType(std::make_shared<SpecificGlobalEMPSpawn>(empiSpawnTypeTime->getValue(), empiSpawnTypeX->getValue(), empiSpawnTypeY->getValue()));
 					onEMPModify.emit(this, this->emp);
 
@@ -467,7 +467,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 					empiSpawnType->setSelectedItemById(getID(this->emp->getSpawnType()));
 					ignoreSignals = false;
 				},
-					[this, oldSpawnType, empiSpawnType]() {
+					[this, oldSpawnType]() {
 					this->emp->setSpawnType(oldSpawnType);
 					onEMPModify.emit(this, this->emp);
 
@@ -477,7 +477,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				}));
 			} else if (id == "1") {
 				undoStack.execute(UndoableCommand(
-					[this, empiSpawnTypeTime, empiSpawnType]() {
+					[this]() {
 					this->emp->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(empiSpawnTypeTime->getValue(), empiSpawnTypeX->getValue(), empiSpawnTypeY->getValue()));
 					onEMPModify.emit(this, this->emp);
 
@@ -485,7 +485,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 					empiSpawnType->setSelectedItemById(getID(this->emp->getSpawnType()));
 					ignoreSignals = false;
 				},
-					[this, oldSpawnType, empiSpawnType]() {
+					[this, oldSpawnType]() {
 					this->emp->setSpawnType(oldSpawnType);
 					onEMPModify.emit(this, this->emp);
 
@@ -495,7 +495,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				}));
 			} else if (id == "2") {
 				undoStack.execute(UndoableCommand(
-					[this, empiSpawnTypeTime, empiSpawnType]() {
+					[this]() {
 					this->emp->setSpawnType(std::make_shared<EntityAttachedEMPSpawn>(empiSpawnTypeTime->getValue(), empiSpawnTypeX->getValue(), empiSpawnTypeY->getValue()));
 					onEMPModify.emit(this, this->emp);
 
@@ -503,7 +503,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 					empiSpawnType->setSelectedItemById(getID(this->emp->getSpawnType()));
 					ignoreSignals = false;
 				},
-					[this, oldSpawnType, empiSpawnType]() {
+					[this, oldSpawnType]() {
 					this->emp->setSpawnType(oldSpawnType);
 					onEMPModify.emit(this, this->emp);
 
@@ -516,14 +516,14 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				assert(false);
 			}
 		});
-		empiSpawnTypeTime->connect("ValueChanged", [this, empiSpawnTypeTime](float value) {
+		empiSpawnTypeTime->connect("ValueChanged", [this](float value) {
 			if (ignoreSignals) {
 				return;
 			}
 
 			float oldValue = this->emp->getSpawnType()->getTime();
 			undoStack.execute(UndoableCommand(
-				[this, value, empiSpawnTypeTime]() {
+				[this, value]() {
 				this->emp->getSpawnType()->setTime(value);
 				onEMPModify.emit(this, this->emp);
 
@@ -531,7 +531,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				empiSpawnTypeTime->setValue(this->emp->getSpawnType()->getTime());
 				ignoreSignals = false;
 			},
-				[this, oldValue, empiSpawnTypeTime]() {
+				[this, oldValue]() {
 				this->emp->getSpawnType()->setTime(oldValue);
 				onEMPModify.emit(this, this->emp);
 
@@ -607,14 +607,14 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 
 			placingSpawnLocation = true;
 		});
-		empiShadowTrailLifespan->connect("ValueChanged", [this, empiShadowTrailLifespan](float value) {
+		empiShadowTrailLifespan->connect("ValueChanged", [this](float value) {
 			if (ignoreSignals) {
 				return;
 			}
 
 			float oldValue = this->emp->getShadowTrailLifespan();
 			undoStack.execute(UndoableCommand(
-				[this, value, empiShadowTrailLifespan]() {
+				[this, value]() {
 				this->emp->setShadowTrailLifespan(value);
 				onEMPModify.emit(this, this->emp);
 
@@ -622,7 +622,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				empiShadowTrailLifespan->setValue(this->emp->getShadowTrailLifespan());
 				ignoreSignals = false;
 			},
-				[this, oldValue, empiShadowTrailLifespan]() {
+				[this, oldValue]() {
 				this->emp->setShadowTrailLifespan(oldValue);
 				onEMPModify.emit(this, this->emp);
 
@@ -631,14 +631,14 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				ignoreSignals = false;
 			}));
 		});
-		empiShadowTrailInterval->connect("ValueChanged", [this, empiShadowTrailInterval](float value) {
+		empiShadowTrailInterval->connect("ValueChanged", [this](float value) {
 			if (ignoreSignals) {
 				return;
 			}
 
 			float oldValue = this->emp->getShadowTrailInterval();
 			undoStack.execute(UndoableCommand(
-				[this, value, empiShadowTrailInterval]() {
+				[this, value]() {
 				this->emp->setShadowTrailInterval(value);
 				onEMPModify.emit(this, this->emp);
 
@@ -646,7 +646,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				empiShadowTrailInterval->setValue(this->emp->getShadowTrailInterval());
 				ignoreSignals = false;
 			},
-				[this, oldValue, empiShadowTrailInterval]() {
+				[this, oldValue]() {
 				this->emp->setShadowTrailInterval(oldValue);
 				onEMPModify.emit(this, this->emp);
 
@@ -655,14 +655,14 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				ignoreSignals = false;
 			}));
 		});
-		empiDamage->connect("ValueChanged", [this, empiDamage](float value) {
+		empiDamage->connect("ValueChanged", [this](float value) {
 			if (ignoreSignals) {
 				return;
 			}
 
 			float oldValue = this->emp->getDamage();
 			undoStack.execute(UndoableCommand(
-				[this, value, empiDamage]() {
+				[this, value]() {
 				this->emp->setDamage(value);
 				onEMPModify.emit(this, this->emp);
 
@@ -670,7 +670,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				empiDamage->setValue(this->emp->getDamage());
 				ignoreSignals = false;
 			},
-				[this, oldValue, empiDamage]() {
+				[this, oldValue]() {
 				this->emp->setDamage(oldValue);
 				onEMPModify.emit(this, this->emp);
 
@@ -679,7 +679,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				ignoreSignals = false;
 			}));
 		});
-		empiOnCollisionAction->connect("ItemSelected", [this, empiOnCollisionAction, empiPierceResetTimeLabel, empiPierceResetTime](std::string item, std::string id) {
+		empiOnCollisionAction->connect("ItemSelected", [this](std::string item, std::string id) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -687,7 +687,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 			BULLET_ON_COLLISION_ACTION action = fromID(empiOnCollisionAction->getSelectedItemId());
 			BULLET_ON_COLLISION_ACTION oldAction = this->emp->getOnCollisionAction();
 			undoStack.execute(UndoableCommand(
-				[this, action, empiOnCollisionAction, empiPierceResetTimeLabel, empiPierceResetTime]() {
+				[this, action]() {
 				this->emp->setOnCollisionAction(action);
 				onEMPModify.emit(this, this->emp);
 
@@ -697,7 +697,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				empiPierceResetTime->setVisible(action == PIERCE_ENTITY);
 				ignoreSignals = false;
 			},
-				[this, oldAction, empiOnCollisionAction, empiPierceResetTimeLabel, empiPierceResetTime]() {
+				[this, oldAction]() {
 				this->emp->setOnCollisionAction(oldAction);
 				onEMPModify.emit(this, this->emp);
 
@@ -708,14 +708,14 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				ignoreSignals = false;
 			}));
 		});
-		empiPierceResetTime->connect("ValueChanged", [this, empiPierceResetTime](float value) {
+		empiPierceResetTime->connect("ValueChanged", [this](float value) {
 			if (ignoreSignals) {
 				return;
 			}
 
 			float oldValue = this->emp->getPierceResetTime();
 			undoStack.execute(UndoableCommand(
-				[this, value, empiPierceResetTime]() {
+				[this, value]() {
 				this->emp->setPierceResetTime(value);
 				onEMPModify.emit(this, this->emp);
 
@@ -723,7 +723,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				empiPierceResetTime->setValue(this->emp->getPierceResetTime());
 				ignoreSignals = false;
 			},
-				[this, oldValue, empiPierceResetTime]() {
+				[this, oldValue]() {
 				this->emp->setPierceResetTime(oldValue);
 				onEMPModify.emit(this, this->emp);
 
@@ -756,8 +756,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				ignoreSignals = false;
 			}));
 		});
-		empiBulletModel->connect("ItemSelected", [this, empiHitboxRadius, empiShadowTrailLifespan, empiShadowTrailInterval, empiAnimatable,
-			empiLoopAnimation, empiBaseSprite, empiDamage, empiBaseSpriteLabel, empiPierceResetTimeLabel, empiPierceResetTime](std::string item, std::string id) {
+		empiBulletModel->connect("ItemSelected", [this](std::string item, std::string id) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -775,9 +774,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 			float damage = this->emp->getDamage();
 			SoundSettings sound = this->emp->getSoundSettings();
 			undoStack.execute(UndoableCommand(
-				[this, bulletModelID, radius, despawnTime, interval, lifespan, animatable, baseSprite, loopAnimation, damage, sound,
-				empiHitboxRadius, empiShadowTrailLifespan, empiShadowTrailInterval, empiAnimatable,
-				empiLoopAnimation, empiBaseSprite, empiDamage, empiBaseSpriteLabel, empiPierceResetTimeLabel, empiPierceResetTime]() {
+				[this, bulletModelID, radius, despawnTime, interval, lifespan, animatable, baseSprite, loopAnimation, damage, sound]() {
 				if (bulletModelID == -1) {
 					this->emp->removeBulletModel();
 				} else {
@@ -819,9 +816,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				empiSoundSettings->setEnabled(!this->emp->getInheritSoundSettings() || this->emp->getBulletModelID() < 0);
 				ignoreSignals = false;
 			},
-				[this, oldBulletModelID, radius, despawnTime, interval, lifespan, animatable, baseSprite, loopAnimation, damage, sound,
-				empiHitboxRadius, empiShadowTrailLifespan, empiShadowTrailInterval, empiAnimatable,
-				empiLoopAnimation, empiBaseSprite, empiDamage, empiBaseSpriteLabel, empiPierceResetTimeLabel, empiPierceResetTime]() {
+				[this, oldBulletModelID, radius, despawnTime, interval, lifespan, animatable, baseSprite, loopAnimation, damage, sound]() {
 				this->emp->setHitboxRadius(radius);
 				this->emp->setDespawnTime(despawnTime);
 				this->emp->setShadowTrailLifespan(lifespan);
@@ -872,7 +867,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				ignoreSignals = false;
 			}));
 		});
-		empiInheritRadius->connect("Changed", [this, empiInheritRadius, empiHitboxRadius](bool value) {
+		empiInheritRadius->connect("Changed", [this](bool value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -880,7 +875,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 			bool oldValue = this->emp->getInheritRadius();
 			float oldInheritValue = this->emp->getHitboxRadius();
 			undoStack.execute(UndoableCommand(
-				[this, value, empiInheritRadius, empiHitboxRadius]() {
+				[this, value]() {
 				this->emp->setInheritRadius(value, this->levelPack);
 				onEMPModify.emit(this, this->emp);
 
@@ -890,7 +885,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				empiHitboxRadius->setEnabled(!value || this->emp->getBulletModelID() < 0);
 				ignoreSignals = false;
 			},
-				[this, oldValue, oldInheritValue, empiInheritRadius, empiHitboxRadius]() {
+				[this, oldValue, oldInheritValue]() {
 				this->emp->setInheritRadius(oldValue, this->levelPack);
 				if (!oldValue) {
 					this->emp->setHitboxRadius(oldInheritValue);
@@ -904,7 +899,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				ignoreSignals = false;
 			}));
 		});
-		empiInheritDespawnTime->connect("Changed", [this, empiInheritDespawnTime](bool value) {
+		empiInheritDespawnTime->connect("Changed", [this](bool value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -912,7 +907,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 			bool oldValue = this->emp->getInheritDespawnTime();
 			float oldInheritValue = this->emp->getDespawnTime();
 			undoStack.execute(UndoableCommand(
-				[this, value, empiInheritDespawnTime]() {
+				[this, value]() {
 				this->emp->setInheritDespawnTime(value, this->levelPack);
 				onEMPModify.emit(this, this->emp);
 
@@ -922,7 +917,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				empiDespawnTime->setEnabled(!value || this->emp->getBulletModelID() < 0);
 				ignoreSignals = false;
 			},
-				[this, oldValue, oldInheritValue, empiInheritDespawnTime]() {
+				[this, oldValue, oldInheritValue]() {
 				this->emp->setInheritDespawnTime(oldValue, this->levelPack);
 				if (!oldValue) {
 					this->emp->setDespawnTime(oldInheritValue);
@@ -936,7 +931,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				ignoreSignals = false;
 			}));
 		});
-		empiInheritShadowTrailInterval->connect("Changed", [this, empiInheritShadowTrailInterval, empiShadowTrailInterval](bool value) {
+		empiInheritShadowTrailInterval->connect("Changed", [this](bool value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -944,7 +939,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 			bool oldValue = this->emp->getInheritShadowTrailInterval();
 			float oldInheritValue = this->emp->getShadowTrailInterval();
 			undoStack.execute(UndoableCommand(
-				[this, value, empiInheritShadowTrailInterval, empiShadowTrailInterval]() {
+				[this, value]() {
 				this->emp->setInheritShadowTrailInterval(value, this->levelPack);
 				onEMPModify.emit(this, this->emp);
 
@@ -954,7 +949,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				empiShadowTrailInterval->setEnabled(!value || this->emp->getBulletModelID() < 0);
 				ignoreSignals = false;
 			},
-				[this, oldValue, oldInheritValue, empiInheritShadowTrailInterval, empiShadowTrailInterval]() {
+				[this, oldValue, oldInheritValue]() {
 				this->emp->setInheritShadowTrailInterval(oldValue, this->levelPack);
 				if (!oldValue) {
 					this->emp->setShadowTrailInterval(oldInheritValue);
@@ -968,7 +963,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				ignoreSignals = false;
 			}));
 		});
-		empiInheritShadowTrailLifespan->connect("Changed", [this, empiInheritShadowTrailLifespan, empiShadowTrailLifespan](bool value) {
+		empiInheritShadowTrailLifespan->connect("Changed", [this](bool value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -976,7 +971,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 			bool oldValue = this->emp->getInheritShadowTrailLifespan();
 			float oldInheritValue = this->emp->getShadowTrailLifespan();
 			undoStack.execute(UndoableCommand(
-				[this, value, empiInheritShadowTrailLifespan, empiShadowTrailLifespan]() {
+				[this, value]() {
 				this->emp->setInheritShadowTrailLifespan(value, this->levelPack);
 				onEMPModify.emit(this, this->emp);
 
@@ -986,7 +981,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				empiShadowTrailLifespan->setEnabled(!value || this->emp->getBulletModelID() < 0);
 				ignoreSignals = false;
 			},
-				[this, oldValue, oldInheritValue, empiInheritShadowTrailLifespan, empiShadowTrailLifespan]() {
+				[this, oldValue, oldInheritValue]() {
 				this->emp->setInheritShadowTrailLifespan(oldValue, this->levelPack);
 				if (!oldValue) {
 					this->emp->setShadowTrailLifespan(oldInheritValue);
@@ -1000,7 +995,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				ignoreSignals = false;
 			}));
 		});
-		empiInheritAnimatables->connect("Changed", [this, empiInheritAnimatables, empiAnimatable, empiBaseSpriteLabel, empiBaseSprite, empiLoopAnimation](bool value) {
+		empiInheritAnimatables->connect("Changed", [this](bool value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -1010,7 +1005,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 			Animatable oldBaseSprite = this->emp->getBaseSprite();
 			bool oldLoopAnimation = this->emp->getLoopAnimation();
 			undoStack.execute(UndoableCommand(
-				[this, value, empiInheritAnimatables, empiAnimatable, empiBaseSpriteLabel, empiBaseSprite, empiLoopAnimation]() {
+				[this, value]() {
 				this->emp->setInheritAnimatables(value, this->levelPack);
 				onEMPModify.emit(this, this->emp);
 
@@ -1029,7 +1024,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				empiBaseSprite->setEnabled(!value || this->emp->getBulletModelID() < 0);
 				ignoreSignals = false;
 			},
-				[this, oldValue, oldAnimatable, oldBaseSprite, oldLoopAnimation, empiInheritAnimatables, empiAnimatable, empiBaseSpriteLabel, empiBaseSprite, empiLoopAnimation]() {
+				[this, oldValue, oldAnimatable, oldBaseSprite, oldLoopAnimation]() {
 				this->emp->setInheritAnimatables(oldValue, this->levelPack);
 				if (!oldValue) {
 					this->emp->setAnimatable(oldAnimatable);
@@ -1054,7 +1049,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				ignoreSignals = false;
 			}));
 		});
-		empiInheritDamage->connect("Changed", [this, empiInheritDamage, empiDamage](bool value) {
+		empiInheritDamage->connect("Changed", [this](bool value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -1062,7 +1057,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 			bool oldValue = this->emp->getInheritDamage();
 			float oldInheritValue = this->emp->getDamage();
 			undoStack.execute(UndoableCommand(
-				[this, value, empiInheritDamage, empiDamage]() {
+				[this, value]() {
 				this->emp->setInheritDamage(value, this->levelPack);
 				onEMPModify.emit(this, this->emp);
 
@@ -1072,7 +1067,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				empiDamage->setEnabled(!value || this->emp->getBulletModelID() < 0);
 				ignoreSignals = false;
 			},
-				[this, oldValue, oldInheritValue, empiInheritDamage, empiDamage]() {
+				[this, oldValue, oldInheritValue]() {
 				this->emp->setInheritDamage(oldValue, this->levelPack);
 				if (!oldValue) {
 					this->emp->setDamage(oldInheritValue);
@@ -1086,7 +1081,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				ignoreSignals = false;
 			}));
 		});
-		empiInheritSoundSettings->connect("Changed", [this, empiInheritSoundSettings](bool value) {
+		empiInheritSoundSettings->connect("Changed", [this](bool value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -1094,7 +1089,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 			bool oldValue = this->emp->getInheritSoundSettings();
 			SoundSettings oldInheritValue = this->emp->getSoundSettings();
 			undoStack.execute(UndoableCommand(
-				[this, value, empiInheritSoundSettings]() {
+				[this, value]() {
 				this->emp->setInheritSoundSettings(value, this->levelPack);
 				onEMPModify.emit(this, this->emp);
 
@@ -1104,7 +1099,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 				empiSoundSettings->setEnabled(!value || this->emp->getBulletModelID() < 0);
 				ignoreSignals = false;
 			},
-				[this, oldValue, oldInheritValue, empiInheritSoundSettings]() {
+				[this, oldValue, oldInheritValue]() {
 				this->emp->setInheritSoundSettings(oldValue, this->levelPack);
 				if (!oldValue) {
 					this->emp->setSoundSettings(oldInheritValue);
@@ -1119,51 +1114,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(EditorWindow & parentWindow, Le
 			}));
 		});
 
-		// Widgets whose values can be changed by the player
-		ignoreSignals = true;
-		empiAnimatable->setValue(emp->getAnimatable());
-		empiLoopAnimation->setChecked(emp->getLoopAnimation());
-		empiBaseSprite->setValue(emp->getAnimatable());
-		isBullet->setChecked(emp->getIsBullet());
-		empiHitboxRadius->setValue(emp->getHitboxRadius());
-		populateEMPAList(empiActions);
-		empiDespawnTime->setValue(emp->getDespawnTime());
-		empiSpawnType->setSelectedItemById(getID(emp->getSpawnType()));
-		empiSpawnTypeTime->setValue(emp->getSpawnType()->getTime());
-		empiSpawnTypeX->setValue(emp->getSpawnType()->getX());
-		empiSpawnTypeY->setValue(emp->getSpawnType()->getY());
-		empiShadowTrailLifespan->setValue(emp->getShadowTrailLifespan());
-		empiShadowTrailInterval->setValue(emp->getShadowTrailInterval());
-		empiDamage->setValue(emp->getDamage());
-		empiOnCollisionAction->setSelectedItemById(getID(emp->getOnCollisionAction()));
-		empiPierceResetTime->setValue(emp->getPierceResetTime());
-		if (emp->getBulletModelID() >= 0) {
-			empiBulletModel->setSelectedItemById(std::to_string(emp->getBulletModelID()));
-		}
-		empiInheritRadius->setChecked(emp->getInheritRadius());
-		empiInheritDespawnTime->setChecked(emp->getInheritDespawnTime());
-		empiInheritShadowTrailInterval->setChecked(emp->getInheritShadowTrailInterval());
-		empiInheritShadowTrailLifespan->setChecked(emp->getInheritShadowTrailLifespan());
-		empiInheritAnimatables->setChecked(emp->getInheritAnimatables());
-		empiInheritDamage->setChecked(emp->getInheritDamage());
-		empiInheritSoundSettings->setChecked(emp->getInheritSoundSettings());
-
-		empiHitboxRadius->setEnabled(!emp->getInheritRadius() || this->emp->getBulletModelID() < 0);
-		empiDespawnTime->setEnabled(!emp->getInheritDespawnTime() || this->emp->getBulletModelID() < 0);
-		empiShadowTrailInterval->setEnabled(!emp->getInheritShadowTrailInterval() || this->emp->getBulletModelID() < 0);
-		empiShadowTrailLifespan->setEnabled(!emp->getInheritShadowTrailLifespan() || this->emp->getBulletModelID() < 0);
-		empiAnimatable->setEnabled(!this->emp->getInheritAnimatables() || this->emp->getBulletModelID() < 0);
-		empiLoopAnimation->setEnabled(!this->emp->getInheritAnimatables() || this->emp->getBulletModelID() < 0);
-		empiBaseSprite->setEnabled(!this->emp->getInheritAnimatables() || this->emp->getBulletModelID() < 0);
-		empiDamage->setEnabled(!emp->getInheritDamage() || this->emp->getBulletModelID() < 0);
-		empiSoundSettings->setEnabled(!emp->getInheritSoundSettings() || this->emp->getBulletModelID() < 0);
-
-		empiLoopAnimation->setVisible(!emp->getAnimatable().isSprite());
-		empiBaseSprite->setVisible(!emp->getLoopAnimation() && !emp->getAnimatable().isSprite());
-		empiBaseSpriteLabel->setVisible(empiBaseSprite->isVisible());
-		empiPierceResetTimeLabel->setVisible(emp->getOnCollisionAction() == PIERCE_ENTITY);
-		empiPierceResetTime->setVisible(emp->getOnCollisionAction() == PIERCE_ENTITY);
-		ignoreSignals = false;
+		updateAllWidgetValues();
 
 		id->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
 		empiAnimatableLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(id) + GUI_PADDING_Y);
@@ -1311,15 +1262,13 @@ void EditorMovablePointPanel::pasteInto(std::shared_ptr<CopiedObject> pastedObje
 }
 
 void EditorMovablePointPanel::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
-	//TODO
 	// Paste the first copied EditorMovablePoint to override emp's properties
 	auto derived = std::static_pointer_cast<CopiedEditorMovablePoint>(pastedObject);
 	if (derived) {
 		std::shared_ptr<EditorMovablePoint> copiedEMP = derived->getEMP();
-		//newAttack->setName(copiedAttacks[0]->getName());
 
-		//mainEditorWindow.promptConfirmation("Overwrite this Attack's properties with those of Attack \"" + copiedAttacks[0]->getName() + "\" (ID " + std::to_string(copiedAttacks[0]->getID()) + ")? This action cannot be undone.", newAttack)->sink()
-		//	.connect<AttackEditorPropertiesPanel, &AttackEditorPropertiesPanel::onPasteIntoConfirmation>(this);
+		mainEditorWindow.promptConfirmation("Overwrite this movable point's properties with the copied movable point's properties? This will not change this movable point's children.", copiedEMP)->sink()
+			.connect<EditorMovablePointPanel, &EditorMovablePointPanel::onPasteIntoConfirmation>(this);
 	}
 }
 
@@ -1341,6 +1290,9 @@ bool EditorMovablePointPanel::handleEvent(sf::Event event) {
 				return true;
 			} else if (event.key.code == sf::Keyboard::Y) {
 				undoStack.redo();
+				return true;
+			} else if (event.key.code == sf::Keyboard::V) {
+				clipboard.paste(this);
 				return true;
 			}
 		}
@@ -1375,8 +1327,58 @@ void EditorMovablePointPanel::populateEMPAList(std::shared_ptr<ListBoxScrollable
 	ignoreSignals = oldIgnoreSignals;
 }
 
+void EditorMovablePointPanel::updateAllWidgetValues() {
+	// Update widgets whose values can be changed by the player
+	ignoreSignals = true;
+	empiAnimatable->setValue(emp->getAnimatable());
+	empiLoopAnimation->setChecked(emp->getLoopAnimation());
+	empiBaseSprite->setValue(emp->getAnimatable());
+	isBullet->setChecked(emp->getIsBullet());
+	empiHitboxRadius->setValue(emp->getHitboxRadius());
+	populateEMPAList(empiActions);
+	empiDespawnTime->setValue(emp->getDespawnTime());
+	empiSpawnType->setSelectedItemById(getID(emp->getSpawnType()));
+	empiSpawnTypeTime->setValue(emp->getSpawnType()->getTime());
+	empiSpawnTypeX->setValue(emp->getSpawnType()->getX());
+	empiSpawnTypeY->setValue(emp->getSpawnType()->getY());
+	empiShadowTrailLifespan->setValue(emp->getShadowTrailLifespan());
+	empiShadowTrailInterval->setValue(emp->getShadowTrailInterval());
+	empiDamage->setValue(emp->getDamage());
+	empiOnCollisionAction->setSelectedItemById(getID(emp->getOnCollisionAction()));
+	empiPierceResetTime->setValue(emp->getPierceResetTime());
+	if (emp->getBulletModelID() >= 0) {
+		empiBulletModel->setSelectedItemById(std::to_string(emp->getBulletModelID()));
+	} else {
+		empiBulletModel->setSelectedItemById("");
+	}
+	empiInheritRadius->setChecked(emp->getInheritRadius());
+	empiInheritDespawnTime->setChecked(emp->getInheritDespawnTime());
+	empiInheritShadowTrailInterval->setChecked(emp->getInheritShadowTrailInterval());
+	empiInheritShadowTrailLifespan->setChecked(emp->getInheritShadowTrailLifespan());
+	empiInheritAnimatables->setChecked(emp->getInheritAnimatables());
+	empiInheritDamage->setChecked(emp->getInheritDamage());
+	empiInheritSoundSettings->setChecked(emp->getInheritSoundSettings());
+
+	empiHitboxRadius->setEnabled(!emp->getInheritRadius() || this->emp->getBulletModelID() < 0);
+	empiDespawnTime->setEnabled(!emp->getInheritDespawnTime() || this->emp->getBulletModelID() < 0);
+	empiShadowTrailInterval->setEnabled(!emp->getInheritShadowTrailInterval() || this->emp->getBulletModelID() < 0);
+	empiShadowTrailLifespan->setEnabled(!emp->getInheritShadowTrailLifespan() || this->emp->getBulletModelID() < 0);
+	empiAnimatable->setEnabled(!this->emp->getInheritAnimatables() || this->emp->getBulletModelID() < 0);
+	empiLoopAnimation->setEnabled(!this->emp->getInheritAnimatables() || this->emp->getBulletModelID() < 0);
+	empiBaseSprite->setEnabled(!this->emp->getInheritAnimatables() || this->emp->getBulletModelID() < 0);
+	empiDamage->setEnabled(!emp->getInheritDamage() || this->emp->getBulletModelID() < 0);
+	empiSoundSettings->setEnabled(!emp->getInheritSoundSettings() || this->emp->getBulletModelID() < 0);
+
+	empiLoopAnimation->setVisible(!emp->getAnimatable().isSprite());
+	empiBaseSprite->setVisible(!emp->getLoopAnimation() && !emp->getAnimatable().isSprite());
+	empiBaseSpriteLabel->setVisible(empiBaseSprite->isVisible());
+	empiPierceResetTimeLabel->setVisible(emp->getOnCollisionAction() == PIERCE_ENTITY);
+	empiPierceResetTime->setVisible(emp->getOnCollisionAction() == PIERCE_ENTITY);
+	ignoreSignals = false;
+}
+
 std::shared_ptr<tgui::Panel> EditorMovablePointPanel::createEMPAPanel(std::shared_ptr<EMPAction> empa, int index, std::shared_ptr<ListBoxScrollablePanel> empiActions) {
-	std::shared_ptr<EditorMovablePointActionPanel> empaPanel = EditorMovablePointActionPanel::create(this->parentWindow, empa);
+	std::shared_ptr<EditorMovablePointActionPanel> empaPanel = EditorMovablePointActionPanel::create(this->mainEditorWindow, empa);
 	empaPanel->connect("EMPAModified", [this, index, empiActions](std::shared_ptr<EMPAction> value) {
 		if (this->ignoreSignals) {
 			return;
@@ -1436,4 +1438,94 @@ void EditorMovablePointPanel::finishEditingSpawnTypePosition() {
 	}));
 
 	placingSpawnLocation = false;
+}
+
+void EditorMovablePointPanel::onPasteIntoConfirmation(bool confirmed, std::shared_ptr<EditorMovablePoint> newEMP) {
+	if (confirmed) {
+		auto oldAnimatable = emp->getAnimatable();
+		auto oldLoopAnimation = emp->getLoopAnimation();
+		auto oldBaseSprite = emp->getBaseSprite();
+		auto oldIsBullet = emp->getIsBullet();
+		auto oldHitboxRadius = emp->getHitboxRadius();
+		auto oldDespawnTime = emp->getDespawnTime();
+		auto oldSpawnType = emp->getSpawnType();
+		auto oldShadowTrailLifespan = emp->getShadowTrailLifespan();
+		auto oldShadowTrailInterval = emp->getShadowTrailInterval();
+		auto oldDamage = emp->getDamage();
+		auto oldOnCollisionAction = emp->getOnCollisionAction();
+		auto oldPierceResetTime = emp->getPierceResetTime();
+		auto oldActions = emp->getActions();
+		auto oldBulletModelID = emp->getBulletModelID();
+		auto oldInheritRadius = emp->getInheritRadius();
+		auto oldInheritDespawnTime = emp->getInheritDespawnTime();
+		auto oldInheritShadowTrailInterval = emp->getInheritShadowTrailInterval();
+		auto oldInheritShadowTrailLifespan = emp->getInheritShadowTrailLifespan();
+		auto oldInheritAnimatables = emp->getInheritAnimatables();
+		auto oldInheritDamage = emp->getInheritDamage();
+		auto oldInheritSoundSettings = emp->getInheritSoundSettings();
+		undoStack.execute(UndoableCommand([this, newEMP]() {
+			emp->setAnimatable(newEMP->getAnimatable());
+			emp->setLoopAnimation(newEMP->getLoopAnimation());
+			emp->setBaseSprite(newEMP->getBaseSprite());
+			emp->setIsBullet(newEMP->getIsBullet());
+			emp->setHitboxRadius(newEMP->getHitboxRadius());
+			emp->setDespawnTime(newEMP->getDespawnTime());
+			emp->setSpawnType(newEMP->getSpawnType());
+			emp->setShadowTrailLifespan(newEMP->getShadowTrailLifespan());
+			emp->setShadowTrailInterval(newEMP->getShadowTrailInterval());
+			emp->setDamage(newEMP->getDamage());
+			emp->setOnCollisionAction(newEMP->getOnCollisionAction());
+			emp->setPierceResetTime(newEMP->getPierceResetTime());
+			if (newEMP->getBulletModelID() == -1) {
+				emp->removeBulletModel();
+			} else {
+				emp->setBulletModel(this->levelPack.getBulletModel(newEMP->getBulletModelID()));
+			}
+			emp->setActions(newEMP->getActions());
+			emp->setInheritRadius(newEMP->getInheritRadius(), levelPack);
+			emp->setInheritDespawnTime(newEMP->getInheritDespawnTime(), levelPack);
+			emp->setInheritShadowTrailInterval(newEMP->getInheritShadowTrailInterval(), levelPack);
+			emp->setInheritShadowTrailLifespan(newEMP->getInheritShadowTrailLifespan(), levelPack);
+			emp->setInheritAnimatables(newEMP->getInheritAnimatables(), levelPack);
+			emp->setInheritDamage(newEMP->getInheritDamage(), levelPack);
+			emp->setInheritSoundSettings(newEMP->getInheritSoundSettings(), levelPack);
+
+			updateAllWidgetValues();
+
+			onEMPModify.emit(this, this->emp);
+		}, [this, oldAnimatable, oldLoopAnimation, oldBaseSprite, oldIsBullet, oldHitboxRadius, oldDespawnTime, oldSpawnType,
+				oldShadowTrailLifespan, oldShadowTrailInterval, oldDamage, oldOnCollisionAction, oldPierceResetTime, oldBulletModelID, oldActions,
+				oldInheritRadius, oldInheritDespawnTime, oldInheritShadowTrailInterval, oldInheritShadowTrailLifespan, oldInheritAnimatables,
+				oldInheritDamage, oldInheritSoundSettings]() {
+			emp->setAnimatable(oldAnimatable);
+			emp->setLoopAnimation(oldLoopAnimation);
+			emp->setBaseSprite(oldBaseSprite);
+			emp->setIsBullet(oldIsBullet);
+			emp->setHitboxRadius(oldHitboxRadius);
+			emp->setDespawnTime(oldDespawnTime);
+			emp->setSpawnType(oldSpawnType);
+			emp->setShadowTrailLifespan(oldShadowTrailLifespan);
+			emp->setShadowTrailInterval(oldShadowTrailInterval);
+			emp->setDamage(oldDamage);
+			emp->setOnCollisionAction(oldOnCollisionAction);
+			emp->setPierceResetTime(oldPierceResetTime);
+			if (oldBulletModelID == -1) {
+				emp->removeBulletModel();
+			} else {
+				emp->setBulletModel(this->levelPack.getBulletModel(oldBulletModelID));
+			}
+			emp->setActions(oldActions);
+			emp->setInheritRadius(oldInheritRadius, levelPack);
+			emp->setInheritDespawnTime(oldInheritDespawnTime, levelPack);
+			emp->setInheritShadowTrailInterval(oldInheritShadowTrailInterval, levelPack);
+			emp->setInheritShadowTrailLifespan(oldInheritShadowTrailLifespan, levelPack);
+			emp->setInheritAnimatables(oldInheritAnimatables, levelPack);
+			emp->setInheritDamage(oldInheritDamage, levelPack);
+			emp->setInheritSoundSettings(oldInheritSoundSettings, levelPack);
+
+			updateAllWidgetValues();
+
+			onEMPModify.emit(this, this->emp);
+		}));
+	}
 }

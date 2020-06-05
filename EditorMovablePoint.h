@@ -205,6 +205,7 @@ public:
 	inline void setInheritSoundSettings(bool inheritSoundSettings, const LevelPack& levelPack) { this->inheritSoundSettings = inheritSoundSettings; loadBulletModel(levelPack); }
 	inline void setIsBullet(bool isBullet) { this->isBullet = isBullet; }
 	inline void setSoundSettings(SoundSettings soundSettings) { this->soundSettings = soundSettings; }
+	inline void setActions(std::vector<std::shared_ptr<EMPAction>> actions) { this->actions = actions; }
 	/*
 	Inserts an EMPAction such that the new action is at the specified index
 	*/

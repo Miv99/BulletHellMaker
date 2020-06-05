@@ -146,6 +146,12 @@ private:
 	empHierarchy - the hierarchy in empsTreeView to the node that represents the EMP to be edited
 	*/
 	void openEMPTab(std::vector<sf::String> empHierarchy);
+	/*
+	Opens a tab for editing an EMP of the attack being edited.
+
+	empID - the ID of the EMP
+	*/
+	void openEMPTab(int empID);
 
 	/*
 	Clear and populate usedBy, the list of EditorAttackPatterns that use the 
@@ -163,6 +169,12 @@ private:
 	void manualSave();
 
 	/*
+	Reloads an EMP tab to reflect new changes to the associated EMP that didn't come from
+	the tab itself. If the EMP no longer exists, the tab will be removed.
+	*/
+	void reloadEMPTab(int empID);
+
+	/*
 	Returns the string to be shown for each EditorMovablePoint in empsTreeView.
 	*/
 	static sf::String getEMPTextInTreeView(const EditorMovablePoint& emp);
@@ -174,22 +186,23 @@ AttackEditorPanel to show the EMP tree of an EditorAttack.
 Should be used only by AttackEditorPanel.
 
 Signals:
-MainEMPModified - emitted when the mainEMP of the EditorAttack being edited is modified
-	by this widget.
-MainEMPChildDeleted - emitted when some child EMP of the mainEMP of the EditorAttack
-	being edited is deleted. The MainEMPModified signal will be emitted right before
-	this one is.
+EMPModified - emitted when the an EMP belonging to the EditorAttack being edited is modified by this widget.
+	Optional parameter - a shared_ptr to the modified EMP. This should only be used to reload EMP tabs, so this 
+		will be nullptr if the tab doesn't need to be reloaded.
+MainEMPChildDeleted - emitted when some child (but not necessarily direct child) EMP of the mainEMP of the EditorAttack
+	being edited is deleted. The EMPModified signal will be emitted right before this one is.
 	Optional parameter: the ID of the EMP that was deleted.
 */
 class EditorMovablePointTreePanel : public tgui::Panel, public EventCapturable, public CopyPasteable {
 public:
 	/*
+	parentAttackEditorPanel - the AttackEditorPanel this widget is a child of
 	clipboard - the parent Clipboard
 	attack - the EditorAttack whose EMP tree is being viewed
 	*/
-	EditorMovablePointTreePanel(Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50);
-	static std::shared_ptr<EditorMovablePointTreePanel> create(Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50) {
-		return std::make_shared<EditorMovablePointTreePanel>(clipboard, attack, undoStackSize);
+	EditorMovablePointTreePanel(AttackEditorPanel& parentAttackEditorPanel, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50);
+	static std::shared_ptr<EditorMovablePointTreePanel> create(AttackEditorPanel& parentAttackEditorPanel, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50) {
+		return std::make_shared<EditorMovablePointTreePanel>(parentAttackEditorPanel, clipboard, attack, undoStackSize);
 	}
 
 	std::shared_ptr<CopiedObject> copyFrom() override;
@@ -203,12 +216,13 @@ public:
 	std::shared_ptr<tgui::TreeView> getEmpsTreeView();
 
 private:
+	AttackEditorPanel& parentAttackEditorPanel;
 	UndoStack undoStack;
 	Clipboard& clipboard;
 	std::shared_ptr<EditorAttack> attack;
 	std::shared_ptr<tgui::TreeView> empsTreeView;
 
-	tgui::Signal onMainEMPModify = { "MainEMPModified" };
+	tgui::SignalEditorMovablePoint onEMPModify = { "EMPModified" };
 	tgui::SignalInt onMainEMPChildDeletion = { "MainEMPChildDeleted" };
 
 	void manualDelete();

@@ -30,6 +30,15 @@ Tips to put in editor somewhere:
         -control+shift+v -> paste selected attacks, overriding currently selected attacks
     -Last mouse press was on an attack tab:
         -control+s -> save the open attack
+        -Attack tab's currently open tab is Properties:
+            -control+v -> paste the first selected attack, overriding the properties of the tab attack
+        -Attack tab's currently open tab is EMPs:
+            -control+c -> copy the selected EMP
+            -control+v -> paste the selected EMP as a child of the currently selected EMP; if none selected, do nothing
+            -control+shift+v -> paste the selected EMP, overriding the currently selected EMP
+        -Attack tab's currently open tab is some EMP:
+            -control+v -> paste the selected EMP, overriding everything except the children (so everything that's editable
+                in that tab) of the tab EMP
 
 Notes for me:
 -The mainEMP of an attack is always spawned at the exact same time of an attack; spawnType's time is ignored
@@ -49,6 +58,22 @@ Notes for me:
 -A bullet's attack pattern id of -1 means that the bullet came from a DeathAction; for enemy bullets, an enemy phase ID of -1 also means the same thing
 -Editor_______ objects returned by getters in LevelPack should never be modified without calling update______ (eg updateAttack()). I'm
  too lazy to make them return pointers to const objects so just don't modify anything when making the editors
+-Why paste2 in AttacksListView can't be undoable:
+    Things to note:
+        -The attack pointer in AttackEditorPanel CANNOT be changed to point to something else (because of the pointers in its undo stack)
+        -When openLeftPanelAttack() is called, the new AttackEditorPanel has a pointer to either an attack 
+            from unsavedAttacks or an entirely new object
+        -If reloadAttackTab() is called on an open tab, right now, it removes the AttackEditorPanel and adds it again
+            using an attack from unsavedAttacks or an entirely new object
+        -When overwriteAttacks() is called on a saved attack, a new attack with the same ID goes into unsavedAttacks
+            So when overwriteAttacks() is called on some saved attack, any existing AttackEditorPanel will have a pointer
+            to an outdated attack.
+    -So then solution is to check if a saved attack being overwritten has its AttackEditorPanel open. If it is, instead of 
+        making a new attack with the same ID for unsavedAttacks, overwrite the attack object as taken from the AttackEditorPanel.
+        This guarantees that any AttackEditorPanel can keep its attack pointer. Then change reloadAttackTab() so that it doesn't remove
+        the AttackEditorPanel and have it close all closeable tabs in the attack tab and reload all widgets
+    -But then: if an attack is overwritten in leftPanel's undo stack and the AttackEditorPanel maintains its undo stack, the
+        AttackEditorPanel's undo stack will be desynced so future undos could bug out/not work as intentional
 
 -Item path is in Components::CollectibleComponent::update and EntityCreationQueue::EMPDropItemCommand::execute
 -Player invulnerability sprite effect animation is in CollisionSystem
@@ -67,9 +92,10 @@ big todo:
 -when empiActions changes, make sure Detach option is still valid; turn text red if not
 
 TODO:
--control+c -> see what is selected (start from the lowest: EMPA -> EMP -> Attack) -> add that thing to the clipboard
- control+v -> paste a clone of whatever is in clipboard if the above level is selected. ie if EMPA is in clipboard, 
-	paste a clone of the EMPA to the selectedEMP only if selectedEMP != nullptr. Attack is always pasteable. 
+-keep EMP list in sorted order by spawnType time (so same order as emp.children)
+-keep attack list in sorted order by name
+-create new attack -> auto select the tab
+-right click menu copy/paste/paste-into for EMP tree view
 -SpriteSheetLoader emits some signal every time a change is made (sprite/spritesheet added/deleted)
 -legal checks for everything should make sure all IDs used (ie attack IDs in attack patterns) are valid
 -LevelPack emits signals for Attack/AttackPattern/Enemy/EnemyPhase/BulletModel every time one is changed (unique signal for each)

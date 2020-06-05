@@ -21,14 +21,14 @@ Signals:
 class EditorMovablePointPanel : public tgui::ScrollablePanel, public EventCapturable, public CopyPasteable {
 public:
 	/*
-	parentWindow - the top level EditorWindow this widget belongs to
+	mainEditorWindow - the parent MainEditorWindow this widget belongs to
 	levelPack - the LevelPack that emp is in
 	emp - the EditorMovablePoint being edited
 	*/
-	EditorMovablePointPanel(EditorWindow& parentWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, int undoStackSize = 50);
+	EditorMovablePointPanel(MainEditorWindow& mainEditorWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorMovablePoint> emp, int undoStackSize = 50);
 	~EditorMovablePointPanel();
-	inline static std::shared_ptr<EditorMovablePointPanel> create(EditorWindow& parentWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, int undoStackSize = 50) {
-		return std::make_shared<EditorMovablePointPanel>(parentWindow, levelPack, spriteLoader, emp, undoStackSize);
+	inline static std::shared_ptr<EditorMovablePointPanel> create(MainEditorWindow& mainEditorWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorMovablePoint> emp, int undoStackSize = 50) {
+		return std::make_shared<EditorMovablePointPanel>(mainEditorWindow, levelPack, spriteLoader, clipboard, emp, undoStackSize);
 	}
 
 	std::shared_ptr<CopiedObject> copyFrom() override;
@@ -46,14 +46,54 @@ private:
 	// This is used to extract the action index out of a tab name.
 	static const int EMPA_TAB_NAME_FORMAT_NUMBER_INDEX;
 
-	EditorWindow& parentWindow;
+	MainEditorWindow& mainEditorWindow;
 	LevelPack& levelPack;
+	Clipboard& clipboard;
 	UndoStack undoStack;
 	std::shared_ptr<EditorMovablePoint> emp;
 
 	// Properties tab panel
 	std::shared_ptr<tgui::ScrollablePanel> properties;
-	// Some widgets in properties tab
+	// Widgets in properties tab
+	std::shared_ptr<tgui::Label> id;
+	std::shared_ptr<tgui::Label> empiAnimatableLabel;
+	std::shared_ptr<AnimatableChooser> empiAnimatable;
+	std::shared_ptr<tgui::CheckBox> empiLoopAnimation;
+	std::shared_ptr<tgui::Label> empiBaseSpriteLabel;
+	std::shared_ptr<AnimatableChooser> empiBaseSprite;
+	std::shared_ptr<tgui::CheckBox> isBullet;
+	std::shared_ptr<tgui::Label> empiHitboxRadiusLabel;
+	std::shared_ptr<NumericalEditBoxWithLimits> empiHitboxRadius;
+	std::shared_ptr<tgui::Label> empiActionsLabel;
+	std::shared_ptr<ListBoxScrollablePanel> empiActions;
+	std::shared_ptr<tgui::Button> empiActionsAdd;
+	std::shared_ptr<tgui::Button> empiActionsDelete;
+	std::shared_ptr<tgui::Label> empiDespawnTimeLabel;
+	std::shared_ptr<tgui::Label> empiSpawnTypeLabel;
+	std::shared_ptr<tgui::ComboBox> empiSpawnType;
+	std::shared_ptr<tgui::Label> empiSpawnTypeTimeLabel;
+	std::shared_ptr<NumericalEditBoxWithLimits> empiSpawnTypeTime;
+	std::shared_ptr<tgui::Label> empiSpawnTypeXLabel;
+	std::shared_ptr<tgui::Label> empiSpawnTypeYLabel;
+	std::shared_ptr<tgui::Button> empiSpawnLocationManualSet;
+	std::shared_ptr<tgui::Label> empiShadowTrailLifespanLabel;
+	std::shared_ptr<NumericalEditBoxWithLimits> empiShadowTrailLifespan;
+	std::shared_ptr<tgui::Label> empiShadowTrailIntervalLabel;
+	std::shared_ptr<NumericalEditBoxWithLimits> empiShadowTrailInterval;
+	std::shared_ptr<tgui::Label> empiDamageLabel;
+	std::shared_ptr<NumericalEditBoxWithLimits> empiDamage;
+	std::shared_ptr<tgui::Label> empiOnCollisionActionLabel;
+	std::shared_ptr<tgui::ComboBox> empiOnCollisionAction;
+	std::shared_ptr<tgui::Label> empiPierceResetTimeLabel;
+	std::shared_ptr<NumericalEditBoxWithLimits> empiPierceResetTime;
+	std::shared_ptr<tgui::Label> empiBulletModelLabel;
+	std::shared_ptr<tgui::CheckBox> empiInheritRadius;
+	std::shared_ptr<tgui::CheckBox> empiInheritDespawnTime;
+	std::shared_ptr<tgui::CheckBox> empiInheritShadowTrailInterval;
+	std::shared_ptr<tgui::CheckBox> empiInheritShadowTrailLifespan;
+	std::shared_ptr<tgui::CheckBox> empiInheritAnimatables;
+	std::shared_ptr<tgui::CheckBox> empiInheritDamage;
+	std::shared_ptr<tgui::CheckBox> empiInheritSoundSettings;
 	std::shared_ptr<NumericalEditBoxWithLimits> empiSpawnTypeX;
 	std::shared_ptr<NumericalEditBoxWithLimits> empiSpawnTypeY;
 	std::shared_ptr<SliderWithEditBox> empiDespawnTime;
@@ -88,6 +128,10 @@ private:
 	*/
 	void populateEMPAList(std::shared_ptr<ListBoxScrollablePanel> actionsListBoxScrollablePanel);
 	/*
+	Update all widget values to match emp.
+	*/
+	void updateAllWidgetValues();
+	/*
 	Create a panel for editing an EMPA.
 
 	empa - the EMPA for which the panel will edit
@@ -98,6 +142,11 @@ private:
 
 	void onLevelPackChange();
 	void finishEditingSpawnTypePosition();
+
+	/*
+	Called when the user responds to a prompt confirming an EMP being pasted to overwrite the properties of the current EMP being edited.
+	*/
+	void onPasteIntoConfirmation(bool confirmed, std::shared_ptr<EditorMovablePoint> newEMP);
 
 	/*
 	Returns the unique ID of a BULLET_ON_COLLISION_ACTION.
