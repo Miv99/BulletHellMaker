@@ -47,4 +47,9 @@ private:
 	std::map<int, int> attackIDToAttacksListViewIndexMap;
 	// Maps an index to the associated EditorAtack ID
 	std::map<int, int> attacksListViewIndexToAttackIDMap;
+
+	/*
+	Called when the confirmation popup from doing paste2 is answered.
+	*/
+	void onPasteIntoConfirmation(bool confirmed, std::vector<std::shared_ptr<EditorAttack>> newAttacks);
 };

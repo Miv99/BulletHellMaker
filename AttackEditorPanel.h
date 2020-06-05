@@ -53,7 +53,11 @@ private:
 	// Lists the EditorAttackPatterns that use the EditorAttack being edited
 	std::shared_ptr<ListViewScrollablePanel> usedBy;
 
+	std::shared_ptr<EditBox> name;
+
 	tgui::Signal onAttackModify = { "AttackModified" };
+
+	bool ignoreSignals = false;
 
 	void manualUndo();
 	void manualRedo();

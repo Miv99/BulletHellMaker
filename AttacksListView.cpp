@@ -61,8 +61,9 @@ void AttacksListView::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 			i++;
 		}
 
-		mainEditorWindow.overwriteAttacks(newAttacks, &mainEditorWindow.getAttacksListPanel()->getUndoStack());
-		reload();
+		// See "Why paste2 in AttacksListView can't be undoable" in personal notes for explanation on why this can't be undoable
+		mainEditorWindow.promptConfirmation("Overwrite the selected attack(s) with the copied attack(s)? This will reload their tabs if they are currently open.", newAttacks)->sink()
+			.connect<AttacksListView, &AttacksListView::onPasteIntoConfirmation>(this);
 	}
 }
 
@@ -111,4 +112,11 @@ int AttacksListView::getAttackIDFromIndex(int index) {
 
 int AttacksListView::getIndexFromAttackID(int attackID) {
 	return attackIDToAttacksListViewIndexMap[attackID];
+}
+
+void AttacksListView::onPasteIntoConfirmation(bool confirmed, std::vector<std::shared_ptr<EditorAttack>> newAttacks) {
+	if (confirmed) {
+		mainEditorWindow.overwriteAttacks(newAttacks, &mainEditorWindow.getAttacksListPanel()->getUndoStack());
+		reload();
+	}
 }

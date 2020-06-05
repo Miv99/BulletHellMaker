@@ -7,7 +7,7 @@ AttackEditorPropertiesPanel::AttackEditorPropertiesPanel(MainEditorWindow& mainE
 attack(attack), undoStack(UndoStack(undoStackSize)) {
 	std::shared_ptr<tgui::Label> id = tgui::Label::create();
 	std::shared_ptr<tgui::Label> nameLabel = tgui::Label::create();
-	std::shared_ptr<EditBox> name = EditBox::create();
+	name = EditBox::create();
 	std::shared_ptr<tgui::Label> usedByLabel = tgui::Label::create();
 	usedBy = ListViewScrollablePanel::create();
 
@@ -28,20 +28,24 @@ attack(attack), undoStack(UndoStack(undoStackSize)) {
 	usedByLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(name) + GUI_PADDING_Y);
 	usedBy->setPosition(tgui::bindLeft(id), tgui::bindBottom(usedByLabel) + GUI_LABEL_PADDING_Y);
 
-	connect("SizeChanged", [this, name](sf::Vector2f newSize) {
+	connect("SizeChanged", [this](sf::Vector2f newSize) {
 		name->setSize(newSize.x - GUI_PADDING_X * 2, tgui::bindHeight(name));
 		usedBy->setSize(newSize.x - GUI_PADDING_X * 2, newSize.y - tgui::bindTop(usedBy) - GUI_PADDING_Y);
 	});
 
-	name->connect("ValueChanged", [this, name](std::string text) {
+	name->connect("ValueChanged", [this](std::string text) {
+		if (ignoreSignals) {
+			return;
+		}
+
 		std::string oldName = this->attack->getName();
 
 		if (text != oldName) {
-			undoStack.execute(UndoableCommand([this, name, text]() {
+			undoStack.execute(UndoableCommand([this, text]() {
 				this->attack->setName(text);
 				name->setText(text);
 				onAttackModify.emit(this);
-			}, [this, name, oldName]() {
+			}, [this, oldName]() {
 				this->attack->setName(oldName);
 				name->setText(oldName);
 				onAttackModify.emit(this);
@@ -67,6 +71,7 @@ void AttackEditorPropertiesPanel::pasteInto(std::shared_ptr<CopiedObject> pasted
 }
 
 void AttackEditorPropertiesPanel::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+	// Paste the first copied EditorAttack to override attack's properties
 	auto derived = std::static_pointer_cast<CopiedEditorAttack>(pastedObject);
 	if (derived) {
 		std::vector<std::shared_ptr<EditorAttack>> copiedAttacks = derived->getAttacks();
@@ -74,7 +79,7 @@ void AttackEditorPropertiesPanel::paste2Into(std::shared_ptr<CopiedObject> paste
 			std::shared_ptr<EditorAttack> newAttack = std::make_shared<EditorAttack>(attack);
 			newAttack->setName(copiedAttacks[0]->getName());
 
-			mainEditorWindow.promptConfirmation("Overwrite this Attack's properties with those of Attack \"" + copiedAttacks[0]->getName() + "\" (ID " + std::to_string(copiedAttacks[0]->getID()) + ")? This action cannot be undone.", newAttack)->sink()
+			mainEditorWindow.promptConfirmation("Overwrite this attack's properties with the copied attack's properties?", newAttack)->sink()
 				.connect<AttackEditorPropertiesPanel, &AttackEditorPropertiesPanel::onPasteIntoConfirmation>(this);
 		}
 	}
@@ -123,8 +128,20 @@ void AttackEditorPropertiesPanel::manualRedo() {
 
 void AttackEditorPropertiesPanel::onPasteIntoConfirmation(bool confirmed, std::shared_ptr<EditorAttack> newAttack) {
 	if (confirmed) {
-		// Overwrite everything in the attack's properties
-		mainEditorWindow.overwriteAttacks({ newAttack }, nullptr);
+		std::string oldName = attack->getName();
+		std::string newName = newAttack->getName();
+		undoStack.execute(UndoableCommand([this, newName]() {
+			ignoreSignals = true;
+			attack->setName(newName);
+			this->name->setText(newName);
+			ignoreSignals = false;
+
+			onAttackModify.emit(this);
+		}, [this, oldName]() {
+			attack->setName(oldName);
+			this->name->setText(oldName);
+			onAttackModify.emit(this);
+		}));
 	}
 }
 
