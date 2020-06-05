@@ -326,13 +326,15 @@ inline std::shared_ptr<entt::SigH<void(bool, T)>> EditorWindow::promptConfirmati
 		}
 		ptr->setEnabled(false);
 	}
-
+	
 	confirmationYes->connect("Pressed", [this, confirmationSignal, userObject]() {
 		confirmationSignal->publish(true, userObject);
+		confirmationSignal->sink().disconnect();
 		closeConfirmationPanel();
 	});
 	confirmationNo->connect("Pressed", [this, confirmationSignal, userObject]() {
 		confirmationSignal->publish(false, userObject);
+		confirmationSignal->sink().disconnect();
 		closeConfirmationPanel();
 	});
 

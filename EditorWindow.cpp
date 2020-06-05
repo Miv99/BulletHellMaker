@@ -177,10 +177,12 @@ std::shared_ptr<entt::SigH<void(bool)>> EditorWindow::promptConfirmation(std::st
 
 	confirmationYes->connect("Pressed", [&]() {
 		confirmationSignal->publish(true);
+		confirmationSignal->sink().disconnect();
 		closeConfirmationPanel();
 	});
 	confirmationNo->connect("Pressed", [&]() {
 		confirmationSignal->publish(false);
+		confirmationSignal->sink().disconnect();
 		closeConfirmationPanel();
 	});
 
