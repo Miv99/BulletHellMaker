@@ -103,6 +103,18 @@ int IDGenerator::getNextID() const {
 	return ranges[0].first;
 }
 
+std::set<int> IDGenerator::getNextIDs(int count) const {
+	 std::set<int> ids;
+	 int i = 0;
+	 while (i < ranges.size() && ids.size() < count) {
+		 for (int j = ranges[i].first; j <= ranges[i].second && ids.size() < count; j++) {
+			 ids.insert(j);
+		 }
+		 i++;
+	 }
+	 return ids;
+}
+
 bool IDGenerator::idInUse(int id) {
 	if (ranges.size() == 0) {
 		// Every ID has already been used

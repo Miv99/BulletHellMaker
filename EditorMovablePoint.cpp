@@ -3,8 +3,6 @@
 #include "Attack.h"
 #include "LevelPack.h"
 
-#include <iostream>
-
 EditorMovablePoint::EditorMovablePoint(IDGenerator* idGen, bool setID, std::map<int, int>* bulletModelsCount) : idGen(idGen), bulletModelsCount(bulletModelsCount) {
 	if (setID) {
 		id = idGen->generateID();
@@ -394,20 +392,12 @@ void EditorMovablePoint::onNewParentEditorAttack(std::shared_ptr<EditorAttack> n
 
 std::vector<std::vector<sf::String>> EditorMovablePoint::generateTreeViewEmpHierarchy(std::function<sf::String(const EditorMovablePoint&)> nodeText, std::vector<sf::String> pathToThisEmp) {
 	pathToThisEmp.push_back(nodeText(*this));
-	std::cout << id << ": " << nodeText(*this).toAnsiString() << std::endl;
 	if (children.size() == 0) {
 		return {pathToThisEmp};
 	} else {
 		std::vector<std::vector<sf::String>> ret;
 		for (auto child : children) {
 			std::vector<std::vector<sf::String>> childTree = child->generateTreeViewEmpHierarchy(nodeText, pathToThisEmp);
-
-			for (auto a : childTree) {
-				for (auto b : a) {
-					std::cout << "\t" << b.toAnsiString() << std::endl;
-				}
-			}
-
 			ret.insert(ret.end(), childTree.begin(), childTree.end());
 		}
 		return ret;

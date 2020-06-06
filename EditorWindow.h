@@ -249,11 +249,6 @@ public:
 	*/
 	void createAttack();
 	/*
-	Create an attack in the LevelPack as an undoable/redoable action.
-	copyOf - the EditorAttack to be deep-copied into the new EditorAttack
-	*/
-	void createAttack(std::shared_ptr<EditorAttack> copyOf);
-	/*
 	Overwrite existing EditorAttacks with deep copies of new ones as an undoable/redoable action.
 	attacks - the list of only the new EditorAttacks
 	undoStack - the UndoStack to add the action to; set to nullptr if the action should not be able to be undone
@@ -268,6 +263,17 @@ public:
 	std::shared_ptr<AttacksListView> getAttacksListView();
 	std::shared_ptr<AttacksListPanel> getAttacksListPanel();
 	std::map<int, std::shared_ptr<EditorAttack>>& getUnsavedAttacks();
+
+	/*
+	Open a single attack in the left panel's attack list so that
+	its corresponding tab appears in the main panel.
+	*/
+	void openLeftPanelAttack(int attackID);
+	/*
+	Open a single attack pattern in the left panel's attack pattern list
+	so that its corresponding tab appears in the main panel.
+	*/
+	void openLeftPanelAttackPattern(int attackPatternID);
 
 protected:
 	void handleEvent(sf::Event event) override;
@@ -301,17 +307,6 @@ private:
 	// for that ID.
 	std::map<int, std::shared_ptr<EditorAttack>> unsavedAttacks;
 	// ------------------------------------------------------------
-
-	/*
-	Open a single attack in the left panel's attack list so that
-	its corresponding tab appears in the main panel.
-	*/
-	void openLeftPanelAttack(int attackID);
-	/*
-	Open a single attack pattern in the left panel's attack pattern list
-	so that its corresponding tab appears in the main panel.
-	*/
-	void openLeftPanelAttackPattern(int attackPatternID);
 };
 
 template<class T>

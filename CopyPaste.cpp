@@ -70,3 +70,7 @@ std::vector<std::shared_ptr<EditorAttack>> CopiedEditorAttack::getAttacks() {
 	}
 	return copies;
 }
+
+int CopiedEditorAttack::getAttacksCount() {
+	return attacks.size();
+}

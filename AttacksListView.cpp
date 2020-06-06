@@ -34,10 +34,35 @@ void AttacksListView::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
 	// Create some new EditorAttacks as clones of the copied EditorAttacks
 	auto derived = std::static_pointer_cast<CopiedEditorAttack>(pastedObject);
 	if (derived) {
-		for (auto attack : derived->getAttacks()) {
-			// Change the ID to be the LevelPack's next attack ID
-			attack->setID(levelPack->getNextAttackID());
-			mainEditorWindow.createAttack(attack);
+		std::set<int> newAttacksIDs = levelPack->getNextAttackIDs(derived->getAttacksCount());
+		undoStack.execute(UndoableCommand([this, derived]() {
+			for (auto attack : derived->getAttacks()) {
+				// Change the ID to be the LevelPack's next attack ID
+				int id = levelPack->getNextAttackID();
+				attack->setID(id);
+
+				// Create the attack
+				levelPack->updateAttack(std::make_shared<EditorAttack>(attack));
+			}
+			reload();
+
+		}, [this, newAttacksIDs]() {
+			for (int id : newAttacksIDs) {
+				levelPack->deleteAttack(id);
+			}
+			reload();
+		}));
+
+		// Select the new attack(s) in the list view
+		std::set<size_t> indicesInListView;
+		for (auto id : newAttacksIDs) {
+			indicesInListView.insert(getIndexFromAttackID(id));
+		}
+		listView->setSelectedItems(indicesInListView);
+
+		// If just one attack, open the attack too
+		if (derived->getAttacksCount() == 1) {
+			mainEditorWindow.openLeftPanelAttack(*newAttacksIDs.begin());
 		}
 	}
 }

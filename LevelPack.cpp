@@ -686,6 +686,26 @@ int LevelPack::getNextBulletModelID() const {
 	return bulletModelIDGen.getNextID();
 }
 
+std::set<int> LevelPack::getNextAttackIDs(int count) const {
+	return attackIDGen.getNextIDs(count);
+}
+
+std::set<int> LevelPack::getNextAttackPatternIDs(int count) const {
+	return attackPatternIDGen.getNextIDs(count);
+}
+
+std::set<int> LevelPack::getNextEnemyIDs(int count) const {
+	return enemyIDGen.getNextIDs(count);
+}
+
+std::set<int> LevelPack::getNextEnemyPhaseIDs(int count) const {
+	return enemyPhaseIDGen.getNextIDs(count);
+}
+
+std::set<int> LevelPack::getNextBulletModelIDs(int count) const {
+	return bulletModelIDGen.getNextIDs(count);
+}
+
 std::shared_ptr<entt::SigH<void()>> LevelPack::getOnChange() {
 	if (!onChange) {
 		onChange = std::make_shared<entt::SigH<void()>>();

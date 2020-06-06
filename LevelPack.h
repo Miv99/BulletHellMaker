@@ -193,11 +193,52 @@ public:
 	std::map<int, std::shared_ptr<BulletModel>>::iterator getBulletModelIteratorBegin();
 	std::map<int, std::shared_ptr<BulletModel>>::iterator getBulletModelIteratorEnd();
 
+	/*
+	Returns the next attack ID to be generated without using it.
+	*/
 	int getNextAttackID() const;
+	/*
+	Returns the next attack pattern ID to be generated without using it.
+	*/
 	int getNextAttackPatternID() const;
+	/*
+	Returns the next enemy ID to be generated without using it.
+	*/
 	int getNextEnemyID() const;
+	/*
+	Returns the next enemy phase ID to be generated without using it.
+	*/
 	int getNextEnemyPhaseID() const;
+	/*
+	Returns the next bullet model ID to be generated without using it.
+	*/
 	int getNextBulletModelID() const;
+
+	/*
+	Returns the next count number of attack IDs to be generated without using them.
+	If less than count IDs can be generated, this will return as many IDs as possible.
+	*/
+	std::set<int> getNextAttackIDs(int count) const;
+	/*
+	Returns the next count number of attack pattern IDs to be generated without using them.
+	If less than count IDs can be generated, this will return as many IDs as possible.
+	*/
+	std::set<int> getNextAttackPatternIDs(int count) const;
+	/*
+	Returns the next count number of enemy IDs to be generated without using them.
+	If less than count IDs can be generated, this will return as many IDs as possible.
+	*/
+	std::set<int> getNextEnemyIDs(int count) const;
+	/*
+	Returns the next count number of enemy phase IDs to be generated without using them.
+	If less than count IDs can be generated, this will return as many IDs as possible.
+	*/
+	std::set<int> getNextEnemyPhaseIDs(int count) const;
+	/*
+	Returns the next count number of bullet model IDs to be generated without using them.
+	If less than count IDs can be generated, this will return as many IDs as possible.
+	*/
+	std::set<int> getNextBulletModelIDs(int count) const;
 
 	std::shared_ptr<entt::SigH<void()>> getOnChange();
 

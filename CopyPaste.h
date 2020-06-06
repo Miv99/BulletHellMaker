@@ -84,6 +84,11 @@ public:
 	*/
 	std::vector<std::shared_ptr<EditorAttack>> getAttacks();
 
+	/*
+	Returns the number of copied attacks.
+	*/
+	int getAttacksCount();
+
 private:
 	std::vector<std::shared_ptr<EditorAttack>> attacks;
 };

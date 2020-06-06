@@ -511,17 +511,6 @@ void MainEditorWindow::loadLevelPack(std::string levelPackName) {
 	attacksListView->reload();
 }
 
-void MainEditorWindow::createAttack(std::shared_ptr<EditorAttack> copyOf) {
-	int id = copyOf->getID();
-	attacksListView->getUndoStack().execute(UndoableCommand([this, copyOf]() {
-		levelPack->updateAttack(std::make_shared<EditorAttack>(copyOf));
-		attacksListView->reload();
-	}, [this, id]() {
-		levelPack->deleteAttack(id);
-		attacksListView->reload();
-	}));
-}
-
 void MainEditorWindow::overwriteAttacks(std::vector<std::shared_ptr<EditorAttack>> attacks, UndoStack* undoStack) {
 	std::vector<std::shared_ptr<EditorAttack>> oldAttacks;
 	for (std::shared_ptr<EditorAttack> attack : attacks) {
@@ -687,7 +676,14 @@ void MainEditorWindow::createAttack() {
 	int id = levelPack->getNextAttackID();
 	attacksListView->getUndoStack().execute(UndoableCommand([this, id]() {
 		levelPack->createAttack(id);
+		
+		// Open the newly created attack
+		openLeftPanelAttack(id);
+
 		attacksListView->reload();
+
+		// Select it in attacksListView
+		attacksListView->getListView()->setSelectedItem(attacksListView->getIndexFromAttackID(id));
 	}, [this, id]() {
 		levelPack->deleteAttack(id);
 		attacksListView->reload();
