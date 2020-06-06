@@ -194,6 +194,7 @@ public:
 	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; }
 	inline void setDespawnTime(float despawnTime) { this->despawnTime = despawnTime; }
 	void setSpawnType(std::shared_ptr<EMPSpawnType> spawnType);
+	void setSpawnTypeTime(float time);
 	inline void setShadowTrailInterval(float shadowTrailInterval) { this->shadowTrailInterval = shadowTrailInterval; }
 	inline void setShadowTrailLifespan(float shadowTrailLifespan) { this->shadowTrailLifespan = shadowTrailLifespan; }
 	inline void setInheritRadius(bool inheritRadius, const LevelPack& levelPack) { this->inheritRadius = inheritRadius; loadBulletModel(levelPack);  }
@@ -310,7 +311,8 @@ private:
 	std::vector<std::shared_ptr<EditorMovablePoint>> children;
 	// EMPActions that will be carried out in order
 	std::vector<std::shared_ptr<EMPAction>> actions;
-	// Details of how this EMP will be spawned
+	// Details of how this EMP will be spawned. The time field of EMPSpawnType should be modified only from this class so that children's
+	// ordering can be maintained.
 	std::shared_ptr<EMPSpawnType> spawnType;
 
 	// See ShadowTrailComponent

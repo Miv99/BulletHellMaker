@@ -524,7 +524,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 			float oldValue = this->emp->getSpawnType()->getTime();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
-				this->emp->getSpawnType()->setTime(value);
+				this->emp->setSpawnTypeTime(value);
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
@@ -532,7 +532,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 				ignoreSignals = false;
 			},
 				[this, oldValue]() {
-				this->emp->getSpawnType()->setTime(oldValue);
+				this->emp->setSpawnTypeTime(oldValue);
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;

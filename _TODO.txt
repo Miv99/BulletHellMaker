@@ -92,7 +92,6 @@ big todo:
 -when empiActions changes, make sure Detach option is still valid; turn text red if not
 
 TODO:
--keep EMP list in sorted order by spawnType time (so same order as emp.children)
 -keep attack list in sorted order by name
 -create new attack -> auto select the tab
 -SpriteSheetLoader emits some signal every time a change is made (sprite/spritesheet added/deleted)
