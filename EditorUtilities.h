@@ -119,7 +119,7 @@ public:
 		return std::make_shared<DelayedSlider>();
 	}
 
-	void update(sf::Time elapsedTime) override;
+	bool update(sf::Time elapsedTime) override;
 	tgui::Signal& getSignal(std::string signalName) override;
 
 	/*
@@ -305,7 +305,7 @@ public:
 		return std::make_shared<AnimatablePicture>();
 	}
 
-	void update(sf::Time elapsedTime) override;
+	bool update(sf::Time elapsedTime) override;
 	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	virtual tgui::Widget::Ptr clone() const override;
 	virtual bool mouseOnWidget(tgui::Vector2f pos) const override;
@@ -963,7 +963,7 @@ public:
 		return std::make_shared<TimedLabel>(charDelay);
 	}
 
-	void update(sf::Time elapsedTime) override;
+	bool update(sf::Time elapsedTime) override;
 	void setText(const sf::String& text);
 
 private:

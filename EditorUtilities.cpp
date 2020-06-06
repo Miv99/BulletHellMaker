@@ -393,14 +393,17 @@ AnimatablePicture::AnimatablePicture() {
 AnimatablePicture::AnimatablePicture(const AnimatablePicture & other) {
 }
 
-void AnimatablePicture::update(sf::Time elapsedTime) {
+bool AnimatablePicture::update(sf::Time elapsedTime) {
 	if (animation) {
 		std::shared_ptr<sf::Sprite> prevSprite = curSprite;
 		curSprite = animation->update(elapsedTime.asSeconds());
 		if (curSprite != prevSprite) {
 			resizeCurSpriteToFitWidget();
+			return true;
 		}
 	}
+
+	return false;
 }
 
 void AnimatablePicture::draw(sf::RenderTarget & target, sf::RenderStates states) const {
@@ -2421,7 +2424,7 @@ void ClickableTimeline::updateButtonsPositionsAndSizes() {
 	}
 }
 
-void TimedLabel::update(sf::Time elapsedTime) {
+bool TimedLabel::update(sf::Time elapsedTime) {
 	timeSinceLastChar += elapsedTime.asSeconds();
 	int numCharsToBeShown = (int)(timeSinceLastChar / charDelay);
 	if (numCharsToBeShown > 0) {
@@ -2430,7 +2433,7 @@ void TimedLabel::update(sf::Time elapsedTime) {
 	}
 	timeSinceLastChar = std::fmod(timeSinceLastChar, charDelay);
 
-	Label::update(elapsedTime);
+	return Label::update(elapsedTime);
 }
 
 void TimedLabel::setText(const sf::String& text) {
@@ -2457,14 +2460,16 @@ DelayedSlider::DelayedSlider() {
 	ignoreDelayedSliderSignalName = false;
 }
 
-void DelayedSlider::update(sf::Time elapsedTime) {
-	Slider::update(elapsedTime);
+bool DelayedSlider::update(sf::Time elapsedTime) {
+	bool ret = Slider::update(elapsedTime);
 
 	timeElapsedSinceLastValueChange += elapsedTime.asSeconds();
 	if (!valueChangeSignalEmitted && timeElapsedSinceLastValueChange >= VALUE_CHANGE_WINDOW) {
 		valueChangeSignalEmitted = true;
 		onValueChange.emit(this, getValue());
 	}
+
+	return ret;
 }
 
 tgui::Signal & DelayedSlider::getSignal(std::string signalName) {
