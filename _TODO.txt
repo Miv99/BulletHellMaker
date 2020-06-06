@@ -95,7 +95,6 @@ TODO:
 -keep EMP list in sorted order by spawnType time (so same order as emp.children)
 -keep attack list in sorted order by name
 -create new attack -> auto select the tab
--right click menu copy/paste/paste-into for EMP tree view
 -SpriteSheetLoader emits some signal every time a change is made (sprite/spritesheet added/deleted)
 -legal checks for everything should make sure all IDs used (ie attack IDs in attack patterns) are valid
 -LevelPack emits signals for Attack/AttackPattern/Enemy/EnemyPhase/BulletModel every time one is changed (unique signal for each)

@@ -1463,6 +1463,7 @@ void EditorMovablePointPanel::onPasteIntoConfirmation(bool confirmed, std::share
 		auto oldInheritAnimatables = emp->getInheritAnimatables();
 		auto oldInheritDamage = emp->getInheritDamage();
 		auto oldInheritSoundSettings = emp->getInheritSoundSettings();
+
 		undoStack.execute(UndoableCommand([this, newEMP]() {
 			emp->setAnimatable(newEMP->getAnimatable());
 			emp->setLoopAnimation(newEMP->getLoopAnimation());

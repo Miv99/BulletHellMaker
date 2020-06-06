@@ -137,8 +137,6 @@ private:
 
 	// A TreeView of all the EMPs of the EditorAttack being edited
 	std::shared_ptr<tgui::TreeView> empsTreeView;
-	// The hierarchy of the node in empsTreeView that was just right clicked
-	std::vector<sf::String> empRightClickedNodeHierarchy;
 
 	/*
 	Opens a tab for editing an EMP of the attack being edited.
@@ -211,8 +209,12 @@ public:
 
 	bool handleEvent(sf::Event event) override;
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	void manualCopy();
+	void manualPaste();
+	void manualPaste2();
+	void manualDelete();
 
+	tgui::Signal& getSignal(std::string signalName) override;
 	std::shared_ptr<tgui::TreeView> getEmpsTreeView();
 
 private:
@@ -225,10 +227,6 @@ private:
 	tgui::SignalEditorMovablePoint onEMPModify = { "EMPModified" };
 	tgui::SignalInt onMainEMPChildDeletion = { "MainEMPChildDeleted" };
 
-	void manualDelete();
 	void manualUndo();
 	void manualRedo();
-	void manualCopy();
-	void manualPaste();
-	void manualPaste2();
 };

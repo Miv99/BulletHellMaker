@@ -431,9 +431,6 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 					std::make_pair("Copy", [&]() {
 						attacksListView->manualCopy();
 					}),
-					std::make_pair("Delete", [&]() {
-						attacksListView->manualDelete();
-					}),
 					std::make_pair("Paste", [&]() {
 						attacksListView->manualPaste();
 					}),
@@ -442,15 +439,15 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 					}),
 					std::make_pair("Save", [&]() {
 						attacksListView->manualSave();
+					}),
+					std::make_pair("Delete", [&]() {
+						attacksListView->manualDelete();
 					})
 				});
 				// Menu for multiple attack selections
 				auto rightClickMenuPopupMultiSelection = createMenuPopup({
 					std::make_pair("Copy", [&]() {
 						attacksListView->manualCopy();
-					}),
-					std::make_pair("Delete", [&]() {
-						attacksListView->manualDelete();
 					}),
 					std::make_pair("Paste", [&]() {
 						attacksListView->manualPaste();
@@ -460,6 +457,9 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 					}),
 					std::make_pair("Save", [&]() {
 						attacksListView->manualSave();
+					}),
+					std::make_pair("Delete", [&]() {
+						attacksListView->manualDelete();
 					})
 				});
 				attacksListView->getListView()->connect("RightClicked", [&, rightClickMenuPopupSingleSelection, rightClickMenuPopupMultiSelection](int index) {

@@ -217,13 +217,29 @@ spriteLoader(spriteLoader), clipboard(clipboard), undoStack(UndoStack(undoStackS
 		{
 			// Right click menu for empsTreeView
 			auto rightClickMenuPopup = createMenuPopup({
-				std::make_pair("Edit", [this]() {
-					this->openEMPTab(empRightClickedNodeHierarchy);
+				// The RightClicked signal defined below guarantees that whatever node is right-clicked in emps's tree view
+				// will be selected at the time this 
+
+				std::make_pair("Open", [this]() {
+					this->openEMPTab(empsTreeView->getSelectedItem());
+				}),
+				std::make_pair("Copy", [this, emps]() {
+					emps->manualCopy();
+				}),
+				std::make_pair("Paste", [this, emps]() {
+					emps->manualPaste();
+				}),
+				std::make_pair("Paste (override this)", [this, emps]() {
+					emps->manualPaste2();
+				}),
+				std::make_pair("Delete", [this, emps]() {
+					emps->manualDelete();
 				})
 			});
 			empsTreeView->connect("RightClicked", [this, rightClickMenuPopup](std::vector<sf::String> nodeHierarchy) {
 				if (nodeHierarchy.size() > 0) {
-					this->empRightClickedNodeHierarchy = nodeHierarchy;
+					// Select item manually here because right-clicking tgui::TreeView doesn't select the item automatically
+					empsTreeView->selectItem(nodeHierarchy);
 					// Open right click menu
 					this->mainEditorWindow.addPopupWidget(rightClickMenuPopup, this->mainEditorWindow.getMousePos().x, this->mainEditorWindow.getMousePos().y, 150, rightClickMenuPopup->getSize().y);
 				}
