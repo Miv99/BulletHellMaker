@@ -286,6 +286,7 @@ public:
 	Sets the text size of the edit box.
 	*/
 	void setTextSize(int textSize);
+	void setCaretPosition(int position);
 
 	tgui::Signal& getSignal(std::string signalName) override;
 

@@ -550,6 +550,10 @@ void SliderWithEditBox::setTextSize(int textSize) {
 	editBox->setTextSize(textSize);
 }
 
+void SliderWithEditBox::setCaretPosition(int position) {
+	editBox->setCaretPosition(position);
+}
+
 tgui::Signal & SliderWithEditBox::getSignal(std::string signalName) {
 	if (signalName == tgui::toLower(onValueChange.getName())) {
 		return onValueChange;
@@ -1381,6 +1385,12 @@ void TFVGroup::selectSegment(int index) {
 	ignoreResizeSignal = true;
 	this->setSize(this->getSizeLayout().x, changeSegmentType->getPosition().y + changeSegmentType->getSize().y);
 	ignoreResizeSignal = false;
+	startTime->setCaretPosition(0);
+	tfvFloat1EditBox->setCaretPosition(0);
+	tfvFloat2EditBox->setCaretPosition(0);
+	tfvFloat3EditBox->setCaretPosition(0);
+	tfvFloat4EditBox->setCaretPosition(0);
+	tfvInt1EditBox->setCaretPosition(0);
 
 	ignoreSignals = false;
 }
