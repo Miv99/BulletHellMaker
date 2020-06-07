@@ -92,7 +92,6 @@ big todo:
 -when empiActions changes, make sure Detach option is still valid; turn text red if not
 
 TODO:
--Add button in AttacksListPanel that cycles through how attacks are sorted in AttacksListView (by ID/name)
 -SpriteSheetLoader emits some signal every time a change is made (sprite/spritesheet added/deleted)
 -legal checks for everything should make sure all IDs used (ie attack IDs in attack patterns) are valid
 -LevelPack emits signals for Attack/AttackPattern/Enemy/EnemyPhase/BulletModel every time one is changed (unique signal for each)

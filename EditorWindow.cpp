@@ -406,7 +406,7 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 			attacksAddButton->setText("+");
 			attacksAddButton->setPosition(0, 0);
 			attacksAddButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
-			attacksAddButton->connect("Pressed", [&]() {
+			attacksAddButton->connect("Pressed", [this]() {
 				createAttack();
 			});
 			attacksListPanel->add(attacksAddButton);
@@ -416,7 +416,20 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 			attacksSaveAllButton->setText("S");
 			attacksSaveAllButton->setPosition(tgui::bindRight(attacksAddButton), 0);
 			attacksSaveAllButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
+			attacksSaveAllButton->connect("Pressed", [this]() {
+				attacksListView->manualSaveAll();
+			});
 			attacksListPanel->add(attacksSaveAllButton);
+
+			// Sort button
+			auto attacksSortButton = tgui::Button::create();
+			attacksSortButton->setText("=");
+			attacksSortButton->setPosition(tgui::bindRight(attacksSaveAllButton), 0);
+			attacksSortButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
+			attacksSortButton->connect("Pressed", [this]() {
+				attacksListView->cycleSortOption();
+			});
+			attacksListPanel->add(attacksSortButton);
 
 			// List view
 			attacksListView->setPosition(0, tgui::bindBottom(attacksAddButton));

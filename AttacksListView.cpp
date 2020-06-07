@@ -148,17 +148,42 @@ void AttacksListView::reload() {
 
 	auto& unsavedAttacks = mainEditorWindow.getUnsavedAttacks();
 
-	int i = 0;
-	for (auto it = levelPack->getAttackIteratorBegin(); it != levelPack->getAttackIteratorEnd(); it++) {
-		// If the attack is in unsavedAttacks, signify it is unsaved with an asterisk
-		if (unsavedAttacks.count(it->first) > 0) {
-			listView->addItem(format(UNSAVED_ATTACK_ITEM_FORMAT, it->second->getID(), unsavedAttacks[it->first]->getName().c_str()));
-		} else {
-			listView->addItem(format(SAVED_ATTACK_ITEM_FORMAT, it->second->getID(), it->second->getName().c_str()));
+	if (sortOption == ID) {
+		int i = 0;
+		for (auto it = levelPack->getAttackIteratorBegin(); it != levelPack->getAttackIteratorEnd(); it++) {
+			// If the attack is in unsavedAttacks, signify it is unsaved with an asterisk
+			if (unsavedAttacks.count(it->first) > 0) {
+				listView->addItem(format(UNSAVED_ATTACK_ITEM_FORMAT, it->first, unsavedAttacks[it->first]->getName().c_str()));
+			} else {
+				listView->addItem(format(SAVED_ATTACK_ITEM_FORMAT, it->first, it->second->getName().c_str()));
+			}
+			attackIDToAttacksListViewIndexMap[it->second->getID()] = i;
+			attacksListViewIndexToAttackIDMap[i] = it->second->getID();
+			i++;
 		}
-		attackIDToAttacksListViewIndexMap[it->second->getID()] = i;
-		attacksListViewIndexToAttackIDMap[i] = it->second->getID();
-		i++;
+	} else {
+		std::vector<std::pair<std::string, int>> attacksOrdering;
+		for (auto it = levelPack->getAttackIteratorBegin(); it != levelPack->getAttackIteratorEnd(); it++) {
+			if (unsavedAttacks.count(it->first) > 0) {
+				attacksOrdering.push_back(std::make_pair(unsavedAttacks[it->first]->getName(), it->first));
+			} else {
+				attacksOrdering.push_back(std::make_pair(it->second->getName(), it->first));
+			}
+		}
+		std::sort(attacksOrdering.begin(), attacksOrdering.end());
+
+		int i = 0;
+		for (auto p : attacksOrdering) {
+			// If the attack is in unsavedAttacks, signify it is unsaved with an asterisk
+			if (unsavedAttacks.count(p.second) > 0) {
+				listView->addItem(format(UNSAVED_ATTACK_ITEM_FORMAT, p.second, unsavedAttacks[p.second]->getName().c_str()));
+			} else {
+				listView->addItem(format(SAVED_ATTACK_ITEM_FORMAT, p.second, p.first.c_str()));
+			}
+			attackIDToAttacksListViewIndexMap[p.second] = i;
+			attacksListViewIndexToAttackIDMap[i] = p.second;
+			i++;
+		}
 	}
 
 	// Select the old IDs if they still exist
@@ -172,6 +197,15 @@ void AttacksListView::reload() {
 	listView->setSelectedItems(newSelectedIndices);
 
 	onListViewItemsUpdate();
+}
+
+void AttacksListView::cycleSortOption() {
+	if (sortOption == ID) {
+		sortOption = NAME;
+	} else {
+		sortOption = ID;
+	}
+	reload();
 }
 
 int AttacksListView::getAttackIDFromIndex(int index) {

@@ -65,6 +65,11 @@ public:
 	*/
 	void manualSelectAll();
 
+	/*
+	Cycles between sorting ascending by ID and alphanumerically by name.
+	*/
+	void cycleSortOption();
+
 	int getAttackIDFromIndex(int index);
 	int getIndexFromAttackID(int attackID);
 	UndoStack& getUndoStack();
@@ -72,6 +77,11 @@ public:
 private:
 	static const std::string SAVED_ATTACK_ITEM_FORMAT;
 	static const std::string UNSAVED_ATTACK_ITEM_FORMAT;
+
+	enum SORT_OPTION {
+		ID,
+		NAME
+	};
 
 	MainEditorWindow& mainEditorWindow;
 	LevelPack* levelPack;
@@ -82,6 +92,9 @@ private:
 	std::map<int, int> attackIDToAttacksListViewIndexMap;
 	// Maps an index to the associated EditorAtack ID
 	std::map<int, int> attacksListViewIndexToAttackIDMap;
+	// The current attack sort option
+	SORT_OPTION sortOption;
+
 
 	/*
 	Called when the confirmation popup from doing paste2 is answered.
