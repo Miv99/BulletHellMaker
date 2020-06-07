@@ -533,15 +533,15 @@ private:
 
 	std::shared_ptr<ListBoxScrollablePanel> segmentList; // Each item ID is the index of the segment in tfv's segment vector
 	std::shared_ptr<tgui::Label> tfvFloat1Label;
-	std::shared_ptr<NumericalEditBoxWithLimits> tfvFloat1Slider;
+	std::shared_ptr<NumericalEditBoxWithLimits> tfvFloat1EditBox;
 	std::shared_ptr<tgui::Label> tfvFloat2Label;
-	std::shared_ptr<NumericalEditBoxWithLimits> tfvFloat2Slider;
+	std::shared_ptr<NumericalEditBoxWithLimits> tfvFloat2EditBox;
 	std::shared_ptr<tgui::Label> tfvFloat3Label;
-	std::shared_ptr<NumericalEditBoxWithLimits> tfvFloat3Slider;
+	std::shared_ptr<NumericalEditBoxWithLimits> tfvFloat3EditBox;
 	std::shared_ptr<tgui::Label> tfvFloat4Label;
-	std::shared_ptr<NumericalEditBoxWithLimits> tfvFloat4Slider;
+	std::shared_ptr<NumericalEditBoxWithLimits> tfvFloat4EditBox;
 	std::shared_ptr<tgui::Label> tfvInt1Label;
-	std::shared_ptr<NumericalEditBoxWithLimits> tfvInt1Slider;
+	std::shared_ptr<NumericalEditBoxWithLimits> tfvInt1EditBox;
 
 	std::shared_ptr<TFV> oldTFV; // Should never be modified after setTFV() is called
 	std::shared_ptr<PiecewiseTFV> tfv;

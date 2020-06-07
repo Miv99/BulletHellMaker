@@ -838,6 +838,7 @@ This might take a while to load the first time."));
 		if (selectedSegment) {
 			time = tfv->getSegment(selectedSegmentIndex).first;
 		}
+		tfv->insertSegment(std::make_pair(time, std::make_shared<ConstantTFV>(0)), tfvLifespan);
 		onValueChange.emit(this, std::make_pair(oldTFV, tfv));
 		if (selectedSegment) {
 			selectSegment(selectedSegmentIndex + 1);
@@ -996,14 +997,20 @@ The evaluation of this value will return the currently active segment's evaluati
 	add(tfvInt1Label);
 	add(startTimeLabel);
 
-	tfvFloat1Slider = NumericalEditBoxWithLimits::create();
-	tfvFloat2Slider = NumericalEditBoxWithLimits::create();
-	tfvFloat3Slider = NumericalEditBoxWithLimits::create();
-	tfvFloat4Slider = NumericalEditBoxWithLimits::create();
-	tfvInt1Slider = NumericalEditBoxWithLimits::create();
-	tfvInt1Slider->setIntegerMode(true);
+	tfvFloat1EditBox = NumericalEditBoxWithLimits::create();
+	tfvFloat1EditBox->setIntegerMode(false);
+	tfvFloat2EditBox = NumericalEditBoxWithLimits::create();
+	tfvFloat2EditBox->setIntegerMode(false);
+	tfvFloat3EditBox = NumericalEditBoxWithLimits::create();
+	tfvFloat3EditBox->setIntegerMode(false);
+	tfvFloat4EditBox = NumericalEditBoxWithLimits::create();
+	tfvFloat4EditBox->setIntegerMode(false);
+	tfvInt1EditBox = NumericalEditBoxWithLimits::create();
+	tfvInt1EditBox->setIntegerMode(true);
 	startTime = SliderWithEditBox::create();
-	tfvFloat1Slider->connect("ValueChanged", [&](float value) {
+	startTime->setIntegerMode(false);
+	startTime->setStep(MAX_PHYSICS_DELTA_TIME);
+	tfvFloat1EditBox->connect("ValueChanged", [&](float value) {
 		if (ignoreSignals) return;
 
 		if (dynamic_cast<LinearTFV*>(selectedSegment.get()) != nullptr) {
@@ -1036,7 +1043,7 @@ The evaluation of this value will return the currently active segment's evaluati
 			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
 		}
 	});
-	tfvFloat2Slider->connect("ValueChanged", [&](float value) {
+	tfvFloat2EditBox->connect("ValueChanged", [&](float value) {
 		if (ignoreSignals) return;
 
 		if (dynamic_cast<LinearTFV*>(selectedSegment.get()) != nullptr) {
@@ -1065,7 +1072,7 @@ The evaluation of this value will return the currently active segment's evaluati
 			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
 		}
 	});
-	tfvFloat3Slider->connect("ValueChanged", [&](float value) {
+	tfvFloat3EditBox->connect("ValueChanged", [&](float value) {
 		if (ignoreSignals) return;
 
 		if (dynamic_cast<SineWaveTFV*>(selectedSegment.get()) != nullptr) {
@@ -1078,7 +1085,7 @@ The evaluation of this value will return the currently active segment's evaluati
 			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
 		}
 	});
-	tfvFloat4Slider->connect("ValueChanged", [&](float value) {
+	tfvFloat4EditBox->connect("ValueChanged", [&](float value) {
 		if (ignoreSignals) return;
 
 		if (dynamic_cast<SineWaveTFV*>(selectedSegment.get()) != nullptr) {
@@ -1087,7 +1094,7 @@ The evaluation of this value will return the currently active segment's evaluati
 			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
 		}
 	});
-	tfvInt1Slider->connect("ValueChanged", [&](float value) {
+	tfvInt1EditBox->connect("ValueChanged", [&](float value) {
 		if (ignoreSignals) return;
 
 		if (dynamic_cast<DampenedStartTFV*>(selectedSegment.get()) != nullptr) {
@@ -1115,18 +1122,21 @@ The evaluation of this value will return the currently active segment's evaluati
 		populateSegmentList();
 	});
 	startTime->setToolTip(createToolTip("The time in seconds at which this segment becomes active."));
-	tfvFloat1Slider->setTextSize(TEXT_SIZE);
-	tfvFloat2Slider->setTextSize(TEXT_SIZE);
-	tfvFloat3Slider->setTextSize(TEXT_SIZE);
-	tfvFloat4Slider->setTextSize(TEXT_SIZE);
-	tfvInt1Slider->setTextSize(TEXT_SIZE);
+	tfvFloat1EditBox->setTextSize(TEXT_SIZE);
+	tfvFloat2EditBox->setTextSize(TEXT_SIZE);
+	tfvFloat3EditBox->setTextSize(TEXT_SIZE);
+	tfvFloat4EditBox->setTextSize(TEXT_SIZE);
+	tfvInt1EditBox->setTextSize(TEXT_SIZE);
 	startTime->setTextSize(TEXT_SIZE);
-	add(tfvFloat1Slider);
-	add(tfvFloat2Slider);
-	add(tfvFloat3Slider);
-	add(tfvFloat4Slider);
-	add(tfvInt1Slider);
+	add(tfvFloat1EditBox);
+	add(tfvFloat2EditBox);
+	add(tfvFloat3EditBox);
+	add(tfvFloat4EditBox);
+	add(tfvInt1EditBox);
 	add(startTime);
+
+	showGraph->setSize(100, TEXT_BUTTON_HEIGHT);
+	showGraph->setPosition(0, 0);
 
 	connect("SizeChanged", [&](sf::Vector2f newSize) {
 		if (ignoreResizeSignal) {
@@ -1135,14 +1145,39 @@ The evaluation of this value will return the currently active segment's evaluati
 
 		ignoreResizeSignal = true;
 
-		showGraph->setSize(100, TEXT_BUTTON_HEIGHT);
-		showGraph->setPosition(0, 0);
-
-		segmentList->setSize("40%", 250);
+		segmentList->setSize("40%", 300);
 		segmentList->setPosition(tgui::bindLeft(showGraph), tgui::bindBottom(showGraph) + GUI_PADDING_Y);
 
-		float buttonWidth = (segmentList->getSize().x - GUI_PADDING_X * 2) / 3.0f;
+		int segmentListRightBoundary = segmentList->getPosition().x + segmentList->getSize().x + GUI_PADDING_X;
 
+		startTime->setSize(newSize.x - (segmentListRightBoundary + GUI_PADDING_X * 2), TEXT_BOX_HEIGHT);
+		tfvFloat1EditBox->setSize(newSize.x - (segmentListRightBoundary + GUI_PADDING_X * 2), TEXT_BOX_HEIGHT);
+		tfvFloat2EditBox->setSize(newSize.x - (segmentListRightBoundary + GUI_PADDING_X * 2), TEXT_BOX_HEIGHT);
+		tfvFloat3EditBox->setSize(newSize.x - (segmentListRightBoundary + GUI_PADDING_X * 2), TEXT_BOX_HEIGHT);
+		tfvFloat4EditBox->setSize(newSize.x - (segmentListRightBoundary + GUI_PADDING_X * 2), TEXT_BOX_HEIGHT);
+		tfvInt1EditBox->setSize(newSize.x - (segmentListRightBoundary + GUI_PADDING_X * 2), TEXT_BOX_HEIGHT);
+
+		startTimeLabel->setPosition(segmentListRightBoundary, tgui::bindTop(segmentList));
+		startTime->setPosition(segmentListRightBoundary, startTimeLabel->getPosition().y + startTimeLabel->getSize().y + GUI_LABEL_PADDING_Y);
+
+		tfvFloat1Label->setPosition(segmentListRightBoundary, tgui::bindBottom(startTime) + GUI_PADDING_Y);
+		tfvFloat1EditBox->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat1Label) + GUI_LABEL_PADDING_Y);
+
+		tfvFloat2Label->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat1EditBox) + GUI_PADDING_Y);
+		tfvFloat2EditBox->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat2Label) + GUI_LABEL_PADDING_Y);
+
+		tfvFloat3Label->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat2EditBox) + GUI_PADDING_Y);
+		tfvFloat3EditBox->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat3Label) + GUI_LABEL_PADDING_Y);
+
+		tfvFloat4Label->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat3EditBox) + GUI_PADDING_Y);
+		tfvFloat4EditBox->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat4Label) + GUI_LABEL_PADDING_Y);
+
+		tfvInt1Label->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat2EditBox) + GUI_PADDING_Y);
+		tfvInt1EditBox->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvInt1Label) + GUI_LABEL_PADDING_Y);
+
+		segmentList->setSize(segmentList->getSize().x, tgui::bindBottom(this->tfvInt1EditBox));
+
+		float buttonWidth = (segmentList->getSize().x - GUI_PADDING_X * 2) / 3.0f;
 		addSegment->setSize(buttonWidth, TEXT_BUTTON_HEIGHT);
 		addSegment->setPosition(tgui::bindLeft(segmentList), tgui::bindBottom(segmentList) + GUI_PADDING_Y);
 		deleteSegment->setSize(buttonWidth, TEXT_BUTTON_HEIGHT);
@@ -1150,34 +1185,6 @@ The evaluation of this value will return the currently active segment's evaluati
 		changeSegmentType->setSize(buttonWidth, TEXT_BUTTON_HEIGHT);
 		changeSegmentType->setPosition(tgui::bindRight(deleteSegment) + GUI_PADDING_X, tgui::bindTop(deleteSegment));
 
-		int segmentListRightBoundary = segmentList->getPosition().x + segmentList->getSize().x + GUI_PADDING_X;
-
-		startTime->setSize(newSize.x - (segmentListRightBoundary + GUI_PADDING_X * 2), TEXT_BOX_HEIGHT);
-		tfvFloat1Slider->setSize(newSize.x - (segmentListRightBoundary + GUI_PADDING_X * 2), TEXT_BOX_HEIGHT);
-		tfvFloat2Slider->setSize(newSize.x - (segmentListRightBoundary + GUI_PADDING_X * 2), TEXT_BOX_HEIGHT);
-		tfvFloat3Slider->setSize(newSize.x - (segmentListRightBoundary + GUI_PADDING_X * 2), TEXT_BOX_HEIGHT);
-		tfvFloat4Slider->setSize(newSize.x - (segmentListRightBoundary + GUI_PADDING_X * 2), TEXT_BOX_HEIGHT);
-		tfvInt1Slider->setSize(newSize.x - (segmentListRightBoundary + GUI_PADDING_X * 2), TEXT_BOX_HEIGHT);
-
-		startTimeLabel->setPosition(segmentListRightBoundary, tgui::bindTop(segmentList));
-		startTime->setPosition(segmentListRightBoundary, startTimeLabel->getPosition().y + startTimeLabel->getSize().y + GUI_LABEL_PADDING_Y);
-
-		tfvFloat1Label->setPosition(segmentListRightBoundary, tgui::bindBottom(startTime) + GUI_PADDING_Y);
-		tfvFloat1Slider->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat1Label) + GUI_LABEL_PADDING_Y);
-
-		tfvFloat2Label->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat1Slider) + GUI_PADDING_Y);
-		tfvFloat2Slider->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat2Label) + GUI_LABEL_PADDING_Y);
-
-		tfvFloat3Label->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat2Slider) + GUI_PADDING_Y);
-		tfvFloat3Slider->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat3Label) + GUI_LABEL_PADDING_Y);
-
-		tfvFloat4Label->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat3Slider) + GUI_PADDING_Y);
-		tfvFloat4Slider->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat4Label) + GUI_LABEL_PADDING_Y);
-
-		tfvInt1Label->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat2Slider) + GUI_PADDING_Y);
-		tfvInt1Slider->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvInt1Label) + GUI_LABEL_PADDING_Y);
-
-		segmentList->setSize(segmentList->getSize().x, tgui::bindBottom(this->tfvInt1Slider));
 		this->setSize(this->getSizeLayout().x, changeSegmentType->getPosition().y + changeSegmentType->getSize().y);
 		ignoreResizeSignal = false;
 	});
@@ -1215,15 +1222,15 @@ void TFVGroup::deselectSegment() {
 	segmentList->getListBox()->deselectItem();
 	bool f1 = false, f2 = false, f3 = false, f4 = false, i1 = false;
 	tfvFloat1Label->setVisible(f1);
-	tfvFloat1Slider->setVisible(f1);
+	tfvFloat1EditBox->setVisible(f1);
 	tfvFloat2Label->setVisible(f2);
-	tfvFloat2Slider->setVisible(f2);
+	tfvFloat2EditBox->setVisible(f2);
 	tfvFloat3Label->setVisible(f3);
-	tfvFloat3Slider->setVisible(f3);
+	tfvFloat3EditBox->setVisible(f3);
 	tfvFloat4Label->setVisible(f4);
-	tfvFloat4Slider->setVisible(f4);
+	tfvFloat4EditBox->setVisible(f4);
 	tfvInt1Label->setVisible(i1);
-	tfvInt1Slider->setVisible(i1);
+	tfvInt1EditBox->setVisible(i1);
 	startTimeLabel->setVisible(false);
 	startTime->setVisible(false);
 }
@@ -1245,7 +1252,7 @@ void TFVGroup::selectSegment(int index) {
 	ignoreSignals = true;
 	segmentList->getListBox()->setSelectedItemById(std::to_string(index));
 
-	// whether to use tfvFloat1Slider, tfvFloat2Slider, ...
+	// whether to use tfvFloat1EditBox, tfvFloat2EditBox, ...
 	bool f1 = false, f2 = false, f3 = false, f4 = false, i1 = false;
 
 	if (dynamic_cast<LinearTFV*>(selectedSegment.get()) != nullptr) {
@@ -1258,8 +1265,8 @@ void TFVGroup::selectSegment(int index) {
 		tfvFloat2Label->setToolTip(createToolTip("The value of B in y = A + (B - A)(x / T)."));
 
 		auto ptr = dynamic_cast<LinearTFV*>(selectedSegment.get());
-		tfvFloat1Slider->setValue(ptr->getStartValue());
-		tfvFloat2Slider->setValue(ptr->getEndValue());
+		tfvFloat1EditBox->setValue(ptr->getStartValue());
+		tfvFloat2EditBox->setValue(ptr->getEndValue());
 	} else if (dynamic_cast<ConstantTFV*>(selectedSegment.get()) != nullptr) {
 		f1 = true;
 
@@ -1267,7 +1274,7 @@ void TFVGroup::selectSegment(int index) {
 		tfvFloat1Label->setToolTip(createToolTip("The value of C in y = C."));
 
 		auto ptr = dynamic_cast<ConstantTFV*>(selectedSegment.get());
-		tfvFloat1Slider->setValue(ptr->getValue());
+		tfvFloat1EditBox->setValue(ptr->getValue());
 	} else if (dynamic_cast<SineWaveTFV*>(selectedSegment.get()) != nullptr) {
 		f1 = f2 = f3 = f4 = true;
 
@@ -1282,10 +1289,10 @@ void TFVGroup::selectSegment(int index) {
 		tfvFloat4Label->setToolTip(createToolTip("The value in seconds of P in y = A*sin(x*2*pi/T + P) + C."));
 
 		auto ptr = dynamic_cast<SineWaveTFV*>(selectedSegment.get());
-		tfvFloat1Slider->setValue(ptr->getPeriod());
-		tfvFloat2Slider->setValue(ptr->getAmplitude());
-		tfvFloat3Slider->setValue(ptr->getValueShift());
-		tfvFloat4Slider->setValue(ptr->getPhaseShift());
+		tfvFloat1EditBox->setValue(ptr->getPeriod());
+		tfvFloat2EditBox->setValue(ptr->getAmplitude());
+		tfvFloat3EditBox->setValue(ptr->getValueShift());
+		tfvFloat4EditBox->setValue(ptr->getPhaseShift());
 	} else if (dynamic_cast<ConstantAccelerationDistanceTFV*>(selectedSegment.get()) != nullptr) {
 		f1 = f2 = f3 = true;
 
@@ -1298,9 +1305,9 @@ void TFVGroup::selectSegment(int index) {
 		tfvFloat3Label->setToolTip(createToolTip("The value of A in y = C + V*x + 0.5*A*(T^2), where T is the lifespan in seconds of this segment."));
 
 		auto ptr = dynamic_cast<ConstantAccelerationDistanceTFV*>(selectedSegment.get());
-		tfvFloat1Slider->setValue(ptr->getInitialDistance());
-		tfvFloat2Slider->setValue(ptr->getInitialVelocity());
-		tfvFloat3Slider->setValue(ptr->getAcceleration());
+		tfvFloat1EditBox->setValue(ptr->getInitialDistance());
+		tfvFloat2EditBox->setValue(ptr->getInitialVelocity());
+		tfvFloat3EditBox->setValue(ptr->getAcceleration());
 	} else if (dynamic_cast<DampenedStartTFV*>(selectedSegment.get()) != nullptr) {
 		f1 = f2 = i1 = true;
 
@@ -1313,9 +1320,9 @@ void TFVGroup::selectSegment(int index) {
 		tfvInt1Label->setToolTip(createToolTip("The integer value of D in y = (B - A) / T^(0.08*D + 1) * x^(0.08f*D + 1) + A, where T is the lifespan in seconds of this segment."));
 
 		auto ptr = dynamic_cast<DampenedStartTFV*>(selectedSegment.get());
-		tfvFloat1Slider->setValue(ptr->getStartValue());
-		tfvFloat2Slider->setValue(ptr->getEndValue());
-		tfvInt1Slider->setValue(ptr->getDampeningFactor());
+		tfvFloat1EditBox->setValue(ptr->getStartValue());
+		tfvFloat2EditBox->setValue(ptr->getEndValue());
+		tfvInt1EditBox->setValue(ptr->getDampeningFactor());
 	} else if (dynamic_cast<DampenedEndTFV*>(selectedSegment.get()) != nullptr) {
 		f1 = f2 = i1 = true;
 
@@ -1328,9 +1335,9 @@ void TFVGroup::selectSegment(int index) {
 		tfvInt1Label->setToolTip(createToolTip("The integer value of D in y = (B - A) / T^(0.08*D + 1) * (T - x)^(0.08f*D + 1) + B, where T is the lifespan in seconds of this segment."));
 
 		auto ptr = dynamic_cast<DampenedEndTFV*>(selectedSegment.get());
-		tfvFloat1Slider->setValue(ptr->getStartValue());
-		tfvFloat2Slider->setValue(ptr->getEndValue());
-		tfvInt1Slider->setValue(ptr->getDampeningFactor());
+		tfvFloat1EditBox->setValue(ptr->getStartValue());
+		tfvFloat2EditBox->setValue(ptr->getEndValue());
+		tfvInt1EditBox->setValue(ptr->getDampeningFactor());
 	} else if (dynamic_cast<DoubleDampenedTFV*>(selectedSegment.get()) != nullptr) {
 		f1 = f2 = i1 = true;
 
@@ -1343,9 +1350,9 @@ void TFVGroup::selectSegment(int index) {
 		tfvInt1Label->setToolTip(createToolTip("The integer value of D in y = DampenedStart(x, A, B, D, T/2) if x <= T/2; y = DampenedEnd(x, A, B, D, T/2) if x > T/2, where T is the lifespan in seconds of this segment."));
 
 		auto ptr = dynamic_cast<DoubleDampenedTFV*>(selectedSegment.get());
-		tfvFloat1Slider->setValue(ptr->getStartValue());
-		tfvFloat2Slider->setValue(ptr->getEndValue());
-		tfvInt1Slider->setValue(ptr->getDampeningFactor());
+		tfvFloat1EditBox->setValue(ptr->getStartValue());
+		tfvFloat2EditBox->setValue(ptr->getEndValue());
+		tfvInt1EditBox->setValue(ptr->getDampeningFactor());
 	} else {
 		// You missed a case
 		assert(false);
@@ -1355,18 +1362,23 @@ void TFVGroup::selectSegment(int index) {
 	startTime->setMax(tfvLifespan);
 
 	tfvFloat1Label->setVisible(f1);
-	tfvFloat1Slider->setVisible(f1);
+	tfvFloat1EditBox->setVisible(f1);
 	tfvFloat2Label->setVisible(f2);
-	tfvFloat2Slider->setVisible(f2);
+	tfvFloat2EditBox->setVisible(f2);
 	tfvFloat3Label->setVisible(f3);
-	tfvFloat3Slider->setVisible(f3);
+	tfvFloat3EditBox->setVisible(f3);
 	tfvFloat4Label->setVisible(f4);
-	tfvFloat4Slider->setVisible(f4);
+	tfvFloat4EditBox->setVisible(f4);
 	tfvInt1Label->setVisible(i1);
-	tfvInt1Slider->setVisible(i1);
+	tfvInt1EditBox->setVisible(i1);
 	// Cannot change start time of the first segment
 	startTimeLabel->setVisible(index != 0);
 	startTime->setVisible(index != 0);
+
+	// For some reason selecting segments will mess up stuff so this is to fix that
+	ignoreResizeSignal = true;
+	this->setSize(this->getSizeLayout().x, changeSegmentType->getPosition().y + changeSegmentType->getSize().y);
+	ignoreResizeSignal = false;
 
 	ignoreSignals = false;
 }
@@ -1524,6 +1536,7 @@ tgui::Signal & EMPAAngleOffsetGroup::getSignal(std::string signalName) {
 	return HideableGroup::getSignal(signalName);
 }
 
+#include <iostream>
 void EMPAAngleOffsetGroup::updateWidgets() {
 	ignoreSignals = true;
 
@@ -1535,6 +1548,9 @@ void EMPAAngleOffsetGroup::updateWidgets() {
 		yLabel->setText("Y offset");
 		x->setValue(ptr->getXOffset());
 		y->setValue(ptr->getYOffset());
+		// Not sure why this is required but it is
+		x->setCaretPosition(0);
+		y->setCaretPosition(0);
 
 		xLabel->setToolTip(createToolTip("The value of x in this function's evaluation of the angle from (evaluator.x, evaluator.y) to (player.x + x, player.y + y)."));
 		yLabel->setToolTip(createToolTip("The value of y in this function's evaluation of the angle from (evaluator.x, evaluator.y) to (player.x + x, player.y + y)."));
@@ -1549,6 +1565,9 @@ void EMPAAngleOffsetGroup::updateWidgets() {
 		yLabel->setText("Y");
 		x->setValue(ptr->getX());
 		y->setValue(ptr->getY());
+		// Not sure why this is required but it is
+		x->setCaretPosition(0);
+		y->setCaretPosition(0);
 
 		xLabel->setToolTip(createToolTip("The value of x in this function's evaluation of the angle from (evaluator.x, evaluator.y) to (x, y)."));
 		yLabel->setToolTip(createToolTip("The value of y in this function's evaluation of the angle from (evaluator.x, evaluator.y) to (x, y)."));
@@ -1566,6 +1585,8 @@ void EMPAAngleOffsetGroup::updateWidgets() {
 		auto ptr = dynamic_cast<EMPAAngleOffsetConstant*>(offset.get());
 		xLabel->setText("Degrees");
 		x->setValue(ptr->getValue());
+		// Not sure why this is required but it is
+		x->setCaretPosition(0);
 
 		xLabel->setToolTip(createToolTip("The constant value in degrees to be returned by this function."));
 

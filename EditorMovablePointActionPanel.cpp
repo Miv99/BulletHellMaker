@@ -160,6 +160,8 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 			}
 			// Add EMPAs to this if any other EMPAs also use TFVs
 
+			onEMPATypeChange();
+
 			onEMPAModify.emit(this, this->empa);
 		},
 			[this, oldValue]() {
@@ -181,6 +183,8 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 			}
 			// Add EMPAs to this if any other EMPAs also use TFVs
 
+			onEMPATypeChange();
+
 			onEMPAModify.emit(this, this->empa);
 		}));
 	});
@@ -195,8 +199,14 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 
 		undoStack.execute(UndoableCommand(
 			[this, &oldOffset = oldOffset, updatedOffset]() {
-			*oldOffset = *updatedOffset;
-			
+			if (dynamic_cast<MoveCustomPolarEMPA*>(this->empa.get())) {
+				MoveCustomPolarEMPA* concreteEMPA = dynamic_cast<MoveCustomPolarEMPA*>(this->empa.get());
+				concreteEMPA->setAngleOffset(updatedOffset);
+			} else if (dynamic_cast<MoveCustomBezierEMPA*>(this->empa.get())) {
+				MoveCustomBezierEMPA* concreteEMPA = dynamic_cast<MoveCustomBezierEMPA*>(this->empa.get());
+				concreteEMPA->setRotationAngle(updatedOffset);
+			}
+
 			ignoreSignals = true;
 			this->empaiAngleOffset->setEMPAAngleOffset(updatedOffset);
 			ignoreSignals = false;
@@ -204,7 +214,13 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 			onEMPAModify.emit(this, this->empa);
 		},
 			[this, &oldOffset = oldOffset, copyOfOld]() {
-			*oldOffset = *copyOfOld;
+			if (dynamic_cast<MoveCustomPolarEMPA*>(this->empa.get())) {
+				MoveCustomPolarEMPA* concreteEMPA = dynamic_cast<MoveCustomPolarEMPA*>(this->empa.get());
+				concreteEMPA->setAngleOffset(copyOfOld);
+			} else if (dynamic_cast<MoveCustomBezierEMPA*>(this->empa.get())) {
+				MoveCustomBezierEMPA* concreteEMPA = dynamic_cast<MoveCustomBezierEMPA*>(this->empa.get());
+				concreteEMPA->setRotationAngle(copyOfOld);
+			}
 
 			ignoreSignals = true;
 			this->empaiAngleOffset->setEMPAAngleOffset(copyOfOld);
@@ -254,7 +270,8 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 
 		undoStack.execute(UndoableCommand(
 			[this, &oldTFV = oldTFV, updatedTFV]() {
-			*oldTFV = *updatedTFV;
+			MoveCustomPolarEMPA* concreteEMPA = dynamic_cast<MoveCustomPolarEMPA*>(this->empa.get());
+			concreteEMPA->setDistance(updatedTFV);
 
 			ignoreSignals = true;
 			this->empaiPolarDistance->setTFV(updatedTFV, this->empa->getTime());
@@ -263,7 +280,8 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 			onEMPAModify.emit(this, this->empa);
 		},
 			[this, &oldTFV = oldTFV, copyOfOld]() {
-			*oldTFV = *copyOfOld;
+			MoveCustomPolarEMPA* concreteEMPA = dynamic_cast<MoveCustomPolarEMPA*>(this->empa.get());
+			concreteEMPA->setDistance(copyOfOld);
 
 			ignoreSignals = true;
 			this->empaiPolarDistance->setTFV(copyOfOld, this->empa->getTime());
@@ -283,7 +301,8 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 
 		undoStack.execute(UndoableCommand(
 			[this, &oldTFV = oldTFV, updatedTFV]() {
-			*oldTFV = *updatedTFV;
+			MoveCustomPolarEMPA* concreteEMPA = dynamic_cast<MoveCustomPolarEMPA*>(this->empa.get());
+			concreteEMPA->setAngle(updatedTFV);
 
 			ignoreSignals = true;
 			this->empaiPolarAngle->setTFV(updatedTFV, this->empa->getTime());
@@ -292,7 +311,8 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 			onEMPAModify.emit(this, this->empa);
 		},
 			[this, &oldTFV = oldTFV, copyOfOld]() {
-			*oldTFV = *copyOfOld;
+			MoveCustomPolarEMPA* concreteEMPA = dynamic_cast<MoveCustomPolarEMPA*>(this->empa.get());
+			concreteEMPA->setAngle(copyOfOld);
 
 			ignoreSignals = true;
 			this->empaiPolarAngle->setTFV(copyOfOld, this->empa->getTime());
@@ -312,7 +332,8 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 
 		undoStack.execute(UndoableCommand(
 			[this, oldTFV, updatedTFV]() {
-			*oldTFV = *updatedTFV;
+			MovePlayerHomingEMPA* concreteEMPA = dynamic_cast<MovePlayerHomingEMPA*>(this->empa.get());
+			concreteEMPA->setHomingStrength(updatedTFV);
 
 			ignoreSignals = true;
 			this->empaiHomingStrength->setTFV(updatedTFV, this->empa->getTime());
@@ -321,7 +342,8 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 			onEMPAModify.emit(this, this->empa);
 		},
 			[this, oldTFV, copyOfOld]() {
-			*oldTFV = *copyOfOld;
+			MovePlayerHomingEMPA* concreteEMPA = dynamic_cast<MovePlayerHomingEMPA*>(this->empa.get());
+			concreteEMPA->setHomingStrength(copyOfOld);
 
 			ignoreSignals = true;
 			this->empaiHomingStrength->setTFV(copyOfOld, this->empa->getTime());
@@ -341,7 +363,8 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 
 		undoStack.execute(UndoableCommand(
 			[this, &oldTFV = oldTFV, updatedTFV]() {
-			*oldTFV = *updatedTFV;
+			MovePlayerHomingEMPA* concreteEMPA = dynamic_cast<MovePlayerHomingEMPA*>(this->empa.get());
+			concreteEMPA->setSpeed(updatedTFV);
 
 			ignoreSignals = true;
 			this->empaiHomingSpeed->setTFV(updatedTFV, this->empa->getTime());
@@ -350,7 +373,8 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 			onEMPAModify.emit(this, this->empa);
 		},
 			[this, &oldTFV = oldTFV, copyOfOld]() {
-			*oldTFV = *copyOfOld;
+			MovePlayerHomingEMPA* concreteEMPA = dynamic_cast<MovePlayerHomingEMPA*>(this->empa.get());
+			concreteEMPA->setSpeed(copyOfOld);
 
 			ignoreSignals = true;
 			this->empaiHomingSpeed->setTFV(copyOfOld, this->empa->getTime());
