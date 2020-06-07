@@ -514,11 +514,13 @@ float SliderWithEditBox::getValue() {
 }
 
 void SliderWithEditBox::setValue(int value) {
+	lastKnownValue = value;
 	slider->setValue(value);
 	editBox->setValue(value);
 }
 
 void SliderWithEditBox::setValue(float value) {
+	lastKnownValue = value;
 	slider->setValue(value);
 	editBox->setValue(value);
 }

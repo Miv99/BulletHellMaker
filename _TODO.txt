@@ -79,6 +79,16 @@ Notes for me:
 -Player invulnerability sprite effect animation is in CollisionSystem
 
 big todo:
+
+-eventcapturable and copypasteable for TFVGroup's segment list; add copy/paste/paste2/delete; no undo stack
+-change TFVGroup so that the first segment can have its start time changed as well
+    
+-Preview panel as a separate window (but keep it local to MainEditorWindow); the object being previewed changes depending
+ on the currently selected first-level tab in MainEditorWindow::mainPanel (have some "SelectedTabChanged" signal in TabsWithPanel)
+    -If object is an EditorAttack, when "AttackModified" signal received from AttackEditorPanel, reload the preview
+    -Same pattern for EditorAttackPattern and other first-level objects
+    -If the object isn't legal, the preview panel will show the error message from legal()
+        
 -change lifespan of empa -> linearly scale segments' start times to be same % of lifespan; store % of original for each segment
  so that float imprecisions don't ruin the start times as piecewisetfv maxtime keeps changing
 -disable keyboard commands when confirmation prompt is up in UndoableEditorWindow

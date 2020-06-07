@@ -251,7 +251,14 @@ public:
 	}
 
 	float getValue();
+
+	/*
+	Sets the value of the slider and edit box without emitting the ValueChanged signal.
+	*/
 	void setValue(int value);
+	/*
+	Sets the value of the slider and edit box without emitting the ValueChanged signal.
+	*/
 	void setValue(float value);
 	/*
 	Sets the min value of the slider and edit box.
