@@ -136,7 +136,12 @@ void AttacksListView::setLevelPack(LevelPack * levelPack) {
 }
 
 void AttacksListView::reload() {
-	auto selectedIndices = listView->getSelectedItemIndices();
+	std::set<size_t> selectedIndices = listView->getSelectedItemIndices();
+	std::set<int> selectedIDs;
+	for (auto it = selectedIndices.begin(); it != selectedIndices.end(); it++) {
+		selectedIDs.insert(getAttackIDFromIndex(*it));
+	}
+
 	attackIDToAttacksListViewIndexMap.clear();
 	attacksListViewIndexToAttackIDMap.clear();
 	listView->removeAllItems();
@@ -156,16 +161,15 @@ void AttacksListView::reload() {
 		i++;
 	}
 
-	// Prevent selecting indices that are out of bounds
-	for (auto it = selectedIndices.begin(); it != selectedIndices.end();) {
-		if (*it >= listView->getItemCount()) {
-			selectedIndices.erase(it++);
-		} else {
-			it++;
+	// Select the old IDs if they still exist
+	std::set<size_t> newSelectedIndices;
+	for (auto it = selectedIDs.begin(); it != selectedIDs.end(); it++) {
+		if (attackIDToAttacksListViewIndexMap.count(*it) > 0) {
+			newSelectedIndices.insert(attackIDToAttacksListViewIndexMap[*it]);
 		}
 	}
 
-	listView->setSelectedItems(selectedIndices);
+	listView->setSelectedItems(newSelectedIndices);
 
 	onListViewItemsUpdate();
 }
