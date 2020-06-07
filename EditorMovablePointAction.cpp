@@ -168,7 +168,7 @@ std::shared_ptr<EMPAction> MoveCustomPolarEMPA::clone() {
 }
 
 std::string MoveCustomPolarEMPA::format() const {
-	return formatString("MoveCustomPolarEMPA") + formatTMObject(*distance) + formatTMObject(*angle) + tos(time);
+	return formatString("MoveCustomPolarEMPA") + formatTMObject(*distance) + formatTMObject(*angle) + tos(time) + formatTMObject(*angleOffset);
 }
 
 void MoveCustomPolarEMPA::load(std::string formattedString) {
@@ -176,6 +176,7 @@ void MoveCustomPolarEMPA::load(std::string formattedString) {
 	distance = TFVFactory::create(items[1]);
 	angle = TFVFactory::create(items[2]);
 	time = std::stof(items[3]);
+	angleOffset = EMPAngleOffsetFactory::create(items[4]);
 }
 
 std::string MoveCustomPolarEMPA::getGuiFormat() {
@@ -221,6 +222,7 @@ std::shared_ptr<EMPAction> MoveCustomBezierEMPA::clone() {
 std::string MoveCustomBezierEMPA::format() const {
 	std::string ret = formatString("MoveCustomBezierEMPA");
 	ret += tos(time);
+	ret += formatTMObject(*rotationAngle);
 	for (auto p : unrotatedControlPoints) {
 		ret += tos(p.x) + tos(p.y);
 	}
@@ -230,9 +232,11 @@ std::string MoveCustomBezierEMPA::format() const {
 void MoveCustomBezierEMPA::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	time = std::stof(items[1]);
+	rotationAngle = EMPAngleOffsetFactory::create(items[2]);
 	controlPoints.clear();
 	unrotatedControlPoints.clear();
-	for (int i = 2; i < items.size(); i += 2) {
+	int i;
+	for (i = 3; i < items.size(); i += 2) {
 		unrotatedControlPoints.push_back(sf::Vector2f(std::stof(items[i]), std::stof(items[i + 1])));
 	}
 }

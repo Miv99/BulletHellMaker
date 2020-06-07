@@ -252,6 +252,7 @@ public:
 	inline void setTime(float duration) override { this->time = duration; }
 	inline void setDistance(std::shared_ptr<TFV> distance) { this->distance = distance; }
 	inline void setAngle(std::shared_ptr<TFV> angle) { this->angle = angle; }
+	inline void setAngleOffset(std::shared_ptr<EMPAAngleOffset> angleOffset) { this->angleOffset = angleOffset; }
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 	std::shared_ptr<MovablePoint> generateStandaloneMP(float x, float y, float playerX, float playerY) override;
@@ -286,13 +287,14 @@ public:
 	inline float getTime() override { return time; }
 	std::string getGuiFormat() override;
 	inline std::shared_ptr<EMPAAngleOffset> getRotationAngle() { return rotationAngle; }
+	const std::vector<sf::Vector2f> getUnrotatedControlPoints() { return unrotatedControlPoints; }
 
 	inline void setTime(float duration) override { this->time = duration; }
 	inline void setUnrotatedControlPoints(std::vector<sf::Vector2f> unrotatedControlPoints) { 
 		this->unrotatedControlPoints = unrotatedControlPoints;
 		controlPoints = std::vector<sf::Vector2f>(unrotatedControlPoints);
 	}
-	const std::vector<sf::Vector2f> getUnrotatedControlPoints() { return unrotatedControlPoints; }
+	inline void setRotationAngle(std::shared_ptr<EMPAAngleOffset> rotationAngle) { this->rotationAngle = rotationAngle; }
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 	std::shared_ptr<MovablePoint> generateStandaloneMP(float x, float y, float playerX, float playerY) override;
