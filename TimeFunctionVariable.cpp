@@ -180,6 +180,10 @@ float PiecewiseTFV::evaluate(float time) {
 }
 
 std::pair<float, int> PiecewiseTFV::piecewiseEvaluate(float time) {
+	if (segments.size() == 0 || time < segments[0].first) {
+		throw InvalidEvaluationDomainException();
+	}
+
 	int l = 0;
 	int h = segments.size(); // Not n - 1
 	while (l < h) {
@@ -241,8 +245,11 @@ void PiecewiseTFV::insertSegment(std::pair<float, std::shared_ptr<TFV>> segment,
 		}
 	}
 
-	auto it = segments.begin() + i;
-	segments.insert(it, segment);
+	if (i == -1) {
+		segments.insert(segments.begin(), segment);
+	} else {
+		segments.insert(segments.begin() + i, segment);
+	}
 	recalculateMaxTimes(totalLifespan);
 }
 

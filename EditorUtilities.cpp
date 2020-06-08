@@ -114,24 +114,34 @@ std::vector<std::pair<std::vector<float>, std::vector<float>>> generateMPLPoints
 	std::vector<float> singleSegmentX;
 	std::vector<float> singleSegmentY;
 	while (time < tfvLifespan) {
-		std::pair<float, int> valueAndSegmentIndex = tfv->piecewiseEvaluate(time);
-		sf::Vector2f pos(time, valueAndSegmentIndex.first);
+		try {
+			std::pair<float, int> valueAndSegmentIndex = tfv->piecewiseEvaluate(time);
+			sf::Vector2f pos(time, valueAndSegmentIndex.first);
 
-		if (valueAndSegmentIndex.second != prevSegmentIndex) {
-			if (prevSegmentIndex != -1) {
-				ret.push_back(std::make_pair(singleSegmentX, singleSegmentY));
-				singleSegmentX.clear();
-				singleSegmentY.clear();
+			if (valueAndSegmentIndex.second != prevSegmentIndex) {
+				if (prevSegmentIndex != -1) {
+					ret.push_back(std::make_pair(singleSegmentX, singleSegmentY));
+					singleSegmentX.clear();
+					singleSegmentY.clear();
+				}
+
+				prevSegmentIndex = valueAndSegmentIndex.second;
 			}
+			lowestY = std::min(lowestY, valueAndSegmentIndex.first);
+			highestY = std::max(highestY, valueAndSegmentIndex.first);
 
-			prevSegmentIndex = valueAndSegmentIndex.second;
+			singleSegmentX.push_back(pos.x);
+			singleSegmentY.push_back(pos.y);
+
+			time += timeResolution;
+		} catch (InvalidEvaluationDomainException e) {
+			// Skip to a valid time
+			if (tfv->getSegmentsCount() > 0) {
+				time = tfv->getSegment(0).first;
+			} else {
+				break;
+			}
 		}
-		lowestY = std::min(lowestY, valueAndSegmentIndex.first);
-		highestY = std::max(highestY, valueAndSegmentIndex.first);
-
-		singleSegmentX.push_back(pos.x);
-		singleSegmentY.push_back(pos.y);
-		time += timeResolution;
 	}
 	ret.push_back(std::make_pair(singleSegmentX, singleSegmentY));
 	return ret;
@@ -1377,9 +1387,8 @@ void TFVGroup::selectSegment(int index) {
 	tfvFloat4EditBox->setVisible(f4);
 	tfvInt1Label->setVisible(i1);
 	tfvInt1EditBox->setVisible(i1);
-	// Cannot change start time of the first segment
-	startTimeLabel->setVisible(index != 0);
-	startTime->setVisible(index != 0);
+	startTimeLabel->setVisible(true);
+	startTime->setVisible(true);
 
 	// For some reason selecting segments will mess up stuff so this is to fix that
 	ignoreResizeSignal = true;

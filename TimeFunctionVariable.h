@@ -10,6 +10,13 @@
 #include "Components.h"
 #include <entt/entt.hpp>
 #include <utility>
+#include <exception>
+
+struct InvalidEvaluationDomainException : public std::exception {
+	const char* what() const throw () {
+		return "C++ Exception";
+	}
+};
 
 /*
 TimeFuncVar (TFV)
@@ -432,6 +439,8 @@ public:
 	/*
 	Returns a pair containing, in order, the normal evaluation of the TFV and the index of the segment
 	in which the evaluation occurred.
+
+	Throws InvalidEvaluationDomainException if the first segment starts at some time later than the time parameter.
 	*/
 	std::pair<float, int> piecewiseEvaluate(float time);
 
