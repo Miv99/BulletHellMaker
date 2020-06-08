@@ -37,7 +37,7 @@ public:
 	enemyID - the ID of the enemy executing this attack
 	enemyPhaseID - the ID of the enemy's current phase 
 	*/
-	void EditorAttack::executeAsEnemy(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, uint32_t entity, float timeLag, int attackPatternID, int enemyID, int enemyPhaseID) const;
+	void executeAsEnemy(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, uint32_t entity, float timeLag, int attackPatternID, int enemyID, int enemyPhaseID) const;
 	/*
 	Executes the attack as a player.
 
@@ -45,7 +45,7 @@ public:
 	timeLag - the time elapsed since this attack was supposed to execute
 	attackPatternID - the ID of the enemy's current attack pattern
 	*/
-	void EditorAttack::executeAsPlayer(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, uint32_t entity, float timeLag, int attackPatternID) const;
+	void executeAsPlayer(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, uint32_t entity, float timeLag, int attackPatternID) const;
 
 	/*
 	Returns whether this EditorAttack and any of its its children EMPs uses the BulletModel
