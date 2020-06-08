@@ -225,7 +225,7 @@ void PiecewiseTFV::insertSegment(int index, std::pair<float, std::shared_ptr<TFV
 	recalculateMaxTimes(totalLifespan);
 }
 
-void PiecewiseTFV::insertSegment(std::pair<float, std::shared_ptr<TFV>> segment, float totalLifespan) {
+int PiecewiseTFV::insertSegment(std::pair<float, std::shared_ptr<TFV>> segment, float totalLifespan) {
 	int l = 0;
 	int h = segments.size();
 	while (l < h) {
@@ -247,10 +247,13 @@ void PiecewiseTFV::insertSegment(std::pair<float, std::shared_ptr<TFV>> segment,
 
 	if (i == -1) {
 		segments.insert(segments.begin(), segment);
+		recalculateMaxTimes(totalLifespan);
+		return 0;
 	} else {
 		segments.insert(segments.begin() + i, segment);
+		recalculateMaxTimes(totalLifespan);
+		return i;
 	}
-	recalculateMaxTimes(totalLifespan);
 }
 
 void PiecewiseTFV::removeSegment(int index, float totalLifespan) {

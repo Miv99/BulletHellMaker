@@ -74,3 +74,11 @@ std::vector<std::shared_ptr<EditorAttack>> CopiedEditorAttack::getAttacks() {
 int CopiedEditorAttack::getAttacksCount() {
 	return attacks.size();
 }
+
+CopiedPiecewiseTFVSegment::CopiedPiecewiseTFVSegment(std::string copiedFromID, std::pair<float, std::shared_ptr<TFV>> segment) : CopiedObject(copiedFromID) {
+	this->segment = std::make_pair(segment.first, segment.second->clone());
+}
+
+std::pair<float, std::shared_ptr<TFV>> CopiedPiecewiseTFVSegment::getSegment() {
+	return std::make_pair(segment.first, segment.second->clone());
+}

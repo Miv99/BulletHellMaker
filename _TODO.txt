@@ -80,10 +80,7 @@ Notes for me:
 
 big todo:
 
--eventcapturable and copypasteable for TFVGroup's segment list; add copy/paste/paste2/delete; no undo stack
-    -make sure to call handleEvent() from EMPAPanel
--change TFVGroup so that the first segment can have its start time changed as well (the user will be responsible for error-checking)
-    
+-Popup saying something was copied/pasted    
 -Preview panel as a separate window (but keep it local to MainEditorWindow); the object being previewed changes depending
  on the currently selected first-level tab in MainEditorWindow::mainPanel (have some "SelectedTabChanged" signal in TabsWithPanel)
     -If object is an EditorAttack, when "AttackModified" signal received from AttackEditorPanel, reload the preview

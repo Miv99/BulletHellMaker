@@ -29,6 +29,7 @@
 #include "EventCapturable.h"
 #include "LRUCache.h"
 #include "ExtraSignals.h"
+#include "CopyPaste.h"
 #include <memory>
 #include <thread>
 #include <mutex>
@@ -505,12 +506,18 @@ Signals:
 		Optional parameter: a pair of a shared_ptr to the old TFV object 
 			and shared_ptr to the new TFV object
 */
-class TFVGroup : public HideableGroup {
+class TFVGroup : public HideableGroup, public EventCapturable, public CopyPasteable {
 public:
-	TFVGroup(EditorWindow& parentWindow);
-	static std::shared_ptr<TFVGroup> create(EditorWindow& parentWindow) {
-		return std::make_shared<TFVGroup>(parentWindow);
+	TFVGroup(EditorWindow& parentWindow, Clipboard& clipboard);
+	static std::shared_ptr<TFVGroup> create(EditorWindow& parentWindow, Clipboard& clipboard) {
+		return std::make_shared<TFVGroup>(parentWindow, clipboard);
 	}
+
+	std::shared_ptr<CopiedObject> copyFrom() override;
+	void pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
+	void paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
+
+	bool handleEvent(sf::Event event) override;
 
 	/*
 	Initialize this widget to tfv's values.
@@ -528,6 +535,7 @@ private:
 	const float TFV_TIME_RESOLUTION = 0.05f; // Time between each tfv curve vertex
 
 	EditorWindow& parentWindow;
+	Clipboard& clipboard;
 	std::recursive_mutex tfvMutex;
 
 	std::shared_ptr<tgui::Button> showGraph;
@@ -555,6 +563,7 @@ private:
 	std::shared_ptr<PiecewiseTFV> tfv;
 	std::shared_ptr<TFV> selectedSegment;
 	int selectedSegmentIndex = -1;
+
 	float tfvLifespan; // Shouldn't be modified except by setTFV()
 
 	/*

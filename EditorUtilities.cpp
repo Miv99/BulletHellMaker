@@ -822,7 +822,7 @@ void NumericalEditBoxWithLimits::updateInputValidator() {
 	}
 }
 
-TFVGroup::TFVGroup(EditorWindow& parentWindow) : parentWindow(parentWindow) {
+TFVGroup::TFVGroup(EditorWindow& parentWindow, Clipboard& clipboard) : CopyPasteable("PiecewiseTFVSegment"), parentWindow(parentWindow), clipboard(clipboard) {
 	showGraph = tgui::Button::create();
 	showGraph->setText("Show graph");
 	showGraph->setToolTip(createToolTip("Plots the graph of this value with the x-axis representing time in seconds and the y-axis representing the result of this value's evaluation. \
@@ -982,7 +982,8 @@ The evaluation of this value will return the currently active segment's evaluati
 	segmentList = std::make_shared<ListBoxScrollablePanel>();
 	segmentList->setTextSize(TEXT_SIZE);
 	segmentList->setToolTip(createToolTip("The list of segments in this value. \"(t=A to t=B)\" denotes the time range in seconds in which the segment is active. \
-The evaluation of this value will return the currently active segment's evaluation at time t-A, where A is the start time of the segment."));
+The evaluation of this value will return the currently active segment's evaluation at time t-A, where A is the start time of the segment. The first segment must have \
+a start time of t=0."));
 	segmentList->getListBox()->connect("ItemSelected", [&](std::string item, std::string id) {
 		if (ignoreSignals) return;
 		if (id != "") {
@@ -1206,6 +1207,59 @@ The evaluation of this value will return the currently active segment's evaluati
 	});
 
 	deselectSegment();
+}
+
+std::shared_ptr<CopiedObject> TFVGroup::copyFrom() {
+	if (selectedSegment) {
+		float startTime = tfv->getSegment(selectedSegmentIndex).first;
+		return std::make_shared<CopiedPiecewiseTFVSegment>(getID(), std::make_pair(startTime, selectedSegment));
+	}
+	return nullptr;
+}
+
+void TFVGroup::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+	auto derived = std::static_pointer_cast<CopiedPiecewiseTFVSegment>(pastedObject);
+	if (derived) {
+		selectSegment(tfv->insertSegment(derived->getSegment(), tfvLifespan));
+		onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+	}
+}
+
+void TFVGroup::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+	auto derived = std::static_pointer_cast<CopiedPiecewiseTFVSegment>(pastedObject);
+	if (derived && selectedSegment) {
+		auto pasted = derived->getSegment();
+		tfv->changeSegment(selectedSegmentIndex, pasted.second, tfvLifespan);
+		// Change segment start time second because it may change the segment's index
+		selectSegment(tfv->changeSegmentStartTime(selectedSegmentIndex, pasted.first, tfvLifespan));
+		onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+	}
+}
+
+bool TFVGroup::handleEvent(sf::Event event) {
+	if (event.type == sf::Event::KeyPressed && segmentList->mouseOnWidget(parentWindow.getLastMousePressPos() - getAbsolutePosition())) {
+		if (event.key.code == sf::Keyboard::Delete) {
+			// Can't delete the last segment
+			if (selectedSegment && tfv->getSegmentsCount() > 1) {
+				tfv->removeSegment(selectedSegmentIndex, tfvLifespan);
+				onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+				return true;
+			}
+		} else if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
+			if (event.key.code == sf::Keyboard::C) {
+				clipboard.copy(this);
+				return true;
+			} else if (event.key.code == sf::Keyboard::V) {
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
+					clipboard.paste2(this);
+				} else {
+					clipboard.paste(this);
+				}
+				return true;
+			} 
+		}
+	}
+	return false;
 }
 
 void TFVGroup::setTFV(std::shared_ptr<TFV> tfv, float tfvLifespan) {

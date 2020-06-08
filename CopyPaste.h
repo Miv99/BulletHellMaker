@@ -92,3 +92,19 @@ public:
 private:
 	std::vector<std::shared_ptr<EditorAttack>> attacks;
 };
+
+class CopiedPiecewiseTFVSegment : public CopiedObject {
+public:
+	/*
+	segment - the segment; the format is specified in PiecewiseTFV
+	*/
+	CopiedPiecewiseTFVSegment(std::string copiedFromID, std::pair<float, std::shared_ptr<TFV>> segment);
+
+	/*
+	Returns a deep copy of the stored segment.
+	*/
+	std::pair<float, std::shared_ptr<TFV>> getSegment();
+
+private:
+	std::pair<float, std::shared_ptr<TFV>> segment;
+};

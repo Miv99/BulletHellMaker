@@ -21,9 +21,9 @@ public:
 	/*
 	empa - the EMPAction being edited
 	*/
-	EditorMovablePointActionPanel(EditorWindow& parentWindow, std::shared_ptr<EMPAction> empa, int undoStackSize = 50);
-	inline static std::shared_ptr<EditorMovablePointActionPanel> create(EditorWindow& parentWindow, std::shared_ptr<EMPAction> empa, int undoStackSize = 50) {
-		return std::make_shared<EditorMovablePointActionPanel>(parentWindow, empa, undoStackSize);
+	EditorMovablePointActionPanel(EditorWindow& parentWindow, Clipboard& clipboard, std::shared_ptr<EMPAction> empa, int undoStackSize = 50);
+	inline static std::shared_ptr<EditorMovablePointActionPanel> create(EditorWindow& parentWindow, Clipboard& clipboard, std::shared_ptr<EMPAction> empa, int undoStackSize = 50) {
+		return std::make_shared<EditorMovablePointActionPanel>(parentWindow, clipboard, empa, undoStackSize);
 	}
 
 	bool handleEvent(sf::Event event) override;
@@ -33,7 +33,9 @@ public:
 private:
 	static const std::string BEZIER_CONTROL_POINT_FORMAT;
 
+	EditorWindow& parentWindow;
 	UndoStack undoStack;
+	Clipboard& clipboard;
 	std::shared_ptr<EMPAction> empa;
 
 	std::shared_ptr<tgui::Label> empaiInfo;

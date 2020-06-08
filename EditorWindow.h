@@ -122,6 +122,7 @@ public:
 	std::shared_ptr<entt::SigH<void()>> getCloseSignal();
 	inline std::shared_ptr<sf::RenderWindow> getWindow() { return window; }
 	inline sf::Vector2f getMousePos() { return mousePos; }
+	inline sf::Vector2f getLastMousePressPos() { return lastMousePressPos; }
 
 protected:
 	std::shared_ptr<sf::RenderWindow> window;

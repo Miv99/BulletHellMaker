@@ -1378,7 +1378,7 @@ void EditorMovablePointPanel::updateAllWidgetValues() {
 }
 
 std::shared_ptr<tgui::Panel> EditorMovablePointPanel::createEMPAPanel(std::shared_ptr<EMPAction> empa, int index, std::shared_ptr<ListBoxScrollablePanel> empiActions) {
-	std::shared_ptr<EditorMovablePointActionPanel> empaPanel = EditorMovablePointActionPanel::create(this->mainEditorWindow, empa);
+	std::shared_ptr<EditorMovablePointActionPanel> empaPanel = EditorMovablePointActionPanel::create(this->mainEditorWindow, clipboard, empa);
 	empaPanel->connect("EMPAModified", [this, index, empiActions](std::shared_ptr<EMPAction> value) {
 		if (this->ignoreSignals) {
 			return;

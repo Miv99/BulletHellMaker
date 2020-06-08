@@ -2,7 +2,7 @@
 
 const std::string EditorMovablePointActionPanel::BEZIER_CONTROL_POINT_FORMAT = "%d (%.2f, %.2f)";
 
-EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& parentWindow, std::shared_ptr<EMPAction> empa, int undoStackSize) : empa(empa), undoStack(UndoStack(undoStackSize)) {
+EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& parentWindow, Clipboard& clipboard, std::shared_ptr<EMPAction> empa, int undoStackSize) : parentWindow(parentWindow), empa(empa), clipboard(clipboard), undoStack(UndoStack(undoStackSize)) {
 	setVerticalScrollAmount(SCROLL_AMOUNT);
 	setVerticalScrollAmount(SCROLL_AMOUNT);
 	
@@ -22,17 +22,17 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 	empaiDurationLabel = tgui::Label::create();
 	empaiDuration = NumericalEditBoxWithLimits::create();
 	empaiPolarDistanceLabel = tgui::Label::create();
-	empaiPolarDistance = TFVGroup::create(parentWindow);
+	empaiPolarDistance = TFVGroup::create(parentWindow, clipboard);
 	empaiPolarAngleLabel = tgui::Label::create();
-	empaiPolarAngle = TFVGroup::create(parentWindow);
+	empaiPolarAngle = TFVGroup::create(parentWindow, clipboard);
 	empaiBezierControlPointsLabel = tgui::Label::create();
 	empaiBezierControlPoints = ListViewScrollablePanel::create();
 	empaiAngleOffsetLabel = tgui::Label::create();
 	empaiAngleOffset = EMPAAngleOffsetGroup::create(parentWindow);
 	empaiHomingStrengthLabel = tgui::Label::create();
-	empaiHomingStrength = TFVGroup::create(parentWindow);
+	empaiHomingStrength = TFVGroup::create(parentWindow, clipboard);
 	empaiHomingSpeedLabel = tgui::Label::create();
-	empaiHomingSpeed = TFVGroup::create(parentWindow);
+	empaiHomingSpeed = TFVGroup::create(parentWindow, clipboard);
 	empaiEditBezierControlPoints = tgui::Button::create();
 
 	empaiChangeType->setSize(150, TEXT_BUTTON_HEIGHT);
@@ -449,7 +449,16 @@ bool EditorMovablePointActionPanel::handleEvent(sf::Event event) {
 
 		if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
 			finishEditingBezierControlPoints();
+			return true;
 		}
+	} else if (empaiPolarDistance->isVisible() && empaiPolarDistance->mouseOnWidget(parentWindow.getLastMousePressPos() - getAbsolutePosition()) && empaiPolarDistance->handleEvent(event)) {
+		return true;
+	} else if (empaiPolarAngle->isVisible() && empaiPolarAngle->mouseOnWidget(parentWindow.getLastMousePressPos() - getAbsolutePosition()) && empaiPolarAngle->handleEvent(event)) {
+		return true;
+	} else if (empaiHomingStrength->isVisible() && empaiHomingStrength->mouseOnWidget(parentWindow.getLastMousePressPos() - getAbsolutePosition()) && empaiHomingStrength->handleEvent(event)) {
+		return true;
+	} else if (empaiHomingSpeed->isVisible() && empaiHomingSpeed->mouseOnWidget(parentWindow.getLastMousePressPos() - getAbsolutePosition()) && empaiHomingSpeed->handleEvent(event)) {
+		return true;
 	} else if (event.type == sf::Event::KeyPressed) {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
 			if (event.key.code == sf::Keyboard::Z) {

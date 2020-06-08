@@ -454,10 +454,11 @@ public:
 
 	/*
 	This function also recalculates the maxTime of every segment.
+	Returns the index at which the segment was inserted.
 
 	segment - a pair with the float representing the start time of the TFV
 	*/
-	void insertSegment(std::pair<float, std::shared_ptr<TFV>> segment, float totalLifespan = -1);
+	int insertSegment(std::pair<float, std::shared_ptr<TFV>> segment, float totalLifespan = -1);
 
 	/*
 	This function also recalculates the maxTime of every segment, except the one that was removed.
