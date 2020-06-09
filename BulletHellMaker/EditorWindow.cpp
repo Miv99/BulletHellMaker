@@ -164,6 +164,11 @@ void EditorWindow::show() {
 }
 
 std::shared_ptr<entt::SigH<void(bool)>> EditorWindow::promptConfirmation(std::string message) {
+	// Don't allow 2 confirmation prompts at the same time
+	if (confirmationPanelOpen) {
+		return nullptr;
+	}
+
 	std::shared_ptr<entt::SigH<void(bool)>> confirmationSignal = std::make_shared<entt::SigH<void(bool)>>();
 
 	// Disable all widgets
@@ -188,6 +193,7 @@ std::shared_ptr<entt::SigH<void(bool)>> EditorWindow::promptConfirmation(std::st
 
 	confirmationText->setText(message);
 	gui->add(confirmationPanel);
+	confirmationPanelOpen = true;
 
 	return confirmationSignal;
 }
@@ -338,7 +344,7 @@ void EditorWindow::render(float deltaTime) {
 	}
 }
 
-void EditorWindow::handleEvent(sf::Event event) {
+bool EditorWindow::handleEvent(sf::Event event) {
 	std::lock_guard<std::recursive_mutex> lock(*tguiMutex);
 
 	if (event.type == sf::Event::MouseMoved) {
@@ -348,26 +354,23 @@ void EditorWindow::handleEvent(sf::Event event) {
 		lastMousePressPos = mousePos;
 	}
 
-	gui->handleEvent(event);
+	// Disable keyboard events when confirmation panel is open
+	if (!(confirmationPanelOpen && (event.type == sf::Event::TextEntered || event.type == sf::Event::KeyPressed || event.type == sf::Event::KeyReleased))) {
+		gui->handleEvent(event);
+		return false;
+	} else {
+		return true;
+	}
 }
 
 void EditorWindow::closeConfirmationPanel() {
 	gui->remove(confirmationPanel);
+	confirmationPanelOpen = false;
 
 	for (auto ptr : widgetsToBeEnabledAfterConfirmationPrompt) {
 		ptr->setEnabled(true);
 	}
-}
-
-void UndoableEditorWindow::handleEvent(sf::Event event) {
-	EditorWindow::handleEvent(event);
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
-		if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Z) {
-			undoStack.undo();
-		} else if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Y) {
-			undoStack.redo();
-		}
-	}
+	widgetsToBeEnabledAfterConfirmationPrompt.clear();
 }
 
 AttacksListPanel::AttacksListPanel(MainEditorWindow& mainEditorWindow, Clipboard& clipboard) : mainEditorWindow(mainEditorWindow), clipboard(clipboard) {
@@ -584,14 +587,17 @@ void MainEditorWindow::overwriteAttacks(std::vector<std::shared_ptr<EditorAttack
 	}
 }
 
-void MainEditorWindow::handleEvent(sf::Event event) {
-	EditorWindow::handleEvent(event);
+bool MainEditorWindow::handleEvent(sf::Event event) {
+	if (EditorWindow::handleEvent(event)) {
+		return true;
+	}
 
 	if (leftPanel->mouseOnWidget(lastMousePressPos)) {
-		leftPanel->handleEvent(event);
+		return leftPanel->handleEvent(event);
 	} else if (mainPanel->mouseOnWidget(lastMousePressPos)) {
-		mainPanel->handleEvent(event);
+		return mainPanel->handleEvent(event);
 	}
+	return false;
 }
 
 void MainEditorWindow::openLeftPanelAttack(int attackID) {

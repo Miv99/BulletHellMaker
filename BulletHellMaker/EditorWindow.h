@@ -135,7 +135,10 @@ protected:
 
 	virtual void physicsUpdate(float deltaTime);
 	virtual void render(float deltaTime);
-	virtual void handleEvent(sf::Event event);
+	/*
+	Returns whether the input was consumed.
+	*/
+	virtual bool handleEvent(sf::Event event);
 
 	/*
 	Called when the RenderWindow window is initialized.
@@ -166,6 +169,8 @@ private:
 	std::shared_ptr<tgui::Button> confirmationYes;
 	std::shared_ptr<tgui::Button> confirmationNo;
 
+	bool confirmationPanelOpen = false;
+
 	// A list of all Widgets in gui whose value of isEnabled() was true right before promptConfirmation() was called
 	std::list<std::shared_ptr<tgui::Widget>> widgetsToBeEnabledAfterConfirmationPrompt;
 
@@ -191,26 +196,6 @@ private:
 	*/
 	void closeConfirmationPanel();
 };
-
-/*
-An EditorWindow that has the capability of redoing and undoing commands in the UndoStack.
-Undo is done with control+z and redo with control+y.
-Commands must be added to the UndoStack by the user.
-*/
-class UndoableEditorWindow : public EditorWindow {
-public:
-	inline UndoableEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, UndoStack& undoStack, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL) :
-		EditorWindow(tguiMutex, windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval), undoStack(undoStack) {
-	}
-
-protected:
-	virtual void handleEvent(sf::Event event);
-
-private:
-	UndoStack& undoStack;
-};
-
-
 
 /*
 An EventCapturable basic tgui::Panel to be used by MainEditorWindow for viewing the EditorAttacks list.
@@ -277,7 +262,7 @@ public:
 	void openLeftPanelAttackPattern(int attackPatternID);
 
 protected:
-	void handleEvent(sf::Event event) override;
+	bool handleEvent(sf::Event event) override;
 
 private:
 	const std::string LEFT_PANEL_ATTACK_LIST_TAB_NAME = "Attacks";
@@ -312,6 +297,11 @@ private:
 
 template<class T>
 inline std::shared_ptr<entt::SigH<void(bool, T)>> EditorWindow::promptConfirmation(std::string message, T userObject) {
+	// Don't allow 2 confirmation prompts at the same time
+	if (confirmationPanelOpen) {
+		return nullptr;
+	}
+
 	std::shared_ptr<entt::SigH<void(bool, T)>> confirmationSignal = std::make_shared<entt::SigH<void(bool, T)>>();
 
 	// Disable all widgets
@@ -336,6 +326,7 @@ inline std::shared_ptr<entt::SigH<void(bool, T)>> EditorWindow::promptConfirmati
 
 	confirmationText->setText(message);
 	gui->add(confirmationPanel);
+	confirmationPanelOpen = true;
 
 	return confirmationSignal;
 }
