@@ -290,6 +290,11 @@ public:
 		return nullptr;
 	}
 
+	/*
+	For testing.
+	*/
+	bool operator==(const EditorMovablePoint& other) const;
+
 private:
 	// ID is unique only to the attack. Not saved
 	int id;

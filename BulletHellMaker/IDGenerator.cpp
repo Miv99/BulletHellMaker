@@ -154,3 +154,7 @@ bool IDGenerator::idInUse(int id) {
 	
 	return true;
 }
+
+bool IDGenerator::operator==(const IDGenerator& other) const {
+	return ranges.size() == other.ranges.size() && std::equal(ranges.begin(), ranges.end(), other.ranges.begin());
+}

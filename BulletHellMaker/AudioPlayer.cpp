@@ -33,6 +33,12 @@ void MusicSettings::load(std::string formattedString) {
 	disabled = unformatBool(items[6]);
 }
 
+bool MusicSettings::operator==(const AudioSettings& other) const {
+	const MusicSettings& derived = dynamic_cast<const MusicSettings&>(other);
+	return AudioSettings::operator==(other) && loops == derived.loops && loopStartMilliseconds == derived.loopStartMilliseconds
+		&& loopLengthMilliseconds == derived.loopLengthMilliseconds && transitionTime == derived.transitionTime;
+}
+
 void AudioPlayer::update(float deltaTime) {
 	// Check if any sounds are done playing and remove it from the queue of sounds being played
 	while (!currentSounds.empty() && currentSounds.front()->getStatus() == sf::Sound::Status::Stopped) {
@@ -102,4 +108,8 @@ std::shared_ptr<sf::Music> AudioPlayer::playMusic(const MusicSettings& musicSett
 	timeSinceMusicTransitionStart = 0;
 
 	return music;
+}
+
+bool AudioSettings::operator==(const AudioSettings& other) const {
+	return fileName == other.fileName && volume == other.volume && pitch == other.pitch && disabled == other.disabled;
 }

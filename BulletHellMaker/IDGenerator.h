@@ -39,6 +39,11 @@ public:
 	*/
 	bool idInUse(int id);
 
+	/*
+	For testing.
+	*/
+	bool operator==(const IDGenerator& other) const;
+
 private:
 	std::vector<std::pair<int, int>> ranges;
 };

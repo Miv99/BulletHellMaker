@@ -29,6 +29,14 @@ public:
 	inline bool isSprite() const { return animatableIsSprite; }
 	inline ROTATION_TYPE getRotationType() const { return rotationType; }
 
+	/*
+	For testing.
+	*/
+	bool operator==(const Animatable& other) const {
+		return animatableName == other.animatableName && spriteSheetName == other.spriteSheetName
+			&& animatableIsSprite == other.animatableIsSprite && rotationType == other.rotationType;
+	}
+
 private:
 	// Name of sprite/animation
 	std::string animatableName;

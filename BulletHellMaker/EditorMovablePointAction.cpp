@@ -26,6 +26,11 @@ float EMPAAngleOffsetToPlayer::evaluate(float xFrom, float yFrom, float playerX,
 	return std::atan2(playerY + yOffset - yFrom, playerX + xOffset - xFrom);
 }
 
+bool EMPAAngleOffsetToPlayer::operator==(const EMPAAngleOffset& other) const {
+	const EMPAAngleOffsetToPlayer& derived = dynamic_cast<const EMPAAngleOffsetToPlayer&>(other);
+	return xOffset == derived.xOffset && yOffset == derived.yOffset;
+}
+
 std::shared_ptr<EMPAAngleOffset> EMPAAngleOffsetToGlobalPosition::clone() {
 	return std::make_shared<EMPAAngleOffsetToGlobalPosition>(x, y);
 }
@@ -48,6 +53,11 @@ float EMPAAngleOffsetToGlobalPosition::evaluate(float xFrom, float yFrom, float 
 	return std::atan2(y - yFrom, x - xFrom);
 }
 
+bool EMPAAngleOffsetToGlobalPosition::operator==(const EMPAAngleOffset& other) const {
+	const EMPAAngleOffsetToGlobalPosition& derived = dynamic_cast<const EMPAAngleOffsetToGlobalPosition&>(other);
+	return x == derived.x && y == derived.y;
+}
+
 std::shared_ptr<EMPAAngleOffset> EMPAAngleOffsetZero::clone() {
 	return std::make_shared<EMPAAngleOffsetZero>();
 }
@@ -57,6 +67,10 @@ std::string EMPAAngleOffsetZero::format() const {
 }
 
 void EMPAAngleOffsetZero::load(std::string formattedString) {
+}
+
+bool EMPAAngleOffsetZero::operator==(const EMPAAngleOffset& other) const {
+	return true;
 }
 
 std::shared_ptr<EMPAAngleOffset> EMPAAngleOffsetConstant::clone() {
@@ -70,6 +84,11 @@ std::string EMPAAngleOffsetConstant::format() const {
 void EMPAAngleOffsetConstant::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	value = std::stof(items[1]);
+}
+
+bool EMPAAngleOffsetConstant::operator==(const EMPAAngleOffset& other) const {
+	const EMPAAngleOffsetConstant& derived = dynamic_cast<const EMPAAngleOffsetConstant&>(other);
+	return value == derived.value;
 }
 
 std::shared_ptr<EMPAAngleOffset> EMPAngleOffsetPlayerSpriteAngle::clone() {
@@ -90,6 +109,10 @@ float EMPAngleOffsetPlayerSpriteAngle::evaluate(const entt::DefaultRegistry & re
 float EMPAngleOffsetPlayerSpriteAngle::evaluate(float xFrom, float yFrom, float playerX, float playerY) {
 	// The player's sprite angle cannot be determined, so just return 0
 	return 0;
+}
+
+bool EMPAngleOffsetPlayerSpriteAngle::operator==(const EMPAAngleOffset& other) const {
+	return true;
 }
 
 
@@ -127,6 +150,10 @@ std::shared_ptr<MovablePoint> DetachFromParentEMPA::generateStandaloneMP(float x
 	return std::make_shared<StationaryMP>(sf::Vector2f(x, y), 0);
 }
 
+bool DetachFromParentEMPA::operator==(const EMPAction& other) const {
+	return true;
+}
+
 std::shared_ptr<EMPAction> StayStillAtLastPositionEMPA::clone() {
 	std::shared_ptr<StayStillAtLastPositionEMPA> copy = std::make_shared<StayStillAtLastPositionEMPA>();
 	copy->load(format());
@@ -159,6 +186,11 @@ std::shared_ptr<MovablePoint> StayStillAtLastPositionEMPA::execute(EntityCreatio
 
 std::shared_ptr<MovablePoint> StayStillAtLastPositionEMPA::generateStandaloneMP(float x, float y, float playerX, float playerY) {
 	return std::make_shared<StationaryMP>(sf::Vector2f(x, y), duration);
+}
+
+bool StayStillAtLastPositionEMPA::operator==(const EMPAction& other) const {
+	const StayStillAtLastPositionEMPA& derived = dynamic_cast<const StayStillAtLastPositionEMPA&>(other);
+	return duration == derived.duration;
 }
 
 std::shared_ptr<EMPAction> MoveCustomPolarEMPA::clone() {
@@ -213,6 +245,11 @@ std::shared_ptr<MovablePoint> MoveCustomPolarEMPA::generateStandaloneMP(float x,
 	}
 }
 
+bool MoveCustomPolarEMPA::operator==(const EMPAction& other) const {
+	const MoveCustomPolarEMPA& derived = dynamic_cast<const MoveCustomPolarEMPA&>(other);
+	return *distance == *derived.distance && *angle == *derived.angle && time == derived.time && ((!angleOffset && !derived.angleOffset) || *angleOffset == *derived.angleOffset);
+}
+
 std::shared_ptr<EMPAction> MoveCustomBezierEMPA::clone() {
 	std::shared_ptr<MoveCustomBezierEMPA> copy = std::make_shared<MoveCustomBezierEMPA>();
 	copy->load(format());
@@ -233,7 +270,6 @@ void MoveCustomBezierEMPA::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	time = std::stof(items[1]);
 	rotationAngle = EMPAngleOffsetFactory::create(items[2]);
-	controlPoints.clear();
 	unrotatedControlPoints.clear();
 	int i;
 	for (i = 3; i < items.size(); i += 2) {
@@ -257,11 +293,14 @@ std::shared_ptr<MovablePoint> MoveCustomBezierEMPA::execute(EntityCreationQueue 
 		float radians = rotationAngle->evaluate(registry, lastPos.getX(), lastPos.getY());
 		float cos = std::cos(radians);
 		float sin = std::sin(radians);
+
+		std::vector<sf::Vector2f> controlPoints;
 		// Skip the first control point since it's always going to be (0, 0)
 		for (int i = 1; i < unrotatedControlPoints.size(); i++) {
-			controlPoints[i].x = unrotatedControlPoints[i].x * cos - unrotatedControlPoints[i].y * sin;
-			controlPoints[i].y = unrotatedControlPoints[i].x * sin + unrotatedControlPoints[i].y * cos;
+			controlPoints.push_back(sf::Vector2f(unrotatedControlPoints[i].x * cos - unrotatedControlPoints[i].y * sin,
+				unrotatedControlPoints[i].x * sin + unrotatedControlPoints[i].y * cos));
 		}
+
 		return std::make_shared<BezierMP>(time, controlPoints);
 	} else {
 		return std::make_shared<BezierMP>(time, unrotatedControlPoints);
@@ -274,15 +313,25 @@ std::shared_ptr<MovablePoint> MoveCustomBezierEMPA::generateStandaloneMP(float x
 		float radians = rotationAngle->evaluate(x, y, playerX, playerY);
 		float cos = std::cos(radians);
 		float sin = std::sin(radians);
+
+		std::vector<sf::Vector2f> controlPoints;
 		// Skip the first control point since it's always going to be (0, 0)
 		for (int i = 1; i < unrotatedControlPoints.size(); i++) {
-			controlPoints[i].x = unrotatedControlPoints[i].x * cos - unrotatedControlPoints[i].y * sin;
-			controlPoints[i].y = unrotatedControlPoints[i].x * sin + unrotatedControlPoints[i].y * cos;
+			controlPoints.push_back(sf::Vector2f(unrotatedControlPoints[i].x * cos - unrotatedControlPoints[i].y * sin,
+				unrotatedControlPoints[i].x * sin + unrotatedControlPoints[i].y * cos));
 		}
+
 		return std::make_shared<BezierMP>(time, controlPoints);
 	} else {
 		return std::make_shared<BezierMP>(time, unrotatedControlPoints);
 	}
+}
+
+bool MoveCustomBezierEMPA::operator==(const EMPAction& other) const {
+	const MoveCustomBezierEMPA& derived = dynamic_cast<const MoveCustomBezierEMPA&>(other);
+	return time == derived.time && ((!rotationAngle && !derived.rotationAngle) || *rotationAngle == *derived.rotationAngle)
+		&& unrotatedControlPoints.size() == derived.unrotatedControlPoints.size()
+		&& std::equal(unrotatedControlPoints.begin(), unrotatedControlPoints.end(), derived.unrotatedControlPoints.begin());
 }
 
 std::shared_ptr<EMPAction> MovePlayerHomingEMPA::clone() {
@@ -315,6 +364,11 @@ std::shared_ptr<MovablePoint> MovePlayerHomingEMPA::execute(EntityCreationQueue 
 
 std::shared_ptr<MovablePoint> MovePlayerHomingEMPA::generateStandaloneMP(float x, float y, float playerX, float playerY) {
 	return std::make_shared<HomingMP>(time, speed, homingStrength, x, y, playerX, playerY);
+}
+
+bool MovePlayerHomingEMPA::operator==(const EMPAction& other) const {
+	const MovePlayerHomingEMPA& derived = dynamic_cast<const MovePlayerHomingEMPA&>(other);
+	return *homingStrength == *derived.homingStrength && *speed == *derived.speed && time == derived.time;
 }
 
 std::shared_ptr<EMPAction> EMPActionFactory::create(std::string formattedString) {

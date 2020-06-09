@@ -46,6 +46,11 @@ public:
 	inline void setX(float x) { this->x = x; }
 	inline void setY(float y) { this->y = y; }
 
+	/*
+	For testing.
+	*/
+	bool operator==(const EMPSpawnType& other) const;
+
 protected:
 	// Time when this EMP is spawned with t=0 being the spawning of this EMP's reference
 	// This is ignored and the EMP is spawned instantly if it is the main EMP of an Attack

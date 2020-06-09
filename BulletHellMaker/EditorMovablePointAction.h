@@ -32,6 +32,8 @@ public:
 	virtual float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) = 0;
 	// Same as the other evaluate, but for when only the player's position is known
 	virtual float evaluate(float xFrom, float yFrom, float playerX, float playerY) = 0;
+
+	virtual bool operator==(const EMPAAngleOffset& other) const = 0;
 };
 
 /*
@@ -55,6 +57,8 @@ public:
 	void setYOffset(float y) { yOffset = y; }
 	float getXOffset() { return xOffset; }
 	float getYOffset() { return yOffset; }
+
+	bool operator==(const EMPAAngleOffset& other) const override;
 
 private:
 	float xOffset = 0;
@@ -84,6 +88,8 @@ public:
 	float getX() { return x; }
 	float getY() { return y; }
 
+	bool operator==(const EMPAAngleOffset& other) const override;
+
 private:
 	float x = 0;
 	float y = 0;
@@ -105,6 +111,8 @@ public:
 	// Returns 0
 	inline float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override { return 0; }
 	inline float evaluate(float xFrom, float yFrom, float playerX, float playerY) override { return 0; }
+
+	bool operator==(const EMPAAngleOffset& other) const override;
 };
 
 /*
@@ -127,6 +135,8 @@ public:
 	inline float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override { return value; }
 	inline float evaluate(float xFrom, float yFrom, float playerX, float playerY) override { return value; }
 
+	bool operator==(const EMPAAngleOffset& other) const override;
+
 private:
 	float value = 0;
 };
@@ -146,6 +156,8 @@ public:
 
 	float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override;
 	float evaluate(float xFrom, float yFrom, float playerX, float playerY) override;
+
+	bool operator==(const EMPAAngleOffset& other) const override;
 };
 
 class EMPAngleOffsetFactory {
@@ -184,6 +196,8 @@ public:
 	x, y - the current position of whatever is going to use this MP
 	*/
 	virtual std::shared_ptr<MovablePoint> generateStandaloneMP(float x, float y, float playerX, float playerY) = 0;
+
+	virtual bool operator==(const EMPAction& other) const = 0;
 };
 
 /*
@@ -206,6 +220,8 @@ public:
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 	std::shared_ptr<MovablePoint> generateStandaloneMP(float x, float y, float playerX, float playerY) override;
+
+	bool operator==(const EMPAction& other) const override;
 };
 
 /*
@@ -226,6 +242,8 @@ public:
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 	std::shared_ptr<MovablePoint> generateStandaloneMP(float x, float y, float playerX, float playerY) override;
+
+	bool operator==(const EMPAction& other) const override;
 
 private:
 	float duration = 0;
@@ -256,6 +274,8 @@ public:
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 	std::shared_ptr<MovablePoint> generateStandaloneMP(float x, float y, float playerX, float playerY) override;
+
+	bool operator==(const EMPAction& other) const override;
 
 private:
 	std::shared_ptr<TFV> distance;
@@ -292,16 +312,15 @@ public:
 	inline void setTime(float duration) override { this->time = duration; }
 	inline void setUnrotatedControlPoints(std::vector<sf::Vector2f> unrotatedControlPoints) { 
 		this->unrotatedControlPoints = unrotatedControlPoints;
-		controlPoints = std::vector<sf::Vector2f>(unrotatedControlPoints);
 	}
 	inline void setRotationAngle(std::shared_ptr<EMPAAngleOffset> rotationAngle) { this->rotationAngle = rotationAngle; }
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 	std::shared_ptr<MovablePoint> generateStandaloneMP(float x, float y, float playerX, float playerY) override;
 
+	bool operator==(const EMPAction& other) const override;
+
 private:
-	// The first control point must be at (0, 0)
-	std::vector<sf::Vector2f> controlPoints;
 	// How long movement will last
 	float time = 0;
 	// Evaluates to the angle in radians that every control point will be rotated by (pivot at (0, 0))
@@ -335,6 +354,8 @@ public:
 	inline std::shared_ptr<TFV> getHomingStrength() { return homingStrength; }
 	inline std::shared_ptr<TFV> getSpeed() { return speed; }
 	inline float getTime() override { return time; }
+
+	bool operator==(const EMPAction& other) const override;
 
 private:
 	// In range (0, 1]

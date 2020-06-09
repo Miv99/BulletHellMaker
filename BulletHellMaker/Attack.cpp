@@ -77,3 +77,11 @@ std::vector<std::vector<sf::String>> EditorAttack::generateTreeViewHierarchy(std
 	}
 	return empTree;
 }
+
+bool EditorAttack::operator==(const EditorAttack& other) const {
+	return empIDGen == other.empIDGen && id == other.id && name == other.name
+		&& *mainEMP == *other.mainEMP && playAttackAnimation == other.playAttackAnimation
+		// Compare bulletModelsCount
+		&& bulletModelsCount.size() == other.bulletModelsCount.size()
+		&& std::equal(bulletModelsCount.begin(), bulletModelsCount.end(), other.bulletModelsCount.begin());
+}

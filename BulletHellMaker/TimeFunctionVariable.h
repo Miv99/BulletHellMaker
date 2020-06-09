@@ -39,6 +39,11 @@ public:
 
 	virtual float evaluate(float time) = 0;
 
+	/*
+	For testing.
+	*/
+	virtual bool operator==(const TFV& other) const = 0;
+
 protected:
 	// The lifespan of the TFV
 	// Note that some types of TFVs don't need to know its own lifespan for evaluation
@@ -71,6 +76,8 @@ public:
 	inline void setStartValue(float startValue) { this->startValue = startValue; }
 	inline void setEndValue(float endValue) { this->endValue = endValue; }
 
+	bool operator==(const TFV& other) const override;
+
 private:
 	float startValue = 0;
 	float endValue = 0;
@@ -97,6 +104,8 @@ public:
 
 	inline void setValue(float value) { this->value = value; }
 	inline float getValue() { return value; }
+
+	bool operator==(const TFV& other) const override;
 
 private:
 	float value = 0;
@@ -134,6 +143,8 @@ public:
 	inline float getValueShift() { return valueShift; }
 	inline float getPhaseShift() { return phaseShift; }
 
+	bool operator==(const TFV& other) const override;
+
 private:
 	float period = 1;
 	float amplitude = 1;
@@ -168,6 +179,8 @@ public:
 	inline float getInitialDistance() { return initialDistance; }
 	inline float getInitialVelocity() { return initialVelocity; }
 	inline float getAcceleration() { return acceleration; }
+
+	bool operator==(const TFV& other) const override;
 
 private:
 	float initialDistance = 0;
@@ -221,6 +234,8 @@ public:
 	inline float getEndValue() { return endValue; }
 	inline int getDampeningFactor() { return dampeningFactor; }
 
+	bool operator==(const TFV& other) const override;
+
 private:
 	// Calculated value to scale graph correctly
 	float a;
@@ -273,6 +288,8 @@ public:
 	inline float getStartValue() { return startValue; }
 	inline float getEndValue() { return endValue; }
 	inline int getDampeningFactor() { return dampeningFactor; }
+
+	bool operator==(const TFV& other) const override;
 
 private:
 	// Calculated value to scale graph correctly
@@ -332,6 +349,8 @@ public:
 	inline float getEndValue() { return endValue; }
 	inline int getDampeningFactor() { return dampeningFactor; }
 
+	bool operator==(const TFV& other) const override;
+
 private:
 	// Calculated value to scale graph correctly
 	float a;
@@ -362,6 +381,8 @@ public:
 		return valueTranslation + wrappedTFV->evaluate(time);
 	}
 
+	bool operator==(const TFV& other) const override;
+
 private:
 	std::shared_ptr<TFV> wrappedTFV;
 	float valueTranslation;
@@ -384,7 +405,7 @@ public:
 	to - the entity being pointed to
 	*/
 	inline CurrentAngleTFV(entt::DefaultRegistry& registry, uint32_t from, uint32_t to) : registry(registry), from(from), to(to) {
-		assert(registry.has<PositionComponent>(from) && registry.has<PositionComponent>(to) && registry.has<HitboxComponent>(to) && registry.has<HitboxComponent>(to));
+		assert(registry.has<PositionComponent>(from) && registry.has<PositionComponent>(to) && registry.has<HitboxComponent>(from) && registry.has<HitboxComponent>(to));
 	}
 	std::shared_ptr<TFV> clone() override;
 
@@ -405,6 +426,8 @@ public:
 		auto& toHitbox = registry.get<HitboxComponent>(to);
 		return std::atan2((toPos.getY() + toHitbox.getY()) - (fromPos.getY() + fromHitbox.getY()), (toPos.getX() + toHitbox.getX()) - (fromPos.getX() + fromHitbox.getX()));
 	}
+
+	bool operator==(const TFV& other) const override;
 
 private:
 	entt::DefaultRegistry& registry;
@@ -481,12 +504,12 @@ public:
 	int getSegmentsCount();
 	void setMaxTime(float maxTime) override;
 
+	bool operator==(const TFV& other) const override;
+
 private:
 	// Vector of pairs of when the TFV becomes active and the TFV. The first item should become active at t=0.
 	// Sorted in ascending order
 	std::vector<std::pair<float, std::shared_ptr<TFV>>> segments;
-	// Maintained to be in parallel with segments. Corresponds to the proportion of the maxTime of this PiecewiseTFV that the segment takes up.
-	std::vector<float> segmentStartTimePercentages;
 
 	/*
 	Recalculate the maxTimes of every segment

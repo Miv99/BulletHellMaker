@@ -20,6 +20,8 @@ public:
 	inline void setPitch(float pitch) { this->pitch = pitch; }
 	inline void setDisabled(bool disabled) { this->disabled = disabled; }
 
+	virtual bool operator==(const AudioSettings& other) const;
+
 protected:
 	std::string fileName = "";
 
@@ -91,6 +93,8 @@ public:
 	inline void setLoopStartMilliseconds(int loopStartMilliseconds) { this->loopStartMilliseconds = loopStartMilliseconds; }
 	inline void setLoopLengthMilliseconds(int loopStartMilliseconds) { this->loopLengthMilliseconds = loopLengthMilliseconds; }
 	inline void setTransitionTime(float transitionTime) { this->transitionTime = transitionTime; }
+
+	bool operator==(const AudioSettings& other) const override;
 
 private:
 	bool loops = false;

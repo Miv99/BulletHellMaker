@@ -78,6 +78,11 @@ public:
 	*/
 	std::vector<std::vector<sf::String>> generateTreeViewHierarchy(std::function<sf::String(const EditorAttack&)> attackText, std::function<sf::String(const EditorMovablePoint&)> empText) const;
 
+	/*
+	For testing.
+	*/
+	bool operator==(const EditorAttack& other) const;
+
 private:
 	// The ID generator for EMPs in this attack
 	IDGenerator empIDGen;

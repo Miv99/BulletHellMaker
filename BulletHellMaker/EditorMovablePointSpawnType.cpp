@@ -92,3 +92,7 @@ std::shared_ptr<EMPSpawnType> EMPSpawnTypeFactory::create(std::string formattedS
 	ptr->load(formattedString);
 	return ptr;
 }
+
+bool EMPSpawnType::operator==(const EMPSpawnType& other) const {
+	return time == other.time && x == other.x && y == other.y;
+}

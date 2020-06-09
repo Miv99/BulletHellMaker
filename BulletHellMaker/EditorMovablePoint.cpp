@@ -4,6 +4,7 @@
 #include "LevelPack.h"
 
 EditorMovablePoint::EditorMovablePoint(IDGenerator* idGen, bool setID, std::map<int, int>* bulletModelsCount) : idGen(idGen), bulletModelsCount(bulletModelsCount) {
+	this->idGen = idGen;
 	if (setID) {
 		id = idGen->generateID();
 		idResolved = true;
@@ -118,6 +119,9 @@ void EditorMovablePoint::load(std::string formattedString) {
 	// If load() is being called while this object is already loaded, decrement bulletModelsCount to prevent double-counting
 	if (bulletModelID > 0 && bulletModelsCount->count(bulletModelID) > 0) {
 		bulletModelsCount->at(bulletModelID)--;
+		if (bulletModelsCount->at(bulletModelID) == 0) {
+			bulletModelsCount->erase(bulletModelID);
+		}
 	}
 
 	bulletModelID = std::stoi(items[i++]);
@@ -239,6 +243,9 @@ void EditorMovablePoint::setBulletModel(std::shared_ptr<BulletModel> model) {
 	// Decrement bulletModelsCount of old model, if any
 	if (bulletModelID >= 0) {
 		bulletModelsCount->at(bulletModelID)--;
+		if (bulletModelsCount->at(bulletModelID) == 0) {
+			bulletModelsCount->erase(bulletModelID);
+		}
 	}
 
 	bulletModelID = model->getID();
@@ -272,6 +279,9 @@ void EditorMovablePoint::removeBulletModel() {
 	// Decrement bulletModelsCount of old model, if any
 	if (bulletModelID >= 0) {
 		bulletModelsCount->at(bulletModelID)--;
+		if (bulletModelsCount->at(bulletModelID) == 0) {
+			bulletModelsCount->erase(bulletModelID);
+		}
 	}
 
 	bulletModelID = -1;
@@ -414,6 +424,37 @@ std::vector<sf::String> EditorMovablePoint::generatePathToThisEmp(std::function<
 	}
 
 	return ret;
+}
+
+bool EditorMovablePoint::operator==(const EditorMovablePoint& other) const {
+	if (children.size() != other.children.size()) {
+		return false;
+	}
+	for (int i = 0; i < children.size(); i++) {
+		if (!(*children[i] == *other.children[i])) {
+			return false;
+		}
+	}
+	if (actions.size() != other.actions.size()) {
+		return false;
+	}
+	for (int i = 0; i < actions.size(); i++) {
+		if (!(*actions[i] == *other.actions[i])) {
+			return false;
+		}
+	}
+	return id == other.id && isBullet == other.isBullet && hitboxRadius == other.hitboxRadius
+		&& despawnTime == other.despawnTime && *spawnType == *other.spawnType
+		&& shadowTrailInterval == other.shadowTrailInterval && shadowTrailLifespan == other.shadowTrailLifespan
+		&& animatable == other.animatable && loopAnimation == other.loopAnimation
+		&& baseSprite == other.baseSprite && damage == other.damage && onCollisionAction == other.onCollisionAction
+		&& pierceResetTime == other.pierceResetTime && soundSettings == other.soundSettings
+		&& bulletModelID == other.bulletModelID 
+		&& inheritRadius == other.inheritRadius && inheritDespawnTime == other.inheritDespawnTime
+		&& inheritShadowTrailInterval == other.inheritShadowTrailInterval && inheritShadowTrailLifespan == other.inheritShadowTrailLifespan
+		&& inheritAnimatables == other.inheritAnimatables && inheritDamage == other.inheritDamage && inheritSoundSettings == other.inheritSoundSettings
+		&& bulletModelsCount->size() == other.bulletModelsCount->size()
+		&& std::equal(bulletModelsCount->begin(), bulletModelsCount->end(), other.bulletModelsCount->begin());
 }
 
 void EditorMovablePoint::copyConstructorLoad(std::string formattedString) {
