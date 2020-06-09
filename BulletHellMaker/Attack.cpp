@@ -21,6 +21,7 @@ void EditorAttack::load(std::string formattedString) {
 	id = std::stoi(items[0]);
 	name = items[1];
 	bulletModelsCount.clear();
+	empIDGen = IDGenerator();
 	mainEMP = std::make_shared<EditorMovablePoint>(&empIDGen, false, &bulletModelsCount);
 	mainEMP->load(items[2]);
 	playAttackAnimation = unformatBool(items[3]);

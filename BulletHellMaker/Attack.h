@@ -90,7 +90,7 @@ private:
 	// When the attack is executed, the mainEMP is spawned instantly. Its spawn type's time is ignored.
 	std::shared_ptr<EditorMovablePoint> mainEMP;
 	// Whether or not to play the enemy's attack animation with this attack
-	bool playAttackAnimation;
+	bool playAttackAnimation = true;
 
 	// Map that maps the bullet model ids used by this EMP and all children EMP to the number of times
 	// that bullet model id is used.
