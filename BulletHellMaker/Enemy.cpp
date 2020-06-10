@@ -1,5 +1,17 @@
 #include "Enemy.h"
 
+EditorEnemy::EditorEnemy(std::shared_ptr<const EditorEnemy> copy) {
+	load(copy->format());
+}
+
+EditorEnemy::EditorEnemy(const EditorEnemy* copy) {
+	load(copy->format());
+}
+
+std::shared_ptr<LevelPackObject> EditorEnemy::clone() const {
+	return std::static_pointer_cast<LevelPackObject>(std::make_shared<EditorEnemy>(this));
+}
+
 std::string EditorEnemy::format() const {
 	std::string res = tos(id) + formatString(name) + tos(hitboxRadius) + tos(health) + tos(despawnTime) + tos(phaseIDs.size());
 	for (auto t : phaseIDs) {
@@ -45,6 +57,11 @@ void EditorEnemy::load(std::string formattedString) {
 	isBoss = unformatBool(items[i++]);
 	hurtSound.load(items[i++]);
 	deathSound.load(items[i++]);
+}
+
+std::pair<bool, std::string> EditorEnemy::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+	// TODO: implement this
+	return std::pair<bool, std::string>();
 }
 
 bool EditorEnemy::legal(std::string& message) const {

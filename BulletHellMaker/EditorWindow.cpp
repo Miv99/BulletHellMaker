@@ -4,6 +4,7 @@
 #include "EnemyPhase.h"
 #include "Level.h"
 #include "AttackEditorPanel.h"
+#include "LevelPackObjectsListPanel.h"
 #include <algorithm>
 #include <boost/date_time.hpp>
 #include <sstream>
@@ -373,21 +374,6 @@ void EditorWindow::closeConfirmationPanel() {
 	widgetsToBeEnabledAfterConfirmationPrompt.clear();
 }
 
-AttacksListPanel::AttacksListPanel(MainEditorWindow& mainEditorWindow, Clipboard& clipboard) : mainEditorWindow(mainEditorWindow), clipboard(clipboard) {
-
-}
-
-bool AttacksListPanel::handleEvent(sf::Event event) {
-	if (mainEditorWindow.getAttacksListView()->handleEvent(event)) {
-		return true;
-	}
-	return false;
-}
-
-void AttacksListPanel::setLevelPack(LevelPack* levelPack) {
-	this->levelPack = levelPack;
-}
-
 MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval)
 	: EditorWindow(tguiMutex, windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval) {
 	std::lock_guard<std::recursive_mutex> lock(*tguiMutex);
@@ -402,7 +388,7 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 	{
 		// Attacks tab in left panel
 		attacksListView = AttacksListView::create(*this, clipboard);
-		attacksListPanel = AttacksListPanel::create(*this, clipboard);
+		attacksListPanel = LevelPackObjectsListPanel::create(*this, clipboard);
 		{
 			// Add button
 			auto attacksAddButton = tgui::Button::create();
@@ -532,7 +518,7 @@ void MainEditorWindow::overwriteAttacks(std::vector<std::shared_ptr<EditorAttack
 	for (std::shared_ptr<EditorAttack> attack : attacks) {
 		int id = attack->getID();
 		if (unsavedAttacks.count(id) > 0) {
-			oldAttacks.push_back(std::make_shared<EditorAttack>(unsavedAttacks[id]));
+			oldAttacks.push_back(std::dynamic_pointer_cast<EditorAttack>(unsavedAttacks[id]->clone()));
 		} else {
 			oldAttacks.push_back(std::make_shared<EditorAttack>(levelPack->getAttack(id)));
 		}
@@ -545,9 +531,9 @@ void MainEditorWindow::overwriteAttacks(std::vector<std::shared_ptr<EditorAttack
 
 				// Overwrite existing EditorAttack
 				if (unsavedAttacks.count(id) > 0) {
-					unsavedAttacks[id]->load(attack->format());
+					std::dynamic_pointer_cast<EditorAttack>(unsavedAttacks[id])->load(attack->format());
 				} else {
-					unsavedAttacks[id] = std::make_shared<EditorAttack>(attack);
+					unsavedAttacks[id] = std::dynamic_pointer_cast<LevelPackObject>(std::make_shared<EditorAttack>(attack));
 				}
 
 				reloadAttackTab(id);
@@ -559,9 +545,9 @@ void MainEditorWindow::overwriteAttacks(std::vector<std::shared_ptr<EditorAttack
 
 				// Overwrite existing EditorAttack
 				if (unsavedAttacks.count(id) > 0) {
-					unsavedAttacks[id]->load(attack->format());
+					std::dynamic_pointer_cast<EditorAttack>(unsavedAttacks[id])->load(attack->format());
 				} else {
-					unsavedAttacks[id] = std::make_shared<EditorAttack>(attack);
+					unsavedAttacks[id] = std::dynamic_pointer_cast<LevelPackObject>(std::make_shared<EditorAttack>(attack));
 				}
 
 				reloadAttackTab(id);
@@ -576,9 +562,9 @@ void MainEditorWindow::overwriteAttacks(std::vector<std::shared_ptr<EditorAttack
 
 			// Overwrite existing EditorAttack
 			if (unsavedAttacks.count(id) > 0) {
-				unsavedAttacks[id]->load(attack->format());
+				std::dynamic_pointer_cast<EditorAttack>(unsavedAttacks[id])->load(attack->format());
 			} else {
-				unsavedAttacks[id] = std::make_shared<EditorAttack>(attack);
+				unsavedAttacks[id] = std::dynamic_pointer_cast<LevelPackObject>(std::make_shared<EditorAttack>(attack));
 			}
 
 			reloadAttackTab(id);
@@ -612,7 +598,7 @@ void MainEditorWindow::openLeftPanelAttack(int attackID) {
 	std::shared_ptr<EditorAttack> openedAttack;
 	if (unsavedAttacks.count(attackID) > 0) {
 		// There are unsaved changes for this attack, so open the one with unsaved changes
-		openedAttack = unsavedAttacks[attackID];
+		openedAttack = std::dynamic_pointer_cast<EditorAttack>(unsavedAttacks[attackID]);
 	} else {
 		// Make a copy of the attack in the LevelPack so that changes can be applied/discarded
 		// whenever the user wants instead of modifying the LevelPack directly.
@@ -630,7 +616,7 @@ void MainEditorWindow::openLeftPanelAttack(int attackID) {
 			openLeftPanelAttackPattern(attackPatternID);
 		});
 		attackEditorPanel->connect("AttackModified", [&](std::shared_ptr<EditorAttack> attack) {
-			unsavedAttacks[attack->getID()] = attack;
+			unsavedAttacks[attack->getID()] = std::dynamic_pointer_cast<LevelPackObject>(attack);
 			attacksListView->reload();
 		});
 		mainPanel->addTab(format(MAIN_PANEL_ATTACK_TAB_NAME_FORMAT, attackID), attackEditorPanel, true, true);
@@ -656,7 +642,7 @@ void MainEditorWindow::reloadAttackTab(int attackID) {
 		std::shared_ptr<EditorAttack> openedAttack;
 		if (unsavedAttacks.count(attackID) > 0) {
 			// There are unsaved changes for this attack, so open the one with unsaved changes
-			openedAttack = unsavedAttacks[attackID];
+			openedAttack = std::dynamic_pointer_cast<EditorAttack>(unsavedAttacks[attackID]);
 		} else if (levelPack->hasAttack(attackID)) {
 			// Make a copy of the attack in the LevelPack so that changes can be applied/discarded
 			// whenever the user wants instead of modifying the LevelPack directly.
@@ -672,23 +658,39 @@ void MainEditorWindow::reloadAttackTab(int attackID) {
 			openLeftPanelAttackPattern(attackPatternID);
 		});
 		attackEditorPanel->connect("AttackModified", [&](std::shared_ptr<EditorAttack> attack) {
-			unsavedAttacks[attack->getID()] = attack;
+			unsavedAttacks[attack->getID()] = std::dynamic_pointer_cast<LevelPackObject>(attack);
 			attacksListView->reload();
 		});
 		mainPanel->insertTab(format(MAIN_PANEL_ATTACK_TAB_NAME_FORMAT, attackID), attackEditorPanel, tabIndex, tabWasSelected, true);
 	}
 }
 
-std::shared_ptr<AttacksListView> MainEditorWindow::getAttacksListView() {
+std::shared_ptr<LevelPackObjectsListView> MainEditorWindow::getAttacksListView() {
 	return attacksListView;
 }
 
-std::shared_ptr<AttacksListPanel> MainEditorWindow::getAttacksListPanel() {
+std::shared_ptr<LevelPackObjectsListPanel> MainEditorWindow::getAttacksListPanel() {
 	return attacksListPanel;
 }
 
-std::map<int, std::shared_ptr<EditorAttack>>& MainEditorWindow::getUnsavedAttacks() {
+std::map<int, std::shared_ptr<LevelPackObject>>& MainEditorWindow::getUnsavedAttacks() {
 	return unsavedAttacks;
+}
+
+std::map<int, std::shared_ptr<LevelPackObject>>& MainEditorWindow::getUnsavedAttackPatterns() {
+	return unsavedAttackPatterns;
+}
+
+std::map<int, std::shared_ptr<LevelPackObject>>& MainEditorWindow::getUnsavedEnemies() {
+	return unsavedEnemies;
+}
+
+std::map<int, std::shared_ptr<LevelPackObject>>& MainEditorWindow::getUnsavedEnemyPhases() {
+	return unsavedEnemyPhases;
+}
+
+std::map<int, std::shared_ptr<LevelPackObject>>& MainEditorWindow::getUnsavedBulletModels() {
+	return unsavedBulletModels;
 }
 
 void MainEditorWindow::createAttack() {

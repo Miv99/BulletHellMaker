@@ -46,6 +46,14 @@ EditorMovablePoint::EditorMovablePoint(std::shared_ptr<const EditorMovablePoint>
 	copyConstructorLoad(copy->format());
 }
 
+EditorMovablePoint::EditorMovablePoint(const EditorMovablePoint* copy) {
+	copyConstructorLoad(copy->format());
+}
+
+std::shared_ptr<LevelPackObject> EditorMovablePoint::clone() const {
+	return std::static_pointer_cast<LevelPackObject>(std::make_shared<EditorMovablePoint>(this));
+}
+
 std::string EditorMovablePoint::format() const {
 	std::string res = "";
 
@@ -552,6 +560,18 @@ void EditorMovablePoint::recursiveDeleteID() {
 	}
 }
 
+BulletModel::BulletModel(std::shared_ptr<const BulletModel> copy) {
+	load(copy->format());
+}
+
+BulletModel::BulletModel(const BulletModel* copy) {
+	load(copy->format());
+}
+
+std::shared_ptr<LevelPackObject> BulletModel::clone() const {
+	return std::static_pointer_cast<LevelPackObject>(std::make_shared<BulletModel>(this));
+}
+
 std::string BulletModel::format() const {
 	return tos(id) + formatString(name) + tos(hitboxRadius) + tos(despawnTime) + tos(shadowTrailInterval) + tos(shadowTrailLifespan)
 		+ formatTMObject(animatable) + formatBool(loopAnimation) + formatTMObject(baseSprite) + tos(damage) + formatBool(playSoundOnSpawn)
@@ -577,6 +597,11 @@ void BulletModel::load(std::string formattedString) {
 
 	playSoundOnSpawn = unformatBool(items[10]);
 	soundSettings.load(items[11]);
+}
+
+std::pair<bool, std::string> BulletModel::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+	//TODO: implement this
+	return std::pair<bool, std::string>();
 }
 
 void BulletModel::onModelChange() {

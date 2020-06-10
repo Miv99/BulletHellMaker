@@ -11,6 +11,7 @@
 #include "Animatable.h"
 #include "DeathAction.h"
 #include "Components.h"
+#include "LevelPackObject.h"
 
 /*
 An enemy in the editor.
@@ -18,20 +19,36 @@ Spawned by EnemySpawn.
 
 The first PhaseStartCondition must be set such that the enemy is always in a phase.
 */
-class EditorEnemy : public TextMarshallable {
+class EditorEnemy : public LevelPackObject, public TextMarshallable {
 public:
 	inline EditorEnemy() {}
-	inline EditorEnemy(int id) : id(id) {}
+	inline EditorEnemy(int id) {
+		this->id = id;
+	}
+	/*
+	Copy constructor.
+	*/
+	EditorEnemy(std::shared_ptr<const EditorEnemy> copy);
+	/*
+	Copy constructor.
+	*/
+	EditorEnemy(const EditorEnemy* copy);
+
+	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	std::pair<bool, std::string> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const;
 	bool legal(std::string& message) const;
 
-	inline int getID() const { return id; }
+	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; }
+	inline void setHealth(int health) { this->health = health; }
+	inline void setDespawnTime(float despawnTime) { this->despawnTime = despawnTime; }
+	inline void setIsBoss(bool isBoss) { this->isBoss = isBoss; }
+
 	inline std::tuple<std::shared_ptr<EnemyPhaseStartCondition>, int, EntityAnimatableSet> getPhaseData(int index) const { return phaseIDs[index]; }
 	inline int getPhasesCount() const { return phaseIDs.size(); }
-	inline std::string getName() const { return name; }
 	inline float getHitboxRadius() const { return hitboxRadius; }
 	inline int getHealth() const { return health; }
 	inline float getDespawnTime() const { return despawnTime; }
@@ -45,12 +62,6 @@ public:
 
 	inline void addDeathAction(std::shared_ptr<DeathAction> action) { deathActions.push_back(action); }
 	inline void removeDeathAction(int index) { deathActions.erase(deathActions.begin() + index); }
-
-	inline void setName(std::string name) { this->name = name; }
-	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; }
-	inline void setHealth(int health) { this->health = health; }
-	inline void setDespawnTime(float despawnTime) { this->despawnTime = despawnTime; }
-	inline void setIsBoss(bool isBoss) { this->isBoss = isBoss; }
 
 	inline void addPhaseID(int index, std::shared_ptr<EnemyPhaseStartCondition> startCondition, int phaseID, EntityAnimatableSet animatableSet) {
 		phaseIDs.insert(phaseIDs.begin() + index, std::make_tuple(startCondition, phaseID, animatableSet));
@@ -73,14 +84,10 @@ public:
 	}
 
 private:
-	// ID of the enemy
-	int id;
-	// User-defined name of the enemy
-	std::string name;
 	// Radius of the hitbox associated with this enemy
-	float hitboxRadius;
+	float hitboxRadius = 0;
 	// Health and maximum health of this enemy
-	int health;
+	int health = 1000;
 	// Time it takes for this enemy to despawn. Set < 0 if it should not despawn
 	float despawnTime = -1;
 	// Tuple of: the condition to start the phase, the phase ID, and the animatable set used by the enenemy while in that phase

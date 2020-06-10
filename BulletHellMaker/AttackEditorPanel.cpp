@@ -72,9 +72,12 @@ void AttackEditorPropertiesPanel::pasteInto(std::shared_ptr<CopiedObject> pasted
 
 void AttackEditorPropertiesPanel::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 	// Paste the first copied EditorAttack to override attack's properties
-	auto derived = std::static_pointer_cast<CopiedEditorAttack>(pastedObject);
+	auto derived = std::static_pointer_cast<CopiedLevelPackObject>(pastedObject);
 	if (derived) {
-		std::vector<std::shared_ptr<EditorAttack>> copiedAttacks = derived->getAttacks();
+		std::vector<std::shared_ptr<EditorAttack>> copiedAttacks;
+		for (auto obj : derived->getLevelPackObjects()) {
+			copiedAttacks.push_back(std::dynamic_pointer_cast<EditorAttack>(obj));
+		}
 		if (copiedAttacks.size() > 0) {
 			std::shared_ptr<EditorAttack> newAttack = std::make_shared<EditorAttack>(attack);
 			newAttack->setName(copiedAttacks[0]->getName());

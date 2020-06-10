@@ -16,7 +16,7 @@
 #include "Attack.h"
 #include "EditorMovablePoint.h"
 #include "AudioPlayer.h"
-#include "AttacksListView.h"
+#include "LevelPackObjectsListView.h"
 #include "CopyPaste.h"
 #include <map>
 #include <memory>
@@ -29,6 +29,7 @@
 #include <entt/entt.hpp>
 
 class AttackEditorPanel;
+class LevelPackObjectsListPanel;
 
 /*
 If the underlying RenderWindow is closed, one only needs to call start() or startAndHide() again to reopen the RenderWindow.
@@ -197,30 +198,6 @@ private:
 	void closeConfirmationPanel();
 };
 
-/*
-An EventCapturable basic tgui::Panel to be used by MainEditorWindow for viewing the EditorAttacks list.
-This widget's main purpose is to pass events down to the child AttacksListView widget.
-*/
-class AttacksListPanel : public tgui::Panel, public EventCapturable {
-public:
-	/*
-	mainEditorWindow - the parent MainEditorWindow
-	*/
-	AttacksListPanel(MainEditorWindow& mainEditorWindow, Clipboard& clipboard);
-	static std::shared_ptr<AttacksListPanel> create(MainEditorWindow& mainEditorWindow, Clipboard& clipboard) {
-		return std::make_shared<AttacksListPanel>(mainEditorWindow, clipboard);
-	}
-
-	bool handleEvent(sf::Event event) override;
-
-	void setLevelPack(LevelPack* levelPack);
-
-private:
-	MainEditorWindow& mainEditorWindow;
-	Clipboard& clipboard;
-	LevelPack* levelPack;
-};
-
 class MainEditorWindow : public EditorWindow {
 public:
 	MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL);
@@ -246,9 +223,14 @@ public:
 	*/
 	void reloadAttackTab(int attackID);
 
-	std::shared_ptr<AttacksListView> getAttacksListView();
-	std::shared_ptr<AttacksListPanel> getAttacksListPanel();
-	std::map<int, std::shared_ptr<EditorAttack>>& getUnsavedAttacks();
+	std::shared_ptr<LevelPackObjectsListView> getAttacksListView();
+	std::shared_ptr<LevelPackObjectsListPanel> getAttacksListPanel();
+
+	std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedAttacks();
+	std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedAttackPatterns();
+	std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedEnemies();
+	std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedEnemyPhases();
+	std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedBulletModels();
 
 	/*
 	Open a single attack in the left panel's attack list so that
@@ -284,14 +266,18 @@ private:
 	Clipboard clipboard;
 
 	// -------------------- Part of leftPanel --------------------
-	std::shared_ptr<AttacksListPanel> attacksListPanel; // Container for attacksListView
-	std::shared_ptr<AttacksListView> attacksListView; // Child of attacksListPanel
+	std::shared_ptr<LevelPackObjectsListPanel> attacksListPanel; // Container for attacksListView
+	std::shared_ptr<LevelPackObjectsListView> attacksListView; // Child of attacksListPanel
 	
 	// -------------------- Part of mainPanel --------------------
 	// Maps an EditorAttack ID to the EditorAttack object that has unsaved changes.
 	// If the ID doesn't exist in this map, then there are no unsaved changes
 	// for that ID.
-	std::map<int, std::shared_ptr<EditorAttack>> unsavedAttacks;
+	std::map<int, std::shared_ptr<LevelPackObject>> unsavedAttacks;
+	std::map<int, std::shared_ptr<LevelPackObject>> unsavedAttackPatterns;
+	std::map<int, std::shared_ptr<LevelPackObject>> unsavedEnemies;
+	std::map<int, std::shared_ptr<LevelPackObject>> unsavedEnemyPhases;
+	std::map<int, std::shared_ptr<LevelPackObject>> unsavedBulletModels;
 	// ------------------------------------------------------------
 };
 

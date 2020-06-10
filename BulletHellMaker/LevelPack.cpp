@@ -10,6 +10,7 @@
 #include "EnemyPhase.h"
 #include "Player.h"
 #include "Level.h"
+#include "LevelPackObject.h"
 //TODO delete these
 #include "EnemySpawn.h"
 #include "LevelEventStartCondition.h"
@@ -457,23 +458,67 @@ void LevelPack::updateAttack(std::shared_ptr<EditorAttack> attack) {
 	onChange->publish();
 }
 
+void LevelPack::updateAttack(std::shared_ptr<LevelPackObject> attack) {
+	assert(std::dynamic_pointer_cast<EditorAttack>(attack));
+
+	attackIDGen.markIDAsUsed(attack->getID());
+	attacks[attack->getID()] = std::dynamic_pointer_cast<EditorAttack>(attack);
+	onChange->publish();
+}
+
 void LevelPack::updateAttackPattern(std::shared_ptr<EditorAttackPattern> attackPattern) {
+	attackPatternIDGen.markIDAsUsed(attackPattern->getID());
 	attackPatterns[attackPattern->getID()] = attackPattern;
 	onChange->publish();
 }
 
+void LevelPack::updateAttackPattern(std::shared_ptr<LevelPackObject> attackPattern) {
+	assert(std::dynamic_pointer_cast<EditorAttackPattern>(attackPattern));
+
+	attackPatternIDGen.markIDAsUsed(attackPattern->getID());
+	attackPatterns[attackPattern->getID()] = std::dynamic_pointer_cast<EditorAttackPattern>(attackPattern);
+	onChange->publish();
+}
+
 void LevelPack::updateEnemy(std::shared_ptr<EditorEnemy> enemy) {
+	enemyIDGen.markIDAsUsed(enemy->getID());
 	enemies[enemy->getID()] = enemy;
 	onChange->publish();
 }
 
+void LevelPack::updateEnemy(std::shared_ptr<LevelPackObject> enemy) {
+	assert(std::dynamic_pointer_cast<EditorEnemy>(enemy));
+
+	enemyIDGen.markIDAsUsed(enemy->getID());
+	enemies[enemy->getID()] = std::dynamic_pointer_cast<EditorEnemy>(enemy);
+	onChange->publish();
+}
+
 void LevelPack::updateEnemyPhase(std::shared_ptr<EditorEnemyPhase> enemyPhase) {
+	enemyPhaseIDGen.markIDAsUsed(enemyPhase->getID());
 	enemyPhases[enemyPhase->getID()] = enemyPhase;
 	onChange->publish();
 }
 
+void LevelPack::updateEnemyPhase(std::shared_ptr<LevelPackObject> enemyPhase) {
+	assert(std::dynamic_pointer_cast<EditorEnemyPhase>(enemyPhase));
+
+	enemyPhaseIDGen.markIDAsUsed(enemyPhase->getID());
+	enemyPhases[enemyPhase->getID()] = std::dynamic_pointer_cast<EditorEnemyPhase>(enemyPhase);
+	onChange->publish();
+}
+
 void LevelPack::updateBulletModel(std::shared_ptr<BulletModel> bulletModel) {
+	bulletModelIDGen.markIDAsUsed(bulletModel->getID());
 	bulletModels[bulletModel->getID()] = bulletModel;
+	onChange->publish();
+}
+
+void LevelPack::updateBulletModel(std::shared_ptr<LevelPackObject> bulletModel) {
+	assert(std::dynamic_pointer_cast<BulletModel>(bulletModel));
+
+	bulletModelIDGen.markIDAsUsed(bulletModel->getID());
+	bulletModels[bulletModel->getID()] = std::dynamic_pointer_cast<BulletModel>(bulletModel);
 	onChange->publish();
 }
 

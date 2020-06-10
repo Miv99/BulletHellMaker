@@ -2,6 +2,9 @@
 #include <string>
 #include "EditorMovablePoint.h"
 #include "Attack.h"
+#include "AttackPattern.h"
+#include "Enemy.h"
+#include "EnemyPhase.h"
 
 class CopiedObject {
 public:
@@ -72,25 +75,25 @@ private:
 	std::shared_ptr<EditorMovablePoint> emp;
 };
 
-class CopiedEditorAttack : public CopiedObject {
+class CopiedLevelPackObject : public CopiedObject {
 public:
 	/*
-	attacks - a list of the copied EditorAttacks. Every EditorAttack in here will be deep-copied.
+	objs - a list of the copied LevelPackObject. Every EditorAttack in here will be deep-copied.
 	*/
-	CopiedEditorAttack(std::string copiedFromID, std::vector<std::shared_ptr<EditorAttack>> attacks);
+	CopiedLevelPackObject(std::string copiedFromID, std::vector<std::shared_ptr<LevelPackObject>> objs);
 
 	/*
-	Returns a deep copy of the stored EditorAttacks.
+	Returns a deep copy of the stored LevelPackObjects.
 	*/
-	std::vector<std::shared_ptr<EditorAttack>> getAttacks();
+	virtual std::vector<std::shared_ptr<LevelPackObject>> getLevelPackObjects();
 
 	/*
-	Returns the number of copied attacks.
+	Returns the number of copied objects.
 	*/
-	int getAttacksCount();
+	int getLevelPackObjectsCount();
 
 private:
-	std::vector<std::shared_ptr<EditorAttack>> attacks;
+	std::vector<std::shared_ptr<LevelPackObject>> objs;
 };
 
 class CopiedPiecewiseTFVSegment : public CopiedObject {

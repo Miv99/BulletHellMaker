@@ -6,26 +6,38 @@
 #include "TextMarshallable.h"
 #include "EditorMovablePoint.h"
 #include "EditorMovablePointAction.h"
+#include "LevelPackObject.h"
 
 /*
 An attack pattern consists of a list of attacks and a list of actions executed by the enemy with the attack pattern.
 An attack pattern stops when the next one begins.
 If an EditorAttackPattern is being used by a player, EMPActions are unused.
 */
-class EditorAttackPattern : public TextMarshallable {
+class EditorAttackPattern : public LevelPackObject, public TextMarshallable {
 public:
 	inline EditorAttackPattern() {}
-	inline EditorAttackPattern(int id) : id(id) {}
+	inline EditorAttackPattern(int id) {
+		this->id = id;
+	}
+	/*
+	Copy constructor.
+	*/
+	EditorAttackPattern(std::shared_ptr<const EditorAttackPattern> copy);
+	/*
+	Copy constructor.
+	*/
+	EditorAttackPattern(const EditorAttackPattern* copy);
+
+	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	std::pair<bool, std::string> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const;
 	bool legal(std::string& message) const;
 
 	void changeEntityPathToAttackPatternActions(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag);
 
-	inline int getID() const { return id; }
-	inline std::string getName() const { return name; }
 	inline const std::vector<std::pair<float, int>>& getAttacks() { return attackIDs; }
 	inline std::pair<float, int> getAttackData(int index) const { return attackIDs[index]; }
 	inline std::shared_ptr<EMPAction> getAction(int index) const { return actions[index]; }
@@ -56,10 +68,6 @@ public:
 	void removeAction(int index);
 
 private:
-	// ID of the attack pattern
-	int id;
-	// User-defined name of the attack pattern
-	std::string name;
 	// List of attack ids (int) and when they will occur, with t=0 being the start of the attack pattern
 	// Sorted ascending by time
 	std::vector<std::pair<float, int>> attackIDs;

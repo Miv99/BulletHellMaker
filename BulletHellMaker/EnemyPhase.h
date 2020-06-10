@@ -8,20 +8,34 @@
 #include "EnemyPhaseAction.h"
 #include "AudioPlayer.h"
 #include "AttackPattern.h"
+#include "LevelPackObject.h"
 
 class LevelPack;
 
 /*
 An enemy phase consists of a list of attack patterns and at what time each begins.
 */
-class EditorEnemyPhase : public TextMarshallable {
+class EditorEnemyPhase : public LevelPackObject, public TextMarshallable {
 public:
 	inline EditorEnemyPhase() {}
-	inline EditorEnemyPhase(int id) : id(id) {}
+	inline EditorEnemyPhase(int id) {
+		this->id = id;
+	}
+	/*
+	Copy constructor.
+	*/
+	EditorEnemyPhase(std::shared_ptr<const EditorEnemyPhase> copy);
+	/*
+	Copy constructor.
+	*/
+	EditorEnemyPhase(const EditorEnemyPhase* copy);
+
+	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	std::pair<bool, std::string> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const;
 	bool legal(std::string& message)const;
 
 	inline void setAttackPatternLoopDelay(float attackPatternLoopDelay) { this->attackPatternLoopDelay = attackPatternLoopDelay; }
@@ -29,7 +43,6 @@ public:
 	inline void setPhaseEndAction(std::shared_ptr<EnemyPhaseAction> phaseEndAction) { this->phaseEndAction = phaseEndAction; }
 	inline void setPlayMusic(bool playMusic) { this->playMusic = playMusic; }
 
-	inline int getID() const { return id; }
 	/*
 	Returns a pair: the amount of time after the start of this phase that the attack pattern at the given index will begin, and the id of that attack pattern.
 	Note that there is no upper bound on index, since attack patterns can loop, so this function takes that into account.
@@ -41,7 +54,6 @@ public:
 	inline std::shared_ptr<EnemyPhaseAction> getPhaseEndAction() const { return phaseEndAction; }
 	inline float getAttackPatternLoopDelay() const { return attackPatternLoopDelay; }
 	inline bool getPlayMusic() const { return playMusic; }
-	inline std::string getName() const { return name; }
 	/*
 	Returns a reference to the music settings.
 	*/
@@ -61,10 +73,6 @@ public:
 	void removeAttackPattern(int index);
 
 private:
-	// ID of the phase
-	int id;
-	// User-defined name of the phase
-	std::string name;
 	// Attack pattern ids (int) and when they occur, with t=0 being the start of the phase
 	// Sorted ascending by time
 	std::vector<std::pair<float, int>> attackPatternIDs;

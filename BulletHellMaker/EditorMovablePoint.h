@@ -20,16 +20,28 @@
 class EMPSpawnType;
 class EditorMovablePoint;
 
-class BulletModel : public TextMarshallable, public std::enable_shared_from_this<BulletModel> {
+class BulletModel : public LevelPackObject, public TextMarshallable, public std::enable_shared_from_this<BulletModel> {
 public:
 	inline BulletModel() {}
-	inline BulletModel(int id) : id(id) {}
+	inline BulletModel(int id) {
+		this->id = id;
+	}
+	/*
+	Copy constructor.
+	*/
+	BulletModel(std::shared_ptr<const BulletModel> copy);
+	/*
+	Copy constructor.
+	*/
+	BulletModel(const BulletModel* copy);
+
+	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	inline std::string getName() const { return name; }
-	inline int getID() const { return id; }
+	std::pair<bool, std::string> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const;
+
 	inline Animatable getAnimatable() const { return animatable; }
 	inline float getHitboxRadius() const { return hitboxRadius; }
 	inline float getDespawnTime() const { return despawnTime; }
@@ -58,9 +70,6 @@ public:
 	void onModelChange();
 
 private:
-	int id;
-	std::string name;
-
 	// Radius of the EMP's hitbox. Set to <= 0 if the EMP is not a bullet.
 	float hitboxRadius = 0;
 
@@ -76,7 +85,7 @@ private:
 	// Only applicable if the EMP is not a bullet (hitboxRadius <= 0)
 	Animatable animatable;
 	// Only applicable if animatable is an animation
-	bool loopAnimation;
+	bool loopAnimation = false;
 	// The animatable that will be used after the animation ends. Only necessary if animatable is an animation and loopAnimation is false
 	Animatable baseSprite;
 
@@ -120,6 +129,15 @@ public:
 	If this EMP is to be used in a different EditorAttack, onNewParentEditorAttack() should be called.
 	*/
 	EditorMovablePoint(std::shared_ptr<const EditorMovablePoint> copy);
+	/*
+	Copy constructor.
+	Note that this makes a deep copy of everything except idGen and bulletModelsCount, whose references are taken from copy.
+	If this EMP is to be used in a different EditorAttack, onNewParentEditorAttack() should be called.
+	*/
+	EditorMovablePoint(const EditorMovablePoint* copy);
+
+	std::shared_ptr<LevelPackObject> clone() const override;
+
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
@@ -296,8 +314,8 @@ public:
 	bool operator==(const EditorMovablePoint& other) const;
 
 private:
-	// ID is unique only to the attack. Not saved
-	int id;
+	// ID is unique only to the attack and is not saved
+
 	// Points to the EMP ID generator in the EditorAttack this EMP is a child of
 	IDGenerator* idGen;
 

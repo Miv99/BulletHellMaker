@@ -6,14 +6,15 @@
 #include <queue>
 #include <algorithm>
 #include <SFML/Audio.hpp>
+#include <entt/entt.hpp>
 #include "MovablePoint.h"
 #include "SpriteLoader.h"
 #include "TextMarshallable.h"
 #include "Components.h"
 #include "AudioPlayer.h"
 #include "IDGenerator.h"
-#include <entt/entt.hpp>
 
+class LevelPackObject;
 class EditorAttack;
 class EditorAttackPattern;
 class EditorMovablePoint;
@@ -102,11 +103,23 @@ public:
 	*/
 	void updateAttack(std::shared_ptr<EditorAttack> attack);
 	/*
+	Updates an attack.
+	If the attack ID is already in the LevelPack, overwrite the attack.
+	If the attack ID is not in the LevelPack, add in the attack.
+	*/
+	void updateAttack(std::shared_ptr<LevelPackObject> attack);
+	/*
 	Updates an attack pattern.
 	If the attack pattern ID is already in the LevelPack, overwrite the attack pattern.
 	If the attack pattern ID is not in the LevelPack, add in the attack pattern.
 	*/
 	void updateAttackPattern(std::shared_ptr<EditorAttackPattern> attackPattern);
+	/*
+	Updates an attack pattern.
+	If the attack pattern ID is already in the LevelPack, overwrite the attack pattern.
+	If the attack pattern ID is not in the LevelPack, add in the attack pattern.
+	*/
+	void updateAttackPattern(std::shared_ptr<LevelPackObject> attackPattern);
 	/*
 	Updates an enemy.
 	If the enemy ID is already in the LevelPack, overwrite the enemy.
@@ -114,17 +127,35 @@ public:
 	*/
 	void updateEnemy(std::shared_ptr<EditorEnemy> enemy);
 	/*
+	Updates an enemy.
+	If the enemy ID is already in the LevelPack, overwrite the enemy.
+	If the enemy ID is not in the LevelPack, add in the enemy.
+	*/
+	void updateEnemy(std::shared_ptr<LevelPackObject> enemy);
+	/*
 	Updates an enemy phase.
 	If the enemy phase ID is already in the LevelPack, overwrite the enemy phase.
 	If the enemy phase ID is not in the LevelPack, add in the enemy phase.
 	*/
 	void updateEnemyPhase(std::shared_ptr<EditorEnemyPhase> enemyPhase);
 	/*
+	Updates an enemy phase.
+	If the enemy phase ID is already in the LevelPack, overwrite the enemy phase.
+	If the enemy phase ID is not in the LevelPack, add in the enemy phase.
+	*/
+	void updateEnemyPhase(std::shared_ptr<LevelPackObject> enemyPhase);
+	/*
 	Updates a bullet model.
 	If the bullet model ID is already in the LevelPack, overwrite the bullet model.
 	If the bullet model ID is not in the LevelPack, add in the bullet model.
 	*/
 	void updateBulletModel(std::shared_ptr<BulletModel> bulletModel);
+	/*
+	Updates a bullet model.
+	If the bullet model ID is already in the LevelPack, overwrite the bullet model.
+	If the bullet model ID is not in the LevelPack, add in the bullet model.
+	*/
+	void updateBulletModel(std::shared_ptr<LevelPackObject> bulletModel);
 
 	void deleteLevel(int levelIndex);
 	void deleteAttack(int id);
@@ -268,19 +299,18 @@ private:
 	IDGenerator enemyPhaseIDGen;
 	IDGenerator bulletModelIDGen;
 
-	// ordered levels
+	// Ordered levels
 	std::vector<std::shared_ptr<Level>> levels;
-	// The IDs of EditorAttack/EditorAttackPattern/EditorEnemy/EditorEnemyPhase are always positive, unless it is a temporary object.
-	// Temporary Editor_____ objects are deleted when deleteTemporaryEditorObjects() is called, and they cannot be saved in save().
-	// attack id : attack
+	// The IDs of EditorAttack/EditorAttackPattern/EditorEnemy/EditorEnemyPhase are always positive
+	// Maps attack ID to the attack
 	std::map<int, std::shared_ptr<EditorAttack>> attacks;
-	// attack pattern id : attack pattern
+	// Maps attack pattern ID to the attack pattern
 	std::map<int, std::shared_ptr<EditorAttackPattern>> attackPatterns;
-	// enemy id : enemy
+	// Maps enemy ID to the enemy
 	std::map<int, std::shared_ptr<EditorEnemy>> enemies;
-	// enemy phase id : enemy phase
+	// Maps enemy phase ID to the enemy phase
 	std::map<int, std::shared_ptr<EditorEnemyPhase>> enemyPhases;
-	// bullet model id : bullet model
+	// Maps bullet model ID to the bullet model
 	std::map<int, std::shared_ptr<BulletModel>> bulletModels;
 
 	std::string fontFileName = "font.ttf";
@@ -288,6 +318,5 @@ private:
 	// Called when a change is made to one of the level pack objects, which
 	// includes EditorAttack, EditorAttackPattern, EditorEnemy, EditorEnemyPhase,
 	// Level, BulletModel, and EditorPlayer.
-	//TODO: publish this signal in update______()
 	std::shared_ptr<entt::SigH<void()>> onChange;
 };

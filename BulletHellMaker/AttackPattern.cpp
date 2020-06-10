@@ -2,6 +2,18 @@
 #include "Components.h"
 #include "EditorMovablePointSpawnType.h"
 
+EditorAttackPattern::EditorAttackPattern(std::shared_ptr<const EditorAttackPattern> copy) {
+	load(copy->format());
+}
+
+EditorAttackPattern::EditorAttackPattern(const EditorAttackPattern* copy) {
+	load(copy->format());
+}
+
+std::shared_ptr<LevelPackObject> EditorAttackPattern::clone() const {
+	return std::static_pointer_cast<LevelPackObject>(std::make_shared<EditorAttackPattern>(this));
+}
+
 std::string EditorAttackPattern::format() const {
 	std::string res = tos(id) + formatString(name) + tos(attackIDs.size());
 	for (auto p : attackIDs) {
@@ -53,6 +65,11 @@ void EditorAttackPattern::load(std::string formattedString) {
 	for (auto action : actions) {
 		actionsTotalTime += action->getTime();
 	}
+}
+
+std::pair<bool, std::string> EditorAttackPattern::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+	//TODO: implement this
+	return std::pair<bool, std::string>();
 }
 
 bool EditorAttackPattern::legal(std::string & message) const {

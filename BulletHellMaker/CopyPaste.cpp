@@ -55,30 +55,30 @@ std::shared_ptr<EditorMovablePoint> CopiedEditorMovablePoint::getEMP() {
 	return std::make_shared<EditorMovablePoint>(emp);
 }
 
-CopiedEditorAttack::CopiedEditorAttack(std::string copiedFromID, std::vector<std::shared_ptr<EditorAttack>> attacks) : CopiedObject(copiedFromID) {
-	// Deep copy every attack
-	for (auto attack : attacks) {
-		this->attacks.push_back(std::make_shared<EditorAttack>(attack));
-	}
-}
-
-std::vector<std::shared_ptr<EditorAttack>> CopiedEditorAttack::getAttacks() {
-	// Return deep copies of the attacks
-	std::vector<std::shared_ptr<EditorAttack>> copies;
-	for (auto attack : attacks) {
-		copies.push_back(std::make_shared<EditorAttack>(attack));
-	}
-	return copies;
-}
-
-int CopiedEditorAttack::getAttacksCount() {
-	return attacks.size();
-}
-
 CopiedPiecewiseTFVSegment::CopiedPiecewiseTFVSegment(std::string copiedFromID, std::pair<float, std::shared_ptr<TFV>> segment) : CopiedObject(copiedFromID) {
 	this->segment = std::make_pair(segment.first, segment.second->clone());
 }
 
 std::pair<float, std::shared_ptr<TFV>> CopiedPiecewiseTFVSegment::getSegment() {
 	return std::make_pair(segment.first, segment.second->clone());
+}
+
+CopiedLevelPackObject::CopiedLevelPackObject(std::string copiedFromID, std::vector<std::shared_ptr<LevelPackObject>> objs) : CopiedObject(copiedFromID) {
+	// Deep copy every object
+	for (auto obj : objs) {
+		this->objs.push_back(obj->clone());
+	}
+}
+
+std::vector<std::shared_ptr<LevelPackObject>> CopiedLevelPackObject::getLevelPackObjects() {
+	// Return deep copies of the enemies
+	std::vector<std::shared_ptr<LevelPackObject>> copies;
+	for (auto obj : objs) {
+		copies.push_back(obj->clone());
+	}
+	return copies;
+}
+
+int CopiedLevelPackObject::getLevelPackObjectsCount() {
+	return objs.size();
 }

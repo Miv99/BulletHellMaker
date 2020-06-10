@@ -20,6 +20,12 @@ public:
 	Copy constructor.
 	*/
 	EditorAttack(std::shared_ptr<const EditorAttack> copy);
+	/*
+	Copy constructor.
+	*/
+	EditorAttack(const EditorAttack* copy);
+
+	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
@@ -52,17 +58,10 @@ public:
 	with ID bulletModelID.
 	*/
 	inline const bool usesBulletModel(int bulletModelID) const { return bulletModelsCount.count(bulletModelID) > 0 && bulletModelsCount.at(bulletModelID) > 0; }
-	inline int getID() const { return id; }
-	/*
-	This shouldn't be used if the EditorAttack already belongs to a LevelPack.
-	*/
-	inline void setID(int id) { this->id = id; }
-	inline std::string getName() const { return name; }
 	inline bool getPlayAttackAnimation() const { return playAttackAnimation; }
 	inline std::shared_ptr<EditorMovablePoint> getMainEMP() const { return mainEMP; }
 	inline IDGenerator* getNextEMPID() { return &empIDGen; }
 	inline std::map<int, int>*  getBulletModelsCount() { return &bulletModelsCount; }
-	inline void setName(std::string name)  { this->name = name; }
 	inline void setPlayAttackAnimation(bool playAttackAnimation) { this->playAttackAnimation = playAttackAnimation; }
 	
 	float searchLargestHitbox() const;
@@ -87,10 +86,6 @@ private:
 	// The ID generator for EMPs in this attack
 	IDGenerator empIDGen;
 
-	// ID of the attack
-	int id;
-	// User-defined name of the attack
-	std::string name;
 	// Root of the EMP tree (the main EMP); always has ID 0
 	// When the attack is executed, the mainEMP is spawned instantly. Its spawn type's time is ignored.
 	std::shared_ptr<EditorMovablePoint> mainEMP;

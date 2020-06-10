@@ -58,7 +58,7 @@ Notes for me:
 -A bullet's attack pattern id of -1 means that the bullet came from a DeathAction; for enemy bullets, an enemy phase ID of -1 also means the same thing
 -Editor_______ objects returned by getters in LevelPack should never be modified without calling update______ (eg updateAttack()). I'm
  too lazy to make them return pointers to const objects so just don't modify anything when making the editors
--Why paste2 in AttacksListView can't be undoable:
+-Why paste2 in LevelPackObjectsListView can't be undoable:
     Things to note:
         -The attack pointer in AttackEditorPanel CANNOT be changed to point to something else (because of the pointers in its undo stack)
         -When openLeftPanelAttack() is called, the new AttackEditorPanel has a pointer to either an attack 
@@ -79,7 +79,6 @@ Notes for me:
 -Player invulnerability sprite effect animation is in CollisionSystem
 
 big todo:
-
 -Popup saying something was copied/pasted    
 -Preview panel as a separate window (but keep it local to MainEditorWindow); the object being previewed changes depending
  on the currently selected first-level tab in MainEditorWindow::mainPanel (have some "SelectedTabChanged" signal in TabsWithPanel)
@@ -87,17 +86,13 @@ big todo:
     -Same pattern for EditorAttackPattern and other first-level objects
     -If the object isn't legal, the preview panel will show the error message from legal()
         
--change lifespan of empa -> linearly scale segments' start times to be same % of lifespan; store % of original for each segment
- so that float imprecisions don't ruin the start times as piecewisetfv maxtime keeps changing
--disable keyboard commands when confirmation prompt is up in UndoableEditorWindow
 -An EditorAttackPattern "finishes" when all its EMPAs have been executed (actionsTotalTime seconds after the start of the attack pattern).
- Attacks that execute more than [actionsTotalTime] seconds after the start of the attack pattern will not execute.
-	-so, in attack pattern editor, make names of all attacks that execute after [actionsTotalTime] have a red name
--call LevelPack::deleteTemporaryEditorObjecs() when test ends or when an editor instance is closed
--control+s to save current attack; control+shift+s to save all attacks
-	-when saving a single attack, do legal check on that attack only
+  Attacks that execute more than [actionsTotalTime] seconds after the start of the attack pattern will not execute.
+	-so, in attack pattern editor, give warnings for all attacks that execute after [actionsTotalTime]
 -disable time thing (empiSpawnTypeTime) if it's the main EMP
--when empiActions changes, make sure Detach option is still valid; turn text red if not
+
+Random things for TODOs that are noted here so I don't forget:
+-legal check for EMP should make sure there aren't illegal detach actions
 
 TODO:
 -SpriteSheetLoader emits some signal every time a change is made (sprite/spritesheet added/deleted)
@@ -109,7 +104,6 @@ TODO:
 			empiBaseSprite items + reload selected EMP with setEMPWidgetValues, 
 -Animatables can't have backslashes in name
 -somehow downsample before bloom shaders
--all editor windows have the same LevelPack open such that when some attack changes or something, all open windows are notified and refreshed
 -have some default attack patterns (https://www.youtube.com/watch?v=xbQ9e0zYuj4)
 -all default stuff (font, spritesheet, sounds, etc) are copied into every new level pack that is created so that no special code is needed to load
  from a default resource 
@@ -126,7 +120,6 @@ TODO:
 		-for MoveCustomPolarEMPA, this just wraps the angle TFV in a TranslationWrapperTFV (remember to combine the TFVs if the angle TFV is already a TranslationWrapperTFV)
 		-for MoveCustomBezierEMPA, this rotates all control points about (0, 0)
 		-for all other EMPAs, do nothing
-	-"Set bullet model": user can select multiple EMPs and set their bullet models
 	  
 // ------------------------------------------------------------------------------------------------------------------------------------------------
 editable = attack/attack pattern/emp/enemy/enemyphase/player

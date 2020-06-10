@@ -1,7 +1,8 @@
 #include "Attack.h"
 #include "EditorMovablePoint.h"
 
-EditorAttack::EditorAttack(int id) : id(id) {
+EditorAttack::EditorAttack(int id) {
+	this->id = id;
 	mainEMP = std::make_shared<EditorMovablePoint>(&empIDGen, true, &bulletModelsCount);
 }
 
@@ -10,6 +11,17 @@ EditorAttack::EditorAttack(std::shared_ptr<const EditorAttack> copy) {
 	// are created in load(), we can just load from the copy's format
 	// and there won't be any object conflicts
 	load(copy->format());
+}
+
+EditorAttack::EditorAttack(const EditorAttack* copy) {
+	// Since EMPs are unique to the EditorAttack and new EMP objects
+	// are created in load(), we can just load from the copy's format
+	// and there won't be any object conflicts
+	load(copy->format());
+}
+
+std::shared_ptr<LevelPackObject> EditorAttack::clone() const {
+	return std::static_pointer_cast<LevelPackObject>(std::make_shared<EditorAttack>(this));
 }
 
 std::string EditorAttack::format() const {

@@ -1,6 +1,18 @@
 #include "EnemyPhase.h"
 #include "LevelPack.h"
 
+EditorEnemyPhase::EditorEnemyPhase(std::shared_ptr<const EditorEnemyPhase> copy) {
+	load(copy->format());
+}
+
+EditorEnemyPhase::EditorEnemyPhase(const EditorEnemyPhase* copy) {
+	load(copy->format());
+}
+
+std::shared_ptr<LevelPackObject> EditorEnemyPhase::clone() const {
+	return std::static_pointer_cast<LevelPackObject>(std::make_shared<EditorEnemyPhase>(this));
+}
+
 std::string EditorEnemyPhase::format() const {
 	std::string res = tos(id) + formatString(name) + formatTMObject(*phaseBeginAction) + formatTMObject(*phaseEndAction) + tos(attackPatternIDs.size());
 	for (auto p : attackPatternIDs) {
@@ -33,6 +45,11 @@ void EditorEnemyPhase::load(std::string formattedString) {
 	}
 	playMusic = unformatBool(items[i++]);
 	musicSettings.load(items[i++]);
+}
+
+std::pair<bool, std::string> EditorEnemyPhase::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+	//TODO: implement this
+	return std::pair<bool, std::string>();
 }
 
 bool EditorEnemyPhase::legal(std::string & message) const {
