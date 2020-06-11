@@ -4,7 +4,7 @@
 #include <cassert>
 
 IDGenerator::IDGenerator() {
-	ranges.push_back(std::make_pair(0, std::numeric_limits<int>::max()));
+	ranges.push_back(std::make_pair(FIRST_ID, std::numeric_limits<int>::max()));
 }
 
 int IDGenerator::generateID() {

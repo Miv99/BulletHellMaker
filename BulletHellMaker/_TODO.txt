@@ -95,7 +95,6 @@ big todo:
         -> open it
         -> undo
         -> the tab doesn't close
--disable time thing (empiSpawnTypeTime) if it's the main EMP
 
 Random things for TODOs that are noted here so I don't forget:
 -legal check for EMP should make sure there aren't illegal detach actions

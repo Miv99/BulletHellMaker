@@ -9,6 +9,9 @@ IDs will always be non-negative integers.
 */
 class IDGenerator {
 public:
+	// The first ID to be generated
+	const static int FIRST_ID = 0;
+
 	IDGenerator();
 
 	/*

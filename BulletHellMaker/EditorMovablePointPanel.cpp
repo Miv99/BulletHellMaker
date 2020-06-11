@@ -1338,7 +1338,9 @@ void EditorMovablePointPanel::updateAllWidgetValues() {
 	populateEMPAList(empiActions);
 	empiDespawnTime->setValue(emp->getDespawnTime());
 	empiSpawnType->setSelectedItemById(getID(emp->getSpawnType()));
-	empiSpawnTypeTime->setValue(emp->getSpawnType()->getTime());
+	// empiSpawnTypeTime should always display 0 if the EMP is the main EMP of its EditorAttack
+	// because it will always be spawned instantly
+	empiSpawnTypeTime->setValue(emp->isMainEMP() ? 0 : emp->getSpawnType()->getTime());
 	empiSpawnTypeX->setValue(emp->getSpawnType()->getX());
 	empiSpawnTypeY->setValue(emp->getSpawnType()->getY());
 	empiShadowTrailLifespan->setValue(emp->getShadowTrailLifespan());
@@ -1359,6 +1361,7 @@ void EditorMovablePointPanel::updateAllWidgetValues() {
 	empiInheritDamage->setChecked(emp->getInheritDamage());
 	empiInheritSoundSettings->setChecked(emp->getInheritSoundSettings());
 
+	empiSpawnTypeTime->setEnabled(!emp->isMainEMP());
 	empiHitboxRadius->setEnabled(!emp->getInheritRadius() || this->emp->getBulletModelID() < 0);
 	empiDespawnTime->setEnabled(!emp->getInheritDespawnTime() || this->emp->getBulletModelID() < 0);
 	empiShadowTrailInterval->setEnabled(!emp->getInheritShadowTrailInterval() || this->emp->getBulletModelID() < 0);

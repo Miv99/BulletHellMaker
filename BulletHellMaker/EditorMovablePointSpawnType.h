@@ -53,7 +53,7 @@ public:
 
 protected:
 	// Time when this EMP is spawned with t=0 being the spawning of this EMP's reference
-	// This is ignored and the EMP is spawned instantly if it is the main EMP of an Attack
+	// This is ignored and the EMP is spawned instantly if it is the main EMP of an EditorAttack
 	float time;
 
 	// How the x/y coordinates are interpreted is up to the implementation

@@ -74,8 +74,8 @@ private:
 	float hitboxRadius = 0;
 
 	// The minimum of this value and the total time to complete all EMPActions is the time until this EMP despawns
-	// Set to < 0 if unused (then the total EMPActions time will be used instead)
-	float despawnTime = -1;
+	// Set to <= 0 if unused (then the total EMPActions time will be used instead)
+	float despawnTime = 0;
 
 	// See ShadowTrailComponent
 	float shadowTrailInterval = 0.15f;
@@ -201,6 +201,10 @@ public:
 	Returns the ID of every recursive child in this EMP. Does not include this EMP's ID.
 	*/
 	std::vector<int> getChildrenIDs() const;
+	/*
+	Returns whether this EMP is the main EMP of some EditorAttack.
+	*/
+	bool isMainEMP() const;
 
 	void setID(int id);
 	inline void setPierceResetTime(float pierceResetTime) { this->pierceResetTime = pierceResetTime; }
@@ -335,7 +339,7 @@ private:
 	// EMPActions that will be carried out in order
 	std::vector<std::shared_ptr<EMPAction>> actions;
 	// Details of how this EMP will be spawned. The time field of EMPSpawnType should be modified only from this class so that children's
-	// ordering can be maintained.
+	// ordering can be maintained. The time field in EMPSpawnType is ignored and this EMP is spawned instantly if it is the main EMP of an EditorAttack.
 	std::shared_ptr<EMPSpawnType> spawnType;
 
 	// See ShadowTrailComponent
