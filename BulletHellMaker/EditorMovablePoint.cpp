@@ -124,15 +124,7 @@ void EditorMovablePoint::load(std::string formattedString) {
 
 	soundSettings.load(items[i++]);
 
-	// If load() is being called while this object is already loaded, decrement bulletModelsCount to prevent double-counting
-	if (bulletModelID > 0 && bulletModelsCount->count(bulletModelID) > 0) {
-		bulletModelsCount->at(bulletModelID)--;
-		if (bulletModelsCount->at(bulletModelID) == 0) {
-			bulletModelsCount->erase(bulletModelID);
-		}
-	}
-
-	bulletModelID = std::stoi(items[i++]);
+	setBulletModelID(std::stoi(items[i++]));
 	inheritRadius = unformatBool(items[i++]);
 	inheritDespawnTime = unformatBool(items[i++]);
 	inheritShadowTrailInterval = unformatBool(items[i++]);
@@ -141,15 +133,6 @@ void EditorMovablePoint::load(std::string formattedString) {
 	inheritDamage = unformatBool(items[i++]);
 	inheritSoundSettings = unformatBool(items[i++]);
 	isBullet = unformatBool(items[i++]);
-
-	// Update bulletModelsCount
-	if (bulletModelID > 0) {
-		if (bulletModelsCount->count(bulletModelID) == 0) {
-			bulletModelsCount->emplace(bulletModelID, 1);
-		} else {
-			bulletModelsCount->at(bulletModelID)++;
-		}
-	}
 }
 
 std::pair<bool, std::string> EditorMovablePoint::legal(LevelPack & levelPack, SpriteLoader & spriteLoader) const {
@@ -248,22 +231,7 @@ void EditorMovablePoint::loadBulletModel(const LevelPack & levelPack) {
 }
 
 void EditorMovablePoint::setBulletModel(std::shared_ptr<BulletModel> model) {
-	// Decrement bulletModelsCount of old model, if any
-	if (bulletModelID >= 0) {
-		bulletModelsCount->at(bulletModelID)--;
-		if (bulletModelsCount->at(bulletModelID) == 0) {
-			bulletModelsCount->erase(bulletModelID);
-		}
-	}
-
-	bulletModelID = model->getID();
-
-	// Update bulletModelsCount
-	if (bulletModelsCount->count(bulletModelID) == 0) {
-		bulletModelsCount->emplace(bulletModelID, 1);
-	} else {
-		bulletModelsCount->at(bulletModelID)++;
-	}
+	setBulletModelID(model->getID());
 
 	// Add this EMP to the model's set of model users
 	model->addModelUser(shared_from_this());
@@ -284,15 +252,7 @@ void EditorMovablePoint::setBulletModel(std::shared_ptr<BulletModel> model) {
 }
 
 void EditorMovablePoint::removeBulletModel() {
-	// Decrement bulletModelsCount of old model, if any
-	if (bulletModelID >= 0) {
-		bulletModelsCount->at(bulletModelID)--;
-		if (bulletModelsCount->at(bulletModelID) == 0) {
-			bulletModelsCount->erase(bulletModelID);
-		}
-	}
-
-	bulletModelID = -1;
+	setBulletModelID(-1);
 }
 
 std::vector<int> EditorMovablePoint::getChildrenIDs() const {
@@ -356,6 +316,7 @@ void EditorMovablePoint::removeChild(int id) {
 		}
 	}
 	children[pos]->recursiveDeleteID();
+	children[pos]->removeBulletModelFromBulletModelsCount(true);
 	children.erase(children.begin() + pos);
 }
 
@@ -383,6 +344,7 @@ void EditorMovablePoint::addChild(std::shared_ptr<EditorMovablePoint> child) {
 	}
 	children.insert(children.begin() + indexToInsert, child);
 	child->resolveIDConflicts(true);
+	child->updateBulletModelToBulletModelsCount(true);
 	child->parent = shared_from_this();
 }
 
@@ -391,16 +353,10 @@ void EditorMovablePoint::onNewParentEditorAttack(std::shared_ptr<EditorAttack> n
 	idGen = newAttack->getNextEMPID();
 	bulletModelsCount = newAttack->getBulletModelsCount();
 
-	// Update bulletModelsCount
-	if (bulletModelID >= 0) {
-		if (bulletModelsCount->count(bulletModelID) == 0) {
-			bulletModelsCount->emplace(bulletModelID, 1);
-		} else {
-			bulletModelsCount->at(bulletModelID)++;
-		}
-	}
+	// Update bulletModelsCount; no need to recurse because onNewParentEditorAttack() is recursive already
+	updateBulletModelToBulletModelsCount(false);
 
-	// Update idGen
+	// Update idGen; no need to recurse because onNewParentEditorAttack() is recursive already
 	resolveIDConflicts(false);
 
 	for (auto child : children) {
@@ -557,6 +513,48 @@ void EditorMovablePoint::recursiveDeleteID() {
 	}
 	for (auto child : children) {
 		child->recursiveDeleteID();
+	}
+}
+
+void EditorMovablePoint::setBulletModelID(int newID) {
+	// Remove the currently used bullet model ID from bulletModelsCount
+	removeBulletModelFromBulletModelsCount(false);
+
+	// Set the new ID
+	bulletModelID = newID;
+
+	// Update bulletModelsCount with the new ID
+	updateBulletModelToBulletModelsCount(false);
+}
+
+void EditorMovablePoint::removeBulletModelFromBulletModelsCount(bool recurseOnChildren) {
+	if (bulletModelID >= 0 && bulletModelsCount->count(bulletModelID) > 0) {
+		bulletModelsCount->at(bulletModelID)--;
+		if (bulletModelsCount->at(bulletModelID) == 0) {
+			bulletModelsCount->erase(bulletModelID);
+		}
+	}
+
+	if (recurseOnChildren) {
+		for (auto child : children) {
+			child->removeBulletModelFromBulletModelsCount(true);
+		}
+	}
+}
+
+void EditorMovablePoint::updateBulletModelToBulletModelsCount(bool recurseOnChildren) {
+	if (bulletModelID >= 0) {
+		if (bulletModelsCount->count(bulletModelID) == 0) {
+			bulletModelsCount->emplace(bulletModelID, 1);
+		} else {
+			bulletModelsCount->at(bulletModelID)++;
+		}
+	}
+
+	if (recurseOnChildren) {
+		for (auto child : children) {
+			child->updateBulletModelToBulletModelsCount(true);
+		}
 	}
 }
 

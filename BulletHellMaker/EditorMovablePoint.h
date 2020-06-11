@@ -397,7 +397,7 @@ private:
 	*/
 	void getChildrenIDsHelper(std::vector<int>& arr) const;
 	/*
-	Change this EMP's ID to be some unused ID if it is currently in use.
+	Changes this EMP's ID to be some unused ID if it is currently in use.
 
 	recurseOnChildren - whether to call this same function on all of this EMP's children
 	*/
@@ -406,4 +406,23 @@ private:
 	Recursively deletes this EMP and its children's IDs from idGen.
 	*/
 	void recursiveDeleteID();
+
+	/*
+	Change this EMP's ID to be some unused ID if it is currently in use.
+	*/
+	void setBulletModelID(int newID);
+	/*
+	Remove this EMP's bullet model ID from the bulletModelsCount map.
+	Should be called whenever an EMP is removed from an EditorAttack.
+
+	recurseOnChildren - whether to call this same function on all of this EMP's children
+	*/
+	void removeBulletModelFromBulletModelsCount(bool recurseOnChildren);
+	/*
+	Updates this EMP's bulletModelsCount to reflect this EMP being added to some EditorAttack.
+	Should be called whenever an EMP is added to an EditorAttack.
+
+	recurseOnChildren - whether to call this same function on all of this EMP's children
+	*/
+	void updateBulletModelToBulletModelsCount(bool recurseOnChildren);
 };
