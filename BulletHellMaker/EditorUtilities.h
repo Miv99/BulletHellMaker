@@ -389,6 +389,8 @@ private:
 
 /*
 Used to edit a SoundSettings object.
+IMPORTANT: there's some bug where if this widget's width is bound to something (with tgui::bind____), resizing it will
+cause a crash. So it has to be updated whenever whatever widget you want to bind this widget's width to emits its SizeChanged signal.
 
 Signals:
 	ValueChanged - emitted when a change is made to the SoundSettings object being edited
@@ -423,13 +425,13 @@ private:
 	std::shared_ptr<SliderWithEditBox> volume;
 	std::shared_ptr<SliderWithEditBox> pitch;
 
-	std::shared_ptr<tgui::Label> enableAudioLabel;
 	std::shared_ptr<tgui::Label> fileNameLabel;
 	std::shared_ptr<tgui::Label> volumeLabel;
 	std::shared_ptr<tgui::Label> pitchLabel;
 
 	// bool used to ignore signals to prevent infinite loops
 	bool ignoreSignals = false;
+	bool ignoreResizeSignal = false;
 };
 
 /*

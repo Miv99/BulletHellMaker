@@ -574,16 +574,15 @@ tgui::Signal & SliderWithEditBox::getSignal(std::string signalName) {
 SoundSettingsGroup::SoundSettingsGroup(std::string pathToSoundsFolder) {
 	enableAudio = tgui::CheckBox::create();
 	fileName = tgui::ComboBox::create();
-	volume = std::make_shared<SliderWithEditBox>();
-	pitch = std::make_shared<SliderWithEditBox>();
-	enableAudioLabel = tgui::Label::create();
+	volume = SliderWithEditBox::create();
+	pitch = SliderWithEditBox::create();
 	fileNameLabel = tgui::Label::create();
 	volumeLabel = tgui::Label::create();
 	pitchLabel = tgui::Label::create();
 	//TODO: add a play/stop button to test sounds and a progressbar to see the length of the selected audio
 
-	enableAudioLabel->setToolTip(createToolTip("Whether to enable audio."));
-	fileNameLabel->setToolTip(createToolTip("The name of the audio file. Only WAV, OGG/Vorbis, and FLAC files are supported."));
+	enableAudio->setToolTip(createToolTip("This sound will be played only if this is checked."));
+	fileNameLabel->setToolTip(createToolTip("The name of the audio file. Only WAV, OGG/Vorbis, and FLAC files are supported. Files must be in the folder \"" + pathToSoundsFolder + "\""));
 	volumeLabel->setToolTip(createToolTip("The volume of the audio when it is played."));
 	pitchLabel->setToolTip(createToolTip("The pitch of the audio when it is played."));
 	
@@ -594,33 +593,15 @@ SoundSettingsGroup::SoundSettingsGroup(std::string pathToSoundsFolder) {
 	pitch->setMax(10, false);
 	pitch->setStep(0.01f);
 
-	enableAudioLabel->setTextSize(TEXT_SIZE);
+	enableAudio->setTextSize(TEXT_SIZE);
 	fileNameLabel->setTextSize(TEXT_SIZE);
 	volumeLabel->setTextSize(TEXT_SIZE);
 	pitchLabel->setTextSize(TEXT_SIZE);
 
-	enableAudioLabel->setText("Enable sound on spawn");
+	enableAudio->setText("Enable sound");
 	fileNameLabel->setText("Sound file");
 	volumeLabel->setText("Volume");
 	pitchLabel->setText("Pitch");
-
-	enableAudio->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
-	fileName->setSize("100%", TEXT_BOX_HEIGHT);
-	volume->setSize("100%", SLIDER_HEIGHT);
-	pitch->setSize("100%", SLIDER_HEIGHT);
-	enableAudioLabel->setSize("100%", TEXT_BOX_HEIGHT);
-	fileNameLabel->setSize("100%", TEXT_BOX_HEIGHT);
-	volumeLabel->setSize("100%", TEXT_BOX_HEIGHT);
-	pitchLabel->setSize("100%", TEXT_BOX_HEIGHT);
-
-	enableAudioLabel->setPosition(0, 0);
-	enableAudio->setPosition(tgui::bindLeft(enableAudioLabel), tgui::bindBottom(enableAudioLabel) + GUI_LABEL_PADDING_Y);
-	fileNameLabel->setPosition(tgui::bindLeft(enableAudioLabel), tgui::bindBottom(enableAudio) + GUI_PADDING_Y);
-	fileName->setPosition(tgui::bindLeft(enableAudioLabel), tgui::bindBottom(fileNameLabel) + GUI_LABEL_PADDING_Y);
-	volumeLabel->setPosition(tgui::bindLeft(enableAudioLabel), tgui::bindBottom(fileName) + GUI_PADDING_Y);
-	volume->setPosition(tgui::bindLeft(enableAudioLabel), tgui::bindBottom(volumeLabel) + GUI_LABEL_PADDING_Y);
-	pitchLabel->setPosition(tgui::bindLeft(enableAudioLabel), tgui::bindBottom(volume) + GUI_PADDING_Y);
-	pitch->setPosition(tgui::bindLeft(enableAudioLabel), tgui::bindBottom(pitchLabel) + GUI_LABEL_PADDING_Y);
 	
 	populateFileNames(pathToSoundsFolder);
 
@@ -662,11 +643,36 @@ SoundSettingsGroup::SoundSettingsGroup(std::string pathToSoundsFolder) {
 		onValueChange.emit(this, SoundSettings((std::string)fileName->getSelectedItem(), volume->getValue(), pitch->getValue(), !enableAudio->isChecked()));
 	});
 
+	connect("SizeChanged", [this](sf::Vector2f newSize) {
+		if (ignoreResizeSignal) {
+			return;
+		}
+
+		ignoreResizeSignal = true;
+
+		enableAudio->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
+		fileName->setSize(newSize.x, TEXT_BOX_HEIGHT);
+		volume->setSize(newSize.x, SLIDER_HEIGHT);
+		pitch->setSize(newSize.x, SLIDER_HEIGHT);
+		fileNameLabel->setSize(newSize.x, TEXT_BOX_HEIGHT);
+		volumeLabel->setSize(newSize.x, TEXT_BOX_HEIGHT);
+		pitchLabel->setSize(newSize.x, TEXT_BOX_HEIGHT);
+
+		enableAudio->setPosition(0, 0);
+		fileNameLabel->setPosition(tgui::bindLeft(enableAudio), enableAudio->getPosition().y + enableAudio->getSize().y + GUI_PADDING_Y);
+		fileName->setPosition(tgui::bindLeft(enableAudio), fileNameLabel->getPosition().y + fileNameLabel->getSize().y + GUI_LABEL_PADDING_Y);
+		volumeLabel->setPosition(tgui::bindLeft(enableAudio), fileName->getPosition().y + fileName->getSize().y + GUI_PADDING_Y);
+		volume->setPosition(tgui::bindLeft(enableAudio), volumeLabel->getPosition().y + volumeLabel->getSize().y + GUI_LABEL_PADDING_Y);
+		pitchLabel->setPosition(tgui::bindLeft(enableAudio), volume->getPosition().y + volume->getSize().y + GUI_PADDING_Y);
+		pitch->setPosition(tgui::bindLeft(enableAudio), pitchLabel->getPosition().y + pitchLabel->getSize().y + GUI_LABEL_PADDING_Y);
+		this->setSize(this->getSizeLayout().x, pitch->getPosition().y + pitch->getSize().y + GUI_PADDING_Y);
+		ignoreResizeSignal = false;
+	});
+
 	add(enableAudio);
 	add(fileName);
 	add(volume);
 	add(pitch);
-	add(enableAudioLabel);
 	add(fileNameLabel);
 	add(volumeLabel);
 	add(pitchLabel);
@@ -684,6 +690,8 @@ void SoundSettingsGroup::initSettings(SoundSettings init) {
 void SoundSettingsGroup::populateFileNames(std::string pathToSoundsFolder) {
 	fileName->deselectItem();
 	fileName->removeAllItems();
+
+	fileNameLabel->setToolTip(createToolTip("The name of the audio file. Only WAV, OGG/Vorbis, and FLAC files are supported. Files must be in the folder \"" + pathToSoundsFolder + "\""));
 
 	// Populate fileName with all supported sound files in the directory
 	for (const auto & entry : boost::filesystem::directory_iterator(pathToSoundsFolder)) {
