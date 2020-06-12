@@ -89,12 +89,6 @@ big todo:
 -An EditorAttackPattern "finishes" when all its EMPAs have been executed (actionsTotalTime seconds after the start of the attack pattern).
   Attacks that execute more than [actionsTotalTime] seconds after the start of the attack pattern will not execute.
 	-so, in attack pattern editor, give warnings for all attacks that execute after [actionsTotalTime]
-    
--bugs
-    -create new attack
-        -> open it
-        -> undo
-        -> the tab doesn't close
 
 Random things for TODOs that are noted here so I don't forget:
 -legal check for EMP should make sure there aren't illegal detach actions

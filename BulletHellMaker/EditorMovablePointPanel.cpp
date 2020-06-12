@@ -113,6 +113,52 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 		empiInheritDamage = tgui::CheckBox::create();
 		empiInheritSoundSettings = tgui::CheckBox::create();
 
+		empiAnimatableLabel->setToolTip(createToolTip("The default sprite/animation for this movable point."));
+		empiLoopAnimation->setToolTip(createToolTip("If this is checked, the default animation will loop indefinitely."));
+		empiBaseSpriteLabel->setToolTip(createToolTip("The fallback sprite after the animation finishes. Only used if the default animation does not loop."));
+		isBullet->setToolTip(createToolTip("If this is checked, this movable point will be a bullet that is able to damage entities. If the bullet originated from \
+a player, it can damage only enemies. If the bullet originated from an enemy, it can damage only players."));
+		empiHitboxRadiusLabel->setToolTip(createToolTip("The radius of this bullet. Only used if this movable point is a bullet."));
+		empiActionsLabel->setToolTip(createToolTip("The movement actions this movable point will take."));
+		empiActionsAdd->setToolTip(createToolTip("Adds a new movement action."));
+		empiActionsDelete->setToolTip(createToolTip("Deletes the selected movement action."));
+		empiDespawnTimeLabel->setToolTip(createToolTip("Number of seconds after being spawned that this movable point despawns. When a movable point despawns, every movable point \
+attached to it also despawns, so this effectively despawns all movable points in the movable point attachment tree with this one as the root."));
+		empiSpawnTypeLabel->setToolTip(createToolTip("Determines how this movable point will be spawned.\n\n\
+\"Relative to map origin\" - Spawns at some absolute position\n\n\
+\"Detached, relative to parent\" - Spawns relative to this movable point's parent\n\n\
+\"Attached, relative to parent\" - Spawns relative to this movable point's parent and moves relative to its parent until this movable point does a detach movement action"));
+		empiSpawnTypeTimeLabel->setToolTip(createToolTip("Number of seconds after this movable point's parent spawns that this movable point spawns. If \
+this movable point is the main movable point of its attack (the root of the attack's movable point tree), this value will be fixed to 0 so this movable point spawns as soon \
+as the attack is executed."));
+		empiSpawnTypeXLabel->setToolTip(createToolTip("The x-position for this movable point's spawn. See \"Spawn type\" for how this position will be interpreted."));
+		empiSpawnTypeYLabel->setToolTip(createToolTip("The y-position for this movable point's spawn. See \"Spawn type\" for how this position will be interpreted."));
+		empiSpawnLocationManualSet->setToolTip(createToolTip("Opens a map to help visualize and set this movable point's spawn position."));
+		empiShadowTrailLifespanLabel->setToolTip(createToolTip("Number of seconds each of this movable point's shadows last. Shadows are purely visual and create a movement trail."));
+		empiShadowTrailIntervalLabel->setToolTip(createToolTip("Number of seconds between the creation of each shadow. Shadows are purely visual and create a movement trail."));
+		empiDamageLabel->setToolTip(createToolTip("Damage dealt to an enemy/player on contact with this bullet. Only used if this movable point is a bullet."));
+		empiOnCollisionActionLabel->setToolTip(createToolTip("Determines how this bullet will act on contact with an enemy/player.\n\n\
+\"Destroy self only\" - This bullet becomes invisible and intangible upon hitting an enemy/player but will still continue following its movement actions until it despawns. \
+This means any movable points attached to this bullet when it collided with an enemy/player will behave as if nothing happened. \n\n\
+\"Destroy self and attached children\" - This bullet, and every movable point attached to it, despawns upon hitting an enemy/player. When a movable point despawns, every movable point \
+attached to it also despawns, so this effectively despawns all movable points in the movable point attachment tree with this one as the root. \n\n\
+\"Pierce players/enemies\" - This bullet does not do anything special upon hitting an enemy/player, so it is able to hit multiple enemies/players multiple times. \
+Each enemy/player can be hit at most every \"Pierce reset time\" seconds by the same bullet. Players also have a custom invulnerability time every time they take damage, \
+so this should be considered as well."));
+		empiPierceResetTimeLabel->setToolTip(createToolTip("Minimum number of seconds after this bullet hits a player/enemy that it can hit the same player/enemy again. \
+Players also have a custom invulnerability time every time they take damage, so this should be considered as well."));
+		empiSoundSettingsLabel->setToolTip(createToolTip("Settings for the sound to be played when this movable point is spawned."));
+		empiBulletModelLabel->setToolTip(createToolTip("The movable point model that this movable point will use. This is purely for convenience by allowing this movable point to \
+use the radius, despawn time, shadow settings, sprites and animations, damage, and/or sound settings of some user-defined model such that whenever the model is updated, this movable \
+point will update only the values it wants to inherit to match the model."));
+		empiInheritRadius->setToolTip(createToolTip("If this is checked, this movable point will use its model's radius."));
+		empiInheritDespawnTime->setToolTip(createToolTip("If this is checked, this movable point will use its model's despawn time."));
+		empiInheritShadowTrailInterval->setToolTip(createToolTip("If this is checked, this movable point will use its model's shadow trail interval."));
+		empiInheritShadowTrailLifespan->setToolTip(createToolTip("If this is checked, this movable point will use its model's shadow trail lifespan."));
+		empiInheritAnimatables->setToolTip(createToolTip("If this is checked, this movable point will use its model's sprites and animations."));
+		empiInheritDamage->setToolTip(createToolTip("If this is checked, this movable point will use its model's damage."));
+		empiInheritSoundSettings->setToolTip(createToolTip("If this is checked, this movable point will use its model's sound settings."));
+
 		properties->setHorizontalScrollAmount(SCROLL_AMOUNT);
 		properties->setVerticalScrollAmount(SCROLL_AMOUNT);
 
@@ -161,6 +207,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 		empiInheritAnimatables->setTextSize(TEXT_SIZE);
 		empiInheritDamage->setTextSize(TEXT_SIZE);
 		empiInheritSoundSettings->setTextSize(TEXT_SIZE);
+		empiSoundSettingsLabel->setTextSize(TEXT_SIZE);
 
 		id->setText("Movable point ID " + std::to_string(emp->getID()));
 		empiHitboxRadiusLabel->setText("Hitbox radius");
@@ -180,7 +227,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 		empiDamageLabel->setText("Damage");
 		empiOnCollisionActionLabel->setText("On-collision action");
 		empiPierceResetTimeLabel->setText("Seconds between piercing hits");
-		empiBulletModelLabel->setText("Bullet model");
+		empiBulletModelLabel->setText("Movable point model");
 		empiInheritRadius->setText("Inherit radius");
 		empiInheritDespawnTime->setText("Inherit despawn time");
 		empiInheritShadowTrailInterval->setText("Inherit shadow trail interval");
@@ -188,6 +235,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 		empiInheritAnimatables->setText("Inherit animatables");
 		empiInheritDamage->setText("Inherit damage");
 		empiInheritSoundSettings->setText("Inherit sound settings");
+		empiSoundSettingsLabel->setText("Spawn sound");
 
 		empiSpawnType->addItem("Relative to map origin", "0");
 		empiSpawnType->addItem("Detached, relative to parent", "1");
@@ -292,15 +340,29 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 			bool oldValue = this->emp->getIsBullet();
 			undoStack.execute(UndoableCommand([this, value]() {
 				this->emp->setIsBullet(value);
+
 				this->ignoreSignals = true;
 				isBullet->setChecked(value);
+				empiOnCollisionAction->setEnabled(this->emp->getIsBullet());
+				empiHitboxRadius->setEnabled((!this->emp->getInheritRadius() || this->emp->getBulletModelID() < 0) && this->emp->getIsBullet());
+				empiDamage->setEnabled((!this->emp->getInheritDamage() || this->emp->getBulletModelID() < 0) && this->emp->getIsBullet());
+				empiPierceResetTimeLabel->setVisible(this->emp->getOnCollisionAction() == PIERCE_ENTITY && this->emp->getIsBullet());
+				empiPierceResetTime->setVisible(this->emp->getOnCollisionAction() == PIERCE_ENTITY && this->emp->getIsBullet());
 				this->ignoreSignals = false;
+
 				onEMPModify.emit(this, this->emp);
 			}, [this, oldValue]() {
 				this->emp->setIsBullet(oldValue);
+
 				this->ignoreSignals = true;
 				isBullet->setChecked(oldValue);
+				empiOnCollisionAction->setEnabled(this->emp->getIsBullet());
+				empiHitboxRadius->setEnabled((!this->emp->getInheritRadius() || this->emp->getBulletModelID() < 0) && this->emp->getIsBullet());
+				empiDamage->setEnabled((!this->emp->getInheritDamage() || this->emp->getBulletModelID() < 0) && this->emp->getIsBullet());
+				empiPierceResetTimeLabel->setVisible(this->emp->getOnCollisionAction() == PIERCE_ENTITY && this->emp->getIsBullet());
+				empiPierceResetTime->setVisible(this->emp->getOnCollisionAction() == PIERCE_ENTITY && this->emp->getIsBullet());
 				this->ignoreSignals = false;
+
 				onEMPModify.emit(this, this->emp);
 			}));
 		});
@@ -694,8 +756,8 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 
 				ignoreSignals = true;
 				empiOnCollisionAction->setSelectedItemById(getID(action));
-				empiPierceResetTimeLabel->setVisible(action == PIERCE_ENTITY);
-				empiPierceResetTime->setVisible(action == PIERCE_ENTITY);
+				empiPierceResetTimeLabel->setVisible(action == PIERCE_ENTITY && this->emp->getIsBullet());
+				empiPierceResetTime->setVisible(action == PIERCE_ENTITY && this->emp->getIsBullet());
 				ignoreSignals = false;
 			},
 				[this, oldAction]() {
@@ -704,8 +766,8 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 
 				ignoreSignals = true;
 				empiOnCollisionAction->setSelectedItemById(getID(oldAction));
-				empiPierceResetTimeLabel->setVisible(oldAction == PIERCE_ENTITY);
-				empiPierceResetTime->setVisible(oldAction == PIERCE_ENTITY);
+				empiPierceResetTimeLabel->setVisible(oldAction == PIERCE_ENTITY && this->emp->getIsBullet());
+				empiPierceResetTime->setVisible(oldAction == PIERCE_ENTITY && this->emp->getIsBullet());
 				ignoreSignals = false;
 			}));
 		});
@@ -803,17 +865,17 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 				empiLoopAnimation->setVisible(!this->emp->getAnimatable().isSprite());
 				empiBaseSprite->setVisible(!this->emp->getLoopAnimation() && !this->emp->getAnimatable().isSprite());
 				empiBaseSpriteLabel->setVisible(empiBaseSprite->isVisible());
-				empiPierceResetTimeLabel->setVisible(this->emp->getOnCollisionAction() == PIERCE_ENTITY);
-				empiPierceResetTime->setVisible(this->emp->getOnCollisionAction() == PIERCE_ENTITY);
+				empiPierceResetTimeLabel->setVisible((this->emp->getOnCollisionAction() == PIERCE_ENTITY) && this->emp->getIsBullet());
+				empiPierceResetTime->setVisible((this->emp->getOnCollisionAction() == PIERCE_ENTITY) && this->emp->getIsBullet());
 
-				empiHitboxRadius->setEnabled(!this->emp->getInheritRadius() || this->emp->getBulletModelID() < 0);
+				empiHitboxRadius->setEnabled((!this->emp->getInheritRadius() || this->emp->getBulletModelID() < 0) && this->emp->getIsBullet());
 				empiDespawnTime->setEnabled(!this->emp->getInheritDespawnTime() || this->emp->getBulletModelID() < 0);
 				empiShadowTrailInterval->setEnabled(!this->emp->getInheritShadowTrailInterval() || this->emp->getBulletModelID() < 0);
 				empiShadowTrailLifespan->setEnabled(!this->emp->getInheritShadowTrailLifespan() || this->emp->getBulletModelID() < 0);
 				empiAnimatable->setEnabled(!this->emp->getInheritAnimatables() || this->emp->getBulletModelID() < 0);
 				empiLoopAnimation->setEnabled(!this->emp->getInheritAnimatables() || this->emp->getBulletModelID() < 0);
 				empiBaseSprite->setEnabled(!this->emp->getInheritAnimatables() || this->emp->getBulletModelID() < 0);
-				empiDamage->setEnabled(!this->emp->getInheritDamage() || this->emp->getBulletModelID() < 0);
+				empiDamage->setEnabled((!this->emp->getInheritDamage() || this->emp->getBulletModelID() < 0) && this->emp->getIsBullet());
 				empiSoundSettings->setEnabled(!this->emp->getInheritSoundSettings() || this->emp->getBulletModelID() < 0);
 				ignoreSignals = false;
 			},
@@ -853,8 +915,8 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 				empiLoopAnimation->setVisible(!this->emp->getAnimatable().isSprite());
 				empiBaseSprite->setVisible(!this->emp->getLoopAnimation() && !this->emp->getAnimatable().isSprite());
 				empiBaseSpriteLabel->setVisible(empiBaseSprite->isVisible());
-				empiPierceResetTimeLabel->setVisible(this->emp->getOnCollisionAction() == PIERCE_ENTITY);
-				empiPierceResetTime->setVisible(this->emp->getOnCollisionAction() == PIERCE_ENTITY);
+				empiPierceResetTimeLabel->setVisible((this->emp->getOnCollisionAction() == PIERCE_ENTITY) && this->emp->getIsBullet());
+				empiPierceResetTime->setVisible((this->emp->getOnCollisionAction() == PIERCE_ENTITY) && this->emp->getIsBullet());
 
 				empiHitboxRadius->setEnabled(!this->emp->getInheritRadius() || this->emp->getBulletModelID() < 0);
 				empiDespawnTime->setEnabled(!this->emp->getInheritDespawnTime() || this->emp->getBulletModelID() < 0);
@@ -1065,7 +1127,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 				ignoreSignals = true;
 				empiInheritDamage->setChecked(this->emp->getInheritDamage());
 				empiDamage->setValue(this->emp->getDamage());
-				empiDamage->setEnabled(!value || this->emp->getBulletModelID() < 0);
+				empiDamage->setEnabled((!value || this->emp->getBulletModelID() < 0) && this->emp->getIsBullet());
 				ignoreSignals = false;
 			},
 				[this, oldValue, oldInheritValue]() {
@@ -1078,7 +1140,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 				ignoreSignals = true;
 				empiInheritDamage->setChecked(this->emp->getInheritDamage());
 				empiDamage->setValue(this->emp->getDamage());
-				empiDamage->setEnabled(!oldValue || this->emp->getBulletModelID() < 0);
+				empiDamage->setEnabled((!oldValue || this->emp->getBulletModelID() < 0) && this->emp->getIsBullet());
 				ignoreSignals = false;
 			}));
 		});
@@ -1123,9 +1185,8 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 		empiLoopAnimation->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiAnimatable) + GUI_PADDING_Y);
 		empiBaseSpriteLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiLoopAnimation) + GUI_PADDING_Y * 2);
 		empiBaseSprite->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiBaseSpriteLabel) + GUI_LABEL_PADDING_Y);
-		isBullet->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiBaseSprite) + GUI_PADDING_Y * 2);
 
-		empiBulletModelLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(isBullet) + GUI_PADDING_Y);
+		empiBulletModelLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiBaseSprite) + GUI_PADDING_Y * 2);
 		empiBulletModel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiBulletModelLabel) + GUI_LABEL_PADDING_Y);
 		empiInheritRadius->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiBulletModel) + GUI_LABEL_PADDING_Y);
 		empiInheritDespawnTime->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiInheritRadius) + GUI_LABEL_PADDING_Y);
@@ -1135,9 +1196,17 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 		empiInheritDamage->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiInheritAnimatables) + GUI_LABEL_PADDING_Y);
 		empiInheritSoundSettings->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiInheritDamage) + GUI_LABEL_PADDING_Y);
 
-		empiHitboxRadiusLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiInheritSoundSettings) + GUI_PADDING_Y);
+		isBullet->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiInheritSoundSettings) + GUI_PADDING_Y * 2);
+		empiHitboxRadiusLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(isBullet) + GUI_PADDING_Y);
 		empiHitboxRadius->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiHitboxRadiusLabel) + GUI_LABEL_PADDING_Y);
-		empiActionsLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiHitboxRadius) + GUI_PADDING_Y);
+		empiDamageLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiHitboxRadius) + GUI_PADDING_Y * 2);
+		empiDamage->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiDamageLabel) + GUI_LABEL_PADDING_Y);
+		empiOnCollisionActionLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiDamage) + GUI_PADDING_Y);
+		empiOnCollisionAction->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiOnCollisionActionLabel) + GUI_LABEL_PADDING_Y);
+		empiPierceResetTimeLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiOnCollisionAction) + GUI_PADDING_Y);
+		empiPierceResetTime->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiPierceResetTimeLabel) + GUI_LABEL_PADDING_Y);
+
+		empiActionsLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiPierceResetTime) + GUI_PADDING_Y);
 		empiActions->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiActionsLabel) + GUI_LABEL_PADDING_Y);
 		empiActionsAdd->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiActions) + GUI_PADDING_Y);
 		empiActionsDelete->setPosition(tgui::bindRight(empiActionsAdd) + GUI_PADDING_X, tgui::bindTop(empiActionsAdd));
@@ -1158,12 +1227,6 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 		empiShadowTrailLifespan->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiShadowTrailLifespanLabel) + GUI_LABEL_PADDING_Y);
 		empiShadowTrailIntervalLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiShadowTrailLifespan) + GUI_PADDING_Y);
 		empiShadowTrailInterval->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiShadowTrailIntervalLabel) + GUI_LABEL_PADDING_Y);
-		empiDamageLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiShadowTrailInterval) + GUI_PADDING_Y * 2);
-		empiDamage->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiDamageLabel) + GUI_LABEL_PADDING_Y);
-		empiOnCollisionActionLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiDamage) + GUI_PADDING_Y);
-		empiOnCollisionAction->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiOnCollisionActionLabel) + GUI_LABEL_PADDING_Y);
-		empiPierceResetTimeLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiOnCollisionAction) + GUI_PADDING_Y);
-		empiPierceResetTime->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiPierceResetTimeLabel) + GUI_LABEL_PADDING_Y);
 
 		tgui::Layout fillWidth = tgui::bindWidth(properties) - GUI_PADDING_X * 2;
 		empiLoopAnimation->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
@@ -1367,21 +1430,22 @@ void EditorMovablePointPanel::updateAllWidgetValues() {
 	empiInheritSoundSettings->setChecked(emp->getInheritSoundSettings());
 
 	empiSpawnTypeTime->setEnabled(!emp->isMainEMP());
-	empiHitboxRadius->setEnabled(!emp->getInheritRadius() || this->emp->getBulletModelID() < 0);
+	empiOnCollisionAction->setEnabled(emp->getIsBullet());
+	empiHitboxRadius->setEnabled((!emp->getInheritRadius() || this->emp->getBulletModelID() < 0) && emp->getIsBullet());
 	empiDespawnTime->setEnabled(!emp->getInheritDespawnTime() || this->emp->getBulletModelID() < 0);
 	empiShadowTrailInterval->setEnabled(!emp->getInheritShadowTrailInterval() || this->emp->getBulletModelID() < 0);
 	empiShadowTrailLifespan->setEnabled(!emp->getInheritShadowTrailLifespan() || this->emp->getBulletModelID() < 0);
 	empiAnimatable->setEnabled(!this->emp->getInheritAnimatables() || this->emp->getBulletModelID() < 0);
 	empiLoopAnimation->setEnabled(!this->emp->getInheritAnimatables() || this->emp->getBulletModelID() < 0);
 	empiBaseSprite->setEnabled(!this->emp->getInheritAnimatables() || this->emp->getBulletModelID() < 0);
-	empiDamage->setEnabled(!emp->getInheritDamage() || this->emp->getBulletModelID() < 0);
+	empiDamage->setEnabled((!emp->getInheritDamage() || this->emp->getBulletModelID() < 0) && emp->getIsBullet());
 	empiSoundSettings->setEnabled(!emp->getInheritSoundSettings() || this->emp->getBulletModelID() < 0);
 
 	empiLoopAnimation->setVisible(!emp->getAnimatable().isSprite());
 	empiBaseSprite->setVisible(!emp->getLoopAnimation() && !emp->getAnimatable().isSprite());
 	empiBaseSpriteLabel->setVisible(empiBaseSprite->isVisible());
-	empiPierceResetTimeLabel->setVisible(emp->getOnCollisionAction() == PIERCE_ENTITY);
-	empiPierceResetTime->setVisible(emp->getOnCollisionAction() == PIERCE_ENTITY);
+	empiPierceResetTimeLabel->setVisible((emp->getOnCollisionAction() == PIERCE_ENTITY) && emp->getIsBullet());
+	empiPierceResetTime->setVisible((emp->getOnCollisionAction() == PIERCE_ENTITY) && emp->getIsBullet());
 	ignoreSignals = false;
 }
 

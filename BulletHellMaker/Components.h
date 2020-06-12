@@ -581,8 +581,8 @@ private:
 	// If this is true, when list of children is empty, the entity with this component will despawn
 	bool despawnWhenNoChildren = false;
 
-	// Entities that are attached to the entity with this DespawnComponent
-	// When this entity is deleted, so are all its children
+	// Entities that are attached to the entity with this DespawnComponent.
+	// When this entity is deleted, so are all its recursive children
 	std::vector<uint32_t> children;
 
 	bool markedForDespawn = false;
