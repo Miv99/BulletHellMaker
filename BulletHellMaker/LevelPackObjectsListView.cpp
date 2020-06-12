@@ -322,6 +322,7 @@ void AttacksListView::updateLevelPackObjectInLevelPack(std::shared_ptr<LevelPack
 
 void AttacksListView::deleteLevelPackObjectInLevelPack(int id) {
 	levelPack->deleteAttack(id);
+	reloadLevelPackObjectTabInMainEditorWindow(id);
 }
 
 std::shared_ptr<LevelPackObject> AttacksListView::getLevelPackObjectFromLevelPack(int id) {
