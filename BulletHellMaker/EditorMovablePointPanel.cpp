@@ -98,6 +98,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 		empiPierceResetTimeLabel = tgui::Label::create();
 		empiPierceResetTime = NumericalEditBoxWithLimits::create();
 
+		empiSoundSettingsLabel = tgui::Label::create();
 		empiSoundSettings = SoundSettingsGroup::create(format(LEVEL_PACK_SOUND_FOLDER_PATH, levelPack.getName().c_str()));
 
 		empiBulletModelLabel = tgui::Label::create();
@@ -1151,7 +1152,9 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 		empiSpawnTypeYLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiSpawnTypeX) + GUI_PADDING_Y);
 		empiSpawnTypeY->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiSpawnTypeYLabel) + GUI_LABEL_PADDING_Y);
 		empiSpawnLocationManualSet->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiSpawnTypeY) + GUI_PADDING_Y);
-		empiShadowTrailLifespanLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiSpawnLocationManualSet) + GUI_PADDING_Y * 2);
+		empiSoundSettingsLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiSpawnLocationManualSet) + GUI_PADDING_Y * 2);
+		empiSoundSettings->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiSoundSettingsLabel) + GUI_LABEL_PADDING_Y);
+		empiShadowTrailLifespanLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiSoundSettings) + GUI_PADDING_Y * 2);
 		empiShadowTrailLifespan->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiShadowTrailLifespanLabel) + GUI_LABEL_PADDING_Y);
 		empiShadowTrailIntervalLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiShadowTrailLifespan) + GUI_PADDING_Y);
 		empiShadowTrailInterval->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiShadowTrailIntervalLabel) + GUI_LABEL_PADDING_Y);
@@ -1161,7 +1164,6 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 		empiOnCollisionAction->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiOnCollisionActionLabel) + GUI_LABEL_PADDING_Y);
 		empiPierceResetTimeLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiOnCollisionAction) + GUI_PADDING_Y);
 		empiPierceResetTime->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiPierceResetTimeLabel) + GUI_LABEL_PADDING_Y);
-		empiSoundSettings->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiPierceResetTime) + GUI_PADDING_Y);
 
 		tgui::Layout fillWidth = tgui::bindWidth(properties) - GUI_PADDING_X * 2;
 		empiLoopAnimation->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
@@ -1184,7 +1186,6 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 		empiDamage->setSize(fillWidth, TEXT_BOX_HEIGHT);
 		empiOnCollisionAction->setSize(fillWidth, TEXT_BOX_HEIGHT);
 		empiPierceResetTime->setSize(fillWidth, TEXT_BOX_HEIGHT);
-		empiSoundSettings->setSize(fillWidth, 0);
 		empiBulletModel->setSize(fillWidth, TEXT_BOX_HEIGHT);
 		empiInheritRadius->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
 		empiInheritDespawnTime->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
@@ -1228,6 +1229,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 		properties->add(empiOnCollisionAction);
 		properties->add(empiPierceResetTimeLabel);
 		properties->add(empiPierceResetTime);
+		properties->add(empiSoundSettingsLabel);
 		properties->add(empiSoundSettings);
 		properties->add(empiBulletModelLabel);
 		properties->add(empiBulletModel);
@@ -1239,7 +1241,10 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 		properties->add(empiInheritDamage);
 		properties->add(empiInheritSoundSettings);
 
-		properties->connect("SizeChanged", [&](sf::Vector2f newSize) {
+		properties->connect("SizeChanged", [this](sf::Vector2f newSize) {
+			// This is here because of some random bug with SoundSettingsGroup
+			empiSoundSettings->setSize(newSize.x - GUI_PADDING_X * 2, 0);
+
 			spawnTypePositionMarkerPlacerFinishEditing->setPosition(newSize.x - spawnTypePositionMarkerPlacerFinishEditing->getSize().x, newSize.y - spawnTypePositionMarkerPlacerFinishEditing->getSize().y);
 		});
 

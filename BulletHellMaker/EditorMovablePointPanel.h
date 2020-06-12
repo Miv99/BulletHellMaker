@@ -97,6 +97,7 @@ private:
 	std::shared_ptr<NumericalEditBoxWithLimits> empiSpawnTypeX;
 	std::shared_ptr<NumericalEditBoxWithLimits> empiSpawnTypeY;
 	std::shared_ptr<SliderWithEditBox> empiDespawnTime;
+	std::shared_ptr<tgui::Label> empiSoundSettingsLabel;
 	std::shared_ptr<SoundSettingsGroup> empiSoundSettings;
 	std::shared_ptr<tgui::ComboBox> empiBulletModel;
 
