@@ -2156,6 +2156,10 @@ void TabsWithPanel::insertTab(std::string tabName, std::shared_ptr<tgui::Panel> 
 		createCloseButton(index);
 	} else {
 		closeButtons.insert(closeButtons.begin() + index, std::make_pair(nullptr, ""));
+		// Reposition all close buttons that come after the created one
+		for (int i = index + 1; i < tabsOrdering.size(); i++) {
+			closeButtons[i].first->setPosition((i + 1) * (TAB_WIDTH + 1) - closeButtons[i].first->getSize().x, tgui::bindTop(tabs));
+		}
 	}
 	onTabsChange();
 }
@@ -2188,7 +2192,7 @@ void TabsWithPanel::removeTab(std::string tabName) {
 	// Remove the tab's close button
 	tabsContainer->remove(closeButtons[pos].first);
 	closeButtons.erase(closeButtons.begin() + pos);
-	// Reposition all close buttons that comee after the removed one
+	// Reposition all close buttons that come after the removed one
 	for (int i = pos; i < tabsOrdering.size(); i++) {
 		closeButtons[i].first->setPosition((i + 1) * (TAB_WIDTH + 1) - closeButtons[i].first->getSize().x, tgui::bindTop(tabs));
 	}
@@ -2226,8 +2230,9 @@ void TabsWithPanel::renameTab(std::string oldTabName, std::string newTabName) {
 	bool closeable = (closeButtons[tabIndex].first != nullptr);
 	std::string closeButtonConfirmationPrompt = closeButtons[tabIndex].second;
 
+	bool wasSelected = tabs->getSelectedIndex() == tabIndex;
 	removeTab(oldTabName);
-	insertTab(newTabName, panel, tabIndex, tabs->getSelectedIndex() == tabIndex, closeable);
+	insertTab(newTabName, panel, tabIndex, wasSelected, closeable);
 	setTabCloseButtonConfirmationPrompt(newTabName, closeButtonConfirmationPrompt);
 }
 
@@ -2370,7 +2375,7 @@ void TabsWithPanel::onTabsChange() {
 	}
 }
 
-void TabsWithPanel::onCloseButtonConfirmationPromptAnswer(bool confirmed) {
+void TabsWithPanel::onCloseButtonConfirmationPromptAnswer(bool confirmed, std::string closeButtonConfirmationPromptTargetTabShortenedName) {
 	if (confirmed) {
 		removeTab(closeButtonConfirmationPromptTargetTabShortenedName);
 		onTabClose.emit(this, closeButtonConfirmationPromptTargetTabShortenedName);
@@ -2391,20 +2396,24 @@ void TabsWithPanel::createCloseButton(int index) {
 	// +1 to the tab width because for some reason each tab's width is actually
 	// 1 pixel more than TAB_WIDTH
 	closeButton->setPosition((index + 1) * (TAB_WIDTH + 1) - closeButton->getSize().x, tgui::bindTop(tabs));
-	closeButton->connect("Pressed", [&, tabName]() {
+	closeButton->connect("Pressed", [this, tabName]() {
 		int pos;
 		for (pos = 0; pos < tabsOrdering.size(); pos++) {
 			if (tabsOrdering[pos] == tabName) break;
 		}
 		std::string fullTabName = tabs->getText(pos); // Includes the spaces, so remove them
-		closeButtonConfirmationPromptTargetTabShortenedName = fullTabName.substr(0, fullTabName.length() - tabNameAppendedSpaces.length());
+		std::string closeButtonConfirmationPromptTargetTabShortenedName = fullTabName.substr(0, fullTabName.length() - tabNameAppendedSpaces.length());
 		if (closeButtons[pos].second != "") {
-			parentWindow.promptConfirmation(closeButtons[pos].second)->sink().connect<TabsWithPanel, &TabsWithPanel::onCloseButtonConfirmationPromptAnswer>(this);
+			parentWindow.promptConfirmation(closeButtons[pos].second, closeButtonConfirmationPromptTargetTabShortenedName)->sink().connect<TabsWithPanel, &TabsWithPanel::onCloseButtonConfirmationPromptAnswer>(this);
 		} else {
 			removeTab(closeButtonConfirmationPromptTargetTabShortenedName);
 		}
 	});
-	closeButtons.push_back(std::make_pair(closeButton, ""));
+	closeButtons.insert(closeButtons.begin() + index, std::make_pair(closeButton, ""));
+	// Reposition all close buttons that come after the created one
+	for (int i = index + 1; i < tabsOrdering.size(); i++) {
+		closeButtons[i].first->setPosition((i + 1) * (TAB_WIDTH + 1) - closeButtons[i].first->getSize().x, tgui::bindTop(tabs));
+	}
 	tabsContainer->add(closeButton);
 }
 

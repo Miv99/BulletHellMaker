@@ -848,10 +848,6 @@ private:
 	// This is a lot of work, so it's better to just never change tabs' text size
 	std::string tabNameAppendedSpaces;
 
-	// The tab name (without the tabNameAppendedSpaces) of the tab who is being closed
-	// and has its confirmation prompt up
-	std::string closeButtonConfirmationPromptTargetTabShortenedName;
-
 	EditorWindow& parentWindow;
 
 	// The ScrollablePanel that serves as a container for the tabs object
@@ -888,8 +884,12 @@ private:
 	void onTabSelected(std::string tabName);
 	// Should be called whenever there's an update to the tabs
 	void onTabsChange();
-	// Called when a confirmation prompt for a close button is answered
-	void onCloseButtonConfirmationPromptAnswer(bool confirmed);
+	/*
+	Called when a confirmation prompt for a close button is answered.
+
+	closeButtonConfirmationPromptTargetTabShortenedName - the shortened name (no appended spaces) of the tab being closed
+	*/
+	void onCloseButtonConfirmationPromptAnswer(bool confirmed, std::string closeButtonConfirmationPromptTargetTabShortenedName);
 	/*
 	Mark/Unmark a specific tab as requiring pressing "Yes" to a confirmation prompt before
 	the tab is actually closed. This function does nothing if hasCloseButtons is false.
