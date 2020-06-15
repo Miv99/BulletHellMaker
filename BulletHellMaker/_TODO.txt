@@ -94,7 +94,6 @@ big todo:
 -visualizer thing in EMPABasedMovementEditorPanel
 
 -delete button for LevelPackObjectsListPanel with confirmation if whatever's being deleted is being used by something
--in attack editor panel: rename "MPs" tab to "MP Tree"; rename "EMP [ID]" tab to "MP [ID]"
 
 Random things for TODOs that are noted here so I don't forget:
 -legal check for EMP should make sure there aren't illegal detach actions

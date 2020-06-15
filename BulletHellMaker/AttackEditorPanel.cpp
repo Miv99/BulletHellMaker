@@ -1,7 +1,7 @@
 #include "AttackEditorPanel.h"
 
 const std::string AttackEditorPanel::PROPERTIES_TAB_NAME = "Atk. Properties";
-const std::string AttackEditorPanel::EMP_TAB_NAME_FORMAT = "EMP %d";
+const std::string AttackEditorPanel::EMP_TAB_NAME_FORMAT = "MP %d";
 
 AttackEditorPropertiesPanel::AttackEditorPropertiesPanel(MainEditorWindow& mainEditorWindow, Clipboard & clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize) : CopyPasteable("EditorAttack"), mainEditorWindow(mainEditorWindow), clipboard(clipboard), 
 attack(attack), undoStack(UndoStack(undoStackSize)) {
@@ -215,7 +215,7 @@ spriteLoader(spriteLoader), clipboard(clipboard), undoStack(UndoStack(undoStackS
 			}
 		});
 		empsTreeView = emps->getEmpsTreeView();
-		tabs->addTab("MPs", emps, false);
+		tabs->addTab("MP Tree", emps, false);
 
 		{
 			// Right click menu for empsTreeView
