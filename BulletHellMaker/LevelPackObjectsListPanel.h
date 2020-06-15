@@ -6,7 +6,8 @@
 
 /*
 An EventCapturable basic tgui::Panel to be used by MainEditorWindow for viewing a LevelPackObjectsListView.
-This widget's main purpose is to pass events down to the child LevelPackObjectsListView widget.
+This widget's main purpose is to pass events down to the child LevelPackObjectsListView widget and hold
+utility buttons that can't be scrolled past.
 */
 class LevelPackObjectsListPanel : public tgui::Panel, public EventCapturable {
 public:

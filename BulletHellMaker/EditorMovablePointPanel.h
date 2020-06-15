@@ -9,6 +9,7 @@
 #include "ExtraSignals.h"
 #include "EditorUtilities.h"
 #include "CopyPaste.h"
+#include "EMPABasedMovementEditorPanel.h"
 #include <TGUI/TGUI.hpp>
 
 /*
@@ -41,10 +42,7 @@ public:
 
 private:
 	static const std::string PROPERTIES_TAB_NAME;
-	static const std::string EMPA_TAB_NAME_FORMAT;
-	// The index in EMPA_TAB_NAME_FORMAT that marks the beginning of the action index.
-	// This is used to extract the action index out of a tab name.
-	static const int EMPA_TAB_NAME_FORMAT_NUMBER_INDEX;
+	static const std::string MOVEMENT_TAB_NAME;
 
 	MainEditorWindow& mainEditorWindow;
 	LevelPack& levelPack;
@@ -64,10 +62,6 @@ private:
 	std::shared_ptr<tgui::CheckBox> isBullet;
 	std::shared_ptr<tgui::Label> empiHitboxRadiusLabel;
 	std::shared_ptr<NumericalEditBoxWithLimits> empiHitboxRadius;
-	std::shared_ptr<tgui::Label> empiActionsLabel;
-	std::shared_ptr<ListBoxScrollablePanel> empiActions;
-	std::shared_ptr<tgui::Button> empiActionsAdd;
-	std::shared_ptr<tgui::Button> empiActionsDelete;
 	std::shared_ptr<tgui::Label> empiDespawnTimeLabel;
 	std::shared_ptr<tgui::Label> empiSpawnTypeLabel;
 	std::shared_ptr<tgui::ComboBox> empiSpawnType;
@@ -110,9 +104,6 @@ private:
 	float horizontalScrollPos;
 	float verticalScrollPos;
 
-	// The index of the selected EMPA in the EMPA list widget. -1 if none selected.
-	int selectedEMPAIndex = -1;
-
 	std::shared_ptr<TabsWithPanel> tabs;
 
 	/*
@@ -124,22 +115,9 @@ private:
 	bool ignoreSignals = false;
 
 	/*
-	Clear and populate a ListBoxScrollablePanel with emp's actions.
-	Should be called whenever any EMPA is changed.
-	*/
-	void populateEMPAList(std::shared_ptr<ListBoxScrollablePanel> actionsListBoxScrollablePanel);
-	/*
 	Update all widget values to match emp.
 	*/
 	void updateAllWidgetValues();
-	/*
-	Create a panel for editing an EMPA.
-
-	empa - the EMPA for which the panel will edit
-	index - the index of empa in emp's actions list
-	empiActions - the ListBoxScrollablePanel which will display all of emp's actions
-	*/
-	std::shared_ptr<tgui::Panel> createEMPAPanel(std::shared_ptr<EMPAction> empa, int index, std::shared_ptr<ListBoxScrollablePanel> empiActions);
 
 	void onLevelPackChange();
 	void finishEditingSpawnTypePosition();

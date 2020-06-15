@@ -71,7 +71,7 @@ CopiedLevelPackObject::CopiedLevelPackObject(std::string copiedFromID, std::vect
 }
 
 std::vector<std::shared_ptr<LevelPackObject>> CopiedLevelPackObject::getLevelPackObjects() {
-	// Return deep copies of the enemies
+	// Return deep copies of the objects
 	std::vector<std::shared_ptr<LevelPackObject>> copies;
 	for (auto obj : objs) {
 		copies.push_back(obj->clone());
@@ -81,4 +81,24 @@ std::vector<std::shared_ptr<LevelPackObject>> CopiedLevelPackObject::getLevelPac
 
 int CopiedLevelPackObject::getLevelPackObjectsCount() {
 	return objs.size();
+}
+
+CopiedEMPActions::CopiedEMPActions(std::string copiedFromID, std::vector<std::shared_ptr<EMPAction>> actions) : CopiedObject(copiedFromID) {
+	// Deep copy every action
+	for (auto action : actions) {
+		this->actions.push_back(action->clone());
+	}
+}
+
+std::vector<std::shared_ptr<EMPAction>> CopiedEMPActions::getActions() {
+	// Return deep copies of the actions
+	std::vector<std::shared_ptr<EMPAction>> copies;
+	for (auto action : actions) {
+		copies.push_back(action->clone());
+	}
+	return copies;
+}
+
+int CopiedEMPActions::getActionsCount() {
+	return actions.size();
 }

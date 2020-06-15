@@ -2,8 +2,7 @@
 #include "EditorMovablePointActionPanel.h"
 
 const std::string EditorMovablePointPanel::PROPERTIES_TAB_NAME = "MP Properties";
-const std::string EditorMovablePointPanel::EMPA_TAB_NAME_FORMAT = "Action %d";
-const int EditorMovablePointPanel::EMPA_TAB_NAME_FORMAT_NUMBER_INDEX = 7;
+const std::string EditorMovablePointPanel::MOVEMENT_TAB_NAME = "MP Movement";
 
 std::string EditorMovablePointPanel::getID(BULLET_ON_COLLISION_ACTION onCollisionAction) {
 	return std::to_string(static_cast<int>(onCollisionAction));
@@ -61,13 +60,6 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 		empiHitboxRadiusLabel = tgui::Label::create();
 		empiHitboxRadius = NumericalEditBoxWithLimits::create();
 		
-		empiActionsLabel = tgui::Label::create();
-		// Entry ID is index in list of the EMP's actions
-		empiActions = ListBoxScrollablePanel::create();
-		
-		empiActionsAdd = tgui::Button::create();
-		empiActionsDelete = tgui::Button::create();
-
 		empiDespawnTimeLabel = tgui::Label::create();
 		// Max value is sum of time taken for every EMPA in empiActions
 		empiDespawnTime = std::make_shared<SliderWithEditBox>();
@@ -119,9 +111,6 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 		isBullet->setToolTip(createToolTip("If this is checked, this movable point will be a bullet that is able to damage entities. If the bullet originated from \
 a player, it can damage only enemies. If the bullet originated from an enemy, it can damage only players."));
 		empiHitboxRadiusLabel->setToolTip(createToolTip("The radius of this bullet. Only used if this movable point is a bullet."));
-		empiActionsLabel->setToolTip(createToolTip("The movement actions this movable point will take."));
-		empiActionsAdd->setToolTip(createToolTip("Adds a new movement action."));
-		empiActionsDelete->setToolTip(createToolTip("Deletes the selected movement action."));
 		empiDespawnTimeLabel->setToolTip(createToolTip("Number of seconds after being spawned that this movable point despawns. When a movable point despawns, every movable point \
 attached to it also despawns, so this effectively despawns all movable points in the movable point attachment tree with this one as the root."));
 		empiSpawnTypeLabel->setToolTip(createToolTip("Determines how this movable point will be spawned.\n\n\
@@ -173,10 +162,6 @@ point will update only the values it wants to inherit to match the model."));
 		isBullet->setTextSize(TEXT_SIZE);
 		empiHitboxRadiusLabel->setTextSize(TEXT_SIZE);
 		empiHitboxRadius->setTextSize(TEXT_SIZE);
-		empiActionsLabel->setTextSize(TEXT_SIZE);
-		empiActions->setTextSize(TEXT_SIZE);
-		empiActionsAdd->setTextSize(TEXT_SIZE);
-		empiActionsDelete->setTextSize(TEXT_SIZE);
 		empiDespawnTimeLabel->setTextSize(TEXT_SIZE);
 		empiDespawnTime->setTextSize(TEXT_SIZE);
 		empiSpawnTypeLabel->setTextSize(TEXT_SIZE);
@@ -213,9 +198,6 @@ point will update only the values it wants to inherit to match the model."));
 		empiHitboxRadiusLabel->setText("Hitbox radius");
 		empiAnimatableLabel->setText("Sprite/Animation");
 		empiBaseSpriteLabel->setText("Base sprite");
-		empiActionsLabel->setText("Actions");
-		empiActionsAdd->setText("Add");
-		empiActionsDelete->setText("Delete");
 		empiDespawnTimeLabel->setText("Time to despawn");
 		empiSpawnTypeLabel->setText("Spawn type");
 		empiSpawnTypeTimeLabel->setText("Spawn delay");
@@ -384,134 +366,6 @@ point will update only the values it wants to inherit to match the model."));
 				empiHitboxRadius->setValue(oldValue);
 				this->ignoreSignals = false;
 				onEMPModify.emit(this, this->emp);
-			}));
-		});
-		empiActions->getListBox()->connect("ItemSelected", [&](int index) {
-			selectedEMPAIndex = index;
-		});
-		empiActions->getListBox()->connect("DoubleClicked", [this](std::string item, std::string id) {
-			std::shared_ptr<tgui::Panel> empaPanel = createEMPAPanel(this->emp->getActions()[std::stoi(id)]->clone(), std::stoi(id), empiActions);
-			empaPanel->connect("EMPAModified", [this]() {
-				populateEMPAList(empiActions);
-			});
-			tabs->addTab(format(EMPA_TAB_NAME_FORMAT, std::stoi(id)), empaPanel, true, true);
-		});
-		empiActionsAdd->connect("Pressed", [this]() {
-			int newEMPAIndex;
-			if (selectedEMPAIndex == -1) {
-				newEMPAIndex = this->emp->getActionsCount();
-			} else {
-				newEMPAIndex = selectedEMPAIndex;
-			}
-
-			undoStack.execute(UndoableCommand([this, newEMPAIndex]() {
-				this->emp->insertAction(newEMPAIndex, std::make_shared<StayStillAtLastPositionEMPA>(0));
-				onEMPModify.emit(this, this->emp);
-
-				// Rename all tabs for higher or equal EMPA indices
-				std::vector<int> actionIndicesToBeRenamed;
-				// Start at 1 because the first tab is the MP properties
-				std::vector<std::string> tabNames = tabs->getTabNames();
-				for (int i = 1; i < tabNames.size(); i++) {
-					int actionIndex = std::stoi(tabNames[i].substr(EMPA_TAB_NAME_FORMAT_NUMBER_INDEX));
-					if (actionIndex >= newEMPAIndex) {
-						actionIndicesToBeRenamed.push_back(actionIndex);
-					}
-				}
-				// Since action indicies need to be incremented, iterate starting at the highest action indices first so that
-				// there can't be a situation where 2 tabs have the same name
-				std::sort(actionIndicesToBeRenamed.begin(), actionIndicesToBeRenamed.end(), std::greater<int>());
-				for (int actionIndex : actionIndicesToBeRenamed) {
-					tabs->renameTab(format(EMPA_TAB_NAME_FORMAT, actionIndex), format(EMPA_TAB_NAME_FORMAT, actionIndex + 1));
-				}
-
-				this->populateEMPAList(empiActions);
-			}, [this, newEMPAIndex]() {
-				this->emp->removeAction(newEMPAIndex);
-				onEMPModify.emit(this, this->emp);
-
-				// Close the tab if it is open
-				std::string tabName = format(EMPA_TAB_NAME_FORMAT, newEMPAIndex);
-				if (tabs->hasTab(tabName)) {
-					tabs->removeTab(tabName);
-				}
-
-				// Rename all tabs for higher EMPA indices
-				std::vector<int> actionIndicesToBeRenamed;
-				// Start at 1 because the first tab is the MP properties
-				std::vector<std::string> tabNames = tabs->getTabNames();
-				for (int i = 1; i < tabNames.size(); i++) {
-					int actionIndex = std::stoi(tabNames[i].substr(EMPA_TAB_NAME_FORMAT_NUMBER_INDEX));
-					if (actionIndex > newEMPAIndex) {
-						actionIndicesToBeRenamed.push_back(actionIndex);
-					}
-				}
-				// Since action indicies need to be decremented, iterate starting at the lowest action indices first so that
-				// there can't be a situation where 2 tabs have the same name
-				std::sort(actionIndicesToBeRenamed.begin(), actionIndicesToBeRenamed.end());
-				for (int actionIndex : actionIndicesToBeRenamed) {
-					tabs->renameTab(format(EMPA_TAB_NAME_FORMAT, actionIndex), format(EMPA_TAB_NAME_FORMAT, actionIndex - 1));
-				}
-
-				this->populateEMPAList(empiActions);
-			}));
-		});
-		empiActionsDelete->connect("Pressed", [this, &index = this->selectedEMPAIndex]() {
-			auto oldEMPA = this->emp->getAction(selectedEMPAIndex);
-			undoStack.execute(UndoableCommand([this, index]() {
-				this->emp->removeAction(index);
-				onEMPModify.emit(this, this->emp);
-
-				// Close the tab if it is open
-				std::string tabName = format(EMPA_TAB_NAME_FORMAT, index);
-				if (tabs->hasTab(tabName)) {
-					tabs->removeTab(tabName);
-				}
-
-				// Rename all tabs for higher EMPA indices
-				std::vector<int> actionIndicesToBeRenamed;
-				// Start at 1 because the first tab is the MP properties
-				std::vector<std::string> tabNames = tabs->getTabNames();
-				for (int i = 1; i < tabNames.size(); i++) {
-					int actionIndex = std::stoi(tabNames[i].substr(EMPA_TAB_NAME_FORMAT_NUMBER_INDEX));
-					if (actionIndex > index) {
-						actionIndicesToBeRenamed.push_back(actionIndex);
-					}
-				}
-				// Since action indicies need to be decremented, iterate starting at the lowest action indices first so that
-				// there can't be a situation where 2 tabs have the same name
-				std::sort(actionIndicesToBeRenamed.begin(), actionIndicesToBeRenamed.end());
-				for (int actionIndex : actionIndicesToBeRenamed) {
-					tabs->renameTab(format(EMPA_TAB_NAME_FORMAT, actionIndex), format(EMPA_TAB_NAME_FORMAT, actionIndex - 1));
-				}
-
-				this->populateEMPAList(empiActions);
-			}, [this, index, oldEMPA]() {
-				this->emp->insertAction(index, oldEMPA);
-				onEMPModify.emit(this, this->emp);
-
-				// Rename all tabs for higher or equal EMPA indices
-				std::vector<int> actionIndicesToBeRenamed;
-				// Start at 1 because the first tab is the MP properties
-				std::vector<std::string> tabNames = tabs->getTabNames();
-				for (int i = 1; i < tabNames.size(); i++) {
-					int actionIndex = std::stoi(tabNames[i].substr(EMPA_TAB_NAME_FORMAT_NUMBER_INDEX));
-					if (actionIndex >= index) {
-						actionIndicesToBeRenamed.push_back(actionIndex);
-					}
-				}
-				// Since action indicies need to be incremented, iterate starting at the highest action indices first so that
-				// there can't be a situation where 2 tabs have the same name
-				std::sort(actionIndicesToBeRenamed.begin(), actionIndicesToBeRenamed.end(), std::greater<int>());
-				for (int actionIndex : actionIndicesToBeRenamed) {
-					tabs->renameTab(format(EMPA_TAB_NAME_FORMAT, actionIndex), format(EMPA_TAB_NAME_FORMAT, actionIndex + 1));
-				}
-
-				// Create the tab
-				std::shared_ptr<tgui::Panel> empaPanel = createEMPAPanel(this->emp->getAction(index)->clone(), index, empiActions);
-				tabs->addTab(format(EMPA_TAB_NAME_FORMAT, index), empaPanel, false, true);
-
-				this->populateEMPAList(empiActions);
 			}));
 		});
 		empiSpawnType->connect("ItemSelected", [this](std::string item, std::string id) {
@@ -1206,11 +1060,7 @@ point will update only the values it wants to inherit to match the model."));
 		empiPierceResetTimeLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiOnCollisionAction) + GUI_PADDING_Y);
 		empiPierceResetTime->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiPierceResetTimeLabel) + GUI_LABEL_PADDING_Y);
 
-		empiActionsLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiPierceResetTime) + GUI_PADDING_Y);
-		empiActions->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiActionsLabel) + GUI_LABEL_PADDING_Y);
-		empiActionsAdd->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiActions) + GUI_PADDING_Y);
-		empiActionsDelete->setPosition(tgui::bindRight(empiActionsAdd) + GUI_PADDING_X, tgui::bindTop(empiActionsAdd));
-		empiDespawnTimeLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiActionsDelete) + GUI_PADDING_Y);
+		empiDespawnTimeLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiPierceResetTime) + GUI_PADDING_Y * 2);
 		empiDespawnTime->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiDespawnTimeLabel) + GUI_LABEL_PADDING_Y);
 		empiSpawnTypeLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiDespawnTime) + GUI_PADDING_Y * 2);
 		empiSpawnType->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiSpawnTypeLabel) + GUI_LABEL_PADDING_Y);
@@ -1235,9 +1085,6 @@ point will update only the values it wants to inherit to match the model."));
 		empiAnimatable->setAnimatablePictureSize(fillWidth, tgui::bindMin(tgui::bindWidth(properties) - GUI_PADDING_X * 2, 120));
 		empiBaseSprite->setAnimatablePictureSize(fillWidth, tgui::bindMin(tgui::bindWidth(properties) - GUI_PADDING_X * 2, 120));
 		empiHitboxRadius->setSize(fillWidth, TEXT_BOX_HEIGHT);
-		empiActions->setSize(fillWidth, 250);
-		empiActionsAdd->setSize((tgui::bindWidth(empiActions) - GUI_PADDING_X)/2.0f, TEXT_BUTTON_HEIGHT);
-		empiActionsDelete->setSize((tgui::bindWidth(empiActions) - GUI_PADDING_X) / 2.0f, TEXT_BUTTON_HEIGHT);
 		empiDespawnTime->setSize(fillWidth, TEXT_BOX_HEIGHT);
 		empiSpawnType->setSize(fillWidth, TEXT_BOX_HEIGHT);
 		empiSpawnTypeTime->setSize(fillWidth, TEXT_BOX_HEIGHT);
@@ -1267,10 +1114,6 @@ point will update only the values it wants to inherit to match the model."));
 		properties->add(isBullet);
 		properties->add(empiHitboxRadiusLabel);
 		properties->add(empiHitboxRadius);
-		properties->add(empiActionsLabel);
-		properties->add(empiActions);
-		properties->add(empiActionsAdd);
-		properties->add(empiActionsDelete);
 		properties->add(empiDespawnTimeLabel);
 		properties->add(empiDespawnTime);
 		properties->add(empiSpawnTypeLabel);
@@ -1312,6 +1155,23 @@ point will update only the values it wants to inherit to match the model."));
 		});
 
 		tabs->addTab(PROPERTIES_TAB_NAME, properties);
+	}
+	{
+		// Movement tab
+		std::shared_ptr<EMPABasedMovementEditorPanel> movement = EMPABasedMovementEditorPanel::create(mainEditorWindow, clipboard);
+		movement->connect("EMPAListModified", [this](std::vector<std::shared_ptr<EMPAction>> newActions, float newSumOfDurations) {
+			// This shouldn't be undoable here because it's already undoable from EMPABasedMovementEditorPanel.
+			// Note: Setting the limits of a SliderWithEditBox to some number and then setting it back does not
+			// revert the SliderWithEditBox's value
+			this->emp->setActions(newActions);
+			// Max time for despawn time is sum of actions' durations
+			this->empiDespawnTime->setMax(newSumOfDurations);
+
+			onEMPModify.emit(this, this->emp);
+		});
+		movement->setActions(this->emp->getActions());
+		empiDespawnTime->setMax(movement->getSumOfDurations());
+		tabs->addTab(MOVEMENT_TAB_NAME, movement, false, false);
 	}
 }
 
@@ -1375,26 +1235,6 @@ tgui::Signal & EditorMovablePointPanel::getSignal(std::string signalName) {
 	return tgui::Panel::getSignal(signalName);
 }
 
-void EditorMovablePointPanel::populateEMPAList(std::shared_ptr<ListBoxScrollablePanel> actionsListBoxScrollablePanel) {
-	bool oldIgnoreSignals = ignoreSignals;
-	ignoreSignals = true;
-	actionsListBoxScrollablePanel->getListBox()->removeAllItems();
-	auto actions = emp->getActions();
-	float curTime = 0;
-	for (int i = 0; i < actions.size(); i++) {
-		actionsListBoxScrollablePanel->getListBox()->addItem(actions[i]->getGuiFormat() + " (d=" + formatNum(actions[i]->getTime()) + "; t=" + formatNum(curTime) + " to t=" + formatNum(curTime + actions[i]->getTime()) + ")", std::to_string(i));
-		curTime += actions[i]->getTime();
-	}
-	actionsListBoxScrollablePanel->onListBoxItemsUpdate();
-	// Reselect previous EMPA
-	if (selectedEMPAIndex != -1) {
-		actionsListBoxScrollablePanel->getListBox()->setSelectedItemByIndex(selectedEMPAIndex);
-	}
-	// Set max time for despawn time
-	empiDespawnTime->setMax(curTime);
-	ignoreSignals = oldIgnoreSignals;
-}
-
 void EditorMovablePointPanel::updateAllWidgetValues() {
 	// Update widgets whose values can be changed by the player
 	ignoreSignals = true;
@@ -1403,7 +1243,6 @@ void EditorMovablePointPanel::updateAllWidgetValues() {
 	empiBaseSprite->setValue(emp->getAnimatable());
 	isBullet->setChecked(emp->getIsBullet());
 	empiHitboxRadius->setValue(emp->getHitboxRadius());
-	populateEMPAList(empiActions);
 	empiDespawnTime->setValue(emp->getDespawnTime());
 	empiSpawnType->setSelectedItemById(getID(emp->getSpawnType()));
 	// empiSpawnTypeTime should always display 0 if the EMP is the main EMP of its EditorAttack
@@ -1447,20 +1286,6 @@ void EditorMovablePointPanel::updateAllWidgetValues() {
 	empiPierceResetTimeLabel->setVisible((emp->getOnCollisionAction() == PIERCE_ENTITY) && emp->getIsBullet());
 	empiPierceResetTime->setVisible((emp->getOnCollisionAction() == PIERCE_ENTITY) && emp->getIsBullet());
 	ignoreSignals = false;
-}
-
-std::shared_ptr<tgui::Panel> EditorMovablePointPanel::createEMPAPanel(std::shared_ptr<EMPAction> empa, int index, std::shared_ptr<ListBoxScrollablePanel> empiActions) {
-	std::shared_ptr<EditorMovablePointActionPanel> empaPanel = EditorMovablePointActionPanel::create(this->mainEditorWindow, clipboard, empa);
-	empaPanel->connect("EMPAModified", [this, index, empiActions](std::shared_ptr<EMPAction> value) {
-		if (this->ignoreSignals) {
-			return;
-		}
-
-		this->emp->replaceAction(index, value);
-		this->populateEMPAList(empiActions);
-		onEMPModify.emit(this, this->emp);
-	});
-	return empaPanel;
 }
 
 void EditorMovablePointPanel::onLevelPackChange() {

@@ -74,21 +74,28 @@ Notes for me:
         the AttackEditorPanel and have it close all closeable tabs in the attack tab and reload all widgets
     -But then: if an attack is overwritten in leftPanel's undo stack and the AttackEditorPanel maintains its undo stack, the
         AttackEditorPanel's undo stack will be desynced so future undos could bug out/not work as intentional
+        
+-Known bugs:
+    -Change sum of durations of actions in EMPABasedMovementEditorPanel 
+        -> empiDespawnTime in EditorMovablePointPanel max changes, causing its value to change if value > new max 
+        -> undo in EMPABasedMovementEditorPanel -> empiDespawnTime max changes back, but its value doesn't change back
 
 -Item path is in Components::CollectibleComponent::update and EntityCreationQueue::EMPDropItemCommand::execute
 -Player invulnerability sprite effect animation is in CollisionSystem
 
 big todo:
 -Popup saying something was copied/pasted    
+    -have pasteInto() and paste2Into() return a string: the message to show to the user
 -Preview panel as a separate window (but keep it local to MainEditorWindow); the object being previewed changes depending
  on the currently selected first-level tab in MainEditorWindow::mainPanel (have some "SelectedTabChanged" signal in TabsWithPanel)
     -If object is an EditorAttack, when "AttackModified" signal received from AttackEditorPanel, reload the preview
     -Same pattern for EditorAttackPattern and other first-level objects
     -If the object isn't legal, the preview panel will show the error message from legal()
-        
--An EditorAttackPattern "finishes" when all its EMPAs have been executed (actionsTotalTime seconds after the start of the attack pattern).
-  Attacks that execute more than [actionsTotalTime] seconds after the start of the attack pattern will not execute.
-	-so, in attack pattern editor, give warnings for all attacks that execute after [actionsTotalTime]
+
+
+-delete button for LevelPackObjectsListPanel with confirmation if whatever's being deleted is being used by something
+-in attack editor panel: rename "MPs" tab to "MP Tree"; rename "EMP [ID]" tab to "MP [ID]"
+-delete something in LevelPackObjectsListView -> undo -> select the stuff that popped up again
 
 Random things for TODOs that are noted here so I don't forget:
 -legal check for EMP should make sure there aren't illegal detach actions

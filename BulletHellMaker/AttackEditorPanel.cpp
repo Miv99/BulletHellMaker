@@ -356,7 +356,7 @@ void AttackEditorPanel::reloadEMPTab(int empID) {
 			populateEMPsTreeView();
 			onAttackModify.emit(this, this->attack);
 		});
-		tabs->insertTab(format(EMP_TAB_NAME_FORMAT, empID), empEditorPanel, tabIndex, tabWasSelected, true);
+		tabs->insertTab(tabName, empEditorPanel, tabIndex, tabWasSelected, true);
 	}
 }
 

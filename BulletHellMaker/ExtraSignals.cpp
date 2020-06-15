@@ -146,4 +146,32 @@ namespace tgui {
 		else
 			return Signal::validateTypes(unboundParameters);
 	}
+
+	unsigned int SignalEMPAVectorAndFloat::connect(const DelegateRange& handler) {
+		const auto id = generateUniqueId();
+		m_handlers[id] = [handler]() { handler(internal_signal::dereference<std::vector<std::shared_ptr<EMPAction>>>(internal_signal::parameters[1]), internal_signal::dereference<float>(internal_signal::parameters[2])); };
+		return id;
+	}
+
+	unsigned int SignalEMPAVectorAndFloat::connect(const DelegateRangeEx& handler) {
+		const auto id = generateUniqueId();
+		m_handlers[id] = [handler, name = m_name]() { handler(getWidget(), name, internal_signal::dereference<std::vector<std::shared_ptr<EMPAction>>>(internal_signal::parameters[1]), internal_signal::dereference<float>(internal_signal::parameters[2])); };
+		return id;
+	}
+
+	bool SignalEMPAVectorAndFloat::emit(const Widget* widget, std::vector<std::shared_ptr<EMPAction>> actions, float f) {
+		if (m_handlers.empty())
+			return false;
+
+		internal_signal::parameters[1] = static_cast<const void*>(&actions);
+		internal_signal::parameters[2] = static_cast<const void*>(&f);
+		return Signal::emit(widget);
+	}
+
+	unsigned int SignalEMPAVectorAndFloat::validateTypes(std::initializer_list<std::type_index> unboundParameters) const {
+		if ((unboundParameters.size() == 2) && checkParamType<std::vector<std::shared_ptr<EMPAction>>>(unboundParameters.begin()) && checkParamType<float>(unboundParameters.begin() + 1))
+			return 1;
+		else
+			return Signal::validateTypes(unboundParameters);
+	}
 }

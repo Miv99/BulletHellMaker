@@ -5,6 +5,7 @@
 #include "AttackPattern.h"
 #include "Enemy.h"
 #include "EnemyPhase.h"
+#include "EditorMovablePointAction.h"
 
 class CopiedObject {
 public:
@@ -85,7 +86,7 @@ public:
 	/*
 	Returns a deep copy of the stored LevelPackObjects.
 	*/
-	virtual std::vector<std::shared_ptr<LevelPackObject>> getLevelPackObjects();
+	std::vector<std::shared_ptr<LevelPackObject>> getLevelPackObjects();
 
 	/*
 	Returns the number of copied objects.
@@ -110,4 +111,25 @@ public:
 
 private:
 	std::pair<float, std::shared_ptr<TFV>> segment;
+};
+
+class CopiedEMPActions : public CopiedObject {
+public:
+	/*
+	actions - a list of the copied EMPActions. Every EMPA in here will be deep-copied.
+	*/
+	CopiedEMPActions(std::string copiedFromID, std::vector<std::shared_ptr<EMPAction>> objs);
+
+	/*
+	Returns a deep copy of the stored EMPAs.
+	*/
+	std::vector<std::shared_ptr<EMPAction>> getActions();
+
+	/*
+	Returns the number of copied EMPAs.
+	*/
+	int getActionsCount();
+
+private:
+	std::vector<std::shared_ptr<EMPAction>> actions;
 };
