@@ -428,7 +428,7 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 				// Menu for single attack selection
 				auto rightClickMenuPopupSingleSelection = createMenuPopup({
 					std::make_pair("Open", [&]() {
-						openLeftPanelAttack(attacksListView->getAttackIDFromIndex(attacksListView->getListView()->getSelectedItemIndex()));
+						openLeftPanelAttack(attacksListView->getLevelPackObjectIDFromIndex(attacksListView->getListView()->getSelectedItemIndex()));
 					}),
 					std::make_pair("Copy", [&]() {
 						attacksListView->manualCopy();
@@ -487,7 +487,7 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 				});
 			}
 			attacksListView->getListView()->connect("DoubleClicked", [&](int index) {
-				openLeftPanelAttack(attacksListView->getAttackIDFromIndex(index));
+				openLeftPanelAttack(attacksListView->getLevelPackObjectIDFromIndex(index));
 			});
 			attacksListPanel->add(attacksListView);
 		}
@@ -592,7 +592,7 @@ void MainEditorWindow::openLeftPanelAttack(int attackID) {
 		leftPanel->selectTab(LEFT_PANEL_ATTACK_LIST_TAB_NAME);
 	}
 	// Select the attack in attacksListView
-	attacksListView->getListView()->setSelectedItem(attacksListView->getIndexFromAttackID(attackID));
+	attacksListView->getListView()->setSelectedItem(attacksListView->getIndexFromLevelPackObjectID(attackID));
 
 	// Get the attack
 	std::shared_ptr<EditorAttack> openedAttack;
@@ -704,7 +704,7 @@ void MainEditorWindow::createAttack() {
 		attacksListView->reload();
 
 		// Select it in attacksListView
-		attacksListView->getListView()->setSelectedItem(attacksListView->getIndexFromAttackID(id));
+		attacksListView->getListView()->setSelectedItem(attacksListView->getIndexFromLevelPackObjectID(id));
 	}, [this, id]() {
 		levelPack->deleteAttack(id);
 		attacksListView->reload();

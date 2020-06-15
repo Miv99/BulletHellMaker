@@ -91,11 +91,10 @@ big todo:
     -If object is an EditorAttack, when "AttackModified" signal received from AttackEditorPanel, reload the preview
     -Same pattern for EditorAttackPattern and other first-level objects
     -If the object isn't legal, the preview panel will show the error message from legal()
-
+-visualizer thing in EMPABasedMovementEditorPanel
 
 -delete button for LevelPackObjectsListPanel with confirmation if whatever's being deleted is being used by something
 -in attack editor panel: rename "MPs" tab to "MP Tree"; rename "EMP [ID]" tab to "MP [ID]"
--delete something in LevelPackObjectsListView -> undo -> select the stuff that popped up again
 
 Random things for TODOs that are noted here so I don't forget:
 -legal check for EMP should make sure there aren't illegal detach actions

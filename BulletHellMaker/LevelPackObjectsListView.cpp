@@ -17,7 +17,7 @@ std::shared_ptr<CopiedObject> LevelPackObjectsListView::copyFrom() {
 		std::vector<std::shared_ptr<LevelPackObject>> objs;
 		std::map<int, std::shared_ptr<LevelPackObject>>& unsavedObjs = getUnsavedLevelPackObjects();
 		for (int selectedIndex : selectedIndices) {
-			int id = getAttackIDFromIndex(selectedIndex);
+			int id = getLevelPackObjectIDFromIndex(selectedIndex);
 
 			if (unsavedObjs.count(id) > 0) {
 				objs.push_back(unsavedObjs[id]);
@@ -58,7 +58,7 @@ void LevelPackObjectsListView::pasteInto(std::shared_ptr<CopiedObject> pastedObj
 		// Select the new attack(s) in the list view
 		std::set<size_t> indicesInListView;
 		for (auto id : newObjIDs) {
-			indicesInListView.insert(getIndexFromAttackID(id));
+			indicesInListView.insert(getIndexFromLevelPackObjectID(id));
 		}
 		listView->setSelectedItems(indicesInListView);
 
@@ -81,7 +81,7 @@ void LevelPackObjectsListView::paste2Into(std::shared_ptr<CopiedObject> pastedOb
 
 			int i = 0;
 			for (int selectedIndex : selectedIndices) {
-				int id = getAttackIDFromIndex(selectedIndex);
+				int id = getLevelPackObjectIDFromIndex(selectedIndex);
 
 				std::shared_ptr<LevelPackObject> newObject = copiedObjs[i % copiedObjs.size()]->clone();
 				// Set the ID of the LevelPackObject that's overwriting the old to be the old one's ID
@@ -146,7 +146,7 @@ void LevelPackObjectsListView::reload() {
 	std::set<size_t> selectedIndices = listView->getSelectedItemIndices();
 	std::set<int> selectedIDs;
 	for (auto it = selectedIndices.begin(); it != selectedIndices.end(); it++) {
-		selectedIDs.insert(getAttackIDFromIndex(*it));
+		selectedIDs.insert(getLevelPackObjectIDFromIndex(*it));
 	}
 
 	levelPackObjectIDToListViewIndexMap.clear();
@@ -178,12 +178,12 @@ void LevelPackObjectsListView::cycleSortOption() {
 	reload();
 }
 
-int LevelPackObjectsListView::getAttackIDFromIndex(int index) {
+int LevelPackObjectsListView::getLevelPackObjectIDFromIndex(int index) {
 	return listViewIndexToLevelPackObjectIDMap[index];
 }
 
-int LevelPackObjectsListView::getIndexFromAttackID(int attackID) {
-	return levelPackObjectIDToListViewIndexMap[attackID];
+int LevelPackObjectsListView::getIndexFromLevelPackObjectID(int id) {
+	return levelPackObjectIDToListViewIndexMap[id];
 }
 
 UndoStack& LevelPackObjectsListView::getUndoStack() {
@@ -210,7 +210,7 @@ void LevelPackObjectsListView::manualDelete() {
 		// Each pair is the LevelPackObject and whether it was in unsavedObjs
 		std::vector<std::pair<std::shared_ptr<LevelPackObject>, bool>> deletedObjs;
 		for (int index : selectedIndices) {
-			int id = getAttackIDFromIndex(index);
+			int id = getLevelPackObjectIDFromIndex(index);
 
 			if (unsavedObjs.count(id) > 0) {
 				deletedObjs.push_back(std::make_pair(unsavedObjs[id]->clone(), true));
@@ -223,7 +223,7 @@ void LevelPackObjectsListView::manualDelete() {
 			auto& unsavedObjs = getUnsavedLevelPackObjects();
 
 			for (int index : selectedIndices) {
-				int id = getAttackIDFromIndex(index);
+				int id = getLevelPackObjectIDFromIndex(index);
 
 				if (unsavedObjs.count(id) > 0) {
 					unsavedObjs.erase(id);
@@ -246,6 +246,13 @@ void LevelPackObjectsListView::manualDelete() {
 			}
 
 			reload();
+
+			// Select the objects added back in
+			std::set<size_t> newSelectedIndices;
+			for (std::pair<std::shared_ptr<LevelPackObject>, bool> pair : deletedObjs) {
+				newSelectedIndices.insert(getIndexFromLevelPackObjectID(pair.first->getID()));
+			}
+			getListView()->setSelectedItems(newSelectedIndices);
 		}));
 	}
 }
@@ -255,7 +262,7 @@ void LevelPackObjectsListView::manualSave() {
 	if (selectedIndices.size() > 0) {
 		auto& unsavedAttacks = mainEditorWindow.getUnsavedAttacks();
 		for (int index : selectedIndices) {
-			int id = getAttackIDFromIndex(index);
+			int id = getLevelPackObjectIDFromIndex(index);
 
 			if (unsavedAttacks.count(id) > 0) {
 				updateLevelPackObjectInLevelPack(unsavedAttacks[id]);

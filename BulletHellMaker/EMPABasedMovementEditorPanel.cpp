@@ -338,7 +338,8 @@ void EMPABasedMovementEditorPanel::manualDelete() {
 			tabs->renameTab(format(EMPA_TAB_NAME_FORMAT, actionIndex), format(EMPA_TAB_NAME_FORMAT, actionIndex - it->second));
 		}
 
-		updateEMPAList();
+		// Update and unselect
+		updateEMPAList(true, std::set<size_t>());
 		onEMPAListModify.emit(this, cloneActions(), sumOfDurations);
 	}, [this, curSelectedIndices, oldEMPAs]() {
 		int i = 0;

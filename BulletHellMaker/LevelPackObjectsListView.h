@@ -67,8 +67,8 @@ public:
 	*/
 	void cycleSortOption();
 
-	int getAttackIDFromIndex(int index);
-	int getIndexFromAttackID(int attackID);
+	int getLevelPackObjectIDFromIndex(int index);
+	int getIndexFromLevelPackObjectID(int id);
 	UndoStack& getUndoStack();
 
 protected:
