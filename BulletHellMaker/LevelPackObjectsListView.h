@@ -92,6 +92,8 @@ protected:
 	// The current attack sort option
 	SORT_OPTION sortOption;
 
+	void deleteObjects(std::set<size_t> selectedIndices, std::vector<std::pair<std::shared_ptr<LevelPackObject>, bool>> deletedObjs);
+
 	virtual void addLevelPackObjectsToListView() = 0;
 
 	virtual std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedLevelPackObjects() = 0;
@@ -101,8 +103,10 @@ protected:
 	virtual std::set<int> getNextLevelPackObjectIDs(int count) = 0;
 	virtual void openLevelPackObjectInMainEditorWindow(int id) = 0;
 	virtual void reloadLevelPackObjectTabInMainEditorWindow(int id) = 0;
+	virtual bool getLevelPackObjectIsInUse(int id) = 0;
 
 	virtual std::string getPasteIntoConfirmationPrompt() = 0;
+	virtual std::string getDeleteLevelPackObjectsInUseConfirmationPrompt() = 0;
 
 	/*
 	Called when the confirmation popup from doing paste2 is answered.
@@ -118,6 +122,10 @@ protected:
 	objUnsavedName - the unsaved name of the object; only used if objIsUnsaved is true
 	*/
 	void addLevelPackObjectToListView(int objID, std::string objName, bool objIsUnsaved, std::string objUnsavedName);
+	/*
+	Called when the confirmation popup from doing delete is answered.
+	*/
+	void onDeleteConfirmation(bool confirmed, std::vector<std::pair<std::shared_ptr<LevelPackObject>, bool>> deletedObjects);
 };
 
 class AttacksListView : public LevelPackObjectsListView {
@@ -138,6 +146,8 @@ protected:
 	void openLevelPackObjectInMainEditorWindow(int id) override;
 	void reloadLevelPackObjectTabInMainEditorWindow(int id) override;
 	std::string getPasteIntoConfirmationPrompt() override;
+	std::string getDeleteLevelPackObjectsInUseConfirmationPrompt() override;
+	bool getLevelPackObjectIsInUse(int id) override;
 
 	void onPasteIntoConfirmation(bool confirmed, std::vector<std::shared_ptr<LevelPackObject>> newObjects) override;
 };

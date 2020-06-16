@@ -209,6 +209,7 @@ void LevelPackObjectsListView::manualDelete() {
 		auto& unsavedObjs = getUnsavedLevelPackObjects();
 		// Each pair is the LevelPackObject and whether it was in unsavedObjs
 		std::vector<std::pair<std::shared_ptr<LevelPackObject>, bool>> deletedObjs;
+		bool atLeastOneObjectInUse = false;
 		for (int index : selectedIndices) {
 			int id = getLevelPackObjectIDFromIndex(index);
 
@@ -217,43 +218,18 @@ void LevelPackObjectsListView::manualDelete() {
 			} else {
 				deletedObjs.push_back(std::make_pair(getLevelPackObjectFromLevelPack(id)->clone(), false));
 			}
+
+			if (getLevelPackObjectIsInUse(id)) {
+				atLeastOneObjectInUse = true;
+			}
 		}
 
-		undoStack.execute(UndoableCommand([this, selectedIndices]() {
-			auto& unsavedObjs = getUnsavedLevelPackObjects();
-
-			for (int index : selectedIndices) {
-				int id = getLevelPackObjectIDFromIndex(index);
-
-				if (unsavedObjs.count(id) > 0) {
-					unsavedObjs.erase(id);
-				}
-				deleteLevelPackObjectInLevelPack(id);
-
-				reloadLevelPackObjectTabInMainEditorWindow(id);
-			}
-
-			reload();
-		}, [this, deletedObjs]() {
-			auto& unsavedObjs = getUnsavedLevelPackObjects();
-
-			for (std::pair<std::shared_ptr<LevelPackObject>, bool> pair : deletedObjs) {
-				updateLevelPackObjectInLevelPack(pair.first);
-				// The object was originally unsaved, so add it back to unsavedObjs
-				if (pair.second) {
-					unsavedObjs[pair.first->getID()] = pair.first;
-				}
-			}
-
-			reload();
-
-			// Select the objects added back in
-			std::set<size_t> newSelectedIndices;
-			for (std::pair<std::shared_ptr<LevelPackObject>, bool> pair : deletedObjs) {
-				newSelectedIndices.insert(getIndexFromLevelPackObjectID(pair.first->getID()));
-			}
-			getListView()->setSelectedItems(newSelectedIndices);
-		}));
+		if (atLeastOneObjectInUse) {
+			mainEditorWindow.promptConfirmation(getDeleteLevelPackObjectsInUseConfirmationPrompt(), deletedObjs)->sink()
+				.connect<LevelPackObjectsListView, &LevelPackObjectsListView::onDeleteConfirmation>(this);
+		} else {
+			deleteObjects(selectedIndices, deletedObjs);
+		}
 	}
 }
 
@@ -352,6 +328,14 @@ std::string AttacksListView::getPasteIntoConfirmationPrompt() {
 	return "Overwrite the selected attack(s) with the copied attack(s)? This will reload their tabs if they are currently open.";
 }
 
+std::string AttacksListView::getDeleteLevelPackObjectsInUseConfirmationPrompt() {
+	return "Are you sure you want to delete the selected attack(s)? One or more are currently being used by an attack pattern.";
+}
+
+bool AttacksListView::getLevelPackObjectIsInUse(int id) {
+	return levelPack->getAttackUsers(id).size() != 0;
+}
+
 void AttacksListView::onPasteIntoConfirmation(bool confirmed, std::vector<std::shared_ptr<LevelPackObject>> newObjects) {
 	if (confirmed) {
 		std::vector<std::shared_ptr<EditorAttack>> derivedObjects;
@@ -360,6 +344,12 @@ void AttacksListView::onPasteIntoConfirmation(bool confirmed, std::vector<std::s
 		}
 		mainEditorWindow.overwriteAttacks(derivedObjects, &undoStack);
 		reload();
+	}
+}
+
+void LevelPackObjectsListView::onDeleteConfirmation(bool confirmed, std::vector<std::pair<std::shared_ptr<LevelPackObject>, bool>> deletedObjects) {
+	if (confirmed) {
+		deleteObjects(getListView()->getSelectedItemIndices(), deletedObjects);
 	}
 }
 
@@ -373,4 +363,42 @@ void LevelPackObjectsListView::addLevelPackObjectToListView(int objID, std::stri
 	int index = listView->getItemCount() - 1;
 	levelPackObjectIDToListViewIndexMap[objID] = index;
 	listViewIndexToLevelPackObjectIDMap[index] = objID;
+}
+
+void LevelPackObjectsListView::deleteObjects(std::set<size_t> selectedIndices, std::vector<std::pair<std::shared_ptr<LevelPackObject>, bool>> deletedObjs) {
+	undoStack.execute(UndoableCommand([this, selectedIndices]() {
+		auto& unsavedObjs = getUnsavedLevelPackObjects();
+
+		for (int index : selectedIndices) {
+			int id = getLevelPackObjectIDFromIndex(index);
+
+			if (unsavedObjs.count(id) > 0) {
+				unsavedObjs.erase(id);
+			}
+			deleteLevelPackObjectInLevelPack(id);
+
+			reloadLevelPackObjectTabInMainEditorWindow(id);
+		}
+
+		reload();
+	}, [this, deletedObjs]() {
+		auto& unsavedObjs = getUnsavedLevelPackObjects();
+
+		for (std::pair<std::shared_ptr<LevelPackObject>, bool> pair : deletedObjs) {
+			updateLevelPackObjectInLevelPack(pair.first);
+			// The object was originally unsaved, so add it back to unsavedObjs
+			if (pair.second) {
+				unsavedObjs[pair.first->getID()] = pair.first;
+			}
+		}
+
+		reload();
+
+		// Select the objects added back in
+		std::set<size_t> newSelectedIndices;
+		for (std::pair<std::shared_ptr<LevelPackObject>, bool> pair : deletedObjs) {
+			newSelectedIndices.insert(getIndexFromLevelPackObjectID(pair.first->getID()));
+		}
+		getListView()->setSelectedItems(newSelectedIndices);
+	}));
 }
