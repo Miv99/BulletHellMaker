@@ -295,6 +295,7 @@ std::shared_ptr<MovablePoint> MoveCustomBezierEMPA::execute(EntityCreationQueue 
 		float sin = std::sin(radians);
 
 		std::vector<sf::Vector2f> controlPoints;
+		controlPoints.push_back(sf::Vector2f(0, 0));
 		// Skip the first control point since it's always going to be (0, 0)
 		for (int i = 1; i < unrotatedControlPoints.size(); i++) {
 			controlPoints.push_back(sf::Vector2f(unrotatedControlPoints[i].x * cos - unrotatedControlPoints[i].y * sin,
@@ -315,6 +316,7 @@ std::shared_ptr<MovablePoint> MoveCustomBezierEMPA::generateStandaloneMP(float x
 		float sin = std::sin(radians);
 
 		std::vector<sf::Vector2f> controlPoints;
+		controlPoints.push_back(sf::Vector2f(0, 0));
 		// Skip the first control point since it's always going to be (0, 0)
 		for (int i = 1; i < unrotatedControlPoints.size(); i++) {
 			controlPoints.push_back(sf::Vector2f(unrotatedControlPoints[i].x * cos - unrotatedControlPoints[i].y * sin,
