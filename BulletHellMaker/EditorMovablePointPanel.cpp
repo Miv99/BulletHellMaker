@@ -368,6 +368,26 @@ point will update only the values it wants to inherit to match the model."));
 				onEMPModify.emit(this, this->emp);
 			}));
 		});
+		empiDespawnTime->connect("ValueChanged", [this](float value) {
+			if (this->ignoreSignals) {
+				return;
+			}
+
+			float oldValue = this->emp->getDespawnTime();
+			undoStack.execute(UndoableCommand([this, value]() {
+				this->emp->setDespawnTime(value);
+				this->ignoreSignals = true;
+				empiDespawnTime->setValue(value);
+				this->ignoreSignals = false;
+				onEMPModify.emit(this, this->emp);
+			}, [this, oldValue]() {
+				this->emp->setDespawnTime(oldValue);
+				this->ignoreSignals = true;
+				empiDespawnTime->setValue(oldValue);
+				this->ignoreSignals = false;
+				onEMPModify.emit(this, this->emp);
+			}));
+		});
 		empiSpawnType->connect("ItemSelected", [this](std::string item, std::string id) {
 			if (ignoreSignals) {
 				return;
@@ -1256,6 +1276,7 @@ void EditorMovablePointPanel::updateAllWidgetValues() {
 	empiDamage->setValue(emp->getDamage());
 	empiOnCollisionAction->setSelectedItemById(getID(emp->getOnCollisionAction()));
 	empiPierceResetTime->setValue(emp->getPierceResetTime());
+	empiSoundSettings->initSettings(emp->getSoundSettings());
 	if (emp->getBulletModelID() >= 0) {
 		empiBulletModel->setSelectedItemById(std::to_string(emp->getBulletModelID()));
 	} else {
