@@ -101,6 +101,7 @@ Random things for TODOs that are noted here so I don't forget:
 -legal check for EMP should make sure there aren't illegal detach actions
 
 TODO:
+-don't allow DetachFromParentEMPAs to exist in attack patterns' actions
 -test MoveGlobalHomingEMPA in gameplay
 -SpriteSheetLoader emits some signal every time a change is made (sprite/spritesheet added/deleted)
 -legal checks for everything should make sure all IDs used (ie attack IDs in attack patterns) are valid

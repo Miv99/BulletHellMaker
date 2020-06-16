@@ -69,13 +69,25 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 	empaiY->setTextSize(TEXT_SIZE);
 	empaiXYManualSet->setTextSize(TEXT_SIZE);
 
+	empaiDurationLabel->setToolTip(createToolTip("The duration of this action."));
+	empaiXLabel->setToolTip(createToolTip("The x-position for the target position."));
+	empaiYLabel->setToolTip(createToolTip("The y-position for the target position."));
+	empaiPolarDistanceLabel->setToolTip(createToolTip("Distance in polar coordinates as a function of time."));
+	empaiPolarAngleLabel->setToolTip(createToolTip("Angle in polar coordinates as a function of time."));
+	empaiBezierControlPointsLabel->setToolTip(createToolTip("Control points used for movement using a bezier curve."));
+	empaiAngleOffsetLabel->setToolTip(createToolTip("This action's path will be rotated counter-clockwise around the action's initial position by this angle."));
+	empaiHomingStrengthLabel->setToolTip(createToolTip("How quickly the mover rotates towards the target as a function of time. This function should return values in range (0, 1]. \
+For reference, a value of 0.02 is moderately strong homing strength and a value of 1.0 creates a straight line path to the target."));
+	empaiHomingSpeedLabel->setToolTip(createToolTip("The speed of the mover as a function of time."));
+	empaiXYManualSet->setToolTip(createToolTip("Opens a map to help visualize and set the target position."));
+
 	empaiChangeType->setText("Change action type");
 	empaiDurationLabel->setText("Duration");
-	empaiPolarDistanceLabel->setText("Distance as function of time");
+	empaiPolarDistanceLabel->setText("Distance as a function of time");
 	empaiPolarAngleLabel->setText("Angle as function of time");
 	empaiBezierControlPointsLabel->setText("Bezier control points");
 	empaiAngleOffsetLabel->setText("Angle offset");
-	empaiHomingStrengthLabel->setText("Homing strength as function of time");
+	empaiHomingStrengthLabel->setText("Homing strength as a function of time");
 	empaiHomingSpeedLabel->setText("Speed as function of time");
 	empaiEditBezierControlPoints->setText("Edit control points");
 	empaiXLabel->setText("X target");
@@ -663,6 +675,8 @@ void EditorMovablePointActionPanel::onEMPATypeChange() {
 	if (dynamic_cast<MoveCustomPolarEMPA*>(empa.get())) {
 		MoveCustomPolarEMPA* concreteEMPA = dynamic_cast<MoveCustomPolarEMPA*>(empa.get());
 
+		empaiInfo->setToolTip(createToolTip("Move in polar coordinates by specifying distance and angle as functions of time."));
+
 		empaiX->setVisible(false);
 		empaiY->setVisible(false);
 		empaiXYManualSet->setVisible(false);
@@ -687,6 +701,8 @@ The angle offset is evaluated only once, at the start of this movement action, a
 all evaluations of the angle component of this polar movement action."));
 	} else if (dynamic_cast<MoveCustomBezierEMPA*>(empa.get())) {
 		MoveCustomBezierEMPA* concreteEMPA = dynamic_cast<MoveCustomBezierEMPA*>(empa.get());
+
+		empaiInfo->setToolTip(createToolTip("Move by specifying a bezier curve as the path."));
 
 		empaiX->setVisible(false);
 		empaiY->setVisible(false);
@@ -714,6 +730,8 @@ will then be rotated about the first control point (0, 0) when this movement act
 	} else if (dynamic_cast<MovePlayerHomingEMPA*>(empa.get())) {
 		MovePlayerHomingEMPA* concreteEMPA = dynamic_cast<MovePlayerHomingEMPA*>(empa.get());
 
+		empaiInfo->setToolTip(createToolTip("Home in on a position relative to the player by specifying speed and rotational speed as functions of time."));
+
 		empaiX->setVisible(false);
 		empaiY->setVisible(false);
 		empaiXYManualSet->setVisible(false);
@@ -733,6 +751,8 @@ will then be rotated about the first control point (0, 0) when this movement act
 		empaiAngleOffsetLabel->setVisible(false);
 	} else if (dynamic_cast<MoveGlobalHomingEMPA*>(empa.get())) {
 		MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(empa.get());
+
+		empaiInfo->setToolTip(createToolTip("Home in on a position relative to the map origin by specifying speed and rotational speed as functions of time."));
 
 		empaiX->setVisible(true);
 		empaiY->setVisible(true);
@@ -754,6 +774,8 @@ will then be rotated about the first control point (0, 0) when this movement act
 
 		empaiAngleOffsetLabel->setVisible(false);
 	} else if (dynamic_cast<StayStillAtLastPositionEMPA*>(empa.get())) {
+		empaiInfo->setToolTip(createToolTip("Stay still for some amount of time."));
+
 		empaiX->setVisible(false);
 		empaiY->setVisible(false);
 		empaiXYManualSet->setVisible(false);
@@ -770,6 +792,8 @@ will then be rotated about the first control point (0, 0) when this movement act
 
 		empaiAngleOffsetLabel->setVisible(false);
 	} else if (dynamic_cast<DetachFromParentEMPA*>(empa.get())) {
+		empaiInfo->setToolTip(createToolTip("Detach from the parent movable point. This action can only be executed by movable points that spawned attached to another and have not yet detached."));
+
 		empaiX->setVisible(false);
 		empaiY->setVisible(false);
 		empaiXYManualSet->setVisible(false);
