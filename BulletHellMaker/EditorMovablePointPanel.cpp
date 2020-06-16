@@ -1208,6 +1208,7 @@ bool EditorMovablePointPanel::handleEvent(sf::Event event) {
 
 		if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
 			finishEditingSpawnTypePosition();
+			return true;
 		}
 	} else if (tabs->handleEvent(event)) {
 		return true;

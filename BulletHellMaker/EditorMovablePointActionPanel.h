@@ -43,6 +43,13 @@ private:
 	std::shared_ptr<tgui::ListBox> changeTypePopup;
 	std::shared_ptr<tgui::Label> empaiDurationLabel;
 	std::shared_ptr<NumericalEditBoxWithLimits> empaiDuration;
+
+	std::shared_ptr<tgui::Label> empaiXLabel;
+	std::shared_ptr<NumericalEditBoxWithLimits> empaiX;
+	std::shared_ptr<tgui::Label> empaiYLabel;
+	std::shared_ptr<NumericalEditBoxWithLimits> empaiY;
+	std::shared_ptr<tgui::Button> empaiXYManualSet;
+
 	std::shared_ptr<tgui::Label> empaiPolarDistanceLabel;
 	std::shared_ptr<TFVGroup> empaiPolarDistance;
 	std::shared_ptr<tgui::Label> empaiPolarAngleLabel;
@@ -61,8 +68,13 @@ private:
 	bool editingBezierControlPoints = false;
 	std::shared_ptr<BezierControlPointsPlacer> bezierControlPointsMarkerPlacer;
 	std::shared_ptr<tgui::Button> bezierControlPointsMarkerPlacerFinishEditing;
+
+	// For manually setting empaiX/Y
+	bool placingXY = false;
+	std::shared_ptr<SingleMarkerPlacer> xyPositionMarkerPlacer;
+	std::shared_ptr<tgui::Button> xyPositionMarkerPlacerFinishEditing;
 	
-	// Data from this panel before empaiEditBezierControlPoints was clicked
+	// Data from this panel before empaiEditBezierControlPoints/xyMarkerPlacerFinishEditing was clicked
 	std::vector<std::shared_ptr<tgui::Widget>> savedWidgets;
 	float horizontalScrollPos;
 	float verticalScrollPos;
@@ -79,4 +91,5 @@ private:
 	void onEMPATypeChange();
 	void updateEmpaiBezierControlPoints();
 	void finishEditingBezierControlPoints();
+	void finishEditingXYPosition();
 };

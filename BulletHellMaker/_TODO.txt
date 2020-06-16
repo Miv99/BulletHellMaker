@@ -94,11 +94,14 @@ big todo:
 -visualizer thing in EMPABasedMovementEditorPanel
 
 -delete button for LevelPackObjectsListPanel with confirmation if whatever's being deleted is being used by something
+    
+-tooltips for EMPAPanel
 
 Random things for TODOs that are noted here so I don't forget:
 -legal check for EMP should make sure there aren't illegal detach actions
 
 TODO:
+-test MoveGlobalHomingEMPA in gameplay
 -SpriteSheetLoader emits some signal every time a change is made (sprite/spritesheet added/deleted)
 -legal checks for everything should make sure all IDs used (ie attack IDs in attack patterns) are valid
 -LevelPack emits signals for Attack/AttackPattern/Enemy/EnemyPhase/BulletModel every time one is changed (unique signal for each)

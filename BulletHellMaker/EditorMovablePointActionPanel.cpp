@@ -5,6 +5,17 @@ const std::string EditorMovablePointActionPanel::BEZIER_CONTROL_POINT_FORMAT = "
 EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& parentWindow, Clipboard& clipboard, std::shared_ptr<EMPAction> empa, int undoStackSize) : parentWindow(parentWindow), empa(empa), clipboard(clipboard), undoStack(UndoStack(undoStackSize)) {
 	setVerticalScrollAmount(SCROLL_AMOUNT);
 	setVerticalScrollAmount(SCROLL_AMOUNT);
+
+	xyPositionMarkerPlacer = SingleMarkerPlacer::create(*(parentWindow.getWindow()));
+	xyPositionMarkerPlacer->setPosition(0, 0);
+	xyPositionMarkerPlacer->setSize("100%", "100%");
+	xyPositionMarkerPlacerFinishEditing = tgui::Button::create();
+	xyPositionMarkerPlacerFinishEditing->setSize(100, TEXT_BUTTON_HEIGHT);
+	xyPositionMarkerPlacerFinishEditing->setTextSize(TEXT_SIZE);
+	xyPositionMarkerPlacerFinishEditing->setText("Finish");
+	xyPositionMarkerPlacerFinishEditing->connect("Pressed", [&]() {
+		finishEditingXYPosition();
+	});
 	
 	bezierControlPointsMarkerPlacer = BezierControlPointsPlacer::create(*parentWindow.getWindow());
 	bezierControlPointsMarkerPlacer->setPosition(0, 0);
@@ -34,6 +45,11 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 	empaiHomingSpeedLabel = tgui::Label::create();
 	empaiHomingSpeed = TFVGroup::create(parentWindow, clipboard);
 	empaiEditBezierControlPoints = tgui::Button::create();
+	empaiXLabel = tgui::Label::create();
+	empaiX = NumericalEditBoxWithLimits::create();
+	empaiYLabel = tgui::Label::create();
+	empaiY = NumericalEditBoxWithLimits::create();
+	empaiXYManualSet = tgui::Button::create();
 
 	empaiChangeType->setSize(150, TEXT_BUTTON_HEIGHT);
 
@@ -47,6 +63,11 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 	empaiHomingStrengthLabel->setTextSize(TEXT_SIZE);
 	empaiHomingSpeedLabel->setTextSize(TEXT_SIZE);
 	empaiEditBezierControlPoints->setTextSize(TEXT_SIZE);
+	empaiXLabel->setTextSize(TEXT_SIZE);
+	empaiYLabel->setTextSize(TEXT_SIZE);
+	empaiX->setTextSize(TEXT_SIZE);
+	empaiY->setTextSize(TEXT_SIZE);
+	empaiXYManualSet->setTextSize(TEXT_SIZE);
 
 	empaiChangeType->setText("Change action type");
 	empaiDurationLabel->setText("Duration");
@@ -57,6 +78,9 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 	empaiHomingStrengthLabel->setText("Homing strength as function of time");
 	empaiHomingSpeedLabel->setText("Speed as function of time");
 	empaiEditBezierControlPoints->setText("Edit control points");
+	empaiXLabel->setText("X target");
+	empaiYLabel->setText("Y target");
+	empaiXYManualSet->setText("Manual set target");
 
 	changeTypePopup = createMenuPopup({
 		std::make_pair("Detach from parent", [&]() {
@@ -116,11 +140,25 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 				onEMPAModify.emit(this, this->empa);
 			}));
 		}),
-		std::make_pair("Homing movement", [&]() {
+		std::make_pair("Player-homing movement", [&]() {
 			std::shared_ptr<EMPAction> oldEMPA = this->empa;
 			undoStack.execute(UndoableCommand(
 				[this]() {
 				this->empa = std::make_shared<MovePlayerHomingEMPA>(std::make_shared<ConstantTFV>(0), std::make_shared<ConstantTFV>(0), empaiDuration->getValue());
+				onEMPATypeChange();
+				onEMPAModify.emit(this, this->empa);
+			},
+				[this, oldEMPA]() {
+				this->empa = oldEMPA;
+				onEMPATypeChange();
+				onEMPAModify.emit(this, this->empa);
+			}));
+		}),
+		std::make_pair("Map-homing movement", [&]() {
+			std::shared_ptr<EMPAction> oldEMPA = this->empa;
+			undoStack.execute(UndoableCommand(
+				[this]() {
+				this->empa = std::make_shared<MoveGlobalHomingEMPA>(std::make_shared<ConstantTFV>(0), std::make_shared<ConstantTFV>(0), empaiDuration->getValue(), 0, 0);
 				onEMPATypeChange();
 				onEMPAModify.emit(this, this->empa);
 			},
@@ -157,6 +195,10 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 				auto ptr = dynamic_cast<MovePlayerHomingEMPA*>(this->empa.get());
 				ptr->getHomingStrength()->setMaxTime(value);
 				ptr->getSpeed()->setMaxTime(value);
+			} else if (dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get()) != nullptr) {
+				auto ptr = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
+				ptr->getHomingStrength()->setMaxTime(value);
+				ptr->getSpeed()->setMaxTime(value);
 			}
 			// Add EMPAs to this if any other EMPAs also use TFVs
 
@@ -178,6 +220,10 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 				ptr->getAngle()->setMaxTime(oldValue);
 			} else if (dynamic_cast<MovePlayerHomingEMPA*>(this->empa.get()) != nullptr) {
 				auto ptr = dynamic_cast<MovePlayerHomingEMPA*>(this->empa.get());
+				ptr->getHomingStrength()->setMaxTime(oldValue);
+				ptr->getSpeed()->setMaxTime(oldValue);
+			} else if (dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get()) != nullptr) {
+				auto ptr = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
 				ptr->getHomingStrength()->setMaxTime(oldValue);
 				ptr->getSpeed()->setMaxTime(oldValue);
 			}
@@ -332,8 +378,16 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 
 		undoStack.execute(UndoableCommand(
 			[this, oldTFV, updatedTFV]() {
-			MovePlayerHomingEMPA* concreteEMPA = dynamic_cast<MovePlayerHomingEMPA*>(this->empa.get());
-			concreteEMPA->setHomingStrength(updatedTFV);
+			if (dynamic_cast<MovePlayerHomingEMPA*>(this->empa.get())) {
+				MovePlayerHomingEMPA* concreteEMPA = dynamic_cast<MovePlayerHomingEMPA*>(this->empa.get());
+				concreteEMPA->setHomingStrength(updatedTFV);
+			} else if (dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get())) {
+				MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
+				concreteEMPA->setHomingStrength(updatedTFV);
+			} else {
+				// Missed a case
+				assert(false);
+			}
 
 			ignoreSignals = true;
 			this->empaiHomingStrength->setTFV(updatedTFV, this->empa->getTime());
@@ -342,8 +396,16 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 			onEMPAModify.emit(this, this->empa);
 		},
 			[this, oldTFV, copyOfOld]() {
-			MovePlayerHomingEMPA* concreteEMPA = dynamic_cast<MovePlayerHomingEMPA*>(this->empa.get());
-			concreteEMPA->setHomingStrength(copyOfOld);
+			if (dynamic_cast<MovePlayerHomingEMPA*>(this->empa.get())) {
+				MovePlayerHomingEMPA* concreteEMPA = dynamic_cast<MovePlayerHomingEMPA*>(this->empa.get());
+				concreteEMPA->setHomingStrength(copyOfOld);
+			} else if (dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get())) {
+				MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
+				concreteEMPA->setHomingStrength(copyOfOld);
+			} else {
+				// Missed a case
+				assert(false);
+			}
 
 			ignoreSignals = true;
 			this->empaiHomingStrength->setTFV(copyOfOld, this->empa->getTime());
@@ -363,8 +425,16 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 
 		undoStack.execute(UndoableCommand(
 			[this, &oldTFV = oldTFV, updatedTFV]() {
-			MovePlayerHomingEMPA* concreteEMPA = dynamic_cast<MovePlayerHomingEMPA*>(this->empa.get());
-			concreteEMPA->setSpeed(updatedTFV);
+			if (dynamic_cast<MovePlayerHomingEMPA*>(this->empa.get())) {
+				MovePlayerHomingEMPA* concreteEMPA = dynamic_cast<MovePlayerHomingEMPA*>(this->empa.get());
+				concreteEMPA->setSpeed(updatedTFV);
+			} else if (dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get())) {
+				MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
+				concreteEMPA->setSpeed(updatedTFV);
+			} else {
+				// Missed a case
+				assert(false);
+			}
 
 			ignoreSignals = true;
 			this->empaiHomingSpeed->setTFV(updatedTFV, this->empa->getTime());
@@ -373,8 +443,16 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 			onEMPAModify.emit(this, this->empa);
 		},
 			[this, &oldTFV = oldTFV, copyOfOld]() {
-			MovePlayerHomingEMPA* concreteEMPA = dynamic_cast<MovePlayerHomingEMPA*>(this->empa.get());
-			concreteEMPA->setSpeed(copyOfOld);
+			if (dynamic_cast<MovePlayerHomingEMPA*>(this->empa.get())) {
+				MovePlayerHomingEMPA* concreteEMPA = dynamic_cast<MovePlayerHomingEMPA*>(this->empa.get());
+				concreteEMPA->setSpeed(copyOfOld);
+			} else if (dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get())) {
+				MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
+				concreteEMPA->setSpeed(copyOfOld);
+			} else {
+				// Missed a case
+				assert(false);
+			}
 
 			ignoreSignals = true;
 			this->empaiHomingSpeed->setTFV(copyOfOld, this->empa->getTime());
@@ -382,6 +460,84 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 
 			onEMPAModify.emit(this, this->empa);
 		}));
+	});
+	empaiX->connect("ValueChanged", [this](float newValue) {
+		if (ignoreSignals) {
+			return;
+		}
+
+		MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
+		float oldValue = concreteEMPA->getTargetX();
+		undoStack.execute(UndoableCommand(
+			[this, newValue]() {
+			MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
+			concreteEMPA->setTargetX(newValue);
+
+			ignoreSignals = true;
+			this->empaiX->setValue(newValue);
+			ignoreSignals = false;
+
+			onEMPAModify.emit(this, this->empa);
+		},
+			[this, oldValue]() {
+			MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
+			concreteEMPA->setTargetX(oldValue);
+
+			ignoreSignals = true;
+			this->empaiX->setValue(oldValue);
+			ignoreSignals = false;
+
+			onEMPAModify.emit(this, this->empa);
+		}));
+	});
+	empaiY->connect("ValueChanged", [this](float newValue) {
+		if (ignoreSignals) {
+			return;
+		}
+
+		MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
+		float oldValue = concreteEMPA->getTargetY();
+		undoStack.execute(UndoableCommand(
+			[this, newValue]() {
+			MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
+			concreteEMPA->setTargetY(newValue);
+
+			ignoreSignals = true;
+			this->empaiY->setValue(newValue);
+			ignoreSignals = false;
+
+			onEMPAModify.emit(this, this->empa);
+		},
+			[this, oldValue]() {
+			MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
+			concreteEMPA->setTargetY(oldValue);
+
+			ignoreSignals = true;
+			this->empaiY->setValue(oldValue);
+			ignoreSignals = false;
+
+			onEMPAModify.emit(this, this->empa);
+		}));
+	});
+	empaiXYManualSet->connect("Pressed", [this]() {
+		savedWidgets = getWidgets();
+		horizontalScrollPos = getHorizontalScrollbarValue();
+		verticalScrollPos = getVerticalScrollbarValue();
+
+		removeAllWidgets();
+		setHorizontalScrollbarValue(0);
+		setVerticalScrollbarValue(0);
+
+		xyPositionMarkerPlacer->clearUndoStack();
+		MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
+		xyPositionMarkerPlacer->setMarkers({ std::make_pair(sf::Vector2f(concreteEMPA->getTargetX(), concreteEMPA->getTargetY()), sf::Color::Red) });
+		xyPositionMarkerPlacer->lookAt(sf::Vector2f(0, 0));
+
+		add(xyPositionMarkerPlacer);
+		add(xyPositionMarkerPlacerFinishEditing);
+		xyPositionMarkerPlacer->setFocused(true);
+
+		placingXY = true;
 	});
 
 	connect("SizeChanged", [&](sf::Vector2f newSize) {
@@ -394,6 +550,9 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 		empaiHomingStrength->setSize(empaiAreaWidth - GUI_PADDING_X * 2, 0);
 		empaiHomingSpeed->setSize(empaiAreaWidth - GUI_PADDING_X * 2, 0);
 		empaiEditBezierControlPoints->setSize(empaiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+		empaiX->setSize(empaiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+		empaiY->setSize(empaiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+		empaiXYManualSet->setSize(empaiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 
 		empaiInfo->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
 		empaiChangeType->setPosition(tgui::bindLeft(empaiInfo), tgui::bindBottom(empaiInfo) + GUI_PADDING_Y);
@@ -408,12 +567,18 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 		empaiBezierControlPointsLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiAngleOffset) + GUI_PADDING_Y);
 		empaiBezierControlPoints->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiBezierControlPointsLabel) + GUI_LABEL_PADDING_Y);
 		empaiEditBezierControlPoints->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiBezierControlPoints) + GUI_PADDING_Y);
-		empaiHomingStrengthLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiDuration) + GUI_PADDING_Y);
+		empaiXLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiDuration) + GUI_PADDING_Y);
+		empaiX->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiXLabel) + GUI_LABEL_PADDING_Y);
+		empaiYLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiX) + GUI_PADDING_Y);
+		empaiY->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiYLabel) + GUI_LABEL_PADDING_Y);
+		empaiXYManualSet->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiY) + GUI_PADDING_Y);
+		empaiHomingStrengthLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiXYManualSet) + GUI_PADDING_Y);
 		empaiHomingStrength->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiHomingStrengthLabel) + GUI_LABEL_PADDING_Y);
 		empaiHomingSpeedLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiHomingStrength) + GUI_PADDING_Y);
 		empaiHomingSpeed->setPosition(GUI_PADDING_X, tgui::bindBottom(empaiHomingSpeedLabel) + GUI_LABEL_PADDING_Y);
 	
 		bezierControlPointsMarkerPlacerFinishEditing->setPosition(newSize.x - bezierControlPointsMarkerPlacerFinishEditing->getSize().x, newSize.y - bezierControlPointsMarkerPlacerFinishEditing->getSize().y);
+		xyPositionMarkerPlacerFinishEditing->setPosition(newSize.x - xyPositionMarkerPlacerFinishEditing->getSize().x, newSize.y - xyPositionMarkerPlacerFinishEditing->getSize().y);
 	});
 
 	// Init values
@@ -437,6 +602,11 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 	add(empaiHomingSpeedLabel);
 	add(empaiHomingSpeed);
 	add(empaiEditBezierControlPoints);
+	add(empaiXLabel);
+	add(empaiX);
+	add(empaiYLabel);
+	add(empaiY);
+	add(empaiXYManualSet);
 
 	onEMPATypeChange();
 }
@@ -449,6 +619,15 @@ bool EditorMovablePointActionPanel::handleEvent(sf::Event event) {
 
 		if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
 			finishEditingBezierControlPoints();
+			return true;
+		}
+	} else if (placingXY) {
+		if (xyPositionMarkerPlacer->handleEvent(event)) {
+			return true;
+		}
+
+		if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
+			finishEditingXYPosition();
 			return true;
 		}
 	} else if (empaiPolarDistance->isVisible() && empaiPolarDistance->mouseOnWidget(parentWindow.getLastMousePressPos() - getAbsolutePosition()) && empaiPolarDistance->handleEvent(event)) {
@@ -483,6 +662,10 @@ tgui::Signal & EditorMovablePointActionPanel::getSignal(std::string signalName) 
 void EditorMovablePointActionPanel::onEMPATypeChange() {
 	if (dynamic_cast<MoveCustomPolarEMPA*>(empa.get())) {
 		MoveCustomPolarEMPA* concreteEMPA = dynamic_cast<MoveCustomPolarEMPA*>(empa.get());
+
+		empaiX->setVisible(false);
+		empaiY->setVisible(false);
+		empaiXYManualSet->setVisible(false);
 		empaiDuration->setVisible(true);
 		empaiDuration->setValue(empa->getTime());
 		empaiPolarDistance->setVisible(true);
@@ -504,6 +687,10 @@ The angle offset is evaluated only once, at the start of this movement action, a
 all evaluations of the angle component of this polar movement action."));
 	} else if (dynamic_cast<MoveCustomBezierEMPA*>(empa.get())) {
 		MoveCustomBezierEMPA* concreteEMPA = dynamic_cast<MoveCustomBezierEMPA*>(empa.get());
+
+		empaiX->setVisible(false);
+		empaiY->setVisible(false);
+		empaiXYManualSet->setVisible(false);
 		empaiDuration->setVisible(true);
 		empaiDuration->setValue(empa->getTime());
 		empaiPolarDistance->setVisible(false);
@@ -526,6 +713,10 @@ The angle offset is evaluated only once, at the start of this movement action, a
 will then be rotated about the first control point (0, 0) when this movement action is executed."));
 	} else if (dynamic_cast<MovePlayerHomingEMPA*>(empa.get())) {
 		MovePlayerHomingEMPA* concreteEMPA = dynamic_cast<MovePlayerHomingEMPA*>(empa.get());
+
+		empaiX->setVisible(false);
+		empaiY->setVisible(false);
+		empaiXYManualSet->setVisible(false);
 		empaiDuration->setVisible(true);
 		empaiDuration->setValue(empa->getTime());
 		empaiPolarDistance->setVisible(false);
@@ -537,10 +728,35 @@ will then be rotated about the first control point (0, 0) when this movement act
 		empaiHomingStrength->setTFV(concreteEMPA->getHomingStrength(), empa->getTime());
 		empaiHomingSpeed->setVisible(true);
 		empaiHomingSpeed->setTFV(concreteEMPA->getSpeed(), empa->getTime());
-		empaiInfo->setText("Homing movement action");
+		empaiInfo->setText("Player-homing movement action");
+
+		empaiAngleOffsetLabel->setVisible(false);
+	} else if (dynamic_cast<MoveGlobalHomingEMPA*>(empa.get())) {
+		MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(empa.get());
+
+		empaiX->setVisible(true);
+		empaiY->setVisible(true);
+		empaiX->setValue(concreteEMPA->getTargetX());
+		empaiY->setValue(concreteEMPA->getTargetY());
+		empaiXYManualSet->setVisible(true);
+		empaiDuration->setVisible(true);
+		empaiDuration->setValue(empa->getTime());
+		empaiPolarDistance->setVisible(false);
+		empaiPolarAngle->setVisible(false);
+		empaiBezierControlPoints->setVisible(false);
+		empaiEditBezierControlPoints->setVisible(false);
+		empaiAngleOffset->setVisible(false);
+		empaiHomingStrength->setVisible(true);
+		empaiHomingStrength->setTFV(concreteEMPA->getHomingStrength(), empa->getTime());
+		empaiHomingSpeed->setVisible(true);
+		empaiHomingSpeed->setTFV(concreteEMPA->getSpeed(), empa->getTime());
+		empaiInfo->setText("Map-homing movement action");
 
 		empaiAngleOffsetLabel->setVisible(false);
 	} else if (dynamic_cast<StayStillAtLastPositionEMPA*>(empa.get())) {
+		empaiX->setVisible(false);
+		empaiY->setVisible(false);
+		empaiXYManualSet->setVisible(false);
 		empaiDuration->setVisible(true);
 		empaiDuration->setValue(empa->getTime());
 		empaiPolarDistance->setVisible(false);
@@ -554,6 +770,9 @@ will then be rotated about the first control point (0, 0) when this movement act
 
 		empaiAngleOffsetLabel->setVisible(false);
 	} else if (dynamic_cast<DetachFromParentEMPA*>(empa.get())) {
+		empaiX->setVisible(false);
+		empaiY->setVisible(false);
+		empaiXYManualSet->setVisible(false);
 		empaiDuration->setVisible(false);
 		empaiPolarDistance->setVisible(false);
 		empaiPolarAngle->setVisible(false);
@@ -577,6 +796,8 @@ will then be rotated about the first control point (0, 0) when this movement act
 	empaiAngleOffsetLabel->setVisible(empaiAngleOffset->isVisible());
 	empaiHomingStrengthLabel->setVisible(empaiHomingStrength->isVisible());
 	empaiHomingSpeedLabel->setVisible(empaiHomingSpeed->isVisible());
+	empaiXLabel->setVisible(empaiX->isVisible());
+	empaiYLabel->setVisible(empaiY->isVisible());
 }
 
 void EditorMovablePointActionPanel::updateEmpaiBezierControlPoints() {
@@ -612,4 +833,44 @@ void EditorMovablePointActionPanel::finishEditingBezierControlPoints() {
 	}));
 
 	editingBezierControlPoints = false;
+}
+
+void EditorMovablePointActionPanel::finishEditingXYPosition() {
+	removeAllWidgets();
+	for (auto widget : savedWidgets) {
+		add(widget);
+	}
+	savedWidgets.clear();
+	setHorizontalScrollbarValue(horizontalScrollPos);
+	setVerticalScrollbarValue(verticalScrollPos);
+
+	MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
+	float oldX = concreteEMPA->getTargetX();
+	float oldY = concreteEMPA->getTargetY();
+	sf::Vector2f newPos = xyPositionMarkerPlacer->getMarkerPositions()[0];
+	undoStack.execute(UndoableCommand(
+		[this, newPos]() {
+		MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
+		concreteEMPA->setTargetX(newPos.x);
+		concreteEMPA->setTargetY(newPos.y);
+		onEMPAModify.emit(this, this->empa);
+
+		this->ignoreSignals = true;
+		empaiX->setValue(newPos.x);
+		empaiY->setValue(newPos.y);
+		this->ignoreSignals = false;
+	},
+		[this, oldX, oldY]() {
+		MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
+		concreteEMPA->setTargetX(oldX);
+		concreteEMPA->setTargetY(oldY);
+		onEMPAModify.emit(this, this->empa);
+
+		this->ignoreSignals = true;
+		empaiX->setValue(oldX);
+		empaiY->setValue(oldY);
+		this->ignoreSignals = false;
+	}));
+
+	placingXY = false;
 }

@@ -352,7 +352,7 @@ void MovePlayerHomingEMPA::load(std::string formattedString) {
 }
 
 std::string MovePlayerHomingEMPA::getGuiFormat() {
-	return "Homing";
+	return "Player-homing";
 }
 
 std::shared_ptr<MovablePoint> MovePlayerHomingEMPA::execute(EntityCreationQueue & queue, entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
@@ -371,6 +371,46 @@ bool MovePlayerHomingEMPA::operator==(const EMPAction& other) const {
 	return *homingStrength == *derived.homingStrength && *speed == *derived.speed && time == derived.time;
 }
 
+std::shared_ptr<EMPAction> MoveGlobalHomingEMPA::clone() {
+	std::shared_ptr<MoveGlobalHomingEMPA> copy = std::make_shared<MoveGlobalHomingEMPA>();
+	copy->load(format());
+	return copy;
+}
+
+std::string MoveGlobalHomingEMPA::format() const {
+	return formatString("MoveGlobalHomingEMPA") + tos(targetX) + tos(targetY) + formatTMObject(*homingStrength) + formatTMObject(*speed) + tos(time);
+}
+
+void MoveGlobalHomingEMPA::load(std::string formattedString) {
+	auto items = split(formattedString, DELIMITER);
+	targetX = std::stof(items[1]);
+	targetY = std::stof(items[2]);
+	homingStrength = TFVFactory::create(items[3]);
+	speed = TFVFactory::create(items[4]);
+	time = std::stof(items[5]);
+}
+
+std::string MoveGlobalHomingEMPA::getGuiFormat() {
+	return "Map-homing";
+}
+
+std::shared_ptr<MovablePoint> MoveGlobalHomingEMPA::execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) {
+	// Queue creation of the reference entity
+	queue.pushFront(std::make_unique<CreateMovementReferenceEntityCommand>(registry, entity, timeLag, 0, 0));
+	const PositionComponent& curPos = registry.get<PositionComponent>(entity);
+
+	return std::make_shared<HomingMP>(time, speed, homingStrength, curPos.getX(), curPos.getY(), targetX, targetY);
+}
+
+std::shared_ptr<MovablePoint> MoveGlobalHomingEMPA::generateStandaloneMP(float x, float y, float targetX, float targetY) {
+	return std::make_shared<HomingMP>(time, speed, homingStrength, x, y, targetX, targetY);
+}
+
+bool MoveGlobalHomingEMPA::operator==(const EMPAction& other) const {
+	const MoveGlobalHomingEMPA& derived = dynamic_cast<const MoveGlobalHomingEMPA&>(other);
+	return *homingStrength == *derived.homingStrength && *speed == *derived.speed && time == derived.time && targetX == derived.targetX && targetY == derived.targetY;
+}
+
 std::shared_ptr<EMPAction> EMPActionFactory::create(std::string formattedString) {
 	auto name = split(formattedString, DELIMITER)[0];
 	std::shared_ptr<EMPAction> ptr;
@@ -384,6 +424,8 @@ std::shared_ptr<EMPAction> EMPActionFactory::create(std::string formattedString)
 		ptr = std::make_shared<MoveCustomBezierEMPA>();
 	} else if (name == "MovePlayerHomingEMPA") {
 		ptr = std::make_shared<MovePlayerHomingEMPA>();
+	} else if (name == "MoveGlobalHomingEMPA") {
+		ptr = std::make_shared<MoveGlobalHomingEMPA>();
 	}
 	ptr->load(formattedString);
 	return ptr;

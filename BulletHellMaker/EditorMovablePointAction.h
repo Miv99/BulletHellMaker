@@ -336,7 +336,8 @@ class MovePlayerHomingEMPA : public EMPAction {
 public:
 	inline MovePlayerHomingEMPA() {}
 	/*
-	homingStrength - determines how quickly the entity homes in on the player; in range (0, 1]. A value of 0.02 is already pretty strong.
+	homingStrength - determines how quickly the entity homes in on the player; in range (0, 1]. A value of 0.02 is already pretty strong 
+		and a value of 1.0 is a completely linear path assuming the player does not move
 	*/
 	inline MovePlayerHomingEMPA(std::shared_ptr<TFV> homingStrength, std::shared_ptr<TFV> speed, float time) : homingStrength(homingStrength), speed(speed), time(time) {}
 	std::shared_ptr<EMPAction> clone() override;
@@ -358,6 +359,50 @@ public:
 	bool operator==(const EMPAction& other) const override;
 
 private:
+	// In range (0, 1]
+	std::shared_ptr<TFV> homingStrength;
+	// Speed at any instance in time
+	std::shared_ptr<TFV> speed;
+	// How long movement will last
+	float time = 0;
+};
+
+/*
+EMPA for homing movement towards a static global position.
+*/
+class MoveGlobalHomingEMPA : public EMPAction {
+public:
+	inline MoveGlobalHomingEMPA() {}
+	/*
+	homingStrength - determines how quickly the entity homes in on the player; in range (0, 1]. A value of 0.02 is already pretty strong
+		and a value of 1.0 is a completely linear path assuming the player does not move
+	*/
+	inline MoveGlobalHomingEMPA(std::shared_ptr<TFV> homingStrength, std::shared_ptr<TFV> speed, float targetX, float targetY, float time) : homingStrength(homingStrength), speed(speed), targetX(targetX), targetY(targetY), time(time) {}
+	std::shared_ptr<EMPAction> clone() override;
+
+	std::string format() const override;
+	void load(std::string formattedString) override;
+	std::string getGuiFormat() override;
+
+	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
+	std::shared_ptr<MovablePoint> generateStandaloneMP(float x, float y, float playerX, float playerY) override;
+
+	inline void setHomingStrength(std::shared_ptr<TFV> homingStrength) { this->homingStrength = homingStrength; }
+	inline void setSpeed(std::shared_ptr<TFV> speed) { this->speed = speed; }
+	inline void setTime(float time) override { this->time = time; }
+	inline void setTargetX(float targetX) { this->targetX = targetX; }
+	inline void setTargetY(float targetY) { this->targetY = targetY; }
+	inline std::shared_ptr<TFV> getHomingStrength() { return homingStrength; }
+	inline std::shared_ptr<TFV> getSpeed() { return speed; }
+	inline float getTime() override { return time; }
+	inline float getTargetX() const { return targetX; }
+	inline float getTargetY() const { return targetY; }
+
+	bool operator==(const EMPAction& other) const override;
+
+private:
+	float targetX = 0;
+	float targetY = 0;
 	// In range (0, 1]
 	std::shared_ptr<TFV> homingStrength;
 	// Speed at any instance in time

@@ -191,15 +191,16 @@ private:
 };
 
 /*
-MP for homing in on a PositionComponent.
+MP for homing in on a PositionComponent or a global static position.
 
 Warning: This MP is time-invariant (see CurrentAngleTFV for more details)
 */
 class HomingMP : public MovablePoint {
 public:
 	/*
-	homingStrength - in range (0, 1] always
-	from - the entity homing in on the tartet
+	homingStrength - in range (0, 1] always; a value of 0.02 is already pretty strong 
+		and a value of 1.0 is a completely linear path assuming the target does not move
+	from - the entity homing in on the target
 	to - the target
 	*/
 	inline HomingMP(float lifespan, std::shared_ptr<TFV> speed, std::shared_ptr<TFV> homingStrength, uint32_t from, uint32_t to, entt::DefaultRegistry& registry) : MovablePoint(lifespan, true), speed(speed), homingStrength(homingStrength), registry(registry), from(from) {
