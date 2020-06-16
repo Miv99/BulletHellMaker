@@ -466,8 +466,12 @@ void AnimatablePicture::resizeCurSpriteToFitWidget() {
 	curSprite->scale(scaleAmount, scaleAmount);
 }
 
-SliderWithEditBox::SliderWithEditBox() {
-	slider = std::make_shared<DelayedSlider>();
+SliderWithEditBox::SliderWithEditBox(bool useDelayedSlider) : useDelayedSlider(useDelayedSlider) {
+	if (useDelayedSlider) {
+		slider = std::make_shared<DelayedSlider>();
+	} else {
+		slider = std::make_shared<Slider>();
+	}
 	editBox = std::make_shared<NumericalEditBoxWithLimits>();
 
 	editBox->setPosition(tgui::bindRight(slider) + GUI_PADDING_X, 0);
@@ -537,12 +541,20 @@ void SliderWithEditBox::setValue(float value) {
 
 void SliderWithEditBox::setMin(float min, bool emitValueChanged) {
 	editBox->setMin(min);
-	slider->setMinimum(min, emitValueChanged);
+	if (useDelayedSlider) {
+		std::dynamic_pointer_cast<DelayedSlider>(slider)->setMinimum(min, emitValueChanged);
+	} else {
+		slider->setMinimum(min);
+	}
 }
 
 void SliderWithEditBox::setMax(float max, bool emitValueChanged) {
 	editBox->setMax(max);
-	slider->setMaximum(max, emitValueChanged);
+	if (useDelayedSlider) {
+		std::dynamic_pointer_cast<DelayedSlider>(slider)->setMaximum(max, emitValueChanged);
+	} else {
+		slider->setMaximum(max);
+	}
 }
 
 void SliderWithEditBox::setStep(float step) {

@@ -237,7 +237,7 @@ private:
 };
 
 /*
-A Group containing a DelayedSlider whose value can be set with a 
+A Group containing a slider whose value can be set with a 
 NumericalEditBoxWithLimits located on its right.
 
 Signals:
@@ -246,9 +246,12 @@ Signals:
 */
 class SliderWithEditBox : public HideableGroup {
 public:
-	SliderWithEditBox();
-	static std::shared_ptr<SliderWithEditBox> create() {
-		return std::make_shared<SliderWithEditBox>();
+	/*
+	useDelayedSlider - if true, a DelayedSlider will be used instead of a Slider
+	*/
+	SliderWithEditBox(bool useDelayedSlider = true);
+	static std::shared_ptr<SliderWithEditBox> create(bool useDelayedSlider = true) {
+		return std::make_shared<SliderWithEditBox>(useDelayedSlider);
 	}
 
 	float getValue();
@@ -265,14 +268,16 @@ public:
 	Sets the min value of the slider and edit box.
 
 	emitValueChanged - if the value of the slider changes as a result of changing the min/max,
-		this determines whether ValueChanged signal should be emitted
+		this determines whether ValueChanged signal should be emitted. This value is treated as
+		being always true if this widget was constructed with useDelayedSlider false. 
 	*/
 	void setMin(float min, bool emitValueChanged = true);
 	/*
 	Sets the max value of the slider and edit box.
 
 	emitValueChanged - if the value of the slider changes as a result of changing the min/max,
-		this determines whether ValueChanged signal should be emitted
+		this determines whether ValueChanged signal should be emitted. This value is treated as
+		being always true if this widget was constructed with useDelayedSlider false. 
 	*/
 	void setMax(float max, bool emitValueChanged = true);
 	/*
@@ -292,7 +297,8 @@ public:
 	tgui::Signal& getSignal(std::string signalName) override;
 
 private:
-	std::shared_ptr<DelayedSlider> slider;
+	bool useDelayedSlider;
+	std::shared_ptr<Slider> slider;
 	std::shared_ptr<NumericalEditBoxWithLimits> editBox;
 
 	tgui::SignalFloat onValueChange = { "ValueChanged" };
