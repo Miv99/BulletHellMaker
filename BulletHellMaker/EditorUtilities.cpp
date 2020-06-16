@@ -3094,7 +3094,7 @@ void MarkerPlacer::draw(sf::RenderTarget & target, sf::RenderStates states) cons
 
 BezierControlPointsPlacer::BezierControlPointsPlacer(sf::RenderWindow & parentWindow, sf::Vector2u resolution, int undoStackSize) : MarkerPlacer(parentWindow, resolution, undoStackSize) {
 	timeResolution = SliderWithEditBox::create();
-	evaluator = SliderWithEditBox::create();
+	evaluator = SliderWithEditBox::create(false);
 	evaluatorResult = tgui::Label::create();
 
 	timeResolution->setToolTip(createToolTip("Amount of time in seconds between each movement dot"));
@@ -3145,8 +3145,11 @@ void BezierControlPointsPlacer::draw(sf::RenderTarget & target, sf::RenderStates
 
 	// Draw movement path
 	sf::View originalView = parentWindow.getView();
-	parentWindow.setView(viewFromViewController);
-	target.draw(movementPath, states);
+	sf::View offsetView = viewFromViewController;
+	// Not sure why this is necessary
+	offsetView.setCenter(offsetView.getCenter() + getAbsolutePosition());
+	parentWindow.setView(offsetView);
+	parentWindow.draw(movementPath, states);
 	parentWindow.setView(originalView);
 }
 
@@ -3199,12 +3202,11 @@ void BezierControlPointsPlacer::updatePath() {
 	}
 	auto markerPositions = std::vector<sf::Vector2f>();
 	for (auto p : markers) {
-		markerPositions.push_back(p.getPosition());
+		markerPositions.push_back(p.getPosition() - markers[0].getPosition());
 	}
 
 	std::shared_ptr<EMPAction> empa = std::make_shared<MoveCustomBezierEMPA>(markerPositions, movementPathTime);
-	// magic numbers; i actually have no idea why -205 and -66 in particular
-	movementPath = generateVertexArray(empa, timeResolution->getValue(), -205, -66, 0, 0, sf::Color::Red, sf::Color::Blue);
+	movementPath = generateVertexArray(empa, timeResolution->getValue(), markers[0].getPosition().x, markers[0].getPosition().y, 0, 0, sf::Color::Red, sf::Color::Blue);
 	movementPath.setPrimitiveType(sf::PrimitiveType::Points);
 
 	std::shared_ptr<BezierMP> mp = std::make_shared<BezierMP>(movementPathTime, getMarkerPositions());
