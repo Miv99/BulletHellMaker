@@ -27,6 +27,21 @@ float lerpRadians(float start, float end, float amount) {
 	return std::fmod(value, rangeZero);
 }
 
+HomingMP::HomingMP(float lifespan, std::shared_ptr<TFV> speed, std::shared_ptr<TFV> homingStrength, uint32_t from, uint32_t to, entt::DefaultRegistry& registry) : MovablePoint(lifespan, true), speed(speed), homingStrength(homingStrength), registry(registry), from(from) {
+	angle = std::make_shared<CurrentAngleTFV>(registry, from, to);
+	prevAngle = angle->evaluate(0);
+}
+
+HomingMP::HomingMP(float lifespan, std::shared_ptr<TFV> speed, std::shared_ptr<TFV> homingStrength, uint32_t from, float toX, float toY, entt::DefaultRegistry& registry) : MovablePoint(lifespan, true), speed(speed), homingStrength(homingStrength), registry(registry), from(from) {
+	angle = std::make_shared<CurrentAngleTFV>(registry, from, toX, toY);
+	prevAngle = angle->evaluate(0);
+}
+
+HomingMP::HomingMP(float lifespan, std::shared_ptr<TFV> speed, std::shared_ptr<TFV> homingStrength, float fromX, float fromY, float toX, float toY) : MovablePoint(lifespan, true), speed(speed), homingStrength(homingStrength), registry(registry) {
+	angle = std::make_shared<ConstantTFV>(std::atan2(toY - fromY, toX - fromX));
+	prevAngle = angle->evaluate(0);
+}
+
 sf::Vector2f HomingMP::evaluate(float time) {
 	// This breaks OOP but I can't think of any other way to do it.
 	// We know this function will only be called for the purpose of determining a position in the present (which 

@@ -400,8 +400,31 @@ std::shared_ptr<TFV> TFVFactory::create(std::string formattedString) {
 	return std::move(ptr);
 }
 
+CurrentAngleTFV::CurrentAngleTFV(entt::DefaultRegistry& registry, uint32_t from, uint32_t to) : registry(registry), from(from), to(to) {
+	useEntityForToPos = true;
+	assert(registry.has<PositionComponent>(from) && registry.has<PositionComponent>(to) && registry.has<HitboxComponent>(from) && registry.has<HitboxComponent>(to));
+}
+
+CurrentAngleTFV::CurrentAngleTFV(entt::DefaultRegistry& registry, uint32_t from, float toX, float toY) : registry(registry), from(from), toX(toX), toY(toY) {
+	useEntityForToPos = false;
+	assert(registry.has<PositionComponent>(from) && registry.has<HitboxComponent>(from));
+}
+
 std::shared_ptr<TFV> CurrentAngleTFV::clone() {
 	return std::make_shared<CurrentAngleTFV>(registry, from, to);
+}
+
+float CurrentAngleTFV::evaluate(float time) {
+	auto& fromPos = registry.get<PositionComponent>(from);
+	auto& fromHitbox = registry.get<HitboxComponent>(from);
+
+	if (useEntityForToPos) {
+		auto& toPos = registry.get<PositionComponent>(to);
+		auto& toHitbox = registry.get<HitboxComponent>(to);
+		return std::atan2((toPos.getY() + toHitbox.getY()) - (fromPos.getY() + fromHitbox.getY()), (toPos.getX() + toHitbox.getX()) - (fromPos.getX() + fromHitbox.getX()));
+	} else {
+		return std::atan2(toY - (fromPos.getY() + fromHitbox.getY()), toX - (fromPos.getX() + fromHitbox.getX()));
+	}
 }
 
 bool CurrentAngleTFV::operator==(const TFV& other) const {

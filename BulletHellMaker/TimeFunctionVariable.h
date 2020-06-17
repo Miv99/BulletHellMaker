@@ -404,9 +404,12 @@ public:
 	from - the entity acting as the origin
 	to - the entity being pointed to
 	*/
-	inline CurrentAngleTFV(entt::DefaultRegistry& registry, uint32_t from, uint32_t to) : registry(registry), from(from), to(to) {
-		assert(registry.has<PositionComponent>(from) && registry.has<PositionComponent>(to) && registry.has<HitboxComponent>(from) && registry.has<HitboxComponent>(to));
-	}
+	CurrentAngleTFV(entt::DefaultRegistry& registry, uint32_t from, uint32_t to);
+	/*
+	from - the entity acting as the origin
+	toX/toY - the static position being pointed to
+	*/
+	CurrentAngleTFV(entt::DefaultRegistry& registry, uint32_t from, float toX, float toY);
 	std::shared_ptr<TFV> clone() override;
 
 	inline std::string format() const override {
@@ -419,13 +422,7 @@ public:
 	}
 	std::string getName() override { return "Angle to entity"; }
 
-	float evaluate(float time) override {
-		auto& fromPos = registry.get<PositionComponent>(from);
-		auto& toPos = registry.get<PositionComponent>(to);
-		auto& fromHitbox = registry.get<HitboxComponent>(from);
-		auto& toHitbox = registry.get<HitboxComponent>(to);
-		return std::atan2((toPos.getY() + toHitbox.getY()) - (fromPos.getY() + fromHitbox.getY()), (toPos.getX() + toHitbox.getX()) - (fromPos.getX() + fromHitbox.getX()));
-	}
+	float evaluate(float time) override;
 
 	bool operator==(const TFV& other) const override;
 
@@ -433,6 +430,10 @@ private:
 	entt::DefaultRegistry& registry;
 	uint32_t from;
 	uint32_t to;
+	// If this is true, the "to" entity will be used for the target position. If false, toX and toY will be used.
+	bool useEntityForToPos;
+	float toX;
+	float toY;
 };
 
 /*

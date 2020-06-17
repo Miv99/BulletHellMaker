@@ -203,18 +203,16 @@ public:
 	from - the entity homing in on the target
 	to - the target
 	*/
-	inline HomingMP(float lifespan, std::shared_ptr<TFV> speed, std::shared_ptr<TFV> homingStrength, uint32_t from, uint32_t to, entt::DefaultRegistry& registry) : MovablePoint(lifespan, true), speed(speed), homingStrength(homingStrength), registry(registry), from(from) {
-		angle = std::make_shared<CurrentAngleTFV>(registry, from, to);
-		prevAngle = angle->evaluate(0);
-	}
+	HomingMP(float lifespan, std::shared_ptr<TFV> speed, std::shared_ptr<TFV> homingStrength, uint32_t from, uint32_t to, entt::DefaultRegistry& registry);
 	/*
 	HomingMP that homes in on a static position.
+	*/
+	HomingMP(float lifespan, std::shared_ptr<TFV> speed, std::shared_ptr<TFV> homingStrength, uint32_t from, float toX, float toY, entt::DefaultRegistry& registry);
+	/*
+	This constructor is used just so EMPAs can generate standalone MPs without a registry.
 	If a HomingMP is initialized with this constructor, evaluate() should never be called.
 	*/
-	inline HomingMP(float lifespan, std::shared_ptr<TFV> speed, std::shared_ptr<TFV> homingStrength, float fromX, float fromY, float toX, float toY) : MovablePoint(lifespan, true), speed(speed), homingStrength(homingStrength), registry(registry) {
-		angle = std::make_shared<ConstantTFV>(std::atan2(toY - fromY, toX - fromX));
-		prevAngle = angle->evaluate(0);
-	}
+	HomingMP(float lifespan, std::shared_ptr<TFV> speed, std::shared_ptr<TFV> homingStrength, float fromX, float fromY, float toX, float toY);
 
 	sf::Vector2f evaluate(float time) override;
 
