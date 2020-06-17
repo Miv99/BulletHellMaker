@@ -1006,6 +1006,7 @@ private:
 
 /*
 A panel used to place markers on a 2D area. The ordering of the markers is maintained.
+Extra widgets added inside this widget from classes derived from MarkerPlacer should do so using addExtraRowWidget().
 
 Note for me: the markers are stored internally with a negative y position than what is inserted
 to maintain a standard coordinate system. getMarkerPositions() will return the originally inputted
@@ -1052,6 +1053,9 @@ protected:
 	// Index of the selected marker. -1 if nothing is selected.
 	int selectedMarkerIndex = -1;
 
+	// Whether the grid lines should be visible
+	bool gridLinesVisible = true;
+
 	std::vector<sf::CircleShape> markers;
 	std::shared_ptr<tgui::ScrollablePanel> leftPanel;
 	std::shared_ptr<ListViewScrollablePanel> markersListView;
@@ -1059,6 +1063,8 @@ protected:
 	std::shared_ptr<NumericalEditBoxWithLimits> selectedMarkerY;
 	std::shared_ptr<tgui::Button> addMarker;
 	std::shared_ptr<tgui::Button> deleteMarker;
+	// Don't do connect("SizeChanged") with this in any derived classes or it'll break
+	std::shared_ptr<tgui::ScrollablePanel> extraWidgetsPanel;
 
 	sf::View viewFromViewController;
 
@@ -1070,7 +1076,25 @@ protected:
 
 	bool ignoreSignals = false;
 
+	void setGridLinesVisible(bool showGridLines);
+
+	/*
+	Adds a widget to the bottom of the extra widgets panel.
+
+	topPadding - vertical distance from the previously bottom-most widget in the extra widgets panel
+	*/
+	void addExtraRowWidget(std::shared_ptr<tgui::Widget> widget, float topPadding);
+	/*
+	Adds a widget to the right of the bottom-right-most widget of the extra widgets panel.
+	This should only be called after at least one call to addExtraRowWidget().
+
+	leftPadding - horizontal distance from the bottom-most widget in the extra widgets panel
+	*/
+	void addExtraColumnWidget(std::shared_ptr<tgui::Widget> widget, float leftPadding);
+
 private:
+	static const sf::Color GRID_COLOR;
+
 	const sf::Vector2u resolution;
 	UndoStack undoStack;
 
@@ -1079,6 +1103,14 @@ private:
 
 	float circleRadius = 10.0f;
 	float outlineThickness = 3.0f;
+
+	sf::VertexArray gridLines;
+
+	std::shared_ptr<tgui::CheckBox> showGridLines;
+	std::shared_ptr<tgui::Label> gridLinesIntervalLabel;
+	std::shared_ptr<SliderWithEditBox> gridLinesInterval;
+	std::shared_ptr<tgui::Widget> bottomLeftMostExtraWidget;
+	std::shared_ptr<tgui::Widget> bottomRightMostExtraWidget;
 
 	sf::FloatRect viewportFloatRect, viewFloatRect;
 
@@ -1106,7 +1138,12 @@ private:
 
 	void setPlacingNewMarker(bool placingNewMarker);
 	void deselectMarker();
+	/*
+	Updates gridLines according to the current view.
+	*/
+	void calculateGridLines();
 	void updateWindowView();
+	int roundToNearestMultiple(int num, int multiple);
 };
 
 /*

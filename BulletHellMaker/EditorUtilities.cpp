@@ -13,6 +13,8 @@
 #include <WinUser.h>
 #endif
 
+const sf::Color MarkerPlacer::GRID_COLOR = sf::Color(229, 229, 229);
+
 std::string getID(std::shared_ptr<EMPAAngleOffset> offset) {
 	if (dynamic_cast<EMPAAngleOffsetZero*>(offset.get())) {
 		return "0";
@@ -2620,6 +2622,8 @@ void DelayedSlider::setMaximum(float maximum, bool emitValueChanged) {
 const std::string MarkerPlacer::MARKERS_LIST_VIEW_ITEM_FORMAT = "%d (%.2f, %.2f)";
 
 MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, sf::Vector2u resolution, int undoStackSize) : parentWindow(parentWindow), resolution(resolution), undoStack(UndoStack(undoStackSize)) {
+	gridLines.setPrimitiveType(sf::PrimitiveType::Lines);
+
 	currentCursor = sf::CircleShape(-1);
 	currentCursor.setOutlineColor(selectedMarkerColor);
 	currentCursor.setOutlineThickness(outlineThickness);
@@ -2630,23 +2634,39 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, sf::Vector2u resoluti
 	markersListView = ListViewScrollablePanel::create();
 	addMarker = tgui::Button::create();
 	deleteMarker = tgui::Button::create();
+	showGridLines = tgui::CheckBox::create();
+	gridLinesIntervalLabel = tgui::Label::create();
+	gridLinesInterval = SliderWithEditBox::create(false);
 	selectedMarkerXLabel = tgui::Label::create();
 	selectedMarkerYLabel = tgui::Label::create();
 	selectedMarkerX = NumericalEditBoxWithLimits::create();
 	selectedMarkerY = NumericalEditBoxWithLimits::create();
 
+	extraWidgetsPanel = tgui::ScrollablePanel::create();
+
 	markersListView->setTextSize(TEXT_SIZE);
 	addMarker->setTextSize(TEXT_SIZE);
 	deleteMarker->setTextSize(TEXT_SIZE);
+	showGridLines->setTextSize(TEXT_SIZE);
+	gridLinesIntervalLabel->setTextSize(TEXT_SIZE);
+	gridLinesInterval->setTextSize(TEXT_SIZE);
 	selectedMarkerXLabel->setTextSize(TEXT_SIZE);
 	selectedMarkerYLabel->setTextSize(TEXT_SIZE);
 	selectedMarkerX->setTextSize(TEXT_SIZE);
 	selectedMarkerY->setTextSize(TEXT_SIZE);
 
+	showGridLines->setText("Show grid lines");
+	gridLinesIntervalLabel->setText("Distance between lines");
 	selectedMarkerXLabel->setText("X");
 	selectedMarkerYLabel->setText("Y");
 	addMarker->setText("Add");
 	deleteMarker->setText("Delete");
+
+	gridLinesInterval->setIntegerMode(true);
+	gridLinesInterval->setMin(1);
+	gridLinesInterval->setMax(std::max(MAP_WIDTH, MAP_HEIGHT));
+	gridLinesInterval->setValue(20);
+	gridLinesInterval->setStep(1);
 
 	markersListView->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
 	addMarker->setPosition(GUI_PADDING_X, tgui::bindBottom(markersListView) + GUI_PADDING_Y);
@@ -2656,8 +2676,10 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, sf::Vector2u resoluti
 	selectedMarkerYLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(selectedMarkerX) + GUI_PADDING_Y);
 	selectedMarkerY->setPosition(tgui::bindLeft(selectedMarkerYLabel), tgui::bindBottom(selectedMarkerYLabel) + GUI_LABEL_PADDING_Y);
 
-	leftPanel->setSize(tgui::bindMin("25%", 200), "100%");
-	leftPanel->connect("SizeChanged", [&](sf::Vector2f newSize) {
+	leftPanel->setSize(tgui::bindMin("25%", 250), "100%");
+	extraWidgetsPanel->setPosition(tgui::bindRight(leftPanel), tgui::bindTop(leftPanel));
+
+	leftPanel->connect("SizeChanged", [this](sf::Vector2f newSize) {
 		// Height of left panel minus y needed for the widgets that are not the list view
 		float markersListViewHeight = newSize.y - GUI_PADDING_Y * 5 - GUI_LABEL_PADDING_Y * 2 - selectedMarkerXLabel->getSize().y * 2 - selectedMarkerX->getSize().y * 2 - addMarker->getSize().y;
 		markersListView->setSize(newSize.x - GUI_PADDING_X * 2, std::max(markersListViewHeight, markersListView->getListView()->getItemHeight() * 6.0f));
@@ -2668,7 +2690,7 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, sf::Vector2u resoluti
 		selectedMarkerY->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 	});
 
-	markersListView->getListView()->connect("ItemSelected", [&](int index) {
+	markersListView->getListView()->connect("ItemSelected", [this](int index) {
 		if (ignoreSignals) {
 			return;
 		}
@@ -2678,7 +2700,7 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, sf::Vector2u resoluti
 			selectMarker(index);
 		}
 	});
-	markersListView->getListView()->connect("DoubleClicked", [&](int index) {
+	markersListView->getListView()->connect("DoubleClicked", [this](int index) {
 		if (ignoreSignals) {
 			return;
 		}
@@ -2689,13 +2711,13 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, sf::Vector2u resoluti
 			lookAt(sf::Vector2f(markers[index].getPosition().x, -markers[index].getPosition().y));
 		}
 	});
-	addMarker->connect("Pressed", [&]() {
+	addMarker->connect("Pressed", [this]() {
 		if (ignoreSignals) {
 			return;
 		}
 		setPlacingNewMarker(true);
 	});
-	deleteMarker->connect("Pressed", [&, &selectedMarkerIndex = this->selectedMarkerIndex]() {
+	deleteMarker->connect("Pressed", [this, &selectedMarkerIndex = this->selectedMarkerIndex]() {
 		if (ignoreSignals) {
 			return;
 		}
@@ -2708,17 +2730,29 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, sf::Vector2u resoluti
 			insertMarker(selectedMarkerIndex, sf::Vector2f(markerToBeDeleted.getPosition().x, -markerToBeDeleted.getPosition().y), markerToBeDeleted.getOutlineColor());
 		}));
 	});
-	selectedMarkerX->connect("ValueChanged", [&](float value) {
+	showGridLines->connect("Changed", [this](bool checked) {
 		if (ignoreSignals) {
 			return;
 		}
+
+		setGridLinesVisible(checked);
+	});
+	gridLinesInterval->connect("ValueChanged", [this]() {
+		calculateGridLines();
+	});
+	selectedMarkerX->connect("ValueChanged", [this](float value) {
+		if (ignoreSignals) {
+			return;
+		}
+
 		markers[selectedMarkerIndex].setPosition(value, markers[selectedMarkerIndex].getPosition().y);
 		updateMarkersListViewItem(selectedMarkerIndex);
 	});
-	selectedMarkerY->connect("ValueChanged", [&](float value) {
+	selectedMarkerY->connect("ValueChanged", [this](float value) {
 		if (ignoreSignals) {
 			return;
 		}
+
 		markers[selectedMarkerIndex].setPosition(markers[selectedMarkerIndex].getPosition().x, -value);
 		updateMarkersListViewItem(selectedMarkerIndex);
 	});
@@ -2732,20 +2766,33 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, sf::Vector2u resoluti
 	leftPanel->add(selectedMarkerY);
 	add(leftPanel);
 
-	connect("PositionChanged", [&]() {
+	extraWidgetsPanel->connect("SizeChanged", [this](sf::Vector2f newSize) {
+		gridLinesInterval->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+	});
+	addExtraRowWidget(showGridLines, GUI_LABEL_PADDING_Y);
+	addExtraRowWidget(gridLinesIntervalLabel, GUI_LABEL_PADDING_Y);
+	addExtraRowWidget(gridLinesInterval, GUI_LABEL_PADDING_Y);
+	add(extraWidgetsPanel);
+
+	connect("PositionChanged", [this]() {
 		updateWindowView();
 	});
-	connect("SizeChanged", [&]() {
+	connect("SizeChanged", [this](sf::Vector2f newSize) {
 		updateWindowView();
 	});
 
 	deselectMarker();
+
+	leftPanel->setHorizontalScrollAmount(SCROLL_AMOUNT);
+	leftPanel->setVerticalScrollAmount(SCROLL_AMOUNT);
+	setGridLinesVisible(gridLinesVisible);
 }
 
 bool MarkerPlacer::handleEvent(sf::Event event) {
 	if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left && leftPanel->mouseOnWidget(sf::Vector2f(event.mouseButton.x, event.mouseButton.y) - getAbsolutePosition())) {
 		return true;
 	} else if (viewController->handleEvent(viewFromViewController, event)) {
+		calculateGridLines();
 		return true;
 	}
 
@@ -2758,6 +2805,9 @@ bool MarkerPlacer::handleEvent(sf::Event event) {
 				undoStack.redo();
 				return true;
 			}
+		} else if (event.key.code == sf::Keyboard::G) {
+			// Toggle grid lines visibility
+			setGridLinesVisible(!gridLinesVisible);
 		}
 	} else if (event.type == sf::Event::MouseButtonPressed) {
 		if (event.mouseButton.button == sf::Mouse::Right) {
@@ -3020,6 +3070,36 @@ void MarkerPlacer::updateMarkersListView() {
 	ignoreSignals = false;
 }
 
+void MarkerPlacer::calculateGridLines() {
+	sf::Vector2f topLeftWorldCoords = viewFromViewController.getCenter() - viewFromViewController.getSize() / 2.0f;
+	sf::Vector2f bottomRightWorldCoords = viewFromViewController.getCenter() + viewFromViewController.getSize() / 2.0f;
+
+	int interval = gridLinesInterval->getValue();
+	int xStart = roundToNearestMultiple((int)topLeftWorldCoords.x, interval);
+	int xEnd = roundToNearestMultiple((int)bottomRightWorldCoords.x, interval);
+	int yStart = roundToNearestMultiple((int)topLeftWorldCoords.y, interval);
+	int yEnd = roundToNearestMultiple((int)bottomRightWorldCoords.y, interval);
+	gridLines.clear();
+	// Vertical lines
+	for (int x = xStart; x <= xEnd; x += interval) {
+		sf::Vertex v1(sf::Vector2f(x, yStart));
+		v1.color = GRID_COLOR;
+		sf::Vertex v2(sf::Vector2f(x, yEnd));
+		v2.color = GRID_COLOR;
+		gridLines.append(v1);
+		gridLines.append(v2);
+	}
+	// Horizontal lines
+	for (int y = yStart; y <= yEnd; y += interval) {
+		sf::Vertex v1(sf::Vector2f(xStart, y));
+		v1.color = GRID_COLOR;
+		sf::Vertex v2(sf::Vector2f(xEnd, y));
+		v2.color = GRID_COLOR;
+		gridLines.append(v1);
+		gridLines.append(v2);
+	}
+}
+
 void MarkerPlacer::updateWindowView() {
 	auto windowSize = parentWindow.getSize();
 	auto size = getSize();
@@ -3053,10 +3133,50 @@ void MarkerPlacer::updateWindowView() {
 	viewFromViewController = sf::View(viewFloatRect);
 	viewFromViewController.setViewport(viewportFloatRect);
 	viewFromViewController.setCenter(oldCenter);
+
+	if (gridLinesVisible) {
+		calculateGridLines();
+	}
+}
+
+int MarkerPlacer::roundToNearestMultiple(int num, int multiple) {
+	int isPositive = (int)(num >= 0);
+	return ((num + isPositive * (multiple - 1)) / multiple) * multiple;
 }
 
 void MarkerPlacer::updateMarkersListViewItem(int index) {
 	markersListView->getListView()->changeItem(index, { format(MARKERS_LIST_VIEW_ITEM_FORMAT, index + 1, markers[index].getPosition().x, -markers[index].getPosition().y) });
+}
+
+void MarkerPlacer::setGridLinesVisible(bool gridLinesVisible) {
+	this->gridLinesVisible = gridLinesVisible;
+
+	ignoreSignals = true;
+	showGridLines->setChecked(gridLinesVisible);
+	ignoreSignals = false;
+
+	if (gridLinesVisible) {
+		calculateGridLines();
+	}
+}
+
+void MarkerPlacer::addExtraRowWidget(std::shared_ptr<tgui::Widget> widget, float topPadding) {
+	if (bottomLeftMostExtraWidget) {
+		widget->setPosition(GUI_PADDING_X, tgui::bindBottom(bottomLeftMostExtraWidget) + topPadding);
+	} else {
+		widget->setPosition(GUI_PADDING_X, topPadding);
+	}
+	extraWidgetsPanel->setSize("100%" - tgui::bindWidth(leftPanel), tgui::bindBottom(widget) + GUI_PADDING_Y);
+	extraWidgetsPanel->add(widget);
+	bottomLeftMostExtraWidget = widget;
+	bottomRightMostExtraWidget = widget;
+}
+
+void MarkerPlacer::addExtraColumnWidget(std::shared_ptr<tgui::Widget> widget, float leftPadding) {
+	assert(bottomRightMostExtraWidget != nullptr);
+	widget->setPosition(tgui::bindRight(bottomRightMostExtraWidget) + leftPadding, tgui::bindTop(bottomRightMostExtraWidget));
+	extraWidgetsPanel->add(widget);
+	bottomRightMostExtraWidget = widget;
 }
 
 void MarkerPlacer::draw(sf::RenderTarget & target, sf::RenderStates states) const {
@@ -3065,6 +3185,11 @@ void MarkerPlacer::draw(sf::RenderTarget & target, sf::RenderStates states) cons
 	// Viewport is set here because tgui::Gui's draw function changes it right before renderSystem is updated or something
 	sf::View originalView = parentWindow.getView();
 	parentWindow.setView(viewFromViewController);
+	// Draw grid
+	if (gridLinesVisible) {
+		parentWindow.draw(gridLines);
+	}
+	// Draw markers
 	if (selectedMarkerIndex == -1) {
 		for (int i = 0; i < markers.size(); i++) {
 			parentWindow.draw(markers[i]);
@@ -3090,6 +3215,8 @@ void MarkerPlacer::draw(sf::RenderTarget & target, sf::RenderStates states) cons
 
 	// Draw left panel again so that it covers the markers
 	leftPanel->draw(target, states);
+	// Same thing with extra widgets panel
+	extraWidgetsPanel->draw(target, states);
 }
 
 BezierControlPointsPlacer::BezierControlPointsPlacer(sf::RenderWindow & parentWindow, sf::Vector2u resolution, int undoStackSize) : MarkerPlacer(parentWindow, resolution, undoStackSize) {
@@ -3106,10 +3233,6 @@ BezierControlPointsPlacer::BezierControlPointsPlacer(sf::RenderWindow & parentWi
 	evaluatorResult->setTextSize(TEXT_SIZE);
 
 	evaluatorResult->setText("Result:                   ");
-
-	timeResolution->setPosition(tgui::bindRight(leftPanel), tgui::bindTop(leftPanel));
-	evaluator->setPosition(tgui::bindLeft(timeResolution), tgui::bindBottom(timeResolution) + GUI_LABEL_PADDING_Y);
-	evaluatorResult->setPosition(tgui::bindRight(evaluator) + GUI_PADDING_X, tgui::bindTop(evaluator));
 
 	timeResolution->setIntegerMode(false);
 	timeResolution->setMin(MAX_PHYSICS_DELTA_TIME);
@@ -3130,14 +3253,13 @@ BezierControlPointsPlacer::BezierControlPointsPlacer(sf::RenderWindow & parentWi
 		evaluatorResult->setText(format("Result: (%.3f, %.3f)", res.x, res.y));
 		evaluator->setSize(std::min((getSize().x - leftPanel->getSize().x) / 2.0f, (getSize().x - leftPanel->getSize().x) - evaluatorResult->getSize().x - GUI_PADDING_X), TEXT_BOX_HEIGHT);
 	});
-	connect("SizeChanged", [&](sf::Vector2f newSize) {
-		timeResolution->setSize(newSize.x - tgui::bindWidth(leftPanel), SLIDER_HEIGHT);
-		evaluator->setSize(std::min((newSize.x - leftPanel->getSize().x)/2.0f, (newSize.x - leftPanel->getSize().x) - evaluatorResult->getSize().x - GUI_PADDING_X), TEXT_BOX_HEIGHT);
-	});
 
-	add(timeResolution);
-	add(evaluator);
-	add(evaluatorResult);
+	timeResolution->setSize("50%", SLIDER_HEIGHT);
+	evaluator->setSize("50%", TEXT_BOX_HEIGHT);
+
+	addExtraRowWidget(timeResolution, GUI_PADDING_Y);
+	addExtraRowWidget(evaluator, GUI_LABEL_PADDING_Y);
+	addExtraColumnWidget(evaluatorResult, GUI_PADDING_X);
 }
 
 void BezierControlPointsPlacer::draw(sf::RenderTarget & target, sf::RenderStates states) const {
