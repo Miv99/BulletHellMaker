@@ -1221,7 +1221,9 @@ void EditorMovablePointPanel::paste2Into(std::shared_ptr<CopiedObject> pastedObj
 }
 
 bool EditorMovablePointPanel::handleEvent(sf::Event event) {
-	if (placingSpawnLocation) {
+	if (tabs->handleEvent(event)) {
+		return true;
+	} else if (placingSpawnLocation) {
 		if (spawnTypePositionMarkerPlacer->handleEvent(event)) {
 			return true;
 		}
@@ -1230,8 +1232,6 @@ bool EditorMovablePointPanel::handleEvent(sf::Event event) {
 			finishEditingSpawnTypePosition();
 			return true;
 		}
-	} else if (tabs->handleEvent(event)) {
-		return true;
 	} else if (event.type == sf::Event::KeyPressed) {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
 			if (event.key.code == sf::Keyboard::Z) {
