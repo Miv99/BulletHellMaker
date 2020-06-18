@@ -89,8 +89,6 @@ private:
 /*
 A tgui::Panel used to edit a list of EMPActions.
 
-TODO: when setting actions, make a copy of every EMPA
-
 Signals:
 	EMPAListModified - emitted when the list of EMPAs is modified
 		Optional parameter: a vector of shared_ptrs of EMPActions representing the new actions and the sum of durations of every EMPA as a float

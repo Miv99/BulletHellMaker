@@ -75,10 +75,11 @@ Notes for me:
     -But then: if an attack is overwritten in leftPanel's undo stack and the AttackEditorPanel maintains its undo stack, the
         AttackEditorPanel's undo stack will be desynced so future undos could bug out/not work as intentional
         
--Known bugs:
+-Known minor bugs:
     -Change sum of durations of actions in EMPABasedMovementEditorPanel 
         -> empiDespawnTime in EditorMovablePointPanel max changes, causing its value to change if value > new max 
         -> undo in EMPABasedMovementEditorPanel -> empiDespawnTime max changes back, but its value doesn't change back
+    -BezierControlPointsPlacer movement path is drawn over the panels
 
 -Item path is in Components::CollectibleComponent::update and EntityCreationQueue::EMPDropItemCommand::execute
 -Player invulnerability sprite effect animation is in CollisionSystem

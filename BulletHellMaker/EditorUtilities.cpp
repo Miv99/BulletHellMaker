@@ -2844,6 +2844,18 @@ bool MarkerPlacer::handleEvent(sf::Event event) {
 					removeMarker(newIndex);
 				}));
 			} else {
+				// Check if user can begin dragging the selected marker first before every other marker
+				if (selectedMarkerIndex != -1) {
+					sf::CircleShape p = markers[selectedMarkerIndex];
+					if (std::sqrt((mouseWorldPos.x - p.getPosition().x) * (mouseWorldPos.x - p.getPosition().x) + (mouseWorldPos.y - p.getPosition().y) * (mouseWorldPos.y - p.getPosition().y)) <= p.getRadius()) {
+						draggingMarker = true;
+						previousMarkerDragCoordsX = event.mouseButton.x;
+						previousMarkerDragCoordsY = event.mouseButton.y;
+						markerPosBeforeDragging = markers[selectedMarkerIndex].getPosition();
+						return true;
+					}
+				}
+
 				int i = 0;
 				for (auto p : markers) {
 					if (std::sqrt((mouseWorldPos.x - p.getPosition().x)*(mouseWorldPos.x - p.getPosition().x) + (mouseWorldPos.y - p.getPosition().y)*(mouseWorldPos.y - p.getPosition().y)) <= p.getRadius()) {
