@@ -2975,6 +2975,7 @@ void MarkerPlacer::deselectMarker() {
 
 void MarkerPlacer::lookAt(sf::Vector2f pos) {
 	viewFromViewController.setCenter(sf::Vector2f(pos.x, -pos.y));
+	calculateGridLines();
 }
 
 void MarkerPlacer::clearUndoStack() {
