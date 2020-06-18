@@ -10,7 +10,7 @@ bool ViewController::handleEvent(sf::View& view, sf::Event event) {
 				setCameraZoom(view, std::max(0.2f, cameraZoom - 0.2f));
 				consumeEvent = true;
 			} else if (event.key.code == sf::Keyboard::Equal) {
-				setCameraZoom(view, std::min(4.0f, cameraZoom + 0.2f));
+				setCameraZoom(view, std::min(8.0f, cameraZoom + 0.2f));
 				consumeEvent = true;
 			}
 		} else if (event.type == sf::Event::MouseWheelScrolled) {
@@ -18,7 +18,7 @@ bool ViewController::handleEvent(sf::View& view, sf::Event event) {
 				setCameraZoom(view, std::max(0.2f, cameraZoom - 0.2f));
 				consumeEvent = true;
 			} else if (event.mouseWheelScroll.delta > 0) {
-				setCameraZoom(view, std::min(4.0f, cameraZoom + 0.2f));
+				setCameraZoom(view, std::min(8.0f, cameraZoom + 0.2f));
 				consumeEvent = true;
 			}
 		}
