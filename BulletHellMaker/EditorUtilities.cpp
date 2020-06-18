@@ -14,6 +14,8 @@
 #endif
 
 const sf::Color MarkerPlacer::GRID_COLOR = sf::Color(229, 229, 229);
+const sf::Color MarkerPlacer::MAP_BORDER_COLOR = sf::Color(255, 0, 0);
+const sf::Color MarkerPlacer::MAP_LINE_COLOR = sf::Color(143, 0, 0);
 const float MarkerPlacer::MAX_GRID_SNAP_DISTANCE = 15.0f;
 const float MarkerPlacer::MAX_GRID_SNAP_DISTANCE_SQUARED = MAX_GRID_SNAP_DISTANCE * MAX_GRID_SNAP_DISTANCE;
 
@@ -2670,8 +2672,8 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 
 	gridLinesInterval->setIntegerMode(true);
 	gridLinesInterval->setMin(1);
-	gridLinesInterval->setMax(std::max(MAP_WIDTH, MAP_HEIGHT));
-	gridLinesInterval->setValue(20);
+	gridLinesInterval->setMax(std::max(MAP_WIDTH, MAP_HEIGHT)/2.0f);
+	gridLinesInterval->setValue(25);
 	gridLinesInterval->setStep(1);
 
 	markersListView->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
@@ -3144,7 +3146,8 @@ void MarkerPlacer::calculateGridLines() {
 	int yEnd = roundToNearestMultiple((int)bottomRightWorldCoords.y, interval);
 	gridLines.clear();
 	// Vertical lines
-	for (int x = xStart; x <= xEnd; x += interval) {
+	// Add some extra line padding by starting at (xStart - interval) and ending at (xEnd + interval) just in case
+	for (int x = xStart - interval; x <= xEnd + interval; x += interval) {
 		sf::Vertex v1(sf::Vector2f(x, yStart));
 		v1.color = GRID_COLOR;
 		sf::Vertex v2(sf::Vector2f(x, yEnd));
@@ -3153,13 +3156,73 @@ void MarkerPlacer::calculateGridLines() {
 		gridLines.append(v2);
 	}
 	// Horizontal lines
-	for (int y = yStart; y <= yEnd; y += interval) {
+	for (int y = yStart - interval; y <= yEnd + interval; y += interval) {
 		sf::Vertex v1(sf::Vector2f(xStart, y));
 		v1.color = GRID_COLOR;
 		sf::Vertex v2(sf::Vector2f(xEnd, y));
 		v2.color = GRID_COLOR;
 		gridLines.append(v1);
 		gridLines.append(v2);
+	}
+
+	// Add map lines; negative y values because screen coordinate system has (0, 0) at top-left of map
+	sf::Vertex v1(sf::Vector2f(0, yStart));
+	v1.color = MAP_LINE_COLOR;
+	sf::Vertex v2(sf::Vector2f(0, yEnd));
+	v2.color = MAP_LINE_COLOR;
+	gridLines.append(v1);
+	gridLines.append(v2);
+
+	sf::Vertex v3(sf::Vector2f(MAP_WIDTH, yStart));
+	v3.color = MAP_LINE_COLOR;
+	sf::Vertex v4(sf::Vector2f(MAP_WIDTH, yEnd));
+	v4.color = MAP_LINE_COLOR;
+	gridLines.append(v3);
+	gridLines.append(v4);
+
+	sf::Vertex v5(sf::Vector2f(xStart, 0));
+	v5.color = MAP_LINE_COLOR;
+	sf::Vertex v6(sf::Vector2f(xEnd, 0));
+	v6.color = MAP_LINE_COLOR;
+	gridLines.append(v5);
+	gridLines.append(v6);
+
+	sf::Vertex v7(sf::Vector2f(xStart, -MAP_HEIGHT));
+	v7.color = MAP_LINE_COLOR;
+	sf::Vertex v8(sf::Vector2f(xEnd, -MAP_HEIGHT));
+	v8.color = MAP_LINE_COLOR;
+	gridLines.append(v7);
+	gridLines.append(v8);
+
+	// Add map border lines
+	{
+		sf::Vertex v1(sf::Vector2f(0, 0));
+		v1.color = MAP_BORDER_COLOR;
+		sf::Vertex v2(sf::Vector2f(0, -MAP_HEIGHT));
+		v2.color = MAP_BORDER_COLOR;
+		gridLines.append(v1);
+		gridLines.append(v2);
+
+		sf::Vertex v3(sf::Vector2f(0, 0));
+		v3.color = MAP_BORDER_COLOR;
+		sf::Vertex v4(sf::Vector2f(MAP_WIDTH, 0));
+		v4.color = MAP_BORDER_COLOR;
+		gridLines.append(v3);
+		gridLines.append(v4);
+
+		sf::Vertex v5(sf::Vector2f(0, -MAP_HEIGHT));
+		v5.color = MAP_BORDER_COLOR;
+		sf::Vertex v6(sf::Vector2f(MAP_WIDTH, -MAP_HEIGHT));
+		v6.color = MAP_BORDER_COLOR;
+		gridLines.append(v5);
+		gridLines.append(v6);
+
+		sf::Vertex v7(sf::Vector2f(MAP_WIDTH, 0));
+		v7.color = MAP_BORDER_COLOR;
+		sf::Vertex v8(sf::Vector2f(MAP_WIDTH, -MAP_HEIGHT));
+		v8.color = MAP_BORDER_COLOR;
+		gridLines.append(v7);
+		gridLines.append(v8);
 	}
 }
 

@@ -93,9 +93,7 @@ big todo:
     -If object is an EditorAttack, when "AttackModified" signal received from AttackEditorPanel, reload the preview
     -Same pattern for EditorAttackPattern and other first-level objects
     -If the object isn't legal, the preview panel will show the error message from legal()
--grid for marker placer
-    -different color lines for x, y = 0
-    -SliderWithEditBox for marker size
+-marker placer label showing mouse world position
 -visualizer thing in EMPABasedMovementEditorPanel
     
 Random things for TODOs that are noted here so I don't forget:

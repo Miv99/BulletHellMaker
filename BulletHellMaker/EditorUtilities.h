@@ -1102,7 +1102,12 @@ protected:
 	virtual void manualDelete();
 
 private:
+	// Color of grid lines
 	static const sf::Color GRID_COLOR;
+	// Color of lines for the map border
+	static const sf::Color MAP_BORDER_COLOR;
+	// Color of lines for the map lines outside of the map border
+	static const sf::Color MAP_LINE_COLOR;
 	// Maximum screen distance before snapping to grid doesn't work anymore
 	static const float MAX_GRID_SNAP_DISTANCE;
 	// For faster calculations
