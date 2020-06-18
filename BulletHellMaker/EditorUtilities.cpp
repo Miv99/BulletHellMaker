@@ -2898,9 +2898,6 @@ bool MarkerPlacer::handleEvent(sf::Event event) {
 			// Move selected placeholder depending on difference in world coordinates between event.mouseMove.x/y and previousPlaceholderDragCoordsX/Y
 			sf::View originalView = parentWindow.getView();
 			parentWindow.setView(viewFromViewController);
-			sf::Vector2f mousePosWorldCoords = parentWindow.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
-			sf::Vector2f diff = parentWindow.mapPixelToCoords(sf::Vector2i(previousMarkerDragCoordsX, previousMarkerDragCoordsY)) - mousePosWorldCoords;
-			sf::Vector2f prevPos = markers[selectedMarkerIndex].getPosition();
 
 			sf::Vector2f newPos = parentWindow.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
 			if (snapToGrid) {
