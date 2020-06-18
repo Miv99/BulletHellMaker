@@ -73,20 +73,19 @@ void EditorWindow::start() {
 					}
 					handleEvent(event);
 				}
+
+				float dt = std::min(MAX_PHYSICS_DELTA_TIME, deltaClock.restart().asSeconds());
+				timeSinceLastRender += dt;
+				window->clear();
+				render(timeSinceLastRender);
+				if (renderSignal) {
+					renderSignal->publish(timeSinceLastRender);
+				}
+				window->display();
 			}
-
-			float dt = std::min(MAX_PHYSICS_DELTA_TIME, deltaClock.restart().asSeconds());
-			physicsUpdate(dt);
-
-			timeSinceLastRender += dt;
+			
+			physicsUpdate(timeSinceLastRender);
 		}
-
-		window->clear();
-		render(timeSinceLastRender);
-		if (renderSignal) {
-			renderSignal->publish(timeSinceLastRender);
-		}
-		window->display();
 	}
 }
 
