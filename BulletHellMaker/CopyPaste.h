@@ -133,3 +133,13 @@ public:
 private:
 	std::vector<std::shared_ptr<EMPAction>> actions;
 };
+
+class CopiedMarker : public CopiedObject {
+public:
+	CopiedMarker(std::string copiedFromID, sf::CircleShape marker);
+
+	sf::CircleShape getMarker();
+
+private:
+	sf::CircleShape marker;
+};

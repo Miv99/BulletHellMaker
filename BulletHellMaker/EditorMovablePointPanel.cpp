@@ -24,7 +24,7 @@ std::string EditorMovablePointPanel::getID(std::shared_ptr<EMPSpawnType> spawnTy
 
 EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWindow, LevelPack & levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorMovablePoint> emp, int undoStackSize)
 	: CopyPasteable("EditorMovablePoint"), mainEditorWindow(mainEditorWindow), levelPack(levelPack), emp(emp), clipboard(clipboard), undoStack(UndoStack(undoStackSize)) {
-	spawnTypePositionMarkerPlacer = SingleMarkerPlacer::create(*(mainEditorWindow.getWindow()));
+	spawnTypePositionMarkerPlacer = SingleMarkerPlacer::create(*(mainEditorWindow.getWindow()), clipboard);
 	spawnTypePositionMarkerPlacer->setPosition(0, 0);
 	spawnTypePositionMarkerPlacer->setSize("100%", "100%");
 	spawnTypePositionMarkerPlacerFinishEditing = tgui::Button::create();

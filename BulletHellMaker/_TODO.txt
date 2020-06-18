@@ -126,6 +126,7 @@ TODO:
 		-for MoveCustomPolarEMPA, this just wraps the angle TFV in a TranslationWrapperTFV (remember to combine the TFVs if the angle TFV is already a TranslationWrapperTFV)
 		-for MoveCustomBezierEMPA, this rotates all control points about (0, 0)
 		-for all other EMPAs, do nothing
+    -import bezier control points from text into BezierControlPointsPlacer
 	  
 // ------------------------------------------------------------------------------------------------------------------------------------------------
 editable = attack/attack pattern/emp/enemy/enemyphase/player

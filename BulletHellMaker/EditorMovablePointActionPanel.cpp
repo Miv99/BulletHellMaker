@@ -6,7 +6,7 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 	setVerticalScrollAmount(SCROLL_AMOUNT);
 	setVerticalScrollAmount(SCROLL_AMOUNT);
 
-	xyPositionMarkerPlacer = SingleMarkerPlacer::create(*(parentWindow.getWindow()));
+	xyPositionMarkerPlacer = SingleMarkerPlacer::create(*(parentWindow.getWindow()), clipboard);
 	xyPositionMarkerPlacer->setPosition(0, 0);
 	xyPositionMarkerPlacer->setSize("100%", "100%");
 	xyPositionMarkerPlacerFinishEditing = tgui::Button::create();
@@ -17,7 +17,7 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 		finishEditingXYPosition();
 	});
 	
-	bezierControlPointsMarkerPlacer = BezierControlPointsPlacer::create(*parentWindow.getWindow());
+	bezierControlPointsMarkerPlacer = BezierControlPointsPlacer::create(*parentWindow.getWindow(), clipboard);
 	bezierControlPointsMarkerPlacer->setPosition(0, 0);
 	bezierControlPointsMarkerPlacer->setSize("100%", "100%");
 	bezierControlPointsMarkerPlacerFinishEditing = tgui::Button::create();

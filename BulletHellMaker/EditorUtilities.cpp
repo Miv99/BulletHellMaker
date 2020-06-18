@@ -2621,7 +2621,8 @@ void DelayedSlider::setMaximum(float maximum, bool emitValueChanged) {
 // Index, x, and y in that order
 const std::string MarkerPlacer::MARKERS_LIST_VIEW_ITEM_FORMAT = "%d (%.2f, %.2f)";
 
-MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, sf::Vector2u resolution, int undoStackSize) : parentWindow(parentWindow), resolution(resolution), undoStack(UndoStack(undoStackSize)) {
+MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard, sf::Vector2u resolution, int undoStackSize) :
+	CopyPasteable("Marker"), parentWindow(parentWindow), clipboard(clipboard), resolution(resolution), undoStack(UndoStack(undoStackSize)) {
 	gridLines.setPrimitiveType(sf::PrimitiveType::Lines);
 
 	currentCursor = sf::CircleShape(-1);
@@ -2717,18 +2718,11 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, sf::Vector2u resoluti
 		}
 		setPlacingNewMarker(true);
 	});
-	deleteMarker->connect("Pressed", [this, &selectedMarkerIndex = this->selectedMarkerIndex]() {
+	deleteMarker->connect("Pressed", [this]() {
 		if (ignoreSignals) {
 			return;
 		}
-		sf::CircleShape markerToBeDeleted = markers[selectedMarkerIndex];
-		undoStack.execute(UndoableCommand(
-			[this, selectedMarkerIndex]() {
-			removeMarker(selectedMarkerIndex);
-		},
-			[this, markerToBeDeleted, selectedMarkerIndex]() {
-			insertMarker(selectedMarkerIndex, sf::Vector2f(markerToBeDeleted.getPosition().x, -markerToBeDeleted.getPosition().y), markerToBeDeleted.getOutlineColor());
-		}));
+		manualDelete();
 	});
 	showGridLines->connect("Changed", [this](bool checked) {
 		if (ignoreSignals) {
@@ -2789,13 +2783,6 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, sf::Vector2u resoluti
 }
 
 bool MarkerPlacer::handleEvent(sf::Event event) {
-	if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left && leftPanel->mouseOnWidget(sf::Vector2f(event.mouseButton.x, event.mouseButton.y) - getAbsolutePosition())) {
-		return true;
-	} else if (viewController->handleEvent(viewFromViewController, event)) {
-		calculateGridLines();
-		return true;
-	}
-
 	if (event.type == sf::Event::KeyPressed) {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
 			if (event.key.code == sf::Keyboard::Z) {
@@ -2804,12 +2791,33 @@ bool MarkerPlacer::handleEvent(sf::Event event) {
 			} else if (event.key.code == sf::Keyboard::Y) {
 				undoStack.redo();
 				return true;
+			} else if (event.key.code == sf::Keyboard::C) {
+				clipboard.copy(this);
+				return true;
+			} else if (event.key.code == sf::Keyboard::V) {
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
+					clipboard.paste2(this);
+				} else {
+					clipboard.paste(this);
+				}
+				return true;
 			}
 		} else if (event.key.code == sf::Keyboard::G) {
 			// Toggle grid lines visibility
 			setGridLinesVisible(!gridLinesVisible);
+		} else if (event.key.code == sf::Keyboard::Delete) {
+			manualDelete();
 		}
-	} else if (event.type == sf::Event::MouseButtonPressed) {
+	}
+
+	if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left && leftPanel->mouseOnWidget(sf::Vector2f(event.mouseButton.x, event.mouseButton.y) - getAbsolutePosition())) {
+		return true;
+	} else if (viewController->handleEvent(viewFromViewController, event)) {
+		calculateGridLines();
+		return true;
+	}
+
+	if (event.type == sf::Event::MouseButtonPressed) {
 		if (event.mouseButton.button == sf::Mouse::Right) {
 			setPlacingNewMarker(false);
 			deselectMarker();
@@ -3144,6 +3152,18 @@ int MarkerPlacer::roundToNearestMultiple(int num, int multiple) {
 	return ((num + isPositive * (multiple - 1)) / multiple) * multiple;
 }
 
+void MarkerPlacer::manualDelete() {
+	sf::CircleShape markerToBeDeleted = markers[selectedMarkerIndex];
+	int index = selectedMarkerIndex;
+	undoStack.execute(UndoableCommand(
+		[this, index]() {
+		removeMarker(index);
+	},
+		[this, markerToBeDeleted, index]() {
+		insertMarker(index, sf::Vector2f(markerToBeDeleted.getPosition().x, -markerToBeDeleted.getPosition().y), markerToBeDeleted.getOutlineColor());
+	}));
+}
+
 void MarkerPlacer::updateMarkersListViewItem(int index) {
 	markersListView->getListView()->changeItem(index, { format(MARKERS_LIST_VIEW_ITEM_FORMAT, index + 1, markers[index].getPosition().x, -markers[index].getPosition().y) });
 }
@@ -3177,6 +3197,51 @@ void MarkerPlacer::addExtraColumnWidget(std::shared_ptr<tgui::Widget> widget, fl
 	widget->setPosition(tgui::bindRight(bottomRightMostExtraWidget) + leftPadding, tgui::bindTop(bottomRightMostExtraWidget));
 	extraWidgetsPanel->add(widget);
 	bottomRightMostExtraWidget = widget;
+}
+
+std::shared_ptr<CopiedObject> MarkerPlacer::copyFrom() {
+	if (selectedMarkerIndex > 0) {
+		return std::make_shared<CopiedMarker>(getID(), markers[selectedMarkerIndex]);
+	}
+	return nullptr;
+}
+
+void MarkerPlacer::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+	std::shared_ptr<CopiedMarker> derived = std::static_pointer_cast<CopiedMarker>(pastedObject);
+	if (derived) {
+		sf::CircleShape marker = derived->getMarker();
+		int index = this->selectedMarkerIndex;
+		undoStack.execute(UndoableCommand(
+			[this, marker, index]() {
+			// Negate y because insertMarker() negates y already
+			if (index == -1) {
+				insertMarker(markers.size(), sf::Vector2f(marker.getPosition().x, -marker.getPosition().y), addButtonMarkerColor);
+			} else {
+				insertMarker(index, sf::Vector2f(marker.getPosition().x, -marker.getPosition().y), addButtonMarkerColor);
+			}
+		},
+			[this, marker, index]() {
+			removeMarker(index);
+		}));
+	}
+}
+
+void MarkerPlacer::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+	std::shared_ptr<CopiedMarker> derived = std::static_pointer_cast<CopiedMarker>(pastedObject);
+	if (derived && selectedMarkerIndex != -1) {
+		sf::CircleShape marker = derived->getMarker();
+		sf::CircleShape oldMarker = markers[selectedMarkerIndex];
+		int index = this->selectedMarkerIndex;
+		undoStack.execute(UndoableCommand(
+			[this, marker, index]() {
+			markers[index] = marker;
+			updateMarkersListView();
+		},
+			[this, oldMarker, index]() {
+			markers[index] = oldMarker;
+			updateMarkersListView();
+		}));
+	}
 }
 
 void MarkerPlacer::draw(sf::RenderTarget & target, sf::RenderStates states) const {
@@ -3219,7 +3284,7 @@ void MarkerPlacer::draw(sf::RenderTarget & target, sf::RenderStates states) cons
 	extraWidgetsPanel->draw(target, states);
 }
 
-BezierControlPointsPlacer::BezierControlPointsPlacer(sf::RenderWindow & parentWindow, sf::Vector2u resolution, int undoStackSize) : MarkerPlacer(parentWindow, resolution, undoStackSize) {
+BezierControlPointsPlacer::BezierControlPointsPlacer(sf::RenderWindow & parentWindow, Clipboard& clipboard, sf::Vector2u resolution, int undoStackSize) : MarkerPlacer(parentWindow, clipboard, resolution, undoStackSize) {
 	timeResolution = SliderWithEditBox::create();
 	evaluator = SliderWithEditBox::create(false);
 	evaluatorResult = tgui::Label::create();
@@ -3260,6 +3325,16 @@ BezierControlPointsPlacer::BezierControlPointsPlacer(sf::RenderWindow & parentWi
 	addExtraRowWidget(timeResolution, GUI_PADDING_Y);
 	addExtraRowWidget(evaluator, GUI_LABEL_PADDING_Y);
 	addExtraColumnWidget(evaluatorResult, GUI_PADDING_X);
+}
+
+void BezierControlPointsPlacer::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+	MarkerPlacer::pasteInto(pastedObject);
+	updatePath();
+}
+
+void BezierControlPointsPlacer::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+	MarkerPlacer::paste2Into(pastedObject);
+	updatePath();
 }
 
 void BezierControlPointsPlacer::draw(sf::RenderTarget & target, sf::RenderStates states) const {
@@ -3337,11 +3412,19 @@ void BezierControlPointsPlacer::updatePath() {
 	evaluator->setSize(std::min((getSize().x - leftPanel->getSize().x) / 2.0f, (getSize().x - leftPanel->getSize().x) - evaluatorResult->getSize().x - GUI_PADDING_X), TEXT_BOX_HEIGHT);
 }
 
-SingleMarkerPlacer::SingleMarkerPlacer(sf::RenderWindow & parentWindow, sf::Vector2u resolution, int undoStackSize) : MarkerPlacer(parentWindow, resolution, undoStackSize) {
+SingleMarkerPlacer::SingleMarkerPlacer(sf::RenderWindow & parentWindow, Clipboard& clipboard, sf::Vector2u resolution, int undoStackSize) : MarkerPlacer(parentWindow, clipboard, resolution, undoStackSize) {
 	addMarker->setVisible(false);
 	deleteMarker->setVisible(false);
 
 	setMarkers({ std::make_pair(sf::Vector2f(0, 0), sf::Color::Red) });
+}
+
+void SingleMarkerPlacer::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+	// Disable marker paste
+}
+
+void SingleMarkerPlacer::manualDelete() {
+	// Disable marker deletion
 }
 
 EditBox::EditBox() {

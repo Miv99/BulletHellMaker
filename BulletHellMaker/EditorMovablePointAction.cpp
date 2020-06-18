@@ -401,7 +401,7 @@ std::shared_ptr<MovablePoint> MoveGlobalHomingEMPA::execute(EntityCreationQueue&
 	queue.pushFront(std::make_unique<CreateMovementReferenceEntityCommand>(registry, entity, timeLag, 0, 0));
 	const PositionComponent& curPos = registry.get<PositionComponent>(entity);
 
-	return std::make_shared<HomingMP>(time, speed, homingStrength, curPos.getX(), curPos.getY(), targetX, targetY);
+	return std::make_shared<HomingMP>(time, speed, homingStrength, entity, targetX, targetY, registry);
 }
 
 std::shared_ptr<MovablePoint> MoveGlobalHomingEMPA::generateStandaloneMP(float x, float y, float targetX, float targetY) {

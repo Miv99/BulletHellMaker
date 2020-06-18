@@ -102,3 +102,10 @@ std::vector<std::shared_ptr<EMPAction>> CopiedEMPActions::getActions() {
 int CopiedEMPActions::getActionsCount() {
 	return actions.size();
 }
+
+CopiedMarker::CopiedMarker(std::string copiedFromID, sf::CircleShape marker) : CopiedObject(copiedFromID), marker(marker) {
+}
+
+sf::CircleShape CopiedMarker::getMarker() {
+	return marker;
+}

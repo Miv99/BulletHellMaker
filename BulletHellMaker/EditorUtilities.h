@@ -1012,12 +1012,16 @@ Note for me: the markers are stored internally with a negative y position than w
 to maintain a standard coordinate system. getMarkerPositions() will return the originally inputted
 positions.
 */
-class MarkerPlacer : public tgui::Panel, public EventCapturable {
+class MarkerPlacer : public tgui::Panel, public CopyPasteable, public EventCapturable {
 public:
-	MarkerPlacer(sf::RenderWindow& parentWindow, sf::Vector2u resolution = sf::Vector2u(MAP_WIDTH, MAP_HEIGHT), int undoStackSize = 50);
-	static std::shared_ptr<MarkerPlacer> create(sf::RenderWindow& parentWindow, sf::Vector2u resolution = sf::Vector2u(MAP_WIDTH, MAP_HEIGHT), int undoStackSize = 50) {
-		return std::make_shared<MarkerPlacer>(parentWindow, resolution, undoStackSize);
+	MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard, sf::Vector2u resolution = sf::Vector2u(MAP_WIDTH, MAP_HEIGHT), int undoStackSize = 50);
+	static std::shared_ptr<MarkerPlacer> create(sf::RenderWindow& parentWindow, Clipboard& clipboard, sf::Vector2u resolution = sf::Vector2u(MAP_WIDTH, MAP_HEIGHT), int undoStackSize = 50) {
+		return std::make_shared<MarkerPlacer>(parentWindow, clipboard, resolution, undoStackSize);
 	}
+
+	virtual std::shared_ptr<CopiedObject> copyFrom() override;
+	virtual void pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
+	virtual void paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
 
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 	bool handleEvent(sf::Event event) override;
@@ -1044,10 +1048,11 @@ public:
 protected:
 	const static std::string MARKERS_LIST_VIEW_ITEM_FORMAT;
 	sf::RenderWindow& parentWindow;
+	Clipboard& clipboard;
 
 	// The color of the selected marker
 	sf::Color selectedMarkerColor = sf::Color::Green;
-	// The color of future markers from the "Add" button
+	// The color of future markers
 	sf::Color addButtonMarkerColor = sf::Color::Red;
 
 	// Index of the selected marker. -1 if nothing is selected.
@@ -1091,6 +1096,8 @@ protected:
 	leftPadding - horizontal distance from the bottom-most widget in the extra widgets panel
 	*/
 	void addExtraColumnWidget(std::shared_ptr<tgui::Widget> widget, float leftPadding);
+
+	virtual void manualDelete();
 
 private:
 	static const sf::Color GRID_COLOR;
@@ -1151,10 +1158,13 @@ A MarkerPlacer used to edit the control points of a bezier curve.
 */
 class BezierControlPointsPlacer : public MarkerPlacer {
 public:
-	BezierControlPointsPlacer(sf::RenderWindow& parentWindow, sf::Vector2u resolution = sf::Vector2u(MAP_WIDTH, MAP_HEIGHT), int undoStackSize = 50);
-	static std::shared_ptr<BezierControlPointsPlacer> create(sf::RenderWindow& parentWindow, sf::Vector2u resolution = sf::Vector2u(MAP_WIDTH, MAP_HEIGHT), int undoStackSize = 50) {
-		return std::make_shared<BezierControlPointsPlacer>(parentWindow, resolution, undoStackSize);
+	BezierControlPointsPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard, sf::Vector2u resolution = sf::Vector2u(MAP_WIDTH, MAP_HEIGHT), int undoStackSize = 50);
+	static std::shared_ptr<BezierControlPointsPlacer> create(sf::RenderWindow& parentWindow, Clipboard& clipboard, sf::Vector2u resolution = sf::Vector2u(MAP_WIDTH, MAP_HEIGHT), int undoStackSize = 50) {
+		return std::make_shared<BezierControlPointsPlacer>(parentWindow, clipboard, resolution, undoStackSize);
 	}
+
+	virtual void pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
+	virtual void paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
 
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
@@ -1194,8 +1204,13 @@ A MarkerPlacer limited to editing only a single marker.
 */
 class SingleMarkerPlacer : public MarkerPlacer {
 public:
-	SingleMarkerPlacer(sf::RenderWindow& parentWindow, sf::Vector2u resolution = sf::Vector2u(MAP_WIDTH, MAP_HEIGHT), int undoStackSize = 50);
-	static std::shared_ptr<SingleMarkerPlacer> create(sf::RenderWindow& parentWindow, sf::Vector2u resolution = sf::Vector2u(MAP_WIDTH, MAP_HEIGHT), int undoStackSize = 50) {
-		return std::make_shared<SingleMarkerPlacer>(parentWindow, resolution, undoStackSize);
+	SingleMarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard, sf::Vector2u resolution = sf::Vector2u(MAP_WIDTH, MAP_HEIGHT), int undoStackSize = 50);
+	static std::shared_ptr<SingleMarkerPlacer> create(sf::RenderWindow& parentWindow, Clipboard& clipboard, sf::Vector2u resolution = sf::Vector2u(MAP_WIDTH, MAP_HEIGHT), int undoStackSize = 50) {
+		return std::make_shared<SingleMarkerPlacer>(parentWindow, clipboard, resolution, undoStackSize);
 	}
+
+	void pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
+
+protected:
+	void manualDelete() override;
 };
