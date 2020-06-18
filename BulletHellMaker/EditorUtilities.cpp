@@ -14,6 +14,8 @@
 #endif
 
 const sf::Color MarkerPlacer::GRID_COLOR = sf::Color(229, 229, 229);
+const float MarkerPlacer::MAX_GRID_SNAP_DISTANCE = 15.0f;
+const float MarkerPlacer::MAX_GRID_SNAP_DISTANCE_SQUARED = MAX_GRID_SNAP_DISTANCE * MAX_GRID_SNAP_DISTANCE;
 
 std::string getID(std::shared_ptr<EMPAAngleOffset> offset) {
 	if (dynamic_cast<EMPAAngleOffsetZero*>(offset.get())) {
@@ -2642,6 +2644,7 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 	selectedMarkerYLabel = tgui::Label::create();
 	selectedMarkerX = NumericalEditBoxWithLimits::create();
 	selectedMarkerY = NumericalEditBoxWithLimits::create();
+	std::shared_ptr<tgui::CheckBox> snapToGridCheckBox = tgui::CheckBox::create();
 
 	extraWidgetsPanel = tgui::ScrollablePanel::create();
 
@@ -2655,6 +2658,7 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 	selectedMarkerYLabel->setTextSize(TEXT_SIZE);
 	selectedMarkerX->setTextSize(TEXT_SIZE);
 	selectedMarkerY->setTextSize(TEXT_SIZE);
+	snapToGridCheckBox->setTextSize(TEXT_SIZE);
 
 	showGridLines->setText("Show grid lines");
 	gridLinesIntervalLabel->setText("Distance between lines");
@@ -2662,6 +2666,7 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 	selectedMarkerYLabel->setText("Y");
 	addMarker->setText("Add");
 	deleteMarker->setText("Delete");
+	snapToGridCheckBox->setText("Snap to grid");
 
 	gridLinesInterval->setIntegerMode(true);
 	gridLinesInterval->setMin(1);
@@ -2676,6 +2681,9 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 	selectedMarkerX->setPosition(tgui::bindLeft(selectedMarkerXLabel), tgui::bindBottom(selectedMarkerXLabel) + GUI_LABEL_PADDING_Y);
 	selectedMarkerYLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(selectedMarkerX) + GUI_PADDING_Y);
 	selectedMarkerY->setPosition(tgui::bindLeft(selectedMarkerYLabel), tgui::bindBottom(selectedMarkerYLabel) + GUI_LABEL_PADDING_Y);
+
+	showGridLines->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
+	snapToGridCheckBox->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
 
 	leftPanel->setSize(tgui::bindMin("25%", 250), "100%");
 	extraWidgetsPanel->setPosition(tgui::bindRight(leftPanel), tgui::bindTop(leftPanel));
@@ -2750,6 +2758,13 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 		markers[selectedMarkerIndex].setPosition(markers[selectedMarkerIndex].getPosition().x, -value);
 		updateMarkersListViewItem(selectedMarkerIndex);
 	});
+	snapToGridCheckBox->connect("Changed", [this](bool checked) {
+		if (ignoreSignals) {
+			return;
+		}
+
+		this->snapToGrid = checked;
+	});
 
 	leftPanel->add(markersListView);
 	leftPanel->add(addMarker);
@@ -2764,6 +2779,7 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 		gridLinesInterval->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 	});
 	addExtraRowWidget(showGridLines, GUI_LABEL_PADDING_Y);
+	addExtraRowWidget(snapToGridCheckBox, GUI_LABEL_PADDING_Y);
 	addExtraRowWidget(gridLinesIntervalLabel, GUI_LABEL_PADDING_Y);
 	addExtraRowWidget(gridLinesInterval, GUI_LABEL_PADDING_Y);
 	add(extraWidgetsPanel);
@@ -2882,10 +2898,39 @@ bool MarkerPlacer::handleEvent(sf::Event event) {
 			// Move selected placeholder depending on difference in world coordinates between event.mouseMove.x/y and previousPlaceholderDragCoordsX/Y
 			sf::View originalView = parentWindow.getView();
 			parentWindow.setView(viewFromViewController);
-			sf::Vector2f diff = parentWindow.mapPixelToCoords(sf::Vector2i(previousMarkerDragCoordsX, previousMarkerDragCoordsY)) - parentWindow.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
-			parentWindow.setView(originalView);
+			sf::Vector2f mousePosWorldCoords = parentWindow.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
+			sf::Vector2f diff = parentWindow.mapPixelToCoords(sf::Vector2i(previousMarkerDragCoordsX, previousMarkerDragCoordsY)) - mousePosWorldCoords;
 			sf::Vector2f prevPos = markers[selectedMarkerIndex].getPosition();
-			markers[selectedMarkerIndex].setPosition(sf::Vector2f(prevPos.x - diff.x, prevPos.y - diff.y));
+
+			sf::Vector2f newPos = parentWindow.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
+			if (snapToGrid) {
+				int interval = gridLinesInterval->getValue();
+				int xGridLine = roundToNearestMultiple((int)(std::round(newPos.x)), interval);
+				int yGridLine = roundToNearestMultiple((int)(std::round(newPos.y)), interval);
+
+				sf::Vector2i intersectionPosScreenCoords = parentWindow.mapCoordsToPixel(sf::Vector2f(xGridLine, yGridLine));
+				float squaredScreenDistToNearestXGridLine = (intersectionPosScreenCoords.x - event.mouseMove.x) * (intersectionPosScreenCoords.x - event.mouseMove.x);
+				float squaredScreenDistToNearestYGridLine = (intersectionPosScreenCoords.y - event.mouseMove.y) * (intersectionPosScreenCoords.y - event.mouseMove.y);
+				float squaredScreenDistToNearestIntersection = squaredScreenDistToNearestXGridLine + squaredScreenDistToNearestYGridLine;
+
+				// Attempt to snap to the intersection created by the 2 nearest perpendicular grid lines first
+				if (squaredScreenDistToNearestIntersection <= MAX_GRID_SNAP_DISTANCE_SQUARED) {
+					newPos.x = xGridLine;
+					newPos.y = yGridLine;
+				} else {
+					// Attempt to snap to the nearest grid line if nearest intersection is too far
+
+					if (squaredScreenDistToNearestXGridLine <= squaredScreenDistToNearestYGridLine && squaredScreenDistToNearestXGridLine <= MAX_GRID_SNAP_DISTANCE_SQUARED) {
+						newPos.x = xGridLine;
+					} else if (squaredScreenDistToNearestYGridLine <= MAX_GRID_SNAP_DISTANCE_SQUARED) {
+						newPos.y = yGridLine;
+					}
+				}
+			}
+
+			parentWindow.setView(originalView);
+
+			markers[selectedMarkerIndex].setPosition(newPos);
 			setSelectedMarkerXWidgetValue(markers[selectedMarkerIndex].getPosition().x);
 			setSelectedMarkerYWidgetValue(-markers[selectedMarkerIndex].getPosition().y);
 			updateMarkersListViewItem(selectedMarkerIndex);
@@ -3161,8 +3206,9 @@ void MarkerPlacer::updateWindowView() {
 }
 
 int MarkerPlacer::roundToNearestMultiple(int num, int multiple) {
-	int isPositive = (int)(num >= 0);
-	return ((num + isPositive * (multiple - 1)) / multiple) * multiple;
+	const auto ratio = static_cast<double>(num) / multiple;
+	const auto iratio = std::lround(ratio);
+	return iratio * multiple;
 }
 
 void MarkerPlacer::manualDelete() {

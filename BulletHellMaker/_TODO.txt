@@ -80,6 +80,7 @@ Notes for me:
         -> empiDespawnTime in EditorMovablePointPanel max changes, causing its value to change if value > new max 
         -> undo in EMPABasedMovementEditorPanel -> empiDespawnTime max changes back, but its value doesn't change back
     -BezierControlPointsPlacer movement path is drawn over the panels
+    -MarkerPlacer snap to grid doesn't work when adding a new marker
 
 -Item path is in Components::CollectibleComponent::update and EntityCreationQueue::EMPDropItemCommand::execute
 -Player invulnerability sprite effect animation is in CollisionSystem
@@ -93,8 +94,8 @@ big todo:
     -Same pattern for EditorAttackPattern and other first-level objects
     -If the object isn't legal, the preview panel will show the error message from legal()
 -grid for marker placer
-    -snap to grid?
     -different color lines for x, y = 0
+    -SliderWithEditBox for marker size
 -visualizer thing in EMPABasedMovementEditorPanel
     
 Random things for TODOs that are noted here so I don't forget:

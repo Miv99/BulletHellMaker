@@ -1060,6 +1060,8 @@ protected:
 
 	// Whether the grid lines should be visible
 	bool gridLinesVisible = true;
+	// Whether to snap to grid
+	bool snapToGrid = false;
 
 	std::vector<sf::CircleShape> markers;
 	std::shared_ptr<tgui::ScrollablePanel> leftPanel;
@@ -1101,6 +1103,10 @@ protected:
 
 private:
 	static const sf::Color GRID_COLOR;
+	// Maximum screen distance before snapping to grid doesn't work anymore
+	static const float MAX_GRID_SNAP_DISTANCE;
+	// For faster calculations
+	static const float MAX_GRID_SNAP_DISTANCE_SQUARED;
 
 	const sf::Vector2u resolution;
 	UndoStack undoStack;
