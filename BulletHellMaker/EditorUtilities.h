@@ -655,6 +655,7 @@ public:
 	}
 
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+	bool update(sf::Time elapsedTime) override;
 
 	bool handleEvent(sf::Event event) override;
 
@@ -1024,6 +1025,7 @@ public:
 	virtual void paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
 
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
+	bool update(sf::Time elapsedTime) override;
 	bool handleEvent(sf::Event event) override;
 
 	void lookAt(sf::Vector2f pos);

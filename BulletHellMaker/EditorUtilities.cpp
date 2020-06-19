@@ -410,6 +410,8 @@ AnimatablePicture::AnimatablePicture(const AnimatablePicture & other) {
 }
 
 bool AnimatablePicture::update(sf::Time elapsedTime) {
+	bool ret = tgui::Widget::update(elapsedTime);
+
 	if (animation) {
 		std::shared_ptr<sf::Sprite> prevSprite = curSprite;
 		curSprite = animation->update(elapsedTime.asSeconds());
@@ -419,7 +421,7 @@ bool AnimatablePicture::update(sf::Time elapsedTime) {
 		}
 	}
 
-	return false;
+	return ret;
 }
 
 void AnimatablePicture::draw(sf::RenderTarget & target, sf::RenderStates states) const {
@@ -1918,6 +1920,12 @@ void SimpleEngineRenderer::draw(sf::RenderTarget & target, sf::RenderStates stat
 	parentWindow.setView(originalView);
 }
 
+bool SimpleEngineRenderer::update(sf::Time elapsedTime) {
+	bool ret = tgui::Panel::update(elapsedTime);
+
+	return viewController->update(viewFromViewController, elapsedTime.asSeconds()) || ret;
+}
+
 bool SimpleEngineRenderer::handleEvent(sf::Event event) {
 	if (viewController) {
 		return viewController->handleEvent(viewFromViewController, event);
@@ -3401,6 +3409,15 @@ void MarkerPlacer::draw(sf::RenderTarget & target, sf::RenderStates states) cons
 	leftPanel->draw(target, states);
 	// Same thing with extra widgets panel
 	extraWidgetsPanel->draw(target, states);
+
+bool MarkerPlacer::update(sf::Time elapsedTime) {
+	bool ret = tgui::Panel::update(elapsedTime);
+
+	if (viewController->update(viewFromViewController, elapsedTime.asSeconds())) {
+		calculateGridLines();
+		ret = true;
+	}
+	return ret;
 }
 
 BezierControlPointsPlacer::BezierControlPointsPlacer(sf::RenderWindow & parentWindow, Clipboard& clipboard, sf::Vector2u resolution, int undoStackSize) : MarkerPlacer(parentWindow, clipboard, resolution, undoStackSize) {
@@ -3420,7 +3437,7 @@ BezierControlPointsPlacer::BezierControlPointsPlacer(sf::RenderWindow & parentWi
 
 	timeResolution->setIntegerMode(false);
 	timeResolution->setMin(MAX_PHYSICS_DELTA_TIME);
-	timeResolution->setMax(1);
+	timeResolution->setMax(1.0f);
 	timeResolution->setStep(MAX_PHYSICS_DELTA_TIME);
 
 	evaluator->setIntegerMode(false);
@@ -3428,10 +3445,10 @@ BezierControlPointsPlacer::BezierControlPointsPlacer(sf::RenderWindow & parentWi
 	evaluator->setMax(0);
 	evaluator->setStep(MAX_PHYSICS_DELTA_TIME);
 
-	timeResolution->connect("ValueChanged", [&]() {
+	timeResolution->connect("ValueChanged", [this]() {
 		updatePath();
 	});
-	evaluator->connect("ValueChanged", [&](float value) {
+	evaluator->connect("ValueChanged", [this](float value) {
 		std::shared_ptr<BezierMP> mp = std::make_shared<BezierMP>(movementPathTime, getMarkerPositions());
 		sf::Vector2f res = mp->compute(sf::Vector2f(0, 0), value);
 		evaluatorResult->setText(format("Result: (%.3f, %.3f)", res.x, res.y));
