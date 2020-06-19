@@ -2655,7 +2655,8 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 	selectedMarkerX = NumericalEditBoxWithLimits::create();
 	selectedMarkerY = NumericalEditBoxWithLimits::create();
 	std::shared_ptr<tgui::CheckBox> snapToGridCheckBox = tgui::CheckBox::create();
-
+	mouseWorldPosPanel = tgui::Panel::create();
+	mouseWorldPosLabel = tgui::Label::create();
 	extraWidgetsPanel = tgui::ScrollablePanel::create();
 
 	markersListView->setTextSize(TEXT_SIZE);
@@ -2669,6 +2670,7 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 	selectedMarkerX->setTextSize(TEXT_SIZE);
 	selectedMarkerY->setTextSize(TEXT_SIZE);
 	snapToGridCheckBox->setTextSize(TEXT_SIZE);
+	mouseWorldPosLabel->setTextSize(TEXT_SIZE);
 
 	showGridLines->setText("Show grid lines");
 	gridLinesIntervalLabel->setText("Distance between lines");
@@ -2691,6 +2693,10 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 	selectedMarkerX->setPosition(tgui::bindLeft(selectedMarkerXLabel), tgui::bindBottom(selectedMarkerXLabel) + GUI_LABEL_PADDING_Y);
 	selectedMarkerYLabel->setPosition(GUI_PADDING_X, tgui::bindBottom(selectedMarkerX) + GUI_PADDING_Y);
 	selectedMarkerY->setPosition(tgui::bindLeft(selectedMarkerYLabel), tgui::bindBottom(selectedMarkerYLabel) + GUI_LABEL_PADDING_Y);
+
+	mouseWorldPosPanel->setSize(tgui::bindWidth(mouseWorldPosLabel) + GUI_PADDING_X * 2, tgui::bindHeight(mouseWorldPosLabel) + GUI_LABEL_PADDING_Y * 2);
+	mouseWorldPosPanel->setPosition(tgui::bindRight(leftPanel), tgui::bindBottom(leftPanel) - tgui::bindHeight(mouseWorldPosPanel));
+	mouseWorldPosLabel->setPosition(GUI_PADDING_X, GUI_LABEL_PADDING_Y);
 
 	showGridLines->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
 	snapToGridCheckBox->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
@@ -2794,6 +2800,9 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 	addExtraRowWidget(gridLinesInterval, GUI_LABEL_PADDING_Y);
 	add(extraWidgetsPanel);
 
+	mouseWorldPosPanel->add(mouseWorldPosLabel);
+	add(mouseWorldPosPanel);
+
 	connect("PositionChanged", [this]() {
 		updateWindowView();
 	});
@@ -2809,7 +2818,14 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 }
 
 bool MarkerPlacer::handleEvent(sf::Event event) {
-	if (event.type == sf::Event::KeyPressed) {
+	if (event.type == sf::Event::MouseMoved) {
+		sf::View originalView = parentWindow.getView();
+		parentWindow.setView(viewFromViewController);
+		sf::Vector2f mouseWorldPos = parentWindow.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
+		parentWindow.setView(originalView);
+
+		mouseWorldPosLabel->setText(format("(%.3f, %.3f)", mouseWorldPos.x, -mouseWorldPos.y));
+	} else if (event.type == sf::Event::KeyPressed) {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
 			if (event.key.code == sf::Keyboard::Z) {
 				undoStack.undo();
@@ -3405,10 +3421,11 @@ void MarkerPlacer::draw(sf::RenderTarget & target, sf::RenderStates states) cons
 	}
 	parentWindow.setView(originalView);
 
-	// Draw left panel again so that it covers the markers
+	// Draw panels again so that it covers the markers
 	leftPanel->draw(target, states);
-	// Same thing with extra widgets panel
 	extraWidgetsPanel->draw(target, states);
+	mouseWorldPosPanel->draw(target, states);
+}
 
 bool MarkerPlacer::update(sf::Time elapsedTime) {
 	bool ret = tgui::Panel::update(elapsedTime);

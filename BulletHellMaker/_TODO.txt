@@ -93,6 +93,7 @@ big todo:
     -If object is an EditorAttack, when "AttackModified" signal received from AttackEditorPanel, reload the preview
     -Same pattern for EditorAttackPattern and other first-level objects
     -If the object isn't legal, the preview panel will show the error message from legal()
+    -if you see some weird bugs with the physics it's probably because of how i changed EditorWindow's main loop
 -marker placer label showing mouse world position
 -visualizer thing in EMPABasedMovementEditorPanel
     

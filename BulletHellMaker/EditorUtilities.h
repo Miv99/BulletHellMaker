@@ -1132,6 +1132,9 @@ private:
 	std::shared_ptr<tgui::Widget> bottomLeftMostExtraWidget;
 	std::shared_ptr<tgui::Widget> bottomRightMostExtraWidget;
 
+	std::shared_ptr<tgui::Panel> mouseWorldPosPanel;
+	std::shared_ptr<tgui::Label> mouseWorldPosLabel;
+
 	sf::FloatRect viewportFloatRect, viewFloatRect;
 
 	std::unique_ptr<ViewController> viewController;
