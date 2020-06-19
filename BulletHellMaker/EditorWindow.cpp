@@ -50,12 +50,13 @@ void EditorWindow::start() {
 	}
 
 	sf::Clock deltaClock;
+	sf::Clock renderClock;
 
 	// Main loop
 	while (window->isOpen()) {
 		// While behind in render updates, do physics updates
 		float timeSinceLastRender = 0;
-		while (timeSinceLastRender < renderInterval) {
+		while (timeSinceLastRender < RENDER_INTERVAL) {
 			sf::Event event;
 			while (window->pollEvent(event)) {
 				if (event.type == sf::Event::Closed) {
@@ -74,18 +75,27 @@ void EditorWindow::start() {
 					handleEvent(event);
 				}
 
-				float dt = std::min(MAX_PHYSICS_DELTA_TIME, deltaClock.restart().asSeconds());
-				timeSinceLastRender += dt;
+				float dt = std::min(RENDER_INTERVAL, renderClock.restart().asSeconds());
 				window->clear();
-				render(timeSinceLastRender);
+				render(dt);
 				if (renderSignal) {
-					renderSignal->publish(timeSinceLastRender);
+					renderSignal->publish(dt);
 				}
 				window->display();
 			}
-			
-			physicsUpdate(timeSinceLastRender);
+
+			float dt = std::min(MAX_PHYSICS_DELTA_TIME, deltaClock.restart().asSeconds());
+			timeSinceLastRender += dt;
+			physicsUpdate(dt);
 		}
+
+		float dt = std::min(RENDER_INTERVAL, renderClock.restart().asSeconds());
+		window->clear();
+		render(dt);
+		if (renderSignal) {
+			renderSignal->publish(dt);
+		}
+		window->display();
 	}
 }
 
@@ -105,12 +115,13 @@ void EditorWindow::startAndHide() {
 	hide();
 
 	sf::Clock deltaClock;
+	sf::Clock renderClock;
 
 	// Main loop
 	while (window->isOpen()) {
 		// While behind in render updates, do physics updates
 		float timeSinceLastRender = 0;
-		while (timeSinceLastRender < renderInterval) {
+		while (timeSinceLastRender < RENDER_INTERVAL) {
 			sf::Event event;
 			while (window->pollEvent(event)) {
 				if (event.type == sf::Event::Closed) {
@@ -128,18 +139,26 @@ void EditorWindow::startAndHide() {
 					}
 					handleEvent(event);
 				}
+
+				float dt = std::min(RENDER_INTERVAL, renderClock.restart().asSeconds());
+				window->clear();
+				render(dt);
+				if (renderSignal) {
+					renderSignal->publish(dt);
+				}
+				window->display();
 			}
 
 			float dt = std::min(MAX_PHYSICS_DELTA_TIME, deltaClock.restart().asSeconds());
-			physicsUpdate(dt);
-
 			timeSinceLastRender += dt;
+			physicsUpdate(dt);
 		}
 
+		float dt = std::min(RENDER_INTERVAL, renderClock.restart().asSeconds());
 		window->clear();
-		render(timeSinceLastRender);
+		render(dt);
 		if (renderSignal) {
-			renderSignal->publish(timeSinceLastRender);
+			renderSignal->publish(dt);
 		}
 		window->display();
 	}
