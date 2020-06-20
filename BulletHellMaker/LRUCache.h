@@ -200,8 +200,8 @@ struct List {
 	*		MapType - an associative container like std::map
 	*		LockType - a lock type derived from the Lock class (default: NullLock = no synchronization)
 	*/
-template<class Key, class Value,
-	class MapType = std::map<Key, Node<Key, Value>*>,
+template<class Key, class Value, class Comparator = std::less<Key>,
+	class MapType = std::map<Key, Node<Key, Value>*, Comparator>,
 	class LockType = NullLock>
 	class Cache {
 	public:
