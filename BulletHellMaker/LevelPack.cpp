@@ -237,8 +237,8 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 		3, 10, Animatable("bomb.png", "", true, LOCK_ROTATION), SoundSettings("bomb_ready.wav"), 5.0f)
 	*/
 	player->setBombInvincibilityTime(5);
-	player->setBombSprite(Animatable("bomb.png", "", true, LOCK_ROTATION));
-	player->setDiscretePlayerHPSprite(Animatable("heart.png", "", true, LOCK_ROTATION));
+	player->setBombSprite(Animatable("GUI/bomb.png", "", true, LOCK_ROTATION));
+	player->setDiscretePlayerHPSprite(Animatable("GUI/heart.png", "", true, LOCK_ROTATION));
 	player->setFocusedSpeed(150);
 	player->setHitboxRadius(1);
 	player->setInitialHealth(10);
@@ -251,6 +251,8 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	player->setDeathSound(SoundSettings("death.ogg"));
 	player->setBombReadySound(SoundSettings("bomb_ready.wav"));
 	this->setPlayer(player);
+
+	setFontFileName("GUI/font.tff");
 	
 	metadata.addSpriteSheet("sheet1.txt", "sheet1.png");
 	metadata.addSpriteSheet("Default.txt", "Default.png");

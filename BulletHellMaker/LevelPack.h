@@ -313,7 +313,7 @@ private:
 	// Maps bullet model ID to the bullet model
 	std::map<int, std::shared_ptr<BulletModel>> bulletModels;
 
-	std::string fontFileName = "font.ttf";
+	std::string fontFileName;
 
 	// Called when a change is made to one of the level pack objects, which
 	// includes EditorAttack, EditorAttackPattern, EditorEnemy, EditorEnemyPhase,

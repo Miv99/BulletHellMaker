@@ -14,6 +14,8 @@
 #include "Player.h"
 #include "CollisionSystem.h"
 #include "Level.h"
+#include "GameInstance.h"
+#include "LevelEvent.h"
 #include <math.h>
 #include <tuple>
 
@@ -269,7 +271,17 @@ void EnemyComponent::checkAttacks(EntityCreationQueue& queue, SpriteLoader& spri
 	}
 }
 
+LevelManagerTag::LevelManagerTag(LevelPack* levelPack, std::shared_ptr<Level> level, GameInstance* gameInstance) : levelPack(levelPack), level(level), gameInstance(gameInstance) {
+}
+
 LevelManagerTag::LevelManagerTag(LevelPack* levelPack, std::shared_ptr<Level> level) : levelPack(levelPack), level(level) {
+}
+
+void LevelManagerTag::showDialogue(ShowDialogueLevelEvent* dialogueEvent) {
+	// Only show dialogue when playing a game using GameInstance
+	if (gameInstance) {
+		gameInstance->showDialogue(dialogueEvent);
+	}
 }
 
 void LevelManagerTag::update(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, float deltaTime) {

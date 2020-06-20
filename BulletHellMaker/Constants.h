@@ -83,3 +83,7 @@ const static float GUI_LABEL_PADDING_Y = 5;
 const static float SCROLL_AMOUNT = 20;
 // Opacity of a disabled widget
 const static float WIDGET_OPACITY_DISABLED = 0.6f;
+
+const static float DIALOGUE_BOX_PADDING = 5;
+// Height of dialogue box if there is no portrait
+const static float DIALOGUE_BOX_HEIGHT = 200;

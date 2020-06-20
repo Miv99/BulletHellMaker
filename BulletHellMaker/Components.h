@@ -20,6 +20,7 @@
 #include "EnemySpawn.h"
 #include "AudioPlayer.h"
 
+class ShowDialogueLevelEvent;
 class MovablePoint;
 class AggregatorMP;
 class LevelPack;
@@ -36,6 +37,7 @@ class PlayerPowerTier;
 enum BULLET_ON_COLLISION_ACTION;
 class EnemyPhaseStartCondition;
 struct MPSpawnInformation;
+class GameInstance;
 
 class PositionComponent {
 public:
@@ -597,8 +599,17 @@ The level manager entity is destroyed and re-created on the start of a new level
 */
 class LevelManagerTag {
 public:
+	/*
+	Constructor for a LevelManagerTag to be used in a GameInstance.
+	*/
+	LevelManagerTag(LevelPack* levelPack, std::shared_ptr<Level> level, GameInstance* gameInstance);
+	/*
+	Constructor for a LevelManagerTag to be used in anything else that's not a GameInstance.
+	*/
 	LevelManagerTag(LevelPack* levelPack, std::shared_ptr<Level> level);
 	void update(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry, float deltaTime);
+
+	void showDialogue(ShowDialogueLevelEvent* dialogueEvent);
 
 	inline float getTimeSinceStartOfLevel() { return timeSinceStartOfLevel; }
 	inline float getTimeSinceLastEnemySpawn() { return timeSinceLastEnemySpawn; }
@@ -623,6 +634,8 @@ public:
 
 private:
 	LevelPack* levelPack;
+	// The GameInstance the entity with this component belongs to, if any. May be nullptr.
+	GameInstance* gameInstance;
 
 	// Time since the start of the level
 	float timeSinceStartOfLevel = 0;

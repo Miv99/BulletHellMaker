@@ -111,7 +111,23 @@ void GameInstance::updateWindowView(int windowWidth, int windowHeight) {
 		}
 	}
 
+	calculateDialogueBoxWidgetsSizes();
+
 	window->setView(view);
+}
+
+void GameInstance::calculateDialogueBoxWidgetsSizes() {
+	// Only update widget sizes if there is a dialogue event currently in progress
+	if (dialogueBoxTextsQueueIndex != -1) {
+		if (dialogueBoxPortraitPicture->isVisible()) {
+			dialogueBoxPortraitPicture->setSize(dialogueBoxPortraitPicture->getRenderer()->getTexture().getImageSize());
+			dialogueBoxPicture->setSize(guiRegionX - GUI_PADDING_X - (dialogueBoxPortraitPicture->getPosition().x - dialogueBoxPortraitPicture->getSize().x), tgui::bindHeight(dialogueBoxPortraitPicture));
+			dialogueBoxLabel->setMaximumTextWidth(dialogueBoxPicture->getSize().x - DIALOGUE_BOX_PADDING * 2);
+		} else {
+			dialogueBoxPicture->setSize(guiRegionX - GUI_PADDING_X * 2, tgui::bindHeight(dialogueBoxPortraitPicture));
+			dialogueBoxLabel->setMaximumTextWidth(dialogueBoxPicture->getSize().x - DIALOGUE_BOX_PADDING * 2);
+		}
+	}
 }
 
 GameInstance::GameInstance(std::string levelPackName) {
@@ -181,8 +197,6 @@ GameInstance::GameInstance(std::string levelPackName) {
 	collectibleSystem = std::make_unique<CollectibleSystem>(*queue, registry, *levelPack, MAP_WIDTH, MAP_HEIGHT);
 
 	// GUI stuff
-
-	updateWindowView(window->getSize().x, window->getSize().y);
 
 	// Note: "GUI region" refers to the right side of the window that doesn't contain the stuff from RenderSystem
 	smoothPlayerHPBar = levelPack->getPlayer()->getSmoothPlayerHPBar();
@@ -271,6 +285,22 @@ GameInstance::GameInstance(std::string levelPackName) {
 	bossPhaseHealthBar->getRenderer()->setBorderColor(tgui::Color::Transparent);
 	bossPhaseHealthBar->setVisible(false);
 	gui->add(bossPhaseHealthBar);
+
+	// Dialogue box
+	dialogueBoxPicture = tgui::Picture::create();
+	dialogueBoxPortraitPicture = tgui::Picture::create();
+	dialogueBoxLabel = TimedLabel::create();
+
+	calculateDialogueBoxWidgetsSizes();
+
+	dialogueBoxPicture->setPosition(tgui::bindRight(dialogueBoxPortraitPicture), tgui::bindTop(dialogueBoxPortraitPicture));
+	dialogueBoxLabel->setPosition(tgui::bindLeft(dialogueBoxPicture) + DIALOGUE_BOX_PADDING, tgui::bindTop(dialogueBoxPicture) + DIALOGUE_BOX_PADDING);
+
+	dialogueBoxPicture->setVisible(false);
+	dialogueBoxPortraitPicture->setVisible(false);
+	dialogueBoxLabel->setVisible(false);
+
+	updateWindowView(window->getSize().x, window->getSize().y);
 }
 
 void GameInstance::start() {
@@ -447,6 +477,61 @@ void GameInstance::pause() {
 void GameInstance::resume() {
 	paused = false;
 	playerSystem->onResume();
+}
+
+void GameInstance::showDialogue(ShowDialogueLevelEvent* dialogueEvent) {
+	std::pair<std::string, sf::IntRect> dialogueBoxIdentifier = std::make_pair(dialogueEvent->getDialogueBoxTextureFileName(), dialogueEvent->getTextureMiddlePart());
+
+	// Load dialogue box texture
+	std::shared_ptr<sf::Texture> dialogueBoxTexture;
+	if (dialogueBoxTextures.contains(dialogueBoxIdentifier)) {
+		dialogueBoxTexture = dialogueBoxTextures.get(dialogueBoxIdentifier);
+	} else {
+		dialogueBoxTexture = std::make_shared<sf::Texture>();
+		if (!dialogueBoxTexture->loadFromFile(dialogueBoxIdentifier.first, dialogueBoxIdentifier.second)) {
+			//TODO: load some default dialogue box texture
+		}
+		dialogueBoxTextures.insert(dialogueBoxIdentifier, dialogueBoxTexture);
+	}
+	dialogueBoxPicture->getRenderer()->setTexture(*dialogueBoxTexture);
+
+	// Load portrait texture
+	if (dialogueEvent->getDialogueBoxPortraitFileName() == "") {
+		dialogueBoxPortraitPicture->setVisible(false);
+		dialogueBoxPortraitPicture->setSize(0, 0);
+	} else {
+		std::shared_ptr<sf::Texture> dialogueBoxPortraitTexture;
+		if (dialogueBoxPortraitTextures.contains(dialogueEvent->getDialogueBoxPortraitFileName())) {
+			dialogueBoxPortraitTexture = dialogueBoxPortraitTextures.get(dialogueEvent->getDialogueBoxPortraitFileName());
+		} else {
+			dialogueBoxPortraitTexture = std::make_shared<sf::Texture>();
+			if (!dialogueBoxPortraitTexture->loadFromFile(dialogueEvent->getDialogueBoxPortraitFileName())) {
+				//TODO: load some default dialogue box portrait texture
+			}
+			dialogueBoxPortraitTextures.insert(dialogueEvent->getDialogueBoxPortraitFileName(), dialogueBoxPortraitTexture);
+		}
+		dialogueBoxPortraitPicture->getRenderer()->setTexture(*dialogueBoxPortraitTexture);
+	}
+
+	// Set positions
+	if (dialogueEvent->getDialogueBoxPosition() == ShowDialogueLevelEvent::PositionOnScreen::BOTTOM) {
+		dialogueBoxPortraitPicture->setPosition(GUI_PADDING_X, windowHeight - GUI_PADDING_Y - dialogueBoxPortraitPicture->getSize().y);
+	} else if (dialogueEvent->getDialogueBoxPosition() == ShowDialogueLevelEvent::PositionOnScreen::TOP) {
+		dialogueBoxPortraitPicture->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
+	} else {
+		// Missed a case
+		assert(false);
+	}
+	dialogueBoxPicture->setPosition(tgui::bindRight(dialogueBoxPortraitPicture), tgui::bindTop(dialogueBoxPortraitPicture));
+	dialogueBoxLabel->setPosition(tgui::bindLeft(dialogueBoxPicture) + DIALOGUE_BOX_PADDING, tgui::bindTop(dialogueBoxPicture) + DIALOGUE_BOX_PADDING);
+
+	// Load texts
+	dialogeBoxTextsQueue = dialogueEvent->getText();
+	dialogueBoxTextsQueueIndex = 0;
+
+	dialogueBoxPicture->showWithEffect(dialogueEvent->getDialogueBoxShowAnimationType(), sf::seconds(dialogueEvent->getDialogueBoxShowAnimationTime()));
+
+	calculateDialogueBoxWidgetsSizes();
 }
 
 void GameInstance::onPlayerHPChange(int newHP, int maxHP) {

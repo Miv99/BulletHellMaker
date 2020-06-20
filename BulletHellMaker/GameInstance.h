@@ -4,6 +4,7 @@
 #include <TGUI/TGUI.hpp>
 #include <memory>
 #include <vector>
+#include <string>
 #include "MovementSystem.h"
 #include "RenderSystem.h"
 #include "CollisionSystem.h"
@@ -15,6 +16,9 @@
 #include "PlayerSystem.h"
 #include "AudioPlayer.h"
 #include "CollectibleSystem.h"
+#include "EditorUtilities.h"
+#include "LRUCache.h"
+#include "Player.h"
 
 class LevelPack;
 class LevelManagerTag;
@@ -48,8 +52,17 @@ public:
 	void pause();
 	void resume();
 
+	void showDialogue(ShowDialogueLevelEvent* dialogueEvent);
+
 private:
+	struct DialogueBoxTexturesCacheComparator {
+		bool operator()(const std::pair<std::string, sf::IntRect>& a, const std::pair<std::string, sf::IntRect>& b) const {
+			return a.first < b.first && a.second.left < b.second.left && a.second.top < b.second.top && a.second.width < b.second.width && a.second.height < b.second.height;
+		}
+	};
+
 	void updateWindowView(int windowWidth, int windowHeight);
+	void calculateDialogueBoxWidgetsSizes();
 
 	void physicsUpdate(float deltaTime);
 	void render(float deltaTime);
@@ -75,6 +88,20 @@ private:
 	std::unique_ptr<AudioPlayer> audioPlayer;
 
 	bool paused;
+
+	// Maps pair <file name, middle part int rectangle (for 9-slice)> to dialogue box textures
+	Cache<std::pair<std::string, sf::IntRect>, std::shared_ptr<sf::Texture>, DialogueBoxTexturesCacheComparator> dialogueBoxTextures;
+	// Maps file name to dialogue box portrait textures
+	Cache<std::string, std::shared_ptr<sf::Texture>> dialogueBoxPortraitTextures;
+	// Widgets used to show dialogue boxes
+	// Invisible if the current dialogue event doesn't use a portrait
+	std::shared_ptr<tgui::Picture> dialogueBoxPortraitPicture;
+	std::shared_ptr<tgui::Picture> dialogueBoxPicture;
+	std::shared_ptr<TimedLabel> dialogueBoxLabel;
+	// The list of strings to be displayed in the current dialogue event, if any
+	std::vector<std::string> dialogeBoxTextsQueue;
+	// The index of the currnet text being shown from dialogueBoxTextsQueue. -1 if there is no dialogue event going on
+	int dialogueBoxTextsQueueIndex = -1;
 
 	// Total amount of points earned so far across all past levels.
 	// Does not include points from the current level.

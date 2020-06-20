@@ -88,3 +88,7 @@ void Level::insertEvent(int eventIndex, std::shared_ptr<LevelEventStartCondition
 		}
 	}
 }
+
+void Level::removeEvent(int eventIndex) {
+	events.erase(events.begin() + eventIndex);
+}
