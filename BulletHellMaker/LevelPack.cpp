@@ -11,6 +11,9 @@
 #include "Player.h"
 #include "Level.h"
 #include "LevelPackObject.h"
+#include "MovablePoint.h"
+#include "Components.h"
+#include "SymbolTable.h"
 //TODO delete these
 #include "EnemySpawn.h"
 #include "LevelEventStartCondition.h"
@@ -185,13 +188,13 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 		Animatable("Megaman movement", "sheet1", false, ROTATE_WITH_MOVEMENT),
 		Animatable("Megaman attack", "sheet1", false, ROTATE_WITH_MOVEMENT),
 		std::make_shared<PlayAnimatableDeathAction>(Animatable("oh my god he's dead", "sheet1", true, ROTATE_WITH_MOVEMENT), PlayAnimatableDeathAction::NONE, 3.0f));
-	auto v1 = std::vector<EnemySpawnInfo>();
+	auto v1 = std::vector<std::shared_ptr<EnemySpawnInfo>>();
 	std::vector<std::pair<std::shared_ptr<Item>, int>> items;
 	items.push_back(std::make_pair(level->getHealthPack(), 3));
 	items.push_back(std::make_pair(level->getPointsPack(), 2));
 	items.push_back(std::make_pair(level->getPowerPack(), 60));
 	items.push_back(std::make_pair(level->getBombItem(), 2));
-	v1.push_back(EnemySpawnInfo(enemy1->getID(), 300, 350, items));
+	v1.push_back(std::make_shared<EnemySpawnInfo>(enemy1->getID(), "300", "300 + 50", items));
 	level->insertEvent(0, std::make_shared<TimeBasedEnemySpawnCondition>(0), std::make_shared<SpawnEnemiesLevelEvent>(v1));
 
 	level->getHealthPack()->setActivationRadius(150);
@@ -237,8 +240,8 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 		3, 10, Animatable("bomb.png", "", true, LOCK_ROTATION), SoundSettings("bomb_ready.wav"), 5.0f)
 	*/
 	player->setBombInvincibilityTime(5);
-	player->setBombSprite(Animatable("GUI/bomb.png", "", true, LOCK_ROTATION));
-	player->setDiscretePlayerHPSprite(Animatable("GUI/heart.png", "", true, LOCK_ROTATION));
+	player->setBombSprite(Animatable("GUI\\bomb.png", "", true, LOCK_ROTATION));
+	player->setDiscretePlayerHPSprite(Animatable("GUI\\heart.png", "", true, LOCK_ROTATION));
 	player->setFocusedSpeed(150);
 	player->setHitboxRadius(1);
 	player->setInitialHealth(10);
@@ -252,7 +255,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	player->setBombReadySound(SoundSettings("bomb_ready.wav"));
 	this->setPlayer(player);
 
-	setFontFileName("GUI/font.tff");
+	setFontFileName("GUI\\font.ttf");
 	
 	metadata.addSpriteSheet("sheet1.txt", "sheet1.png");
 	metadata.addSpriteSheet("Default.txt", "Default.png");
@@ -643,6 +646,14 @@ std::string LevelPack::getName() {
 
 std::shared_ptr<Level> LevelPack::getLevel(int levelIndex) const {
 	return levels[levelIndex];
+}
+
+std::shared_ptr<Level> LevelPack::getGameplayLevel(int levelIndex) const {
+	auto level = levels[levelIndex]->clone();
+	// Level is a top-level object so every expression it uses should be in terms of only its own
+	// unredelegated, well-defined symbols
+	level->compileExpressions(exprtk::symbol_table<float>());
+	return std::dynamic_pointer_cast<Level>(level);
 }
 
 std::shared_ptr<EditorAttack> LevelPack::getAttack(int id) const {

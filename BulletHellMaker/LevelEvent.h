@@ -4,16 +4,24 @@
 #include "SpriteLoader.h"
 #include "LevelPack.h"
 #include "EntityCreationQueue.h"
+#include "LevelPackObject.h"
+#include "SymbolTable.h"
+#include "exprtk.hpp"
 #include <entt/entt.hpp>
 #include <TGUI/TGUI.hpp>
 #include <string>
 #include <vector>
 #include <SFML/Graphics.hpp>
 
-class LevelEvent : public TextMarshallable {
+class LevelEvent : public TextMarshallable, public LevelPackObject {
 public:
 	std::string format() const = 0;
 	void load(std::string formattedString) = 0;
+
+	virtual std::shared_ptr<LevelPackObject> clone() const = 0;
+
+	virtual std::pair<bool, std::string> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const = 0;
+	virtual void compileExpressions(exprtk::symbol_table<float> symbolTable) = 0;
 
 	virtual void execute(SpriteLoader& spriteLoader, LevelPack& levelPack, entt::DefaultRegistry& registry, EntityCreationQueue& queue) = 0;
 };
@@ -24,17 +32,22 @@ A LevelEvent that spawns enemies.
 class SpawnEnemiesLevelEvent : public LevelEvent {
 public:
 	inline SpawnEnemiesLevelEvent() {}
-	inline SpawnEnemiesLevelEvent(std::vector<EnemySpawnInfo> spawnInfo) : spawnInfo(spawnInfo) {}
+	inline SpawnEnemiesLevelEvent(std::vector<std::shared_ptr<EnemySpawnInfo>> spawnInfo) : spawnInfo(spawnInfo) {}
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	std::shared_ptr<LevelPackObject> clone() const override;
+
+	std::pair<bool, std::string> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
+	void compileExpressions(exprtk::symbol_table<float> symbolTable) override;
+
 	void execute(SpriteLoader& spriteLoader, LevelPack& levelPack, entt::DefaultRegistry& registry, EntityCreationQueue& queue) override;
 
-	inline const std::vector<EnemySpawnInfo>& getSpawnInfo() { return spawnInfo; }
+	inline const std::vector<std::shared_ptr<EnemySpawnInfo>>& getSpawnInfo() { return spawnInfo; }
 
 private:
-	std::vector<EnemySpawnInfo> spawnInfo;
+	std::vector<std::shared_ptr<EnemySpawnInfo>> spawnInfo;
 };
 
 /*
@@ -55,6 +68,11 @@ public:
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	std::shared_ptr<LevelPackObject> clone() const override;
+
+	std::pair<bool, std::string> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const;
+	void compileExpressions(exprtk::symbol_table<float> symbolTable) override;
 
 	void execute(SpriteLoader& spriteLoader, LevelPack& levelPack, entt::DefaultRegistry& registry, EntityCreationQueue& queue) override;
 

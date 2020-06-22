@@ -2,8 +2,8 @@
 
 std::string SpawnEnemiesLevelEvent::format() const {
 	std::string res = formatString("SpawnEnemiesLevelEvent") + tos(spawnInfo.size());
-	for (auto& info : spawnInfo) {
-		res += formatTMObject(info);
+	for (auto info : spawnInfo) {
+		res += formatTMObject(*info);
 	}
 	return res;
 }
@@ -13,15 +13,35 @@ void SpawnEnemiesLevelEvent::load(std::string formattedString) {
 	int numInfo = std::stoi(items[1]);
 	spawnInfo.clear();
 	for (int i = 2; i < numInfo + 2; i++) {
-		EnemySpawnInfo info;
-		info.load(items[i]);
+		std::shared_ptr<EnemySpawnInfo> info = std::make_shared<EnemySpawnInfo>();
+		info->load(items[i]);
 		spawnInfo.push_back(info);
 	}
 }
 
+std::shared_ptr<LevelPackObject> SpawnEnemiesLevelEvent::clone() const {
+	auto clone = std::make_shared<SpawnEnemiesLevelEvent>();
+	clone->load(format());
+	return clone;
+}
+
+std::pair<bool, std::string> SpawnEnemiesLevelEvent::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+	if (spawnInfo.size() == 0) {
+		return std::make_pair(false, "Missing enemy spawn information.");
+	} else {
+		return std::make_pair(true, "");
+	}
+}
+
+void SpawnEnemiesLevelEvent::compileExpressions(exprtk::symbol_table<float> symbolTable) {
+	for (std::shared_ptr<EnemySpawnInfo> info : spawnInfo) {
+		info->compileExpressions(symbolTable);
+	}
+}
+
 void SpawnEnemiesLevelEvent::execute(SpriteLoader & spriteLoader, LevelPack & levelPack, entt::DefaultRegistry & registry, EntityCreationQueue & queue) {
-	for (EnemySpawnInfo info : spawnInfo) {
-		info.spawnEnemy(spriteLoader, levelPack, registry, queue);
+	for (std::shared_ptr<EnemySpawnInfo> info : spawnInfo) {
+		info->spawnEnemy(spriteLoader, levelPack, registry, queue);
 	}
 }
 
@@ -48,8 +68,23 @@ void ShowDialogueLevelEvent::load(std::string formattedString) {
 	}
 }
 
+std::shared_ptr<LevelPackObject> ShowDialogueLevelEvent::clone() const {
+	auto clone = std::make_shared<SpawnEnemiesLevelEvent>();
+	clone->load(format());
+	return clone;
+}
+
+std::pair<bool, std::string> ShowDialogueLevelEvent::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+	//TODO
+	return std::pair<bool, std::string>();
+}
+
+void ShowDialogueLevelEvent::compileExpressions(exprtk::symbol_table<float> symbolTable) {
+	// Nothing needs to be done
+}
+
 void ShowDialogueLevelEvent::execute(SpriteLoader& spriteLoader, LevelPack& levelPack, entt::DefaultRegistry& registry, EntityCreationQueue& queue) {
-	//registry.get<LevelManagerTag>().showDialogue(this);
+	registry.get<LevelManagerTag>().showDialogue(this);
 }
 
 std::shared_ptr<LevelEvent> LevelEventFactory::create(std::string formattedString) {

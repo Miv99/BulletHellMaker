@@ -5,6 +5,9 @@
 #include <entt/entt.hpp>
 #include <SFML/Graphics.hpp>
 #include <memory>
+#include "LevelPackObject.h"
+#include "SymbolTable.h"
+#include "exprtk.hpp"
 #include "LevelEventStartCondition.h"
 #include "EnemySpawn.h"
 #include "TextMarshallable.h"
@@ -13,15 +16,18 @@
 #include "RenderSystem.h"
 #include "AudioPlayer.h"
 
-class Level : public TextMarshallable {
+class Level : public TextMarshallable, public LevelPackObject {
 public:
 	inline Level() {}
 	inline Level(std::string name) : name(name) {}
 
+	std::shared_ptr<LevelPackObject> clone() const override;
+
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	bool legal(std::string& message) const;
+	std::pair<bool, std::string> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
+	void compileExpressions(exprtk::symbol_table<float> symbolTable) override;
 
 	/*
 	Execute the LevelEvent at index eventIndex.
@@ -127,6 +133,10 @@ private:
 
 	// Bloom settings for the level; each index is a separate layer
 	std::vector<BloomSettings> bloomLayerSettings = std::vector<BloomSettings>(HIGHEST_RENDER_LAYER + 1, BloomSettings());
+
+	// This is a top-level object so every expression this uses should be in terms of only its own unredelegated, well-defined symbols
+	// meaning every symbol in here is not redelegated.
+	ValueSymbolTable symbolTable;
 
 	// Maps an EditorEnemy ID to the number of times it will be spawned in events.
 	// This is not saved on format() but is reconstructed in load().

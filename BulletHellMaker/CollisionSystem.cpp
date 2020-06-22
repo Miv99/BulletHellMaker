@@ -178,7 +178,7 @@ void CollisionSystem::update(float deltaTime) {
 
 						// Drop items, if any
 						auto currentLevel = registry.get<LevelManagerTag>().getLevel();
-						for (auto itemAndAmountPair : enemy.getEnemySpawnInfo().getItemsDroppedOnDeath()) {
+						for (auto itemAndAmountPair : enemy.getEnemySpawnInfo()->getItemsDroppedOnDeath()) {
 							queue.pushBack(std::make_unique<EMPDropItemCommand>(registry, spriteLoader, position.getX(), position.getY(), itemAndAmountPair.first, itemAndAmountPair.second));
 						}
 

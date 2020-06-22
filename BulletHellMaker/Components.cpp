@@ -136,7 +136,7 @@ void MovementPathComponent::initialSpawn(entt::DefaultRegistry & registry, uint3
 	path = std::make_shared<StationaryMP>(spawnInfo.position, 0);
 }
 
-EnemyComponent::EnemyComponent(std::shared_ptr<EditorEnemy> enemyData, EnemySpawnInfo spawnInfo, int enemyID) : enemyData(enemyData), spawnInfo(spawnInfo), enemyID(enemyID) {}
+EnemyComponent::EnemyComponent(std::shared_ptr<EditorEnemy> enemyData, std::shared_ptr<EnemySpawnInfo> spawnInfo, int enemyID) : enemyData(enemyData), spawnInfo(spawnInfo), enemyID(enemyID) {}
 
 void EnemyComponent::update(EntityCreationQueue& queue, SpriteLoader& spriteLoader, const LevelPack& levelPack, entt::DefaultRegistry& registry, uint32_t entity, float deltaTime) {
 	timeSinceSpawned += deltaTime;

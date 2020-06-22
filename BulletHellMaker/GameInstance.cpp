@@ -410,7 +410,7 @@ void GameInstance::render(float deltaTime) {
 }
 
 void GameInstance::loadLevel(int levelIndex) {
-	std::shared_ptr<Level> level = levelPack->getLevel(levelIndex);
+	std::shared_ptr<Level> level = levelPack->getGameplayLevel(levelIndex);
 
 	// Load bloom settings
 	renderSystem->loadLevelRenderSettings(level);

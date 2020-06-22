@@ -7,14 +7,13 @@
 #include <algorithm>
 #include <SFML/Audio.hpp>
 #include <entt/entt.hpp>
-#include "MovablePoint.h"
 #include "SpriteLoader.h"
 #include "TextMarshallable.h"
-#include "Components.h"
 #include "AudioPlayer.h"
 #include "IDGenerator.h"
 
 class LevelPackObject;
+class Level;
 class EditorAttack;
 class EditorAttackPattern;
 class EditorMovablePoint;
@@ -204,7 +203,16 @@ public:
 	bool hasBulletModel(int id) const;
 
 	std::string getName();
+
+	/*
+	Returns a Level for editing purposes.
+	*/
 	std::shared_ptr<Level> getLevel(int levelIndex) const;
+	/*
+	Returns a Level for gameplay purposes.
+	*/
+	std::shared_ptr<Level> getGameplayLevel(int levelIndex) const;
+
 	std::shared_ptr<EditorAttack> getAttack(int id) const;
 	std::shared_ptr<EditorAttackPattern> getAttackPattern(int id) const;
 	std::shared_ptr<EditorEnemy> getEnemy(int id) const;

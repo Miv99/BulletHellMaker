@@ -14,3 +14,6 @@ std::string tabEveryLine(const std::string & str) {
 	}
 	return result;
 }
+
+void LevelPackObject::compileExpressions(exprtk::symbol_table<float> symbolTable) {
+}

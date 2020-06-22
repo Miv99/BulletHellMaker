@@ -78,7 +78,7 @@ Time lag cannot be accounted for with this command this because the condition fo
 */
 class SpawnEnemyCommand : public EntityCreationCommand {
 public:
-	SpawnEnemyCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorEnemy> enemyInfo, EnemySpawnInfo spawnInfo);
+	SpawnEnemyCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorEnemy> enemyInfo, std::shared_ptr<EnemySpawnInfo> spawnInfo);
 
 	void execute(EntityCreationQueue& queue) override;
 	int getEntitiesQueuedCount() override;
@@ -86,7 +86,7 @@ public:
 private:
 	SpriteLoader& spriteLoader;
 	std::shared_ptr<EditorEnemy> enemyInfo;
-	EnemySpawnInfo spawnInfo;
+	std::shared_ptr<EnemySpawnInfo> spawnInfo;
 };
 
 /*

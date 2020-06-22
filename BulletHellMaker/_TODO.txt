@@ -86,9 +86,78 @@ Notes for me:
 -Player invulnerability sprite effect animation is in CollisionSystem
 
 big todo:
+-Allow every LevelPackObject to use math expressions instead of numbers
+    -If a LevelPackObject or any LevelPackObject that it uses
+        -ie An EditorAttack has some EditorMovablePoints
+        
+        
+        
+        
+        
+-EditorAttack has 5 EMPs; each one uses the variable "x", maybe one uses "y"; 
+    so the attack MUST define "x" so that the same "x" can be used by every EMP, and also define a "y"
+    for every EMP that the attack has. If the user wants the attack to delegate the definition of "x" to some parent object,
+    the user can check some CheckBox to do so for a specific variable.
+-the above only works because every EMP is dependent on each other in that you know that every EMP grouped together is used
+    by the same atttack. But what if there are multiple independent attacks that use the same variable "x" and those
+    attacks are used by some attack pattern. How does the attack pattern define "x"; do it for each one separately?
+https://archive.codeplex.com/?p=fastmathparser   
+
+-Key concepts
+    -A SymbolTable is a class with a map<std::string, SymbolDefinition>.
+    -A SymbolDefinition is a struct with 2 fields:
+        -std::string or float??? not sure; value  // Only used if redelgate is false
+        -bool redelegated = false    // If this is true, the symbol must be defined somewhere else
+    -Redelegation of a symbol cannot occur in the top-level objects Level and Player.
+    -At any moment in time, an object that has only 1 parent (EMP and EMPA) 
+        that uses an expression has that expression compiled. The old getters for any number
+        will return the evaluation of the corresponding expression. Let this type of object be called unique objects.
+    -An object that is not an unique object (ie it is used elsewhere only by ID and not by a unique reference to that 
+        object (Attack, AttackPattern, EnemyPhase, Enemy, Player, BulletModel)) cannot have references 
+        to a SymbolTable that will define every redelegated symbol because that object can have many users.
+            -Let A be an object being used only by ID and B be some user of A.
+                Everywhere where B refers to A by ID, B must also keep a SymbolTable for just A 
+                that defines ALL symbols redelegated in A.
+                    -eg "std::vector<std::tuple<float, int, SymbolTable>> attackIDs" in AttackPattern
+            -Then the problem becomes somehow having A use B's SymbolTable.
+                (However, let's say some AttackPatten C and AttackPattern D both use Attack ID 0 at the same time. 
+                How can that Attack use both C and D's SymbolTable?)
+                    -One solution is to use LevelPack::getGameplayAttack/AttackPattern/EnemyPhase/Enemy/Player/BulletModel/Level() 
+                        everywhere in gameplay only (it is very important that nothing changes for the editor). 
+                        This getGameplay_____(int id, exprtk::symbol_table parentTable)
+                        will return a clone of the object (this cloning can be done more quickly by not populating
+                        the std::map<int, int> ID counter in most LevelPackObjects) and a 
+                        exprtk::symbol_table that defines all symbols in the clone's SymbolTable to be used
+                        for the clone's expressions and any of its unique objects' expressions.
+                    -Base case: A top-level object has a fully defined symbol_table
+                        Recursive step: Some lower-level object needs to be created in gameplay. 
+                            Using the higher-level object, every expression in the lower-level object's SymbolTable can be evaluated
+                            using the symbol_table in the higher-level object to create the lower-level symbol_table.
+    -Only unique objects and top-level non-unique objects have symbol_tables
+                        
+
+-EMPA, EMP, Attack, AttackPattern, EnemyPhase, Enemy, Player, BulletModel, LevelEvent, Level
+-When editing Attack, user defines a SymbolTable stored inside the Attack. Every unqiue object in Attack has a reference
+    to that SymbolTable.
+    
+-More information
+    -"Everywhere where B refers to A by ID, B must also keep a SymbolTable for just A that defines ALL symbols redelegated in A"
+        -Say the user is editing an AttackPattern B that uses some Attack C and Attack D. The user wants to redelegate some variables
+            "c" in C and "d" in D to whatever will use B. However, all symbols in C and D must be defined. The user can define
+            "c" and "d" to be equal to "e", a symbol in B's SymbolTable that will be redelegated.
+    
+-Whenever an expression_str is modified, a parser local to the editor compiles the expression inside the object 
+-In load() of every object, a parser local to load() compiles every expression in the object
+ 
+
+ 
+ 
+ 
+ 
+ 
 -Popup saying something was copied/pasted    
     -have pasteInto() and paste2Into() return a string: the message to show to the user
--Preview panel as a separate window (but keep it local to MainEditorWindow); the object being previewed changes depending
+-Preview panel as a separate window; the object being previewed changes depending
  on the currently selected first-level tab in MainEditorWindow::mainPanel (have some "SelectedTabChanged" signal in TabsWithPanel)
     -If object is an EditorAttack, when "AttackModified" signal received from AttackEditorPanel, reload the preview
     -Same pattern for EditorAttackPattern and other first-level objects
@@ -103,6 +172,9 @@ Random things for TODOs that are noted here so I don't forget:
 -legal checks for everything should make sure all IDs used (ie attack IDs in attack patterns) are valid
 
 TODO:
+-MoveCustomFunctionEMPA: an EMPA where x and y are expressions that can use a special symbol "t" defined in CustomFunctionMP to be
+    the "time" parameter in CustomFunctionMP::evaluate(float time)
+-Dialogue boxes
 -SpriteSheetLoader emits some signal every time a change is made (sprite/spritesheet added/deleted)
 -LevelPack emits signals for Attack/AttackPattern/Enemy/EnemyPhase/BulletModel every time one is changed (unique signal for each)
 	-make sure to update:

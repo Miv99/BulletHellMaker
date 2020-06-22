@@ -1986,7 +1986,7 @@ void SimpleEngineRenderer::loadLevel(int levelIndex) {
 	if (!levelPack->hasLevel(levelIndex)) {
 		throw "The level does not exist";
 	}
-	loadLevel(levelPack->getLevel(levelIndex));
+	loadLevel(levelPack->getGameplayLevel(levelIndex));
 }
 
 void SimpleEngineRenderer::loadLevel(std::shared_ptr<Level> level) {

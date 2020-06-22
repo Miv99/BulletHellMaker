@@ -5,6 +5,8 @@
 #include <memory>
 #include "LevelPack.h"
 #include "SpriteLoader.h"
+#include "TextMarshallable.h"
+#include "exprtk.hpp"
 
 /*
 Returns whether the file in the file path exists.
@@ -24,6 +26,14 @@ public:
 	Returns a pair indicating whether the object is legal and the message explaining errors, if the object is not legal.
 	*/
 	virtual std::pair<bool, std::string> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const = 0;
+
+	/*
+	Compiles every expression used in this LevelPackObject as well as every expression used in this LevelPackObject's 
+	unique objects.
+
+	symbolTable - a symbol_table that defines all symbols that will be needed
+	*/
+	virtual void compileExpressions(exprtk::symbol_table<float> symbolTable);
 
 	/*
 	This shouldn't be used if the LevelPackObject already belongs to a LevelPack.

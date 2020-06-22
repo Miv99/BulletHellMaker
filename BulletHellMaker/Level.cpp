@@ -1,5 +1,11 @@
 #include "Level.h"
 
+std::shared_ptr<LevelPackObject> Level::clone() const {
+	auto clone = std::make_shared<Level>();
+	clone->load(format());
+	return clone;
+}
+
 std::string Level::format() const {
 	std::string res = formatString(name) + tos(events.size());
 	for (std::pair<std::shared_ptr<LevelEventStartCondition>, std::shared_ptr<LevelEvent>> p : events) {
@@ -12,6 +18,7 @@ std::string Level::format() const {
 	for (auto settings : bloomLayerSettings) {
 		res += formatTMObject(settings);
 	}
+	res += formatTMObject(symbolTable);
 	return res;
 }
 
@@ -31,7 +38,7 @@ void Level::load(std::string formattedString) {
 		std::shared_ptr<SpawnEnemiesLevelEvent> ptr = std::dynamic_pointer_cast<SpawnEnemiesLevelEvent>(event);
 		if (ptr) {
 			for (auto& enemy : ptr->getSpawnInfo()) {
-				int enemyID = enemy.getEnemyID();
+				int enemyID = enemy->getEnemyID();
 				if (enemyIDCount.count(enemyID) == 0) {
 					enemyIDCount[enemyID] = 1;
 				} else {
@@ -63,13 +70,23 @@ void Level::load(std::string formattedString) {
 		settings.load(items[i++]);
 		bloomLayerSettings[a] = settings;
 	}
+	symbolTable.load(items[i++]);
 }
 
-bool Level::legal(std::string & message) const {
-	bool good = true;
-	//TODO
-	//TODO check packs' animatables can be opened
-	return good;
+std::pair<bool, std::string> Level::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+	// TODO
+	// TODO: check animatable's packs can be opened
+	return std::pair<bool, std::string>();
+}
+
+void Level::compileExpressions(exprtk::symbol_table<float> symbolTable) {
+	// Compile expressions in every LevelEvent.
+	// This is a top-level object so every expression this uses should be in terms of only its own
+	// unredelegated, well-defined symbols
+	auto mySymbolTable = this->symbolTable.getSymbolTable();
+	for (auto p : events) {
+		p.second->compileExpressions(mySymbolTable);
+	}
 }
 
 void Level::insertEvent(int eventIndex, std::shared_ptr<LevelEventStartCondition> startCondition, std::shared_ptr<LevelEvent> event) {
@@ -79,7 +96,7 @@ void Level::insertEvent(int eventIndex, std::shared_ptr<LevelEventStartCondition
 	std::shared_ptr<SpawnEnemiesLevelEvent> ptr = std::dynamic_pointer_cast<SpawnEnemiesLevelEvent>(event);
 	if (ptr) {
 		for (auto& enemy : ptr->getSpawnInfo()) {
-			int enemyID = enemy.getEnemyID();
+			int enemyID = enemy->getEnemyID();
 			if (enemyIDCount.count(enemyID) == 0) {
 				enemyIDCount[enemyID] = 1;
 			} else {

@@ -346,15 +346,15 @@ int CreateMovementReferenceEntityCommand::getEntitiesQueuedCount() {
 	return 1;
 }
 
-SpawnEnemyCommand::SpawnEnemyCommand(entt::DefaultRegistry & registry, SpriteLoader & spriteLoader, std::shared_ptr<EditorEnemy> enemyInfo, EnemySpawnInfo spawnInfo) : 
+SpawnEnemyCommand::SpawnEnemyCommand(entt::DefaultRegistry & registry, SpriteLoader & spriteLoader, std::shared_ptr<EditorEnemy> enemyInfo, std::shared_ptr<EnemySpawnInfo> spawnInfo) :
 	EntityCreationCommand(registry), spriteLoader(spriteLoader), enemyInfo(enemyInfo), spawnInfo(spawnInfo) {
 }
 
 void SpawnEnemyCommand::execute(EntityCreationQueue & queue) {
 	auto enemy = registry.create();
-	registry.assign<PositionComponent>(enemy, spawnInfo.getX(), spawnInfo.getY());
+	registry.assign<PositionComponent>(enemy, spawnInfo->getX(), spawnInfo->getY());
 	// EMPActions vector empty because it will be populated in EnemySystem when the enemy begins a phase
-	registry.assign<MovementPathComponent>(enemy, queue, enemy, registry, enemy, std::make_shared<SpecificGlobalEMPSpawn>(0, spawnInfo.getX(), spawnInfo.getY()), std::vector<std::shared_ptr<EMPAction>>(), 0);
+	registry.assign<MovementPathComponent>(enemy, queue, enemy, registry, enemy, std::make_shared<SpecificGlobalEMPSpawn>(0, spawnInfo->getX(), spawnInfo->getY()), std::vector<std::shared_ptr<EMPAction>>(), 0);
 	registry.assign<HealthComponent>(enemy, enemyInfo->getHealth(), enemyInfo->getHealth());
 	if (enemyInfo->getDespawnTime() > 0) {
 		registry.assign<DespawnComponent>(enemy, enemyInfo->getDespawnTime());

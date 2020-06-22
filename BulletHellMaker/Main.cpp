@@ -3,11 +3,12 @@
 #include "GameInstance.h"
 #include <iostream>
 #include "EditorWindow.h"
+#include "exprtk.hpp"
 
 int main() {
-	//GameInstance a("test pack");
-	//a.loadLevel(0);
-	//a.start();
+	GameInstance a("test pack");
+	a.loadLevel(0);
+	a.start();
 	//EditorInstance a("test pack");
 
 	// Declare and create a new render-window
@@ -44,10 +45,32 @@ int main() {
 
 
 	
-	auto mutex = std::make_shared<std::recursive_mutex>();
+	/*auto mutex = std::make_shared<std::recursive_mutex>();
 	auto p = MainEditorWindow::create(mutex, "title", 1024, 768);
 	p->loadLevelPack("test pack");
-	p->start();
+	p->start();*/
+
+	//std::string expression_str = "abs((2 * x)  - 1)";
+
+	//float x = 1.1;
+
+	//// Register x with the symbol_table
+	//exprtk::symbol_table<float> symbol_table;
+	//symbol_table.add_variable("x", x);
+
+	//// Instantiate expression and register symbol_table
+	//exprtk::expression<float> expression;
+	//expression.register_symbol_table(symbol_table);
+
+	//// Instantiate parser and compile the expression
+	//exprtk::parser<float> parser;
+	//parser.compile(expression_str, expression);
+
+	//float result = 0.0;
+
+	//// Evaluate and print result for when x = 1.1
+	//result = expression.value();
+
 	
 	std::system("pause");
 	return 0;

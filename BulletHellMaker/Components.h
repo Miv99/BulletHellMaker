@@ -446,13 +446,13 @@ private:
 
 class EnemyComponent {
 public:
-	EnemyComponent(std::shared_ptr<EditorEnemy> enemyData, EnemySpawnInfo spawnInfo, int enemyID);
+	EnemyComponent(std::shared_ptr<EditorEnemy> enemyData, std::shared_ptr<EnemySpawnInfo> spawnInfo, int enemyID);
 	void update(EntityCreationQueue& queue, SpriteLoader& spriteLoader, const LevelPack& levelPack, entt::DefaultRegistry& registry, uint32_t entity, float deltaTime);
 
 	inline float getTimeSinceSpawned() const { return timeSinceSpawned; }
 	inline float getTimeSinceLastPhase() const { return timeSincePhase; }
 	inline std::shared_ptr<EditorEnemy> getEnemyData() const { return enemyData; }
-	inline EnemySpawnInfo getEnemySpawnInfo() const { return spawnInfo; }
+	inline std::shared_ptr<EnemySpawnInfo> getEnemySpawnInfo() const { return spawnInfo; }
 	/*
 	Returns the PlayAnimatableDeathAction associated with the current phase.
 	*/
@@ -467,7 +467,7 @@ private:
 	// Time since start of the current attack pattern
 	float timeSinceAttackPattern = 0;
 
-	EnemySpawnInfo spawnInfo;
+	std::shared_ptr<EnemySpawnInfo> spawnInfo;
 
 	int enemyID;
 	std::shared_ptr<EditorEnemy> enemyData;
