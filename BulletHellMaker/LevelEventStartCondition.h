@@ -4,11 +4,17 @@
 #include <string>
 #include <entt/entt.hpp>
 #include "TextMarshallable.h"
+#include "LevelPackObject.h"
 
-class LevelEventStartCondition : public TextMarshallable {
+class LevelEventStartCondition : public TextMarshallable, public LevelPackObject {
 public:
+	virtual std::shared_ptr<LevelPackObject> clone() const = 0;
+
 	std::string format() const = 0;
 	void load(std::string formattedString) = 0;
+
+	virtual std::pair<bool, std::string> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const = 0;
+	virtual void compileExpressions(exprtk::symbol_table<float> symbolTable) = 0;
 
 	virtual bool satisfied(entt::DefaultRegistry& registry) = 0;
 };
@@ -21,8 +27,13 @@ public:
 	inline GlobalTimeBasedEnemySpawnCondition() {}
 	inline GlobalTimeBasedEnemySpawnCondition(float time) : time(time) {}
 
+	std::shared_ptr<LevelPackObject> clone() const override;
+
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	std::pair<bool, std::string> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
+	void compileExpressions(exprtk::symbol_table<float> symbolTable) override;
 
 	bool satisfied(entt::DefaultRegistry& registry) override;
 
@@ -39,8 +50,13 @@ public:
 	inline TimeBasedEnemySpawnCondition() {}
 	inline TimeBasedEnemySpawnCondition(float time) : time(time) {}
 
+	std::shared_ptr<LevelPackObject> clone() const override;
+
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	std::pair<bool, std::string> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
+	void compileExpressions(exprtk::symbol_table<float> symbolTable) override;
 
 	bool satisfied(entt::DefaultRegistry& registry) override;
 
@@ -57,8 +73,13 @@ public:
 	inline EnemyCountBasedEnemySpawnCondition() {}
 	inline EnemyCountBasedEnemySpawnCondition(int enemyCount) : enemyCount(enemyCount) {}
 
+	std::shared_ptr<LevelPackObject> clone() const override;
+
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	std::pair<bool, std::string> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
+	void compileExpressions(exprtk::symbol_table<float> symbolTable) override;
 
 	bool satisfied(entt::DefaultRegistry& registry) override;
 

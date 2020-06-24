@@ -1,6 +1,12 @@
 #include "LevelEventStartCondition.h"
 #include "Components.h"
 
+std::shared_ptr<LevelPackObject> GlobalTimeBasedEnemySpawnCondition::clone() const {
+	auto clone = std::make_shared<GlobalTimeBasedEnemySpawnCondition>();
+	clone->load(format());
+	return clone;
+}
+
 std::string GlobalTimeBasedEnemySpawnCondition::format() const {
 	return formatString("GlobalTimeBasedEnemySpawnCondition") + tos(time);
 }
@@ -10,8 +16,23 @@ void GlobalTimeBasedEnemySpawnCondition::load(std::string formattedString) {
 	time = std::stof(items[1]);
 }
 
+std::pair<bool, std::string> GlobalTimeBasedEnemySpawnCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+	// TODO
+	return std::pair<bool, std::string>();
+}
+
+void GlobalTimeBasedEnemySpawnCondition::compileExpressions(exprtk::symbol_table<float> symbolTable) {
+	// TODO
+}
+
 bool GlobalTimeBasedEnemySpawnCondition::satisfied(entt::DefaultRegistry & registry) {
 	return registry.get<LevelManagerTag>().getTimeSinceStartOfLevel() >= time;
+}
+
+std::shared_ptr<LevelPackObject> EnemyCountBasedEnemySpawnCondition::clone() const {
+	auto clone = std::make_shared<EnemyCountBasedEnemySpawnCondition>();
+	clone->load(format());
+	return clone;
 }
 
 std::string EnemyCountBasedEnemySpawnCondition::format() const {
@@ -23,8 +44,23 @@ void EnemyCountBasedEnemySpawnCondition::load(std::string formattedString) {
 	enemyCount = std::stoi(items[1]);
 }
 
+std::pair<bool, std::string> EnemyCountBasedEnemySpawnCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+	// TODO
+	return std::pair<bool, std::string>();
+}
+
+void EnemyCountBasedEnemySpawnCondition::compileExpressions(exprtk::symbol_table<float> symbolTable) {
+	// TODO
+}
+
 bool EnemyCountBasedEnemySpawnCondition::satisfied(entt::DefaultRegistry & registry) {
 	return registry.view<EnemyComponent>().size() - 1 <= enemyCount;
+}
+
+std::shared_ptr<LevelPackObject> TimeBasedEnemySpawnCondition::clone() const {
+	auto clone = std::make_shared<TimeBasedEnemySpawnCondition>();
+	clone->load(format());
+	return clone;
 }
 
 std::string TimeBasedEnemySpawnCondition::format() const {
@@ -34,6 +70,15 @@ std::string TimeBasedEnemySpawnCondition::format() const {
 void TimeBasedEnemySpawnCondition::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	time = std::stof(items[1]);
+}
+
+std::pair<bool, std::string> TimeBasedEnemySpawnCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+	// TODO
+	return std::pair<bool, std::string>();
+}
+
+void TimeBasedEnemySpawnCondition::compileExpressions(exprtk::symbol_table<float> symbolTable) {
+	// TODO
 }
 
 bool TimeBasedEnemySpawnCondition::satisfied(entt::DefaultRegistry & registry) {

@@ -83,7 +83,7 @@ void Level::compileExpressions(exprtk::symbol_table<float> symbolTable) {
 	// Compile expressions in every LevelEvent.
 	// This is a top-level object so every expression this uses should be in terms of only its own
 	// unredelegated, well-defined symbols
-	auto mySymbolTable = this->symbolTable.getSymbolTable();
+	exprtk::symbol_table<float> mySymbolTable = this->symbolTable.getSymbolTable();
 	for (auto p : events) {
 		p.second->compileExpressions(mySymbolTable);
 	}

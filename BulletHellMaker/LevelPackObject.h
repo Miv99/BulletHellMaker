@@ -6,7 +6,7 @@
 #include "LevelPack.h"
 #include "SpriteLoader.h"
 #include "TextMarshallable.h"
-#include "exprtk.hpp"
+#include "SymbolTable.h"
 
 /*
 Returns whether the file in the file path exists.
@@ -16,6 +16,12 @@ bool fileExists(const std::string& name);
 Returns str, but with a tab before each line.
 */
 std::string tabEveryLine(const std::string& str);
+/*
+Returns whether expressionStr is a valid expression string when using some ValueSymbolTable.
+The actual values in symbolTable are ignored; the only important part is whether 
+every variable used in expressionStr is defined or redelegated in symbolTable.
+*/
+bool expressionStrIsLegal(exprtk::parser<float>& parser, const std::string& expressionStr, ValueSymbolTable symbolTable);
 
 class LevelPackObject {
 public:

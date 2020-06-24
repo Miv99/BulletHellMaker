@@ -15,5 +15,18 @@ std::string tabEveryLine(const std::string & str) {
 	return result;
 }
 
+bool expressionStrIsLegal(exprtk::parser<float>& parser, const std::string& expressionStr, ValueSymbolTable symbolTable) {
+	exprtk::expression<float> expression;
+	try {
+		parser.compile(expressionStr, expression);
+		// The actual result isn't important; just need to test whether it works, so just get a symbol_table with any values
+		expression.register_symbol_table(symbolTable.getZeroFilledSymbolTable());
+		expression.value();
+	} catch (...) {
+		return false;
+	}
+	return true;
+}
+
 void LevelPackObject::compileExpressions(exprtk::symbol_table<float> symbolTable) {
 }

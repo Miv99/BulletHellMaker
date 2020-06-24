@@ -48,7 +48,24 @@ void ValueSymbolTable::load(std::string formattedString) {
 exprtk::symbol_table<float> ValueSymbolTable::getSymbolTable() {
     exprtk::symbol_table<float> table;
     for (auto it = map.begin(); it != map.end(); it++) {
+        // Add as constants so that the symbol_table is still valid even after the floats go out of scope
+
         if (!it->second.redelegated) {
+            table.add_variable(it->first, it->second.value, true);
+        }
+    }
+    return table;
+}
+
+exprtk::symbol_table<float> ValueSymbolTable::getZeroFilledSymbolTable() {
+    exprtk::symbol_table<float> table;
+    for (auto it = map.begin(); it != map.end(); it++) {
+        // Add as constants so that the symbol_table is still valid even after the floats go out of scope
+
+        if (it->second.redelegated) {
+            float zero = 0;
+            table.add_variable(it->first, zero, true);
+        } else {
             table.add_variable(it->first, it->second.value, true);
         }
     }

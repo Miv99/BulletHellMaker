@@ -46,9 +46,14 @@ public:
 	void load(std::string formattedString) override;
 
 	/*
-	Returns a symbol_table that defines every unredelegated symbol.
+	Returns a symbol_table that defines constant values for every unredelegated symbol.
 	*/
 	exprtk::symbol_table<float> getSymbolTable();
+	/*
+	Returns a symbol_table that defines constant values for every unredelegated symbol
+	and defines every redelegated symbol with value 0.
+	*/
+	exprtk::symbol_table<float> getZeroFilledSymbolTable();
 
 private:
 	std::map<std::string, ValueSymbolDefinition> map;

@@ -8,6 +8,12 @@
 EnemySpawnInfo::EnemySpawnInfo(int enemyID, std::string x, std::string y, std::vector<std::pair<std::shared_ptr<Item>, int>> itemsDroppedOnDeath) : enemyID(enemyID), x(x), y(y), itemsDroppedOnDeath(itemsDroppedOnDeath) {
 }
 
+std::shared_ptr<LevelPackObject> EnemySpawnInfo::clone() const {
+	auto clone = std::make_shared<EnemySpawnInfo>();
+	clone->load(format());
+	return clone;
+}
+
 std::string EnemySpawnInfo::format() const {
 	std::string res = formatString(x) + formatString(y) + tos(enemyID);
 	for (auto pair : itemsDroppedOnDeath) {
@@ -25,6 +31,21 @@ void EnemySpawnInfo::load(std::string formattedString) {
 	for (int i = 3; i < items.size(); i += 2) {
 		itemsDroppedOnDeath.push_back(std::make_pair(ItemFactory::create(items[i]), std::stoi(items[i + 1])));
 	}
+}
+
+std::pair<bool, std::string> EnemySpawnInfo::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+	bool legal = true;
+	std::string message = "";
+	exprtk::parser<float> parser;
+	if (!expressionStrIsLegal(parser, x, symbolTable)) {
+		legal = false;
+		message += "\nInvalid expression for x";
+	}
+	if (!expressionStrIsLegal(parser, y, symbolTable)) {
+		legal = false;
+		message += "\nInvalid expression for y";
+	}
+	return std::make_pair(legal, message);
 }
 
 void EnemySpawnInfo::compileExpressions(exprtk::symbol_table<float> symbolTable) {
