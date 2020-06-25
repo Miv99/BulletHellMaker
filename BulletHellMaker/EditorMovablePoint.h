@@ -40,7 +40,7 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	std::pair<bool, std::string> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const;
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const;
 
 	inline Animatable getAnimatable() const { return animatable; }
 	inline float getHitboxRadius() const { return hitboxRadius; }
@@ -142,7 +142,7 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	std::pair<bool, std::string> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
 
 	/*
 	Loads this EMP and its children's bullet models into the EMP, it they use models.

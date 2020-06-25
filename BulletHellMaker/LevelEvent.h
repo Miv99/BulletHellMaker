@@ -20,7 +20,7 @@ public:
 
 	virtual std::shared_ptr<LevelPackObject> clone() const = 0;
 
-	virtual std::pair<bool, std::string> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const = 0;
+	virtual std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const = 0;
 	virtual void compileExpressions(exprtk::symbol_table<float> symbolTable) = 0;
 
 	virtual void execute(SpriteLoader& spriteLoader, LevelPack& levelPack, entt::DefaultRegistry& registry, EntityCreationQueue& queue) = 0;
@@ -39,7 +39,7 @@ public:
 
 	std::shared_ptr<LevelPackObject> clone() const override;
 
-	std::pair<bool, std::string> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
 	void compileExpressions(exprtk::symbol_table<float> symbolTable) override;
 
 	void execute(SpriteLoader& spriteLoader, LevelPack& levelPack, entt::DefaultRegistry& registry, EntityCreationQueue& queue) override;
@@ -71,7 +71,7 @@ public:
 
 	std::shared_ptr<LevelPackObject> clone() const override;
 
-	std::pair<bool, std::string> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const;
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const;
 	void compileExpressions(exprtk::symbol_table<float> symbolTable) override;
 
 	void execute(SpriteLoader& spriteLoader, LevelPack& levelPack, entt::DefaultRegistry& registry, EntityCreationQueue& queue) override;

@@ -67,9 +67,9 @@ void EditorAttackPattern::load(std::string formattedString) {
 	}
 }
 
-std::pair<bool, std::string> EditorAttackPattern::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
-	//TODO: implement this
-	return std::pair<bool, std::string>();
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorAttackPattern::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+	//TODO: legal
+	return std::make_pair(LEGAL_STATUS::ILLEGAL, std::vector<std::string>());
 }
 
 bool EditorAttackPattern::legal(std::string & message) const {

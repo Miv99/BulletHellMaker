@@ -73,10 +73,10 @@ void Level::load(std::string formattedString) {
 	symbolTable.load(items[i++]);
 }
 
-std::pair<bool, std::string> Level::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
-	// TODO
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> Level::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+	//TODO: legal
 	// TODO: check animatable's packs can be opened
-	return std::pair<bool, std::string>();
+	return std::make_pair(LEGAL_STATUS::ILLEGAL, std::vector<std::string>());
 }
 
 void Level::compileExpressions(exprtk::symbol_table<float> symbolTable) {

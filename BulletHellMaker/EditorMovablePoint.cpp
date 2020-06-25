@@ -135,25 +135,24 @@ void EditorMovablePoint::load(std::string formattedString) {
 	isBullet = unformatBool(items[i++]);
 }
 
-std::pair<bool, std::string> EditorMovablePoint::legal(LevelPack & levelPack, SpriteLoader & spriteLoader) const {
-	bool good = true;
-	std::string message = "";
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorMovablePoint::legal(LevelPack & levelPack, SpriteLoader & spriteLoader) const {
+	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
+	std::vector<std::string> messages;
 	if (actions.size() == 0) {
-		// Add a tab to show that this EMP is from the parent attack
-		message += "\tMovablePoint id " + tos(id) + " must not have an empty list of actions\n";
-		good = false;
+		status = std::max(status, LEGAL_STATUS::ILLEGAL);
+		messages.push_back("MovablePoint id " + tos(id) + " must not have an empty list of actions");
 	}
 	if (!spawnType) {
-		message += "\tMovablePoint id " + tos(id) + " is missing a spawn type\n";
-		good = false;
+		status = std::max(status, LEGAL_STATUS::ILLEGAL);
+		messages.push_back("MovablePoint id " + tos(id) + " is missing a spawn type");
 	}
 	if (shadowTrailInterval < 0 && shadowTrailLifespan != 0) {
-		message += "\tMovablePoint id " + tos(id) + " has a negative shadow trail interval\n";
-		good = false;
+		status = std::max(status, LEGAL_STATUS::ILLEGAL);
+		messages.push_back("MovablePoint id " + tos(id) + " has a negative shadow trail interval");
 	}
 	if (!animatable.isSprite() && !loopAnimation && !baseSprite.isSprite()) {
-		message += "\tMovablePoint id " + tos(id) + " is missing a base sprite\n";
-		good = false;
+		status = std::max(status, LEGAL_STATUS::ILLEGAL);
+		messages.push_back("MovablePoint id " + tos(id) + " is missing a base sprite");
 	} else {
 		// Make sure base sprite can be loaded
 		if (!animatable.isSprite() && !loopAnimation) {
@@ -161,12 +160,12 @@ std::pair<bool, std::string> EditorMovablePoint::legal(LevelPack & levelPack, Sp
 				if (baseSprite.isSprite()) {
 					spriteLoader.getSprite(baseSprite.getAnimatableName(), baseSprite.getSpriteSheetName());
 				} else {
-					message += "\tMovablePoint id " + tos(id) + " has an animation as a base sprite\n";
-					good = false;
+					status = std::max(status, LEGAL_STATUS::ILLEGAL);
+					messages.push_back("MovablePoint id " + tos(id) + " has an animation as a base sprite");
 				}
 			} catch (const char* str) {
-				message += "\t" + std::string(str) + "\n";
-				good = false;
+				status = std::max(status, LEGAL_STATUS::ILLEGAL);
+				messages.push_back(std::string(str));
 			}
 		}
 	}
@@ -181,24 +180,25 @@ std::pair<bool, std::string> EditorMovablePoint::legal(LevelPack & levelPack, Sp
 			}
 		}
 	} catch (const char* str) {
-		message += "\t" + std::string(str) + "\n";
-		good = false;
+		status = std::max(status, LEGAL_STATUS::ILLEGAL);
+		messages.push_back(std::string(str));
 	}
 	for (auto child : children) {
 		auto childLegal = child->legal(levelPack, spriteLoader);
-		if (!childLegal.first) {
-			good = false;
-			message += tabEveryLine(childLegal.second);
+		if (childLegal.first != LEGAL_STATUS::LEGAL) {
+			status = std::max(status, childLegal.first);
+			tabEveryLine(childLegal.second);
+			messages.insert(messages.end(), childLegal.second.begin(), childLegal.second.end());
 		}
 	}
 
 	// Make sure bullet model is valid
 	if (usesBulletModel() && !levelPack.hasBulletModel(bulletModelID)) {
-		message += "\tMovablePoint id " + tos(id) + " is using a deleted bullet model\n";
-		good = false;
+		status = std::max(status, LEGAL_STATUS::ILLEGAL);
+		messages.push_back("MovablePoint id " + tos(id) + " is using a deleted bullet model");
 	}
 
-	return std::make_pair(good, message);
+	return std::make_pair(status, messages);
 }
 
 void EditorMovablePoint::dfsLoadBulletModel(const LevelPack & levelPack) {
@@ -603,9 +603,9 @@ void BulletModel::load(std::string formattedString) {
 	soundSettings.load(items[11]);
 }
 
-std::pair<bool, std::string> BulletModel::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
-	//TODO: implement this
-	return std::pair<bool, std::string>();
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> BulletModel::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+	//TODO: legal
+	return std::make_pair(LEGAL_STATUS::ILLEGAL, std::vector<std::string>());
 }
 
 void BulletModel::onModelChange() {

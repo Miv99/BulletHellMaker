@@ -39,23 +39,22 @@ void EditorAttack::load(std::string formattedString) {
 	playAttackAnimation = unformatBool(items[3]);
 }
 
-std::pair<bool, std::string> EditorAttack::legal(LevelPack & levelPack, SpriteLoader & spriteLoader) const {
-	bool good = true;
-	std::string message = "";
-	if (contains(name, '(') || contains(name, ')') || contains(name, '\\')) {
-		message += "Attack \"" + name + "\" cannot have the character '(', ')', or '\' in its name\n";
-		good = false;
-	}
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorAttack::legal(LevelPack & levelPack, SpriteLoader & spriteLoader) const {
+	LevelPackObject::LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
+	std::vector<std::string> messages;
 	if (mainEMP) {
 		auto mainEMPLegal = mainEMP->legal(levelPack, spriteLoader);
-		if (!mainEMPLegal.first) {
-			good = false;
-			message += tabEveryLine(mainEMPLegal.second);
+		if (mainEMPLegal.first != LEGAL_STATUS::LEGAL) {
+			status = std::max(status, mainEMPLegal.first);
+			tabEveryLine(mainEMPLegal.second);
+			messages.insert(messages.end(), mainEMPLegal.second.begin(), mainEMPLegal.second.end());
 		}
 	} else {
-		message += "Attack \"" + name + "\" is missing its mainEMP\n";
+		status = std::max(status, LEGAL_STATUS::ILLEGAL);
+		messages.push_back("Attack \"" + name + "\" is missing its mainEMP");
 	}
-	return std::make_pair(good, message);
+	// TODO: legal
+	return std::make_pair(status, messages);
 }
 
 void EditorAttack::loadEMPBulletModels(const LevelPack & levelPack) {

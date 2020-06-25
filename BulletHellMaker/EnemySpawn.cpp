@@ -33,19 +33,19 @@ void EnemySpawnInfo::load(std::string formattedString) {
 	}
 }
 
-std::pair<bool, std::string> EnemySpawnInfo::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
-	bool legal = true;
-	std::string message = "";
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EnemySpawnInfo::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
+	std::vector<std::string> messages;
 	exprtk::parser<float> parser;
 	if (!expressionStrIsLegal(parser, x, symbolTable)) {
-		legal = false;
-		message += "\nInvalid expression for x";
+		status = std::max(status, LEGAL_STATUS::ILLEGAL);
+		messages.push_back("Invalid expression for x");
 	}
 	if (!expressionStrIsLegal(parser, y, symbolTable)) {
-		legal = false;
-		message += "\nInvalid expression for y";
+		status = std::max(status, LEGAL_STATUS::ILLEGAL);
+		messages.push_back("Invalid expression for y");
 	}
-	return std::make_pair(legal, message);
+	return std::make_pair(status, messages);
 }
 
 void EnemySpawnInfo::compileExpressions(exprtk::symbol_table<float> symbolTable) {

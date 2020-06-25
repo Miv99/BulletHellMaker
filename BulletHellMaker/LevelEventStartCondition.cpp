@@ -16,9 +16,9 @@ void GlobalTimeBasedEnemySpawnCondition::load(std::string formattedString) {
 	time = std::stof(items[1]);
 }
 
-std::pair<bool, std::string> GlobalTimeBasedEnemySpawnCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
-	// TODO
-	return std::pair<bool, std::string>();
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> GlobalTimeBasedEnemySpawnCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+	//TODO: legal
+	return std::make_pair(LEGAL_STATUS::ILLEGAL, std::vector<std::string>());
 }
 
 void GlobalTimeBasedEnemySpawnCondition::compileExpressions(exprtk::symbol_table<float> symbolTable) {
@@ -44,9 +44,9 @@ void EnemyCountBasedEnemySpawnCondition::load(std::string formattedString) {
 	enemyCount = std::stoi(items[1]);
 }
 
-std::pair<bool, std::string> EnemyCountBasedEnemySpawnCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
-	// TODO
-	return std::pair<bool, std::string>();
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EnemyCountBasedEnemySpawnCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+	//TODO: legal
+	return std::make_pair(LEGAL_STATUS::ILLEGAL, std::vector<std::string>());
 }
 
 void EnemyCountBasedEnemySpawnCondition::compileExpressions(exprtk::symbol_table<float> symbolTable) {
@@ -72,9 +72,9 @@ void TimeBasedEnemySpawnCondition::load(std::string formattedString) {
 	time = std::stof(items[1]);
 }
 
-std::pair<bool, std::string> TimeBasedEnemySpawnCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
-	// TODO
-	return std::pair<bool, std::string>();
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> TimeBasedEnemySpawnCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+	//TODO: legal
+	return std::make_pair(LEGAL_STATUS::ILLEGAL, std::vector<std::string>());
 }
 
 void TimeBasedEnemySpawnCondition::compileExpressions(exprtk::symbol_table<float> symbolTable) {

@@ -25,11 +25,13 @@ std::shared_ptr<LevelPackObject> SpawnEnemiesLevelEvent::clone() const {
 	return clone;
 }
 
-std::pair<bool, std::string> SpawnEnemiesLevelEvent::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> SpawnEnemiesLevelEvent::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+	std::vector<std::string> messages;
 	if (spawnInfo.size() == 0) {
-		return std::make_pair(false, "Missing enemy spawn information.");
+		messages.push_back("Missing enemy spawn information.");
+		return std::make_pair(LEGAL_STATUS::ILLEGAL, messages);
 	} else {
-		return std::make_pair(true, "");
+		return std::make_pair(LEGAL_STATUS::LEGAL, messages);
 	}
 }
 
@@ -74,9 +76,9 @@ std::shared_ptr<LevelPackObject> ShowDialogueLevelEvent::clone() const {
 	return clone;
 }
 
-std::pair<bool, std::string> ShowDialogueLevelEvent::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
-	//TODO
-	return std::pair<bool, std::string>();
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> ShowDialogueLevelEvent::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+	//TODO: legal
+	return std::make_pair(LEGAL_STATUS::ILLEGAL, std::vector<std::string>());
 }
 
 void ShowDialogueLevelEvent::compileExpressions(exprtk::symbol_table<float> symbolTable) {

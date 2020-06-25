@@ -59,9 +59,9 @@ void EditorEnemy::load(std::string formattedString) {
 	deathSound.load(items[i++]);
 }
 
-std::pair<bool, std::string> EditorEnemy::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
-	// TODO: implement this
-	return std::pair<bool, std::string>();
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorEnemy::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+	//TODO: legal
+	return std::make_pair(LEGAL_STATUS::ILLEGAL, std::vector<std::string>());
 }
 
 bool EditorEnemy::legal(std::string& message) const {
