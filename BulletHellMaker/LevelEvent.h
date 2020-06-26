@@ -12,8 +12,9 @@
 #include <string>
 #include <vector>
 #include <SFML/Graphics.hpp>
+#include "ExpressionCompilable.h"
 
-class LevelEvent : public TextMarshallable, public LevelPackObject {
+class LevelEvent : public TextMarshallable, public LevelPackObject, public ExpressionCompilable {
 public:
 	std::string format() const = 0;
 	void load(std::string formattedString) = 0;

@@ -21,11 +21,15 @@ Returns whether expressionStr is a valid expression string when using some Value
 The actual values in symbolTable are ignored; the only important part is whether 
 every variable used in expressionStr is defined or redelegated in symbolTable.
 */
-bool expressionStrIsLegal(exprtk::parser<float>& parser, const std::string& expressionStr, ValueSymbolTable symbolTable);
+bool expressionStrIsValid(exprtk::parser<float>& parser, const std::string& expressionStr, ValueSymbolTable symbolTable);
 
 
 class LevelPackObject {
 public:
+	/*
+	This is structured such that the std::max of a current status and some more important
+	status is always the more important one.
+	*/
 	enum class LEGAL_STATUS {
 		LEGAL = 0,
 		WARNING = 1,
@@ -44,14 +48,6 @@ public:
 	virtual std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const = 0;
 
 	/*
-	Compiles every expression used in this LevelPackObject as well as every expression used in this LevelPackObject's 
-	unique objects.
-
-	symbolTable - a symbol_table that defines all symbols that will be needed
-	*/
-	virtual void compileExpressions(exprtk::symbol_table<float> symbolTable);
-
-	/*
 	This shouldn't be used if the LevelPackObject already belongs to a LevelPack.
 	*/
 	inline void setID(int id) { this->id = id; }
@@ -62,6 +58,9 @@ public:
 
 
 protected:
+	// Format for the message in legal() for an invalid expression. The only parameter is the descriptive name of the field as a C string.
+	const static std::string INVALID_EXPRESSION_MESSAGE_FORMAT;
+
 	// ID unique to all other LevelPackObjects of the same derived class
 	int id;
 	// User-defined name of the attack

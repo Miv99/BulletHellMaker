@@ -195,7 +195,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	items.push_back(std::make_pair(level->getPowerPack(), 60));
 	items.push_back(std::make_pair(level->getBombItem(), 2));
 	v1.push_back(std::make_shared<EnemySpawnInfo>(enemy1->getID(), "300", "300 + 50", items));
-	level->insertEvent(0, std::make_shared<TimeBasedEnemySpawnCondition>(0), std::make_shared<SpawnEnemiesLevelEvent>(v1));
+	level->insertEvent(0, std::make_shared<TimeBasedEnemySpawnCondition>("0"), std::make_shared<SpawnEnemiesLevelEvent>(v1));
 
 	level->getHealthPack()->setActivationRadius(150);
 	level->getHealthPack()->setAnimatable(Animatable("Health", "sheet1", true, LOCK_ROTATION));
@@ -652,7 +652,7 @@ std::shared_ptr<Level> LevelPack::getGameplayLevel(int levelIndex) const {
 	auto level = levels[levelIndex]->clone();
 	// Level is a top-level object so every expression it uses should be in terms of only its own
 	// unredelegated, well-defined symbols
-	level->compileExpressions(exprtk::symbol_table<float>());
+	std::dynamic_pointer_cast<Level>(level)->compileExpressions(exprtk::symbol_table<float>());
 	return std::dynamic_pointer_cast<Level>(level);
 }
 

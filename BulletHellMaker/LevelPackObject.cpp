@@ -1,6 +1,8 @@
 #include "LevelPackObject.h"
 #include <sys/stat.h>
 
+const std::string LevelPackObject::INVALID_EXPRESSION_MESSAGE_FORMAT = "Invalid expression for %s";
+
 static bool fileExists(const std::string& name) {
 	struct stat buffer;
 	return (stat(name.c_str(), &buffer) == 0);
@@ -12,7 +14,7 @@ void tabEveryLine(std::vector<std::string>& strings) {
 	}
 }
 
-bool expressionStrIsLegal(exprtk::parser<float>& parser, const std::string& expressionStr, ValueSymbolTable symbolTable) {
+bool expressionStrIsValid(exprtk::parser<float>& parser, const std::string& expressionStr, ValueSymbolTable symbolTable) {
 	exprtk::expression<float> expression;
 	try {
 		parser.compile(expressionStr, expression);
@@ -23,7 +25,4 @@ bool expressionStrIsLegal(exprtk::parser<float>& parser, const std::string& expr
 		return false;
 	}
 	return true;
-}
-
-void LevelPackObject::compileExpressions(exprtk::symbol_table<float> symbolTable) {
 }

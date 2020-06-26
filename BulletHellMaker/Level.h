@@ -15,8 +15,9 @@
 #include "LevelEvent.h"
 #include "RenderSystem.h"
 #include "AudioPlayer.h"
+#include "ExpressionCompilable.h"
 
-class Level : public TextMarshallable, public LevelPackObject {
+class Level : public TextMarshallable, public LevelPackObject, public ExpressionCompilable {
 public:
 	inline Level() {}
 	inline Level(std::string name) : name(name) {}

@@ -5,8 +5,9 @@
 #include <entt/entt.hpp>
 #include "TextMarshallable.h"
 #include "LevelPackObject.h"
+#include "ExpressionCompilable.h"
 
-class LevelEventStartCondition : public TextMarshallable, public LevelPackObject {
+class LevelEventStartCondition : public TextMarshallable, public LevelPackObject, public ExpressionCompilable {
 public:
 	virtual std::shared_ptr<LevelPackObject> clone() const = 0;
 
@@ -25,7 +26,7 @@ LevelEventStartCondition that depends on the time since the start of the level.
 class GlobalTimeBasedEnemySpawnCondition : public LevelEventStartCondition {
 public:
 	inline GlobalTimeBasedEnemySpawnCondition() {}
-	inline GlobalTimeBasedEnemySpawnCondition(float time) : time(time) {}
+	inline GlobalTimeBasedEnemySpawnCondition(std::string time) : time(time) {}
 
 	std::shared_ptr<LevelPackObject> clone() const override;
 
@@ -39,7 +40,9 @@ public:
 
 private:
 	// Minimum time since the start of the level for this condition to be satisfied
-	float time;
+	std::string time;
+	exprtk::expression<float> timeExpr;
+	float timeExprCompiledValue;
 };
 
 /*
@@ -48,7 +51,7 @@ LevelEventStartCondition that depends on the time since the last enemy spawn.
 class TimeBasedEnemySpawnCondition : public LevelEventStartCondition {
 public:
 	inline TimeBasedEnemySpawnCondition() {}
-	inline TimeBasedEnemySpawnCondition(float time) : time(time) {}
+	inline TimeBasedEnemySpawnCondition(std::string time) : time(time) {}
 
 	std::shared_ptr<LevelPackObject> clone() const override;
 
@@ -62,7 +65,9 @@ public:
 
 private:
 	// Minimum time since the last enemy's spawn for this condition to be satisfied
-	float time;
+	std::string time;
+	exprtk::expression<float> timeExpr;
+	float timeExprCompiledValue;
 };
 
 /*
@@ -71,7 +76,7 @@ LevelEventStartCondition that depends on the number of enemies alive.
 class EnemyCountBasedEnemySpawnCondition : public LevelEventStartCondition {
 public:
 	inline EnemyCountBasedEnemySpawnCondition() {}
-	inline EnemyCountBasedEnemySpawnCondition(int enemyCount) : enemyCount(enemyCount) {}
+	inline EnemyCountBasedEnemySpawnCondition(std::string enemyCount) : enemyCount(enemyCount) {}
 
 	std::shared_ptr<LevelPackObject> clone() const override;
 
@@ -85,7 +90,9 @@ public:
 
 private:
 	// Maximum number of other enemies alive for this condition to be satisfied
-	int enemyCount;
+	std::string enemyCount;
+	exprtk::expression<float> enemyCountExpr;
+	int enemyCountExprCompiledValue;
 };
 
 /*

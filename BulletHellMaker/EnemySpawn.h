@@ -9,12 +9,13 @@
 #include "Constants.h"
 #include "LevelPackObject.h"
 #include "SymbolTable.h"
+#include "ExpressionCompilable.h"
 
 class LevelPack;
 class EntityCreationQueue;
 class Item;
 
-class EnemySpawnInfo : public TextMarshallable, public LevelPackObject, public std::enable_shared_from_this<EnemySpawnInfo> {
+class EnemySpawnInfo : public TextMarshallable, public LevelPackObject, public ExpressionCompilable, public std::enable_shared_from_this<EnemySpawnInfo> {
 public:
 	inline EnemySpawnInfo() {}
 	EnemySpawnInfo(int enemyID, std::string x, std::string y, std::vector<std::pair<std::shared_ptr<Item>, int>> itemsDroppedOnDeath);
@@ -42,8 +43,8 @@ private:
 	std::string y;
 	exprtk::expression<float> xExpr;
 	exprtk::expression<float> yExpr;
-
-	ValueSymbolTable symbolTable;
+	float xExprCompiledValue;
+	float yExprCompiledValue;
 
 	// Items dropped and their amount
 	std::vector<std::pair<std::shared_ptr<Item>, int>> itemsDroppedOnDeath;

@@ -8,7 +8,7 @@ std::shared_ptr<LevelPackObject> GlobalTimeBasedEnemySpawnCondition::clone() con
 }
 
 std::string GlobalTimeBasedEnemySpawnCondition::format() const {
-	return formatString("GlobalTimeBasedEnemySpawnCondition") + tos(time);
+	return formatString("GlobalTimeBasedEnemySpawnCondition") + formatString(time);
 }
 
 void GlobalTimeBasedEnemySpawnCondition::load(std::string formattedString) {
@@ -17,16 +17,27 @@ void GlobalTimeBasedEnemySpawnCondition::load(std::string formattedString) {
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> GlobalTimeBasedEnemySpawnCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
-	//TODO: legal
-	return std::make_pair(LEGAL_STATUS::ILLEGAL, std::vector<std::string>());
+	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
+	std::vector<std::string> messages;
+	exprtk::parser<float> parser;
+	if (!expressionStrIsValid(parser, time, symbolTable)) {
+		status = std::max(status, LEGAL_STATUS::ILLEGAL);
+		messages.push_back("Invalid expression for time");
+	}
+	return std::make_pair(status, messages);
 }
 
 void GlobalTimeBasedEnemySpawnCondition::compileExpressions(exprtk::symbol_table<float> symbolTable) {
-	// TODO
+	exprtk::parser<float> parser;
+	timeExpr = exprtk::expression<float>();
+	timeExpr.register_symbol_table(symbolTable);
+	parser.compile(time, timeExpr);
+
+	timeExprCompiledValue = timeExpr.value();
 }
 
 bool GlobalTimeBasedEnemySpawnCondition::satisfied(entt::DefaultRegistry & registry) {
-	return registry.get<LevelManagerTag>().getTimeSinceStartOfLevel() >= time;
+	return registry.get<LevelManagerTag>().getTimeSinceStartOfLevel() >= timeExprCompiledValue;
 }
 
 std::shared_ptr<LevelPackObject> EnemyCountBasedEnemySpawnCondition::clone() const {
@@ -36,7 +47,7 @@ std::shared_ptr<LevelPackObject> EnemyCountBasedEnemySpawnCondition::clone() con
 }
 
 std::string EnemyCountBasedEnemySpawnCondition::format() const {
-	return formatString("EnemyCountBasedEnemySpawnCondition") + tos(enemyCount);
+	return formatString("EnemyCountBasedEnemySpawnCondition") + formatString(enemyCount);
 }
 
 void EnemyCountBasedEnemySpawnCondition::load(std::string formattedString) {
@@ -45,16 +56,27 @@ void EnemyCountBasedEnemySpawnCondition::load(std::string formattedString) {
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EnemyCountBasedEnemySpawnCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
-	//TODO: legal
-	return std::make_pair(LEGAL_STATUS::ILLEGAL, std::vector<std::string>());
+	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
+	std::vector<std::string> messages;
+	exprtk::parser<float> parser;
+	if (!expressionStrIsValid(parser, enemyCount, symbolTable)) {
+		status = std::max(status, LEGAL_STATUS::ILLEGAL);
+		messages.push_back("Invalid expression for enemy count");
+	}
+	return std::make_pair(status, messages);
 }
 
 void EnemyCountBasedEnemySpawnCondition::compileExpressions(exprtk::symbol_table<float> symbolTable) {
-	// TODO
+	exprtk::parser<float> parser;
+	enemyCountExpr = exprtk::expression<float>();
+	enemyCountExpr.register_symbol_table(symbolTable);
+	parser.compile(enemyCount, enemyCountExpr);
+
+	enemyCountExprCompiledValue = (int)std::round(enemyCountExpr.value());
 }
 
 bool EnemyCountBasedEnemySpawnCondition::satisfied(entt::DefaultRegistry & registry) {
-	return registry.view<EnemyComponent>().size() - 1 <= enemyCount;
+	return registry.view<EnemyComponent>().size() - 1 <= enemyCountExprCompiledValue;
 }
 
 std::shared_ptr<LevelPackObject> TimeBasedEnemySpawnCondition::clone() const {
@@ -64,7 +86,7 @@ std::shared_ptr<LevelPackObject> TimeBasedEnemySpawnCondition::clone() const {
 }
 
 std::string TimeBasedEnemySpawnCondition::format() const {
-	return formatString("TimeBasedEnemySpawnCondition") + tos(time);
+	return formatString("TimeBasedEnemySpawnCondition") + formatString(time);
 }
 
 void TimeBasedEnemySpawnCondition::load(std::string formattedString) {
@@ -73,16 +95,27 @@ void TimeBasedEnemySpawnCondition::load(std::string formattedString) {
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> TimeBasedEnemySpawnCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
-	//TODO: legal
-	return std::make_pair(LEGAL_STATUS::ILLEGAL, std::vector<std::string>());
+	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
+	std::vector<std::string> messages;
+	exprtk::parser<float> parser;
+	if (!expressionStrIsValid(parser, time, symbolTable)) {
+		status = std::max(status, LEGAL_STATUS::ILLEGAL);
+		messages.push_back("Invalid expression for time");
+	}
+	return std::make_pair(status, messages);
 }
 
 void TimeBasedEnemySpawnCondition::compileExpressions(exprtk::symbol_table<float> symbolTable) {
-	// TODO
+	exprtk::parser<float> parser;
+	timeExpr = exprtk::expression<float>();
+	timeExpr.register_symbol_table(symbolTable);
+	parser.compile(time, timeExpr);
+
+	timeExprCompiledValue = timeExpr.value();
 }
 
 bool TimeBasedEnemySpawnCondition::satisfied(entt::DefaultRegistry & registry) {
-	return registry.get<LevelManagerTag>().getTimeSinceLastEnemySpawn() >= time;
+	return registry.get<LevelManagerTag>().getTimeSinceLastEnemySpawn() >= timeExprCompiledValue;
 }
 
 std::shared_ptr<LevelEventStartCondition> LevelEventStartConditionFactory::create(std::string formattedString) {
