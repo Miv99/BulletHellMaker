@@ -40,9 +40,7 @@ public:
 
 private:
 	// Minimum time since the start of the level for this condition to be satisfied
-	std::string time;
-	exprtk::expression<float> timeExpr;
-	float timeExprCompiledValue;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(time, float, 0)
 };
 
 /*
@@ -65,9 +63,7 @@ public:
 
 private:
 	// Minimum time since the last enemy's spawn for this condition to be satisfied
-	std::string time;
-	exprtk::expression<float> timeExpr;
-	float timeExprCompiledValue;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(time, float, 0)
 };
 
 /*
@@ -90,9 +86,7 @@ public:
 
 private:
 	// Maximum number of other enemies alive for this condition to be satisfied
-	std::string enemyCount;
-	exprtk::expression<float> enemyCountExpr;
-	int enemyCountExprCompiledValue;
+	DEFINE_EXPRESSION_VARIABLE(enemyCount, int)
 };
 
 /*

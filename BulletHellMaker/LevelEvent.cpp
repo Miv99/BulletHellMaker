@@ -31,7 +31,20 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> SpawnEnemiesL
 		messages.push_back("Missing enemy spawn information.");
 		return std::make_pair(LEGAL_STATUS::ILLEGAL, messages);
 	} else {
-		return std::make_pair(LEGAL_STATUS::LEGAL, messages);
+		LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
+
+		int i = 0;
+		for (std::shared_ptr<EnemySpawnInfo> info : spawnInfo) {
+			auto infoLegal = info->legal(levelPack, spriteLoader);
+			if (infoLegal.first != LEGAL_STATUS::LEGAL) {
+				status = std::max(status, infoLegal.first);
+				tabEveryLine(infoLegal.second);
+				messages.push_back("Enemy spawn info index " + std::to_string(i) + ":");
+				messages.insert(messages.end(), infoLegal.second.begin(), infoLegal.second.end());
+			}
+			i++;
+		}
+		return std::make_pair(status, messages);
 	}
 }
 

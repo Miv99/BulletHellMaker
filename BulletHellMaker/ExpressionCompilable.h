@@ -20,6 +20,13 @@ public:
 	*/
 	virtual void compileExpressions(exprtk::symbol_table<float> symbolTable) = 0;
 
+	/*
+	Returns a reference.
+	*/
+	ValueSymbolTable& getSymbolTable() {
+		return symbolTable;
+	}
+
 protected:
 	// The ValueSymbolTable that defines or redelegates all 
 	// symbols that are used in this object and its unique objects

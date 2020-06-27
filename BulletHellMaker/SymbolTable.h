@@ -20,7 +20,6 @@ require the use of some unrelated symbol table.
 struct ExprSymbolDefinition {
 	// The string used to create the expression that will be used to evaluate this symbol's value
 	std::string expressionStr;
-	exprtk::expression<float> expression;
 };
 
 class ExprSymbolTable : public TextMarshallable {
@@ -28,13 +27,16 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	void setSymbol(std::string symbol, std::string expressionStr);
+	void removeSymbol(std::string symbol);
+
 	/*
 	Returns a symbol_table that defines constant values for every symbol in this ExprSymbolTable.
 
 	higherLevelSymbolTable - the symbol_table that defines all symbols needed to evaluate the expression
 		in every ExprSymbolDefinition
 	*/
-	exprtk::symbol_table<float> getLowerLevelSymbolTable(exprtk::symbol_table<float> higherLevelSymbolTable);
+	exprtk::symbol_table<float> toLowerLevelSymbolTable(exprtk::symbol_table<float> higherLevelSymbolTable);
 
 private:
 	std::map<std::string, ExprSymbolDefinition> map;
@@ -45,15 +47,18 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	void setSymbol(std::string symbol, float value, bool redelegated);
+	void removeSymbol(std::string symbol);
+
 	/*
 	Returns a symbol_table that defines constant values for every unredelegated symbol.
 	*/
-	exprtk::symbol_table<float> getSymbolTable();
+	exprtk::symbol_table<float> toExprtkSymbolTable();
 	/*
 	Returns a symbol_table that defines constant values for every unredelegated symbol
 	and defines every redelegated symbol with value 0.
 	*/
-	exprtk::symbol_table<float> getZeroFilledSymbolTable();
+	exprtk::symbol_table<float> toZeroFilledSymbolTable();
 
 private:
 	std::map<std::string, ValueSymbolDefinition> map;

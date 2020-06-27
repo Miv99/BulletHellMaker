@@ -28,12 +28,8 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> GlobalTimeBas
 }
 
 void GlobalTimeBasedEnemySpawnCondition::compileExpressions(exprtk::symbol_table<float> symbolTable) {
-	exprtk::parser<float> parser;
-	timeExpr = exprtk::expression<float>();
-	timeExpr.register_symbol_table(symbolTable);
-	parser.compile(time, timeExpr);
-
-	timeExprCompiledValue = timeExpr.value();
+	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
+	COMPILE_EXPRESSION_FOR_FLOAT(time)
 }
 
 bool GlobalTimeBasedEnemySpawnCondition::satisfied(entt::DefaultRegistry & registry) {
@@ -67,12 +63,8 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EnemyCountBas
 }
 
 void EnemyCountBasedEnemySpawnCondition::compileExpressions(exprtk::symbol_table<float> symbolTable) {
-	exprtk::parser<float> parser;
-	enemyCountExpr = exprtk::expression<float>();
-	enemyCountExpr.register_symbol_table(symbolTable);
-	parser.compile(enemyCount, enemyCountExpr);
-
-	enemyCountExprCompiledValue = (int)std::round(enemyCountExpr.value());
+	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
+	COMPILE_EXPRESSION_FOR_INT(enemyCount)
 }
 
 bool EnemyCountBasedEnemySpawnCondition::satisfied(entt::DefaultRegistry & registry) {
@@ -106,12 +98,8 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> TimeBasedEnem
 }
 
 void TimeBasedEnemySpawnCondition::compileExpressions(exprtk::symbol_table<float> symbolTable) {
-	exprtk::parser<float> parser;
-	timeExpr = exprtk::expression<float>();
-	timeExpr.register_symbol_table(symbolTable);
-	parser.compile(time, timeExpr);
-
-	timeExprCompiledValue = timeExpr.value();
+	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
+	COMPILE_EXPRESSION_FOR_FLOAT(time)
 }
 
 bool TimeBasedEnemySpawnCondition::satisfied(entt::DefaultRegistry & registry) {

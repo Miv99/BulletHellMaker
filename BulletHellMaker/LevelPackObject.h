@@ -8,6 +8,50 @@
 #include "TextMarshallable.h"
 #include "SymbolTable.h"
 
+#define DEFINE_PARSER_AND_EXPR_FOR_COMPILE exprtk::parser<float> parser; \
+exprtk::expression<float> expr = exprtk::expression<float>(); \
+expr.register_symbol_table(symbolTable); \
+/*
+Macro for defining a variable whose value is defined by an expression, for a LevelPackObject. 
+The getter for the variable should return NameExprCompiledValue.
+*/
+#define DEFINE_EXPRESSION_VARIABLE(Name, Type) std::string Name; \
+exprtk::expression<float> Name##Expr; \
+Type Name##ExprCompiledValue;\
+/*
+Same thing as DEFINE_EXPRESSION_VARIABLE but with a default string value.
+*/
+#define DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(Name, Type, DefaultString) std::string Name = #DefaultString; \
+exprtk::expression<float> Name##Expr; \
+Type Name##ExprCompiledValue;\
+/*
+This macro only works if variables following the naming scheme in DEFINE_EXPRESSION_VARIABLE with float for TypeName.
+
+Usage:
+void compileExpressions(exprtk::symbol_table<float> symbolTable) {
+	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
+	COMPILE_EXPRESSION_FOR_FLOAT(name1)
+	COMPILE_EXPRESSION_FOR_FLOAT(name2)
+	...
+}
+...
+*/
+#define COMPILE_EXPRESSION_FOR_FLOAT(Name) parser.compile(##Name, expr); \
+Name##ExprCompiledValue = expr.value();
+/*
+This macro only works if variables following the naming scheme in DEFINE_EXPRESSION_VARIABLE with int for TypeName.
+
+Usage:
+void compileExpressions(exprtk::symbol_table<float> symbolTable) {
+	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
+	COMPILE_EXPRESSION_FOR_INT(name1)
+	COMPILE_EXPRESSION_FOR_INT(name2)
+	...
+}
+*/
+#define COMPILE_EXPRESSION_FOR_INT(Name) parser.compile(##Name, expr); \
+Name##ExprCompiledValue = (int)std::round(expr.value());
+
 /*
 Returns whether the file in the file path exists.
 */

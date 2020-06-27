@@ -53,7 +53,6 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorAttack:
 		status = std::max(status, LEGAL_STATUS::ILLEGAL);
 		messages.push_back("Attack \"" + name + "\" is missing its mainEMP");
 	}
-	// TODO: legal
 	return std::make_pair(status, messages);
 }
 

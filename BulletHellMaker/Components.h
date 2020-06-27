@@ -341,7 +341,7 @@ private:
 
 class PlayerTag {
 public:
-	PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack, uint32_t self, float speed, float focusedSpeed, float invulnerabilityTime, const std::vector<PlayerPowerTier> powerTiers,
+	PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack, uint32_t self, float speed, float focusedSpeed, float invulnerabilityTime, std::vector<std::shared_ptr<PlayerPowerTier>> powerTiers,
 		SoundSettings hurtSound, SoundSettings deathSound, int initialBombs, int maxBombs, float bombInvincibilityTime);
 
 	/*
@@ -391,7 +391,7 @@ private:
 	// Amount of time the player becomes invinicible for when they activate a bomb
 	float bombInvincibilityTime;
 
-	std::vector<PlayerPowerTier> powerTiers;
+	std::vector<std::shared_ptr<PlayerPowerTier>> powerTiers;
 	int currentPowerTierIndex = 0;
 
 	// Total time for every attack to execute in addition to the loop delay

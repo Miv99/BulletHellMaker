@@ -137,7 +137,7 @@ void EditorMovablePoint::load(std::string formattedString) {
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorMovablePoint::legal(LevelPack & levelPack, SpriteLoader & spriteLoader) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
-	std::vector<std::string> messages;
+	std::vector<std::string> messages = { "Movable point ID " + std::to_string(id) };
 	if (actions.size() == 0) {
 		status = std::max(status, LEGAL_STATUS::ILLEGAL);
 		messages.push_back("MovablePoint id " + tos(id) + " must not have an empty list of actions");
@@ -187,7 +187,8 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorMovable
 		auto childLegal = child->legal(levelPack, spriteLoader);
 		if (childLegal.first != LEGAL_STATUS::LEGAL) {
 			status = std::max(status, childLegal.first);
-			tabEveryLine(childLegal.second);
+			// Don't tab the result messages or else the root EMP legal() messages will have a bunch of tabs
+
 			messages.insert(messages.end(), childLegal.second.begin(), childLegal.second.end());
 		}
 	}

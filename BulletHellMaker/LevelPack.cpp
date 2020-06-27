@@ -242,17 +242,18 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	player->setBombInvincibilityTime(5);
 	player->setBombSprite(Animatable("GUI\\bomb.png", "", true, LOCK_ROTATION));
 	player->setDiscretePlayerHPSprite(Animatable("GUI\\heart.png", "", true, LOCK_ROTATION));
-	player->setFocusedSpeed(150);
-	player->setHitboxRadius(1);
-	player->setInitialHealth(10);
-	player->setInvulnerabilityTime(1.0f);
-	player->setMaxHealth(10);
-	player->setSpeed(300);
-	player->insertPowerTier(0, PlayerPowerTier(pset1, playerAP->getID(), 0.1f, playerFocusedAP->getID(), 0.5f, bombAP->getID(), 5.0f));
-	player->insertPowerTier(1, PlayerPowerTier(pset2, playerAP2->getID(), 0.01f, playerFocusedAP->getID(), 0.5f, bombAP->getID(), 5.0f));
+	player->setFocusedSpeed("150");
+	player->setHitboxRadius("1");
+	player->setInitialHealth("a + 3");
+	player->setInvulnerabilityTime("1.0f");
+	player->setMaxHealth("a + 3");
+	player->setSpeed("300");
+	player->insertPowerTier(0, std::make_shared<PlayerPowerTier>(pset1, playerAP->getID(), "0.1", playerFocusedAP->getID(), "0.5", bombAP->getID(), "5"));
+	player->insertPowerTier(1, std::make_shared <PlayerPowerTier>(pset2, playerAP2->getID(), "0.01", playerFocusedAP->getID(), "0.5", bombAP->getID(), "5"));
 	player->setHurtSound(SoundSettings("oof.wav", 10));
 	player->setDeathSound(SoundSettings("death.ogg"));
 	player->setBombReadySound(SoundSettings("bomb_ready.wav"));
+	player->getSymbolTable().setSymbol("a", 11, false);
 	this->setPlayer(player);
 
 	setFontFileName("GUI\\font.ttf");
@@ -652,8 +653,9 @@ std::shared_ptr<Level> LevelPack::getGameplayLevel(int levelIndex) const {
 	auto level = levels[levelIndex]->clone();
 	// Level is a top-level object so every expression it uses should be in terms of only its own
 	// unredelegated, well-defined symbols
-	std::dynamic_pointer_cast<Level>(level)->compileExpressions(exprtk::symbol_table<float>());
-	return std::dynamic_pointer_cast<Level>(level);
+	auto derived = std::dynamic_pointer_cast<Level>(level);
+	derived->compileExpressions(derived->getSymbolTable().toExprtkSymbolTable());
+	return derived;
 }
 
 std::shared_ptr<EditorAttack> LevelPack::getAttack(int id) const {
@@ -677,7 +679,12 @@ std::shared_ptr<BulletModel> LevelPack::getBulletModel(int id) const {
 }
 
 std::shared_ptr<EditorPlayer> LevelPack::getPlayer() {
-	return metadata.getPlayer();
+	auto player = metadata.getPlayer()->clone();
+	// EditorPlayer is a top-level object so every expression it uses should be in terms of only its own
+	// unredelegated, well-defined symbols
+	auto derived = std::dynamic_pointer_cast<EditorPlayer>(player);
+	derived->compileExpressions(derived->getSymbolTable().toExprtkSymbolTable());
+	return derived;
 }
 
 std::string LevelPack::getFontFileName() {

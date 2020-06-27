@@ -16,14 +16,22 @@ void ExprSymbolTable::load(std::string formattedString) {
     }
 }
 
-exprtk::symbol_table<float> ExprSymbolTable::getLowerLevelSymbolTable(exprtk::symbol_table<float> higherLevelSymbolTable) {
+void ExprSymbolTable::setSymbol(std::string symbol, std::string expressionStr) {
+    map[symbol] = { expressionStr };
+}
+
+void ExprSymbolTable::removeSymbol(std::string symbol) {
+    map.erase(symbol);
+}
+
+exprtk::symbol_table<float> ExprSymbolTable::toLowerLevelSymbolTable(exprtk::symbol_table<float> higherLevelSymbolTable) {
     exprtk::parser<float> parser;
     exprtk::symbol_table<float> table;
     for (auto it = map.begin(); it != map.end(); it++) {
-        it->second.expression = exprtk::expression<float>();
-        it->second.expression.register_symbol_table(higherLevelSymbolTable);
-        parser.compile(it->second.expressionStr, it->second.expression);
-        float value = it->second.expression.value();
+        exprtk::expression<float> expression = exprtk::expression<float>();
+        expression.register_symbol_table(higherLevelSymbolTable);
+        parser.compile(it->second.expressionStr, expression);
+        float value = expression.value();
         table.add_variable(it->first, value, true);
     }
     return table;
@@ -45,7 +53,15 @@ void ValueSymbolTable::load(std::string formattedString) {
     }
 }
 
-exprtk::symbol_table<float> ValueSymbolTable::getSymbolTable() {
+void ValueSymbolTable::setSymbol(std::string symbol, float value, bool redelegated) {
+    map[symbol] = { value, redelegated };
+}
+
+void ValueSymbolTable::removeSymbol(std::string symbol) {
+    map.erase(symbol);
+}
+
+exprtk::symbol_table<float> ValueSymbolTable::toExprtkSymbolTable() {
     exprtk::symbol_table<float> table;
     for (auto it = map.begin(); it != map.end(); it++) {
         // Add as constants so that the symbol_table is still valid even after the floats go out of scope
@@ -57,7 +73,7 @@ exprtk::symbol_table<float> ValueSymbolTable::getSymbolTable() {
     return table;
 }
 
-exprtk::symbol_table<float> ValueSymbolTable::getZeroFilledSymbolTable() {
+exprtk::symbol_table<float> ValueSymbolTable::toZeroFilledSymbolTable() {
     exprtk::symbol_table<float> table;
     for (auto it = map.begin(); it != map.end(); it++) {
         // Add as constants so that the symbol_table is still valid even after the floats go out of scope

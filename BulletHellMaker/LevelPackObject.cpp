@@ -19,7 +19,7 @@ bool expressionStrIsValid(exprtk::parser<float>& parser, const std::string& expr
 	try {
 		parser.compile(expressionStr, expression);
 		// The actual result isn't important; just need to test whether it works, so just get a symbol_table with any values
-		expression.register_symbol_table(symbolTable.getZeroFilledSymbolTable());
+		expression.register_symbol_table(symbolTable.toZeroFilledSymbolTable());
 		expression.value();
 	} catch (...) {
 		return false;

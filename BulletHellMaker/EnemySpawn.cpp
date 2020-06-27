@@ -45,20 +45,14 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EnemySpawnInf
 		status = std::max(status, LEGAL_STATUS::ILLEGAL);
 		messages.push_back("Invalid expression for y");
 	}
+	// TODO: legal check itemsDroppedOnDeath
 	return std::make_pair(status, messages);
 }
 
 void EnemySpawnInfo::compileExpressions(exprtk::symbol_table<float> symbolTable) {
-	exprtk::parser<float> parser;
-	xExpr = exprtk::expression<float>();
-	yExpr = exprtk::expression<float>();
-	xExpr.register_symbol_table(symbolTable);
-	yExpr.register_symbol_table(symbolTable);
-	parser.compile(x, xExpr);
-	parser.compile(y, yExpr);
-
-	xExprCompiledValue = xExpr.value();
-	yExprCompiledValue = yExpr.value();
+	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
+	COMPILE_EXPRESSION_FOR_FLOAT(x)
+	COMPILE_EXPRESSION_FOR_FLOAT(y)
 }
 
 void EnemySpawnInfo::spawnEnemy(SpriteLoader& spriteLoader, const LevelPack& levelPack, entt::DefaultRegistry& registry, EntityCreationQueue& queue) {

@@ -17,6 +17,10 @@
 #include "AudioPlayer.h"
 #include "ExpressionCompilable.h"
 
+/*
+This is a top-level object so every expression this uses should be in terms of only its own unredelegated, well-defined symbols
+meaning every symbol in this object's symbol table is not redelegated.
+*/
 class Level : public TextMarshallable, public LevelPackObject, public ExpressionCompilable {
 public:
 	inline Level() {}
@@ -134,10 +138,6 @@ private:
 
 	// Bloom settings for the level; each index is a separate layer
 	std::vector<BloomSettings> bloomLayerSettings = std::vector<BloomSettings>(HIGHEST_RENDER_LAYER + 1, BloomSettings());
-
-	// This is a top-level object so every expression this uses should be in terms of only its own unredelegated, well-defined symbols
-	// meaning every symbol in here is not redelegated.
-	ValueSymbolTable symbolTable;
 
 	// Maps an EditorEnemy ID to the number of times it will be spawned in events.
 	// This is not saved on format() but is reconstructed in load().

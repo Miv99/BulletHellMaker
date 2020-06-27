@@ -39,12 +39,8 @@ public:
 	
 private:
 	int enemyID;
-	std::string x;
-	std::string y;
-	exprtk::expression<float> xExpr;
-	exprtk::expression<float> yExpr;
-	float xExprCompiledValue;
-	float yExprCompiledValue;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(x, float, 0)
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(y, float, 0)
 
 	// Items dropped and their amount
 	std::vector<std::pair<std::shared_ptr<Item>, int>> itemsDroppedOnDeath;

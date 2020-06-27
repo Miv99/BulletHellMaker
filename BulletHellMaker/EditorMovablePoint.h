@@ -138,7 +138,6 @@ public:
 
 	std::shared_ptr<LevelPackObject> clone() const override;
 
-
 	std::string format() const override;
 	void load(std::string formattedString) override;
 

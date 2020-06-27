@@ -441,25 +441,25 @@ void AnimatableSetComponent::changeState(int newState, SpriteLoader& spriteLoade
 	}
 }
 
-PlayerTag::PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack, uint32_t self, float speed, float focusedSpeed, float invulnerabilityTime, const std::vector<PlayerPowerTier> powerTiers,
+PlayerTag::PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack, uint32_t self, float speed, float focusedSpeed, float invulnerabilityTime, std::vector<std::shared_ptr<PlayerPowerTier>> powerTiers,
 	SoundSettings hurtSound, SoundSettings deathSound, int initialBombs, int maxBombs, float bombInvincibilityTime) :
 	speed(speed), focusedSpeed(focusedSpeed), invulnerabilityTime(invulnerabilityTime), powerTiers(powerTiers), hurtSound(hurtSound), deathSound(deathSound), bombAttackPattern(bombAttackPattern), 
 	bombs(initialBombs), maxBombs(maxBombs), bombInvincibilityTime(bombInvincibilityTime) {
 	for (int i = 0; i < powerTiers.size(); i++) {
-		bombCooldowns.push_back(powerTiers[i].getBombCooldown());
+		bombCooldowns.push_back(powerTiers[i]->getBombCooldown());
 
 		// Load all the attack patterns
-		attackPatterns.push_back(levelPack.getAttackPattern(powerTiers[i].getAttackPatternID()));
-		focusedAttackPatterns.push_back(levelPack.getAttackPattern(powerTiers[i].getFocusedAttackPatternID()));
-		bombAttackPatterns.push_back(levelPack.getAttackPattern(powerTiers[i].getBombAttackPatternID()));
+		attackPatterns.push_back(levelPack.getAttackPattern(powerTiers[i]->getAttackPatternID()));
+		focusedAttackPatterns.push_back(levelPack.getAttackPattern(powerTiers[i]->getFocusedAttackPatternID()));
+		bombAttackPatterns.push_back(levelPack.getAttackPattern(powerTiers[i]->getBombAttackPatternID()));
 
 		// Calculate attack pattern total times
-		attackPatternTotalTimes.push_back(attackPatterns[i]->getAttackData(attackPatterns[i]->getAttacksCount() - 1).first + powerTiers[i].getAttackPatternLoopDelay());
-		focusedAttackPatternTotalTimes.push_back(focusedAttackPatterns[i]->getAttackData(focusedAttackPatterns[i]->getAttacksCount() - 1).first + powerTiers[i].getFocusedAttackPatternLoopDelay());
+		attackPatternTotalTimes.push_back(attackPatterns[i]->getAttackData(attackPatterns[i]->getAttacksCount() - 1).first + powerTiers[i]->getAttackPatternLoopDelay());
+		focusedAttackPatternTotalTimes.push_back(focusedAttackPatterns[i]->getAttackData(focusedAttackPatterns[i]->getAttacksCount() - 1).first + powerTiers[i]->getFocusedAttackPatternLoopDelay());
 	}
 
 	currentPowerTierIndex = 0;
-	registry.get<AnimatableSetComponent>(self).setAnimatableSet(powerTiers[currentPowerTierIndex].getAnimatableSet());
+	registry.get<AnimatableSetComponent>(self).setAnimatableSet(powerTiers[currentPowerTierIndex]->getAnimatableSet());
 
 	// Initialize time since last bomb activation such that user can attack/bomb at t=0
 	timeSinceLastBombActivation = bombCooldowns[0];
@@ -566,7 +566,7 @@ void PlayerTag::increasePower(entt::DefaultRegistry& registry, uint32_t self, in
 			}
 
 			// Update this entity's EntityAnimatableSet
-			registry.get<AnimatableSetComponent>(self).setAnimatableSet(powerTiers[currentPowerTierIndex].getAnimatableSet());
+			registry.get<AnimatableSetComponent>(self).setAnimatableSet(powerTiers[currentPowerTierIndex]->getAnimatableSet());
 		} else {
 			// Already reached power cap
 

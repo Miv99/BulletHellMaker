@@ -7,96 +7,106 @@
 #include "EntityAnimatableSet.h"
 #include "SpriteLoader.h"
 #include "AudioPlayer.h"
+#include "ExpressionCompilable.h"
+#include "LevelPackObject.h"
 
-class PlayerPowerTier : public TextMarshallable {
+class PlayerPowerTier : public TextMarshallable, public LevelPackObject, public ExpressionCompilable {
 public:
 	inline PlayerPowerTier() {}
-	inline PlayerPowerTier(EntityAnimatableSet animatableSet, int attackPatternID, float attackPatternLoopDelay, int focusedAttackPatternID, float focusedAttackPatternLoopDelay, int bombAttackPatternID, float bombCooldown) :
-		animatableSet(animatableSet), attackPatternID(attackPatternID), attackPatternLoopDelay(attackPatternLoopDelay), focusedAttackPatternID(focusedAttackPatternID), focusedAttackPatternLoopDelay(focusedAttackPatternLoopDelay), bombAttackPatternID(bombAttackPatternID), bombCooldown(bombCooldown) {}
+	inline PlayerPowerTier(EntityAnimatableSet animatableSet, int attackPatternID, std::string attackPatternLoopDelay, int focusedAttackPatternID, std::string focusedAttackPatternLoopDelay, int bombAttackPatternID, std::string bombCooldown) :
+		animatableSet(animatableSet), attackPatternID(attackPatternID), attackPatternLoopDelay(attackPatternLoopDelay), focusedAttackPatternID(focusedAttackPatternID), 
+		focusedAttackPatternLoopDelay(focusedAttackPatternLoopDelay), bombAttackPatternID(bombAttackPatternID), bombCooldown(bombCooldown) {}
+
+	std::shared_ptr<LevelPackObject> clone() const;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const;
+	void compileExpressions(exprtk::symbol_table<float> symbolTable) override;
+
 	inline const EntityAnimatableSet& getAnimatableSet() const { return animatableSet; }
 	inline int getAttackPatternID() const { return attackPatternID; }
-	inline float getAttackPatternLoopDelay() const { return attackPatternLoopDelay; }
+	inline float getAttackPatternLoopDelay() const { return attackPatternLoopDelayExprCompiledValue; }
 	inline int getFocusedAttackPatternID() const { return focusedAttackPatternID; }
-	inline float getFocusedAttackPatternLoopDelay() const { return focusedAttackPatternLoopDelay; }
+	inline float getFocusedAttackPatternLoopDelay() const { return focusedAttackPatternLoopDelayExprCompiledValue; }
 	inline int getBombAttackPatternID() const { return bombAttackPatternID; }
-	inline float getBombCooldown() const { return bombCooldown; }
+	inline float getBombCooldown() const { return bombCooldownExprCompiledValue; }
 
 	inline void setAttackPatternID(int id) { attackPatternID = id; }
-	inline void setAttackPatternLoopDelay(float attackPatternLoopDelay) { this->attackPatternLoopDelay = attackPatternLoopDelay; }
+	inline void setAttackPatternLoopDelay(std::string attackPatternLoopDelay) { this->attackPatternLoopDelay = attackPatternLoopDelay; }
 	inline void setFocusedAttackPatternID(int id) { focusedAttackPatternID = id; }
-	inline void setFocusedAttackPatternLoopDelay(float focusedAttackPatternLoopDelay) { this->focusedAttackPatternLoopDelay = focusedAttackPatternLoopDelay; }
+	inline void setFocusedAttackPatternLoopDelay(std::string focusedAttackPatternLoopDelay) { this->focusedAttackPatternLoopDelay = focusedAttackPatternLoopDelay; }
 	inline void setBombAttackPatternID(int id) { bombAttackPatternID = id; }
-	inline void setBombCooldown(float bombCooldown) { this->bombCooldown = bombCooldown; }
+	inline void setBombCooldown(std::string bombCooldown) { this->bombCooldown = bombCooldown; }
 
 private:
 	EntityAnimatableSet animatableSet;
 
 	int attackPatternID;
 	// Time after attack pattern ends until it starts looping again
-	float attackPatternLoopDelay;
+	DEFINE_EXPRESSION_VARIABLE(attackPatternLoopDelay, float)
+
 	int focusedAttackPatternID;
-	float focusedAttackPatternLoopDelay;
+	DEFINE_EXPRESSION_VARIABLE(focusedAttackPatternLoopDelay, float)
 
 	// Attack pattern ID of the attack pattern that plays when a bomb is used
 	int bombAttackPatternID;
 	// Time after a bomb is used that the player can use another bomb. Should be greater than the time to go through every attack in the bomb attack pattern.
-	float bombCooldown;
+	DEFINE_EXPRESSION_VARIABLE(bombCooldown, float)
 };
 
-class EditorPlayer : public TextMarshallable {
+class EditorPlayer : public TextMarshallable, public LevelPackObject, public ExpressionCompilable {
 public:
 	inline EditorPlayer() {}
+
+	std::shared_ptr<LevelPackObject> clone() const;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	bool legal(SpriteLoader& spriteLoader, std::string& message);
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const;
+	void compileExpressions(exprtk::symbol_table<float> symbolTable) override;
 
-	inline int getInitialHealth() const { return initialHealth; }
-	inline int getMaxHealth() const { return maxHealth; }
-	inline float getSpeed() const { return speed; }
-	inline float getFocusedSpeed() const { return focusedSpeed; }
-	inline const std::vector<PlayerPowerTier>& getPowerTiers() const { return powerTiers; }
-	inline float getHitboxRadius() const { return hitboxRadius; }
-	inline float getHitboxPosX() const { return hitboxPosX; }
-	inline float getHitboxPosY() const { return hitboxPosY; }
-	inline float getInvulnerabilityTime() const { return invulnerabilityTime; }
+	inline int getInitialHealth() const { return initialHealthExprCompiledValue; }
+	inline int getMaxHealth() const { return maxHealthExprCompiledValue; }
+	inline float getSpeed() const { return speedExprCompiledValue; }
+	inline float getFocusedSpeed() const { return focusedSpeedExprCompiledValue; }
+	inline std::vector<std::shared_ptr<PlayerPowerTier>> getPowerTiers() const { return powerTiers; }
+	inline float getHitboxRadius() const { return hitboxRadiusExprCompiledValue; }
+	inline float getHitboxPosX() const { return hitboxPosXExprCompiledValue; }
+	inline float getHitboxPosY() const { return hitboxPosYExprCompiledValue; }
+	inline float getInvulnerabilityTime() const { return invulnerabilityTimeExprCompiledValue; }
 	inline SoundSettings getHurtSound() const { return hurtSound; }
 	inline SoundSettings getDeathSound() const { return deathSound; }
 	inline bool getSmoothPlayerHPBar() const { return smoothPlayerHPBar; }
 	inline sf::Color getPlayerHPBarColor() const { return playerHPBarColor; }
 	inline Animatable getDiscretePlayerHPSprite() const { return discretePlayerHPSprite; }
-	inline int getInitialBombs() const { return initialBombs; }
-	inline int getMaxBombs() const { return maxBombs; }
+	inline int getInitialBombs() const { return initialBombsExprCompiledValue; }
+	inline int getMaxBombs() const { return maxBombsExprCompiledValue; }
 	inline Animatable getBombSprite() const { return bombSprite; }
 	inline SoundSettings getBombReadySound() const { return bombReadySound; }
-	inline float getBombInvincibilityTime() const { return bombInvincibilityTime; }
+	inline float getBombInvincibilityTime() const { return bombInvincibilityTimeExprCompiledValue; }
 	inline bool usesAttackPattern(int attackPatternID) const { return attackPatternIDCount.count(attackPatternID) > 0 && attackPatternIDCount.at(attackPatternID) > 0; }
 
-	/*
-	Returns a reference to the power tier.
-	*/
-	inline PlayerPowerTier& getPowerTier(int index) { return powerTiers[index]; }
+	inline std::shared_ptr<PlayerPowerTier> getPowerTier(int index) { return powerTiers[index]; }
 
 	inline void setHurtSound(SoundSettings hurtSound) { this->hurtSound = hurtSound; }
 	inline void setDeathSound(SoundSettings deathSound) { this->deathSound = deathSound; }
 	inline void setBombReadySound(SoundSettings bombReadySound) { this->bombReadySound = bombReadySound; }
-	inline void setInitialHealth(int initialHealth) { this->initialHealth = initialHealth; }
-	inline void setMaxHealth(int maxHealth) { this->maxHealth = maxHealth; }
-	inline void setSpeed(float speed) { this->speed = speed; }
-	inline void setFocusedSpeed(float focusedSpeed) { this->focusedSpeed = focusedSpeed; }
-	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; }
-	inline void setHitboxPosX(float hitboxPosX) { this->hitboxPosX = hitboxPosX; }
-	inline void setHitboxPosY(float hitboxPosY) { this->hitboxPosY = hitboxPosY; }
-	inline void setInvulnerabilityTime(float invulnerabilityTime) { this->invulnerabilityTime = invulnerabilityTime; }
-	inline void insertPowerTier(int index, PlayerPowerTier powerTier) { 
+	inline void setInitialHealth(std::string initialHealth) { this->initialHealth = initialHealth; }
+	inline void setMaxHealth(std::string maxHealth) { this->maxHealth = maxHealth; }
+	inline void setSpeed(std::string speed) { this->speed = speed; }
+	inline void setFocusedSpeed(std::string focusedSpeed) { this->focusedSpeed = focusedSpeed; }
+	inline void setHitboxRadius(std::string hitboxRadius) { this->hitboxRadius = hitboxRadius; }
+	inline void setHitboxPosX(std::string hitboxPosX) { this->hitboxPosX = hitboxPosX; }
+	inline void setHitboxPosY(std::string hitboxPosY) { this->hitboxPosY = hitboxPosY; }
+	inline void setInvulnerabilityTime(std::string invulnerabilityTime) { this->invulnerabilityTime = invulnerabilityTime; }
+	inline void insertPowerTier(int index, std::shared_ptr<PlayerPowerTier> powerTier) { 
 		powerTiers.insert(powerTiers.begin() + index, powerTier);
 
-		int attackPatternID = powerTier.getAttackPatternID();
+		// Update attackPatternIDCount
+		int attackPatternID = powerTier->getAttackPatternID();
 		if (attackPatternIDCount.count(attackPatternID) == 0) {
 			attackPatternIDCount[attackPatternID] = 1;
 		} else {
@@ -104,38 +114,47 @@ public:
 		}
 	}
 	inline void removePowerTier(int index) {
-		int attackPatternID = powerTiers[index].getAttackPatternID();
+		int attackPatternID = powerTiers[index]->getAttackPatternID();
 		powerTiers.erase(powerTiers.begin() + index);
 		attackPatternIDCount[attackPatternID]--;
+
+		// Update attackPatternIDCount
+		if (attackPatternID >= 0 && attackPatternIDCount.count(attackPatternID) > 0) {
+			attackPatternIDCount.at(attackPatternID)--;
+			if (attackPatternIDCount.at(attackPatternID) == 0) {
+				attackPatternIDCount.erase(attackPatternID);
+			}
+		}
 	}
 	inline void setSmoothPlayerHPBar(bool smoothPlayerHPBar) { this->smoothPlayerHPBar = smoothPlayerHPBar; }
 	inline void setPlayerHPBarColor(sf::Color playerHPBarColor) { this->playerHPBarColor = playerHPBarColor; }
 	inline void setDiscretePlayerHPSprite(Animatable discretePlayerHPSprite) { this->discretePlayerHPSprite = discretePlayerHPSprite; }
-	inline void getInitialBombs(int initialBombs) { this->initialBombs = initialBombs; }
-	inline void getMaxBombs(int initialBombs) { this->initialBombs = maxBombs; }
+	inline void getInitialBombs(std::string initialBombs) { this->initialBombs = initialBombs; }
+	inline void getMaxBombs(std::string initialBombs) { this->initialBombs = maxBombs; }
 	inline void setBombSprite(Animatable bombSprite) { this->bombSprite = bombSprite; }
 	inline void setBombInvincibilityTime(float bombInvincibilityTime) {	this->bombInvincibilityTime = bombInvincibilityTime; }
 
 private:
-	int initialHealth = 3;
-	int maxHealth = 5;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(initialHealth, float, 3)
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(maxHealth, float, 5)
 	// Default player speed
-	float speed = 120;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(speed, float, 120)
 	// Player speed when holding focus key
-	float focusedSpeed = 40;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(focusedSpeed, float, 40)
 
-	// Radius of the hitbox associated with this enemy
-	float hitboxRadius = 1;
+	// Radius of the player's hitbox
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(hitboxRadius, float, 1)
 	// Local position of hitbox
-	float hitboxPosX = 0, hitboxPosY = 0;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(hitboxPosX, float, 0)
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(hitboxPosY, float, 0)
 
 	// Time player is invulnerable for when hit by an enemy bullet
-	float invulnerabilityTime = 2.0f;
-	
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(invulnerabilityTime, float, 2)
+
 	/*
 	The player's power tier increase every POWER_PER_POWER_TIER power, which come from power packs dropped by enemies.
 	*/
-	std::vector<PlayerPowerTier> powerTiers;
+	std::vector<std::shared_ptr<PlayerPowerTier>> powerTiers;
 
 	SoundSettings hurtSound;
 	SoundSettings deathSound;
@@ -149,14 +168,14 @@ private:
 	// The sprite shown on the GUI to denote a bomb. Must be a sprite.
 	Animatable bombSprite;
 
-	int initialBombs = 2;
-	int maxBombs = 6;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(initialBombs, int, 2)
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(maxBombs, int, 6)
 
 	// Sound played when bomb is off cooldown
 	SoundSettings bombReadySound;
 
 	// Amount of time player is invincible for after activating a bomb
-	float bombInvincibilityTime = 5.0f;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(bombInvincibilityTime, float, 5)
 
 	// Maps an EditorAttackPattern's ID to the number of times it appears in powerTiers.
 	// This map isn't saved in format() but is reconstructed in load().

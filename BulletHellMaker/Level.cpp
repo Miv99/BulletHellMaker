@@ -74,16 +74,38 @@ void Level::load(std::string formattedString) {
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> Level::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
-	//TODO: legal
-	// TODO: check animatable's packs can be opened
-	return std::make_pair(LEGAL_STATUS::ILLEGAL, std::vector<std::string>());
+	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
+	std::vector<std::string> messages;
+
+	int i = 0;
+	for (std::pair<std::shared_ptr<LevelEventStartCondition>, std::shared_ptr<LevelEvent>> p : events) {
+		auto eventStartConditionLegal = p.first->legal(levelPack, spriteLoader);
+		if (eventStartConditionLegal.first != LEGAL_STATUS::LEGAL) {
+			status = std::max(status, eventStartConditionLegal.first);
+			tabEveryLine(eventStartConditionLegal.second);
+			messages.push_back("Event index " + std::to_string(i) + ":");
+			messages.insert(messages.end(), eventStartConditionLegal.second.begin(), eventStartConditionLegal.second.end());
+		}
+
+		auto eventLegal = p.second->legal(levelPack, spriteLoader);
+		if (eventLegal.first != LEGAL_STATUS::LEGAL) {
+			status = std::max(status, eventLegal.first);
+			tabEveryLine(eventLegal.second);
+			messages.push_back("Event index " + std::to_string(i) + ":");
+			messages.insert(messages.end(), eventLegal.second.begin(), eventLegal.second.end());
+		}
+
+		i++;
+	}
+	// TODO: legal check healthPack, pointPack, powerPack, bombItem, musicSettings, bloomLayerSettings
+	return std::make_pair(status, messages);
 }
 
 void Level::compileExpressions(exprtk::symbol_table<float> symbolTable) {
 	// Compile expressions in every LevelEvent.
 	// This is a top-level object so every expression this uses should be in terms of only its own
 	// unredelegated, well-defined symbols
-	exprtk::symbol_table<float> mySymbolTable = this->symbolTable.getSymbolTable();
+	exprtk::symbol_table<float> mySymbolTable = this->symbolTable.toExprtkSymbolTable();
 	for (auto p : events) {
 		p.second->compileExpressions(mySymbolTable);
 	}
