@@ -1,7 +1,7 @@
 #include "LevelEvent.h"
 
 std::string SpawnEnemiesLevelEvent::format() const {
-	std::string res = formatString("SpawnEnemiesLevelEvent") + tos(spawnInfo.size());
+	std::string res = formatString("SpawnEnemiesLevelEvent") + tos(spawnInfo.size()) + formatTMObject(symbolTable);
 	for (auto info : spawnInfo) {
 		res += formatTMObject(*info);
 	}
@@ -11,8 +11,9 @@ std::string SpawnEnemiesLevelEvent::format() const {
 void SpawnEnemiesLevelEvent::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	int numInfo = std::stoi(items[1]);
+	symbolTable.load(items[2]);
 	spawnInfo.clear();
-	for (int i = 2; i < numInfo + 2; i++) {
+	for (int i = 3; i < numInfo + 3; i++) {
 		std::shared_ptr<EnemySpawnInfo> info = std::make_shared<EnemySpawnInfo>();
 		info->load(items[i]);
 		spawnInfo.push_back(info);
@@ -62,7 +63,8 @@ void SpawnEnemiesLevelEvent::execute(SpriteLoader & spriteLoader, LevelPack & le
 
 std::string ShowDialogueLevelEvent::format() const {
 	std::string res = formatString("ShowDialogueLevelEvent") + tos(static_cast<int>(dialogueBoxPosition)) + tos(static_cast<int>(dialogueBoxShowAnimationType)) + tos(dialogueBoxShowAnimationTime)
-		+ formatString(dialogueBoxTextureFileName) + tos(textureMiddlePart.left) + tos(textureMiddlePart.top) + tos(textureMiddlePart.width) + tos(textureMiddlePart.height) + formatString(dialogueBoxPortraitFileName);
+		+ formatString(dialogueBoxTextureFileName) + tos(textureMiddlePart.left) + tos(textureMiddlePart.top) + tos(textureMiddlePart.width) + tos(textureMiddlePart.height) 
+		+ formatString(dialogueBoxPortraitFileName) + formatTMObject(symbolTable);
 	for (std::string str : text) {
 		res += formatString(str);
 	}
@@ -77,8 +79,9 @@ void ShowDialogueLevelEvent::load(std::string formattedString) {
 	dialogueBoxTextureFileName = items[4];
 	textureMiddlePart = sf::IntRect(std::stoi(items[5]), std::stoi(items[6]), std::stoi(items[7]), std::stoi(items[8]));
 	dialogueBoxPortraitFileName = items[9];
+	symbolTable.load(items[10]);
 	text.clear();
-	for (int i = 10; i < items.size() + 10; i++) {
+	for (int i = 11; i < items.size() + 11; i++) {
 		text.push_back(items[i]);
 	}
 }

@@ -8,12 +8,13 @@ std::shared_ptr<LevelPackObject> GlobalTimeBasedEnemySpawnCondition::clone() con
 }
 
 std::string GlobalTimeBasedEnemySpawnCondition::format() const {
-	return formatString("GlobalTimeBasedEnemySpawnCondition") + formatString(time);
+	return formatString("GlobalTimeBasedEnemySpawnCondition") + formatString(time) + formatTMObject(symbolTable);
 }
 
 void GlobalTimeBasedEnemySpawnCondition::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	time = std::stof(items[1]);
+	symbolTable.load(items[2]);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> GlobalTimeBasedEnemySpawnCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
@@ -43,12 +44,13 @@ std::shared_ptr<LevelPackObject> EnemyCountBasedEnemySpawnCondition::clone() con
 }
 
 std::string EnemyCountBasedEnemySpawnCondition::format() const {
-	return formatString("EnemyCountBasedEnemySpawnCondition") + formatString(enemyCount);
+	return formatString("EnemyCountBasedEnemySpawnCondition") + formatString(enemyCount) + formatTMObject(symbolTable);
 }
 
 void EnemyCountBasedEnemySpawnCondition::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	enemyCount = std::stoi(items[1]);
+	symbolTable.load(items[2]);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EnemyCountBasedEnemySpawnCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
@@ -78,12 +80,13 @@ std::shared_ptr<LevelPackObject> TimeBasedEnemySpawnCondition::clone() const {
 }
 
 std::string TimeBasedEnemySpawnCondition::format() const {
-	return formatString("TimeBasedEnemySpawnCondition") + formatString(time);
+	return formatString("TimeBasedEnemySpawnCondition") + formatString(time) + formatTMObject(symbolTable);
 }
 
 void TimeBasedEnemySpawnCondition::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	time = std::stof(items[1]);
+	symbolTable.load(items[2]);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> TimeBasedEnemySpawnCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {

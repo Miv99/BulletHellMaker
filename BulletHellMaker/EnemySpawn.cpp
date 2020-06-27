@@ -15,7 +15,7 @@ std::shared_ptr<LevelPackObject> EnemySpawnInfo::clone() const {
 }
 
 std::string EnemySpawnInfo::format() const {
-	std::string res = formatString(x) + formatString(y) + tos(enemyID);
+	std::string res = formatString(x) + formatString(y) + tos(enemyID) + formatTMObject(symbolTable);
 	for (auto pair : itemsDroppedOnDeath) {
 		res += formatTMObject(*pair.first) + tos(pair.second);
 	}
@@ -27,8 +27,9 @@ void EnemySpawnInfo::load(std::string formattedString) {
 	x = items[0];
 	y = items[1];
 	enemyID = std::stoi(items[2]);
+	symbolTable.load(items[3]);
 	itemsDroppedOnDeath.clear();
-	for (int i = 3; i < items.size(); i += 2) {
+	for (int i = 4; i < items.size(); i += 2) {
 		itemsDroppedOnDeath.push_back(std::make_pair(ItemFactory::create(items[i]), std::stoi(items[i + 1])));
 	}
 }

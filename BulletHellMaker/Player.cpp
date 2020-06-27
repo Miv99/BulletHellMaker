@@ -14,7 +14,7 @@ std::string EditorPlayer::format() const {
 	}
 	ret += formatTMObject(hurtSound) + formatTMObject(deathSound) + formatBool(smoothPlayerHPBar) + tos(playerHPBarColor.r) + tos(playerHPBarColor.g)
 		+ tos(playerHPBarColor.b) + tos(playerHPBarColor.a) + formatTMObject(discretePlayerHPSprite) + formatString(initialBombs) + formatString(maxBombs)
-		+ formatString(bombInvincibilityTime) + formatTMObject(bombSprite) + formatTMObject(bombReadySound);
+		+ formatString(bombInvincibilityTime) + formatTMObject(bombSprite) + formatTMObject(bombReadySound) + formatTMObject(symbolTable);
 	return ret;
 }
 
@@ -55,6 +55,7 @@ void EditorPlayer::load(std::string formattedString) {
 	bombInvincibilityTime = items[i++];
 	bombSprite.load(items[i++]);
 	bombReadySound.load(items[i++]);
+	symbolTable.load(items[i++]);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorPlayer::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
@@ -150,7 +151,7 @@ std::shared_ptr<LevelPackObject> PlayerPowerTier::clone() const {
 
 std::string PlayerPowerTier::format() const {
 	return formatTMObject(animatableSet) + tos(attackPatternID) + formatString(attackPatternLoopDelay) + tos(focusedAttackPatternID)
-		+ formatString(focusedAttackPatternLoopDelay) + tos(bombAttackPatternID) + formatString(bombCooldown);
+		+ formatString(focusedAttackPatternLoopDelay) + tos(bombAttackPatternID) + formatString(bombCooldown) + formatTMObject(symbolTable);
 }
 
 void PlayerPowerTier::load(std::string formattedString) {
@@ -162,6 +163,7 @@ void PlayerPowerTier::load(std::string formattedString) {
 	focusedAttackPatternLoopDelay = items[4];
 	bombAttackPatternID = std::stoi(items[5]);
 	bombCooldown = items[6];
+	symbolTable.load(items[7]);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> PlayerPowerTier::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
