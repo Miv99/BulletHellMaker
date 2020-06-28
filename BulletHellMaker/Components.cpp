@@ -542,6 +542,10 @@ int PlayerTag::getPowerTierCount() {
 	return powerTiers.size();
 }
 
+int PlayerTag::getPowerToNextTier() {
+	return powerTiers[currentPowerTierIndex]->getPowerToNextTier();
+}
+
 void PlayerTag::setFocused(bool focused) {
 	if (!this->focused && focused) {
 		switchToAttackPattern(focusedAttackPatterns[currentPowerTierIndex], focusedAttackPatternTotalTimes[currentPowerTierIndex]);
@@ -551,13 +555,13 @@ void PlayerTag::setFocused(bool focused) {
 	this->focused = focused;
 }
 
-void PlayerTag::increasePower(entt::DefaultRegistry& registry, uint32_t self, int power) {
-	if (currentPower + power >= POWER_PER_POWER_TIER) {
+void PlayerTag::increasePower(entt::DefaultRegistry& registry, uint32_t self, int power, int pointsPerExtraPower) {
+	if (currentPower + power >= powerTiers[currentPowerTierIndex]->getPowerToNextTier()) {
 		if (currentPowerTierIndex + 1 < powerTiers.size()) {
 			// Power tier up
 
 			currentPowerTierIndex++;
-			currentPower += power - POWER_PER_POWER_TIER;
+			currentPower += power - powerTiers[currentPowerTierIndex]->getPowerToNextTier();
 			// Change attack pattern
 			if (focused) {
 				switchToAttackPattern(focusedAttackPatterns[currentPowerTierIndex], focusedAttackPatternTotalTimes[currentPowerTierIndex]);
@@ -572,8 +576,8 @@ void PlayerTag::increasePower(entt::DefaultRegistry& registry, uint32_t self, in
 
 			currentPower += power;
 			// Increase points
-			registry.get<LevelManagerTag>().addPoints(POINTS_PER_EXTRA_POWER * (currentPower - POWER_PER_POWER_TIER));
-			currentPower = POWER_PER_POWER_PACK;
+			registry.get<LevelManagerTag>().addPoints(pointsPerExtraPower * (currentPower - powerTiers[currentPowerTierIndex]->getPowerToNextTier()));
+			currentPower = powerTiers[currentPowerTierIndex]->getPowerToNextTier();
 		}
 	} else {
 		currentPower += power;
@@ -581,10 +585,10 @@ void PlayerTag::increasePower(entt::DefaultRegistry& registry, uint32_t self, in
 	onPowerChange();
 }
 
-void PlayerTag::gainBombs(entt::DefaultRegistry& registry, int amount) {
+void PlayerTag::gainBombs(entt::DefaultRegistry& registry, int amount, int pointsPerExtraBomb) {
 	if (bombs + amount > maxBombs) {
 		// Increase points depending on number of extra bombs
-		registry.get<LevelManagerTag>().addPoints(POINTS_PER_EXTRA_BOMB * (bombs + amount - maxBombs));
+		registry.get<LevelManagerTag>().addPoints(pointsPerExtraBomb * (bombs + amount - maxBombs));
 
 		bombs = maxBombs;
 	} else {

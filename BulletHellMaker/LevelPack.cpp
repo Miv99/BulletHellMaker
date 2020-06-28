@@ -189,11 +189,11 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 		Animatable("Megaman attack", "sheet1", false, ROTATE_WITH_MOVEMENT),
 		std::make_shared<PlayAnimatableDeathAction>(Animatable("oh my god he's dead", "sheet1", true, ROTATE_WITH_MOVEMENT), PlayAnimatableDeathAction::NONE, 3.0f));
 	auto v1 = std::vector<std::shared_ptr<EnemySpawnInfo>>();
-	std::vector<std::pair<std::shared_ptr<Item>, int>> items;
-	items.push_back(std::make_pair(level->getHealthPack(), 3));
-	items.push_back(std::make_pair(level->getPointsPack(), 2));
-	items.push_back(std::make_pair(level->getPowerPack(), 60));
-	items.push_back(std::make_pair(level->getBombItem(), 2));
+	std::vector<std::pair<std::shared_ptr<Item>, std::string>> items;
+	items.push_back(std::make_pair(level->getHealthPack(), "3"));
+	items.push_back(std::make_pair(level->getPointsPack(), "2"));
+	items.push_back(std::make_pair(level->getPowerPack(), "60"));
+	items.push_back(std::make_pair(level->getBombItem(), "2"));
 	v1.push_back(std::make_shared<EnemySpawnInfo>(enemy1->getID(), "300", "300 + 50", items));
 	level->insertEvent(0, std::make_shared<TimeBasedEnemySpawnCondition>("0"), std::make_shared<SpawnEnemiesLevelEvent>(v1));
 
@@ -248,8 +248,8 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	player->setInvulnerabilityTime("1.0f");
 	player->setMaxHealth("a + 3");
 	player->setSpeed("300");
-	player->insertPowerTier(0, std::make_shared<PlayerPowerTier>(pset1, playerAP->getID(), "0.1", playerFocusedAP->getID(), "0.5", bombAP->getID(), "5"));
-	player->insertPowerTier(1, std::make_shared <PlayerPowerTier>(pset2, playerAP2->getID(), "0.01", playerFocusedAP->getID(), "0.5", bombAP->getID(), "5"));
+	player->insertPowerTier(0, std::make_shared<PlayerPowerTier>(pset1, playerAP->getID(), "0.1", playerFocusedAP->getID(), "0.5", bombAP->getID(), "5", "15"));
+	player->insertPowerTier(1, std::make_shared<PlayerPowerTier>(pset2, playerAP2->getID(), "0.01", playerFocusedAP->getID(), "0.5", bombAP->getID(), "5", "20"));
 	player->setHurtSound(SoundSettings("oof.wav", 10));
 	player->setDeathSound(SoundSettings("death.ogg"));
 	player->setBombReadySound(SoundSettings("bomb_ready.wav"));
@@ -654,7 +654,7 @@ std::shared_ptr<Level> LevelPack::getGameplayLevel(int levelIndex) const {
 	// Level is a top-level object so every expression it uses should be in terms of only its own
 	// unredelegated, well-defined symbols
 	auto derived = std::dynamic_pointer_cast<Level>(level);
-	derived->compileExpressions(derived->getSymbolTable().toExprtkSymbolTable());
+	derived->compileExpressions({});
 	return derived;
 }
 
@@ -678,12 +678,16 @@ std::shared_ptr<BulletModel> LevelPack::getBulletModel(int id) const {
 	return bulletModels.at(id);
 }
 
-std::shared_ptr<EditorPlayer> LevelPack::getPlayer() {
+std::shared_ptr<EditorPlayer> LevelPack::getPlayer() const {
+	return metadata.getPlayer();
+}
+
+std::shared_ptr<EditorPlayer> LevelPack::getGameplayPlayer() const {
 	auto player = metadata.getPlayer()->clone();
 	// EditorPlayer is a top-level object so every expression it uses should be in terms of only its own
 	// unredelegated, well-defined symbols
 	auto derived = std::dynamic_pointer_cast<EditorPlayer>(player);
-	derived->compileExpressions(derived->getSymbolTable().toExprtkSymbolTable());
+	derived->compileExpressions({});
 	return derived;
 }
 
@@ -849,7 +853,7 @@ void LevelPackMetadata::load(std::string formattedString) {
 	}
 }
 
-std::shared_ptr<EditorPlayer> LevelPackMetadata::getPlayer() {
+std::shared_ptr<EditorPlayer> LevelPackMetadata::getPlayer() const {
 	return player;
 }
 

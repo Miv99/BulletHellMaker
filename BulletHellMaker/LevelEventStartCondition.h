@@ -15,7 +15,7 @@ public:
 	void load(std::string formattedString) = 0;
 
 	virtual std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const = 0;
-	virtual void compileExpressions(exprtk::symbol_table<float> symbolTable) = 0;
+	virtual void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) = 0;
 
 	virtual bool satisfied(entt::DefaultRegistry& registry) = 0;
 };
@@ -34,7 +34,7 @@ public:
 	void load(std::string formattedString) override;
 
 	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
-	void compileExpressions(exprtk::symbol_table<float> symbolTable) override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	bool satisfied(entt::DefaultRegistry& registry) override;
 
@@ -57,7 +57,7 @@ public:
 	void load(std::string formattedString) override;
 
 	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
-	void compileExpressions(exprtk::symbol_table<float> symbolTable) override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	bool satisfied(entt::DefaultRegistry& registry) override;
 
@@ -80,7 +80,7 @@ public:
 	void load(std::string formattedString) override;
 
 	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
-	void compileExpressions(exprtk::symbol_table<float> symbolTable) override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	bool satisfied(entt::DefaultRegistry& registry) override;
 

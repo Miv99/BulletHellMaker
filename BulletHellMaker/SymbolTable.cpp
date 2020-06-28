@@ -37,6 +37,10 @@ exprtk::symbol_table<float> ExprSymbolTable::toLowerLevelSymbolTable(exprtk::sym
     return table;
 }
 
+bool ExprSymbolTable::isEmpty() const {
+    return map.size() == 0;
+}
+
 std::string ValueSymbolTable::format() const {
     std::string res;
     for (auto it = map.begin(); it != map.end(); it++) {
@@ -86,4 +90,8 @@ exprtk::symbol_table<float> ValueSymbolTable::toZeroFilledSymbolTable() {
         }
     }
     return table;
+}
+
+bool ValueSymbolTable::isEmpty() const {
+    return map.size() == 0;
 }

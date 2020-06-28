@@ -49,9 +49,13 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> SpawnEnemiesL
 	}
 }
 
-void SpawnEnemiesLevelEvent::compileExpressions(exprtk::symbol_table<float> symbolTable) {
+void SpawnEnemiesLevelEvent::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
+	if (!symbolTable.isEmpty()) {
+		symbolTables.push_back(symbolTable.toExprtkSymbolTable());
+	}
+
 	for (std::shared_ptr<EnemySpawnInfo> info : spawnInfo) {
-		info->compileExpressions(symbolTable);
+		info->compileExpressions(symbolTables);
 	}
 }
 
@@ -97,7 +101,7 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> ShowDialogueL
 	return std::make_pair(LEGAL_STATUS::ILLEGAL, std::vector<std::string>());
 }
 
-void ShowDialogueLevelEvent::compileExpressions(exprtk::symbol_table<float> symbolTable) {
+void ShowDialogueLevelEvent::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
 	// Nothing needs to be done
 }
 

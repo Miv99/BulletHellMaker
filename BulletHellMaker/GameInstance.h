@@ -179,6 +179,8 @@ private:
 	float bossNextPhaseStartTime;
 	const float bossPhaseHealthBarHeight = 12;
 
+	// Contains information on the player, which shouldn't be able to change
+	std::shared_ptr<const EditorPlayer> playerInfo;
 
 	/*
 	newHP - the player's new health

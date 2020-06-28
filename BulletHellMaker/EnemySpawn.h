@@ -18,7 +18,7 @@ class Item;
 class EnemySpawnInfo : public TextMarshallable, public LevelPackObject, public ExpressionCompilable, public std::enable_shared_from_this<EnemySpawnInfo> {
 public:
 	inline EnemySpawnInfo() {}
-	EnemySpawnInfo(int enemyID, std::string x, std::string y, std::vector<std::pair<std::shared_ptr<Item>, int>> itemsDroppedOnDeath);
+	EnemySpawnInfo(int enemyID, std::string x, std::string y, std::vector<std::pair<std::shared_ptr<Item>, std::string>> itemsDroppedOnDeath);
 
 	std::shared_ptr<LevelPackObject> clone() const override;
 
@@ -26,16 +26,17 @@ public:
 	void load(std::string formattedString) override;
 
 	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
-	void compileExpressions(exprtk::symbol_table<float> symbolTable) override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	void spawnEnemy(SpriteLoader& spriteLoader, const LevelPack& levelPack, entt::DefaultRegistry& registry, EntityCreationQueue& queue);
 
 	inline int getEnemyID() const { return enemyID; }
 	float getX();
 	float getY();
+	const std::vector<std::pair<std::shared_ptr<Item>, std::string>> getEditableItemsDroppedOnDeath();
 	const std::vector<std::pair<std::shared_ptr<Item>, int>> getItemsDroppedOnDeath();
 
-	void addItemDroppedOnDeath(std::pair<std::shared_ptr<Item>, int> itemAndAmount);
+	void addItemDroppedOnDeath(std::pair<std::shared_ptr<Item>, std::string> itemAndAmount);
 	
 private:
 	int enemyID;
@@ -43,5 +44,6 @@ private:
 	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(y, float, 0)
 
 	// Items dropped and their amount
-	std::vector<std::pair<std::shared_ptr<Item>, int>> itemsDroppedOnDeath;
+	std::vector<std::pair<std::shared_ptr<Item>, std::string>> itemsDroppedOnDeath;
+	std::vector<std::pair<std::shared_ptr<Item>, int>> itemsDroppedOnDeathExprCompiledValue;
 };

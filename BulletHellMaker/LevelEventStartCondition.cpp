@@ -28,7 +28,7 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> GlobalTimeBas
 	return std::make_pair(status, messages);
 }
 
-void GlobalTimeBasedEnemySpawnCondition::compileExpressions(exprtk::symbol_table<float> symbolTable) {
+void GlobalTimeBasedEnemySpawnCondition::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
 	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
 	COMPILE_EXPRESSION_FOR_FLOAT(time)
 }
@@ -64,7 +64,7 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EnemyCountBas
 	return std::make_pair(status, messages);
 }
 
-void EnemyCountBasedEnemySpawnCondition::compileExpressions(exprtk::symbol_table<float> symbolTable) {
+void EnemyCountBasedEnemySpawnCondition::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
 	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
 	COMPILE_EXPRESSION_FOR_INT(enemyCount)
 }
@@ -100,7 +100,7 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> TimeBasedEnem
 	return std::make_pair(status, messages);
 }
 
-void TimeBasedEnemySpawnCondition::compileExpressions(exprtk::symbol_table<float> symbolTable) {
+void TimeBasedEnemySpawnCondition::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
 	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
 	COMPILE_EXPRESSION_FOR_FLOAT(time)
 }

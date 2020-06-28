@@ -30,17 +30,6 @@ const static int ENTITY_RESERVATION_INCREMENT = 50000;
 // Time before an item despawns
 const static float ITEM_DESPAWN_TIME = 11.0f;
 
-const static int HEALTH_PER_HEALTH_PACK = 1;
-const static int POINTS_PER_POINTS_PACK = 100;
-const static int POWER_PER_POWER_PACK = 1;
-
-// Points for every power received after reaching the maximum
-const static int POINTS_PER_EXTRA_POWER = POINTS_PER_POINTS_PACK;
-// Points for every bomb received after reaching the maximum
-const static int POINTS_PER_EXTRA_BOMB = POINTS_PER_POINTS_PACK * 20;
-
-const static int POWER_PER_POWER_TIER = 50;
-
 /*
 Render layers
 

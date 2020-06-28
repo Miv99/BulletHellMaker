@@ -101,13 +101,12 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> Level::legal(
 	return std::make_pair(status, messages);
 }
 
-void Level::compileExpressions(exprtk::symbol_table<float> symbolTable) {
-	// Compile expressions in every LevelEvent.
-	// This is a top-level object so every expression this uses should be in terms of only its own
-	// unredelegated, well-defined symbols
-	exprtk::symbol_table<float> mySymbolTable = this->symbolTable.toExprtkSymbolTable();
+void Level::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
+	if (!symbolTable.isEmpty()) {
+		symbolTables.push_back(symbolTable.toExprtkSymbolTable());
+	}
 	for (auto p : events) {
-		p.second->compileExpressions(mySymbolTable);
+		p.second->compileExpressions(symbolTables);
 	}
 }
 

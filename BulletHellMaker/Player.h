@@ -13,9 +13,10 @@
 class PlayerPowerTier : public TextMarshallable, public LevelPackObject, public ExpressionCompilable {
 public:
 	inline PlayerPowerTier() {}
-	inline PlayerPowerTier(EntityAnimatableSet animatableSet, int attackPatternID, std::string attackPatternLoopDelay, int focusedAttackPatternID, std::string focusedAttackPatternLoopDelay, int bombAttackPatternID, std::string bombCooldown) :
+	inline PlayerPowerTier(EntityAnimatableSet animatableSet, int attackPatternID, std::string attackPatternLoopDelay, int focusedAttackPatternID, 
+		std::string focusedAttackPatternLoopDelay, int bombAttackPatternID, std::string bombCooldown, std::string powerToNextTier) :
 		animatableSet(animatableSet), attackPatternID(attackPatternID), attackPatternLoopDelay(attackPatternLoopDelay), focusedAttackPatternID(focusedAttackPatternID), 
-		focusedAttackPatternLoopDelay(focusedAttackPatternLoopDelay), bombAttackPatternID(bombAttackPatternID), bombCooldown(bombCooldown) {}
+		focusedAttackPatternLoopDelay(focusedAttackPatternLoopDelay), bombAttackPatternID(bombAttackPatternID), bombCooldown(bombCooldown), powerToNextTier(powerToNextTier) {}
 
 	std::shared_ptr<LevelPackObject> clone() const;
 
@@ -23,7 +24,7 @@ public:
 	void load(std::string formattedString) override;
 
 	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const;
-	void compileExpressions(exprtk::symbol_table<float> symbolTable) override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	inline const EntityAnimatableSet& getAnimatableSet() const { return animatableSet; }
 	inline int getAttackPatternID() const { return attackPatternID; }
@@ -32,6 +33,7 @@ public:
 	inline float getFocusedAttackPatternLoopDelay() const { return focusedAttackPatternLoopDelayExprCompiledValue; }
 	inline int getBombAttackPatternID() const { return bombAttackPatternID; }
 	inline float getBombCooldown() const { return bombCooldownExprCompiledValue; }
+	inline int getPowerToNextTier() const { return powerToNextTierExprCompiledValue; }
 
 	inline void setAttackPatternID(int id) { attackPatternID = id; }
 	inline void setAttackPatternLoopDelay(std::string attackPatternLoopDelay) { this->attackPatternLoopDelay = attackPatternLoopDelay; }
@@ -54,6 +56,9 @@ private:
 	int bombAttackPatternID;
 	// Time after a bomb is used that the player can use another bomb. Should be greater than the time to go through every attack in the bomb attack pattern.
 	DEFINE_EXPRESSION_VARIABLE(bombCooldown, float)
+
+	// Amount of power needed to reach the next tier
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(powerToNextTier, int, 20)
 };
 
 class EditorPlayer : public TextMarshallable, public LevelPackObject, public ExpressionCompilable {
@@ -66,7 +71,7 @@ public:
 	void load(std::string formattedString) override;
 
 	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const;
-	void compileExpressions(exprtk::symbol_table<float> symbolTable) override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	inline int getInitialHealth() const { return initialHealthExprCompiledValue; }
 	inline int getMaxHealth() const { return maxHealthExprCompiledValue; }

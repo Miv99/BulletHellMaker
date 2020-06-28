@@ -38,6 +38,8 @@ public:
 	*/
 	exprtk::symbol_table<float> toLowerLevelSymbolTable(exprtk::symbol_table<float> higherLevelSymbolTable);
 
+	bool isEmpty() const;
+
 private:
 	std::map<std::string, ExprSymbolDefinition> map;
 };
@@ -59,6 +61,8 @@ public:
 	and defines every redelegated symbol with value 0.
 	*/
 	exprtk::symbol_table<float> toZeroFilledSymbolTable();
+
+	bool isEmpty() const;
 
 private:
 	std::map<std::string, ValueSymbolDefinition> map;

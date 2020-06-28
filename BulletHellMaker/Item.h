@@ -6,22 +6,27 @@
 #include "TextMarshallable.h"
 #include "Player.h"
 #include "AudioPlayer.h"
+#include "ExpressionCompilable.h"
+#include "LevelPackObject.h"
 
 class LevelPack;
 
 /*
 An item is something that can be picked up by the player and does something on pickup.
-These classes act as templates and do not get modified, so they same Item can be used
-for multiple item entities.
 */
-class Item : public TextMarshallable {
+class Item : public TextMarshallable, public LevelPackObject, public ExpressionCompilable {
 public:
 	inline Item() {}
 	inline Item(Animatable animatable, float hitboxRadius, float activationRadius = 75.0f) : animatable(animatable), hitboxRadius(hitboxRadius), activationRadius(activationRadius) {}
 	inline Item(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius = 75.0f) : animatable(animatable), hitboxRadius(hitboxRadius), onCollectSound(onCollectSound), activationRadius(activationRadius) {}
 
-	std::string format() const = 0;
-	void load(std::string formattedString) = 0;
+	virtual std::shared_ptr<LevelPackObject> clone() const = 0;
+
+	virtual std::string format() const = 0;
+	virtual void load(std::string formattedString) = 0;
+
+	virtual std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const = 0;
+	virtual void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) = 0;
 
 	// Called when the player makes contact with an item's hitbox
 	virtual void onPlayerContact(entt::DefaultRegistry& registry, uint32_t player);
@@ -56,10 +61,19 @@ public:
 	inline HealthPackItem(Animatable animatable, float hitboxRadius, float activationRadius = 75.0f) : Item(animatable, hitboxRadius, activationRadius) {}
 	inline HealthPackItem(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius = 75.0f) : Item(animatable, hitboxRadius, onCollectSound, activationRadius) {}
 
+	std::shared_ptr<LevelPackObject> clone() const override;
+
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
+
 	void onPlayerContact(entt::DefaultRegistry& registry, uint32_t player);
+
+private:
+	// Health restored from this health pack
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(healthRestoreAmount, int, 1)
 };
 
 /*
@@ -71,10 +85,21 @@ public:
 	inline PowerPackItem(Animatable animatable, float hitboxRadius, float activationRadius = 75.0f) : Item(animatable, hitboxRadius, activationRadius) {}
 	inline PowerPackItem(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius = 75.0f) : Item(animatable, hitboxRadius, onCollectSound, activationRadius) {}
 
+	std::shared_ptr<LevelPackObject> clone() const override;
+
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
+
 	void onPlayerContact(entt::DefaultRegistry& registry, uint32_t player);
+
+private:
+	// Power received from this power pack
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(powerAmount, int, 1)
+	// Number of points for every 1 power received after reaching the maximum
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(pointsPerExtraPower, int, 5)
 };
 
 /*
@@ -86,10 +111,21 @@ public:
 	inline BombItem(Animatable animatable, float hitboxRadius, float activationRadius = 75.0f) : Item(animatable, hitboxRadius, activationRadius) {}
 	inline BombItem(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius = 75.0f) : Item(animatable, hitboxRadius, onCollectSound, activationRadius) {}
 
+	std::shared_ptr<LevelPackObject> clone() const override;
+
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
+
 	void onPlayerContact(entt::DefaultRegistry& registry, uint32_t player);
+
+private:
+	// Number of bombs received from this bomb item
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(bombsAmount, int, 1)
+	// Number of points for every 1 bomb received after reaching the maximum
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(pointsPerExtraBomb, int, 1000)
 };
 
 /*
@@ -101,10 +137,18 @@ public:
 	inline PointsPackItem(Animatable animatable, float hitboxRadius, float activationRadius = 150.0f) : Item(animatable, hitboxRadius, activationRadius) {}
 	inline PointsPackItem(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius = 150.0f) : Item(animatable, hitboxRadius, onCollectSound, activationRadius) {}
 
+	std::shared_ptr<LevelPackObject> clone() const override;
+
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
+
 	void onPlayerContact(entt::DefaultRegistry& registry, uint32_t player);
+
+private:
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(pointsAmount, int, 100)
 };
 
 class ItemFactory {

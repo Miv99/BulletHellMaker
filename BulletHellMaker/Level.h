@@ -32,7 +32,7 @@ public:
 	void load(std::string formattedString) override;
 
 	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
-	void compileExpressions(exprtk::symbol_table<float> symbolTable) override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	/*
 	Execute the LevelEvent at index eventIndex.

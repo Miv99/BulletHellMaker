@@ -27,7 +27,7 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	std::shared_ptr<EditorPlayer> getPlayer();
+	std::shared_ptr<EditorPlayer> getPlayer() const;
 	const std::vector<std::pair<std::string, std::string>>& getSpriteSheets() { return spriteSheets; }
 
 	void setPlayer(std::shared_ptr<EditorPlayer> player);
@@ -218,7 +218,14 @@ public:
 	std::shared_ptr<EditorEnemy> getEnemy(int id) const;
 	std::shared_ptr<EditorEnemyPhase> getEnemyPhase(int id) const;
 	std::shared_ptr<BulletModel> getBulletModel(int id) const;
-	std::shared_ptr<EditorPlayer> getPlayer();
+	/*
+	Returns an EditorPlayer for editing purposes.
+	*/
+	std::shared_ptr<EditorPlayer> getPlayer() const;
+	/*
+	Returns an EditorPlayer for gameplay purposes.
+	*/
+	std::shared_ptr<EditorPlayer> getGameplayPlayer() const;
 	std::string getFontFileName();
 
 	std::map<int, std::shared_ptr<EditorAttack>>::iterator getAttackIteratorBegin();

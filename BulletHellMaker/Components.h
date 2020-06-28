@@ -363,18 +363,21 @@ public:
 	inline bool getFocused() { return focused; }
 	inline int getBombCount() { return bombs; }
 	inline float getBombCooldown() { return bombCooldowns[currentPowerTierIndex]; }
+	int getPowerToNextTier();
 
 	void setFocused(bool focused);
 	inline void setAttacking(bool attacking) { this->attacking = attacking; }
 
 	/*
 	power - power to increase by
+	pointsPerExtraPower - points the player should receive for every 1 power past the max
 	*/
-	void increasePower(entt::DefaultRegistry& registry, uint32_t self, int power);
+	void increasePower(entt::DefaultRegistry& registry, uint32_t self, int power, int pointsPerExtraPower);
 	/*
 	amount - amount of bombs to increase by
+	pointsPerExtraBomb - points the player should receive for every 1 bomb past the max
 	*/
-	void gainBombs(entt::DefaultRegistry& registry, int amount);
+	void gainBombs(entt::DefaultRegistry& registry, int amount, int pointsPerExtraBomb);
 
 	void switchToAttackPattern(std::shared_ptr<EditorAttackPattern> newAttackPattern, float newAttackPatternTotalTime);
 

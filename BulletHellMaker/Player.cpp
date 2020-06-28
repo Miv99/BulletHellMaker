@@ -124,7 +124,7 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorPlayer:
 	return std::make_pair(status, messages);
 }
 
-void EditorPlayer::compileExpressions(exprtk::symbol_table<float> symbolTable) {
+void EditorPlayer::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
 	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
 	COMPILE_EXPRESSION_FOR_FLOAT(initialHealth)
 	COMPILE_EXPRESSION_FOR_FLOAT(maxHealth)
@@ -139,7 +139,7 @@ void EditorPlayer::compileExpressions(exprtk::symbol_table<float> symbolTable) {
 	COMPILE_EXPRESSION_FOR_FLOAT(bombInvincibilityTime)
 
 	for (auto tier : powerTiers) {
-		tier->compileExpressions(symbolTable);
+		tier->compileExpressions(symbolTables);
 	}
 }
 
@@ -151,7 +151,8 @@ std::shared_ptr<LevelPackObject> PlayerPowerTier::clone() const {
 
 std::string PlayerPowerTier::format() const {
 	return formatTMObject(animatableSet) + tos(attackPatternID) + formatString(attackPatternLoopDelay) + tos(focusedAttackPatternID)
-		+ formatString(focusedAttackPatternLoopDelay) + tos(bombAttackPatternID) + formatString(bombCooldown) + formatTMObject(symbolTable);
+		+ formatString(focusedAttackPatternLoopDelay) + tos(bombAttackPatternID) + formatString(bombCooldown) 
+		+ formatTMObject(symbolTable) + formatString(powerToNextTier);
 }
 
 void PlayerPowerTier::load(std::string formattedString) {
@@ -164,6 +165,7 @@ void PlayerPowerTier::load(std::string formattedString) {
 	bombAttackPatternID = std::stoi(items[5]);
 	bombCooldown = items[6];
 	symbolTable.load(items[7]);
+	powerToNextTier = items[8];
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> PlayerPowerTier::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
@@ -182,13 +184,18 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> PlayerPowerTi
 		status = std::max(status, LEGAL_STATUS::ILLEGAL);
 		messages.push_back("Invalid expression for bomb cooldown");
 	}
+	if (!expressionStrIsValid(parser, powerToNextTier, symbolTable)) {
+		status = std::max(status, LEGAL_STATUS::ILLEGAL);
+		messages.push_back("Invalid expression for power to next tier");
+	}
 	// TODO: check animatableSet, attackPatternID, focusedAttackPatternID, bombAttackPatternID
 	return std::make_pair(status, messages);
 }
 
-void PlayerPowerTier::compileExpressions(exprtk::symbol_table<float> symbolTable) {
+void PlayerPowerTier::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
 	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
 	COMPILE_EXPRESSION_FOR_FLOAT(attackPatternLoopDelay)
 	COMPILE_EXPRESSION_FOR_FLOAT(focusedAttackPatternLoopDelay)
 	COMPILE_EXPRESSION_FOR_FLOAT(bombCooldown)
+	COMPILE_EXPRESSION_FOR_INT(powerToNextTier)
 }

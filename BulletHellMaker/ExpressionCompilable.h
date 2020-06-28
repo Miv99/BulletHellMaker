@@ -16,9 +16,9 @@ public:
 	It's possible to just store the value of the expression as soon as it's compiled symbolTable was returned
 	from a ValueSymbolTable or ExprSymbolTable because every symbol in symbolTable will be a constant.
 
-	symbolTable - a symbol_table that defines all symbols that will be needed to compile the above expressions
+	symbolTable - a vector of symbol_tables; its content combined defines all symbols that will be needed to compile the above expressions
 	*/
-	virtual void compileExpressions(exprtk::symbol_table<float> symbolTable) = 0;
+	virtual void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) = 0;
 
 	/*
 	Returns a reference.
