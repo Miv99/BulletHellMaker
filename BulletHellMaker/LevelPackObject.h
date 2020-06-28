@@ -11,7 +11,7 @@
 #define DEFINE_PARSER_AND_EXPR_FOR_COMPILE exprtk::parser<float> parser; \
 exprtk::expression<float> expr = exprtk::expression<float>(); \
 if (!this->symbolTable.isEmpty()) { symbolTables.push_back(symbolTable.toExprtkSymbolTable()); } \
-for (exprtk::symbol_table<float> symbolTable : symbolTables) { expr.register_symbol_table(symbolTable); } \
+for (int i = symbolTables.size() - 1; i >= 0; i--) { expr.register_symbol_table(symbolTables[i]); } \
 /*
 Macro for defining a variable whose value is defined by an expression, for a LevelPackObject. 
 The getter for the variable should return NameExprCompiledValue.
