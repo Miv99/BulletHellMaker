@@ -33,10 +33,16 @@ public:
 	/*
 	Returns a symbol_table that defines constant values for every symbol in this ExprSymbolTable.
 
-	higherLevelSymbolTable - the symbol_table that defines all symbols needed to evaluate the expression
-		in every ExprSymbolDefinition
+	higherLevelSymbolTables - the list of symbol_tables that, combined, defines all symbols needed to evaluate the expression
+		in every ExprSymbolDefinition. In the case of the same symbol being defined multiple times, the definition
+		in the farthest-back symbol table will be used.
 	*/
-	exprtk::symbol_table<float> toLowerLevelSymbolTable(exprtk::symbol_table<float> higherLevelSymbolTable);
+	exprtk::symbol_table<float> toLowerLevelSymbolTable(std::vector<exprtk::symbol_table<float>> higherLevelSymbolTables);
+	/*
+	Same thing as toLowerLevelSymbolTable(std::vector<exprtk::symbol_table<float>> higherLevelSymbolTables) but takes
+	an expression that has only the higherLevelSymbolTables registered.
+	*/
+	exprtk::symbol_table<float> toLowerLevelSymbolTable(exprtk::expression<float> expression);
 
 	bool isEmpty() const;
 

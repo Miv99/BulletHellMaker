@@ -24,15 +24,29 @@ void ExprSymbolTable::removeSymbol(std::string symbol) {
     map.erase(symbol);
 }
 
-exprtk::symbol_table<float> ExprSymbolTable::toLowerLevelSymbolTable(exprtk::symbol_table<float> higherLevelSymbolTable) {
+exprtk::symbol_table<float> ExprSymbolTable::toLowerLevelSymbolTable(std::vector<exprtk::symbol_table<float>> higherLevelSymbolTables) {
+    exprtk::expression<float> expression = exprtk::expression<float>();
+    for (int i = higherLevelSymbolTables.size() - 1; i >= 0; i--) {
+        expression.register_symbol_table(higherLevelSymbolTables[i]);
+    }
+
     exprtk::parser<float> parser;
     exprtk::symbol_table<float> table;
     for (auto it = map.begin(); it != map.end(); it++) {
-        exprtk::expression<float> expression = exprtk::expression<float>();
-        expression.register_symbol_table(higherLevelSymbolTable);
         parser.compile(it->second.expressionStr, expression);
         float value = expression.value();
-        table.add_variable(it->first, value, true);
+        table.add_constant(it->first, value);
+    }
+    return std::move(table);
+}
+
+exprtk::symbol_table<float> ExprSymbolTable::toLowerLevelSymbolTable(exprtk::expression<float> expression) {
+    exprtk::parser<float> parser;
+    exprtk::symbol_table<float> table;
+    for (auto it = map.begin(); it != map.end(); it++) {
+        parser.compile(it->second.expressionStr, expression);
+        float value = expression.value();
+        table.add_constant(it->first, value);
     }
     return table;
 }
@@ -71,7 +85,7 @@ exprtk::symbol_table<float> ValueSymbolTable::toExprtkSymbolTable() {
         // Add as constants so that the symbol_table is still valid even after the floats go out of scope
 
         if (!it->second.redelegated) {
-            table.add_variable(it->first, it->second.value, true);
+            table.add_constant(it->first, it->second.value);
         }
     }
     return table;
@@ -84,9 +98,9 @@ exprtk::symbol_table<float> ValueSymbolTable::toZeroFilledSymbolTable() {
 
         if (it->second.redelegated) {
             float zero = 0;
-            table.add_variable(it->first, zero, true);
+            table.add_constant(it->first, zero);
         } else {
-            table.add_variable(it->first, it->second.value, true);
+            table.add_constant(it->first, it->second.value);
         }
     }
     return table;
