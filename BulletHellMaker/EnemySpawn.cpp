@@ -15,7 +15,7 @@ std::shared_ptr<LevelPackObject> EnemySpawnInfo::clone() const {
 }
 
 std::string EnemySpawnInfo::format() const {
-	std::string res = formatString(x) + formatString(y) + tos(enemyID) + formatTMObject(symbolTable);
+	std::string res = formatString(x) + formatString(y) + tos(enemyID) + formatTMObject(symbolTable) + formatTMObject(enemySymbolsDefiner);
 	for (auto pair : itemsDroppedOnDeath) {
 		res += formatTMObject(*pair.first) + formatString(pair.second);
 	}
@@ -28,8 +28,9 @@ void EnemySpawnInfo::load(std::string formattedString) {
 	y = items[1];
 	enemyID = std::stoi(items[2]);
 	symbolTable.load(items[3]);
+	enemySymbolsDefiner.load(items[4]);
 	itemsDroppedOnDeath.clear();
-	for (int i = 4; i < items.size(); i += 2) {
+	for (int i = 5; i < items.size(); i += 2) {
 		itemsDroppedOnDeath.push_back(std::make_pair(ItemFactory::create(items[i]), items[i + 1]));
 	}
 }
@@ -69,6 +70,7 @@ void EnemySpawnInfo::compileExpressions(std::vector<exprtk::symbol_table<float>>
 	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
 	COMPILE_EXPRESSION_FOR_FLOAT(x)
 	COMPILE_EXPRESSION_FOR_FLOAT(y)
+	compiledEnemySymbolsDefiner = enemySymbolsDefiner.toLowerLevelSymbolTable(expr);
 
 	itemsDroppedOnDeathExprCompiledValue.clear();
 	for (auto p : itemsDroppedOnDeath) {
@@ -79,23 +81,43 @@ void EnemySpawnInfo::compileExpressions(std::vector<exprtk::symbol_table<float>>
 }
 
 void EnemySpawnInfo::spawnEnemy(SpriteLoader& spriteLoader, const LevelPack& levelPack, entt::DefaultRegistry& registry, EntityCreationQueue& queue) {
-	queue.pushBack(std::make_unique<SpawnEnemyCommand>(registry, spriteLoader, levelPack.getEnemy(enemyID), shared_from_this()));
+	queue.pushBack(std::make_unique<SpawnEnemyCommand>(registry, spriteLoader, levelPack.getGameplayEnemy(enemyID, compiledEnemySymbolsDefiner), shared_from_this()));
 }
 
-float EnemySpawnInfo::getX() {
+int EnemySpawnInfo::getEnemyID() const {
+	return enemyID;
+}
+
+float EnemySpawnInfo::getX() const {
 	return xExprCompiledValue;
 }
 
-float EnemySpawnInfo::getY() {
+float EnemySpawnInfo::getY() const {
 	return yExprCompiledValue;
 }
 
-const std::vector<std::pair<std::shared_ptr<Item>, std::string>> EnemySpawnInfo::getEditableItemsDroppedOnDeath() {
+const std::vector<std::pair<std::shared_ptr<Item>, std::string>> EnemySpawnInfo::getEditableItemsDroppedOnDeath() const {
 	return itemsDroppedOnDeath;
 }
 
-const std::vector<std::pair<std::shared_ptr<Item>, int>> EnemySpawnInfo::getItemsDroppedOnDeath() {
+const std::vector<std::pair<std::shared_ptr<Item>, int>> EnemySpawnInfo::getItemsDroppedOnDeath() const {
 	return itemsDroppedOnDeathExprCompiledValue;
+}
+
+ExprSymbolTable EnemySpawnInfo::getEnemySymbolsDefiner() const {
+	return enemySymbolsDefiner;
+}
+
+exprtk::symbol_table<float> EnemySpawnInfo::getCompiledEnemySymbolsDefiner() const {
+	return compiledEnemySymbolsDefiner;
+}
+
+void EnemySpawnInfo::setEnemyID(int enemyID) {
+	this->enemyID = enemyID;
+}
+
+void EnemySpawnInfo::setEnemySymbolsDefiner(ExprSymbolTable enemySymbolsDefiner) {
+	this->enemySymbolsDefiner = enemySymbolsDefiner;
 }
 
 void EnemySpawnInfo::addItemDroppedOnDeath(std::pair<std::shared_ptr<Item>, std::string> itemAndAmount) {

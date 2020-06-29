@@ -125,13 +125,20 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 		std::make_shared<PlayAnimatableDeathAction>(Animatable("oh my god he's dead", "sheet1", true, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT), PlayAnimatableDeathAction::NONE, 3.0f));
 	enemy1->addPhaseID(0, std::make_shared<TimeBasedEnemyPhaseStartCondition>(0), ep1->getID(), e1set);
 	enemy1->addPhaseID(1, std::make_shared<TimeBasedEnemyPhaseStartCondition>(10), ep2->getID(), e1set);
-	enemy1->setHealth(10);
-	enemy1->setHitboxRadius(70);
+	enemy1->setHealth("health + 5");
+	enemy1->setHitboxRadius("70");
 	enemy1->setName("test enemy 1");
-	enemy1->getHurtSound().setFileName("oof.wav");
-	enemy1->getHurtSound().setVolume(10);
-	enemy1->getDeathSound().setFileName("death.ogg");
+	SoundSettings e1hs;
+	e1hs.setFileName("oof.wav");
+	e1hs.setVolume(10);
+	enemy1->setHurtSound(e1hs);
+	SoundSettings e1ds;
+	e1ds.setFileName("death.ogg");
+	enemy1->setDeathSound(e1ds);
 	enemy1->setIsBoss(true);
+	ValueSymbolTable est;
+	est.setSymbol("health", -1, true);
+	enemy1->setSymbolTable(est);
 
 	std::vector<int> e1DeathAttacks;
 	for (int i = 0; i < 10; i++) {
@@ -194,7 +201,11 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	items.push_back(std::make_pair(level->getPointsPack(), "2"));
 	items.push_back(std::make_pair(level->getPowerPack(), "60"));
 	items.push_back(std::make_pair(level->getBombItem(), "2"));
-	v1.push_back(std::make_shared<EnemySpawnInfo>(enemy1->getID(), "300", "300 + 50", items));
+	auto e1si = std::make_shared<EnemySpawnInfo>(enemy1->getID(), "300", "300 + 50", items);
+	ExprSymbolTable e1siDefiner;
+	e1siDefiner.setSymbol("health", "10");
+	e1si->setEnemySymbolsDefiner(e1siDefiner);
+	v1.push_back(e1si);
 	level->insertEvent(0, std::make_shared<TimeBasedEnemySpawnCondition>("0"), std::make_shared<SpawnEnemiesLevelEvent>(v1));
 
 	level->getHealthPack()->setActivationRadius(150);
@@ -248,12 +259,18 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	player->setInvulnerabilityTime("1.0f");
 	player->setMaxHealth("a + 3");
 	player->setSpeed("300");
-	player->insertPowerTier(0, std::make_shared<PlayerPowerTier>(pset1, playerAP->getID(), "0.1", playerFocusedAP->getID(), "0.5", bombAP->getID(), "5", "15"));
+	auto asd = std::make_shared<PlayerPowerTier>(pset1, playerAP->getID(), "0.1", playerFocusedAP->getID(), "0.5", bombAP->getID(), "5", "a");
+	auto asdTable = asd->getSymbolTable();
+	asdTable.setSymbol("a", 50, false);
+	asd->setSymbolTable(asdTable);
+	player->insertPowerTier(0, asd);
 	player->insertPowerTier(1, std::make_shared<PlayerPowerTier>(pset2, playerAP2->getID(), "0.01", playerFocusedAP->getID(), "0.5", bombAP->getID(), "5", "20"));
 	player->setHurtSound(SoundSettings("oof.wav", 10));
 	player->setDeathSound(SoundSettings("death.ogg"));
 	player->setBombReadySound(SoundSettings("bomb_ready.wav"));
-	player->getSymbolTable().setSymbol("a", 11, false);
+	auto playerTable = player->getSymbolTable();
+	playerTable.setSymbol("a", 11, false);
+	player->setSymbolTable(playerTable);
 	this->setPlayer(player);
 
 	setFontFileName("GUI\\font.ttf");
@@ -668,6 +685,15 @@ std::shared_ptr<EditorAttackPattern> LevelPack::getAttackPattern(int id) const {
 
 std::shared_ptr<EditorEnemy> LevelPack::getEnemy(int id) const {
 	return enemies.at(id);
+}
+
+std::shared_ptr<EditorEnemy> LevelPack::getGameplayEnemy(int id, exprtk::symbol_table<float> symbolsDefiner) const {
+	auto enemy = enemies.at(id)->clone();
+	// Level is a top-level object so every expression it uses should be in terms of only its own
+	// unredelegated, well-defined symbols
+	auto derived = std::dynamic_pointer_cast<EditorEnemy>(enemy);
+	derived->compileExpressions({ symbolsDefiner });
+	return derived;
 }
 
 std::shared_ptr<EditorEnemyPhase> LevelPack::getEnemyPhase(int id) const {

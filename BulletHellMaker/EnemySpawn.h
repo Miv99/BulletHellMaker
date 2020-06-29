@@ -30,16 +30,24 @@ public:
 
 	void spawnEnemy(SpriteLoader& spriteLoader, const LevelPack& levelPack, entt::DefaultRegistry& registry, EntityCreationQueue& queue);
 
-	inline int getEnemyID() const { return enemyID; }
-	float getX();
-	float getY();
-	const std::vector<std::pair<std::shared_ptr<Item>, std::string>> getEditableItemsDroppedOnDeath();
-	const std::vector<std::pair<std::shared_ptr<Item>, int>> getItemsDroppedOnDeath();
+	int getEnemyID() const;
+	float getX() const;
+	float getY() const;
+	const std::vector<std::pair<std::shared_ptr<Item>, std::string>> getEditableItemsDroppedOnDeath() const;
+	const std::vector<std::pair<std::shared_ptr<Item>, int>> getItemsDroppedOnDeath() const;
+	ExprSymbolTable getEnemySymbolsDefiner() const;
+	exprtk::symbol_table<float> getCompiledEnemySymbolsDefiner() const;
+
+	void setEnemyID(int enemyID);
+	void setEnemySymbolsDefiner(ExprSymbolTable enemySymbolsDefiner);
 
 	void addItemDroppedOnDeath(std::pair<std::shared_ptr<Item>, std::string> itemAndAmount);
 	
 private:
 	int enemyID;
+	ExprSymbolTable enemySymbolsDefiner;
+	exprtk::symbol_table<float> compiledEnemySymbolsDefiner;
+
 	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(x, float, 0)
 	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(y, float, 0)
 

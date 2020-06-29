@@ -11,6 +11,7 @@
 #include "TextMarshallable.h"
 #include "AudioPlayer.h"
 #include "IDGenerator.h"
+#include "exprtk.hpp"
 
 class LevelPackObject;
 class Level;
@@ -215,7 +216,16 @@ public:
 
 	std::shared_ptr<EditorAttack> getAttack(int id) const;
 	std::shared_ptr<EditorAttackPattern> getAttackPattern(int id) const;
+	/*
+	Returns an EditorEnemy for editing purposes.
+	*/
 	std::shared_ptr<EditorEnemy> getEnemy(int id) const;
+	/*
+	Returns an EditorEnemy for gameplay purposes.
+
+	symbolsDefiner - a symbol_table that defines all symbols redelegated in the EditorEnemy's ValueSymbolTable
+	*/
+	std::shared_ptr<EditorEnemy> getGameplayEnemy(int id, exprtk::symbol_table<float> symbolsDefiner) const;
 	std::shared_ptr<EditorEnemyPhase> getEnemyPhase(int id) const;
 	std::shared_ptr<BulletModel> getBulletModel(int id) const;
 	/*

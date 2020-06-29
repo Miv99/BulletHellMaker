@@ -13,7 +13,7 @@ std::shared_ptr<LevelPackObject> EditorEnemy::clone() const {
 }
 
 std::string EditorEnemy::format() const {
-	std::string res = tos(id) + formatString(name) + tos(hitboxRadius) + tos(health) + tos(despawnTime) + tos(phaseIDs.size());
+	std::string res = tos(id) + formatString(name) + formatString(hitboxRadius) + formatString(health) + formatString(despawnTime) + tos(phaseIDs.size());
 	for (auto t : phaseIDs) {
 		res += formatTMObject(*std::get<0>(t)) + tos(std::get<1>(t)) + formatTMObject(std::get<2>(t));
 	}
@@ -29,9 +29,9 @@ void EditorEnemy::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	id = std::stoi(items[0]);
 	name = items[1];
-	hitboxRadius = std::stof(items[2]);
-	health = std::stof(items[3]);
-	despawnTime = std::stof(items[4]);
+	hitboxRadius = items[2];
+	health = items[3];
+	despawnTime = items[4];
 
 	phaseIDs.clear();
 	enemyPhaseCount.clear();
@@ -60,41 +60,133 @@ void EditorEnemy::load(std::string formattedString) {
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorEnemy::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
-	//TODO: legal
-	return std::make_pair(LEGAL_STATUS::ILLEGAL, std::vector<std::string>());
-}
-
-bool EditorEnemy::legal(std::string& message) const {
-	bool good = true;
-	if (contains(name, '(') || contains(name, ')')) {
-		message += "Enemy \"" + name + "\" cannot have the character '(' or ')' in its name\n";
-		good = false;
-	}
-	if (hitboxRadius < 0) {
-		message += "Enemy \"" + name + "\" has a negative hitbox radius\n";
-		good = false;
-	}
-	if (health < 0) {
-		message += "Enemy \"" + name + "\" has a negative max health\n";
-		good = false;
-	}
+	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
+	std::vector<std::string> messages;
 	if (phaseIDs.size() == 0) {
-		message += "Enemy \"" + name + "\" must not have an empty list of phases\n";
-		good = false;
+		status = std::max(status, LEGAL_STATUS::ILLEGAL);
+		messages.push_back("List of phases is empty.");
 	} else {
 		auto startCondition = std::get<0>(phaseIDs[0]);
 		if (!std::dynamic_pointer_cast<TimeBasedEnemyPhaseStartCondition>(startCondition)) {
-			message += "Enemy \"" + name + "\"'s first phase start condition must be time-based with t=0\n";
-			good = false;
+			status = std::max(status, LEGAL_STATUS::ILLEGAL);
+			messages.push_back("The first phase start condition must be time-based with t=0");
 		} else if (std::dynamic_pointer_cast<TimeBasedEnemyPhaseStartCondition>(startCondition)->getTime() != 0) {
-			message += "Enemy \"" + name + "\"'s first phase start condition must be time-based with t=0\n";
-			good = false;
+			status = std::max(status, LEGAL_STATUS::ILLEGAL);
+			messages.push_back("The first phase start condition must be time-based with t=0");
 		}
 	}
+	int i = 0;
 	for (auto t : phaseIDs) {
+		// TODO: legal check EntityAnimatableSet
+
 		if (std::get<2>(t).getAttackAnimatable().isSprite()) {
-			message += "Enemy \"" + name + "\" cannot have a sprite as an attack animation.\n";
+			status = std::max(status, LEGAL_STATUS::ILLEGAL);
+			messages.push_back("Phase index " + std::to_string(i) + " cannot have a sprite as an attack animation.");
 		}
+
+		i++;
 	}
-	return good;
+	return std::make_pair(LEGAL_STATUS::ILLEGAL, std::vector<std::string>());
+}
+
+void EditorEnemy::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
+	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
+	COMPILE_EXPRESSION_FOR_FLOAT(hitboxRadius)
+	COMPILE_EXPRESSION_FOR_FLOAT(health)
+	COMPILE_EXPRESSION_FOR_FLOAT(despawnTime)
+
+	// TODO: compile expressions for phaseIDs, deathActions
+}
+
+void EditorEnemy::setHitboxRadius(std::string hitboxRadius) {
+	this->hitboxRadius = hitboxRadius;
+}
+
+void EditorEnemy::setHealth(std::string health) {
+	this->health = health;
+}
+
+void EditorEnemy::setDespawnTime(std::string despawnTime) {
+	this->despawnTime = despawnTime;
+}
+
+void EditorEnemy::setIsBoss(bool isBoss) {
+	this->isBoss = isBoss;
+}
+
+std::tuple<std::shared_ptr<EnemyPhaseStartCondition>, int, EntityAnimatableSet> EditorEnemy::getPhaseData(int index) const {
+	return phaseIDs[index];
+}
+
+int EditorEnemy::getPhasesCount() const {
+	return phaseIDs.size();
+}
+
+float EditorEnemy::getHitboxRadius() const {
+	return hitboxRadiusExprCompiledValue;
+}
+
+int EditorEnemy::getHealth() const {
+	return healthExprCompiledValue;
+}
+
+float EditorEnemy::getDespawnTime() const {
+	return despawnTimeExprCompiledValue;
+}
+
+const std::vector<std::shared_ptr<DeathAction>> EditorEnemy::getDeathActions() const {
+	return deathActions;
+}
+
+bool EditorEnemy::getIsBoss() const {
+	return isBoss;
+}
+
+SoundSettings EditorEnemy::getHurtSound() {
+	return hurtSound;
+}
+
+SoundSettings EditorEnemy::getDeathSound() {
+	return deathSound;
+}
+
+bool EditorEnemy::usesEnemyPhase(int enemyPhaseID) const {
+	return enemyPhaseCount.count(enemyPhaseID) > 0 && enemyPhaseCount.at(enemyPhaseID) > 0;
+}
+
+void EditorEnemy::setHurtSound(SoundSettings hurtSound) {
+	this->hurtSound = hurtSound;
+}
+
+void EditorEnemy::setDeathSound(SoundSettings deathSound) {
+	this->deathSound = deathSound;
+}
+
+void EditorEnemy::addDeathAction(std::shared_ptr<DeathAction> action) {
+	deathActions.push_back(action);
+}
+
+void EditorEnemy::removeDeathAction(int index) {
+	deathActions.erase(deathActions.begin() + index);
+}
+
+void EditorEnemy::addPhaseID(int index, std::shared_ptr<EnemyPhaseStartCondition> startCondition, int phaseID, EntityAnimatableSet animatableSet) {
+	phaseIDs.insert(phaseIDs.begin() + index, std::make_tuple(startCondition, phaseID, animatableSet));
+
+	if (enemyPhaseCount.count(phaseID) == 0) {
+		enemyPhaseCount[phaseID] = 1;
+	} else {
+		enemyPhaseCount[phaseID]++;
+	}
+}
+
+void EditorEnemy::removePhaseID(int index) {
+	int phaseID = std::get<1>(phaseIDs[index]);
+	phaseIDs.erase(phaseIDs.begin() + index);
+
+	if (enemyPhaseCount.count(phaseID) == 0) {
+		enemyPhaseCount[phaseID] = 1;
+	} else {
+		enemyPhaseCount[phaseID]++;
+	}
 }
