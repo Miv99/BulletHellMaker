@@ -457,11 +457,11 @@ void ParticleExplosionCommand::execute(EntityCreationQueue & queue) {
 		std::vector<std::shared_ptr<EMPAction>> path = { std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, distance(eng), particleLifespan), std::make_shared<ConstantTFV>(angle(eng)), particleLifespan) };
 		registry.assign<MovementPathComponent>(particle, queue, particle, registry, particle, std::make_shared<SpecificGlobalEMPSpawn>(0, sourceX, sourceY), path, 0);
 
-		if (effect == ParticleExplosionDeathAction::NONE) {
+		if (effect == ParticleExplosionDeathAction::PARTICLE_EFFECT::NONE) {
 			// Do nothing
-		} else if (effect == ParticleExplosionDeathAction::FADE_AWAY) {
+		} else if (effect == ParticleExplosionDeathAction::PARTICLE_EFFECT::FADE_AWAY) {
 			sprite.setEffectAnimation(std::make_unique<FadeAwaySEA>(sprite.getSprite(), 0, color.a/255.0f, particleLifespan));
-		} else if (effect == ParticleExplosionDeathAction::SHRINK) {
+		} else if (effect == ParticleExplosionDeathAction::PARTICLE_EFFECT::SHRINK) {
 			sprite.setEffectAnimation(std::make_unique<ChangeSizeSEA>(sprite.getSprite(), 1, 0, particleLifespan));
 		}
 	}
@@ -488,7 +488,7 @@ void PlayDeathAnimatableCommand::execute(EntityCreationQueue & queue) {
 		registry.assign<DespawnComponent>(newEntity, spriteLoader.getAnimation(animatable.getAnimatableName(), animatable.getSpriteSheetName(), false)->getTotalDuration());
 	}
 	spriteComponent.rotate(inheritedSpriteComponent.getInheritedRotationAngle());
-	if (effect == PlayAnimatableDeathAction::NONE) {
+	if (effect == PlayAnimatableDeathAction::DEATH_ANIMATION_EFFECT::NONE) {
 		// Do nothing
 	} else if (effect == PlayAnimatableDeathAction::DEATH_ANIMATION_EFFECT::SHRINK) {
 		spriteComponent.setEffectAnimation(std::make_unique<ChangeSizeSEA>(spriteComponent.getSprite(), 0.0f, 1.0f, duration));

@@ -15,7 +15,7 @@ class LevelPack;
 class EntityCreationQueue;
 class Item;
 
-class EnemySpawnInfo : public TextMarshallable, public LevelPackObject, public ExpressionCompilable, public std::enable_shared_from_this<EnemySpawnInfo> {
+class EnemySpawnInfo : public LevelPackObject, public std::enable_shared_from_this<EnemySpawnInfo> {
 public:
 	inline EnemySpawnInfo() {}
 	EnemySpawnInfo(int enemyID, std::string x, std::string y, std::vector<std::pair<std::shared_ptr<Item>, std::string>> itemsDroppedOnDeath);
@@ -25,7 +25,7 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	void spawnEnemy(SpriteLoader& spriteLoader, const LevelPack& levelPack, entt::DefaultRegistry& registry, EntityCreationQueue& queue);

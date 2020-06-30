@@ -47,22 +47,13 @@ void EditorEnemyPhase::load(std::string formattedString) {
 	musicSettings.load(items[i++]);
 }
 
-std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorEnemyPhase::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorEnemyPhase::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	//TODO: legal
 	return std::make_pair(LEGAL_STATUS::ILLEGAL, std::vector<std::string>());
 }
 
-bool EditorEnemyPhase::legal(std::string & message) const {
-	bool good = true;
-	if (contains(name, '(') || contains(name, ')')) {
-		message += "Enemy phase \"" + name + "\" cannot have the character '(' or ')' in its name\n";
-		good = false;
-	}
-	if (attackPatternLoopDelay < 0) {
-		message += "Enemy phase \"" + name + "\" must have a non-negative attack pattern loop delay\n";
-		good = false;
-	}
-	return good;
+void EditorEnemyPhase::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
+	// TODO: compileExpressions
 }
 
 std::pair<float, int> EditorEnemyPhase::getAttackPatternData(const LevelPack & levelPack, int index) const {

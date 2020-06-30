@@ -10,7 +10,7 @@
 #include "ExpressionCompilable.h"
 #include "LevelPackObject.h"
 
-class PlayerPowerTier : public TextMarshallable, public LevelPackObject, public ExpressionCompilable {
+class PlayerPowerTier : public LevelPackObject {
 public:
 	inline PlayerPowerTier() {}
 	inline PlayerPowerTier(EntityAnimatableSet animatableSet, int attackPatternID, std::string attackPatternLoopDelay, int focusedAttackPatternID, 
@@ -23,7 +23,7 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const;
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	inline const EntityAnimatableSet& getAnimatableSet() const { return animatableSet; }
@@ -61,7 +61,7 @@ private:
 	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(powerToNextTier, int, 20)
 };
 
-class EditorPlayer : public TextMarshallable, public LevelPackObject, public ExpressionCompilable {
+class EditorPlayer : public LevelPackObject {
 public:
 	inline EditorPlayer() {}
 
@@ -70,7 +70,7 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const;
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	inline int getInitialHealth() const { return initialHealthExprCompiledValue; }

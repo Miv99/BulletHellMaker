@@ -15,7 +15,7 @@ class LevelPack;
 /*
 An enemy phase consists of a list of attack patterns and at what time each begins.
 */
-class EditorEnemyPhase : public LevelPackObject, public TextMarshallable {
+class EditorEnemyPhase : public LevelPackObject {
 public:
 	inline EditorEnemyPhase() {}
 	inline EditorEnemyPhase(int id) {
@@ -35,8 +35,8 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const;
-	bool legal(std::string& message)const;
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	inline void setAttackPatternLoopDelay(float attackPatternLoopDelay) { this->attackPatternLoopDelay = attackPatternLoopDelay; }
 	inline void setPhaseBeginAction(std::shared_ptr<EnemyPhaseAction> phaseBeginAction) { this->phaseBeginAction = phaseBeginAction; }

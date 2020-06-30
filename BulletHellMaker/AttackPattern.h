@@ -13,7 +13,7 @@ An attack pattern consists of a list of attacks and a list of actions executed b
 An attack pattern stops when the next one begins.
 If an EditorAttackPattern is being used by a player, EMPActions are unused.
 */
-class EditorAttackPattern : public LevelPackObject, public TextMarshallable {
+class EditorAttackPattern : public LevelPackObject {
 public:
 	inline EditorAttackPattern() {}
 	inline EditorAttackPattern(int id) {
@@ -33,8 +33,8 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const;
-	bool legal(std::string& message) const;
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	void changeEntityPathToAttackPatternActions(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag);
 

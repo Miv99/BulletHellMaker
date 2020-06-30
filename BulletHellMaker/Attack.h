@@ -12,7 +12,7 @@
 
 class EditorMovablePoint;
 
-class EditorAttack : public LevelPackObject, public TextMarshallable {
+class EditorAttack : public LevelPackObject {
 public:
 	inline EditorAttack() {}
 	EditorAttack(int id);
@@ -30,7 +30,8 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	void loadEMPBulletModels(const LevelPack& levelPack);
 

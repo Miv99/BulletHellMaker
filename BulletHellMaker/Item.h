@@ -14,7 +14,7 @@ class LevelPack;
 /*
 An item is something that can be picked up by the player and does something on pickup.
 */
-class Item : public TextMarshallable, public LevelPackObject, public ExpressionCompilable {
+class Item : public LevelPackObject {
 public:
 	inline Item() {}
 	inline Item(Animatable animatable, float hitboxRadius, float activationRadius = 75.0f) : animatable(animatable), hitboxRadius(hitboxRadius), activationRadius(activationRadius) {}
@@ -25,7 +25,7 @@ public:
 	virtual std::string format() const = 0;
 	virtual void load(std::string formattedString) = 0;
 
-	virtual std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const = 0;
+	virtual std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const = 0;
 	virtual void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) = 0;
 
 	// Called when the player makes contact with an item's hitbox
@@ -66,7 +66,7 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	void onPlayerContact(entt::DefaultRegistry& registry, uint32_t player);
@@ -90,7 +90,7 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	void onPlayerContact(entt::DefaultRegistry& registry, uint32_t player);
@@ -116,7 +116,7 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	void onPlayerContact(entt::DefaultRegistry& registry, uint32_t player);
@@ -142,7 +142,7 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	void onPlayerContact(entt::DefaultRegistry& registry, uint32_t player);

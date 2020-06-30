@@ -59,9 +59,15 @@ void EditorEnemy::load(std::string formattedString) {
 	deathSound.load(items[i++]);
 }
 
-std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorEnemy::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorEnemy::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
+
+	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
+	LEGAL_CHECK_EXPRESSION(hitboxRadius, hitbox radius)
+	LEGAL_CHECK_EXPRESSION(health, health)
+	LEGAL_CHECK_EXPRESSION(despawnTime, despawn time)
+
 	if (phaseIDs.size() == 0) {
 		status = std::max(status, LEGAL_STATUS::ILLEGAL);
 		messages.push_back("List of phases is empty.");
@@ -86,7 +92,7 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorEnemy::
 
 		i++;
 	}
-	return std::make_pair(LEGAL_STATUS::ILLEGAL, std::vector<std::string>());
+	return std::make_pair(status, messages);
 }
 
 void EditorEnemy::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {

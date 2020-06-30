@@ -20,7 +20,7 @@ Spawned by EnemySpawn.
 
 The first PhaseStartCondition must be set such that the enemy is always in a phase.
 */
-class EditorEnemy : public LevelPackObject, public TextMarshallable, public ExpressionCompilable {
+class EditorEnemy : public LevelPackObject {
 public:
 	inline EditorEnemy() {}
 	inline EditorEnemy(int id) {
@@ -40,7 +40,7 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const;
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	void setHitboxRadius(std::string hitboxRadius);

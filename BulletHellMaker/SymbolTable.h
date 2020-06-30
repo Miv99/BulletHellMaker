@@ -61,12 +61,12 @@ public:
 	/*
 	Returns a symbol_table that defines constant values for every unredelegated symbol.
 	*/
-	exprtk::symbol_table<float> toExprtkSymbolTable();
+	exprtk::symbol_table<float> toExprtkSymbolTable() const;
 	/*
 	Returns a symbol_table that defines constant values for every unredelegated symbol
 	and defines every redelegated symbol with value 0.
 	*/
-	exprtk::symbol_table<float> toZeroFilledSymbolTable();
+	exprtk::symbol_table<float> toZeroFilledSymbolTable() const;
 
 	bool isEmpty() const;
 

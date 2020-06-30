@@ -214,7 +214,17 @@ public:
 	*/
 	std::shared_ptr<Level> getGameplayLevel(int levelIndex) const;
 
+	/*
+	Returns an EditorAttack for editing purposes.
+	*/
 	std::shared_ptr<EditorAttack> getAttack(int id) const;
+	/*
+	Returns an EditorAttack for gameplay purposes.
+
+	symbolsDefiner - a symbol_table that defines all symbols redelegated in the EditorAttack's ValueSymbolTable
+	*/
+	std::shared_ptr<EditorAttack> getGameplayAttack(int id, exprtk::symbol_table<float> symbolsDefiner) const;
+
 	std::shared_ptr<EditorAttackPattern> getAttackPattern(int id) const;
 	/*
 	Returns an EditorEnemy for editing purposes.

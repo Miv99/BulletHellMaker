@@ -14,14 +14,14 @@
 #include <SFML/Graphics.hpp>
 #include "ExpressionCompilable.h"
 
-class LevelEvent : public TextMarshallable, public LevelPackObject, public ExpressionCompilable {
+class LevelEvent : public LevelPackObject {
 public:
 	std::string format() const = 0;
 	void load(std::string formattedString) = 0;
 
 	virtual std::shared_ptr<LevelPackObject> clone() const = 0;
 
-	virtual std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const = 0;
+	virtual std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const = 0;
 	virtual void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) = 0;
 
 	virtual void execute(SpriteLoader& spriteLoader, LevelPack& levelPack, entt::DefaultRegistry& registry, EntityCreationQueue& queue) = 0;
@@ -40,7 +40,7 @@ public:
 
 	std::shared_ptr<LevelPackObject> clone() const override;
 
-	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	void execute(SpriteLoader& spriteLoader, LevelPack& levelPack, entt::DefaultRegistry& registry, EntityCreationQueue& queue) override;
@@ -72,7 +72,7 @@ public:
 
 	std::shared_ptr<LevelPackObject> clone() const override;
 
-	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const;
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	void execute(SpriteLoader& spriteLoader, LevelPack& levelPack, entt::DefaultRegistry& registry, EntityCreationQueue& queue) override;

@@ -135,7 +135,7 @@ void EditorMovablePoint::load(std::string formattedString) {
 	isBullet = unformatBool(items[i++]);
 }
 
-std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorMovablePoint::legal(LevelPack & levelPack, SpriteLoader & spriteLoader) const {
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorMovablePoint::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages = { "Movable point ID " + std::to_string(id) };
 	if (actions.size() == 0) {
@@ -184,7 +184,7 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorMovable
 		messages.push_back(std::string(str));
 	}
 	for (auto child : children) {
-		auto childLegal = child->legal(levelPack, spriteLoader);
+		auto childLegal = child->legal(levelPack, spriteLoader, symbolTables);
 		if (childLegal.first != LEGAL_STATUS::LEGAL) {
 			status = std::max(status, childLegal.first);
 			// Don't tab the result messages or else the root EMP legal() messages will have a bunch of tabs
@@ -200,6 +200,10 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorMovable
 	}
 
 	return std::make_pair(status, messages);
+}
+
+void EditorMovablePoint::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
+	// TODO: compileExpressions
 }
 
 void EditorMovablePoint::dfsLoadBulletModel(const LevelPack & levelPack) {
@@ -604,9 +608,13 @@ void BulletModel::load(std::string formattedString) {
 	soundSettings.load(items[11]);
 }
 
-std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> BulletModel::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> BulletModel::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	//TODO: legal
 	return std::make_pair(LEGAL_STATUS::ILLEGAL, std::vector<std::string>());
+}
+
+void BulletModel::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
+	//TODO: compileExpressions
 }
 
 void BulletModel::onModelChange() {

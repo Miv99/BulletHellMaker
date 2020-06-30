@@ -122,7 +122,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	auto e1set = EntityAnimatableSet(Animatable("Megaman idle", "sheet1", false, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT), 
 		Animatable("Megaman movement", "sheet1", false, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT), 
 		Animatable("Megaman attack", "sheet1", false, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT),
-		std::make_shared<PlayAnimatableDeathAction>(Animatable("oh my god he's dead", "sheet1", true, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT), PlayAnimatableDeathAction::NONE, 3.0f));
+		std::make_shared<PlayAnimatableDeathAction>(Animatable("oh my god he's dead", "sheet1", true, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT), PlayAnimatableDeathAction::DEATH_ANIMATION_EFFECT::NONE, "3.0"));
 	enemy1->addPhaseID(0, std::make_shared<TimeBasedEnemyPhaseStartCondition>(0), ep1->getID(), e1set);
 	enemy1->addPhaseID(1, std::make_shared<TimeBasedEnemyPhaseStartCondition>(10), ep2->getID(), e1set);
 	enemy1->setHealth("health + 5");
@@ -140,7 +140,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	est.setSymbol("health", -1, true);
 	enemy1->setSymbolTable(est);
 
-	std::vector<int> e1DeathAttacks;
+	std::vector<std::pair<int, ExprSymbolTable>> e1DeathAttacks;
 	for (int i = 0; i < 10; i++) {
 		auto atk = createAttack();
 		auto emp = atk->searchEMP(0);
@@ -149,10 +149,10 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 		emp->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(0, 0, 0));
 		emp->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 2.0f + (i * 0.3f)), std::make_shared<ConstantTFV>(0), 2.0f, std::make_shared<EMPAAngleOffsetToPlayer>()));
 		emp->setOnCollisionAction(DESTROY_THIS_BULLET_ONLY);
-		e1DeathAttacks.push_back(atk->getID());
+		e1DeathAttacks.push_back(std::make_pair(atk->getID(), ExprSymbolTable()));
 	}
 	enemy1->addDeathAction(std::make_shared<ExecuteAttacksDeathAction>(e1DeathAttacks));
-	enemy1->addDeathAction(std::make_shared<ParticleExplosionDeathAction>(ParticleExplosionDeathAction::FADE_AWAY, Animatable("Bomb", "sheet1", true, LOCK_ROTATION), false, sf::Color::Yellow));
+	enemy1->addDeathAction(std::make_shared<ParticleExplosionDeathAction>(ParticleExplosionDeathAction::PARTICLE_EFFECT::FADE_AWAY, Animatable("Bomb", "sheet1", true, LOCK_ROTATION), false, sf::Color::Yellow));
 
 	auto level = std::make_shared<Level>("test level 1 with a really long name");
 	auto playerAP = createAttackPattern();
@@ -194,7 +194,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	auto pset2 = EntityAnimatableSet(Animatable("Megaman idle", "sheet1", false, ROTATE_WITH_MOVEMENT),
 		Animatable("Megaman movement", "sheet1", false, ROTATE_WITH_MOVEMENT),
 		Animatable("Megaman attack", "sheet1", false, ROTATE_WITH_MOVEMENT),
-		std::make_shared<PlayAnimatableDeathAction>(Animatable("oh my god he's dead", "sheet1", true, ROTATE_WITH_MOVEMENT), PlayAnimatableDeathAction::NONE, 3.0f));
+		std::make_shared<PlayAnimatableDeathAction>(Animatable("oh my god he's dead", "sheet1", true, ROTATE_WITH_MOVEMENT), PlayAnimatableDeathAction::DEATH_ANIMATION_EFFECT::NONE, "3.0"));
 	auto v1 = std::vector<std::shared_ptr<EnemySpawnInfo>>();
 	std::vector<std::pair<std::shared_ptr<Item>, std::string>> items;
 	items.push_back(std::make_pair(level->getHealthPack(), "3"));
@@ -255,8 +255,9 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	player->setDiscretePlayerHPSprite(Animatable("GUI\\heart.png", "", true, LOCK_ROTATION));
 	player->setFocusedSpeed("150");
 	player->setHitboxRadius("1");
+
 	player->setInitialHealth("a + 3");
-	player->setInvulnerabilityTime("1.0f");
+	player->setInvulnerabilityTime("1.0");
 	player->setMaxHealth("a + 3");
 	player->setSpeed("300");
 	auto asd = std::make_shared<PlayerPowerTier>(pset1, playerAP->getID(), "0.1", playerFocusedAP->getID(), "0.5", bombAP->getID(), "5", "a");
@@ -677,6 +678,15 @@ std::shared_ptr<Level> LevelPack::getGameplayLevel(int levelIndex) const {
 
 std::shared_ptr<EditorAttack> LevelPack::getAttack(int id) const {
 	return attacks.at(id);
+}
+
+std::shared_ptr<EditorAttack> LevelPack::getGameplayAttack(int id, exprtk::symbol_table<float> symbolsDefiner) const {
+	auto attack = attacks.at(id)->clone();
+	// Level is a top-level object so every expression it uses should be in terms of only its own
+	// unredelegated, well-defined symbols
+	auto derived = std::dynamic_pointer_cast<EditorAttack>(attack);
+	derived->compileExpressions({ symbolsDefiner });
+	return derived;
 }
 
 std::shared_ptr<EditorAttackPattern> LevelPack::getAttackPattern(int id) const {

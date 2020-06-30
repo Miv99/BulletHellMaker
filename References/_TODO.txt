@@ -136,7 +136,7 @@ Notes for me:
 
 
 current todo:
--player death -> death sound plays infintely -> stack overflow
+-player death -> death sound plays every time player gets hit again
 -Allow every LevelPackObject to use math expressions instead of numbers
     -If a LevelPackObject or any LevelPackObject that it uses
         -ie An EditorAttack has some EditorMovablePoints

@@ -17,14 +17,13 @@ void GlobalTimeBasedEnemySpawnCondition::load(std::string formattedString) {
 	symbolTable.load(items[2]);
 }
 
-std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> GlobalTimeBasedEnemySpawnCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> GlobalTimeBasedEnemySpawnCondition::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
-	exprtk::parser<float> parser;
-	if (!expressionStrIsValid(parser, time, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for time");
-	}
+
+	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
+	LEGAL_CHECK_EXPRESSION(time, time)
+
 	return std::make_pair(status, messages);
 }
 
@@ -53,14 +52,13 @@ void EnemyCountBasedEnemySpawnCondition::load(std::string formattedString) {
 	symbolTable.load(items[2]);
 }
 
-std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EnemyCountBasedEnemySpawnCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EnemyCountBasedEnemySpawnCondition::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
-	exprtk::parser<float> parser;
-	if (!expressionStrIsValid(parser, enemyCount, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for enemy count");
-	}
+
+	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
+	LEGAL_CHECK_EXPRESSION(enemyCount, enemy count)
+
 	return std::make_pair(status, messages);
 }
 
@@ -89,14 +87,13 @@ void TimeBasedEnemySpawnCondition::load(std::string formattedString) {
 	symbolTable.load(items[2]);
 }
 
-std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> TimeBasedEnemySpawnCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> TimeBasedEnemySpawnCondition::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
-	exprtk::parser<float> parser;
-	if (!expressionStrIsValid(parser, time, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for time");
-	}
+
+	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
+	LEGAL_CHECK_EXPRESSION(time, time)
+
 	return std::make_pair(status, messages);
 }
 

@@ -58,58 +58,26 @@ void EditorPlayer::load(std::string formattedString) {
 	symbolTable.load(items[i++]);
 }
 
-std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorPlayer::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorPlayer::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
-	exprtk::parser<float> parser;
-	if (!expressionStrIsValid(parser, initialHealth, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for initial health");
-	}
-	if (!expressionStrIsValid(parser, maxHealth, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for max health");
-	}
-	if (!expressionStrIsValid(parser, speed, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for speed");
-	}
-	if (!expressionStrIsValid(parser, focusedSpeed, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for focused speed");
-	}
-	if (!expressionStrIsValid(parser, hitboxRadius, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for hitbox radius");
-	}
-	if (!expressionStrIsValid(parser, hitboxPosX, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for hitbox x-position");
-	}
-	if (!expressionStrIsValid(parser, hitboxPosY, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for hitbox y-position");
-	}
-	if (!expressionStrIsValid(parser, invulnerabilityTime, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for invulnerability time");
-	}
-	if (!expressionStrIsValid(parser, initialBombs, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for initial bombs");
-	}
-	if (!expressionStrIsValid(parser, maxBombs, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for max bombs");
-	}
-	if (!expressionStrIsValid(parser, bombInvincibilityTime, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for bomb invincibility time");
-	}
+
+	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
+	LEGAL_CHECK_EXPRESSION(initialHealth, initial health)
+	LEGAL_CHECK_EXPRESSION(maxHealth, max health)
+	LEGAL_CHECK_EXPRESSION(speed, speed)
+	LEGAL_CHECK_EXPRESSION(focusedSpeed, focused speed)
+	LEGAL_CHECK_EXPRESSION(hitboxRadius, hitbox radius)
+	LEGAL_CHECK_EXPRESSION(hitboxPosX, hitbox x-position)
+	LEGAL_CHECK_EXPRESSION(hitboxPosY, hitbox y-position)
+	LEGAL_CHECK_EXPRESSION(invulnerabilityTime, invulnerability time)
+	LEGAL_CHECK_EXPRESSION(initialBombs, initial bombs count)
+	LEGAL_CHECK_EXPRESSION(maxBombs, max bombs count)
+	LEGAL_CHECK_EXPRESSION(bombInvincibilityTime, bomb invincibility time)
 
 	int i = 0;
 	for (std::shared_ptr<PlayerPowerTier> tier : powerTiers) {
-		auto tierLegal = tier->legal(levelPack, spriteLoader);
+		auto tierLegal = tier->legal(levelPack, spriteLoader, symbolTables);
 		if (tierLegal.first != LEGAL_STATUS::LEGAL) {
 			status = std::max(status, tierLegal.first);
 			tabEveryLine(tierLegal.second);
@@ -168,26 +136,16 @@ void PlayerPowerTier::load(std::string formattedString) {
 	powerToNextTier = items[8];
 }
 
-std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> PlayerPowerTier::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> PlayerPowerTier::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
-	exprtk::parser<float> parser;
-	if (!expressionStrIsValid(parser, attackPatternLoopDelay, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for attack pattern loop delay");
-	}
-	if (!expressionStrIsValid(parser, focusedAttackPatternLoopDelay, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for focused attack pattern loop delay");
-	}
-	if (!expressionStrIsValid(parser, bombCooldown, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for bomb cooldown");
-	}
-	if (!expressionStrIsValid(parser, powerToNextTier, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for power to next tier");
-	}
+
+	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
+	LEGAL_CHECK_EXPRESSION(attackPatternLoopDelay, attack pattern loop delay)
+	LEGAL_CHECK_EXPRESSION(focusedAttackPatternLoopDelay, focused attack pattern loop delay)
+	LEGAL_CHECK_EXPRESSION(bombCooldown, bomb cooldown)
+	LEGAL_CHECK_EXPRESSION(powerToNextTier, power to next tier)
+
 	// TODO: check animatableSet, attackPatternID, focusedAttackPatternID, bombAttackPatternID
 	return std::make_pair(status, messages);
 }

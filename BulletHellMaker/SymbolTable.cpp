@@ -79,7 +79,7 @@ void ValueSymbolTable::removeSymbol(std::string symbol) {
     map.erase(symbol);
 }
 
-exprtk::symbol_table<float> ValueSymbolTable::toExprtkSymbolTable() {
+exprtk::symbol_table<float> ValueSymbolTable::toExprtkSymbolTable() const {
     exprtk::symbol_table<float> table;
     for (auto it = map.begin(); it != map.end(); it++) {
         // Add as constants so that the symbol_table is still valid even after the floats go out of scope
@@ -91,7 +91,7 @@ exprtk::symbol_table<float> ValueSymbolTable::toExprtkSymbolTable() {
     return table;
 }
 
-exprtk::symbol_table<float> ValueSymbolTable::toZeroFilledSymbolTable() {
+exprtk::symbol_table<float> ValueSymbolTable::toZeroFilledSymbolTable() const {
     exprtk::symbol_table<float> table;
     for (auto it = map.begin(); it != map.end(); it++) {
         // Add as constants so that the symbol_table is still valid even after the floats go out of scope

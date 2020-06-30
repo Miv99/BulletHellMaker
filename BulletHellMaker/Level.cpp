@@ -73,13 +73,13 @@ void Level::load(std::string formattedString) {
 	symbolTable.load(items[i++]);
 }
 
-std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> Level::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> Level::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
 
 	int i = 0;
 	for (std::pair<std::shared_ptr<LevelEventStartCondition>, std::shared_ptr<LevelEvent>> p : events) {
-		auto eventStartConditionLegal = p.first->legal(levelPack, spriteLoader);
+		auto eventStartConditionLegal = p.first->legal(levelPack, spriteLoader, symbolTables);
 		if (eventStartConditionLegal.first != LEGAL_STATUS::LEGAL) {
 			status = std::max(status, eventStartConditionLegal.first);
 			tabEveryLine(eventStartConditionLegal.second);
@@ -87,7 +87,7 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> Level::legal(
 			messages.insert(messages.end(), eventStartConditionLegal.second.begin(), eventStartConditionLegal.second.end());
 		}
 
-		auto eventLegal = p.second->legal(levelPack, spriteLoader);
+		auto eventLegal = p.second->legal(levelPack, spriteLoader, symbolTables);
 		if (eventLegal.first != LEGAL_STATUS::LEGAL) {
 			status = std::max(status, eventLegal.first);
 			tabEveryLine(eventLegal.second);

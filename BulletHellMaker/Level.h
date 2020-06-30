@@ -21,7 +21,7 @@
 This is a top-level object so every expression this uses should be in terms of only its own unredelegated, well-defined symbols
 meaning every symbol in this object's symbol table is not redelegated.
 */
-class Level : public TextMarshallable, public LevelPackObject, public ExpressionCompilable {
+class Level : public LevelPackObject {
 public:
 	inline Level() {}
 	inline Level(std::string name) : name(name) {}
@@ -31,7 +31,7 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	/*

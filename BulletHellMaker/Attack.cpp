@@ -39,11 +39,11 @@ void EditorAttack::load(std::string formattedString) {
 	playAttackAnimation = unformatBool(items[3]);
 }
 
-std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorAttack::legal(LevelPack & levelPack, SpriteLoader & spriteLoader) const {
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorAttack::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LevelPackObject::LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
 	if (mainEMP) {
-		auto mainEMPLegal = mainEMP->legal(levelPack, spriteLoader);
+		auto mainEMPLegal = mainEMP->legal(levelPack, spriteLoader, symbolTables);
 		if (mainEMPLegal.first != LEGAL_STATUS::LEGAL) {
 			status = std::max(status, mainEMPLegal.first);
 			tabEveryLine(mainEMPLegal.second);
@@ -54,6 +54,10 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorAttack:
 		messages.push_back("Attack \"" + name + "\" is missing its mainEMP");
 	}
 	return std::make_pair(status, messages);
+}
+
+void EditorAttack::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
+	// TODO: compileExpressions
 }
 
 void EditorAttack::loadEMPBulletModels(const LevelPack & levelPack) {

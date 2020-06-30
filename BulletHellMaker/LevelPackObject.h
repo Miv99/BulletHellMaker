@@ -7,6 +7,9 @@
 #include "SpriteLoader.h"
 #include "TextMarshallable.h"
 #include "SymbolTable.h"
+#include "ExpressionCompilable.h"
+#include "TextMarshallable.h"
+#include "exprtk.hpp"
 
 #define DEFINE_PARSER_AND_EXPR_FOR_COMPILE exprtk::parser<float> parser; \
 exprtk::expression<float> expr = exprtk::expression<float>(); \
@@ -52,6 +55,21 @@ void compileExpressions(exprtk::symbol_table<float> symbolTable) {
 Name##ExprCompiledValue = (int)std::round(expr.value()); \
 
 /*
+
+*/
+#define DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK exprtk::parser<float> parser; \
+parser.enable_unknown_symbol_resolver(); \
+if (!this->symbolTable.isEmpty()) { symbolTables.push_back(symbolTable.toZeroFilledSymbolTable()); } \
+/*
+Macro for doing a legal check on an expression.
+DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK should be called anywhere before this macro is called.
+*/
+#define LEGAL_CHECK_EXPRESSION(Name, DisplayedName) if (!expressionStrIsValid(parser, Name, symbolTables)) { \
+status = std::max(status, LEGAL_STATUS::ILLEGAL); \
+messages.push_back(std::string("Invalid expression for ").append(#DisplayedName)); \
+} \
+
+/*
 Returns whether the file in the file path exists.
 */
 bool fileExists(const std::string& name);
@@ -64,10 +82,10 @@ Returns whether expressionStr is a valid expression string when using some Value
 The actual values in symbolTable are ignored; the only important part is whether 
 every variable used in expressionStr is defined or redelegated in symbolTable.
 */
-bool expressionStrIsValid(exprtk::parser<float>& parser, const std::string& expressionStr, ValueSymbolTable symbolTable);
+bool expressionStrIsValid(exprtk::parser<float>& parser, const std::string& expressionStr, std::vector<exprtk::symbol_table<float>> symbolTables);
 
 
-class LevelPackObject {
+class LevelPackObject : public TextMarshallable, public ExpressionCompilable {
 public:
 	/*
 	This is structured such that the std::max of a current status and some more important
@@ -81,14 +99,22 @@ public:
 
 	virtual std::shared_ptr<LevelPackObject> clone() const = 0;
 
+	virtual std::string format() const = 0;
+	virtual void load(std::string formattedString) = 0;
+
 	/*
 	Legality check for the usage of the LevelPackObject.
 	Returns a pair indicating the legal status of the object and a list of messages explaining errors and/or warnings.
 
 	levelPack - the LevelPack this LevelPackObject belongs to
 	spriteLoader - the SpriteLoader to be used with levelPack
+	symbolTables - a list of symbol_tables; its content combined should define all symbols that will be needed to compile every expression this object
+		uses and every expression in this object's unique objects tree. The symbol_tables should be ordered in descending priority such that in the 
+		case of the same symbol being defined multiple times, the definition in the farthest-back symbol_table will be used.
 	*/
-	virtual std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const = 0;
+	virtual std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const = 0;
+
+	virtual void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) = 0;
 
 	/*
 	This shouldn't be used if the LevelPackObject already belongs to a LevelPack.
@@ -104,8 +130,8 @@ protected:
 	// Format for the message in legal() for an invalid expression. The only parameter is the descriptive name of the field as a C string.
 	const static std::string INVALID_EXPRESSION_MESSAGE_FORMAT;
 
-	// ID unique to all other LevelPackObjects of the same derived class
+	// ID unique to all other LevelPackObjects of the same derived class. Only used for non-unique objects (see references for definition of a unique object).
 	int id;
-	// User-defined name of the attack
+	// User-defined name. Only used for non-unique objects.
 	std::string name;
 };

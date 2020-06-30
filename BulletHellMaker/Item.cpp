@@ -38,14 +38,13 @@ void HealthPackItem::load(std::string formattedString) {
 	symbolTable.load(items[6]);
 }
 
-std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> HealthPackItem::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> HealthPackItem::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
-	exprtk::parser<float> parser;
-	if (!expressionStrIsValid(parser, healthRestoreAmount, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for health restore amount");
-	}
+	
+	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
+	LEGAL_CHECK_EXPRESSION(healthRestoreAmount, health restore amount)
+
 	return std::make_pair(status, messages);
 }
 
@@ -81,18 +80,14 @@ void PowerPackItem::load(std::string formattedString) {
 	symbolTable.load(items[7]);
 }
 
-std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> PowerPackItem::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> PowerPackItem::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
-	exprtk::parser<float> parser;
-	if (!expressionStrIsValid(parser, powerAmount, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for power up amount");
-	}
-	if (!expressionStrIsValid(parser, pointsPerExtraPower, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for points per extra power");
-	}
+
+	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
+	LEGAL_CHECK_EXPRESSION(powerAmount, power up amount)
+	LEGAL_CHECK_EXPRESSION(pointsPerExtraPower, points per extra power)
+
 	return std::make_pair(status, messages);
 }
 
@@ -128,14 +123,13 @@ void PointsPackItem::load(std::string formattedString) {
 	symbolTable.load(items[6]);
 }
 
-std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> PointsPackItem::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> PointsPackItem::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
-	exprtk::parser<float> parser;
-	if (!expressionStrIsValid(parser, pointsAmount, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for points amount");
-	}
+
+	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
+	LEGAL_CHECK_EXPRESSION(pointsAmount, points amount)
+
 	return std::make_pair(status, messages);
 }
 
@@ -171,18 +165,14 @@ void BombItem::load(std::string formattedString) {
 	symbolTable.load(items[7]);
 }
 
-std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> BombItem::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> BombItem::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
-	exprtk::parser<float> parser;
-	if (!expressionStrIsValid(parser, bombsAmount, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for bombs amount");
-	}
-	if (!expressionStrIsValid(parser, pointsPerExtraBomb, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for points per extra bomb");
-	}
+
+	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
+	LEGAL_CHECK_EXPRESSION(bombsAmount, bombs amount)
+	LEGAL_CHECK_EXPRESSION(pointsPerExtraBomb, points per extra bomb)
+
 	return std::make_pair(status, messages);
 }
 

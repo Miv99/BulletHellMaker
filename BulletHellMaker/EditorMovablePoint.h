@@ -20,7 +20,7 @@
 class EMPSpawnType;
 class EditorMovablePoint;
 
-class BulletModel : public LevelPackObject, public TextMarshallable, public std::enable_shared_from_this<BulletModel> {
+class BulletModel : public LevelPackObject, public std::enable_shared_from_this<BulletModel> {
 public:
 	inline BulletModel() {}
 	inline BulletModel(int id) {
@@ -40,7 +40,8 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const;
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	inline Animatable getAnimatable() const { return animatable; }
 	inline float getHitboxRadius() const { return hitboxRadius; }
@@ -105,7 +106,7 @@ EMP for short.
 
 If an EMP uses a bullet model, make sure to call loadBulletModel() every time the bullet model changes.
 */
-class EditorMovablePoint : public LevelPackObject, public TextMarshallable, public std::enable_shared_from_this<EditorMovablePoint> {
+class EditorMovablePoint : public LevelPackObject, public std::enable_shared_from_this<EditorMovablePoint> {
 public:
 	/*
 	Constructor only to be used for EditorMovablePoints with no parent.
@@ -141,7 +142,8 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const override;
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	/*
 	Loads this EMP and its children's bullet models into the EMP, it they use models.

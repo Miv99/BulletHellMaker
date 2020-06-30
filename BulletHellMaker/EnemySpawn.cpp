@@ -35,22 +35,18 @@ void EnemySpawnInfo::load(std::string formattedString) {
 	}
 }
 
-std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EnemySpawnInfo::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EnemySpawnInfo::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
-	exprtk::parser<float> parser;
-	if (!expressionStrIsValid(parser, x, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for x");
-	}
-	if (!expressionStrIsValid(parser, y, symbolTable)) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Invalid expression for y");
-	}
+
+	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
+	LEGAL_CHECK_EXPRESSION(x, x)
+	LEGAL_CHECK_EXPRESSION(y, y)
+	
 	// TODO: legal check itemsDroppedOnDeath
 	int i = 0;
 	for (auto p : itemsDroppedOnDeath) {
-		auto itemLegal = p.first->legal(levelPack, spriteLoader);
+		auto itemLegal = p.first->legal(levelPack, spriteLoader, symbolTables);
 		if (itemLegal.first != LEGAL_STATUS::LEGAL) {
 			status = std::max(status, itemLegal.first);
 			tabEveryLine(itemLegal.second);
@@ -58,7 +54,7 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EnemySpawnInf
 			messages.insert(messages.end(), itemLegal.second.begin(), itemLegal.second.end());
 		}
 
-		if (!expressionStrIsValid(parser, p.second, symbolTable)) {
+		if (!expressionStrIsValid(parser, p.second, symbolTables)) {
 			status = std::max(status, LEGAL_STATUS::ILLEGAL);
 			messages.push_back("Invalid expression for item drop index " + std::to_string(i) + " amount");
 		}

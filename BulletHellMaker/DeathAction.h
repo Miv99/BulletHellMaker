@@ -10,6 +10,8 @@
 #include "Components.h"
 #include "AudioPlayer.h"
 #include "SpriteEffectAnimation.h"
+#include "ExpressionCompilable.h"
+#include "LevelPackObject.h"
 
 class LevelPack;
 class EntityCreationQueue;
@@ -18,10 +20,15 @@ class EntityCreationQueue;
 An action that is executed on the death of an entity.
 Entity despawn does not count as death, unless the entity is a bullet.
 */
-class DeathAction : public TextMarshallable {
+class DeathAction : public LevelPackObject {
 public:
-	std::string format() const = 0;
-	void load(std::string formattedString) = 0;
+	virtual std::shared_ptr<LevelPackObject> clone() const = 0;
+
+	virtual std::string format() const = 0;
+	virtual void load(std::string formattedString) = 0;
+
+	virtual std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const = 0;
+	virtual void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) = 0;
 
 	/*
 	entity - the entity executing this DeathAction
@@ -34,7 +41,7 @@ Death action for spawning some entity that displays an Animatable.
 */
 class PlayAnimatableDeathAction : public DeathAction {
 public:
-	enum DEATH_ANIMATION_EFFECT {
+	enum class DEATH_ANIMATION_EFFECT {
 		NONE,
 		// Animatable shrinks in size until it disappears
 		SHRINK,
@@ -43,28 +50,33 @@ public:
 	};
 
 	inline PlayAnimatableDeathAction() {}
-	inline PlayAnimatableDeathAction(Animatable animatable, DEATH_ANIMATION_EFFECT effect, float duration) : animatable(animatable), effect(effect), duration(duration) {}
+	inline PlayAnimatableDeathAction(Animatable animatable, DEATH_ANIMATION_EFFECT effect, std::string duration) : animatable(animatable), effect(effect), duration(duration) {}
+
+	std::shared_ptr<LevelPackObject> clone() const;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables);
+
 	void execute(LevelPack& levelPack, EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) override;
 
-	// Returns a reference
-	inline Animatable& getAnimatable() { return animatable; }
-	inline DEATH_ANIMATION_EFFECT getEffect() { return effect; }
-	inline float getDuration() { return duration; }
+	Animatable getAnimatable();
+	DEATH_ANIMATION_EFFECT getEffect();
+	float getDuration();
 
-	inline void setDuration(float duration) { this->duration = duration; }
-	inline void setEffect(DEATH_ANIMATION_EFFECT effect) { this->effect = effect; }
+	void setAnimatable(Animatable animatable);
+	void setDuration(float duration);
+	void setEffect(DEATH_ANIMATION_EFFECT effect);
 
 private:
 	Animatable animatable;
 	// Type of sprite effect to apply to death animatable
-	DEATH_ANIMATION_EFFECT effect = NONE;
+	DEATH_ANIMATION_EFFECT effect = DEATH_ANIMATION_EFFECT::NONE;
 	// Lifespan of the entity playing the death animation. Only applicable if animatable
 	// is a sprite. Otherwise, the entity despawns when its animation is over.
-	float duration;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(duration, float, 0)
 };
 
 /*
@@ -80,13 +92,19 @@ public:
 	*/
 	inline PlaySoundDeathAction(SoundSettings soundSettings) : soundSettings(soundSettings) {}
 
+	std::shared_ptr<LevelPackObject> clone() const;
+
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables);
+
 	void execute(LevelPack& levelPack, EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) override;
 
-	// Returns a reference
-	inline SoundSettings& getSoundSettings() { return soundSettings; }
+	SoundSettings getSoundSettings();
+
+	void setSoundSettings(SoundSettings soundSettings);
 
 private:
 	SoundSettings soundSettings;
@@ -99,18 +117,25 @@ Note that this executes a number of attacks, not an attack pattern, meaning all 
 class ExecuteAttacksDeathAction : public DeathAction {
 public:
 	inline ExecuteAttacksDeathAction() {}
-	inline ExecuteAttacksDeathAction(std::vector<int> attackIDs) : attackIDs(attackIDs) {}
+	inline ExecuteAttacksDeathAction(std::vector<std::pair<int, ExprSymbolTable>> attackIDs) : attackIDs(attackIDs) {}
+
+	std::shared_ptr<LevelPackObject> clone() const;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables);
+
 	void execute(LevelPack& levelPack, EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) override;
 
-	// Returns a reference
-	inline std::vector<int>& getAttackIDs() { return attackIDs; }
+	std::vector<std::pair<int, ExprSymbolTable>> getAttackIDs();
+
+	void setAttackIDs(std::vector<std::pair<int, ExprSymbolTable>> attackIDs);
 
 private:
-	std::vector<int> attackIDs;
+	// Attack IDs and corresponding symbol definers
+	std::vector<std::pair<int, ExprSymbolTable>> attackIDs;
 };
 
 /*
@@ -118,7 +143,7 @@ Death action for an explosion of purely visual particles.
 */
 class ParticleExplosionDeathAction : public DeathAction {
 public:
-	enum PARTICLE_EFFECT {
+	enum class PARTICLE_EFFECT {
 		NONE,
 		// Particle fades in opacity
 		FADE_AWAY,
@@ -127,22 +152,44 @@ public:
 	};
 
 	inline ParticleExplosionDeathAction() {}
-	inline ParticleExplosionDeathAction(PARTICLE_EFFECT effect, Animatable animatable, bool loopAnimatable, sf::Color color, int minParticles = 20, int maxParticles = 30, float minDistance = 20, float maxDistance = 500, float minLifespan = 0.75f, float maxLifespan = 2.5f) :
+	inline ParticleExplosionDeathAction(PARTICLE_EFFECT effect, Animatable animatable, bool loopAnimatable, sf::Color color, std::string minParticles = "20", std::string maxParticles = "30", 
+		std::string minDistance = "20", std::string maxDistance = "500", std::string minLifespan = "0.75", std::string maxLifespan = "2.5") :
 		effect(effect), animatable(animatable), color(color), minParticles(minParticles), maxParticles(maxParticles), minDistance(minDistance), maxDistance(maxDistance), minLifespan(minLifespan), maxLifespan(maxLifespan) {}
+
+	std::shared_ptr<LevelPackObject> clone() const;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables);
+
 	void execute(LevelPack& levelPack, EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) override;
 
-	inline PARTICLE_EFFECT getEffect() { return effect; }
-	// Returns a reference
-	inline sf::Color& getColor() { return color; }
+	PARTICLE_EFFECT getEffect();
+	sf::Color getColor();
+	Animatable getAnimatable();
+	bool getLoopAnimatable();
+	float getMinParticles();
+	float getMaxParticles();
+	float getMinDistance();
+	float getMaxDistance();
+	float getMinLifespan();
+	float getMaxLifespan();
 
-	inline void setEffect(PARTICLE_EFFECT effect) { this->effect = effect; }
+	void setEffect(PARTICLE_EFFECT effect);
+	void setColor(sf::Color color);
+	void setAnimatable(Animatable animatable);
+	void setLoopAnimatable(bool loopAnimatable);
+	void setMinParticles(std::string minParticles);
+	void setMaxParticles(std::string maxParticles);
+	void setMinDistance(std::string minDistance);
+	void setMaxDistance(std::string maxDistance);
+	void setMinLifespan(std::string minLifespan);
+	void setMaxLifespan(std::string maxLifespan);
 
 private:
-	PARTICLE_EFFECT effect = FADE_AWAY;
+	PARTICLE_EFFECT effect = PARTICLE_EFFECT::FADE_AWAY;
 	// Animatable used for the particle
 	Animatable animatable;
 	// Only applicable if animatable is an animation
@@ -150,11 +197,14 @@ private:
 	// Particle color. Note: this will overwrite the animatable's color as specified in its sprite sheet entry.
 	sf::Color color;
 	// Number of particles
-	int minParticles = 20, maxParticles = 30;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(minParticles, int, 20)
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(maxParticles, int, 30)
 	// Min/max distance a particle can travel
-	float minDistance = 20, maxDistance = 500;
-	// Min/max lifespan of a particle
-	float minLifespan = 0.75f, maxLifespan = 2.5f;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(minDistance, float, 20)
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(maxDistance, float, 500)
+	// Min/max lifespan of a particle in seconds
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(minLifespan, float, 0.75)
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(maxLifespan, float, 2.5)
 };
 
 class DeathActionFactory {

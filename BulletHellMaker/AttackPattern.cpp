@@ -67,22 +67,13 @@ void EditorAttackPattern::load(std::string formattedString) {
 	}
 }
 
-std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorAttackPattern::legal(LevelPack& levelPack, SpriteLoader& spriteLoader) const {
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorAttackPattern::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	//TODO: legal
 	return std::make_pair(LEGAL_STATUS::ILLEGAL, std::vector<std::string>());
 }
 
-bool EditorAttackPattern::legal(std::string & message) const {
-	bool good = true;
-	if (contains(name, '(') || contains(name, ')')) {
-		message += "Attack pattern \"" + name + "\" cannot have the character '(' or ')' in its name\n";
-		good = false;
-	}
-	if (actions.size() == 0) {
-		message += "Attack pattern \"" + name + "\" cannot have an empty list of actions\n";
-		good = false;
-	}
-	return good;
+void EditorAttackPattern::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
+	// TODO: compileExpressions
 }
 
 void EditorAttackPattern::changeEntityPathToAttackPatternActions(EntityCreationQueue& queue, entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
