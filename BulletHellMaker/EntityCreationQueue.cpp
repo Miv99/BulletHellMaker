@@ -490,10 +490,10 @@ void PlayDeathAnimatableCommand::execute(EntityCreationQueue & queue) {
 	spriteComponent.rotate(inheritedSpriteComponent.getInheritedRotationAngle());
 	if (effect == PlayAnimatableDeathAction::NONE) {
 		// Do nothing
-	} else if (effect == PlayAnimatableDeathAction::SHRINK) {
+	} else if (effect == PlayAnimatableDeathAction::DEATH_ANIMATION_EFFECT::SHRINK) {
 		spriteComponent.setEffectAnimation(std::make_unique<ChangeSizeSEA>(spriteComponent.getSprite(), 0.0f, 1.0f, duration));
-	} else if (effect == PlayAnimatableDeathAction::SHRINK) {
-		spriteComponent.setEffectAnimation(std::make_unique<ChangeSizeSEA>(spriteComponent.getSprite(), 0.0f, 1.0f, duration));
+	} else if (effect == PlayAnimatableDeathAction::DEATH_ANIMATION_EFFECT::FADE_AWAY) {
+		spriteComponent.setEffectAnimation(std::make_unique<FadeAwaySEA>(spriteComponent.getSprite(), 0.0f, spriteComponent.getSprite()->getColor().a, duration));
 	}
 
 	auto& oldPos = registry.get<PositionComponent>(dyingEntity);
