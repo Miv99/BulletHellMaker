@@ -124,7 +124,13 @@ private:
 	std::queue<std::unique_ptr<sf::Sound>> currentSounds;
 
 	std::shared_ptr<sf::Music> currentMusic;
-	// The volume the music is transitioning to, in seconds. Volume settings do not affect this value.
+	// The Music being faded away during music transition
+	std::shared_ptr<sf::Music> fadingMusic;
+
+	// The original volume of the music being transitioned from. Volume settings do not affect this value.
+	float musicTransitionFromVolume;
+
+	// The volume the music is transitioning to. Volume settings do not affect this value.
 	float musicTransitionFinalVolume;
 	// Time it will take to fully transition, in seconds
 	float musicTransitionTime = 0;

@@ -48,12 +48,19 @@ void AudioPlayer::update(float deltaTime) {
 
 	// Update music transitioning
 	if (currentMusic && timeSinceMusicTransitionStart < musicTransitionTime) {
+		if (fadingMusic) {
+			fadingMusic->setVolume((musicTransitionFromVolume * masterVolume * musicVolume) * (1.0f - timeSinceMusicTransitionStart / musicTransitionTime));
+		}
 		currentMusic->setVolume((timeSinceMusicTransitionStart/musicTransitionTime) * musicTransitionFinalVolume * masterVolume * musicVolume);
 
 		timeSinceMusicTransitionStart += deltaTime;
 		if (timeSinceMusicTransitionStart >= musicTransitionTime) {
 			// Prevent volume over/undershoot
 			currentMusic->setVolume(musicTransitionFinalVolume * masterVolume * musicVolume);
+			if (fadingMusic) {
+				fadingMusic->setVolume(0);
+				fadingMusic = nullptr;
+			}
 		}
 	}
 }
@@ -80,6 +87,13 @@ void AudioPlayer::playSound(const SoundSettings& soundSettings) {
 
 std::shared_ptr<sf::Music> AudioPlayer::playMusic(const MusicSettings& musicSettings) {
 	if (musicSettings.isDisabled() || musicSettings.getFileName() == "") return nullptr;
+
+	if (currentMusic && currentMusic->getStatus() == sf::SoundSource::Status::Playing && musicSettings.getTransitionTime() > 0) {
+		fadingMusic = currentMusic;
+		musicTransitionFromVolume = musicTransitionFinalVolume;
+	} else {
+		fadingMusic = nullptr;
+	}
 
 	std::shared_ptr<sf::Music> music = std::make_shared<sf::Music>();
 	if (!music->openFromFile(musicSettings.getFileName())) {
