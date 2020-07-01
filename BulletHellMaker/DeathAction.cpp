@@ -180,7 +180,7 @@ std::shared_ptr<LevelPackObject> ParticleExplosionDeathAction::clone() const {
 std::string ParticleExplosionDeathAction::format() const {
 	return formatString("ParticleExplosionDeathAction") + tos(static_cast<int>(effect)) + formatTMObject(animatable) + formatBool(loopAnimatable)
 		+ tos(color.r) + tos(color.g) + tos(color.b) + tos(color.a) + formatString(minParticles) + formatString(maxParticles) + formatString(minDistance)
-		+ formatString(maxDistance) + formatString(minLifespan) + formatString(maxLifespan);
+		+ formatString(maxDistance) + formatString(minLifespan) + formatString(maxLifespan) + formatTMObject(symbolTable);
 }
 
 void ParticleExplosionDeathAction::load(std::string formattedString) {
@@ -198,6 +198,7 @@ void ParticleExplosionDeathAction::load(std::string formattedString) {
 	maxDistance = items[11];
 	minLifespan = items[12];
 	minLifespan = items[13];
+	symbolTable.load(items[14]);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> ParticleExplosionDeathAction::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {

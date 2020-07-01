@@ -14,11 +14,11 @@ std::shared_ptr<LevelPackObject> EditorEnemyPhase::clone() const {
 }
 
 std::string EditorEnemyPhase::format() const {
-	std::string res = tos(id) + formatString(name) + formatTMObject(*phaseBeginAction) + formatTMObject(*phaseEndAction) + tos(attackPatternIDs.size());
-	for (auto p : attackPatternIDs) {
-		res += tos(p.first) + tos(p.second);
+	std::string res = tos(id) + formatString(name) + formatTMObject(*phaseBeginAction) + formatTMObject(*phaseEndAction) + formatString(attackPatternLoopDelay) + tos(attackPatternIDs.size());
+	for (auto t : attackPatternIDs) {
+		res += formatString(std::get<0>(t)) + tos(std::get<1>(t)) + formatTMObject(std::get<2>(t));
 	}
-	res += formatBool(playMusic) + formatTMObject(musicSettings);
+	res += formatBool(playMusic) + formatTMObject(musicSettings) + formatTMObject(symbolTable);
 	return res;
 }
 
@@ -28,12 +28,15 @@ void EditorEnemyPhase::load(std::string formattedString) {
 	name = items[1];
 	phaseBeginAction = EPAFactory::create(items[2]);
 	phaseEndAction = EPAFactory::create(items[3]);
+	attackPatternLoopDelay = items[4];
 
 	attackPatternIDCount.clear();
-	int i = 5;
-	for (int a = 0; a < std::stoi(items[4]); a++) {
+	int i = 6;
+	for (int a = 0; a < std::stoi(items[5]); a++) {
 		int attackPatternID = std::stoi(items[i + 1]);
-		attackPatternIDs.push_back(std::make_pair(std::stof(items[i]), attackPatternID));
+		ExprSymbolTable definer;
+		definer.load(items[i + 2]);
+		attackPatternIDs.push_back(std::make_tuple(items[i], attackPatternID, definer));
 
 		if (attackPatternIDCount.count(attackPatternID) == 0) {
 			attackPatternIDCount[attackPatternID] = 1;
@@ -41,32 +44,55 @@ void EditorEnemyPhase::load(std::string formattedString) {
 			attackPatternIDCount[attackPatternID]++;
 
 		}
-		i += 2;
+		i += 3;
 	}
 	playMusic = unformatBool(items[i++]);
 	musicSettings.load(items[i++]);
+	symbolTable.load(items[i++]);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorEnemyPhase::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
-	//TODO: legal
-	return std::make_pair(LEGAL_STATUS::ILLEGAL, std::vector<std::string>());
+	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
+	std::vector<std::string> messages;
+
+	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
+	LEGAL_CHECK_EXPRESSION(attackPatternLoopDelay, attack pattern loop delay)
+
+	// phaseBeginAction and phaseEndAction cannot be illegal
+
+
+
+	// TODO: legal check musicSettings
+
+	return std::make_pair(status, messages);
 }
 
 void EditorEnemyPhase::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
-	// TODO: compileExpressions
+	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
+	COMPILE_EXPRESSION_FOR_FLOAT(attackPatternLoopDelay)
+
+	compiledAttackPatternIDs.clear();
+	for (auto t : attackPatternIDs) {
+		parser.compile(std::get<0>(t), expr);
+		compiledAttackPatternIDs.push_back(std::make_tuple(expr.value(), std::get<1>(t), std::get<2>(t).toLowerLevelSymbolTable(expr)));
+	}
+	// Keep it sorted ascending by time
+	std::sort(compiledAttackPatternIDs.begin(), compiledAttackPatternIDs.end(), [](auto const& t1, auto const& t2) {
+		return std::get<0>(t1) < std::get<0>(t2);
+	});
 }
 
-std::pair<float, int> EditorEnemyPhase::getAttackPatternData(const LevelPack & levelPack, int index) const {
-	int size = attackPatternIDs.size();
-	auto item = attackPatternIDs[index % size];
+std::tuple<float, int, exprtk::symbol_table<float>> EditorEnemyPhase::getAttackPatternData(const LevelPack & levelPack, int index) const {
+	int size = compiledAttackPatternIDs.size();
+	auto item = compiledAttackPatternIDs[index % size];
 	// Increase time of the attack pattern at some index by the loop count multiplied by total time for all attack patterns to finish
-	item.first += (attackPatternIDs[size - 1].first + levelPack.getAttackPattern(attackPatternIDs[size - 1].second)->getActionsTotalTime() + attackPatternLoopDelay) * (int)(index / size);
+	std::get<0>(item) += (std::get<0>(compiledAttackPatternIDs[size - 1]) + levelPack.getAttackPattern(std::get<1>(compiledAttackPatternIDs[size - 1]))->getActionsTotalTime() + attackPatternLoopDelayExprCompiledValue) * (int)(index / size);
 	return item;
 }
 
-void EditorEnemyPhase::addAttackPatternID(float time, int id) {
-	auto item = std::make_pair(time, id);
-	attackPatternIDs.insert(std::upper_bound(attackPatternIDs.begin(), attackPatternIDs.end(), item), item);
+void EditorEnemyPhase::addAttackPatternID(std::string time, int id, ExprSymbolTable attackPatternSymbolsDefiner) {
+	auto item = std::make_tuple(time, id, attackPatternSymbolsDefiner);
+	attackPatternIDs.push_back(item);
 
 	if (attackPatternIDCount.count(id) == 0) {
 		attackPatternIDCount[id] = 1;
@@ -76,7 +102,7 @@ void EditorEnemyPhase::addAttackPatternID(float time, int id) {
 }
 
 void EditorEnemyPhase::removeAttackPattern(int index) {
-	int attackPatternID = attackPatternIDs[index].second;
+	int attackPatternID = std::get<1>(attackPatternIDs[index]);
 	attackPatternIDs.erase(attackPatternIDs.begin() + index);
 	attackPatternIDCount[attackPatternID]--;
 }

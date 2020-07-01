@@ -8,12 +8,13 @@ std::shared_ptr<LevelPackObject> TimeBasedEnemyPhaseStartCondition::clone() cons
 }
 
 std::string TimeBasedEnemyPhaseStartCondition::format() const {
-	return formatString("TimeBasedEnemyPhaseStartCondition") + formatString(time);
+	return formatString("TimeBasedEnemyPhaseStartCondition") + formatString(time) + formatTMObject(symbolTable);
 }
 
 void TimeBasedEnemyPhaseStartCondition::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	time = items[1];
+	symbolTable.load(items[2]);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> TimeBasedEnemyPhaseStartCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -50,12 +51,13 @@ std::shared_ptr<LevelPackObject> HPBasedEnemyPhaseStartCondition::clone() const 
 }
 
 std::string HPBasedEnemyPhaseStartCondition::format() const {
-	return formatString("HPBasedEnemyPhaseStartCondition") + formatString(ratio);
+	return formatString("HPBasedEnemyPhaseStartCondition") + formatString(ratio) + formatTMObject(symbolTable);
 }
 
 void HPBasedEnemyPhaseStartCondition::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	ratio = items[1];
+	symbolTable.load(items[2]);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> HPBasedEnemyPhaseStartCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -93,12 +95,13 @@ std::shared_ptr<LevelPackObject> EnemyCountBasedEnemyPhaseStartCondition::clone(
 }
 
 std::string EnemyCountBasedEnemyPhaseStartCondition::format() const {
-	return formatString("EnemyCountBasedEnemyPhaseStartCondition") + formatString(enemyCount);
+	return formatString("EnemyCountBasedEnemyPhaseStartCondition") + formatString(enemyCount) + formatTMObject(symbolTable);
 }
 
 void EnemyCountBasedEnemyPhaseStartCondition::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	enemyCount = items[1];
+	symbolTable.load(items[2]);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EnemyCountBasedEnemyPhaseStartCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {

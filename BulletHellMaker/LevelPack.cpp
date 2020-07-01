@@ -98,33 +98,38 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	// test: add more attack patterns
 
 	auto ep1 = createEnemyPhase();
-	ep1->addAttackPatternID(0, ap1->getID());
-	ep1->addAttackPatternID(30, ap1->getID());
-	ep1->setAttackPatternLoopDelay(15);
+	ep1->addAttackPatternID("0", ap1->getID(), ExprSymbolTable());
+	ep1->addAttackPatternID("30", ap1->getID(), ExprSymbolTable());
+	ep1->setAttackPatternLoopDelay("15");
 	ep1->setPhaseBeginAction(std::make_shared<NullEPA>());
 	ep1->setPhaseEndAction(std::make_shared<NullEPA>());
-	ep1->setPlayMusic(false);
-	ep1->getMusicSettings().setFileName("test music.wav");
-	ep1->getMusicSettings().setVolume(10);
+	ep1->setPlayMusic(true);
+	auto ep1ms = MusicSettings();
+	ep1ms.setFileName("test music.wav");
+	ep1ms.setVolume(10);
+	ep1->setMusicSettings(ep1ms);
 
 	auto ep2 = createEnemyPhase();
-	ep2->addAttackPatternID(0, ap1->getID());
-	ep2->addAttackPatternID(30, ap1->getID());
-	ep2->setAttackPatternLoopDelay(15);
+	ep2->addAttackPatternID("0", ap1->getID(), ExprSymbolTable());
+	ep2->addAttackPatternID("30", ap1->getID(), ExprSymbolTable());
+	ep2->setAttackPatternLoopDelay("15");
 	ep2->setPhaseBeginAction(std::make_shared<DestroyEnemyBulletsEPA>());
 	ep2->setPhaseEndAction(std::make_shared<NullEPA>());
-	ep2->setPlayMusic(false);
-	ep2->getMusicSettings().setFileName("heaven's fall.wav");
-	ep2->getMusicSettings().setVolume(10);
-	ep2->getMusicSettings().setTransitionTime(5.5f);
+	ep2->setPlayMusic(true);
+	auto ep2ms = MusicSettings();
+	ep2ms.setFileName("heaven's fall.wav.wav");
+	ep2ms.setVolume(10);
+	ep2ms.setTransitionTime(5.5f);
+	ep2->setMusicSettings(ep2ms);
+	
 
 	auto enemy1 = createEnemy();
 	auto e1set = EntityAnimatableSet(Animatable("Megaman idle", "sheet1", false, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT), 
 		Animatable("Megaman movement", "sheet1", false, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT), 
 		Animatable("Megaman attack", "sheet1", false, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT),
 		std::make_shared<PlayAnimatableDeathAction>(Animatable("oh my god he's dead", "sheet1", true, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT), PlayAnimatableDeathAction::DEATH_ANIMATION_EFFECT::NONE, "3.0"));
-	enemy1->addPhaseID(0, std::make_shared<TimeBasedEnemyPhaseStartCondition>("0"), ep1->getID(), e1set);
-	enemy1->addPhaseID(1, std::make_shared<TimeBasedEnemyPhaseStartCondition>("10"), ep2->getID(), e1set);
+	enemy1->addPhaseID(0, std::make_shared<TimeBasedEnemyPhaseStartCondition>("0"), ep1->getID(), e1set, ExprSymbolTable());
+	enemy1->addPhaseID(1, std::make_shared<TimeBasedEnemyPhaseStartCondition>("10"), ep2->getID(), e1set, ExprSymbolTable());
 	enemy1->setHealth("health + 5");
 	enemy1->setHitboxRadius("70");
 	enemy1->setName("test enemy 1");
@@ -682,8 +687,6 @@ std::shared_ptr<EditorAttack> LevelPack::getAttack(int id) const {
 
 std::shared_ptr<EditorAttack> LevelPack::getGameplayAttack(int id, exprtk::symbol_table<float> symbolsDefiner) const {
 	auto attack = attacks.at(id)->clone();
-	// Level is a top-level object so every expression it uses should be in terms of only its own
-	// unredelegated, well-defined symbols
 	auto derived = std::dynamic_pointer_cast<EditorAttack>(attack);
 	derived->compileExpressions({ symbolsDefiner });
 	return derived;
@@ -693,14 +696,19 @@ std::shared_ptr<EditorAttackPattern> LevelPack::getAttackPattern(int id) const {
 	return attackPatterns.at(id);
 }
 
+std::shared_ptr<EditorAttackPattern> LevelPack::getGameplayAttackPattern(int id, exprtk::symbol_table<float> symbolsDefiner) const {
+	auto attackPattern = attackPatterns.at(id)->clone();
+	auto derived = std::dynamic_pointer_cast<EditorAttackPattern>(attackPattern);
+	derived->compileExpressions({ symbolsDefiner });
+	return derived;
+}
+
 std::shared_ptr<EditorEnemy> LevelPack::getEnemy(int id) const {
 	return enemies.at(id);
 }
 
 std::shared_ptr<EditorEnemy> LevelPack::getGameplayEnemy(int id, exprtk::symbol_table<float> symbolsDefiner) const {
 	auto enemy = enemies.at(id)->clone();
-	// Level is a top-level object so every expression it uses should be in terms of only its own
-	// unredelegated, well-defined symbols
 	auto derived = std::dynamic_pointer_cast<EditorEnemy>(enemy);
 	derived->compileExpressions({ symbolsDefiner });
 	return derived;
@@ -708,6 +716,13 @@ std::shared_ptr<EditorEnemy> LevelPack::getGameplayEnemy(int id, exprtk::symbol_
 
 std::shared_ptr<EditorEnemyPhase> LevelPack::getEnemyPhase(int id) const {
 	return enemyPhases.at(id);
+}
+
+std::shared_ptr<EditorEnemyPhase> LevelPack::getGameplayEnemyPhase(int id, exprtk::symbol_table<float> symbolsDefiner) const {
+	auto phase = enemyPhases.at(id)->clone();
+	auto derived = std::dynamic_pointer_cast<EditorEnemyPhase>(phase);
+	derived->compileExpressions({ symbolsDefiner });
+	return derived;
 }
 
 std::shared_ptr<BulletModel> LevelPack::getBulletModel(int id) const {

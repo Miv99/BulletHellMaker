@@ -15,7 +15,7 @@ std::shared_ptr<LevelPackObject> EditorEnemy::clone() const {
 std::string EditorEnemy::format() const {
 	std::string res = tos(id) + formatString(name) + formatString(hitboxRadius) + formatString(health) + formatString(despawnTime) + tos(phaseIDs.size());
 	for (auto t : phaseIDs) {
-		res += formatTMObject(*std::get<0>(t)) + tos(std::get<1>(t)) + formatTMObject(std::get<2>(t));
+		res += formatTMObject(*std::get<0>(t)) + tos(std::get<1>(t)) + formatTMObject(std::get<2>(t)) + formatTMObject(std::get<3>(t));
 	}
 	res += tos(deathActions.size());
 	for (auto action : deathActions) {
@@ -40,14 +40,16 @@ void EditorEnemy::load(std::string formattedString) {
 		EntityAnimatableSet animatableSet;
 		animatableSet.load(items[i + 2]);
 		int phaseID = std::stoi(items[i + 1]);
-		phaseIDs.push_back(std::make_tuple(EnemyPhaseStartConditionFactory::create(items[i]), phaseID, animatableSet));
+		ExprSymbolTable definer;
+		definer.load(items[i + 3]);
+		phaseIDs.push_back(std::make_tuple(EnemyPhaseStartConditionFactory::create(items[i]), phaseID, animatableSet, definer, exprtk::symbol_table<float>()));
 
 		if (enemyPhaseCount.count(phaseID) == 0) {
 			enemyPhaseCount[phaseID] = 1;
 		} else {
 			enemyPhaseCount[phaseID]++;
 		}
-		i += 3;
+		i += 4;
 	}
 	int next = i;
 	deathActions.clear();
@@ -129,6 +131,7 @@ void EditorEnemy::compileExpressions(std::vector<exprtk::symbol_table<float>> sy
 
 	for (auto t : phaseIDs) {
 		std::get<0>(t)->compileExpressions(symbolTables);
+		std::get<4>(t) = std::get<3>(t).toLowerLevelSymbolTable(expr);
 	}
 	for (auto deathAction : deathActions) {
 		deathAction->compileExpressions(symbolTables);
@@ -151,7 +154,7 @@ void EditorEnemy::setIsBoss(bool isBoss) {
 	this->isBoss = isBoss;
 }
 
-std::tuple<std::shared_ptr<EnemyPhaseStartCondition>, int, EntityAnimatableSet> EditorEnemy::getPhaseData(int index) const {
+std::tuple<std::shared_ptr<EnemyPhaseStartCondition>, int, EntityAnimatableSet, ExprSymbolTable, exprtk::symbol_table<float>> EditorEnemy::getPhaseData(int index) const {
 	return phaseIDs[index];
 }
 
@@ -207,8 +210,8 @@ void EditorEnemy::removeDeathAction(int index) {
 	deathActions.erase(deathActions.begin() + index);
 }
 
-void EditorEnemy::addPhaseID(int index, std::shared_ptr<EnemyPhaseStartCondition> startCondition, int phaseID, EntityAnimatableSet animatableSet) {
-	phaseIDs.insert(phaseIDs.begin() + index, std::make_tuple(startCondition, phaseID, animatableSet));
+void EditorEnemy::addPhaseID(int index, std::shared_ptr<EnemyPhaseStartCondition> startCondition, int phaseID, EntityAnimatableSet animatableSet, ExprSymbolTable phaseSymbolsDefiner) {
+	phaseIDs.insert(phaseIDs.begin() + index, std::make_tuple(startCondition, phaseID, animatableSet, phaseSymbolsDefiner, exprtk::symbol_table<float>()));
 
 	if (enemyPhaseCount.count(phaseID) == 0) {
 		enemyPhaseCount[phaseID] = 1;

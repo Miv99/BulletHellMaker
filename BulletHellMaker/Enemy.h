@@ -48,7 +48,7 @@ public:
 	void setDespawnTime(std::string despawnTime);
 	void setIsBoss(bool isBoss);
 
-	std::tuple<std::shared_ptr<EnemyPhaseStartCondition>, int, EntityAnimatableSet> getPhaseData(int index) const;
+	std::tuple<std::shared_ptr<EnemyPhaseStartCondition>, int, EntityAnimatableSet, ExprSymbolTable, exprtk::symbol_table<float>> getPhaseData(int index) const;
 	int getPhasesCount() const;
 	float getHitboxRadius() const;
 	int getHealth() const;
@@ -65,7 +65,7 @@ public:
 	void addDeathAction(std::shared_ptr<DeathAction> action);
 	void removeDeathAction(int index);
 
-	void addPhaseID(int index, std::shared_ptr<EnemyPhaseStartCondition> startCondition, int phaseID, EntityAnimatableSet animatableSet);
+	void addPhaseID(int index, std::shared_ptr<EnemyPhaseStartCondition> startCondition, int phaseID, EntityAnimatableSet animatableSet, ExprSymbolTable phaseSymbolsDefiner);
 	void removePhaseID(int index);
 
 private:
@@ -75,9 +75,9 @@ private:
 	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(health, int, 1000)
 	// Time it takes for this enemy to despawn. Set < 0 if it should not despawn
 	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(despawnTime, float, -1)
-	// Tuple of: the condition to start the phase, the phase ID, and the animatable set used by the enenemy while in that phase
+	// Tuple of: the condition to start the phase, the phase ID, the animatable set used by the enemy while in that phase, the symbols definer, and the compiled symbols definer
 	// The first phase must have a TimeBasedEnemyPhaseStartCondition with t=0 to ensure that the phase can start as soon as the enemy spawns
-	std::vector<std::tuple<std::shared_ptr<EnemyPhaseStartCondition>, int, EntityAnimatableSet>> phaseIDs;
+	std::vector<std::tuple<std::shared_ptr<EnemyPhaseStartCondition>, int, EntityAnimatableSet, ExprSymbolTable, exprtk::symbol_table<float>>> phaseIDs;
 	// Death actions. This should not include the death animation because the death animation is dependent on the current phase.
 	std::vector<std::shared_ptr<DeathAction>> deathActions;
 

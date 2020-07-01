@@ -225,7 +225,14 @@ public:
 	*/
 	std::shared_ptr<EditorAttack> getGameplayAttack(int id, exprtk::symbol_table<float> symbolsDefiner) const;
 
+	/*
+	Returns an EditorAttackPattern for editing purposes.
+	*/
 	std::shared_ptr<EditorAttackPattern> getAttackPattern(int id) const;
+	/*
+	Returns an EditorAttackPattern for gameplay purposes.
+	*/
+	std::shared_ptr<EditorAttackPattern> getGameplayAttackPattern(int id, exprtk::symbol_table<float> symbolsDefiner) const;
 	/*
 	Returns an EditorEnemy for editing purposes.
 	*/
@@ -236,7 +243,16 @@ public:
 	symbolsDefiner - a symbol_table that defines all symbols redelegated in the EditorEnemy's ValueSymbolTable
 	*/
 	std::shared_ptr<EditorEnemy> getGameplayEnemy(int id, exprtk::symbol_table<float> symbolsDefiner) const;
+
+	/*
+	Returns an EditorEnemyPhase for editing purposes.
+	*/
 	std::shared_ptr<EditorEnemyPhase> getEnemyPhase(int id) const;
+	/*
+	Returns an EditorEnemyPhase for gameplay purposes.
+	*/
+	std::shared_ptr<EditorEnemyPhase> getGameplayEnemyPhase(int id, exprtk::symbol_table<float> symbolsDefiner) const;
+
 	std::shared_ptr<BulletModel> getBulletModel(int id) const;
 	/*
 	Returns an EditorPlayer for editing purposes.
