@@ -19,7 +19,7 @@ void SoundSettings::load(std::string formattedString) {
 }
 
 std::string MusicSettings::format() const {
-	return formatString(fileName) + formatBool(loops) + tos(loopStartMilliseconds) + tos(loopLengthMilliseconds) + tos(volume) + tos(pitch) + formatBool(disabled);
+	return formatString(fileName) + formatBool(loops) + tos(loopStartMilliseconds) + tos(loopLengthMilliseconds) + tos(volume) + tos(pitch) + formatBool(disabled) + tos(transitionTime);
 }
 
 void MusicSettings::load(std::string formattedString) {
@@ -31,6 +31,7 @@ void MusicSettings::load(std::string formattedString) {
 	volume = std::stof(items[4]);
 	pitch = std::stof(items[5]);
 	disabled = unformatBool(items[6]);
+	transitionTime = std::stof(items[7]);
 }
 
 bool MusicSettings::operator==(const AudioSettings& other) const {
@@ -57,10 +58,6 @@ void AudioPlayer::update(float deltaTime) {
 	}
 }
 
-/*
-fileName - file name with extension
-volume - in range [0, 100], where 100 is full volume
-*/
 void AudioPlayer::playSound(const SoundSettings& soundSettings) {
 	if (soundSettings.isDisabled() || soundSettings.getFileName() == "") return;
 
@@ -81,11 +78,6 @@ void AudioPlayer::playSound(const SoundSettings& soundSettings) {
 	currentSounds.push(std::move(sound));
 }
 
-
-/*
-fileName - file name with extension
-volume - in range [0, 100], where 100 is full volume
-*/
 std::shared_ptr<sf::Music> AudioPlayer::playMusic(const MusicSettings& musicSettings) {
 	if (musicSettings.isDisabled() || musicSettings.getFileName() == "") return nullptr;
 
