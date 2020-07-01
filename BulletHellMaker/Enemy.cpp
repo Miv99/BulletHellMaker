@@ -85,6 +85,18 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorEnemy::
 	for (auto t : phaseIDs) {
 		// TODO: legal check EntityAnimatableSet
 
+		auto startConditionLegal = std::get<0>(t)->legal(levelPack, spriteLoader, symbolTables);
+		if (startConditionLegal.first != LEGAL_STATUS::LEGAL) {
+			status = std::max(status, startConditionLegal.first);
+			tabEveryLine(startConditionLegal.second);
+			messages.push_back("Phase index " + std::to_string(i) + " start condition:");
+			messages.insert(messages.end(), startConditionLegal.second.begin(), startConditionLegal.second.end());
+		}
+
+		if (!levelPack.hasEnemyPhase(std::get<1>(t))) {
+			messages.push_back("Phase index " + std::to_string(i) + " uses a non-existent enemy phase ID:");
+		}
+
 		if (std::get<2>(t).getAttackAnimatable().isSprite()) {
 			status = std::max(status, LEGAL_STATUS::ILLEGAL);
 			messages.push_back("Phase index " + std::to_string(i) + " cannot have a sprite as an attack animation.");
@@ -92,16 +104,35 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorEnemy::
 
 		i++;
 	}
+
+	i = 0;
+	for (auto deathAction : deathActions) {
+		auto deathActionLegal = deathAction->legal(levelPack, spriteLoader, symbolTables);
+		if (deathActionLegal.first != LEGAL_STATUS::LEGAL) {
+			status = std::max(status, deathActionLegal.first);
+			tabEveryLine(deathActionLegal.second);
+			messages.push_back("Death action index " + std::to_string(i) + ":");
+			messages.insert(messages.end(), deathActionLegal.second.begin(), deathActionLegal.second.end());
+		}
+	}
+
+	// TODO: legal check hurtSound, deathSound
+
 	return std::make_pair(status, messages);
 }
 
 void EditorEnemy::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
 	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
 	COMPILE_EXPRESSION_FOR_FLOAT(hitboxRadius)
-	COMPILE_EXPRESSION_FOR_FLOAT(health)
+	COMPILE_EXPRESSION_FOR_INT(health)
 	COMPILE_EXPRESSION_FOR_FLOAT(despawnTime)
 
-	// TODO: compile expressions for phaseIDs, deathActions
+	for (auto t : phaseIDs) {
+		std::get<0>(t)->compileExpressions(symbolTables);
+	}
+	for (auto deathAction : deathActions) {
+		deathAction->compileExpressions(symbolTables);
+	}
 }
 
 void EditorEnemy::setHitboxRadius(std::string hitboxRadius) {

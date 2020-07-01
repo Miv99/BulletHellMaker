@@ -4,16 +4,21 @@
 #include <utility>
 #include <memory>
 #include <entt/entt.hpp>
-#include "TextMarshallable.h"
+#include "LevelPackObject.h"
 #include "EnemyPhaseAction.h"
 
 /*
 The condition for an enemy phase to start.
 */
-class EnemyPhaseStartCondition : public TextMarshallable {
+class EnemyPhaseStartCondition : public LevelPackObject {
 public:
-	std::string format() const = 0;
-	void load(std::string formattedString) = 0;
+	virtual std::shared_ptr<LevelPackObject> clone() const = 0;
+
+	virtual std::string format() const = 0;
+	virtual void load(std::string formattedString) = 0;
+
+	virtual std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const = 0;
+	virtual void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) = 0;
 
 	virtual bool satisfied(entt::DefaultRegistry& registry, uint32_t entity) = 0;
 };
@@ -24,18 +29,25 @@ EnemyPhaseStartCondition that depends on the time since the enemy's last phase.
 class TimeBasedEnemyPhaseStartCondition : public EnemyPhaseStartCondition {
 public:
 	inline TimeBasedEnemyPhaseStartCondition() {}
-	inline TimeBasedEnemyPhaseStartCondition(float time) : time(time) {}
+	inline TimeBasedEnemyPhaseStartCondition(std::string time) : time(time) {}
+
+	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
+
 	bool satisfied(entt::DefaultRegistry& registry, uint32_t entity) override;
 
-	inline float getTime() { return time; }
+	float getTime();
+
+	void setTime(std::string time);
 
 private:
 	// Minimum time since the start of the enemy's last phase for this condition to be satisfied
-	float time;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(time, float, 30)
 };
 
 /*
@@ -44,18 +56,25 @@ EnemyPhaseStartCondition that depends on the enemy's percent health remaining.
 class HPBasedEnemyPhaseStartCondition : public EnemyPhaseStartCondition {
 public:
 	inline HPBasedEnemyPhaseStartCondition() {}
-	inline HPBasedEnemyPhaseStartCondition(float ratio) : ratio(ratio) {}
+	inline HPBasedEnemyPhaseStartCondition(std::string ratio) : ratio(ratio) {}
+
+	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
+
 	bool satisfied(entt::DefaultRegistry& registry, uint32_t entity) override;
 
-	inline float getRatio() { return ratio; }
+	float getRatio();
+
+	void setRatio(std::string ratio);
 
 private:
 	// Maximum hp ratio of the enemy for this condition to be satisfied; range (0, 1]
-	float ratio;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(ratio, float, 1)
 };
 
 /*
@@ -65,16 +84,24 @@ The enemy that this condition belongs to does not count.
 class EnemyCountBasedEnemyPhaseStartCondition : public EnemyPhaseStartCondition {
 public:
 	inline EnemyCountBasedEnemyPhaseStartCondition() {}
-	inline EnemyCountBasedEnemyPhaseStartCondition(int enemyCount) : enemyCount(enemyCount) {}
+	inline EnemyCountBasedEnemyPhaseStartCondition(std::string enemyCount) : enemyCount(enemyCount) {}
+
+	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
+
 	bool satisfied(entt::DefaultRegistry& registry, uint32_t entity) override;
+
+	int getEnemyCount();
+	void setEnemyCount(std::string enemyCount);
 
 private:
 	// Maximum number of other enemies alive for this condition to be satisfied
-	int enemyCount;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(enemyCount, int, 0)
 };
 
 /*

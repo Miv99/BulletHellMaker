@@ -170,8 +170,8 @@ public:
 	sf::Color getColor();
 	Animatable getAnimatable();
 	bool getLoopAnimatable();
-	float getMinParticles();
-	float getMaxParticles();
+	int getMinParticles();
+	int getMaxParticles();
 	float getMinDistance();
 	float getMaxDistance();
 	float getMinLifespan();

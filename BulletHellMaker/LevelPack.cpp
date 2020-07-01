@@ -123,8 +123,8 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 		Animatable("Megaman movement", "sheet1", false, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT), 
 		Animatable("Megaman attack", "sheet1", false, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT),
 		std::make_shared<PlayAnimatableDeathAction>(Animatable("oh my god he's dead", "sheet1", true, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT), PlayAnimatableDeathAction::DEATH_ANIMATION_EFFECT::NONE, "3.0"));
-	enemy1->addPhaseID(0, std::make_shared<TimeBasedEnemyPhaseStartCondition>(0), ep1->getID(), e1set);
-	enemy1->addPhaseID(1, std::make_shared<TimeBasedEnemyPhaseStartCondition>(10), ep2->getID(), e1set);
+	enemy1->addPhaseID(0, std::make_shared<TimeBasedEnemyPhaseStartCondition>("0"), ep1->getID(), e1set);
+	enemy1->addPhaseID(1, std::make_shared<TimeBasedEnemyPhaseStartCondition>("10"), ep2->getID(), e1set);
 	enemy1->setHealth("health + 5");
 	enemy1->setHitboxRadius("70");
 	enemy1->setName("test enemy 1");

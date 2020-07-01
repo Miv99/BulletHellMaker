@@ -72,7 +72,7 @@ private:
 	// Radius of the hitbox associated with this enemy
 	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(hitboxRadius, float, 0)
 	// Health and maximum health of this enemy
-	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(health, float, 1000)
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(health, int, 1000)
 	// Time it takes for this enemy to despawn. Set < 0 if it should not despawn
 	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(despawnTime, float, -1)
 	// Tuple of: the condition to start the phase, the phase ID, and the animatable set used by the enenemy while in that phase

@@ -207,8 +207,8 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> ParticleExplo
 
 void ParticleExplosionDeathAction::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
 	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
-	COMPILE_EXPRESSION_FOR_FLOAT(minParticles)
-	COMPILE_EXPRESSION_FOR_FLOAT(maxParticles)
+	COMPILE_EXPRESSION_FOR_INT(minParticles)
+	COMPILE_EXPRESSION_FOR_INT(maxParticles)
 	COMPILE_EXPRESSION_FOR_FLOAT(minDistance)
 	COMPILE_EXPRESSION_FOR_FLOAT(maxDistance)
 	COMPILE_EXPRESSION_FOR_FLOAT(minLifespan)
@@ -237,11 +237,11 @@ bool ParticleExplosionDeathAction::getLoopAnimatable() {
 	return loopAnimatable;
 }
 
-float ParticleExplosionDeathAction::getMinParticles() {
+int ParticleExplosionDeathAction::getMinParticles() {
 	return minParticlesExprCompiledValue;
 }
 
-float ParticleExplosionDeathAction::getMaxParticles() {
+int ParticleExplosionDeathAction::getMaxParticles() {
 	return maxParticlesExprCompiledValue;
 }
 
