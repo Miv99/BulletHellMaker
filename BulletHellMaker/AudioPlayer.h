@@ -3,6 +3,7 @@
 #include <map>
 #include <queue>
 #include <memory>
+#include <utility>
 #include <SFML/Audio.hpp>
 #include "TextMarshallable.h"
 
@@ -114,26 +115,41 @@ public:
 	/*
 	Plays music.
 	Returns a pointer to the Music object.
+
+	If a Music was playing at the time of this function call, there will be a crossfade transition to
+	the new Music depending on the transition time in musicSettings. The old Music will be paused
+	and its reference in this AudioPlayer will be lost at the end of the transition, so a reference to
+	the old Music should be kept if it should be resumed later.
 	*/
 	std::shared_ptr<sf::Music> playMusic(const MusicSettings& musicSettings);
+	/*
+	Plays music from an existing Music.
+
+	If a Music was playing at the time of this function call, there will be a crossfade transition to
+	the new Music depending on the transition time in musicSettings. The old Music will be paused
+	and its reference in this AudioPlayer will be lost at the end of the transition, so a reference to
+	the old Music should be kept if it should be resumed later.
+	*/
+	void playMusic(std::shared_ptr<sf::Music> music, const MusicSettings& musicSettings);
 
 private:
+	enum class VOLUME_CHANGE_STATUS {
+		DECREASING,
+		INCREASING
+	};
+
 	// Maps file names to SoundBuffers
 	std::map<std::string, sf::SoundBuffer> soundBuffers;
 	// Queue of sounds currently playing
 	std::queue<std::unique_ptr<sf::Sound>> currentSounds;
 
 	std::shared_ptr<sf::Music> currentMusic;
-	// The Music being faded away during music transition
-	std::shared_ptr<sf::Music> fadingMusic;
 
-	// The original volume of the music being transitioned from. Volume settings do not affect this value.
-	float musicTransitionFromVolume;
+	// Musics being faded, how they're being faded, original volume before global settings, and target volume before global settings
+	std::vector<std::tuple<std::shared_ptr<sf::Music>, VOLUME_CHANGE_STATUS, float, float>> currentlyFading;
 
-	// The volume the music is transitioning to. Volume settings do not affect this value.
-	float musicTransitionFinalVolume;
 	// Time it will take to fully transition, in seconds
 	float musicTransitionTime = 0;
-	// in seconds
+	// Time since the last transition started, in seconds
 	float timeSinceMusicTransitionStart = 0;
 };

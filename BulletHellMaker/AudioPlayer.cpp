@@ -47,20 +47,25 @@ void AudioPlayer::update(float deltaTime) {
 	}
 
 	// Update music transitioning
-	if (currentMusic && timeSinceMusicTransitionStart < musicTransitionTime) {
-		if (fadingMusic) {
-			fadingMusic->setVolume((musicTransitionFromVolume * masterVolume * musicVolume) * (1.0f - timeSinceMusicTransitionStart / musicTransitionTime));
+	if (timeSinceMusicTransitionStart <= musicTransitionTime) {
+		if (musicTransitionTime != 0) {
+			for (auto t : currentlyFading) {
+				float newVolume = std::get<2>(t) + (timeSinceMusicTransitionStart / musicTransitionTime) * (std::get<3>(t) - std::get<2>(t));
+				std::get<0>(t)->setVolume(newVolume * masterVolume * musicVolume);
+			}
 		}
-		currentMusic->setVolume((timeSinceMusicTransitionStart/musicTransitionTime) * musicTransitionFinalVolume * masterVolume * musicVolume);
-
+		
 		timeSinceMusicTransitionStart += deltaTime;
 		if (timeSinceMusicTransitionStart >= musicTransitionTime) {
 			// Prevent volume over/undershoot
-			currentMusic->setVolume(musicTransitionFinalVolume * masterVolume * musicVolume);
-			if (fadingMusic) {
-				fadingMusic->setVolume(0);
-				fadingMusic = nullptr;
+			for (auto t : currentlyFading) {
+				std::get<0>(t)->setVolume(std::get<3>(t) * masterVolume * musicVolume);
+
+				if (std::get<1>(t) == VOLUME_CHANGE_STATUS::DECREASING) {
+					std::get<0>(t)->pause();
+				}
 			}
+			currentlyFading.clear();
 		}
 	}
 }
@@ -88,11 +93,14 @@ void AudioPlayer::playSound(const SoundSettings& soundSettings) {
 std::shared_ptr<sf::Music> AudioPlayer::playMusic(const MusicSettings& musicSettings) {
 	if (musicSettings.isDisabled() || musicSettings.getFileName() == "") return nullptr;
 
-	if (currentMusic && currentMusic->getStatus() == sf::SoundSource::Status::Playing && musicSettings.getTransitionTime() > 0) {
-		fadingMusic = currentMusic;
-		musicTransitionFromVolume = musicTransitionFinalVolume;
-	} else {
-		fadingMusic = nullptr;
+	// Fade-out anything currently being played
+	if (currentMusic && currentMusic->getStatus() == sf::SoundSource::Status::Playing) {
+		currentlyFading.push_back(std::make_tuple(currentMusic, VOLUME_CHANGE_STATUS::DECREASING, currentMusic->getVolume()/(masterVolume * musicVolume), 0));
+	}
+	for (auto t : currentlyFading) {
+		std::get<1>(t) = VOLUME_CHANGE_STATUS::DECREASING;
+		std::get<2>(t) = std::get<0>(t)->getVolume() / (masterVolume * musicVolume);
+		std::get<3>(t) = 0;
 	}
 
 	std::shared_ptr<sf::Music> music = std::make_shared<sf::Music>();
@@ -107,13 +115,38 @@ std::shared_ptr<sf::Music> AudioPlayer::playMusic(const MusicSettings& musicSett
 	music->setPitch(musicSettings.getPitch());
 	music->play();
 	currentMusic = music;
-	update(0);
 
-	musicTransitionFinalVolume = musicSettings.getVolume();
+	// Fade-in new music
+	currentlyFading.push_back(std::make_tuple(music, VOLUME_CHANGE_STATUS::INCREASING, 0, musicSettings.getVolume()));
 	musicTransitionTime = musicSettings.getTransitionTime();
 	timeSinceMusicTransitionStart = 0;
+	update(0);
 
 	return music;
+}
+
+void AudioPlayer::playMusic(std::shared_ptr<sf::Music> music, const MusicSettings& musicSettings) {
+	if (!music || musicSettings.isDisabled() || musicSettings.getFileName() == "") return;
+
+	// Fade-out anything currently being played
+	if (currentMusic && currentMusic->getStatus() == sf::SoundSource::Status::Playing) {
+		currentlyFading.push_back(std::make_tuple(currentMusic, VOLUME_CHANGE_STATUS::DECREASING, currentMusic->getVolume() / (masterVolume * musicVolume), 0));
+	}
+	for (auto t : currentlyFading) {
+		std::get<1>(t) = VOLUME_CHANGE_STATUS::DECREASING;
+		std::get<2>(t) = std::get<0>(t)->getVolume() / (masterVolume * musicVolume);
+		std::get<3>(t) = 0;
+	}
+
+	music->setVolume(musicSettings.getVolume() * masterVolume * musicVolume);
+	music->play();
+	currentMusic = music;
+
+	// Fade-in new music
+	currentlyFading.push_back(std::make_tuple(music, VOLUME_CHANGE_STATUS::INCREASING, 0, musicSettings.getVolume()));
+	musicTransitionTime = musicSettings.getTransitionTime();
+	timeSinceMusicTransitionStart = 0;
+	update(0);
 }
 
 bool AudioSettings::operator==(const AudioSettings& other) const {
