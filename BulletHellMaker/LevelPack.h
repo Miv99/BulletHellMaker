@@ -335,7 +335,16 @@ public:
 	float searchLargestItemCollectionHitbox() const;
 
 	void playSound(const SoundSettings& soundSettings) const;
-	void playMusic(const MusicSettings& musicSettings) const;
+	/*
+	Returns the Music object that is played from this function call.
+
+	See AudioPlayer::playMusic() for more info.
+	*/
+	std::shared_ptr<sf::Music> playMusic(const MusicSettings& musicSettings) const;
+	/*
+	See AudioPlayer::playMusic() for more info.
+	*/
+	void playMusic(std::shared_ptr<sf::Music> music, const MusicSettings& musicSettings) const;
 
 private:
 	std::string name;

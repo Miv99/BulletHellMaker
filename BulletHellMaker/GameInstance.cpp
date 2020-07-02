@@ -411,13 +411,13 @@ void GameInstance::render(float deltaTime) {
 }
 
 void GameInstance::loadLevel(int levelIndex) {
-	std::shared_ptr<Level> level = levelPack->getGameplayLevel(levelIndex);
+	currentLevel = levelPack->getGameplayLevel(levelIndex);
 
 	// Load bloom settings
-	renderSystem->loadLevelRenderSettings(level);
+	renderSystem->loadLevelRenderSettings(currentLevel);
 
 	// Update relevant gui elements
-	levelNameLabel->setText(level->getName());
+	levelNameLabel->setText(currentLevel->getName());
 
 	// Remove all existing entities from the registry
 	registry.reset();
@@ -427,7 +427,7 @@ void GameInstance::loadLevel(int levelIndex) {
 	registry.reserve<LevelManagerTag>(1);
 	registry.reserve(registry.alive() + 1);
 	uint32_t levelManager = registry.create();
-	auto& levelManagerTag = registry.assign<LevelManagerTag>(entt::tag_t{}, levelManager, &(*levelPack), level);
+	auto& levelManagerTag = registry.assign<LevelManagerTag>(entt::tag_t{}, levelManager, &(*levelPack), currentLevel);
 
 	// Create the player
 	createPlayer(*playerInfo);
@@ -436,10 +436,10 @@ void GameInstance::loadLevel(int levelIndex) {
 	levelManagerTag.getPointsChangeSignal()->sink().connect<GameInstance, &GameInstance::onPointsChange>(this);
 
 	// Play level music
-	levelPack->playMusic(level->getMusicSettings());
+	currentLevelMusic = levelPack->playMusic(currentLevel->getMusicSettings());
 
 	// Set the background
-	std::string backgroundFileName = level->getBackgroundFileName();
+	std::string backgroundFileName = currentLevel->getBackgroundFileName();
 	sf::Texture background;
 	if (!background.loadFromFile("Level Packs\\" + levelPack->getName() + "\\Backgrounds\\" + backgroundFileName)) {
 		//TODO: load a default background
@@ -447,10 +447,10 @@ void GameInstance::loadLevel(int levelIndex) {
 	background.setRepeated(true);
 	background.setSmooth(true);
 	renderSystem->setBackground(std::move(background));
-	renderSystem->setBackgroundScrollSpeedX(level->getBackgroundScrollSpeedX());
-	renderSystem->setBackgroundScrollSpeedY(level->getBackgroundScrollSpeedY());
-	renderSystem->setBackgroundTextureWidth(level->getBackgroundTextureWidth());
-	renderSystem->setBackgroundTextureHeight(level->getBackgroundTextureHeight());
+	renderSystem->setBackgroundScrollSpeedX(currentLevel->getBackgroundScrollSpeedX());
+	renderSystem->setBackgroundScrollSpeedY(currentLevel->getBackgroundScrollSpeedY());
+	renderSystem->setBackgroundTextureWidth(currentLevel->getBackgroundTextureWidth());
+	renderSystem->setBackgroundTextureHeight(currentLevel->getBackgroundTextureHeight());
 
 	// Initialize gui stuff
 	onPlayerHPChange(registry.get<HealthComponent>(registry.attachee<PlayerTag>()).getHealth(), registry.get<HealthComponent>(registry.attachee<PlayerTag>()).getMaxHealth());
@@ -645,6 +645,11 @@ void GameInstance::onBossDespawn(uint32_t boss) {
 	bossLabel->setVisible(false);
 	bossPhaseTimeLeft->setVisible(false);
 	bossPhaseHealthBar->setVisible(false);
+
+	// Resume playing the level music, if any
+	if (currentLevelMusic) {
+		levelPack->playMusic(currentLevelMusic, currentLevel->getMusicSettings());
+	}
 }
 
 void GameInstance::createPlayer(EditorPlayer params) {

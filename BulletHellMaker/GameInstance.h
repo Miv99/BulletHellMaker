@@ -107,6 +107,11 @@ private:
 	// Does not include points from the current level.
 	int points = 0;
 
+	// The current Level
+	std::shared_ptr<Level> currentLevel;
+	// The current Level's Music
+	std::shared_ptr<sf::Music> currentLevelMusic;
+
 	bool smoothPlayerHPBar;
 
 	float guiRegionWidth;

@@ -560,6 +560,10 @@ public:
 	in the same frame.
 	*/
 	inline bool isMarkedForDespawn() { return markedForDespawn; }
+	/*
+	Returns a signal that emits the entity being despawned right before
+	the actual despawn occurs.
+	*/
 	std::shared_ptr<entt::SigH<void(uint32_t)>> getDespawnSignal();
 	
 	// Should be called right before this entity is removed from the registry
@@ -592,7 +596,8 @@ private:
 
 	bool markedForDespawn = false;
 
-	// function takes 1 int: the entity being despawned
+	// Function takes 1 int: the entity being despawned.
+	// Emitted right before the actual despawn occurs.
 	std::shared_ptr<entt::SigH<void(uint32_t)>> despawnSignal;
 };
 

@@ -67,21 +67,20 @@ public:
 		}
 		return bombItem;
 	}
-	/*
-	Returns a reference to the music settings.
-	*/
-	inline MusicSettings& getMusicSettings() { return musicSettings; }
+
+	inline MusicSettings getMusicSettings() { return musicSettings; }
 	inline std::string getBackgroundFileName() const { return backgroundFileName; }
 	inline float getBackgroundScrollSpeedX() const { return backgroundScrollSpeedX; }
 	inline float getBackgroundScrollSpeedY() const { return backgroundScrollSpeedY; }
 	inline sf::Color getBossNameColor() const { return bossNameColor; }
 	inline sf::Color getBossHPBarColor() const { return bossHPBarColor; }
-	// Returns a reference
-	inline std::vector<BloomSettings>& getBloomLayerSettings() { return bloomLayerSettings; }
+	inline std::vector<BloomSettings> getBloomLayerSettings() { return bloomLayerSettings; }
 	inline float getBackgroundTextureWidth() const { return backgroundTextureWidth; }
 	inline float getBackgroundTextureHeight() const { return backgroundTextureHeight; }
 	inline bool usesEnemy(int enemyID) const { return enemyIDCount.count(enemyID) > 0 && enemyIDCount.at(enemyID) > 0; }
 
+	inline void setBloomLayerSettings(std::vector<BloomSettings> bloomLayerSettings) { this->bloomLayerSettings = bloomLayerSettings; }
+	inline void setMusicSettings(MusicSettings musicSettings) { this->musicSettings = musicSettings; }
 	inline void setName(std::string name) { this->name = name; }
 	inline void setBackgroundFileName(std::string backgroundFileName) { this->backgroundFileName = backgroundFileName; }
 	inline void setBackgroundScrollSpeedX(float backgroundScrollSpeedX) { this->backgroundScrollSpeedX = backgroundScrollSpeedX; }

@@ -117,7 +117,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	ep2->setPhaseEndAction(std::make_shared<NullEPA>());
 	ep2->setPlayMusic(true);
 	auto ep2ms = MusicSettings();
-	ep2ms.setFileName("heaven's fall.wav.wav");
+	ep2ms.setFileName("heaven's fall.wav");
 	ep2ms.setVolume(10);
 	ep2ms.setTransitionTime(5.5f);
 	ep2->setMusicSettings(ep2ms);
@@ -233,9 +233,12 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	level->getBombItem()->setHitboxRadius(40);
 	level->getBombItem()->getOnCollectSound().setFileName("item.wav");
 
-	level->getMusicSettings().setFileName("seashore.wav");
-	level->getMusicSettings().setVolume(10);
-	level->getMusicSettings().setLoop(true);
+	MusicSettings levelMusic;
+	levelMusic.setFileName("seashore.wav");
+	levelMusic.setVolume(10);
+	levelMusic.setLoop(true);
+	levelMusic.setTransitionTime(3.0f);
+	level->setMusicSettings(levelMusic);
 	level->setBackgroundFileName("space1.png");
 	level->setBackgroundScrollSpeedX(50);
 	level->setBackgroundScrollSpeedY(-100);
@@ -879,11 +882,18 @@ void LevelPack::playSound(const SoundSettings & soundSettings) const {
 	audioPlayer.playSound(alteredPath);
 }
 
-void LevelPack::playMusic(const MusicSettings & musicSettings) const {
-	if (musicSettings.getFileName() == "") return;
+std::shared_ptr<sf::Music> LevelPack::playMusic(const MusicSettings & musicSettings) const {
+	if (musicSettings.getFileName() == "") return nullptr;
 	MusicSettings alteredPath = MusicSettings(musicSettings);
 	alteredPath.setFileName("Level Packs/" + name + "/Music/" + alteredPath.getFileName());
-	audioPlayer.playMusic(alteredPath);
+	return audioPlayer.playMusic(alteredPath);
+}
+
+void LevelPack::playMusic(std::shared_ptr<sf::Music> music, const MusicSettings& musicSettings) const {
+	if (!music || musicSettings.getFileName() == "") return;
+	MusicSettings alteredPath = MusicSettings(musicSettings);
+	alteredPath.setFileName("Level Packs/" + name + "/Music/" + alteredPath.getFileName());
+	audioPlayer.playMusic(music, alteredPath);
 }
 
 std::string LevelPackMetadata::format() const {

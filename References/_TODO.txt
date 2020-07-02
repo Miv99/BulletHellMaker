@@ -42,6 +42,7 @@ Tips to put in editor somewhere:
 -In tooltips of expression variables: put whether it will evaluate to an int or a float
 -symbol_tables from lower-level objects take precedence over ones from higher-level objects when compiling expressions
     and the same symbol is used multiple times
+-The transition time of a level music determines how long it takes for music to change back after killing a boss
 
 Notes for me:
 -The mainEMP of an attack is always spawned at the exact same time of an attack; spawnType's time is ignored
