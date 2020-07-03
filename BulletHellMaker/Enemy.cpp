@@ -96,7 +96,8 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorEnemy::
 		}
 
 		if (!levelPack.hasEnemyPhase(std::get<1>(t))) {
-			messages.push_back("Phase index " + std::to_string(i) + " uses a non-existent enemy phase ID:");
+			status = std::max(status, LEGAL_STATUS::ILLEGAL);
+			messages.push_back("Phase index " + std::to_string(i) + " uses a non-existent enemy phase ID " + std::to_string(std::get<1>(t)));
 		}
 
 		if (std::get<2>(t).getAttackAnimatable().isSprite()) {

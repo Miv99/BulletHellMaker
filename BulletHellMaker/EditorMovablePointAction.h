@@ -4,10 +4,10 @@
 #include <memory>
 #include <SFML/Graphics.hpp>
 #include <entt/entt.hpp>
-#include "TextMarshallable.h"
 #include "TimeFunctionVariable.h"
 #include "MovablePoint.h"
 #include "EntityCreationQueue.h"
+#include "LevelPackObject.h"
 
 struct EMPActionExecutionInfo {
 	bool useNewReferenceEntity;
@@ -19,15 +19,18 @@ struct EMPActionExecutionInfo {
 /*
 Base class used to determine an angle in radians.
 */
-class EMPAAngleOffset : public TextMarshallable {
+class EMPAAngleOffset : public LevelPackObject {
 public:
 	inline EMPAAngleOffset() {}
-	virtual std::shared_ptr<EMPAAngleOffset> clone() = 0;
+	virtual std::shared_ptr<LevelPackObject> clone() const = 0;
 
 	virtual std::string getName() = 0;
 
 	virtual std::string format() const = 0;
 	virtual void load(std::string formattedString) = 0;
+
+	virtual std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const = 0;
+	virtual void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) = 0;
 
 	virtual float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) = 0;
 	// Same as the other evaluate, but for when only the player's position is known
@@ -42,12 +45,15 @@ Angle in radians to the player.
 class EMPAAngleOffsetToPlayer : public EMPAAngleOffset {
 public:
 	inline EMPAAngleOffsetToPlayer(float xOffset = 0, float yOffset = 0) : xOffset(xOffset), yOffset(yOffset) {}
-	std::shared_ptr<EMPAAngleOffset> clone() override;
+	std::shared_ptr<LevelPackObject> clone() const override;
 
 	inline std::string getName() override { return "Relative to player"; }
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	// Returns the angle in radians from coordinates (xFrom, yFrom) to the player plus the player offset (player.x + xOffset, player.y + yOffset)
 	float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override;
@@ -72,12 +78,15 @@ class EMPAAngleOffsetToGlobalPosition : public EMPAAngleOffset {
 public:
 	inline EMPAAngleOffsetToGlobalPosition() {}
 	inline EMPAAngleOffsetToGlobalPosition(float x, float y) : x(x), y(y) {}
-	std::shared_ptr<EMPAAngleOffset> clone() override;
+	std::shared_ptr<LevelPackObject> clone() const override;
 
 	inline std::string getName() override { return "Absolute position"; }
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	// Returns the angle in radians from coordinates (xFrom, yFrom) to the global position (x, y)
 	float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override;
@@ -101,12 +110,15 @@ Angle offset that always returns 0.
 class EMPAAngleOffsetZero : public EMPAAngleOffset {
 public:
 	inline EMPAAngleOffsetZero() {}
-	std::shared_ptr<EMPAAngleOffset> clone() override;
+	std::shared_ptr<LevelPackObject> clone() const override;
 
 	inline std::string getName() override { return "No offset"; }
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	// Returns 0
 	inline float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override { return 0; }
@@ -122,12 +134,15 @@ class EMPAAngleOffsetConstant : public EMPAAngleOffset {
 public:
 	inline EMPAAngleOffsetConstant() {}
 	inline EMPAAngleOffsetConstant(float value) : value(value) {}
-	std::shared_ptr<EMPAAngleOffset> clone() override;
+	std::shared_ptr<LevelPackObject> clone() const override;
 
 	inline std::string getName() override { return "Constant"; }
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	inline float getValue() const { return value; }
 	inline void setValue(float value) { this->value = value; }
@@ -147,12 +162,15 @@ Angle offset that always returns the angle that the player's sprite is facing.
 class EMPAngleOffsetPlayerSpriteAngle : public EMPAAngleOffset {
 public:
 	inline EMPAngleOffsetPlayerSpriteAngle() {}
-	std::shared_ptr<EMPAAngleOffset> clone() override;
+	std::shared_ptr<LevelPackObject> clone() const override;
 
 	inline std::string getName() override { return "Bind to player's direction"; }
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override;
 	float evaluate(float xFrom, float yFrom, float playerX, float playerY) override;
@@ -170,12 +188,16 @@ public:
 Actions that EditorMovablePoints can do.
 EMPA for short.
 */
-class EMPAction : public TextMarshallable {
+class EMPAction : public LevelPackObject {
 public:
-	virtual std::shared_ptr<EMPAction> clone() = 0;
+	virtual std::shared_ptr<LevelPackObject> clone() const = 0;
 
 	virtual std::string format() const = 0;
 	virtual void load(std::string formattedString) = 0;
+
+	virtual std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const = 0;
+	virtual void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) = 0;
+
 	// Time for the action to be completed
 	virtual float getTime() = 0;
 
@@ -209,10 +231,14 @@ Cannot be used by by enemies.
 class DetachFromParentEMPA : public EMPAction {
 public:
 	inline DetachFromParentEMPA() {}
-	std::shared_ptr<EMPAction> clone() override;
+	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
+
 	inline float getTime() override { return 0; }
 	std::string getGuiFormat() override;
 
@@ -231,10 +257,14 @@ class StayStillAtLastPositionEMPA : public EMPAction {
 public:
 	inline StayStillAtLastPositionEMPA() {}
 	inline StayStillAtLastPositionEMPA(float duration) : duration(duration) {}
-	std::shared_ptr<EMPAction> clone() override;
+	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
+
 	inline float getTime() override { return duration; }
 	std::string getGuiFormat() override;
 
@@ -257,10 +287,14 @@ public:
 	inline MoveCustomPolarEMPA() {}
 	inline MoveCustomPolarEMPA(std::shared_ptr<TFV> distance, std::shared_ptr<TFV> angle, float time) : distance(distance), angle(angle), time(time), angleOffset(std::make_shared<EMPAAngleOffsetZero>()) {}
 	inline MoveCustomPolarEMPA(std::shared_ptr<TFV> distance, std::shared_ptr<TFV> angle, float time, std::shared_ptr<EMPAAngleOffset> angleOffset) : distance(distance), angle(angle), time(time), angleOffset(angleOffset) {}
-	std::shared_ptr<EMPAction> clone() override;
+	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
+
 	std::string getGuiFormat() override;
 	inline std::shared_ptr<TFV> getDistance() { return distance; }
 	inline std::shared_ptr<TFV> getAngle() { return angle; }
@@ -300,10 +334,14 @@ public:
 	inline MoveCustomBezierEMPA(std::vector<sf::Vector2f> unrotatedControlPoints, float time, std::shared_ptr<EMPAAngleOffset> rotationAngle) : time(time), rotationAngle(rotationAngle) {
 		setUnrotatedControlPoints(unrotatedControlPoints);
 	}
-	std::shared_ptr<EMPAction> clone() override;
+	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
+
 	inline float getTime() override { return time; }
 	std::string getGuiFormat() override;
 	inline std::shared_ptr<EMPAAngleOffset> getRotationAngle() { return rotationAngle; }
@@ -340,10 +378,14 @@ public:
 		and a value of 1.0 is a completely linear path assuming the player does not move
 	*/
 	inline MovePlayerHomingEMPA(std::shared_ptr<TFV> homingStrength, std::shared_ptr<TFV> speed, float time) : homingStrength(homingStrength), speed(speed), time(time) {}
-	std::shared_ptr<EMPAction> clone() override;
+	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
+
 	std::string getGuiFormat() override;
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
@@ -378,10 +420,14 @@ public:
 		and a value of 1.0 is a completely linear path assuming the player does not move
 	*/
 	inline MoveGlobalHomingEMPA(std::shared_ptr<TFV> homingStrength, std::shared_ptr<TFV> speed, float targetX, float targetY, float time) : homingStrength(homingStrength), speed(speed), targetX(targetX), targetY(targetY), time(time) {}
-	std::shared_ptr<EMPAction> clone() override;
+	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+	
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
+
 	std::string getGuiFormat() override;
 
 	std::shared_ptr<MovablePoint> execute(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;

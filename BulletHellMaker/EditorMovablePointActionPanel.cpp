@@ -253,7 +253,7 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 		
 		std::shared_ptr<EMPAAngleOffset> oldOffset = offsets.first;
 		std::shared_ptr<EMPAAngleOffset> updatedOffset = offsets.second;
-		std::shared_ptr<EMPAAngleOffset> copyOfOld = oldOffset->clone();
+		std::shared_ptr<EMPAAngleOffset> copyOfOld = std::dynamic_pointer_cast<EMPAAngleOffset>(oldOffset->clone());
 
 		undoStack.execute(UndoableCommand(
 			[this, &oldOffset = oldOffset, updatedOffset]() {

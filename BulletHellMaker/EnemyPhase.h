@@ -57,7 +57,7 @@ public:
 	and the symbol_table that will be needed to get the gameplay AttackPattern with that ID.
 	Note that there is no upper bound on index, since attack patterns can loop, so this function takes that into account.
 	*/
-	std::tuple<float, int, exprtk::symbol_table<float>> getAttackPatternData(const LevelPack& levelPack, int index) const;
+	std::tuple<float, int, exprtk::symbol_table<float>> getAttackPatternData(const LevelPack& levelPack, int index);
 	inline std::vector<std::tuple<std::string, int, ExprSymbolTable>> getAttackPatterns() { return attackPatternIDs; }
 	inline int getAttackPatternsCount() const { return attackPatternIDs.size(); }
 	inline std::shared_ptr<EnemyPhaseAction> getPhaseBeginAction() const { return phaseBeginAction; }
@@ -74,7 +74,7 @@ public:
 	inline void setMusicSettings(MusicSettings musicSettings) { this->musicSettings = musicSettings; }
 
 private:
-	// Tuples of: When the attack pattern occurs (with t=0 being the start of the phase), the attack pattern ids (int), 
+	// Tuples of: When the attack pattern occurs (with t=0 being the start of the phase), the attack pattern id (int), 
 	// the symbols definer, and the compiled symbols definer.
 	// Sorted ascending by time.
 	// This should be modified only internally. It will be populated after compileExpressions() is called. Any changes to attackPatternIDs will
@@ -95,6 +95,10 @@ private:
 	MusicSettings musicSettings;
 
 	// Maps an EditorAttackPattern ID to the number of times it appears in attackPatternIDs.
-	// This is not saved on format() but is reconstructed in load().
+	// This is not saved in format() but is reconstructed in load().
 	std::map<int, int> attackPatternIDCount;
+	// Whether lastAttackPatternActionsTotalTime has been calulated. Not saved in format().
+	bool lastAttackPatternActionsTotalTimeCalculated = false;
+	// Used only in gameplay. This should be updated every time there is any change to attackPatternIDs/compiledAttackPatternIDs. Not saved in format().
+	float lastAttackPatternActionsTotalTime;
 };

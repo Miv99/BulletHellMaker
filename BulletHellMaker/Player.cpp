@@ -156,4 +156,6 @@ void PlayerPowerTier::compileExpressions(std::vector<exprtk::symbol_table<float>
 	COMPILE_EXPRESSION_FOR_FLOAT(focusedAttackPatternLoopDelay)
 	COMPILE_EXPRESSION_FOR_FLOAT(bombCooldown)
 	COMPILE_EXPRESSION_FOR_INT(powerToNextTier)
+
+	compiledAttackPatternSymbolsDefiner = attackPatternSymbolsDefiner.toLowerLevelSymbolTable(expr);
 }

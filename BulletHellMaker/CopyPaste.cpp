@@ -86,7 +86,7 @@ int CopiedLevelPackObject::getLevelPackObjectsCount() {
 CopiedEMPActions::CopiedEMPActions(std::string copiedFromID, std::vector<std::shared_ptr<EMPAction>> actions) : CopiedObject(copiedFromID) {
 	// Deep copy every action
 	for (auto action : actions) {
-		this->actions.push_back(action->clone());
+		this->actions.push_back(std::dynamic_pointer_cast<EMPAction>(action->clone()));
 	}
 }
 
@@ -94,7 +94,7 @@ std::vector<std::shared_ptr<EMPAction>> CopiedEMPActions::getActions() {
 	// Return deep copies of the actions
 	std::vector<std::shared_ptr<EMPAction>> copies;
 	for (auto action : actions) {
-		copies.push_back(action->clone());
+		copies.push_back(std::dynamic_pointer_cast<EMPAction>(action->clone()));
 	}
 	return copies;
 }

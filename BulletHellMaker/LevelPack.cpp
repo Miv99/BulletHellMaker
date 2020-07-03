@@ -74,7 +74,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	attack2emp0->setOnCollisionAction(PIERCE_ENTITY);
 
 	auto ap1 = createAttackPattern();
-	ap1->setShadowTrailLifespan(3.0f);
+	ap1->setShadowTrailLifespan("3.0");
 	//ap1->insertAction(0, std::make_shared<StayStillAtLastPositionEMPA>(1.0f));
 	
 	ap1->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 100, 2), std::make_shared<ConstantTFV>(0), 2));
@@ -88,9 +88,9 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	for (float time = 0; time < 5; time += 1.0f) {
 		//ap1->addAttack(time, attack2->getID());
 		if (alt) {
-			ap1->addAttack(time, attack1->getID());
+			ap1->addAttack(std::to_string(time), attack1->getID(), ExprSymbolTable());
 		} else {
-			ap1->addAttack(time, attack2->getID());
+			ap1->addAttack(std::to_string(time), attack2->getID(), ExprSymbolTable());
 		}
 		alt = !alt;
 	}
@@ -168,10 +168,10 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	pemp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
 	pemp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 2), std::make_shared<ConstantTFV>(PI/2.0f), 2.0f));
 	pemp0->setOnCollisionAction(PIERCE_ENTITY);
-	playerAP->addAttack(0.1f, playerAttack1->getID());
+	playerAP->addAttack("0.1", playerAttack1->getID(), ExprSymbolTable());
 
 	auto playerAP2 = createAttackPattern();
-	playerAP2->addAttack(0.01f, playerAttack1->getID());
+	playerAP2->addAttack("0.01", playerAttack1->getID(), ExprSymbolTable());
 
 	auto playerFocusedAP = createAttackPattern();
 	auto playerAttack2 = createAttack();
@@ -181,7 +181,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	p2emp1->setHitboxRadius(30);
 	p2emp1->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
 	p2emp1->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 1.1f), std::make_shared<ConstantTFV>(PI / 2.0f), 1.1f));
-	playerFocusedAP->addAttack(1.0f, attack1->getID());
+	playerFocusedAP->addAttack("1", attack1->getID(), ExprSymbolTable());
 
 	auto bombAP = createAttackPattern();
 	for (int i = 0; i < 10; i++) {
@@ -192,7 +192,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 		b1emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
 		b1emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 1000, 2), std::make_shared<ConstantTFV>(1.0f + i*0.13f), 2.0f));
 		b1emp0->setOnCollisionAction(PIERCE_ENTITY);
-		bombAP->addAttack(0, bombAttack1->getID());
+		bombAP->addAttack("0", bombAttack1->getID(), ExprSymbolTable());
 	}
 
 	auto pset1 = e1set;

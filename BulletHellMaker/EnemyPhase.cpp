@@ -58,9 +58,21 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorEnemyPh
 	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
 	LEGAL_CHECK_EXPRESSION(attackPatternLoopDelay, attack pattern loop delay)
 
-	// phaseBeginAction and phaseEndAction cannot be illegal
+	int i = 0;
+	for (auto t : attackPatternIDs) {
+		if (!expressionStrIsValid(parser, std::get<0>(t), symbolTables)) {
+			status = std::max(status, LEGAL_STATUS::ILLEGAL);
+			messages.push_back(std::string("Invalid expression for attack pattern index " + std::to_string(i) + " start time."));
+		}
 
+		if (!levelPack.hasAttackPattern(std::get<1>(t))) {
+			status = std::max(status, LEGAL_STATUS::ILLEGAL);
+			messages.push_back("Attack pattern index " + std::to_string(i) + " uses a non-existent attack pattern ID " + std::to_string(std::get<1>(t)) + ".");
+		}
+		i++;
+	}
 
+	// phaseBeginAction and phaseEndAction cannot be illegal, so no need to do legal check
 
 	// TODO: legal check musicSettings
 
@@ -82,11 +94,15 @@ void EditorEnemyPhase::compileExpressions(std::vector<exprtk::symbol_table<float
 	});
 }
 
-std::tuple<float, int, exprtk::symbol_table<float>> EditorEnemyPhase::getAttackPatternData(const LevelPack & levelPack, int index) const {
+std::tuple<float, int, exprtk::symbol_table<float>> EditorEnemyPhase::getAttackPatternData(const LevelPack & levelPack, int index) {
 	int size = compiledAttackPatternIDs.size();
 	auto item = compiledAttackPatternIDs[index % size];
+	if (!lastAttackPatternActionsTotalTimeCalculated) {
+		lastAttackPatternActionsTotalTime = levelPack.getGameplayAttackPattern(std::get<1>(compiledAttackPatternIDs[size - 1]), std::get<2>(compiledAttackPatternIDs[size - 1]))->getActionsTotalTime();
+		lastAttackPatternActionsTotalTimeCalculated = true;
+	}
 	// Increase time of the attack pattern at some index by the loop count multiplied by total time for all attack patterns to finish
-	std::get<0>(item) += (std::get<0>(compiledAttackPatternIDs[size - 1]) + levelPack.getAttackPattern(std::get<1>(compiledAttackPatternIDs[size - 1]))->getActionsTotalTime() + attackPatternLoopDelayExprCompiledValue) * (int)(index / size);
+	std::get<0>(item) += (std::get<0>(compiledAttackPatternIDs[size - 1]) + lastAttackPatternActionsTotalTime + attackPatternLoopDelayExprCompiledValue) * (int)(index / size);
 	return item;
 }
 
@@ -99,10 +115,14 @@ void EditorEnemyPhase::addAttackPatternID(std::string time, int id, ExprSymbolTa
 	} else {
 		attackPatternIDCount[id]++;
 	}
+
+	lastAttackPatternActionsTotalTimeCalculated = false;
 }
 
 void EditorEnemyPhase::removeAttackPattern(int index) {
 	int attackPatternID = std::get<1>(attackPatternIDs[index]);
 	attackPatternIDs.erase(attackPatternIDs.begin() + index);
 	attackPatternIDCount[attackPatternID]--;
+
+	lastAttackPatternActionsTotalTimeCalculated = false;
 }

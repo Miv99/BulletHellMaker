@@ -16,8 +16,8 @@ std::shared_ptr<LevelPackObject> EditorAttackPattern::clone() const {
 
 std::string EditorAttackPattern::format() const {
 	std::string res = tos(id) + formatString(name) + tos(attackIDs.size());
-	for (auto p : attackIDs) {
-		res += tos(p.first) + tos(p.second);
+	for (auto t : attackIDs) {
+		res += formatString(std::get<0>(t)) + tos(std::get<1>(t)) + formatTMObject(std::get<2>(t));
 	}
 
 	res += tos(actions.size());
@@ -25,8 +25,7 @@ std::string EditorAttackPattern::format() const {
 		res += formatTMObject(*p);
 	}
 
-	res += tos(shadowTrailInterval);
-	res += tos(shadowTrailLifespan);
+	res += formatString(shadowTrailInterval) + formatString(shadowTrailLifespan) + formatTMObject(symbolTable);
 
 	return res;
 }
@@ -41,14 +40,16 @@ void EditorAttackPattern::load(std::string formattedString) {
 	attackIDCount.clear();
 	for (int a = 0; a < std::stoi(items[2]); a++) {
 		int attackID = std::stoi(items[i + 1]);
-		attackIDs.push_back(std::make_pair(std::stof(items[i]), attackID));
+		ExprSymbolTable definer;
+		definer.load(items[i + 2]);
+		attackIDs.push_back(std::make_tuple(items[i], attackID, definer));
 
 		if (attackIDCount.count(attackID) == 0) {
 			attackIDCount[attackID] = 1;
 		} else {
 			attackIDCount[attackID]++;
 		}
-		i += 2;
+		i += 3;
 	}
 
 	int actionsSize = std::stoi(items[i]);
@@ -58,8 +59,9 @@ void EditorAttackPattern::load(std::string formattedString) {
 		actions.push_back(EMPActionFactory::create(items[i]));
 	}
 
-	shadowTrailInterval = std::stof(items[i++]);
-	shadowTrailLifespan = std::stof(items[i++]);
+	shadowTrailInterval = items[i++];
+	shadowTrailLifespan = items[i++];
+	symbolTable.load(items[i++]);
 
 	actionsTotalTime = 0;
 	for (auto action : actions) {
@@ -68,12 +70,58 @@ void EditorAttackPattern::load(std::string formattedString) {
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorAttackPattern::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
-	//TODO: legal
-	return std::make_pair(LEGAL_STATUS::ILLEGAL, std::vector<std::string>());
+	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
+	std::vector<std::string> messages;
+
+	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
+	LEGAL_CHECK_EXPRESSION(shadowTrailInterval, shadow trail interval)
+	LEGAL_CHECK_EXPRESSION(shadowTrailLifespan, shadow trail lifespan)
+
+	int i = 0;
+	for (auto t : attackIDs) {
+		if (!expressionStrIsValid(parser, std::get<0>(t), symbolTables)) {
+			status = std::max(status, LEGAL_STATUS::ILLEGAL);
+			messages.push_back(std::string("Invalid expression for attack index " + std::to_string(i) + " start time."));
+		}
+
+		if (!levelPack.hasAttack(std::get<1>(t))) {
+			status = std::max(status, LEGAL_STATUS::ILLEGAL);
+			messages.push_back("Attack index " + std::to_string(i) + " uses a non-existent attack ID " + std::to_string(std::get<1>(t)) + ".");
+		}
+
+		i++;
+	}
+
+	i = 0;
+	for (auto action : actions) {
+		auto actionLegal = action->legal(levelPack, spriteLoader, symbolTables);
+		if (actionLegal.first != LEGAL_STATUS::LEGAL) {
+			status = std::max(status, actionLegal.first);
+			tabEveryLine(actionLegal.second);
+			messages.push_back("Action index " + std::to_string(i) + " start condition:");
+			messages.insert(messages.end(), actionLegal.second.begin(), actionLegal.second.end());
+		}
+
+		i++;
+	}
+	
+	return std::make_pair(status, messages);
 }
 
 void EditorAttackPattern::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
-	// TODO: compileExpressions
+	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
+	COMPILE_EXPRESSION_FOR_FLOAT(shadowTrailInterval)
+	COMPILE_EXPRESSION_FOR_FLOAT(shadowTrailLifespan)
+
+	compiledAttackIDs.clear();
+	for (auto t : attackIDs) {
+		parser.compile(std::get<0>(t), expr);
+		compiledAttackIDs.push_back(std::make_tuple(expr.value(), std::get<1>(t), std::get<2>(t).toLowerLevelSymbolTable(expr)));
+	}
+	// Keep it sorted ascending by time
+	std::sort(compiledAttackIDs.begin(), compiledAttackIDs.end(), [](auto const& t1, auto const& t2) {
+		return std::get<0>(t1) < std::get<0>(t2);
+	});
 }
 
 void EditorAttackPattern::changeEntityPathToAttackPatternActions(EntityCreationQueue& queue, entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
@@ -82,9 +130,8 @@ void EditorAttackPattern::changeEntityPathToAttackPatternActions(EntityCreationQ
 	registry.replace<MovementPathComponent>(entity, queue, entity, registry, entity, std::make_shared<SpecificGlobalEMPSpawn>(0, pos.getX(), pos.getY()), actions, timeLag);
 }
 
-void EditorAttackPattern::addAttack(float time, int id) {
-	auto item = std::make_pair(time, id);
-	attackIDs.insert(std::upper_bound(attackIDs.begin(), attackIDs.end(), item), item);
+void EditorAttackPattern::addAttack(std::string time, int id, ExprSymbolTable attackSymbolsDefiner) {
+	attackIDs.push_back(std::make_tuple(time, id, attackSymbolsDefiner));
 
 	if (attackIDCount.count(id) == 0) {
 		attackIDCount[id] = 1;
@@ -94,7 +141,7 @@ void EditorAttackPattern::addAttack(float time, int id) {
 }
 
 void EditorAttackPattern::removeAttack(int index) {
-	int attackID = attackIDs[index].second;
+	int attackID = std::get<1>(attackIDs[index]);
 	attackIDs.erase(attackIDs.begin() + index);
 	attackIDCount[attackID]--;
 }

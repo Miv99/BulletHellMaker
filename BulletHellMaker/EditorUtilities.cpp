@@ -1627,7 +1627,7 @@ Evaluator refers to the entity that is evaluating this function, and player refe
 
 void EMPAAngleOffsetGroup::setEMPAAngleOffset(std::shared_ptr<EMPAAngleOffset> offset) {
 	oldOffset = offset;
-	this->offset = offset->clone();
+	this->offset = std::dynamic_pointer_cast<EMPAAngleOffset>(offset->clone());
 
 	updateWidgets();
 }

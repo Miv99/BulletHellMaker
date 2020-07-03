@@ -265,7 +265,7 @@ float EMPABasedMovementEditorPanel::getSumOfDurations() {
 void EMPABasedMovementEditorPanel::setActions(std::vector<std::shared_ptr<EMPAction>> actions) {
 	this->actions.clear();
 	for (auto action : actions) {
-		this->actions.push_back(action->clone());
+		this->actions.push_back(std::dynamic_pointer_cast<EMPAction>(action->clone()));
 	}
 	// sumOfDurations calculation already done in updateEMPAList() so no need to do it here
 	updateEMPAList();
@@ -550,7 +550,7 @@ void EMPABasedMovementEditorPanel::manualOpenEMPA(int index) {
 }
 
 std::shared_ptr<tgui::Panel> EMPABasedMovementEditorPanel::createEMPAPanel(std::shared_ptr<EMPAction> empa, int index, std::shared_ptr<ListViewScrollablePanel> empiActions) {
-	std::shared_ptr<EditorMovablePointActionPanel> empaPanel = EditorMovablePointActionPanel::create(parentWindow, clipboard, empa->clone());
+	std::shared_ptr<EditorMovablePointActionPanel> empaPanel = EditorMovablePointActionPanel::create(parentWindow, clipboard, std::dynamic_pointer_cast<EMPAction>(empa->clone()));
 	empaPanel->connect("EMPAModified", [this, index, empiActions](std::shared_ptr<EMPAction> value) {
 		this->actions[index] = value;
 
@@ -595,7 +595,7 @@ void EMPABasedMovementEditorPanel::updateEMPAList(bool setSelectedIndices, std::
 std::vector<std::shared_ptr<EMPAction>> EMPABasedMovementEditorPanel::cloneActions() {
 	std::vector<std::shared_ptr<EMPAction>> copy;
 	for (auto action : actions) {
-		copy.push_back(action->clone());
+		copy.push_back(std::dynamic_pointer_cast<EMPAction>(action->clone()));
 	}
 	return copy;
 }
@@ -628,7 +628,7 @@ void EMPABasedMovementEditorPanel::onPasteIntoConfirmation(bool confirmed, std::
 		visualizer->getEmpasListView()->getUndoStack().execute(UndoableCommand([this, curSelectedIndices, newEMPAs]() {
 			int i = 0;
 			for (auto it = curSelectedIndices.begin(); it != curSelectedIndices.end(); it++) {
-				actions[*it] = newEMPAs[i]->clone();
+				actions[*it] = std::dynamic_pointer_cast<EMPAction>(newEMPAs[i]->clone());
 				i++;
 
 				// Reload tab
@@ -640,7 +640,7 @@ void EMPABasedMovementEditorPanel::onPasteIntoConfirmation(bool confirmed, std::
 		}, [this, curSelectedIndices, oldEMPAs]() {
 			int i = 0;
 			for (auto it = curSelectedIndices.begin(); it != curSelectedIndices.end(); it++) {
-				actions[*it] = oldEMPAs[i]->clone();
+				actions[*it] = std::dynamic_pointer_cast<EMPAction>(oldEMPAs[i]->clone());
 				i++;
 
 				// Reload tab

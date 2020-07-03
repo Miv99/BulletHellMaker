@@ -34,6 +34,8 @@ public:
 	inline int getBombAttackPatternID() const { return bombAttackPatternID; }
 	inline float getBombCooldown() const { return bombCooldownExprCompiledValue; }
 	inline int getPowerToNextTier() const { return powerToNextTierExprCompiledValue; }
+	inline ExprSymbolTable getAttackPatternSymbolsDefiner() { return attackPatternSymbolsDefiner; }
+	inline exprtk::symbol_table<float> getCompiledAttackPatternSymbolsDefiner() { return compiledAttackPatternSymbolsDefiner; }
 
 	inline void setAttackPatternID(int id) { attackPatternID = id; }
 	inline void setAttackPatternLoopDelay(std::string attackPatternLoopDelay) { this->attackPatternLoopDelay = attackPatternLoopDelay; }
@@ -41,11 +43,14 @@ public:
 	inline void setFocusedAttackPatternLoopDelay(std::string focusedAttackPatternLoopDelay) { this->focusedAttackPatternLoopDelay = focusedAttackPatternLoopDelay; }
 	inline void setBombAttackPatternID(int id) { bombAttackPatternID = id; }
 	inline void setBombCooldown(std::string bombCooldown) { this->bombCooldown = bombCooldown; }
+	inline void setAttackPatternSymbolsDefiner(ExprSymbolTable attackPatternSymbolsDefiner) { this->attackPatternSymbolsDefiner = attackPatternSymbolsDefiner; }
 
 private:
 	EntityAnimatableSet animatableSet;
 
 	int attackPatternID;
+	ExprSymbolTable attackPatternSymbolsDefiner;
+	exprtk::symbol_table<float> compiledAttackPatternSymbolsDefiner;
 	// Time after attack pattern ends until it starts looping again
 	DEFINE_EXPRESSION_VARIABLE(attackPatternLoopDelay, float)
 

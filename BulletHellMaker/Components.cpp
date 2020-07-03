@@ -262,9 +262,9 @@ void EnemyComponent::checkAttacks(EntityCreationQueue& queue, SpriteLoader& spri
 	// Check if entity can continue to next attack
 	while (currentAttackPattern && currentAttackIndex + 1 < currentAttackPattern->getAttacksCount()) {
 		auto nextAttack = currentAttackPattern->getAttackData(currentAttackIndex + 1);
-		if (timeSinceAttackPattern >= nextAttack.first) {
+		if (timeSinceAttackPattern >= std::get<0>(nextAttack)) {
 			currentAttackIndex++;
-			levelPack.getAttack(nextAttack.second)->executeAsEnemy(queue, spriteLoader, registry, entity, timeSinceAttackPattern - nextAttack.first, currentAttackPattern->getID(), enemyID, currentPhase->getID());
+			levelPack.getAttack(std::get<1>(nextAttack))->executeAsEnemy(queue, spriteLoader, registry, entity, timeSinceAttackPattern - std::get<0>(nextAttack), currentAttackPattern->getID(), enemyID, currentPhase->getID());
 		} else {
 			break;
 		}
@@ -449,13 +449,13 @@ PlayerTag::PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack
 		bombCooldowns.push_back(powerTiers[i]->getBombCooldown());
 
 		// Load all the attack patterns
-		attackPatterns.push_back(levelPack.getAttackPattern(powerTiers[i]->getAttackPatternID()));
-		focusedAttackPatterns.push_back(levelPack.getAttackPattern(powerTiers[i]->getFocusedAttackPatternID()));
-		bombAttackPatterns.push_back(levelPack.getAttackPattern(powerTiers[i]->getBombAttackPatternID()));
+		attackPatterns.push_back(levelPack.getGameplayAttackPattern(powerTiers[i]->getAttackPatternID(), powerTiers[i]->getCompiledAttackPatternSymbolsDefiner()));
+		focusedAttackPatterns.push_back(levelPack.getGameplayAttackPattern(powerTiers[i]->getFocusedAttackPatternID(), powerTiers[i]->getCompiledAttackPatternSymbolsDefiner()));
+		bombAttackPatterns.push_back(levelPack.getGameplayAttackPattern(powerTiers[i]->getBombAttackPatternID(), powerTiers[i]->getCompiledAttackPatternSymbolsDefiner()));
 
 		// Calculate attack pattern total times
-		attackPatternTotalTimes.push_back(attackPatterns[i]->getAttackData(attackPatterns[i]->getAttacksCount() - 1).first + powerTiers[i]->getAttackPatternLoopDelay());
-		focusedAttackPatternTotalTimes.push_back(focusedAttackPatterns[i]->getAttackData(focusedAttackPatterns[i]->getAttacksCount() - 1).first + powerTiers[i]->getFocusedAttackPatternLoopDelay());
+		attackPatternTotalTimes.push_back(std::get<0>(attackPatterns[i]->getAttackData(attackPatterns[i]->getAttacksCount() - 1)) + powerTiers[i]->getAttackPatternLoopDelay());
+		focusedAttackPatternTotalTimes.push_back(std::get<0>(focusedAttackPatterns[i]->getAttackData(focusedAttackPatterns[i]->getAttacksCount() - 1)) + powerTiers[i]->getFocusedAttackPatternLoopDelay());
 	}
 
 	currentPowerTierIndex = 0;
@@ -476,9 +476,9 @@ bool PlayerTag::update(float deltaTime, const LevelPack & levelPack, EntityCreat
 
 		while (currentBombAttackIndex + 1 < bombAttackPattern->getAttacksCount()) {
 			auto nextAttack = bombAttackPattern->getAttackData(currentBombAttackIndex + 1);
-			if (timeSinceLastBombActivation >= nextAttack.first) {
+			if (timeSinceLastBombActivation >= std::get<0>(nextAttack)) {
 				currentBombAttackIndex++;
-				levelPack.getAttack(nextAttack.second)->executeAsPlayer(queue, spriteLoader, registry, self, timeSinceLastBombActivation - nextAttack.first, bombAttackPattern->getID());
+				levelPack.getAttack(std::get<1>(nextAttack))->executeAsPlayer(queue, spriteLoader, registry, self, timeSinceLastBombActivation - std::get<0>(nextAttack), bombAttackPattern->getID());
 			} else {
 				break;
 			}
@@ -499,9 +499,9 @@ bool PlayerTag::update(float deltaTime, const LevelPack & levelPack, EntityCreat
 
 		while (currentAttackIndex + 1 < currentAttackPattern->getAttacksCount()) {
 			auto nextAttack = currentAttackPattern->getAttackData(currentAttackIndex + 1);
-			if (timeSinceNewAttackPattern >= nextAttack.first) {
+			if (timeSinceNewAttackPattern >= std::get<0>(nextAttack)) {
 				currentAttackIndex++;
-				levelPack.getAttack(nextAttack.second)->executeAsPlayer(queue, spriteLoader, registry, self, timeSinceNewAttackPattern - nextAttack.first, currentAttackPattern->getID());
+				levelPack.getAttack(std::get<1>(nextAttack))->executeAsPlayer(queue, spriteLoader, registry, self, timeSinceNewAttackPattern - std::get<0>(nextAttack), currentAttackPattern->getID());
 			} else {
 				break;
 			}

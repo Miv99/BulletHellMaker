@@ -143,6 +143,7 @@ current todo:
 -Allow every LevelPackObject to use math expressions instead of numbers
     -If a LevelPackObject or any LevelPackObject that it uses
         -ie An EditorAttack has some EditorMovablePoints
+-Fix editors to use strings; add getters for strings in attack and stuff
 -Popup saying something was copied/pasted    
     -have pasteInto() and paste2Into() return a string: the message to show to the user
 -Preview panel as a separate window; the object being previewed changes depending

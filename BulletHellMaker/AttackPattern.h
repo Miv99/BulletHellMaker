@@ -38,19 +38,19 @@ public:
 
 	void changeEntityPathToAttackPatternActions(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag);
 
-	inline const std::vector<std::pair<float, int>>& getAttacks() { return attackIDs; }
-	inline std::pair<float, int> getAttackData(int index) const { return attackIDs[index]; }
+	inline std::vector<std::tuple<std::string, int, ExprSymbolTable>> getAttacks() { return attackIDs; }
+	inline std::tuple<float, int, exprtk::symbol_table<float>> getAttackData(int index) const { return compiledAttackIDs[index]; }
 	inline std::shared_ptr<EMPAction> getAction(int index) const { return actions[index]; }
 	inline const std::vector<std::shared_ptr<EMPAction>> getActions() const { return actions; }
 	inline int getAttacksCount() const { return attackIDs.size(); }
 	inline int getActionsCount() const { return actions.size(); }
-	inline float getShadowTrailInterval() const { return shadowTrailInterval; }
-	inline float getShadowTrailLifespan() const { return shadowTrailLifespan; }
+	inline float getShadowTrailInterval() const { return shadowTrailIntervalExprCompiledValue; }
+	inline float getShadowTrailLifespan() const { return shadowTrailLifespanExprCompiledValue; }
 	inline float getActionsTotalTime() const { return actionsTotalTime; }
 	inline bool usesAttack(int attackID) const { return attackIDCount.count(attackID) > 0 && attackIDCount.at(attackID) > 0; }
 
-	inline void setShadowTrailInterval(float shadowTrailInterval) { this->shadowTrailInterval = shadowTrailInterval; }
-	inline void setShadowTrailLifespan(float shadowTrailLifespan) { this->shadowTrailLifespan = shadowTrailLifespan; }
+	inline void setShadowTrailInterval(std::string shadowTrailInterval) { this->shadowTrailInterval = shadowTrailInterval; }
+	inline void setShadowTrailLifespan(std::string shadowTrailLifespan) { this->shadowTrailLifespan = shadowTrailLifespan; }
 
 	/*
 	Add an EditorAttack to this attack pattern.
@@ -58,7 +58,7 @@ public:
 	time - seconds after the start of the EditorAttackPattern that the EditorAttack is executed
 	id - the ID of the EditorAttack
 	*/
-	void addAttack(float time, int id);
+	void addAttack(std::string time, int id, ExprSymbolTable attackSymbolsDefiner);
 	/*
 	Removes the EditorAttack at the specified index from the list of EditorAttacks to be executed.
 	*/
@@ -68,9 +68,14 @@ public:
 	void removeAction(int index);
 
 private:
-	// List of attack ids (int) and when they will occur, with t=0 being the start of the attack pattern
-	// Sorted ascending by time
-	std::vector<std::pair<float, int>> attackIDs;
+	// Tuples of: When the attack pattern occurs (with t=0 being the start of the phase), the attack id (int), 
+	// the symbols definer, and the compiled symbols definer.
+	// Sorted ascending by time.
+	// This should be modified only internally. It will be populated after compileExpressions() is called. Any changes to attackIDs will
+	// not be reflected here if compileExpressions() is not called anytime afterwards.
+	std::vector<std::tuple<float, int, exprtk::symbol_table<float>>> compiledAttackIDs;
+	// The expressions form of compiledAttackIDs. Unordered.
+	std::vector<std::tuple<std::string, int, ExprSymbolTable>> attackIDs;
 	// EMPActions that will be carried out by the enemy that has this attack pattern as soon as the previous EMPAction ends
 	std::vector<std::shared_ptr<EMPAction>> actions;
 	// Total time for all actions to finish execution
@@ -78,9 +83,9 @@ private:
 
 	// Shadow trails are only for enemies
 	// See ShadowTrailComponent
-	float shadowTrailInterval = 0.15f;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(shadowTrailInterval, float, 0.15)
 	// Set to 0 or a negative number to disable shadow trail
-	float shadowTrailLifespan = 0;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(shadowTrailLifespan, float, 0)
 
 	// Maps an attack ID to the number of times it appears in attackIDs.
 	// Not saved in format(), but reconstructed in load().

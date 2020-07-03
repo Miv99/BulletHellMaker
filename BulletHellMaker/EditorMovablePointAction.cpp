@@ -2,7 +2,7 @@
 #include "EditorMovablePointAction.h"
 #include "EditorMovablePointSpawnType.h"
 
-std::shared_ptr<EMPAAngleOffset> EMPAAngleOffsetToPlayer::clone() {
+std::shared_ptr<LevelPackObject> EMPAAngleOffsetToPlayer::clone() const {
 	return std::make_shared<EMPAAngleOffsetToPlayer>(xOffset, yOffset);
 }
 
@@ -14,6 +14,15 @@ void EMPAAngleOffsetToPlayer::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	xOffset = std::stof(items[1]);
 	yOffset = std::stof(items[2]);
+}
+
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EMPAAngleOffsetToPlayer::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
+	// TODO
+	return std::pair<LEGAL_STATUS, std::vector<std::string>>();
+}
+
+void EMPAAngleOffsetToPlayer::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
+	//TODO
 }
 
 float EMPAAngleOffsetToPlayer::evaluate(const entt::DefaultRegistry & registry, float xFrom, float yFrom) {
@@ -31,7 +40,7 @@ bool EMPAAngleOffsetToPlayer::operator==(const EMPAAngleOffset& other) const {
 	return xOffset == derived.xOffset && yOffset == derived.yOffset;
 }
 
-std::shared_ptr<EMPAAngleOffset> EMPAAngleOffsetToGlobalPosition::clone() {
+std::shared_ptr<LevelPackObject> EMPAAngleOffsetToGlobalPosition::clone() const {
 	return std::make_shared<EMPAAngleOffsetToGlobalPosition>(x, y);
 }
 
@@ -43,6 +52,15 @@ void EMPAAngleOffsetToGlobalPosition::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	x = std::stof(items[1]);
 	y = std::stof(items[2]);
+}
+
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EMPAAngleOffsetToGlobalPosition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
+	//TODO: legal
+	return std::pair<LEGAL_STATUS, std::vector<std::string>>();
+}
+
+void EMPAAngleOffsetToGlobalPosition::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
+	//TODO
 }
 
 float EMPAAngleOffsetToGlobalPosition::evaluate(const entt::DefaultRegistry & registry, float xFrom, float yFrom) {
@@ -58,7 +76,7 @@ bool EMPAAngleOffsetToGlobalPosition::operator==(const EMPAAngleOffset& other) c
 	return x == derived.x && y == derived.y;
 }
 
-std::shared_ptr<EMPAAngleOffset> EMPAAngleOffsetZero::clone() {
+std::shared_ptr<LevelPackObject> EMPAAngleOffsetZero::clone() const {
 	return std::make_shared<EMPAAngleOffsetZero>();
 }
 
@@ -69,11 +87,20 @@ std::string EMPAAngleOffsetZero::format() const {
 void EMPAAngleOffsetZero::load(std::string formattedString) {
 }
 
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EMPAAngleOffsetZero::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
+	// Always legal
+	return std::make_pair(LEGAL_STATUS::LEGAL, std::vector<std::string>());
+}
+
+void EMPAAngleOffsetZero::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
+	// Nothing to be done
+}
+
 bool EMPAAngleOffsetZero::operator==(const EMPAAngleOffset& other) const {
 	return true;
 }
 
-std::shared_ptr<EMPAAngleOffset> EMPAAngleOffsetConstant::clone() {
+std::shared_ptr<LevelPackObject> EMPAAngleOffsetConstant::clone() const {
 	return std::make_shared<EMPAAngleOffsetConstant>(value);
 }
 
@@ -86,12 +113,21 @@ void EMPAAngleOffsetConstant::load(std::string formattedString) {
 	value = std::stof(items[1]);
 }
 
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EMPAAngleOffsetConstant::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
+	//TODO
+	return std::pair<LEGAL_STATUS, std::vector<std::string>>();
+}
+
+void EMPAAngleOffsetConstant::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
+	//TODO
+}
+
 bool EMPAAngleOffsetConstant::operator==(const EMPAAngleOffset& other) const {
 	const EMPAAngleOffsetConstant& derived = dynamic_cast<const EMPAAngleOffsetConstant&>(other);
 	return value == derived.value;
 }
 
-std::shared_ptr<EMPAAngleOffset> EMPAngleOffsetPlayerSpriteAngle::clone() {
+std::shared_ptr<LevelPackObject> EMPAngleOffsetPlayerSpriteAngle::clone() const {
 	return std::make_shared<EMPAngleOffsetPlayerSpriteAngle>();
 }
 
@@ -100,6 +136,15 @@ std::string EMPAngleOffsetPlayerSpriteAngle::format() const {
 }
 
 void EMPAngleOffsetPlayerSpriteAngle::load(std::string formattedString) {
+}
+
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EMPAngleOffsetPlayerSpriteAngle::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
+	// Always legal
+	return std::make_pair(LEGAL_STATUS::LEGAL, std::vector<std::string>());
+}
+
+void EMPAngleOffsetPlayerSpriteAngle::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
+	// Nothing to be done
 }
 
 float EMPAngleOffsetPlayerSpriteAngle::evaluate(const entt::DefaultRegistry & registry, float xFrom, float yFrom) {
@@ -116,8 +161,8 @@ bool EMPAngleOffsetPlayerSpriteAngle::operator==(const EMPAAngleOffset& other) c
 }
 
 
-std::shared_ptr<EMPAction> DetachFromParentEMPA::clone() {
-	std::shared_ptr<DetachFromParentEMPA> copy = std::make_shared<DetachFromParentEMPA>();
+std::shared_ptr<LevelPackObject> DetachFromParentEMPA::clone() const {
+	std::shared_ptr<LevelPackObject> copy = std::make_shared<DetachFromParentEMPA>();
 	copy->load(format());
 	return copy;
 }
@@ -127,6 +172,15 @@ std::string DetachFromParentEMPA::format() const {
 }
 
 void DetachFromParentEMPA::load(std::string formattedString) {
+}
+
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> DetachFromParentEMPA::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
+	// Always legal
+	return std::make_pair(LEGAL_STATUS::LEGAL, std::vector<std::string>());
+}
+
+void DetachFromParentEMPA::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
+	// Nothing to be done
 }
 
 std::string DetachFromParentEMPA::getGuiFormat() {
@@ -154,8 +208,8 @@ bool DetachFromParentEMPA::operator==(const EMPAction& other) const {
 	return true;
 }
 
-std::shared_ptr<EMPAction> StayStillAtLastPositionEMPA::clone() {
-	std::shared_ptr<StayStillAtLastPositionEMPA> copy = std::make_shared<StayStillAtLastPositionEMPA>();
+std::shared_ptr<LevelPackObject> StayStillAtLastPositionEMPA::clone() const {
+	std::shared_ptr<LevelPackObject> copy = std::make_shared<StayStillAtLastPositionEMPA>();
 	copy->load(format());
 	return copy;
 }
@@ -167,6 +221,15 @@ std::string StayStillAtLastPositionEMPA::format() const {
 void StayStillAtLastPositionEMPA::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	duration = stof(items[1]);
+}
+
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> StayStillAtLastPositionEMPA::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
+	//TODO
+	return std::pair<LEGAL_STATUS, std::vector<std::string>>();
+}
+
+void StayStillAtLastPositionEMPA::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
+	//TODO
 }
 
 std::string StayStillAtLastPositionEMPA::getGuiFormat() {
@@ -193,8 +256,8 @@ bool StayStillAtLastPositionEMPA::operator==(const EMPAction& other) const {
 	return duration == derived.duration;
 }
 
-std::shared_ptr<EMPAction> MoveCustomPolarEMPA::clone() {
-	std::shared_ptr<MoveCustomPolarEMPA> copy = std::make_shared<MoveCustomPolarEMPA>();
+std::shared_ptr<LevelPackObject> MoveCustomPolarEMPA::clone() const {
+	std::shared_ptr<LevelPackObject> copy = std::make_shared<MoveCustomPolarEMPA>();
 	copy->load(format());
 	return copy;
 }
@@ -209,6 +272,15 @@ void MoveCustomPolarEMPA::load(std::string formattedString) {
 	angle = TFVFactory::create(items[2]);
 	time = std::stof(items[3]);
 	angleOffset = EMPAngleOffsetFactory::create(items[4]);
+}
+
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> MoveCustomPolarEMPA::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
+	//TODO
+	return std::pair<LEGAL_STATUS, std::vector<std::string>>();
+}
+
+void MoveCustomPolarEMPA::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
+	//TODO
 }
 
 std::string MoveCustomPolarEMPA::getGuiFormat() {
@@ -250,8 +322,8 @@ bool MoveCustomPolarEMPA::operator==(const EMPAction& other) const {
 	return *distance == *derived.distance && *angle == *derived.angle && time == derived.time && ((!angleOffset && !derived.angleOffset) || *angleOffset == *derived.angleOffset);
 }
 
-std::shared_ptr<EMPAction> MoveCustomBezierEMPA::clone() {
-	std::shared_ptr<MoveCustomBezierEMPA> copy = std::make_shared<MoveCustomBezierEMPA>();
+std::shared_ptr<LevelPackObject> MoveCustomBezierEMPA::clone() const {
+	std::shared_ptr<LevelPackObject> copy = std::make_shared<MoveCustomBezierEMPA>();
 	copy->load(format());
 	return copy;
 }
@@ -275,6 +347,15 @@ void MoveCustomBezierEMPA::load(std::string formattedString) {
 	for (i = 3; i < items.size(); i += 2) {
 		unrotatedControlPoints.push_back(sf::Vector2f(std::stof(items[i]), std::stof(items[i + 1])));
 	}
+}
+
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> MoveCustomBezierEMPA::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
+	//TODO
+	return std::pair<LEGAL_STATUS, std::vector<std::string>>();
+}
+
+void MoveCustomBezierEMPA::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
+	//TODO
 }
 
 std::string MoveCustomBezierEMPA::getGuiFormat() {
@@ -336,8 +417,8 @@ bool MoveCustomBezierEMPA::operator==(const EMPAction& other) const {
 		&& std::equal(unrotatedControlPoints.begin(), unrotatedControlPoints.end(), derived.unrotatedControlPoints.begin());
 }
 
-std::shared_ptr<EMPAction> MovePlayerHomingEMPA::clone() {
-	std::shared_ptr<MovePlayerHomingEMPA> copy = std::make_shared<MovePlayerHomingEMPA>();
+std::shared_ptr<LevelPackObject> MovePlayerHomingEMPA::clone() const {
+	std::shared_ptr<LevelPackObject> copy = std::make_shared<MovePlayerHomingEMPA>();
 	copy->load(format());
 	return copy;
 }
@@ -351,6 +432,15 @@ void MovePlayerHomingEMPA::load(std::string formattedString) {
 	homingStrength = TFVFactory::create(items[1]);
 	speed = TFVFactory::create(items[2]);
 	time = std::stof(items[3]);
+}
+
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> MovePlayerHomingEMPA::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
+	//TODO
+	return std::pair<LEGAL_STATUS, std::vector<std::string>>();
+}
+
+void MovePlayerHomingEMPA::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
+	//TODO
 }
 
 std::string MovePlayerHomingEMPA::getGuiFormat() {
@@ -373,8 +463,8 @@ bool MovePlayerHomingEMPA::operator==(const EMPAction& other) const {
 	return *homingStrength == *derived.homingStrength && *speed == *derived.speed && time == derived.time;
 }
 
-std::shared_ptr<EMPAction> MoveGlobalHomingEMPA::clone() {
-	std::shared_ptr<MoveGlobalHomingEMPA> copy = std::make_shared<MoveGlobalHomingEMPA>();
+std::shared_ptr<LevelPackObject> MoveGlobalHomingEMPA::clone() const {
+	std::shared_ptr<LevelPackObject> copy = std::make_shared<MoveGlobalHomingEMPA>();
 	copy->load(format());
 	return copy;
 }
@@ -390,6 +480,15 @@ void MoveGlobalHomingEMPA::load(std::string formattedString) {
 	homingStrength = TFVFactory::create(items[3]);
 	speed = TFVFactory::create(items[4]);
 	time = std::stof(items[5]);
+}
+
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> MoveGlobalHomingEMPA::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
+	//TODO
+	return std::pair<LEGAL_STATUS, std::vector<std::string>>();
+}
+
+void MoveGlobalHomingEMPA::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
+	//TODO
 }
 
 std::string MoveGlobalHomingEMPA::getGuiFormat() {
