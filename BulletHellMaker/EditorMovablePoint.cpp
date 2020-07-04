@@ -252,17 +252,17 @@ void EditorMovablePoint::loadBulletModel(const LevelPack & levelPack) {
 	// Add this EMP to the model's set of model users
 	model->addModelUser(shared_from_this());
 
-	if (inheritRadius) hitboxRadius = model->getHitboxRadius();
+	if (inheritRadius) hitboxRadius = std::to_string(model->getHitboxRadius());
 	if (inheritDespawnTime) despawnTime = model->getDespawnTime();
-	if (inheritShadowTrailInterval) shadowTrailInterval = model->getShadowTrailInterval();
-	if (inheritShadowTrailLifespan) shadowTrailLifespan = model->getShadowTrailLifespan();
+	if (inheritShadowTrailInterval) shadowTrailInterval = std::to_string(model->getShadowTrailInterval());
+	if (inheritShadowTrailLifespan) shadowTrailLifespan = std::to_string(model->getShadowTrailLifespan());
 	if (inheritAnimatables) {
 		animatable = model->getAnimatable();
 		loopAnimation = model->getLoopAnimation();
 		baseSprite = model->getBaseSprite();
 	}
-	if (inheritDamage) damage = model->getDamage();
-	if (inheritPierceResetTime) pierceResetTime = model->getPierceResetTime();
+	if (inheritDamage) damage = std::to_string(model->getDamage());
+	if (inheritPierceResetTime) pierceResetTime = std::to_string(model->getPierceResetTime());
 	if (inheritSoundSettings) {
 		soundSettings = model->getSoundSettings();
 	}
@@ -274,17 +274,17 @@ void EditorMovablePoint::setBulletModel(std::shared_ptr<BulletModel> model) {
 	// Add this EMP to the model's set of model users
 	model->addModelUser(shared_from_this());
 
-	if (inheritRadius) hitboxRadius = model->getHitboxRadius();
+	if (inheritRadius) hitboxRadius = std::to_string(model->getHitboxRadius());
 	if (inheritDespawnTime) despawnTime = model->getDespawnTime();
-	if (inheritShadowTrailInterval) shadowTrailInterval = model->getShadowTrailInterval();
-	if (inheritShadowTrailLifespan) shadowTrailLifespan = model->getShadowTrailLifespan();
+	if (inheritShadowTrailInterval) shadowTrailInterval = std::to_string(model->getShadowTrailInterval());
+	if (inheritShadowTrailLifespan) shadowTrailLifespan = std::to_string(model->getShadowTrailLifespan());
 	if (inheritAnimatables) {
 		animatable = model->getAnimatable();
 		loopAnimation = model->getLoopAnimation();
 		baseSprite = model->getBaseSprite();
 	}
-	if (inheritDamage) damage = model->getDamage();
-	if (inheritPierceResetTime) pierceResetTime = model->getPierceResetTime();
+	if (inheritDamage) damage = std::to_string(model->getDamage());
+	if (inheritPierceResetTime) pierceResetTime = std::to_string(model->getPierceResetTime());
 	if (inheritSoundSettings) {
 		soundSettings = model->getSoundSettings();
 	}
@@ -508,7 +508,7 @@ void EditorMovablePoint::copyConstructorLoad(std::string formattedString) {
 
 	id = -1;
 	idResolved = false;
-	hitboxRadius = std::stof(items[1]);
+	hitboxRadius = items[1];
 	despawnTime = std::stof(items[2]);
 
 	int i;
@@ -528,8 +528,8 @@ void EditorMovablePoint::copyConstructorLoad(std::string formattedString) {
 
 	spawnType = EMPSpawnTypeFactory::create(items[i++]);
 
-	shadowTrailInterval = std::stof(items[i++]);
-	shadowTrailLifespan = std::stof(items[i++]);
+	shadowTrailInterval = items[i++];
+	shadowTrailLifespan = items[i++];
 
 	animatable.load(items[i++]);
 	if (std::stoi(items[i++]) == 0) {
@@ -539,10 +539,10 @@ void EditorMovablePoint::copyConstructorLoad(std::string formattedString) {
 	}
 	baseSprite.load(items[i++]);
 
-	damage = std::stoi(items[i++]);
+	damage = items[i++];
 
 	onCollisionAction = static_cast<BULLET_ON_COLLISION_ACTION>(std::stoi(items[i++]));
-	pierceResetTime = std::stof(items[i++]);
+	pierceResetTime = items[i++];
 
 	soundSettings.load(items[i++]);
 
