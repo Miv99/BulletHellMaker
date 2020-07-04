@@ -1346,6 +1346,7 @@ void EditorMovablePointPanel::updateAllWidgetValues() {
 	empiLoopAnimation->setEnabled(!this->emp->getInheritAnimatables() || this->emp->getBulletModelID() < 0);
 	empiBaseSprite->setEnabled(!this->emp->getInheritAnimatables() || this->emp->getBulletModelID() < 0);
 	empiDamage->setEnabled((!emp->getInheritDamage() || this->emp->getBulletModelID() < 0) && emp->getIsBullet());
+	empiPierceResetTime->setEnabled((!emp->getInheritPierceResetTime() || this->emp->getBulletModelID() < 0) && emp->getIsBullet());
 	empiSoundSettings->setEnabled(!emp->getInheritSoundSettings() || this->emp->getBulletModelID() < 0);
 
 	empiLoopAnimation->setVisible(!emp->getAnimatable().isSprite());
