@@ -58,7 +58,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 		
 		isBullet = tgui::CheckBox::create("Is bullet");
 		empiHitboxRadiusLabel = tgui::Label::create();
-		empiHitboxRadius = NumericalEditBoxWithLimits::create();
+		empiHitboxRadius = EditBox::create();
 		
 		empiDespawnTimeLabel = tgui::Label::create();
 		// Max value is sum of time taken for every EMPA in empiActions
@@ -76,19 +76,19 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 		empiSpawnLocationManualSet = tgui::Button::create();
 
 		empiShadowTrailLifespanLabel = tgui::Label::create();
-		empiShadowTrailLifespan = NumericalEditBoxWithLimits::create();
+		empiShadowTrailLifespan = EditBox::create();
 		empiShadowTrailIntervalLabel = tgui::Label::create();
-		empiShadowTrailInterval = NumericalEditBoxWithLimits::create();
+		empiShadowTrailInterval = EditBox::create();
 
 		empiDamageLabel = tgui::Label::create();
-		empiDamage = NumericalEditBoxWithLimits::create();
+		empiDamage = EditBox::create();
 
 		empiOnCollisionActionLabel = tgui::Label::create();
 		// Entry ID obtained from getID()
 		empiOnCollisionAction = tgui::ComboBox::create();
 
 		empiPierceResetTimeLabel = tgui::Label::create();
-		empiPierceResetTime = NumericalEditBoxWithLimits::create();
+		empiPierceResetTime = EditBox::create();
 
 		empiSoundSettingsLabel = tgui::Label::create();
 		empiSoundSettings = SoundSettingsGroup::create(format(LEVEL_PACK_SOUND_FOLDER_PATH, levelPack.getName().c_str()));
@@ -125,7 +125,7 @@ as the attack is executed."));
 		empiSpawnLocationManualSet->setToolTip(createToolTip("Opens a map to help visualize and set this movable point's spawn position."));
 		empiShadowTrailLifespanLabel->setToolTip(createToolTip("Number of seconds each of this movable point's shadows last. Shadows are purely visual and create a movement trail."));
 		empiShadowTrailIntervalLabel->setToolTip(createToolTip("Number of seconds between the creation of each shadow. Shadows are purely visual and create a movement trail."));
-		empiDamageLabel->setToolTip(createToolTip("Damage dealt to an enemy/player on contact with this bullet. Only used if this movable point is a bullet."));
+		empiDamageLabel->setToolTip(createToolTip("Damage dealt to an enemy/player on contact with this bullet. Only used if this movable point is a bullet. Value will be rounded to the nearest integer."));
 		empiOnCollisionActionLabel->setToolTip(createToolTip("Determines how this bullet will act on contact with an enemy/player.\n\n\
 \"Destroy self only\" - This bullet becomes invisible and intangible upon hitting an enemy/player but will still continue following its movement actions until it despawns. \
 This means any movable points attached to this bullet when it collided with an enemy/player will behave as if nothing happened. \n\n\
@@ -348,22 +348,22 @@ point will update only the values it wants to inherit to match the model."));
 				onEMPModify.emit(this, this->emp);
 			}));
 		});
-		empiHitboxRadius->connect("ValueChanged", [this](float value) {
+		empiHitboxRadius->connect("ValueChanged", [this](std::string value) {
 			if (this->ignoreSignals) {
 				return;
 			}
 
-			float oldValue = this->emp->getHitboxRadius();
+			std::string oldValue = this->emp->getRawHitboxRadius();
 			undoStack.execute(UndoableCommand([this, value]() {
 				this->emp->setHitboxRadius(value);
 				this->ignoreSignals = true;
-				empiHitboxRadius->setValue(value);
+				empiHitboxRadius->setText(value);
 				this->ignoreSignals = false;
 				onEMPModify.emit(this, this->emp);
 			}, [this, oldValue]() {
 				this->emp->setHitboxRadius(oldValue);
 				this->ignoreSignals = true;
-				empiHitboxRadius->setValue(oldValue);
+				empiHitboxRadius->setText(oldValue);
 				this->ignoreSignals = false;
 				onEMPModify.emit(this, this->emp);
 			}));
@@ -544,19 +544,19 @@ point will update only the values it wants to inherit to match the model."));
 
 			placingSpawnLocation = true;
 		});
-		empiShadowTrailLifespan->connect("ValueChanged", [this](float value) {
+		empiShadowTrailLifespan->connect("ValueChanged", [this](std::string value) {
 			if (ignoreSignals) {
 				return;
 			}
 
-			float oldValue = this->emp->getShadowTrailLifespan();
+			std::string oldValue = this->emp->getRawShadowTrailLifespan();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
 				this->emp->setShadowTrailLifespan(value);
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
-				empiShadowTrailLifespan->setValue(this->emp->getShadowTrailLifespan());
+				empiShadowTrailLifespan->setText(this->emp->getRawShadowTrailLifespan());
 				ignoreSignals = false;
 			},
 				[this, oldValue]() {
@@ -564,23 +564,23 @@ point will update only the values it wants to inherit to match the model."));
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
-				empiShadowTrailLifespan->setValue(this->emp->getShadowTrailLifespan());
+				empiShadowTrailLifespan->setText(this->emp->getRawShadowTrailLifespan());
 				ignoreSignals = false;
 			}));
 		});
-		empiShadowTrailInterval->connect("ValueChanged", [this](float value) {
+		empiShadowTrailInterval->connect("ValueChanged", [this](std::string value) {
 			if (ignoreSignals) {
 				return;
 			}
 
-			float oldValue = this->emp->getShadowTrailInterval();
+			std::string oldValue = this->emp->getRawShadowTrailInterval();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
 				this->emp->setShadowTrailInterval(value);
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
-				empiShadowTrailInterval->setValue(this->emp->getShadowTrailInterval());
+				empiShadowTrailInterval->setText(this->emp->getRawShadowTrailInterval());
 				ignoreSignals = false;
 			},
 				[this, oldValue]() {
@@ -588,23 +588,23 @@ point will update only the values it wants to inherit to match the model."));
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
-				empiShadowTrailInterval->setValue(this->emp->getShadowTrailInterval());
+				empiShadowTrailInterval->setText(this->emp->getRawShadowTrailInterval());
 				ignoreSignals = false;
 			}));
 		});
-		empiDamage->connect("ValueChanged", [this](float value) {
+		empiDamage->connect("ValueChanged", [this](std::string value) {
 			if (ignoreSignals) {
 				return;
 			}
 
-			float oldValue = this->emp->getDamage();
+			std::string oldValue = this->emp->getRawDamage();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
 				this->emp->setDamage(value);
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
-				empiDamage->setValue(this->emp->getDamage());
+				empiDamage->setText(this->emp->getRawDamage());
 				ignoreSignals = false;
 			},
 				[this, oldValue]() {
@@ -612,7 +612,7 @@ point will update only the values it wants to inherit to match the model."));
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
-				empiDamage->setValue(this->emp->getDamage());
+				empiDamage->setText(this->emp->getRawDamage());
 				ignoreSignals = false;
 			}));
 		});
@@ -645,19 +645,19 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			}));
 		});
-		empiPierceResetTime->connect("ValueChanged", [this](float value) {
+		empiPierceResetTime->connect("ValueChanged", [this](std::string value) {
 			if (ignoreSignals) {
 				return;
 			}
 
-			float oldValue = this->emp->getPierceResetTime();
+			std::string oldValue = this->emp->getRawPierceResetTime();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
 				this->emp->setPierceResetTime(value);
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
-				empiPierceResetTime->setValue(this->emp->getPierceResetTime());
+				empiPierceResetTime->setText(this->emp->getRawPierceResetTime());
 				ignoreSignals = false;
 			},
 				[this, oldValue]() {
@@ -665,7 +665,7 @@ point will update only the values it wants to inherit to match the model."));
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
-				empiPierceResetTime->setValue(this->emp->getPierceResetTime());
+				empiPierceResetTime->setText(this->emp->getRawPierceResetTime());
 				ignoreSignals = false;
 			}));
 		});
@@ -701,14 +701,14 @@ point will update only the values it wants to inherit to match the model."));
 			int bulletModelID = std::stoi(id);
 			if (item == "") bulletModelID = -1;
 			int oldBulletModelID = this->emp->getBulletModelID();
-			float radius = this->emp->getHitboxRadius();
+			std::string radius = this->emp->getRawHitboxRadius();
 			float despawnTime = this->emp->getDespawnTime();
-			float interval = this->emp->getShadowTrailInterval();
-			float lifespan = this->emp->getShadowTrailLifespan();
+			std::string interval = this->emp->getRawShadowTrailInterval();
+			std::string lifespan = this->emp->getRawShadowTrailLifespan();
 			Animatable animatable = this->emp->getAnimatable();
 			Animatable baseSprite = this->emp->getBaseSprite();
 			bool loopAnimation = this->emp->getLoopAnimation();
-			float damage = this->emp->getDamage();
+			std::string damage = this->emp->getRawDamage();
 			SoundSettings sound = this->emp->getSoundSettings();
 			undoStack.execute(UndoableCommand(
 				[this, bulletModelID, radius, despawnTime, interval, lifespan, animatable, baseSprite, loopAnimation, damage, sound]() {
@@ -726,14 +726,14 @@ point will update only the values it wants to inherit to match the model."));
 				} else {
 					empiBulletModel->setSelectedItemById(std::to_string(this->emp->getBulletModelID()));
 				}
-				empiHitboxRadius->setValue(this->emp->getHitboxRadius());
+				empiHitboxRadius->setText(this->emp->getRawHitboxRadius());
 				empiDespawnTime->setValue(this->emp->getDespawnTime());
-				empiShadowTrailLifespan->setValue(this->emp->getShadowTrailLifespan());
-				empiShadowTrailInterval->setValue(this->emp->getShadowTrailInterval());
+				empiShadowTrailLifespan->setText(this->emp->getRawShadowTrailLifespan());
+				empiShadowTrailInterval->setText(this->emp->getRawShadowTrailInterval());
 				empiAnimatable->setValue(this->emp->getAnimatable());
 				empiLoopAnimation->setChecked(this->emp->getLoopAnimation());
 				empiBaseSprite->setValue(this->emp->getAnimatable());
-				empiDamage->setValue(this->emp->getDamage());
+				empiDamage->setText(this->emp->getRawDamage());
 				empiSoundSettings->initSettings(this->emp->getSoundSettings());
 
 				empiLoopAnimation->setVisible(!this->emp->getAnimatable().isSprite());
@@ -776,14 +776,14 @@ point will update only the values it wants to inherit to match the model."));
 				} else {
 					empiBulletModel->setSelectedItemById(std::to_string(this->emp->getBulletModelID()));
 				}
-				empiHitboxRadius->setValue(this->emp->getHitboxRadius());
+				empiHitboxRadius->setText(this->emp->getRawHitboxRadius());
 				empiDespawnTime->setValue(this->emp->getDespawnTime());
-				empiShadowTrailLifespan->setValue(this->emp->getShadowTrailLifespan());
-				empiShadowTrailInterval->setValue(this->emp->getShadowTrailInterval());
+				empiShadowTrailLifespan->setText(this->emp->getRawShadowTrailLifespan());
+				empiShadowTrailInterval->setText(this->emp->getRawShadowTrailInterval());
 				empiAnimatable->setValue(this->emp->getAnimatable());
 				empiLoopAnimation->setChecked(this->emp->getLoopAnimation());
 				empiBaseSprite->setValue(this->emp->getAnimatable());
-				empiDamage->setValue(this->emp->getDamage());
+				empiDamage->setText(this->emp->getRawDamage());
 				empiSoundSettings->initSettings(this->emp->getSoundSettings());
 
 				empiLoopAnimation->setVisible(!this->emp->getAnimatable().isSprite());
@@ -810,7 +810,7 @@ point will update only the values it wants to inherit to match the model."));
 			}
 
 			bool oldValue = this->emp->getInheritRadius();
-			float oldInheritValue = this->emp->getHitboxRadius();
+			std::string oldInheritValue = this->emp->getRawHitboxRadius();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
 				this->emp->setInheritRadius(value, this->levelPack);
@@ -818,7 +818,7 @@ point will update only the values it wants to inherit to match the model."));
 
 				ignoreSignals = true;
 				empiInheritRadius->setChecked(this->emp->getInheritRadius());
-				empiHitboxRadius->setValue(this->emp->getHitboxRadius());
+				empiHitboxRadius->setText(this->emp->getRawHitboxRadius());
 				empiHitboxRadius->setEnabled(!value || this->emp->getBulletModelID() < 0);
 				ignoreSignals = false;
 			},
@@ -831,7 +831,7 @@ point will update only the values it wants to inherit to match the model."));
 
 				ignoreSignals = true;
 				empiInheritRadius->setChecked(this->emp->getInheritRadius());
-				empiHitboxRadius->setValue(this->emp->getHitboxRadius());
+				empiHitboxRadius->setText(this->emp->getRawHitboxRadius());
 				empiHitboxRadius->setEnabled(!oldValue || this->emp->getBulletModelID() < 0);
 				ignoreSignals = false;
 			}));
@@ -874,7 +874,7 @@ point will update only the values it wants to inherit to match the model."));
 			}
 
 			bool oldValue = this->emp->getInheritShadowTrailInterval();
-			float oldInheritValue = this->emp->getShadowTrailInterval();
+			std::string oldInheritValue = this->emp->getRawShadowTrailInterval();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
 				this->emp->setInheritShadowTrailInterval(value, this->levelPack);
@@ -882,7 +882,7 @@ point will update only the values it wants to inherit to match the model."));
 
 				ignoreSignals = true;
 				empiInheritShadowTrailInterval->setChecked(this->emp->getInheritShadowTrailInterval());
-				empiShadowTrailInterval->setValue(this->emp->getShadowTrailInterval());
+				empiShadowTrailInterval->setText(this->emp->getRawShadowTrailInterval());
 				empiShadowTrailInterval->setEnabled(!value || this->emp->getBulletModelID() < 0);
 				ignoreSignals = false;
 			},
@@ -895,7 +895,7 @@ point will update only the values it wants to inherit to match the model."));
 
 				ignoreSignals = true;
 				empiInheritShadowTrailInterval->setChecked(this->emp->getInheritShadowTrailInterval());
-				empiShadowTrailInterval->setValue(this->emp->getShadowTrailInterval());
+				empiShadowTrailInterval->setText(this->emp->getRawShadowTrailInterval());
 				empiShadowTrailInterval->setEnabled(!oldValue || this->emp->getBulletModelID() < 0);
 				ignoreSignals = false;
 			}));
@@ -906,7 +906,7 @@ point will update only the values it wants to inherit to match the model."));
 			}
 
 			bool oldValue = this->emp->getInheritShadowTrailLifespan();
-			float oldInheritValue = this->emp->getShadowTrailLifespan();
+			std::string oldInheritValue = this->emp->getRawShadowTrailLifespan();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
 				this->emp->setInheritShadowTrailLifespan(value, this->levelPack);
@@ -914,7 +914,7 @@ point will update only the values it wants to inherit to match the model."));
 
 				ignoreSignals = true;
 				empiInheritShadowTrailLifespan->setChecked(this->emp->getInheritShadowTrailLifespan());
-				empiShadowTrailLifespan->setValue(this->emp->getShadowTrailLifespan());
+				empiShadowTrailLifespan->setText(this->emp->getRawShadowTrailLifespan());
 				empiShadowTrailLifespan->setEnabled(!value || this->emp->getBulletModelID() < 0);
 				ignoreSignals = false;
 			},
@@ -927,7 +927,7 @@ point will update only the values it wants to inherit to match the model."));
 
 				ignoreSignals = true;
 				empiInheritShadowTrailLifespan->setChecked(this->emp->getInheritShadowTrailLifespan());
-				empiShadowTrailLifespan->setValue(this->emp->getShadowTrailLifespan());
+				empiShadowTrailLifespan->setText(this->emp->getRawShadowTrailLifespan());
 				empiShadowTrailLifespan->setEnabled(!oldValue || this->emp->getBulletModelID() < 0);
 				ignoreSignals = false;
 			}));
@@ -992,7 +992,7 @@ point will update only the values it wants to inherit to match the model."));
 			}
 
 			bool oldValue = this->emp->getInheritDamage();
-			float oldInheritValue = this->emp->getDamage();
+			std::string oldInheritValue = this->emp->getRawDamage();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
 				this->emp->setInheritDamage(value, this->levelPack);
@@ -1000,7 +1000,7 @@ point will update only the values it wants to inherit to match the model."));
 
 				ignoreSignals = true;
 				empiInheritDamage->setChecked(this->emp->getInheritDamage());
-				empiDamage->setValue(this->emp->getDamage());
+				empiDamage->setText(this->emp->getRawDamage());
 				empiDamage->setEnabled((!value || this->emp->getBulletModelID() < 0) && this->emp->getIsBullet());
 				ignoreSignals = false;
 			},
@@ -1013,7 +1013,7 @@ point will update only the values it wants to inherit to match the model."));
 
 				ignoreSignals = true;
 				empiInheritDamage->setChecked(this->emp->getInheritDamage());
-				empiDamage->setValue(this->emp->getDamage());
+				empiDamage->setText(this->emp->getRawDamage());
 				empiDamage->setEnabled((!oldValue || this->emp->getBulletModelID() < 0) && this->emp->getIsBullet());
 				ignoreSignals = false;
 			}));
@@ -1263,7 +1263,7 @@ void EditorMovablePointPanel::updateAllWidgetValues() {
 	empiLoopAnimation->setChecked(emp->getLoopAnimation());
 	empiBaseSprite->setValue(emp->getAnimatable());
 	isBullet->setChecked(emp->getIsBullet());
-	empiHitboxRadius->setValue(emp->getHitboxRadius());
+	empiHitboxRadius->setText(emp->getRawHitboxRadius());
 	empiDespawnTime->setValue(emp->getDespawnTime());
 	empiSpawnType->setSelectedItemById(getID(emp->getSpawnType()));
 	// empiSpawnTypeTime should always display 0 if the EMP is the main EMP of its EditorAttack
@@ -1271,11 +1271,11 @@ void EditorMovablePointPanel::updateAllWidgetValues() {
 	empiSpawnTypeTime->setValue(emp->isMainEMP() ? 0 : emp->getSpawnType()->getTime());
 	empiSpawnTypeX->setValue(emp->getSpawnType()->getX());
 	empiSpawnTypeY->setValue(emp->getSpawnType()->getY());
-	empiShadowTrailLifespan->setValue(emp->getShadowTrailLifespan());
-	empiShadowTrailInterval->setValue(emp->getShadowTrailInterval());
-	empiDamage->setValue(emp->getDamage());
+	empiShadowTrailLifespan->setText(emp->getRawShadowTrailLifespan());
+	empiShadowTrailInterval->setText(emp->getRawShadowTrailInterval());
+	empiDamage->setText(emp->getRawDamage());
 	empiOnCollisionAction->setSelectedItemById(getID(emp->getOnCollisionAction()));
-	empiPierceResetTime->setValue(emp->getPierceResetTime());
+	empiPierceResetTime->setText(emp->getRawPierceResetTime());
 	empiSoundSettings->initSettings(emp->getSoundSettings());
 	if (emp->getBulletModelID() >= 0) {
 		empiBulletModel->setSelectedItemById(std::to_string(emp->getBulletModelID()));
@@ -1365,14 +1365,14 @@ void EditorMovablePointPanel::onPasteIntoConfirmation(bool confirmed, std::share
 		auto oldLoopAnimation = emp->getLoopAnimation();
 		auto oldBaseSprite = emp->getBaseSprite();
 		auto oldIsBullet = emp->getIsBullet();
-		auto oldHitboxRadius = emp->getHitboxRadius();
+		auto oldHitboxRadius = emp->getRawHitboxRadius();
 		auto oldDespawnTime = emp->getDespawnTime();
 		auto oldSpawnType = emp->getSpawnType();
-		auto oldShadowTrailLifespan = emp->getShadowTrailLifespan();
-		auto oldShadowTrailInterval = emp->getShadowTrailInterval();
-		auto oldDamage = emp->getDamage();
+		auto oldShadowTrailLifespan = emp->getRawShadowTrailLifespan();
+		auto oldShadowTrailInterval = emp->getRawShadowTrailInterval();
+		auto oldDamage = emp->getRawDamage();
 		auto oldOnCollisionAction = emp->getOnCollisionAction();
-		auto oldPierceResetTime = emp->getPierceResetTime();
+		auto oldPierceResetTime = emp->getRawPierceResetTime();
 		auto oldActions = emp->getActions();
 		auto oldBulletModelID = emp->getBulletModelID();
 		auto oldInheritRadius = emp->getInheritRadius();
@@ -1388,14 +1388,14 @@ void EditorMovablePointPanel::onPasteIntoConfirmation(bool confirmed, std::share
 			emp->setLoopAnimation(newEMP->getLoopAnimation());
 			emp->setBaseSprite(newEMP->getBaseSprite());
 			emp->setIsBullet(newEMP->getIsBullet());
-			emp->setHitboxRadius(newEMP->getHitboxRadius());
+			emp->setHitboxRadius(newEMP->getRawHitboxRadius());
 			emp->setDespawnTime(newEMP->getDespawnTime());
 			emp->setSpawnType(newEMP->getSpawnType());
-			emp->setShadowTrailLifespan(newEMP->getShadowTrailLifespan());
-			emp->setShadowTrailInterval(newEMP->getShadowTrailInterval());
-			emp->setDamage(newEMP->getDamage());
+			emp->setShadowTrailLifespan(newEMP->getRawShadowTrailLifespan());
+			emp->setShadowTrailInterval(newEMP->getRawShadowTrailInterval());
+			emp->setDamage(newEMP->getRawDamage());
 			emp->setOnCollisionAction(newEMP->getOnCollisionAction());
-			emp->setPierceResetTime(newEMP->getPierceResetTime());
+			emp->setPierceResetTime(newEMP->getRawPierceResetTime());
 			if (newEMP->getBulletModelID() == -1) {
 				emp->removeBulletModel();
 			} else {

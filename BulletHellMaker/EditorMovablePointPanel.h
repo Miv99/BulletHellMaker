@@ -61,7 +61,7 @@ private:
 	std::shared_ptr<AnimatableChooser> empiBaseSprite;
 	std::shared_ptr<tgui::CheckBox> isBullet;
 	std::shared_ptr<tgui::Label> empiHitboxRadiusLabel;
-	std::shared_ptr<NumericalEditBoxWithLimits> empiHitboxRadius;
+	std::shared_ptr<EditBox> empiHitboxRadius;
 	std::shared_ptr<tgui::Label> empiDespawnTimeLabel;
 	std::shared_ptr<tgui::Label> empiSpawnTypeLabel;
 	std::shared_ptr<tgui::ComboBox> empiSpawnType;
@@ -71,15 +71,15 @@ private:
 	std::shared_ptr<tgui::Label> empiSpawnTypeYLabel;
 	std::shared_ptr<tgui::Button> empiSpawnLocationManualSet;
 	std::shared_ptr<tgui::Label> empiShadowTrailLifespanLabel;
-	std::shared_ptr<NumericalEditBoxWithLimits> empiShadowTrailLifespan;
+	std::shared_ptr<EditBox> empiShadowTrailLifespan;
 	std::shared_ptr<tgui::Label> empiShadowTrailIntervalLabel;
-	std::shared_ptr<NumericalEditBoxWithLimits> empiShadowTrailInterval;
+	std::shared_ptr<EditBox> empiShadowTrailInterval;
 	std::shared_ptr<tgui::Label> empiDamageLabel;
-	std::shared_ptr<NumericalEditBoxWithLimits> empiDamage;
+	std::shared_ptr<EditBox> empiDamage;
 	std::shared_ptr<tgui::Label> empiOnCollisionActionLabel;
 	std::shared_ptr<tgui::ComboBox> empiOnCollisionAction;
 	std::shared_ptr<tgui::Label> empiPierceResetTimeLabel;
-	std::shared_ptr<NumericalEditBoxWithLimits> empiPierceResetTime;
+	std::shared_ptr<EditBox> empiPierceResetTime;
 	std::shared_ptr<tgui::Label> empiBulletModelLabel;
 	std::shared_ptr<tgui::CheckBox> empiInheritRadius;
 	std::shared_ptr<tgui::CheckBox> empiInheritDespawnTime;

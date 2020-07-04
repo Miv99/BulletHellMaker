@@ -140,6 +140,7 @@ Notes for me:
 
 
 current todo:
+-add pierce reset time to bullet model; add inherit option to EMP and EMP editor
 -Allow every LevelPackObject to use math expressions instead of numbers
     -If a LevelPackObject or any LevelPackObject that it uses
         -ie An EditorAttack has some EditorMovablePoints

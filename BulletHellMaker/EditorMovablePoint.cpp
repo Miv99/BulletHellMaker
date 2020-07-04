@@ -57,7 +57,7 @@ std::shared_ptr<LevelPackObject> EditorMovablePoint::clone() const {
 std::string EditorMovablePoint::format() const {
 	std::string res = "";
 
-	res += tos(id) + tos(hitboxRadius) + tos(despawnTime) + tos(children.size());
+	res += tos(id) + formatString(hitboxRadius) + tos(despawnTime) + tos(children.size());
 	for (auto emp : children) {
 		res += formatTMObject(*emp);
 	}
@@ -67,9 +67,9 @@ std::string EditorMovablePoint::format() const {
 		res += formatTMObject(*action);
 	}
 
-	res += formatTMObject(*spawnType) + tos(shadowTrailInterval) + tos(shadowTrailLifespan) + formatTMObject(animatable)
-		+ formatBool(loopAnimation) + formatTMObject(baseSprite) + tos(damage) + tos(static_cast<int>(onCollisionAction))
-		+ tos(pierceResetTime) + formatTMObject(soundSettings) + tos(bulletModelID) + formatBool(inheritRadius)
+	res += formatTMObject(*spawnType) + formatString(shadowTrailInterval) + formatString(shadowTrailLifespan) + formatTMObject(animatable)
+		+ formatBool(loopAnimation) + formatTMObject(baseSprite) + formatString(damage) + tos(static_cast<int>(onCollisionAction))
+		+ formatString(pierceResetTime) + formatTMObject(soundSettings) + tos(bulletModelID) + formatBool(inheritRadius)
 		+ formatBool(inheritDespawnTime) + formatBool(inheritShadowTrailInterval) + formatBool(inheritShadowTrailLifespan)
 		+ formatBool(inheritAnimatables) + formatBool(inheritDamage) + formatBool(inheritSoundSettings) + formatBool(isBullet);
 
@@ -86,7 +86,7 @@ void EditorMovablePoint::load(std::string formattedString) {
 	// Resolve any possible conflicts from loading this ID
 	resolveIDConflicts(false);
 
-	hitboxRadius = std::stof(items[1]);
+	hitboxRadius = items[1];
 	despawnTime = std::stof(items[2]);
 
 	int i;
@@ -106,8 +106,8 @@ void EditorMovablePoint::load(std::string formattedString) {
 
 	spawnType = EMPSpawnTypeFactory::create(items[i++]);
 
-	shadowTrailInterval = std::stof(items[i++]);
-	shadowTrailLifespan = std::stof(items[i++]);
+	shadowTrailInterval = items[i++];
+	shadowTrailLifespan = items[i++];
 
 	animatable.load(items[i++]);
 	if (std::stoi(items[i++]) == 0) {
@@ -117,10 +117,10 @@ void EditorMovablePoint::load(std::string formattedString) {
 	}
 	baseSprite.load(items[i++]);
 
-	damage = std::stoi(items[i++]);
+	damage = items[i++];
 
 	onCollisionAction = static_cast<BULLET_ON_COLLISION_ACTION>(std::stoi(items[i++]));
-	pierceResetTime = std::stof(items[i++]);
+	pierceResetTime = items[i++];
 
 	soundSettings.load(items[i++]);
 
@@ -137,22 +137,40 @@ void EditorMovablePoint::load(std::string formattedString) {
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorMovablePoint::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
+	// Put EMP info here instead of in EditorAttack because of the tree nature of EMPs making it hard to display illegal EMPs otherwise
 	std::vector<std::string> messages = { "Movable point ID " + std::to_string(id) };
+
+	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
+	LEGAL_CHECK_EXPRESSION(hitboxRadius, hitbox radius)
+	LEGAL_CHECK_EXPRESSION(shadowTrailInterval, shadow interval)
+	LEGAL_CHECK_EXPRESSION(shadowTrailLifespan, shadow lifespan)
+	LEGAL_CHECK_EXPRESSION(damage, damage)
+	LEGAL_CHECK_EXPRESSION(pierceResetTime, pierce reset time)
+
 	if (actions.size() == 0) {
 		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("MovablePoint id " + tos(id) + " must not have an empty list of actions");
+		messages.push_back("[" + std::to_string(id) + "] List of actions is empty.");
+	} else {
+		int i = 0;
+		for (auto child : actions) {
+			auto childLegal = child->legal(levelPack, spriteLoader, symbolTables);
+			if (childLegal.first != LEGAL_STATUS::LEGAL) {
+				status = std::max(status, childLegal.first);
+				tabEveryLine(childLegal.second);
+				messages.push_back("[" + std::to_string(id) + "] Action index " + std::to_string(i) + ":");
+				messages.insert(messages.end(), childLegal.second.begin(), childLegal.second.end());
+			}
+
+			i++;
+		}
 	}
 	if (!spawnType) {
 		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("MovablePoint id " + tos(id) + " is missing a spawn type");
-	}
-	if (shadowTrailInterval < 0 && shadowTrailLifespan != 0) {
-		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("MovablePoint id " + tos(id) + " has a negative shadow trail interval");
+		messages.push_back("[" + std::to_string(id) + "] Spawn type is missing.");
 	}
 	if (!animatable.isSprite() && !loopAnimation && !baseSprite.isSprite()) {
 		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("MovablePoint id " + tos(id) + " is missing a base sprite");
+		messages.push_back("[" + std::to_string(id) + "] Base sprite is missing.");
 	} else {
 		// Make sure base sprite can be loaded
 		if (!animatable.isSprite() && !loopAnimation) {
@@ -161,7 +179,7 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorMovable
 					spriteLoader.getSprite(baseSprite.getAnimatableName(), baseSprite.getSpriteSheetName());
 				} else {
 					status = std::max(status, LEGAL_STATUS::ILLEGAL);
-					messages.push_back("MovablePoint id " + tos(id) + " has an animation as a base sprite");
+					messages.push_back("[" + std::to_string(id) + "] Base sprite is an animation.");
 				}
 			} catch (const char* str) {
 				status = std::max(status, LEGAL_STATUS::ILLEGAL);
@@ -196,14 +214,27 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorMovable
 	// Make sure bullet model is valid
 	if (usesBulletModel() && !levelPack.hasBulletModel(bulletModelID)) {
 		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("MovablePoint id " + tos(id) + " is using a deleted bullet model");
+		messages.push_back("[" + std::to_string(id) + "] Non-existent bullet model.");
 	}
 
 	return std::make_pair(status, messages);
 }
 
 void EditorMovablePoint::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
-	// TODO: compileExpressions
+	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
+	COMPILE_EXPRESSION_FOR_FLOAT(hitboxRadius)
+	COMPILE_EXPRESSION_FOR_FLOAT(shadowTrailInterval)
+	COMPILE_EXPRESSION_FOR_FLOAT(shadowTrailLifespan)
+	COMPILE_EXPRESSION_FOR_INT(damage)
+	COMPILE_EXPRESSION_FOR_FLOAT(pierceResetTime)
+
+	for (auto action : actions) {
+		action->compileExpressions(symbolTables);
+	}
+
+	for (auto child : children) {
+		child->compileExpressions(symbolTables);
+	}
 }
 
 void EditorMovablePoint::dfsLoadBulletModel(const LevelPack & levelPack) {
@@ -399,6 +430,35 @@ std::vector<sf::String> EditorMovablePoint::generatePathToThisEmp(std::function<
 	}
 
 	return ret;
+}
+
+int EditorMovablePoint::getTreeSize() const {
+	int count = 1;
+	for (auto child : children) {
+		count += child->getTreeSize();
+	}
+	return count;
+}
+
+float EditorMovablePoint::searchLargestHitbox() const {
+	float childrenMax = 0;
+	for (auto emp : children) {
+		childrenMax = std::max(childrenMax, emp->searchLargestHitbox());
+	}
+	return std::max(hitboxRadiusExprCompiledValue, childrenMax);
+}
+
+std::shared_ptr<EditorMovablePoint> EditorMovablePoint::searchID(int id) const {
+	for (auto child : children) {
+		if (child->id == id) {
+			return child;
+		}
+		auto subresult = child->searchID(id);
+		if (subresult != nullptr) {
+			return subresult;
+		}
+	}
+	return nullptr;
 }
 
 bool EditorMovablePoint::operator==(const EditorMovablePoint& other) const {

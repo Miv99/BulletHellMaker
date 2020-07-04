@@ -165,15 +165,18 @@ public:
 	}
 	inline int getID() const { return id; }
 	inline Animatable getAnimatable() const { return animatable; }
-	inline float getHitboxRadius() const { return hitboxRadius; }
+	inline float getHitboxRadius() const { return hitboxRadiusExprCompiledValue; }
+	inline std::string getRawHitboxRadius() const { return hitboxRadius; }
 	inline float getDespawnTime() const { return despawnTime; }
 	inline const std::shared_ptr<EMPSpawnType> getSpawnType() { return spawnType; }
 	inline const std::vector<std::shared_ptr<EditorMovablePoint>> getChildren() { return children; }
 	inline std::shared_ptr<EMPAction> getAction(int index) { return actions[index]; }
 	inline const std::vector<std::shared_ptr<EMPAction>> getActions() { return actions; }
 	inline const int getActionsCount() const { return actions.size(); }
-	inline float getShadowTrailInterval() const { return shadowTrailInterval; }
-	inline float getShadowTrailLifespan() const { return shadowTrailLifespan; }
+	inline float getShadowTrailInterval() const { return shadowTrailIntervalExprCompiledValue; }
+	inline float getShadowTrailLifespan() const { return shadowTrailLifespanExprCompiledValue; }
+	inline std::string getRawShadowTrailInterval() const { return shadowTrailInterval; }
+	inline std::string getRawShadowTrailLifespan() const { return shadowTrailLifespan; }
 	inline float getTotalPathTime() const {
 		float total = 0;
 		for (auto action : actions) {
@@ -182,7 +185,8 @@ public:
 		return total;
 	}
 	inline std::shared_ptr<EditorMovablePoint> getParent() { return parent.lock(); }
-	inline int getDamage() const { return damage; }
+	inline int getDamage() const { return damageExprCompiledValue; }
+	inline std::string getRawDamage() const { return damage; }
 	inline bool getLoopAnimation() const { return loopAnimation; }
 	inline Animatable getBaseSprite() const { return baseSprite; }
 	inline BULLET_ON_COLLISION_ACTION getOnCollisionAction() const { return onCollisionAction; }
@@ -195,7 +199,8 @@ public:
 	inline bool getInheritAnimatables() const { return inheritAnimatables; }
 	inline bool getInheritDamage() const { return inheritDamage; }
 	inline bool getInheritSoundSettings() const { return inheritSoundSettings; }
-	inline float getPierceResetTime() const { return pierceResetTime; }
+	inline float getPierceResetTime() const { return pierceResetTimeExprCompiledValue; }
+	inline std::string getRawPierceResetTime() const { return pierceResetTime; }
 	inline bool getIsBullet() const { return isBullet; }
 	inline bool usesBulletModel() const { return bulletModelID >= 0; }
 	/*
@@ -208,18 +213,18 @@ public:
 	bool isMainEMP() const;
 
 	void setID(int id);
-	inline void setPierceResetTime(float pierceResetTime) { this->pierceResetTime = pierceResetTime; }
+	inline void setPierceResetTime(std::string pierceResetTime) { this->pierceResetTime = pierceResetTime; }
 	inline void setOnCollisionAction(BULLET_ON_COLLISION_ACTION action) { onCollisionAction = action; }
-	inline void setDamage(float damage) { this->damage = damage; }
+	inline void setDamage(std::string damage) { this->damage = damage; }
 	inline void setAnimatable(Animatable animatable) { this->animatable = animatable; }
 	inline void setLoopAnimation(bool loopAnimation) { this->loopAnimation = loopAnimation; }
 	inline void setBaseSprite(Animatable baseSprite) { assert(baseSprite.isSprite()); this->baseSprite = baseSprite; }
-	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; }
+	inline void setHitboxRadius(std::string hitboxRadius) { this->hitboxRadius = hitboxRadius; }
 	inline void setDespawnTime(float despawnTime) { this->despawnTime = despawnTime; }
 	void setSpawnType(std::shared_ptr<EMPSpawnType> spawnType);
 	void setSpawnTypeTime(float time);
-	inline void setShadowTrailInterval(float shadowTrailInterval) { this->shadowTrailInterval = shadowTrailInterval; }
-	inline void setShadowTrailLifespan(float shadowTrailLifespan) { this->shadowTrailLifespan = shadowTrailLifespan; }
+	inline void setShadowTrailInterval(std::string shadowTrailInterval) { this->shadowTrailInterval = shadowTrailInterval; }
+	inline void setShadowTrailLifespan(std::string shadowTrailLifespan) { this->shadowTrailLifespan = shadowTrailLifespan; }
 	inline void setInheritRadius(bool inheritRadius, const LevelPack& levelPack) { this->inheritRadius = inheritRadius; loadBulletModel(levelPack);  }
 	inline void setInheritDespawnTime(bool inheritDespawnTime, const LevelPack& levelPack) { this->inheritDespawnTime = inheritDespawnTime; }
 	inline void setInheritShadowTrailInterval(bool inheritShadowTrailInterval, const LevelPack& levelPack) { this->inheritShadowTrailInterval = inheritShadowTrailInterval; loadBulletModel(levelPack); }
@@ -285,33 +290,12 @@ public:
 	*/
 	std::vector<sf::String> generatePathToThisEmp(std::function<sf::String(const EditorMovablePoint&)> nodeText);
 
-	inline int getTreeSize() {
-		int count = 1;
-		for (auto child : children) {
-			count += child->getTreeSize();
-		}
-		return count;
-	}
-	inline float searchLargestHitbox() const {
-		float childrenMax = 0;
-		for (auto emp : children) {
-			childrenMax = std::max(childrenMax, emp->searchLargestHitbox());
-		}
-		return std::max(hitboxRadius, childrenMax);
-	}
-	// Search for the child of this subtree with the ID
-	inline std::shared_ptr<EditorMovablePoint> searchID(int id) const {
-		for (auto child : children) {
-			if (child->id == id) {
-				return child;
-			}
-			auto subresult = child->searchID(id);
-			if (subresult != nullptr) {
-				return subresult;
-			}
-		}
-		return nullptr;
-	}
+	int getTreeSize() const;
+	float searchLargestHitbox() const;
+	/*
+	Searches for the child of this subtree with the ID
+	*/
+	std::shared_ptr<EditorMovablePoint> searchID(int id) const;
 
 	/*
 	For testing.
@@ -327,7 +311,7 @@ private:
 	bool isBullet = true;
 
 	// Radius of the EMP's hitbox
-	float hitboxRadius = 0;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(hitboxRadius, float, 0)
 
 	// The minimum of this value and the total time to complete all EMPActions is the time until this EMP despawns
 	// Set to <= 0 if unused (then the total EMPActions time will be used instead; calculated with getTotalPathTime())
@@ -344,9 +328,9 @@ private:
 	std::shared_ptr<EMPSpawnType> spawnType;
 
 	// See ShadowTrailComponent
-	float shadowTrailInterval = 0.15f;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(shadowTrailInterval, float, 0.15)
 	// Set to 0 or a negative number to disable shadow trail
-	float shadowTrailLifespan = 0;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(shadowTrailLifespan, float, 0)
 
 	// Only applicable if the EMP is not a bullet (hitboxRadius <= 0)
 	Animatable animatable;
@@ -356,12 +340,12 @@ private:
 	Animatable baseSprite;
 
 	// The amount of damage this bullet deals
-	int damage = 1;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(damage, int, 1)
 
 	// Only for bullets; determines what happens when the bullet makes contact with something
 	BULLET_ON_COLLISION_ACTION onCollisionAction = DESTROY_THIS_BULLET_ONLY;
 	// Time after hitting an enemy that the entity is able to be hit by this same bullet again; only for PIERCE_ENTITY onCollisionAction
-	float pierceResetTime = 2.0f;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(pierceResetTime, float, 2)
 	
 	// Sound played on this EMP spawn
 	SoundSettings soundSettings;
