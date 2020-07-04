@@ -7,6 +7,7 @@
 #include "EditorWindow.h"
 #include "UndoStack.h"
 #include "ExtraSignals.h"
+#include "SymbolTableEditor.h"
 #include <TGUI/TGUI.hpp>
 
 /*
@@ -16,7 +17,7 @@ Signals:
 	EMPAModified - emitted when the EMPA being edited is modified.
 		Optional parameter: a shared_ptr to the newly modified EMPAction
 */
-class EditorMovablePointActionPanel : public tgui::ScrollablePanel, public EventCapturable {
+class EditorMovablePointActionPanel : public tgui::ScrollablePanel, public EventCapturable, public SymbolTablesChangePropagator {
 public:
 	/*
 	empa - the EMPAction being edited
@@ -29,6 +30,11 @@ public:
 	bool handleEvent(sf::Event event) override;
 
 	tgui::Signal& getSignal(std::string signalName) override;
+
+protected:
+	void onChange(std::vector<exprtk::symbol_table<float>> symbolTables) override;
+
+	ValueSymbolTable getLevelPackObjectSymbolTable() override;
 
 private:
 	static const std::string BEZIER_CONTROL_POINT_FORMAT;
@@ -45,9 +51,9 @@ private:
 	std::shared_ptr<NumericalEditBoxWithLimits> empaiDuration;
 
 	std::shared_ptr<tgui::Label> empaiXLabel;
-	std::shared_ptr<NumericalEditBoxWithLimits> empaiX;
+	std::shared_ptr<EditBox> empaiX;
 	std::shared_ptr<tgui::Label> empaiYLabel;
-	std::shared_ptr<NumericalEditBoxWithLimits> empaiY;
+	std::shared_ptr<EditBox> empaiY;
 	std::shared_ptr<tgui::Button> empaiXYManualSet;
 
 	std::shared_ptr<tgui::Label> empaiPolarDistanceLabel;

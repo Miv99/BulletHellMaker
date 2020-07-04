@@ -19,6 +19,7 @@
 #include "TimeFunctionVariable.h"
 #include "EditorMovablePoint.h"
 #include "EditorMovablePointAction.h"
+#include "SymbolTable.h"
 
 namespace tgui {
 	#define EXTRA_SIGNAL_VALUE_DECLARATION(TypeName, Type) \
@@ -84,6 +85,8 @@ namespace tgui {
 	EXTRA_SIGNAL_VALUE_DECLARATION(SoundSettings, SoundSettings)
 	EXTRA_SIGNAL_VALUE_DECLARATION(Animatable, Animatable)
 	EXTRA_SIGNAL_VALUE_DECLARATION(EMPA, std::shared_ptr<EMPAction>)
+	EXTRA_SIGNAL_VALUE_DECLARATION(ValueSymbolTable, ValueSymbolTable)
+	EXTRA_SIGNAL_VALUE_DECLARATION(ExprSymbolTable, ExprSymbolTable)
 
 	class SignalTFVPair : public Signal { 
     public: 

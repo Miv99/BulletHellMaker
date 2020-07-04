@@ -43,6 +43,8 @@ namespace tgui {
 	TGUI_SIGNAL_VALUE_CONNECT_DEFINITION(SoundSettings, SoundSettings)
 	TGUI_SIGNAL_VALUE_CONNECT_DEFINITION(Animatable, Animatable)
 	TGUI_SIGNAL_VALUE_CONNECT_DEFINITION(EMPA, std::shared_ptr<EMPAction>)
+	TGUI_SIGNAL_VALUE_CONNECT_DEFINITION(ValueSymbolTable, ValueSymbolTable)
+	TGUI_SIGNAL_VALUE_CONNECT_DEFINITION(ExprSymbolTable, ExprSymbolTable)
 
 	unsigned int SignalTFVPair::connect(const DelegateTFVPair& handler)
     { 
@@ -114,6 +116,20 @@ namespace tgui {
 
 	unsigned int SignalEMPA::validateTypes(std::initializer_list<std::type_index> unboundParameters) const {
 		if ((unboundParameters.size() == 1) && checkParamType<std::shared_ptr<EMPAction>>(unboundParameters.begin()))
+			return 1;
+		else
+			return Signal::validateTypes(unboundParameters);
+	}
+
+	unsigned int SignalValueSymbolTable::validateTypes(std::initializer_list<std::type_index> unboundParameters) const {
+		if ((unboundParameters.size() == 1) && checkParamType<ValueSymbolTable>(unboundParameters.begin()))
+			return 1;
+		else
+			return Signal::validateTypes(unboundParameters);
+	}
+
+	unsigned int SignalExprSymbolTable::validateTypes(std::initializer_list<std::type_index> unboundParameters) const {
+		if ((unboundParameters.size() == 1) && checkParamType<ExprSymbolTable>(unboundParameters.begin()))
 			return 1;
 		else
 			return Signal::validateTypes(unboundParameters);

@@ -44,7 +44,7 @@ Angle in radians to the player.
 */
 class EMPAAngleOffsetToPlayer : public EMPAAngleOffset {
 public:
-	inline EMPAAngleOffsetToPlayer(float xOffset = 0, float yOffset = 0) : xOffset(xOffset), yOffset(yOffset) {}
+	inline EMPAAngleOffsetToPlayer(std::string xOffset = "0", std::string yOffset = "0") : xOffset(xOffset), yOffset(yOffset) {}
 	std::shared_ptr<LevelPackObject> clone() const override;
 
 	inline std::string getName() override { return "Relative to player"; }
@@ -59,16 +59,16 @@ public:
 	float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override;
 	float evaluate(float xFrom, float yFrom, float playerX, float playerY) override;
 
-	void setXOffset(float x) { xOffset = x; }
-	void setYOffset(float y) { yOffset = y; }
-	float getXOffset() { return xOffset; }
-	float getYOffset() { return yOffset; }
+	void setXOffset(std::string x) { xOffset = x; }
+	void setYOffset(std::string y) { yOffset = y; }
+	std::string getRawXOffset() { return xOffset; }
+	std::string getRawYOffset() { return yOffset; }
 
 	bool operator==(const EMPAAngleOffset& other) const override;
 
 private:
-	float xOffset = 0;
-	float yOffset = 0;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(xOffset, float, 0)
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(yOffset, float, 0)
 };
 
 /*
@@ -77,7 +77,7 @@ Angle in radians to some global position.
 class EMPAAngleOffsetToGlobalPosition : public EMPAAngleOffset {
 public:
 	inline EMPAAngleOffsetToGlobalPosition() {}
-	inline EMPAAngleOffsetToGlobalPosition(float x, float y) : x(x), y(y) {}
+	inline EMPAAngleOffsetToGlobalPosition(std::string x, std::string y) : x(x), y(y) {}
 	std::shared_ptr<LevelPackObject> clone() const override;
 
 	inline std::string getName() override { return "Absolute position"; }
@@ -92,16 +92,16 @@ public:
 	float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override;
 	float evaluate(float xFrom, float yFrom, float playerX, float playerY) override;
 
-	void setX(float x) { this->x = x; }
-	void setY(float y) { this->y = y; }
-	float getX() { return x; }
-	float getY() { return y; }
+	void setX(std::string x) { this->x = x; }
+	void setY(std::string y) { this->y = y; }
+	std::string getRawX() { return x; }
+	std::string getRawY() { return y; }
 
 	bool operator==(const EMPAAngleOffset& other) const override;
 
 private:
-	float x = 0;
-	float y = 0;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(x, float, 0)
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(y, float, 0)
 };
 
 /*
@@ -133,7 +133,7 @@ Angle offset that always returns a constant, in radians.
 class EMPAAngleOffsetConstant : public EMPAAngleOffset {
 public:
 	inline EMPAAngleOffsetConstant() {}
-	inline EMPAAngleOffsetConstant(float value) : value(value) {}
+	inline EMPAAngleOffsetConstant(std::string value) : value(value) {}
 	std::shared_ptr<LevelPackObject> clone() const override;
 
 	inline std::string getName() override { return "Constant"; }
@@ -144,16 +144,16 @@ public:
 	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
-	inline float getValue() const { return value; }
-	inline void setValue(float value) { this->value = value; }
+	inline std::string getRawValue() const { return value; }
+	inline void setValue(std::string value) { this->value = value; }
 
-	inline float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override { return value; }
-	inline float evaluate(float xFrom, float yFrom, float playerX, float playerY) override { return value; }
+	inline float evaluate(const entt::DefaultRegistry& registry, float xFrom, float yFrom) override { return valueExprCompiledValue; }
+	inline float evaluate(float xFrom, float yFrom, float playerX, float playerY) override { return valueExprCompiledValue; }
 
 	bool operator==(const EMPAAngleOffset& other) const override;
 
 private:
-	float value = 0;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(value, float, 0)
 };
 
 /*
@@ -299,8 +299,8 @@ public:
 	inline std::shared_ptr<TFV> getDistance() { return distance; }
 	inline std::shared_ptr<TFV> getAngle() { return angle; }
 	inline std::shared_ptr<EMPAAngleOffset> getAngleOffset() { return angleOffset; }
-
 	inline float getTime() override { return time; }
+
 	inline void setTime(float duration) override { this->time = duration; }
 	inline void setDistance(std::shared_ptr<TFV> distance) { this->distance = distance; }
 	inline void setAngle(std::shared_ptr<TFV> angle) { this->angle = angle; }
@@ -419,7 +419,7 @@ public:
 	homingStrength - determines how quickly the entity homes in on the player; in range (0, 1]. A value of 0.02 is already pretty strong
 		and a value of 1.0 is a completely linear path assuming the player does not move
 	*/
-	inline MoveGlobalHomingEMPA(std::shared_ptr<TFV> homingStrength, std::shared_ptr<TFV> speed, float targetX, float targetY, float time) : homingStrength(homingStrength), speed(speed), targetX(targetX), targetY(targetY), time(time) {}
+	inline MoveGlobalHomingEMPA(std::shared_ptr<TFV> homingStrength, std::shared_ptr<TFV> speed, std::string targetX, std::string targetY, float time) : homingStrength(homingStrength), speed(speed), targetX(targetX), targetY(targetY), time(time) {}
 	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
@@ -436,19 +436,19 @@ public:
 	inline void setHomingStrength(std::shared_ptr<TFV> homingStrength) { this->homingStrength = homingStrength; }
 	inline void setSpeed(std::shared_ptr<TFV> speed) { this->speed = speed; }
 	inline void setTime(float time) override { this->time = time; }
-	inline void setTargetX(float targetX) { this->targetX = targetX; }
-	inline void setTargetY(float targetY) { this->targetY = targetY; }
+	inline void setTargetX(std::string targetX) { this->targetX = targetX; }
+	inline void setTargetY(std::string targetY) { this->targetY = targetY; }
 	inline std::shared_ptr<TFV> getHomingStrength() { return homingStrength; }
 	inline std::shared_ptr<TFV> getSpeed() { return speed; }
 	inline float getTime() override { return time; }
-	inline float getTargetX() const { return targetX; }
-	inline float getTargetY() const { return targetY; }
+	inline std::string getRawTargetX() const { return targetX; }
+	inline std::string getRawTargetY() const { return targetY; }
 
 	bool operator==(const EMPAction& other) const override;
 
 private:
-	float targetX = 0;
-	float targetY = 0;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(targetX, float, 0)
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(targetY, float, 0)
 	// In range (0, 1]
 	std::shared_ptr<TFV> homingStrength;
 	// Speed at any instance in time

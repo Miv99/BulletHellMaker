@@ -6,9 +6,9 @@
 #include "exprtk.hpp"
 
 int main() {
-	GameInstance a("test pack");
+	/*GameInstance a("test pack");
 	a.loadLevel(0);
-	a.start();
+	a.start();*/
 	//EditorInstance a("test pack");
 
 	// Declare and create a new render-window
@@ -45,10 +45,10 @@ int main() {
 
 
 	
-	/*auto mutex = std::make_shared<std::recursive_mutex>();
+	auto mutex = std::make_shared<std::recursive_mutex>();
 	auto p = MainEditorWindow::create(mutex, "title", 1024, 768);
 	p->loadLevelPack("test pack");
-	p->start();*/
+	p->start();
 
 	//std::string expression_str = "abs((2 * x)  - 1 + y)";
 

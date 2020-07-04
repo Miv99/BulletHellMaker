@@ -7,32 +7,41 @@ std::shared_ptr<LevelPackObject> EMPAAngleOffsetToPlayer::clone() const {
 }
 
 std::string EMPAAngleOffsetToPlayer::format() const {
-	return formatString("EMPAAngleOffsetToPlayer") + tos(xOffset) + tos(yOffset);
+	return formatString("EMPAAngleOffsetToPlayer") + formatString(xOffset) + formatString(yOffset) + formatTMObject(symbolTable);
 }
 
 void EMPAAngleOffsetToPlayer::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
-	xOffset = std::stof(items[1]);
-	yOffset = std::stof(items[2]);
+	xOffset = items[1];
+	yOffset = items[2];
+	symbolTable.load(items[3]);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EMPAAngleOffsetToPlayer::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
-	// TODO
-	return std::pair<LEGAL_STATUS, std::vector<std::string>>();
+	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
+	std::vector<std::string> messages;
+	
+	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
+	LEGAL_CHECK_EXPRESSION(xOffset, x-offset)
+	LEGAL_CHECK_EXPRESSION(yOffset, y-offset)
+
+	return std::make_pair(status, messages);
 }
 
 void EMPAAngleOffsetToPlayer::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
-	//TODO
+	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
+	COMPILE_EXPRESSION_FOR_FLOAT(xOffset)
+	COMPILE_EXPRESSION_FOR_FLOAT(yOffset)
 }
 
 float EMPAAngleOffsetToPlayer::evaluate(const entt::DefaultRegistry & registry, float xFrom, float yFrom) {
 	uint32_t player = registry.attachee<PlayerTag>();
 	auto playerPos = registry.get<PositionComponent>(player);
-	return std::atan2(playerPos.getY() + yOffset - yFrom, playerPos.getX() + xOffset - xFrom);
+	return std::atan2(playerPos.getY() + yOffsetExprCompiledValue - yFrom, playerPos.getX() + xOffsetExprCompiledValue - xFrom);
 }
 
 float EMPAAngleOffsetToPlayer::evaluate(float xFrom, float yFrom, float playerX, float playerY) {
-	return std::atan2(playerY + yOffset - yFrom, playerX + xOffset - xFrom);
+	return std::atan2(playerY + yOffsetExprCompiledValue - yFrom, playerX + xOffsetExprCompiledValue - xFrom);
 }
 
 bool EMPAAngleOffsetToPlayer::operator==(const EMPAAngleOffset& other) const {
@@ -45,30 +54,39 @@ std::shared_ptr<LevelPackObject> EMPAAngleOffsetToGlobalPosition::clone() const 
 }
 
 std::string EMPAAngleOffsetToGlobalPosition::format() const {
-	return formatString("EMPAAngleOffsetToGlobalPosition") + tos(x) + tos(y);
+	return formatString("EMPAAngleOffsetToGlobalPosition") + formatString(x) + formatString(y) + formatTMObject(symbolTable);
 }
 
 void EMPAAngleOffsetToGlobalPosition::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
-	x = std::stof(items[1]);
-	y = std::stof(items[2]);
+	x = items[1];
+	y = items[2];
+	symbolTable.load(items[3]);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EMPAAngleOffsetToGlobalPosition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
-	//TODO: legal
-	return std::pair<LEGAL_STATUS, std::vector<std::string>>();
+	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
+	std::vector<std::string> messages;
+
+	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
+	LEGAL_CHECK_EXPRESSION(x, x)
+	LEGAL_CHECK_EXPRESSION(y, y)
+
+	return std::make_pair(status, messages);
 }
 
 void EMPAAngleOffsetToGlobalPosition::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
-	//TODO
+	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
+	COMPILE_EXPRESSION_FOR_FLOAT(x)
+	COMPILE_EXPRESSION_FOR_FLOAT(y)
 }
 
 float EMPAAngleOffsetToGlobalPosition::evaluate(const entt::DefaultRegistry & registry, float xFrom, float yFrom) {
-	return std::atan2(y - yFrom, x - xFrom);
+	return std::atan2(yExprCompiledValue - yFrom, xExprCompiledValue - xFrom);
 }
 
 float EMPAAngleOffsetToGlobalPosition::evaluate(float xFrom, float yFrom, float playerX, float playerY) {
-	return std::atan2(y - yFrom, x - xFrom);
+	return std::atan2(yExprCompiledValue - yFrom, xExprCompiledValue - xFrom);
 }
 
 bool EMPAAngleOffsetToGlobalPosition::operator==(const EMPAAngleOffset& other) const {
@@ -81,10 +99,12 @@ std::shared_ptr<LevelPackObject> EMPAAngleOffsetZero::clone() const {
 }
 
 std::string EMPAAngleOffsetZero::format() const {
-	return formatString("EMPAAngleOffsetZero");
+	return formatString("EMPAAngleOffsetZero") + formatTMObject(symbolTable);
 }
 
 void EMPAAngleOffsetZero::load(std::string formattedString) {
+	auto items = split(formattedString, DELIMITER);
+	symbolTable.load(items[1]);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EMPAAngleOffsetZero::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -105,21 +125,28 @@ std::shared_ptr<LevelPackObject> EMPAAngleOffsetConstant::clone() const {
 }
 
 std::string EMPAAngleOffsetConstant::format() const {
-	return formatString("EMPAAngleOffsetConstant") + tos(value);
+	return formatString("EMPAAngleOffsetConstant") + formatString(value) + formatTMObject(symbolTable);
 }
 
 void EMPAAngleOffsetConstant::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
-	value = std::stof(items[1]);
+	value = items[1];
+	symbolTable.load(items[2]);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EMPAAngleOffsetConstant::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
-	//TODO
-	return std::pair<LEGAL_STATUS, std::vector<std::string>>();
+	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
+	std::vector<std::string> messages;
+
+	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
+	LEGAL_CHECK_EXPRESSION(value, value)
+
+	return std::make_pair(status, messages);
 }
 
 void EMPAAngleOffsetConstant::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
-	//TODO
+	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
+	COMPILE_EXPRESSION_FOR_FLOAT(value)
 }
 
 bool EMPAAngleOffsetConstant::operator==(const EMPAAngleOffset& other) const {
@@ -132,10 +159,12 @@ std::shared_ptr<LevelPackObject> EMPAngleOffsetPlayerSpriteAngle::clone() const 
 }
 
 std::string EMPAngleOffsetPlayerSpriteAngle::format() const {
-	return formatString("EMPAngleOffsetPlayerSpriteAngle");
+	return formatString("EMPAngleOffsetPlayerSpriteAngle") + formatTMObject(symbolTable);
 }
 
 void EMPAngleOffsetPlayerSpriteAngle::load(std::string formattedString) {
+	auto items = split(formattedString, DELIMITER);
+	symbolTable.load(items[1]);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EMPAngleOffsetPlayerSpriteAngle::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -168,10 +197,12 @@ std::shared_ptr<LevelPackObject> DetachFromParentEMPA::clone() const {
 }
 
 std::string DetachFromParentEMPA::format() const {
-	return formatString("DetachFromParentEMPA");
+	return formatString("DetachFromParentEMPA") + formatTMObject(symbolTable);
 }
 
 void DetachFromParentEMPA::load(std::string formattedString) {
+	auto items = split(formattedString, DELIMITER);
+	symbolTable.load(items[1]);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> DetachFromParentEMPA::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -215,21 +246,29 @@ std::shared_ptr<LevelPackObject> StayStillAtLastPositionEMPA::clone() const {
 }
 
 std::string StayStillAtLastPositionEMPA::format() const {
-	return formatString("StayStillAtLastPositionEMPA") + tos(duration);
+	return formatString("StayStillAtLastPositionEMPA") + tos(duration) + formatTMObject(symbolTable);
 }
 
 void StayStillAtLastPositionEMPA::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
-	duration = stof(items[1]);
+	duration = std::stof(items[1]);
+	symbolTable.load(items[2]);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> StayStillAtLastPositionEMPA::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
-	//TODO
-	return std::pair<LEGAL_STATUS, std::vector<std::string>>();
+	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
+	std::vector<std::string> messages;
+
+	if (duration < 0) {
+		status = std::max(status, LEGAL_STATUS::WARNING);
+		messages.push_back("Duration is negative.");
+	}
+
+	return std::make_pair(status, messages);
 }
 
 void StayStillAtLastPositionEMPA::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
-	//TODO
+	// Nothing to be done
 }
 
 std::string StayStillAtLastPositionEMPA::getGuiFormat() {
@@ -263,7 +302,7 @@ std::shared_ptr<LevelPackObject> MoveCustomPolarEMPA::clone() const {
 }
 
 std::string MoveCustomPolarEMPA::format() const {
-	return formatString("MoveCustomPolarEMPA") + formatTMObject(*distance) + formatTMObject(*angle) + tos(time) + formatTMObject(*angleOffset);
+	return formatString("MoveCustomPolarEMPA") + formatTMObject(*distance) + formatTMObject(*angle) + tos(time) + formatTMObject(*angleOffset) + formatTMObject(symbolTable);
 }
 
 void MoveCustomPolarEMPA::load(std::string formattedString) {
@@ -272,15 +311,35 @@ void MoveCustomPolarEMPA::load(std::string formattedString) {
 	angle = TFVFactory::create(items[2]);
 	time = std::stof(items[3]);
 	angleOffset = EMPAngleOffsetFactory::create(items[4]);
+	symbolTable.load(items[5]);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> MoveCustomPolarEMPA::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
-	//TODO
-	return std::pair<LEGAL_STATUS, std::vector<std::string>>();
+	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
+	std::vector<std::string> messages;
+
+	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
+	
+	if (time < 0) {
+		status = std::max(status, LEGAL_STATUS::WARNING);
+		messages.push_back("Time is negative.");
+	}
+
+	auto offsetLegal = angleOffset->legal(levelPack, spriteLoader, symbolTables);
+	if (offsetLegal.first != LEGAL_STATUS::LEGAL) {
+		status = std::max(status, offsetLegal.first);
+		tabEveryLine(offsetLegal.second);
+		messages.push_back("Angle offset:");
+		messages.insert(messages.end(), offsetLegal.second.begin(), offsetLegal.second.end());
+	}
+
+	return std::make_pair(status, messages);
 }
 
 void MoveCustomPolarEMPA::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
-	//TODO
+	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
+
+	angleOffset->compileExpressions(symbolTables);
 }
 
 std::string MoveCustomPolarEMPA::getGuiFormat() {
@@ -330,8 +389,7 @@ std::shared_ptr<LevelPackObject> MoveCustomBezierEMPA::clone() const {
 
 std::string MoveCustomBezierEMPA::format() const {
 	std::string ret = formatString("MoveCustomBezierEMPA");
-	ret += tos(time);
-	ret += formatTMObject(*rotationAngle);
+	ret += tos(time) + formatTMObject(*rotationAngle) + formatTMObject(symbolTable);
 	for (auto p : unrotatedControlPoints) {
 		ret += tos(p.x) + tos(p.y);
 	}
@@ -342,20 +400,40 @@ void MoveCustomBezierEMPA::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
 	time = std::stof(items[1]);
 	rotationAngle = EMPAngleOffsetFactory::create(items[2]);
+	symbolTable.load(items[3]);
 	unrotatedControlPoints.clear();
 	int i;
-	for (i = 3; i < items.size(); i += 2) {
+	for (i = 4; i < items.size(); i += 2) {
 		unrotatedControlPoints.push_back(sf::Vector2f(std::stof(items[i]), std::stof(items[i + 1])));
 	}
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> MoveCustomBezierEMPA::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
-	//TODO
-	return std::pair<LEGAL_STATUS, std::vector<std::string>>();
+	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
+	std::vector<std::string> messages;
+
+	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
+
+	if (time < 0) {
+		status = std::max(status, LEGAL_STATUS::WARNING);
+		messages.push_back("Time is negative.");
+	}
+
+	auto offsetLegal = rotationAngle->legal(levelPack, spriteLoader, symbolTables);
+	if (offsetLegal.first != LEGAL_STATUS::LEGAL) {
+		status = std::max(status, offsetLegal.first);
+		tabEveryLine(offsetLegal.second);
+		messages.push_back("Angle offset:");
+		messages.insert(messages.end(), offsetLegal.second.begin(), offsetLegal.second.end());
+	}
+
+	return std::make_pair(status, messages);
 }
 
 void MoveCustomBezierEMPA::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
-	//TODO
+	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
+
+	rotationAngle->compileExpressions(symbolTables);
 }
 
 std::string MoveCustomBezierEMPA::getGuiFormat() {
@@ -424,7 +502,7 @@ std::shared_ptr<LevelPackObject> MovePlayerHomingEMPA::clone() const {
 }
 
 std::string MovePlayerHomingEMPA::format() const {
-	return formatString("MovePlayerHomingEMPA") + formatTMObject(*homingStrength) + formatTMObject(*speed) + tos(time);
+	return formatString("MovePlayerHomingEMPA") + formatTMObject(*homingStrength) + formatTMObject(*speed) + tos(time) + formatTMObject(symbolTable);
 }
 
 void MovePlayerHomingEMPA::load(std::string formattedString) {
@@ -432,15 +510,25 @@ void MovePlayerHomingEMPA::load(std::string formattedString) {
 	homingStrength = TFVFactory::create(items[1]);
 	speed = TFVFactory::create(items[2]);
 	time = std::stof(items[3]);
+	symbolTable.load(items[4]);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> MovePlayerHomingEMPA::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
-	//TODO
-	return std::pair<LEGAL_STATUS, std::vector<std::string>>();
+	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
+	std::vector<std::string> messages;
+
+	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
+
+	if (time < 0) {
+		status = std::max(status, LEGAL_STATUS::WARNING);
+		messages.push_back("Time is negative.");
+	}
+
+	return std::make_pair(status, messages);
 }
 
 void MovePlayerHomingEMPA::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
-	//TODO
+	// Nothing to be done
 }
 
 std::string MovePlayerHomingEMPA::getGuiFormat() {
@@ -470,25 +558,34 @@ std::shared_ptr<LevelPackObject> MoveGlobalHomingEMPA::clone() const {
 }
 
 std::string MoveGlobalHomingEMPA::format() const {
-	return formatString("MoveGlobalHomingEMPA") + tos(targetX) + tos(targetY) + formatTMObject(*homingStrength) + formatTMObject(*speed) + tos(time);
+	return formatString("MoveGlobalHomingEMPA") + formatString(targetX) + formatString(targetY) + formatTMObject(*homingStrength) + formatTMObject(*speed) + tos(time) + formatTMObject(symbolTable);
 }
 
 void MoveGlobalHomingEMPA::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
-	targetX = std::stof(items[1]);
-	targetY = std::stof(items[2]);
+	targetX = items[1];
+	targetY = items[2];
 	homingStrength = TFVFactory::create(items[3]);
 	speed = TFVFactory::create(items[4]);
 	time = std::stof(items[5]);
+	symbolTable.load(items[6]);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> MoveGlobalHomingEMPA::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
-	//TODO
-	return std::pair<LEGAL_STATUS, std::vector<std::string>>();
+	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
+	std::vector<std::string> messages;
+
+	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
+	LEGAL_CHECK_EXPRESSION(targetX, x-target)
+	LEGAL_CHECK_EXPRESSION(targetY, y-target)
+
+	return std::make_pair(status, messages);
 }
 
 void MoveGlobalHomingEMPA::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
-	//TODO
+	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
+	COMPILE_EXPRESSION_FOR_FLOAT(targetX)
+	COMPILE_EXPRESSION_FOR_FLOAT(targetY)
 }
 
 std::string MoveGlobalHomingEMPA::getGuiFormat() {
@@ -500,7 +597,7 @@ std::shared_ptr<MovablePoint> MoveGlobalHomingEMPA::execute(EntityCreationQueue&
 	queue.pushFront(std::make_unique<CreateMovementReferenceEntityCommand>(registry, entity, timeLag, 0, 0));
 	const PositionComponent& curPos = registry.get<PositionComponent>(entity);
 
-	return std::make_shared<HomingMP>(time, speed, homingStrength, entity, targetX, targetY, registry);
+	return std::make_shared<HomingMP>(time, speed, homingStrength, entity, targetXExprCompiledValue, targetYExprCompiledValue, registry);
 }
 
 std::shared_ptr<MovablePoint> MoveGlobalHomingEMPA::generateStandaloneMP(float x, float y, float targetX, float targetY) {

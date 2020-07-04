@@ -623,8 +623,8 @@ private:
 	std::shared_ptr<tgui::ListBox> typePopup;
 	std::shared_ptr<tgui::Label> xLabel;
 	std::shared_ptr<tgui::Label> yLabel;
-	std::shared_ptr<NumericalEditBoxWithLimits> x;
-	std::shared_ptr<NumericalEditBoxWithLimits> y;
+	std::shared_ptr<EditBox> x;
+	std::shared_ptr<EditBox> y;
 
 	std::shared_ptr<EMPAAngleOffset> oldOffset; // Should never be modified after setTFV() is called
 	std::shared_ptr<EMPAAngleOffset> offset;

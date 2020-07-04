@@ -1564,9 +1564,9 @@ Evaluator refers to the entity that is evaluating this function, and player refe
 	add(xLabel);
 	add(yLabel);
 
-	x = NumericalEditBoxWithLimits::create();
-	y = NumericalEditBoxWithLimits::create();
-	x->connect("ValueChanged", [&](float value) {
+	x = EditBox::create();
+	y = EditBox::create();
+	x->connect("ValueChanged", [&](std::string value) {
 		if (ignoreSignals) return;
 
 		if (dynamic_cast<EMPAAngleOffsetToPlayer*>(offset.get()) != nullptr) {
@@ -1583,7 +1583,7 @@ Evaluator refers to the entity that is evaluating this function, and player refe
 			onValueChange.emit(this, std::make_pair(oldOffset, offset));
 		}
 	});
-	y->connect("ValueChanged", [&](float value) {
+	y->connect("ValueChanged", [&](std::string value) {
 		if (ignoreSignals) return;
 
 		if (dynamic_cast<EMPAAngleOffsetToPlayer*>(offset.get()) != nullptr) {
@@ -1649,8 +1649,8 @@ void EMPAAngleOffsetGroup::updateWidgets() {
 		auto ptr = dynamic_cast<EMPAAngleOffsetToPlayer*>(offset.get());
 		xLabel->setText("X offset");
 		yLabel->setText("Y offset");
-		x->setValue(ptr->getXOffset());
-		y->setValue(ptr->getYOffset());
+		x->setText(ptr->getRawXOffset());
+		y->setText(ptr->getRawYOffset());
 		// Not sure why this is required but it is
 		x->setCaretPosition(0);
 		y->setCaretPosition(0);
@@ -1666,8 +1666,8 @@ void EMPAAngleOffsetGroup::updateWidgets() {
 		auto ptr = dynamic_cast<EMPAAngleOffsetToGlobalPosition*>(offset.get());
 		xLabel->setText("X");
 		yLabel->setText("Y");
-		x->setValue(ptr->getX());
-		y->setValue(ptr->getY());
+		x->setText(ptr->getRawX());
+		y->setText(ptr->getRawY());
 		// Not sure why this is required but it is
 		x->setCaretPosition(0);
 		y->setCaretPosition(0);
@@ -1687,7 +1687,7 @@ void EMPAAngleOffsetGroup::updateWidgets() {
 	} else if (dynamic_cast<EMPAAngleOffsetConstant*>(offset.get()) != nullptr) {
 		auto ptr = dynamic_cast<EMPAAngleOffsetConstant*>(offset.get());
 		xLabel->setText("Degrees");
-		x->setValue(ptr->getValue());
+		x->setText(ptr->getRawValue());
 		// Not sure why this is required but it is
 		x->setCaretPosition(0);
 

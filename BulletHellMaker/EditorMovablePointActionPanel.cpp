@@ -46,9 +46,9 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 	empaiHomingSpeed = TFVGroup::create(parentWindow, clipboard);
 	empaiEditBezierControlPoints = tgui::Button::create();
 	empaiXLabel = tgui::Label::create();
-	empaiX = NumericalEditBoxWithLimits::create();
+	empaiX = EditBox::create();
 	empaiYLabel = tgui::Label::create();
-	empaiY = NumericalEditBoxWithLimits::create();
+	empaiY = EditBox::create();
 	empaiXYManualSet = tgui::Button::create();
 
 	empaiChangeType->setSize(150, TEXT_BUTTON_HEIGHT);
@@ -170,7 +170,7 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 			std::shared_ptr<EMPAction> oldEMPA = this->empa;
 			undoStack.execute(UndoableCommand(
 				[this]() {
-				this->empa = std::make_shared<MoveGlobalHomingEMPA>(std::make_shared<ConstantTFV>(0), std::make_shared<ConstantTFV>(0), empaiDuration->getValue(), 0, 0);
+				this->empa = std::make_shared<MoveGlobalHomingEMPA>(std::make_shared<ConstantTFV>(0), std::make_shared<ConstantTFV>(0), "0", "0", empaiDuration->getValue());
 				onEMPATypeChange();
 				onEMPAModify.emit(this, this->empa);
 			},
@@ -473,20 +473,20 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 			onEMPAModify.emit(this, this->empa);
 		}));
 	});
-	empaiX->connect("ValueChanged", [this](float newValue) {
+	empaiX->connect("ValueChanged", [this](std::string newValue) {
 		if (ignoreSignals) {
 			return;
 		}
 
 		MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
-		float oldValue = concreteEMPA->getTargetX();
+		std::string oldValue = concreteEMPA->getRawTargetX();
 		undoStack.execute(UndoableCommand(
 			[this, newValue]() {
 			MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
 			concreteEMPA->setTargetX(newValue);
 
 			ignoreSignals = true;
-			this->empaiX->setValue(newValue);
+			this->empaiX->setText(newValue);
 			ignoreSignals = false;
 
 			onEMPAModify.emit(this, this->empa);
@@ -496,26 +496,26 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 			concreteEMPA->setTargetX(oldValue);
 
 			ignoreSignals = true;
-			this->empaiX->setValue(oldValue);
+			this->empaiX->setText(oldValue);
 			ignoreSignals = false;
 
 			onEMPAModify.emit(this, this->empa);
 		}));
 	});
-	empaiY->connect("ValueChanged", [this](float newValue) {
+	empaiY->connect("ValueChanged", [this](std::string newValue) {
 		if (ignoreSignals) {
 			return;
 		}
 
 		MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
-		float oldValue = concreteEMPA->getTargetY();
+		std::string oldValue = concreteEMPA->getRawTargetY();
 		undoStack.execute(UndoableCommand(
 			[this, newValue]() {
 			MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
 			concreteEMPA->setTargetY(newValue);
 
 			ignoreSignals = true;
-			this->empaiY->setValue(newValue);
+			this->empaiY->setText(newValue);
 			ignoreSignals = false;
 
 			onEMPAModify.emit(this, this->empa);
@@ -525,13 +525,24 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 			concreteEMPA->setTargetY(oldValue);
 
 			ignoreSignals = true;
-			this->empaiY->setValue(oldValue);
+			this->empaiY->setText(oldValue);
 			ignoreSignals = false;
 
 			onEMPAModify.emit(this, this->empa);
 		}));
 	});
 	empaiXYManualSet->connect("Pressed", [this]() {
+		MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
+
+		float x, y;
+		try {
+			x = std::stof(concreteEMPA->getRawTargetX());
+			y = std::stof(concreteEMPA->getRawTargetY());
+		} catch (...) {
+			x = 0;
+			y = 0;
+		}
+
 		savedWidgets = getWidgets();
 		horizontalScrollPos = getHorizontalScrollbarValue();
 		verticalScrollPos = getVerticalScrollbarValue();
@@ -541,8 +552,7 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 		setVerticalScrollbarValue(0);
 
 		xyPositionMarkerPlacer->clearUndoStack();
-		MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
-		xyPositionMarkerPlacer->setMarkers({ std::make_pair(sf::Vector2f(concreteEMPA->getTargetX(), concreteEMPA->getTargetY()), sf::Color::Red) });
+		xyPositionMarkerPlacer->setMarkers({ std::make_pair(sf::Vector2f(x, y), sf::Color::Red) });
 		xyPositionMarkerPlacer->lookAt(sf::Vector2f(0, 0));
 
 		add(xyPositionMarkerPlacer);
@@ -671,6 +681,14 @@ tgui::Signal & EditorMovablePointActionPanel::getSignal(std::string signalName) 
 	return tgui::Panel::getSignal(signalName);
 }
 
+void EditorMovablePointActionPanel::onChange(std::vector<exprtk::symbol_table<float>> symbolTables) {
+	SymbolTablesChangePropagator::onChange(symbolTables);
+}
+
+ValueSymbolTable EditorMovablePointActionPanel::getLevelPackObjectSymbolTable() {
+	return empa->getSymbolTable();
+}
+
 void EditorMovablePointActionPanel::onEMPATypeChange() {
 	if (dynamic_cast<MoveCustomPolarEMPA*>(empa.get())) {
 		MoveCustomPolarEMPA* concreteEMPA = dynamic_cast<MoveCustomPolarEMPA*>(empa.get());
@@ -756,8 +774,8 @@ will then be rotated about the first control point (0, 0) when this movement act
 
 		empaiX->setVisible(true);
 		empaiY->setVisible(true);
-		empaiX->setValue(concreteEMPA->getTargetX());
-		empaiY->setValue(concreteEMPA->getTargetY());
+		empaiX->setText(concreteEMPA->getRawTargetX());
+		empaiY->setText(concreteEMPA->getRawTargetY());
 		empaiXYManualSet->setVisible(true);
 		empaiDuration->setVisible(true);
 		empaiDuration->setValue(empa->getTime());
@@ -869,19 +887,19 @@ void EditorMovablePointActionPanel::finishEditingXYPosition() {
 	setVerticalScrollbarValue(verticalScrollPos);
 
 	MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
-	float oldX = concreteEMPA->getTargetX();
-	float oldY = concreteEMPA->getTargetY();
+	std::string oldX = concreteEMPA->getRawTargetX();
+	std::string oldY = concreteEMPA->getRawTargetY();
 	sf::Vector2f newPos = xyPositionMarkerPlacer->getMarkerPositions()[0];
 	undoStack.execute(UndoableCommand(
 		[this, newPos]() {
 		MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
-		concreteEMPA->setTargetX(newPos.x);
-		concreteEMPA->setTargetY(newPos.y);
+		concreteEMPA->setTargetX(std::to_string(newPos.x));
+		concreteEMPA->setTargetY(std::to_string(newPos.y));
 		onEMPAModify.emit(this, this->empa);
 
 		this->ignoreSignals = true;
-		empaiX->setValue(newPos.x);
-		empaiY->setValue(newPos.y);
+		empaiX->setText(std::to_string(newPos.x));
+		empaiY->setText(std::to_string(newPos.y));
 		this->ignoreSignals = false;
 	},
 		[this, oldX, oldY]() {
@@ -891,8 +909,8 @@ void EditorMovablePointActionPanel::finishEditingXYPosition() {
 		onEMPAModify.emit(this, this->empa);
 
 		this->ignoreSignals = true;
-		empaiX->setValue(oldX);
-		empaiY->setValue(oldY);
+		empaiX->setText(oldX);
+		empaiY->setText(oldY);
 		this->ignoreSignals = false;
 	}));
 
