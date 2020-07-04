@@ -264,7 +264,7 @@ void EnemyComponent::checkAttacks(EntityCreationQueue& queue, SpriteLoader& spri
 		auto nextAttack = currentAttackPattern->getAttackData(currentAttackIndex + 1);
 		if (timeSinceAttackPattern >= std::get<0>(nextAttack)) {
 			currentAttackIndex++;
-			levelPack.getAttack(std::get<1>(nextAttack))->executeAsEnemy(queue, spriteLoader, registry, entity, timeSinceAttackPattern - std::get<0>(nextAttack), currentAttackPattern->getID(), enemyID, currentPhase->getID());
+			levelPack.getGameplayAttack(std::get<1>(nextAttack), std::get<2>(nextAttack))->executeAsEnemy(queue, spriteLoader, registry, entity, timeSinceAttackPattern - std::get<0>(nextAttack), currentAttackPattern->getID(), enemyID, currentPhase->getID());
 		} else {
 			break;
 		}
@@ -478,7 +478,7 @@ bool PlayerTag::update(float deltaTime, const LevelPack & levelPack, EntityCreat
 			auto nextAttack = bombAttackPattern->getAttackData(currentBombAttackIndex + 1);
 			if (timeSinceLastBombActivation >= std::get<0>(nextAttack)) {
 				currentBombAttackIndex++;
-				levelPack.getAttack(std::get<1>(nextAttack))->executeAsPlayer(queue, spriteLoader, registry, self, timeSinceLastBombActivation - std::get<0>(nextAttack), bombAttackPattern->getID());
+				levelPack.getGameplayAttack(std::get<1>(nextAttack), std::get<2>(nextAttack))->executeAsPlayer(queue, spriteLoader, registry, self, timeSinceLastBombActivation - std::get<0>(nextAttack), bombAttackPattern->getID());
 			} else {
 				break;
 			}
@@ -501,7 +501,7 @@ bool PlayerTag::update(float deltaTime, const LevelPack & levelPack, EntityCreat
 			auto nextAttack = currentAttackPattern->getAttackData(currentAttackIndex + 1);
 			if (timeSinceNewAttackPattern >= std::get<0>(nextAttack)) {
 				currentAttackIndex++;
-				levelPack.getAttack(std::get<1>(nextAttack))->executeAsPlayer(queue, spriteLoader, registry, self, timeSinceNewAttackPattern - std::get<0>(nextAttack), currentAttackPattern->getID());
+				levelPack.getGameplayAttack(std::get<1>(nextAttack), std::get<2>(nextAttack))->executeAsPlayer(queue, spriteLoader, registry, self, timeSinceNewAttackPattern - std::get<0>(nextAttack), currentAttackPattern->getID());
 			} else {
 				break;
 			}

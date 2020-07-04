@@ -136,6 +136,9 @@ public:
 private:
 	// Attack IDs and corresponding symbol definers
 	std::vector<std::pair<int, ExprSymbolTable>> attackIDs;
+	// This should be modified only internally. It will be populated after compileExpressions() is called. Any changes to attackIDs will
+	// not be reflected here if compileExpressions() is not called anytime afterwards.
+	std::vector<std::pair<int, exprtk::symbol_table<float>>> compiledAttackIDs;
 };
 
 /*

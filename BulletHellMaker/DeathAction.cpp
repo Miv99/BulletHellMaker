@@ -134,12 +134,28 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> ExecuteAttack
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
 	exprtk::parser<float> parser;
+
+	int i = 0;
+	for (auto p : attackIDs) {
+		if (!levelPack.hasAttack(p.first)) {
+			status = std::max(status, LEGAL_STATUS::ILLEGAL);
+			messages.push_back("Attack index " + std::to_string(i) + " uses a non-existent attack ID " + std::to_string(p.first));
+		}
+
+		i++;
+	}
+
 	// TODO: legal check sound settings
 	return std::make_pair(status, messages);
 }
 
 void ExecuteAttacksDeathAction::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
-	// Nothing to be done
+	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
+
+	compiledAttackIDs.clear();
+	for (auto p : attackIDs) {
+		compiledAttackIDs.push_back(std::make_pair(p.first, p.second.toLowerLevelSymbolTable(expr)));
+	}
 }
 
 void ExecuteAttacksDeathAction::execute(LevelPack & levelPack, EntityCreationQueue & queue, entt::DefaultRegistry & registry, SpriteLoader & spriteLoader, uint32_t entity) {
@@ -148,8 +164,8 @@ void ExecuteAttacksDeathAction::execute(LevelPack & levelPack, EntityCreationQue
 
 	if (registry.has<PlayerTag>(entity)) {
 		// Execute attacks as player
-		for (auto p : attackIDs) {
-			levelPack.getAttack(p.first)->executeAsPlayer(queue, spriteLoader, registry, entity, 0, -1);
+		for (auto p : compiledAttackIDs) {
+			levelPack.getGameplayAttack(p.first, p.second)->executeAsPlayer(queue, spriteLoader, registry, entity, 0, -1);
 		}
 	} else {
 		// Execute attacks as enemy
@@ -157,8 +173,8 @@ void ExecuteAttacksDeathAction::execute(LevelPack & levelPack, EntityCreationQue
 		if (registry.has<EnemyComponent>(entity)) {
 			enemyID = registry.get<EnemyComponent>(entity).getEnemyData()->getID();
 		}
-		for (auto p : attackIDs) {
-			levelPack.getAttack(p.first)->executeAsEnemy(queue, spriteLoader, registry, entity, 0, -1, enemyID, -1);
+		for (auto p : compiledAttackIDs) {
+			levelPack.getGameplayAttack(p.first, p.second)->executeAsEnemy(queue, spriteLoader, registry, entity, 0, -1, enemyID, -1);
 		}
 	}
 }

@@ -51,13 +51,13 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorAttack:
 		}
 	} else {
 		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back("Attack \"" + name + "\" is missing its mainEMP");
+		messages.push_back("Missing mainEMP.");
 	}
 	return std::make_pair(status, messages);
 }
 
 void EditorAttack::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
-	// TODO: compileExpressions
+	mainEMP->compileExpressions(symbolTables);
 }
 
 void EditorAttack::loadEMPBulletModels(const LevelPack & levelPack) {
