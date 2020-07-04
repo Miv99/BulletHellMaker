@@ -49,6 +49,7 @@ public:
 	inline float getShadowTrailInterval() const { return shadowTrailInterval; }
 	inline float getShadowTrailLifespan() const { return shadowTrailLifespan; }
 	inline int getDamage() const { return damage; }
+	inline float getPierceResetTime() const { return pierceResetTime; }
 	inline bool getLoopAnimation() const { return loopAnimation; }
 	inline Animatable getBaseSprite() const { return baseSprite; }
 	inline bool getPlaysSound() const { return playSoundOnSpawn; }
@@ -57,6 +58,7 @@ public:
 	inline void setName(std::string name) { this->name = name; onModelChange(); }
 	inline void setPlaysSound(bool playsSound) { playSoundOnSpawn = playsSound; onModelChange(); }
 	inline void setDamage(float damage) { this->damage = damage; onModelChange(); }
+	inline void setPierceResetTime(float pierceResetTime) { this->pierceResetTime = pierceResetTime; }
 	inline void setAnimatable(Animatable animatable) { this->animatable = animatable; onModelChange(); }
 	inline void setLoopAnimation(bool loopAnimation) { this->loopAnimation = loopAnimation; onModelChange(); }
 	inline void setBaseSprite(Animatable baseSprite) { assert(baseSprite.isSprite()); this->baseSprite = baseSprite; onModelChange(); }
@@ -92,6 +94,9 @@ private:
 
 	// Only for bullets; the amount of damage this bullet deals
 	int damage = 1;
+
+	// Time after hitting an enemy that the entity is able to be hit by this same bullet again; only for bullets with PIERCE_ENTITY onCollisionAction
+	float pierceResetTime = 2.0f;
 
 	bool playSoundOnSpawn = false;
 	SoundSettings soundSettings;
@@ -198,6 +203,7 @@ public:
 	inline bool getInheritShadowTrailLifespan() const { return inheritShadowTrailLifespan; }
 	inline bool getInheritAnimatables() const { return inheritAnimatables; }
 	inline bool getInheritDamage() const { return inheritDamage; }
+	inline bool getInheritPierceResetTime() const { return inheritPierceResetTime; }
 	inline bool getInheritSoundSettings() const { return inheritSoundSettings; }
 	inline float getPierceResetTime() const { return pierceResetTimeExprCompiledValue; }
 	inline std::string getRawPierceResetTime() const { return pierceResetTime; }
@@ -231,6 +237,7 @@ public:
 	inline void setInheritShadowTrailLifespan(bool inheritShadowTrailLifespan, const LevelPack& levelPack) { this->inheritShadowTrailLifespan = inheritShadowTrailLifespan; loadBulletModel(levelPack); }
 	inline void setInheritAnimatables(bool inheritAnimatables, const LevelPack& levelPack) { this->inheritAnimatables = inheritAnimatables; loadBulletModel(levelPack); }
 	inline void setInheritDamage(bool inheritDamage, const LevelPack& levelPack) { this->inheritDamage = inheritDamage; loadBulletModel(levelPack); }
+	inline void setInheritPierceResetTime(bool inheritPierceResetTime, const LevelPack& levelPack) { this->inheritPierceResetTime = inheritPierceResetTime; loadBulletModel(levelPack); }
 	inline void setInheritSoundSettings(bool inheritSoundSettings, const LevelPack& levelPack) { this->inheritSoundSettings = inheritSoundSettings; loadBulletModel(levelPack); }
 	inline void setIsBullet(bool isBullet) { this->isBullet = isBullet; }
 	inline void setSoundSettings(SoundSettings soundSettings) { this->soundSettings = soundSettings; }
@@ -360,6 +367,7 @@ private:
 	bool inheritShadowTrailLifespan = true;
 	bool inheritAnimatables = true;
 	bool inheritDamage = true;
+	bool inheritPierceResetTime = true;
 	bool inheritSoundSettings = true;
 	// ---------------------------------------------------------------
 

@@ -87,6 +87,7 @@ private:
 	std::shared_ptr<tgui::CheckBox> empiInheritShadowTrailLifespan;
 	std::shared_ptr<tgui::CheckBox> empiInheritAnimatables;
 	std::shared_ptr<tgui::CheckBox> empiInheritDamage;
+	std::shared_ptr<tgui::CheckBox> empiInheritPierceResetTime;
 	std::shared_ptr<tgui::CheckBox> empiInheritSoundSettings;
 	std::shared_ptr<NumericalEditBoxWithLimits> empiSpawnTypeX;
 	std::shared_ptr<NumericalEditBoxWithLimits> empiSpawnTypeY;

@@ -103,6 +103,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 		empiInheritShadowTrailLifespan = tgui::CheckBox::create();
 		empiInheritAnimatables = tgui::CheckBox::create();
 		empiInheritDamage = tgui::CheckBox::create();
+		empiInheritPierceResetTime = tgui::CheckBox::create();
 		empiInheritSoundSettings = tgui::CheckBox::create();
 
 		empiAnimatableLabel->setToolTip(createToolTip("The default sprite/animation for this movable point."));
@@ -146,6 +147,7 @@ point will update only the values it wants to inherit to match the model."));
 		empiInheritShadowTrailLifespan->setToolTip(createToolTip("If this is checked, this movable point will use its model's shadow trail lifespan."));
 		empiInheritAnimatables->setToolTip(createToolTip("If this is checked, this movable point will use its model's sprites and animations."));
 		empiInheritDamage->setToolTip(createToolTip("If this is checked, this movable point will use its model's damage."));
+		empiInheritPierceResetTime->setToolTip(createToolTip("If this is checked, this movable point will use its model's pierce reset time."));
 		empiInheritSoundSettings->setToolTip(createToolTip("If this is checked, this movable point will use its model's sound settings."));
 
 		properties->setHorizontalScrollAmount(SCROLL_AMOUNT);
@@ -191,6 +193,7 @@ point will update only the values it wants to inherit to match the model."));
 		empiInheritShadowTrailLifespan->setTextSize(TEXT_SIZE);
 		empiInheritAnimatables->setTextSize(TEXT_SIZE);
 		empiInheritDamage->setTextSize(TEXT_SIZE);
+		empiInheritPierceResetTime->setTextSize(TEXT_SIZE);
 		empiInheritSoundSettings->setTextSize(TEXT_SIZE);
 		empiSoundSettingsLabel->setTextSize(TEXT_SIZE);
 
@@ -216,6 +219,7 @@ point will update only the values it wants to inherit to match the model."));
 		empiInheritShadowTrailLifespan->setText("Inherit shadow trail lifespan");
 		empiInheritAnimatables->setText("Inherit animatables");
 		empiInheritDamage->setText("Inherit damage");
+		empiInheritPierceResetTime->setText("Inherit pierce reset time");
 		empiInheritSoundSettings->setText("Inherit sound settings");
 		empiSoundSettingsLabel->setText("Spawn sound");
 
@@ -709,9 +713,10 @@ point will update only the values it wants to inherit to match the model."));
 			Animatable baseSprite = this->emp->getBaseSprite();
 			bool loopAnimation = this->emp->getLoopAnimation();
 			std::string damage = this->emp->getRawDamage();
+			std::string pierceResetTime = this->emp->getRawPierceResetTime();
 			SoundSettings sound = this->emp->getSoundSettings();
 			undoStack.execute(UndoableCommand(
-				[this, bulletModelID, radius, despawnTime, interval, lifespan, animatable, baseSprite, loopAnimation, damage, sound]() {
+				[this, bulletModelID, radius, despawnTime, interval, lifespan, animatable, baseSprite, loopAnimation, damage, pierceResetTime, sound]() {
 				if (bulletModelID == -1) {
 					this->emp->removeBulletModel();
 				} else {
@@ -734,6 +739,7 @@ point will update only the values it wants to inherit to match the model."));
 				empiLoopAnimation->setChecked(this->emp->getLoopAnimation());
 				empiBaseSprite->setValue(this->emp->getAnimatable());
 				empiDamage->setText(this->emp->getRawDamage());
+				empiPierceResetTime->setText(this->emp->getRawPierceResetTime());
 				empiSoundSettings->initSettings(this->emp->getSoundSettings());
 
 				empiLoopAnimation->setVisible(!this->emp->getAnimatable().isSprite());
@@ -750,10 +756,11 @@ point will update only the values it wants to inherit to match the model."));
 				empiLoopAnimation->setEnabled(!this->emp->getInheritAnimatables() || this->emp->getBulletModelID() < 0);
 				empiBaseSprite->setEnabled(!this->emp->getInheritAnimatables() || this->emp->getBulletModelID() < 0);
 				empiDamage->setEnabled((!this->emp->getInheritDamage() || this->emp->getBulletModelID() < 0) && this->emp->getIsBullet());
+				empiPierceResetTime->setEnabled((!this->emp->getInheritPierceResetTime() || this->emp->getBulletModelID() < 0) && this->emp->getIsBullet());
 				empiSoundSettings->setEnabled(!this->emp->getInheritSoundSettings() || this->emp->getBulletModelID() < 0);
 				ignoreSignals = false;
 			},
-				[this, oldBulletModelID, radius, despawnTime, interval, lifespan, animatable, baseSprite, loopAnimation, damage, sound]() {
+				[this, oldBulletModelID, radius, despawnTime, interval, lifespan, animatable, baseSprite, loopAnimation, damage, pierceResetTime, sound]() {
 				this->emp->setHitboxRadius(radius);
 				this->emp->setDespawnTime(despawnTime);
 				this->emp->setShadowTrailLifespan(lifespan);
@@ -762,6 +769,7 @@ point will update only the values it wants to inherit to match the model."));
 				this->emp->setLoopAnimation(loopAnimation);
 				this->emp->setBaseSprite(baseSprite);
 				this->emp->setDamage(damage);
+				this->emp->setPierceResetTime(pierceResetTime);
 				this->emp->setSoundSettings(sound);
 				if (oldBulletModelID == -1) {
 					this->emp->removeBulletModel();
@@ -784,6 +792,7 @@ point will update only the values it wants to inherit to match the model."));
 				empiLoopAnimation->setChecked(this->emp->getLoopAnimation());
 				empiBaseSprite->setValue(this->emp->getAnimatable());
 				empiDamage->setText(this->emp->getRawDamage());
+				empiPierceResetTime->setText(this->emp->getRawPierceResetTime());
 				empiSoundSettings->initSettings(this->emp->getSoundSettings());
 
 				empiLoopAnimation->setVisible(!this->emp->getAnimatable().isSprite());
@@ -799,7 +808,8 @@ point will update only the values it wants to inherit to match the model."));
 				empiAnimatable->setEnabled(!this->emp->getInheritAnimatables() || this->emp->getBulletModelID() < 0);
 				empiLoopAnimation->setEnabled(!this->emp->getInheritAnimatables() || this->emp->getBulletModelID() < 0);
 				empiBaseSprite->setEnabled(!this->emp->getInheritAnimatables() || this->emp->getBulletModelID() < 0);
-				empiDamage->setEnabled(!this->emp->getInheritDamage() || this->emp->getBulletModelID() < 0);
+				empiDamage->setEnabled((!this->emp->getInheritDamage() || this->emp->getBulletModelID() < 0) && this->emp->getIsBullet());
+				empiPierceResetTime->setEnabled((!this->emp->getInheritPierceResetTime() || this->emp->getBulletModelID() < 0) && this->emp->getIsBullet());
 				empiSoundSettings->setEnabled(!this->emp->getInheritSoundSettings() || this->emp->getBulletModelID() < 0);
 				ignoreSignals = false;
 			}));
@@ -1018,6 +1028,38 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			}));
 		});
+		empiInheritPierceResetTime->connect("Changed", [this](bool value) {
+			if (ignoreSignals) {
+				return;
+			}
+
+			bool oldValue = this->emp->getInheritPierceResetTime();
+			std::string oldInheritValue = this->emp->getRawPierceResetTime();
+			undoStack.execute(UndoableCommand(
+				[this, value]() {
+				this->emp->setInheritPierceResetTime(value, this->levelPack);
+				onEMPModify.emit(this, this->emp);
+
+				ignoreSignals = true;
+				empiInheritPierceResetTime->setChecked(this->emp->getInheritPierceResetTime());
+				empiPierceResetTime->setText(this->emp->getRawPierceResetTime());
+				empiPierceResetTime->setEnabled((!value || this->emp->getBulletModelID() < 0) && this->emp->getIsBullet());
+				ignoreSignals = false;
+			},
+				[this, oldValue, oldInheritValue]() {
+				this->emp->setInheritPierceResetTime(oldValue, this->levelPack);
+				if (!oldValue) {
+					this->emp->setPierceResetTime(oldInheritValue);
+				}
+				onEMPModify.emit(this, this->emp);
+
+				ignoreSignals = true;
+				empiInheritPierceResetTime->setChecked(this->emp->getInheritPierceResetTime());
+				empiPierceResetTime->setText(this->emp->getRawPierceResetTime());
+				empiPierceResetTime->setEnabled((!oldValue || this->emp->getBulletModelID() < 0) && this->emp->getIsBullet());
+				ignoreSignals = false;
+			}));
+		});
 		empiInheritSoundSettings->connect("Changed", [this](bool value) {
 			if (ignoreSignals) {
 				return;
@@ -1068,7 +1110,8 @@ point will update only the values it wants to inherit to match the model."));
 		empiInheritShadowTrailLifespan->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiInheritShadowTrailInterval) + GUI_LABEL_PADDING_Y);
 		empiInheritAnimatables->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiInheritShadowTrailLifespan) + GUI_LABEL_PADDING_Y);
 		empiInheritDamage->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiInheritAnimatables) + GUI_LABEL_PADDING_Y);
-		empiInheritSoundSettings->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiInheritDamage) + GUI_LABEL_PADDING_Y);
+		empiInheritPierceResetTime->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiInheritDamage) + GUI_LABEL_PADDING_Y);
+		empiInheritSoundSettings->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiInheritPierceResetTime) + GUI_LABEL_PADDING_Y);
 
 		isBullet->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiInheritSoundSettings) + GUI_PADDING_Y * 2);
 		empiHitboxRadiusLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(isBullet) + GUI_PADDING_Y);
@@ -1123,6 +1166,7 @@ point will update only the values it wants to inherit to match the model."));
 		empiInheritShadowTrailLifespan->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
 		empiInheritAnimatables->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
 		empiInheritDamage->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
+		empiInheritPierceResetTime->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
 		empiInheritSoundSettings->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
 
 		properties->add(id);
@@ -1165,6 +1209,7 @@ point will update only the values it wants to inherit to match the model."));
 		properties->add(empiInheritShadowTrailLifespan);
 		properties->add(empiInheritAnimatables);
 		properties->add(empiInheritDamage);
+		properties->add(empiInheritPierceResetTime);
 		properties->add(empiInheritSoundSettings);
 
 		properties->connect("SizeChanged", [this](sf::Vector2f newSize) {
@@ -1288,6 +1333,7 @@ void EditorMovablePointPanel::updateAllWidgetValues() {
 	empiInheritShadowTrailLifespan->setChecked(emp->getInheritShadowTrailLifespan());
 	empiInheritAnimatables->setChecked(emp->getInheritAnimatables());
 	empiInheritDamage->setChecked(emp->getInheritDamage());
+	empiInheritPierceResetTime->setChecked(emp->getInheritPierceResetTime());
 	empiInheritSoundSettings->setChecked(emp->getInheritSoundSettings());
 
 	empiSpawnTypeTime->setEnabled(!emp->isMainEMP());

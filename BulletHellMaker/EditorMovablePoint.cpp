@@ -71,7 +71,7 @@ std::string EditorMovablePoint::format() const {
 		+ formatBool(loopAnimation) + formatTMObject(baseSprite) + formatString(damage) + tos(static_cast<int>(onCollisionAction))
 		+ formatString(pierceResetTime) + formatTMObject(soundSettings) + tos(bulletModelID) + formatBool(inheritRadius)
 		+ formatBool(inheritDespawnTime) + formatBool(inheritShadowTrailInterval) + formatBool(inheritShadowTrailLifespan)
-		+ formatBool(inheritAnimatables) + formatBool(inheritDamage) + formatBool(inheritSoundSettings) + formatBool(isBullet);
+		+ formatBool(inheritAnimatables) + formatBool(inheritDamage) + formatBool(inheritPierceResetTime) + formatBool(inheritSoundSettings) + formatBool(isBullet);
 
 	return res;
 }
@@ -131,6 +131,7 @@ void EditorMovablePoint::load(std::string formattedString) {
 	inheritShadowTrailLifespan = unformatBool(items[i++]);
 	inheritAnimatables = unformatBool(items[i++]);
 	inheritDamage = unformatBool(items[i++]);
+	inheritPierceResetTime = unformatBool(items[i++]);
 	inheritSoundSettings = unformatBool(items[i++]);
 	isBullet = unformatBool(items[i++]);
 }
@@ -261,6 +262,7 @@ void EditorMovablePoint::loadBulletModel(const LevelPack & levelPack) {
 		baseSprite = model->getBaseSprite();
 	}
 	if (inheritDamage) damage = model->getDamage();
+	if (inheritPierceResetTime) pierceResetTime = model->getPierceResetTime();
 	if (inheritSoundSettings) {
 		soundSettings = model->getSoundSettings();
 	}
@@ -282,6 +284,7 @@ void EditorMovablePoint::setBulletModel(std::shared_ptr<BulletModel> model) {
 		baseSprite = model->getBaseSprite();
 	}
 	if (inheritDamage) damage = model->getDamage();
+	if (inheritPierceResetTime) pierceResetTime = model->getPierceResetTime();
 	if (inheritSoundSettings) {
 		soundSettings = model->getSoundSettings();
 	}
@@ -487,7 +490,8 @@ bool EditorMovablePoint::operator==(const EditorMovablePoint& other) const {
 		&& bulletModelID == other.bulletModelID 
 		&& inheritRadius == other.inheritRadius && inheritDespawnTime == other.inheritDespawnTime
 		&& inheritShadowTrailInterval == other.inheritShadowTrailInterval && inheritShadowTrailLifespan == other.inheritShadowTrailLifespan
-		&& inheritAnimatables == other.inheritAnimatables && inheritDamage == other.inheritDamage && inheritSoundSettings == other.inheritSoundSettings
+		&& inheritAnimatables == other.inheritAnimatables && inheritDamage == other.inheritDamage && inheritPierceResetTime == other.inheritPierceResetTime
+		&& inheritSoundSettings == other.inheritSoundSettings
 		&& bulletModelsCount->size() == other.bulletModelsCount->size()
 		&& std::equal(bulletModelsCount->begin(), bulletModelsCount->end(), other.bulletModelsCount->begin());
 }
@@ -549,6 +553,7 @@ void EditorMovablePoint::copyConstructorLoad(std::string formattedString) {
 	inheritShadowTrailLifespan = unformatBool(items[i++]);
 	inheritAnimatables = unformatBool(items[i++]);
 	inheritDamage = unformatBool(items[i++]);
+	inheritPierceResetTime = unformatBool(items[i++]);
 	inheritSoundSettings = unformatBool(items[i++]);
 	isBullet = unformatBool(items[i++]);
 }
@@ -643,8 +648,8 @@ std::shared_ptr<LevelPackObject> BulletModel::clone() const {
 
 std::string BulletModel::format() const {
 	return tos(id) + formatString(name) + tos(hitboxRadius) + tos(despawnTime) + tos(shadowTrailInterval) + tos(shadowTrailLifespan)
-		+ formatTMObject(animatable) + formatBool(loopAnimation) + formatTMObject(baseSprite) + tos(damage) + formatBool(playSoundOnSpawn)
-		+ formatTMObject(soundSettings);
+		+ formatTMObject(animatable) + formatBool(loopAnimation) + formatTMObject(baseSprite) + tos(damage) + tos(pierceResetTime)
+		+ formatBool(playSoundOnSpawn) + formatTMObject(soundSettings);
 }
 
 void BulletModel::load(std::string formattedString) {
@@ -663,9 +668,10 @@ void BulletModel::load(std::string formattedString) {
 	baseSprite.load(items[8]);
 
 	damage = std::stoi(items[9]);
+	pierceResetTime = std::stof(items[10]);
 
-	playSoundOnSpawn = unformatBool(items[10]);
-	soundSettings.load(items[11]);
+	playSoundOnSpawn = unformatBool(items[11]);
+	soundSettings.load(items[12]);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> BulletModel::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
