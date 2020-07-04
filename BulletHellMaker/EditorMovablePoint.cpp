@@ -11,7 +11,7 @@ EditorMovablePoint::EditorMovablePoint(IDGenerator* idGen, bool setID, std::map<
 	} else {
 		idResolved = false;
 	}
-	spawnType = std::make_shared<EntityRelativeEMPSpawn>(0.0f, 0.0f, 0.0f);
+	spawnType = std::make_shared<EntityRelativeEMPSpawn>("0", "0", "0");
 
 	// Update bulletModelsCount
 	if (bulletModelID >= 0) {
@@ -30,7 +30,7 @@ EditorMovablePoint::EditorMovablePoint(IDGenerator* idGen, std::weak_ptr<EditorM
 	} else {
 		idResolved = false;
 	}
-	spawnType = std::make_shared<EntityRelativeEMPSpawn>(0.0f, 0.0f, 0.0f);
+	spawnType = std::make_shared<EntityRelativeEMPSpawn>("0", "0", "0");
 
 	// Update bulletModelsCount
 	if (bulletModelID >= 0) {
@@ -329,7 +329,7 @@ void EditorMovablePoint::setSpawnType(std::shared_ptr<EMPSpawnType> spawnType) {
 	}
 }
 
-void EditorMovablePoint::setSpawnTypeTime(float time) {
+void EditorMovablePoint::setSpawnTypeTime(std::string time) {
 	this->spawnType->setTime(time);
 
 	// If this EMP has a parent, re-insert this EMP into the parent so that

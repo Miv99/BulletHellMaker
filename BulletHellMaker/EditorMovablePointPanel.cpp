@@ -68,11 +68,11 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 		// Entry ID is from getID()
 		empiSpawnType = tgui::ComboBox::create();
 		empiSpawnTypeTimeLabel = tgui::Label::create();
-		empiSpawnTypeTime = NumericalEditBoxWithLimits::create();
+		empiSpawnTypeTime = EditBox::create();
 		empiSpawnTypeXLabel = tgui::Label::create();
-		empiSpawnTypeX = NumericalEditBoxWithLimits::create();
+		empiSpawnTypeX = EditBox::create();
 		empiSpawnTypeYLabel = tgui::Label::create();
-		empiSpawnTypeY = NumericalEditBoxWithLimits::create();
+		empiSpawnTypeY = EditBox::create();
 		empiSpawnLocationManualSet = tgui::Button::create();
 
 		empiShadowTrailLifespanLabel = tgui::Label::create();
@@ -401,7 +401,7 @@ point will update only the values it wants to inherit to match the model."));
 			if (id == "0") {
 				undoStack.execute(UndoableCommand(
 					[this]() {
-					this->emp->setSpawnType(std::make_shared<SpecificGlobalEMPSpawn>(empiSpawnTypeTime->getValue(), empiSpawnTypeX->getValue(), empiSpawnTypeY->getValue()));
+					this->emp->setSpawnType(std::make_shared<SpecificGlobalEMPSpawn>(empiSpawnTypeTime->getText(), empiSpawnTypeX->getText(), empiSpawnTypeY->getText()));
 					onEMPModify.emit(this, this->emp);
 
 					ignoreSignals = true;
@@ -419,7 +419,7 @@ point will update only the values it wants to inherit to match the model."));
 			} else if (id == "1") {
 				undoStack.execute(UndoableCommand(
 					[this]() {
-					this->emp->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(empiSpawnTypeTime->getValue(), empiSpawnTypeX->getValue(), empiSpawnTypeY->getValue()));
+					this->emp->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(empiSpawnTypeTime->getText(), empiSpawnTypeX->getText(), empiSpawnTypeY->getText()));
 					onEMPModify.emit(this, this->emp);
 
 					ignoreSignals = true;
@@ -437,7 +437,7 @@ point will update only the values it wants to inherit to match the model."));
 			} else if (id == "2") {
 				undoStack.execute(UndoableCommand(
 					[this]() {
-					this->emp->setSpawnType(std::make_shared<EntityAttachedEMPSpawn>(empiSpawnTypeTime->getValue(), empiSpawnTypeX->getValue(), empiSpawnTypeY->getValue()));
+					this->emp->setSpawnType(std::make_shared<EntityAttachedEMPSpawn>(empiSpawnTypeTime->getText(), empiSpawnTypeX->getText(), empiSpawnTypeY->getText()));
 					onEMPModify.emit(this, this->emp);
 
 					ignoreSignals = true;
@@ -457,19 +457,19 @@ point will update only the values it wants to inherit to match the model."));
 				assert(false);
 			}
 		});
-		empiSpawnTypeTime->connect("ValueChanged", [this](float value) {
+		empiSpawnTypeTime->connect("ValueChanged", [this](std::string value) {
 			if (ignoreSignals) {
 				return;
 			}
 
-			float oldValue = this->emp->getSpawnType()->getTime();
+			std::string oldValue = this->emp->getSpawnType()->getRawTime();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
 				this->emp->setSpawnTypeTime(value);
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
-				empiSpawnTypeTime->setValue(this->emp->getSpawnType()->getTime());
+				empiSpawnTypeTime->setText(this->emp->getSpawnType()->getRawTime());
 				ignoreSignals = false;
 			},
 				[this, oldValue]() {
@@ -477,23 +477,23 @@ point will update only the values it wants to inherit to match the model."));
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
-				empiSpawnTypeTime->setValue(this->emp->getSpawnType()->getTime());
+				empiSpawnTypeTime->setText(this->emp->getSpawnType()->getRawTime());
 				ignoreSignals = false;
 			}));
 		});
-		empiSpawnTypeX->connect("ValueChanged", [this](float value) {
+		empiSpawnTypeX->connect("ValueChanged", [this](std::string value) {
 			if (ignoreSignals) {
 				return;
 			}
 
-			float oldValue = this->emp->getSpawnType()->getX();
+			std::string oldValue = this->emp->getSpawnType()->getRawX();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
 				this->emp->getSpawnType()->setX(value);
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
-				empiSpawnTypeX->setValue(this->emp->getSpawnType()->getX());
+				empiSpawnTypeX->setText(this->emp->getSpawnType()->getRawX());
 				ignoreSignals = false;
 			},
 				[this, oldValue]() {
@@ -501,23 +501,23 @@ point will update only the values it wants to inherit to match the model."));
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
-				empiSpawnTypeX->setValue(this->emp->getSpawnType()->getX());
+				empiSpawnTypeX->setText(this->emp->getSpawnType()->getRawX());
 				ignoreSignals = false;
 			}));
 		});
-		empiSpawnTypeY->connect("ValueChanged", [this](float value) {
+		empiSpawnTypeY->connect("ValueChanged", [this](std::string value) {
 			if (ignoreSignals) {
 				return;
 			}
 
-			float oldValue = this->emp->getSpawnType()->getY();
+			std::string oldValue = this->emp->getSpawnType()->getRawY();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
 				this->emp->getSpawnType()->setY(value);
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
-				empiSpawnTypeY->setValue(this->emp->getSpawnType()->getY());
+				empiSpawnTypeY->setText(this->emp->getSpawnType()->getRawY());
 				ignoreSignals = false;
 			},
 				[this, oldValue]() {
@@ -525,7 +525,7 @@ point will update only the values it wants to inherit to match the model."));
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
-				empiSpawnTypeY->setValue(this->emp->getSpawnType()->getY());
+				empiSpawnTypeY->setText(this->emp->getSpawnType()->getRawY());
 				ignoreSignals = false;
 			}));
 		});
@@ -1313,9 +1313,9 @@ void EditorMovablePointPanel::updateAllWidgetValues() {
 	empiSpawnType->setSelectedItemById(getID(emp->getSpawnType()));
 	// empiSpawnTypeTime should always display 0 if the EMP is the main EMP of its EditorAttack
 	// because it will always be spawned instantly
-	empiSpawnTypeTime->setValue(emp->isMainEMP() ? 0 : emp->getSpawnType()->getTime());
-	empiSpawnTypeX->setValue(emp->getSpawnType()->getX());
-	empiSpawnTypeY->setValue(emp->getSpawnType()->getY());
+	empiSpawnTypeTime->setText(emp->isMainEMP() ? "0" : emp->getSpawnType()->getRawTime());
+	empiSpawnTypeX->setText(emp->getSpawnType()->getRawX());
+	empiSpawnTypeY->setText(emp->getSpawnType()->getRawY());
 	empiShadowTrailLifespan->setText(emp->getRawShadowTrailLifespan());
 	empiShadowTrailInterval->setText(emp->getRawShadowTrailInterval());
 	empiDamage->setText(emp->getRawDamage());
@@ -1383,23 +1383,23 @@ void EditorMovablePointPanel::finishEditingSpawnTypePosition() {
 	sf::Vector2f newPos = spawnTypePositionMarkerPlacer->getMarkerPositions()[0];
 	undoStack.execute(UndoableCommand(
 		[this, newPos]() {
-		emp->getSpawnType()->setX(newPos.x);
-		emp->getSpawnType()->setY(newPos.y);
+		emp->getSpawnType()->setX(std::to_string(newPos.x));
+		emp->getSpawnType()->setY(std::to_string(newPos.y));
 		onEMPModify.emit(this, this->emp);
 
 		this->ignoreSignals = true;
-		empiSpawnTypeX->setValue(newPos.x);
-		empiSpawnTypeY->setValue(newPos.y);
+		empiSpawnTypeX->setText(std::to_string(newPos.x));
+		empiSpawnTypeY->setText(std::to_string(newPos.y));
 		this->ignoreSignals = false;
 	},
 		[this, oldPosX, oldPosY]() {
-		emp->getSpawnType()->setX(oldPosX);
-		emp->getSpawnType()->setY(oldPosY);
+		emp->getSpawnType()->setX(std::to_string(oldPosX));
+		emp->getSpawnType()->setY(std::to_string(oldPosY));
 		onEMPModify.emit(this, this->emp);
 
 		this->ignoreSignals = true;
-		empiSpawnTypeX->setValue(oldPosX);
-		empiSpawnTypeY->setValue(oldPosY);
+		empiSpawnTypeX->setText(std::to_string(oldPosX));
+		empiSpawnTypeY->setText(std::to_string(oldPosY));
 		this->ignoreSignals = false;
 	}));
 

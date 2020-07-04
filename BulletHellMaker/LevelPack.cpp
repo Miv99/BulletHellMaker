@@ -47,12 +47,12 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	attack1->setPlayAttackAnimation(false);
 	auto attack1emp0 = attack1->searchEMP(0);
 	attack1emp0->setBulletModel(model1);
-	attack1emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
+	attack1emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>("1", "0", "0"));
 	attack1emp0->setOnCollisionAction(PIERCE_ENTITY);
 	attack1emp0->setPierceResetTime("999999");
 
 	auto attack1emp1 = attack1emp0->createChild();
-	attack1emp1->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
+	attack1emp1->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>("1", "0", "0"));
 	attack1emp1->setAnimatable(Animatable("Bullet2", "sheet1", true, LOCK_ROTATION));
 	attack1emp1->setHitboxRadius("30");
 	attack1emp1->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 200, 10), std::make_shared<ConstantTFV>(4.7f), 10));
@@ -65,7 +65,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	attack2->setPlayAttackAnimation(false);
 	auto attack2emp0 = attack2->searchEMP(0);
 	attack2emp0->setBulletModel(model1);
-	attack2emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
+	attack2emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>("1", "0", "0"));
 	auto distanceSegments = std::make_shared<PiecewiseTFV>();
 	distanceSegments->insertSegment(std::make_pair(0, std::make_shared<LinearTFV>(0, 100, 1)));
 	distanceSegments->insertSegment(std::make_pair(1, std::make_shared<LinearTFV>(100, 200, 2)));
@@ -151,7 +151,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 		auto emp = atk->searchEMP(0);
 		emp->setAnimatable(Animatable("Bullet", "sheet1", true, ROTATE_WITH_MOVEMENT));
 		emp->setHitboxRadius("30");
-		emp->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(0, 0, 0));
+		emp->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>("0", "0", "0"));
 		emp->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 2.0f + (i * 0.3f)), std::make_shared<ConstantTFV>(0), 2.0f, std::make_shared<EMPAAngleOffsetToPlayer>()));
 		emp->setOnCollisionAction(DESTROY_THIS_BULLET_ONLY);
 		e1DeathAttacks.push_back(std::make_pair(atk->getID(), ExprSymbolTable()));
@@ -165,7 +165,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	auto pemp0 = playerAttack1->searchEMP(0);
 	pemp0->setAnimatable(Animatable("Bullet", "sheet1", true, LOCK_ROTATION));
 	pemp0->setHitboxRadius("30");
-	pemp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
+	pemp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>("1", "0", "0"));
 	pemp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 2), std::make_shared<ConstantTFV>(PI/2.0f), 2.0f));
 	pemp0->setOnCollisionAction(PIERCE_ENTITY);
 	playerAP->addAttack("0.1", playerAttack1->getID(), ExprSymbolTable());
@@ -179,7 +179,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	auto p2emp1 = p2emp0->createChild();
 	p2emp1->setAnimatable(Animatable("Megaman stepping", "sheet1", true, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT));
 	p2emp1->setHitboxRadius("30");
-	p2emp1->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
+	p2emp1->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>("1", "0", "0"));
 	p2emp1->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 1.1f), std::make_shared<ConstantTFV>(PI / 2.0f), 1.1f));
 	playerFocusedAP->addAttack("1", attack1->getID(), ExprSymbolTable());
 
@@ -189,7 +189,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 		auto b1emp0 = bombAttack1->searchEMP(0);
 		b1emp0->setAnimatable(Animatable("Bullet", "sheet1", true, LOCK_ROTATION));
 		b1emp0->setHitboxRadius("30");
-		b1emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(1, 0, 0));
+		b1emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>("1", "0", "0"));
 		b1emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 1000, 2), std::make_shared<ConstantTFV>(1.0f + i*0.13f), 2.0f));
 		b1emp0->setOnCollisionAction(PIERCE_ENTITY);
 		bombAP->addAttack("0", bombAttack1->getID(), ExprSymbolTable());

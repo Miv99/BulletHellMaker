@@ -66,7 +66,7 @@ private:
 	std::shared_ptr<tgui::Label> empiSpawnTypeLabel;
 	std::shared_ptr<tgui::ComboBox> empiSpawnType;
 	std::shared_ptr<tgui::Label> empiSpawnTypeTimeLabel;
-	std::shared_ptr<NumericalEditBoxWithLimits> empiSpawnTypeTime;
+	std::shared_ptr<EditBox> empiSpawnTypeTime;
 	std::shared_ptr<tgui::Label> empiSpawnTypeXLabel;
 	std::shared_ptr<tgui::Label> empiSpawnTypeYLabel;
 	std::shared_ptr<tgui::Button> empiSpawnLocationManualSet;
@@ -89,8 +89,8 @@ private:
 	std::shared_ptr<tgui::CheckBox> empiInheritDamage;
 	std::shared_ptr<tgui::CheckBox> empiInheritPierceResetTime;
 	std::shared_ptr<tgui::CheckBox> empiInheritSoundSettings;
-	std::shared_ptr<NumericalEditBoxWithLimits> empiSpawnTypeX;
-	std::shared_ptr<NumericalEditBoxWithLimits> empiSpawnTypeY;
+	std::shared_ptr<EditBox> empiSpawnTypeX;
+	std::shared_ptr<EditBox> empiSpawnTypeY;
 	std::shared_ptr<SliderWithEditBox> empiDespawnTime;
 	std::shared_ptr<tgui::Label> empiSoundSettingsLabel;
 	std::shared_ptr<SoundSettingsGroup> empiSoundSettings;

@@ -25,7 +25,7 @@ Spawn type for an EMP.
 class EMPSpawnType : public TextMarshallable {
 public:
 	inline EMPSpawnType() {}
-	inline EMPSpawnType(float time, float x, float y) : time(time), x(x), y(y) {}
+	inline EMPSpawnType(std::string time, std::string x, std::string y) : time(time), x(x), y(y) {}
 
 	std::string format() const = 0;
 	void load(std::string formattedString) = 0;
@@ -38,13 +38,16 @@ public:
 	Same as getSpawnInfo(), but useReferenceEntity in the returned MPSpawnInformation will always be false
 	*/
 	virtual MPSpawnInformation getForcedDetachmentSpawnInfo(entt::DefaultRegistry& registry, float timeLag) = 0;
-	inline float getTime() const { return time; }
-	inline float getX() const { return x; }
-	inline float getY() const { return y; }
+	inline float getTime() const { return timeExprCompiledValue; }
+	inline float getX() const { return xExprCompiledValue; }
+	inline float getY() const { return yExprCompiledValue; }
+	inline std::string getRawTime() const { return time; }
+	inline std::string getRawX() const { return x; }
+	inline std::string getRawY() const { return y; }
 
-	inline void setTime(float time) { this->time = time; }
-	inline void setX(float x) { this->x = x; }
-	inline void setY(float y) { this->y = y; }
+	inline void setTime(std::string time) { this->time = time; }
+	inline void setX(std::string x) { this->x = x; }
+	inline void setY(std::string y) { this->y = y; }
 
 	/*
 	For testing.
@@ -54,11 +57,11 @@ public:
 protected:
 	// Time when this EMP is spawned with t=0 being the spawning of this EMP's reference
 	// This is ignored and the EMP is spawned instantly if it is the main EMP of an EditorAttack
-	float time;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(time, float, 0)
 
 	// How the x/y coordinates are interpreted is up to the implementation
-	float x;
-	float y;
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(x, float, 0)
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(y, float, 0)
 };
 
 /*
@@ -67,7 +70,7 @@ Spawn type for spawning an EMP at some specific global position.
 class SpecificGlobalEMPSpawn : public EMPSpawnType {
 public:
 	inline SpecificGlobalEMPSpawn() {}
-	inline SpecificGlobalEMPSpawn(float time, float x, float y) : EMPSpawnType(time, x, y) {}
+	inline SpecificGlobalEMPSpawn(std::string time, std::string x, std::string y) : EMPSpawnType(time, x, y) {}
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
@@ -82,7 +85,7 @@ Spawn type for spawning an EMP at some position relative to the hitbox origin of
 class EntityRelativeEMPSpawn : public EMPSpawnType {
 public:
 	inline EntityRelativeEMPSpawn() {}
-	inline EntityRelativeEMPSpawn(float time, float x, float y) : EMPSpawnType(time, x, y) {}
+	inline EntityRelativeEMPSpawn(std::string time, std::string x, std::string y) : EMPSpawnType(time, x, y) {}
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
@@ -101,7 +104,7 @@ EMP's parent as the MP of the entity.
 class EntityAttachedEMPSpawn : public EMPSpawnType {
 public:
 	inline EntityAttachedEMPSpawn() {}
-	inline EntityAttachedEMPSpawn(float time, float x, float y) : EMPSpawnType(time, x, y) {}
+	inline EntityAttachedEMPSpawn(std::string time, std::string x, std::string y) : EMPSpawnType(time, x, y) {}
 
 	std::string format() const override;
 	void load(std::string formattedString) override;

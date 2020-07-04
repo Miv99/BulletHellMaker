@@ -126,8 +126,7 @@ void EditorAttackPattern::compileExpressions(std::vector<exprtk::symbol_table<fl
 
 void EditorAttackPattern::changeEntityPathToAttackPatternActions(EntityCreationQueue& queue, entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
 	auto& pos = registry.get<PositionComponent>(entity);
-	//registry.get<MovementPathComponent>(entity).setActions(queue, registry, entity, actions);
-	registry.replace<MovementPathComponent>(entity, queue, entity, registry, entity, std::make_shared<SpecificGlobalEMPSpawn>(0, pos.getX(), pos.getY()), actions, timeLag);
+	registry.replace<MovementPathComponent>(entity, queue, entity, registry, entity, std::make_shared<SpecificGlobalEMPSpawn>("0", std::to_string(pos.getX()), std::to_string(pos.getY())), actions, timeLag);
 }
 
 void EditorAttackPattern::addAttack(std::string time, int id, ExprSymbolTable attackSymbolsDefiner) {

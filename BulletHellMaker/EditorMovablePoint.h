@@ -228,7 +228,7 @@ public:
 	inline void setHitboxRadius(std::string hitboxRadius) { this->hitboxRadius = hitboxRadius; }
 	inline void setDespawnTime(float despawnTime) { this->despawnTime = despawnTime; }
 	void setSpawnType(std::shared_ptr<EMPSpawnType> spawnType);
-	void setSpawnTypeTime(float time);
+	void setSpawnTypeTime(std::string time);
 	inline void setShadowTrailInterval(std::string shadowTrailInterval) { this->shadowTrailInterval = shadowTrailInterval; }
 	inline void setShadowTrailLifespan(std::string shadowTrailLifespan) { this->shadowTrailLifespan = shadowTrailLifespan; }
 	inline void setInheritRadius(bool inheritRadius, const LevelPack& levelPack) { this->inheritRadius = inheritRadius; loadBulletModel(levelPack);  }
