@@ -51,6 +51,22 @@ exprtk::symbol_table<float> ExprSymbolTable::toLowerLevelSymbolTable(exprtk::exp
     return table;
 }
 
+std::map<std::string, ExprSymbolDefinition>::const_iterator ExprSymbolTable::getIteratorBegin() {
+    return map.begin();
+}
+
+std::map<std::string, ExprSymbolDefinition>::const_iterator ExprSymbolTable::getIteratorEnd() {
+    return map.end();
+}
+
+ExprSymbolDefinition ExprSymbolTable::getSymbolDefinition(std::string symbol) const {
+    return map.at(symbol);
+}
+
+bool ExprSymbolTable::hasSymbol(std::string symbol) const {
+    return map.count(symbol) > 0;
+}
+
 bool ExprSymbolTable::isEmpty() const {
     return map.size() == 0;
 }
@@ -104,6 +120,22 @@ exprtk::symbol_table<float> ValueSymbolTable::toZeroFilledSymbolTable() const {
         }
     }
     return table;
+}
+
+std::map<std::string, ValueSymbolDefinition>::const_iterator ValueSymbolTable::getIteratorBegin() {
+    return map.begin();
+}
+
+std::map<std::string, ValueSymbolDefinition>::const_iterator ValueSymbolTable::getIteratorEnd() {
+    return map.end();
+}
+
+ValueSymbolDefinition ValueSymbolTable::getSymbolDefinition(std::string symbol) const {
+    return map.at(symbol);
+}
+
+bool ValueSymbolTable::hasSymbol(std::string symbol) const {
+    return map.count(symbol) > 0;
 }
 
 bool ValueSymbolTable::isEmpty() const {

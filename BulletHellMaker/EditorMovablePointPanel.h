@@ -10,6 +10,7 @@
 #include "EditorUtilities.h"
 #include "CopyPaste.h"
 #include "EMPABasedMovementEditorPanel.h"
+#include "SymbolTableEditor.h"
 #include <TGUI/TGUI.hpp>
 
 /*
@@ -19,7 +20,7 @@ Signals:
 	EMPModified - emitted when the EMP being edited is modified.
 		Optional parameter: a shared_ptr to the newly modified EditorMovablePoint
 */
-class EditorMovablePointPanel : public tgui::ScrollablePanel, public EventCapturable, public CopyPasteable {
+class EditorMovablePointPanel : public tgui::ScrollablePanel, public EventCapturable, public CopyPasteable, public ValueSymbolTablesChangePropagator {
 public:
 	/*
 	mainEditorWindow - the parent MainEditorWindow this widget belongs to
@@ -40,6 +41,9 @@ public:
 
 	tgui::Signal& getSignal(std::string signalName) override;
 
+	void propagateChangesToChildren() override;
+	ValueSymbolTable getLevelPackObjectSymbolTable() override;
+
 private:
 	static const std::string PROPERTIES_TAB_NAME;
 	static const std::string MOVEMENT_TAB_NAME;
@@ -49,6 +53,14 @@ private:
 	Clipboard& clipboard;
 	UndoStack undoStack;
 	std::shared_ptr<EditorMovablePoint> emp;
+
+	// Symbol table editor child window.
+	// The window is added to the GUI directly and will be removed in this widget's destructor.
+	std::shared_ptr<tgui::ChildWindow> symbolTableEditorWindow;
+	// Symbol table editor
+	std::shared_ptr<ValueSymbolTableEditor> symbolTableEditor;
+
+	std::shared_ptr<EMPABasedMovementEditorPanel> movementEditorPanel;
 
 	// Properties tab panel
 	std::shared_ptr<tgui::ScrollablePanel> properties;

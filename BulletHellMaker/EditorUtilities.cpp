@@ -2285,6 +2285,10 @@ int TabsWithPanel::getTabIndex(std::string tabName) {
 	return -1;
 }
 
+std::shared_ptr<tgui::Panel> TabsWithPanel::getTab(std::string name) {
+	return panelsMap.at(name);
+}
+
 void TabsWithPanel::cacheTabs(std::string tabsSetIdentifier) {
 	std::vector<std::pair<std::string, std::shared_ptr<tgui::Panel>>> tabsData;
 	for (auto tabName : tabsOrdering) {

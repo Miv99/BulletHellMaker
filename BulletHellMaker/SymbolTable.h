@@ -44,6 +44,12 @@ public:
 	*/
 	exprtk::symbol_table<float> toLowerLevelSymbolTable(exprtk::expression<float> expression);
 
+	std::map<std::string, ExprSymbolDefinition>::const_iterator getIteratorBegin();
+	std::map<std::string, ExprSymbolDefinition>::const_iterator getIteratorEnd();
+
+	ExprSymbolDefinition getSymbolDefinition(std::string symbol) const;
+	bool hasSymbol(std::string symbol) const;
+
 	bool isEmpty() const;
 
 private:
@@ -67,6 +73,12 @@ public:
 	and defines every redelegated symbol with value 0.
 	*/
 	exprtk::symbol_table<float> toZeroFilledSymbolTable() const;
+
+	std::map<std::string, ValueSymbolDefinition>::const_iterator getIteratorBegin();
+	std::map<std::string, ValueSymbolDefinition>::const_iterator getIteratorEnd();
+
+	ValueSymbolDefinition getSymbolDefinition(std::string symbol) const;
+	bool hasSymbol(std::string symbol) const;
 
 	bool isEmpty() const;
 

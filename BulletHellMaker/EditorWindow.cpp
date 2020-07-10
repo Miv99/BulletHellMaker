@@ -401,7 +401,6 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 	leftPanel->setSize("20%", "100%");
 	leftPanel->setVisible(true);
 	leftPanel->setMoreTabsListAlignment(TabsWithPanel::MoreTabsListAlignment::Right);
-	gui->add(leftPanel);
 
 	{
 		// Attacks tab in left panel
@@ -518,6 +517,8 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 	mainPanel->setVisible(true);
 	mainPanel->setMoreTabsListAlignment(TabsWithPanel::MoreTabsListAlignment::Left);
 	gui->add(mainPanel);
+
+	gui->add(leftPanel);
 }
 
 void MainEditorWindow::loadLevelPack(std::string levelPackName) {

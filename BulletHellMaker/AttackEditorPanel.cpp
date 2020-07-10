@@ -250,15 +250,31 @@ spriteLoader(spriteLoader), clipboard(clipboard), undoStack(UndoStack(undoStackS
 		}
 	}
 
+	symbolTableEditorWindow = tgui::ChildWindow::create();
+	symbolTableEditor = ValueSymbolTableEditor::create(false, true);
+	symbolTableEditorWindow->setKeepInParent(false);
+	symbolTableEditorWindow->add(symbolTableEditor);
+	symbolTableEditorWindow->setSize("50%", "50%");
+	symbolTableEditorWindow->setTitle("Attack ID " + std::to_string(attack->getID()) + " Variables");
+
+	symbolTableEditor->connect("ValueChanged", [this](ValueSymbolTable table) {
+		this->attack->setSymbolTable(table);
+		onChange(table);
+	});
+
 	populateEMPsTreeView();
+	updateSymbolTables({ });
 }
 
 AttackEditorPanel::~AttackEditorPanel() {
 	levelPack.getOnChange()->sink().disconnect<AttackEditorPanel, &AttackEditorPanel::populatePropertiesUsedByList>(this);
+	mainEditorWindow.getGui()->remove(symbolTableEditorWindow);
 }
 
 bool AttackEditorPanel::handleEvent(sf::Event event) {
-	if (tabs->handleEvent(event)) {
+	if (symbolTableEditorWindow->isFocused()) {
+		return symbolTableEditor->handleEvent(event);
+	} else if (tabs->handleEvent(event)) {
 		return true;
 	}
 	if (event.type == sf::Event::KeyPressed) {
@@ -273,6 +289,9 @@ bool AttackEditorPanel::handleEvent(sf::Event event) {
 				manualSave();
 				return true;
 			}
+		} else if (event.key.code == sf::Keyboard::V) {
+			mainEditorWindow.getGui()->add(symbolTableEditorWindow);
+			return true;
 		}
 	}
 	return false;
@@ -287,6 +306,20 @@ tgui::Signal& AttackEditorPanel::getSignal(std::string signalName) {
 	return tgui::Panel::getSignal(signalName);
 }
 
+void AttackEditorPanel::propagateChangesToChildren() {
+	symbolTableEditor->setSymbolTablesHierarchy(symbolTables);
+
+	auto tabNames = tabs->getTabNames();
+	// Start at the index where EMP tabs start
+	for (int i = 2; i < tabNames.size(); i++) {
+		std::dynamic_pointer_cast<EditorMovablePointPanel>(tabs->getTab(tabNames[i]))->updateSymbolTables(symbolTables);
+	}
+}
+
+ValueSymbolTable AttackEditorPanel::getLevelPackObjectSymbolTable() {
+	return attack->getSymbolTable();
+}
+
 void AttackEditorPanel::openEMPTab(std::vector<sf::String> empHierarchy) {
 	openEMPTab(getEMPIDFromTreeViewText(empHierarchy[empHierarchy.size() - 1]));
 }
@@ -299,6 +332,7 @@ void AttackEditorPanel::openEMPTab(int empID) {
 	} else {
 		// Create the tab
 		std::shared_ptr<EditorMovablePointPanel> empEditorPanel = EditorMovablePointPanel::create(mainEditorWindow, levelPack, spriteLoader, clipboard, attack->searchEMP(empID));
+		empEditorPanel->updateSymbolTables(symbolTables);
 		empEditorPanel->connect("EMPModified", [&](std::shared_ptr<EditorMovablePoint> emp) {
 			populateEMPsTreeView();
 			onAttackModify.emit(this, this->attack);

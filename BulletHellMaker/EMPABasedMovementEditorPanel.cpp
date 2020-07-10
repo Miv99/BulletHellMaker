@@ -549,8 +549,22 @@ void EMPABasedMovementEditorPanel::manualOpenEMPA(int index) {
 	}
 }
 
+void EMPABasedMovementEditorPanel::propagateChangesToChildren() {
+	auto tabNames = tabs->getTabNames();
+	// Start at the index where EMPA tabs start
+	for (int i = 1; i < tabNames.size(); i++) {
+		std::dynamic_pointer_cast<EditorMovablePointActionPanel>(tabs->getTab(tabNames[i]))->updateSymbolTables(symbolTables);
+	}
+}
+
+ValueSymbolTable EMPABasedMovementEditorPanel::getLevelPackObjectSymbolTable() {
+	// Unused
+	return ValueSymbolTable();
+}
+
 std::shared_ptr<tgui::Panel> EMPABasedMovementEditorPanel::createEMPAPanel(std::shared_ptr<EMPAction> empa, int index, std::shared_ptr<ListViewScrollablePanel> empiActions) {
 	std::shared_ptr<EditorMovablePointActionPanel> empaPanel = EditorMovablePointActionPanel::create(parentWindow, clipboard, std::dynamic_pointer_cast<EMPAction>(empa->clone()));
+	empaPanel->updateSymbolTables(symbolTables);
 	empaPanel->connect("EMPAModified", [this, index, empiActions](std::shared_ptr<EMPAction> value) {
 		this->actions[index] = value;
 

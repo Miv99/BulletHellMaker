@@ -17,12 +17,13 @@ Signals:
 	EMPAModified - emitted when the EMPA being edited is modified.
 		Optional parameter: a shared_ptr to the newly modified EMPAction
 */
-class EditorMovablePointActionPanel : public tgui::ScrollablePanel, public EventCapturable, public SymbolTablesChangePropagator {
+class EditorMovablePointActionPanel : public tgui::ScrollablePanel, public EventCapturable, public ValueSymbolTablesChangePropagator {
 public:
 	/*
 	empa - the EMPAction being edited
 	*/
 	EditorMovablePointActionPanel(EditorWindow& parentWindow, Clipboard& clipboard, std::shared_ptr<EMPAction> empa, int undoStackSize = 50);
+	~EditorMovablePointActionPanel();
 	inline static std::shared_ptr<EditorMovablePointActionPanel> create(EditorWindow& parentWindow, Clipboard& clipboard, std::shared_ptr<EMPAction> empa, int undoStackSize = 50) {
 		return std::make_shared<EditorMovablePointActionPanel>(parentWindow, clipboard, empa, undoStackSize);
 	}
@@ -31,9 +32,7 @@ public:
 
 	tgui::Signal& getSignal(std::string signalName) override;
 
-protected:
-	void onChange(std::vector<exprtk::symbol_table<float>> symbolTables) override;
-
+	void propagateChangesToChildren() override;
 	ValueSymbolTable getLevelPackObjectSymbolTable() override;
 
 private:
@@ -69,6 +68,12 @@ private:
 	std::shared_ptr<tgui::Label> empaiHomingSpeedLabel;
 	std::shared_ptr<TFVGroup> empaiHomingSpeed;
 	std::shared_ptr<tgui::Button> empaiEditBezierControlPoints;
+
+	// Symbol table editor child window.
+	// The window is added to the GUI directly and will be removed in this widget's destructor.
+	std::shared_ptr<tgui::ChildWindow> symbolTableEditorWindow;
+	// Symbol table editor
+	std::shared_ptr<ValueSymbolTableEditor> symbolTableEditor;
 
 	// For bezier control points
 	bool editingBezierControlPoints = false;

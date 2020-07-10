@@ -5,6 +5,7 @@
 #include "UndoStack.h"
 #include "EditorWindow.h"
 #include "EditorMovablePointAction.h"
+#include "SymbolTableEditor.h"
 
 class EMPABasedMovementEditorPanel;
 
@@ -93,7 +94,7 @@ Signals:
 	EMPAListModified - emitted when the list of EMPAs is modified
 		Optional parameter: a vector of shared_ptrs of EMPActions representing the new actions and the sum of durations of every EMPA as a float
 */
-class EMPABasedMovementEditorPanel : public tgui::Panel, public EventCapturable {
+class EMPABasedMovementEditorPanel : public tgui::Panel, public EventCapturable, public ValueSymbolTablesChangePropagator {
 public:
 	EMPABasedMovementEditorPanel(EditorWindow& parentWindow, Clipboard& clipboard);
 	static std::shared_ptr<EMPABasedMovementEditorPanel> create(EditorWindow& parentWindow, Clipboard& clipboard) {
@@ -134,6 +135,9 @@ public:
 	Opens a new EMPA tab for the EMPA at some index in actions.
 	*/
 	void manualOpenEMPA(int index);
+
+	void propagateChangesToChildren() override;
+	ValueSymbolTable getLevelPackObjectSymbolTable() override;
 
 private:
 	static const std::string EMPA_TAB_NAME_FORMAT;

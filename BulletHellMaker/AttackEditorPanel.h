@@ -7,9 +7,9 @@
 #include "EditorWindow.h"
 #include "EditorMovablePointPanel.h"
 #include "ExtraSignals.h"
+#include "SymbolTableEditor.h"
 #include <TGUI/TGUI.hpp>
 #include <memory>
-
 
 /*
 Empty panel that captures undo/redo/copy/paste commands and whose purpose is for
@@ -77,7 +77,7 @@ AttackPatternDoubleClicked - emitted when an EditorAttackPattern in the list of 
 AttackModified - emitted when the EditorAttack being edited is modified.
 	Optional parameter: a shared_ptr to the newly modified EditorAttack
 */
-class AttackEditorPanel : public tgui::Panel, public EventCapturable {
+class AttackEditorPanel : public tgui::Panel, public EventCapturable, public ValueSymbolTablesChangePropagator {
 public:
 	/*
 	mainEditorWindow - the EditorWindow this widget is in
@@ -103,6 +103,11 @@ public:
 
 	tgui::Signal& getSignal(std::string signalName) override;
 
+protected:
+	void propagateChangesToChildren() override;
+
+	ValueSymbolTable getLevelPackObjectSymbolTable() override;
+
 private:
 	static const std::string PROPERTIES_TAB_NAME;
 	static const std::string EMP_TAB_NAME_FORMAT;
@@ -126,6 +131,12 @@ private:
 
 	// The EditorAttack being edited
 	std::shared_ptr<EditorAttack> attack;
+
+	// Symbol table editor child window.
+	// The window is added to the GUI directly and will be removed in this widget's destructor.
+	std::shared_ptr<tgui::ChildWindow> symbolTableEditorWindow;
+	// Symbol table editor
+	std::shared_ptr<ValueSymbolTableEditor> symbolTableEditor;
 
 	std::shared_ptr<TabsWithPanel> tabs;
 	// The properties tab

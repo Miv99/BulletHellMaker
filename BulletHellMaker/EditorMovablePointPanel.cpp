@@ -1223,8 +1223,8 @@ point will update only the values it wants to inherit to match the model."));
 	}
 	{
 		// Movement tab
-		std::shared_ptr<EMPABasedMovementEditorPanel> movement = EMPABasedMovementEditorPanel::create(mainEditorWindow, clipboard);
-		movement->connect("EMPAListModified", [this](std::vector<std::shared_ptr<EMPAction>> newActions, float newSumOfDurations) {
+		movementEditorPanel = EMPABasedMovementEditorPanel::create(mainEditorWindow, clipboard);
+		movementEditorPanel->connect("EMPAListModified", [this](std::vector<std::shared_ptr<EMPAction>> newActions, float newSumOfDurations) {
 			// This shouldn't be undoable here because it's already undoable from EMPABasedMovementEditorPanel.
 			// Note: Setting the limits of a SliderWithEditBox to some number and then setting it back does not
 			// revert the SliderWithEditBox's value
@@ -1234,14 +1234,26 @@ point will update only the values it wants to inherit to match the model."));
 
 			onEMPModify.emit(this, this->emp);
 		});
-		movement->setActions(this->emp->getActions());
-		empiDespawnTime->setMax(movement->getSumOfDurations());
-		tabs->addTab(MOVEMENT_TAB_NAME, movement, false, false);
+		movementEditorPanel->setActions(this->emp->getActions());
+		empiDespawnTime->setMax(movementEditorPanel->getSumOfDurations());
+		tabs->addTab(MOVEMENT_TAB_NAME, movementEditorPanel, false, false);
 	}
+
+	symbolTableEditorWindow = tgui::ChildWindow::create();
+	symbolTableEditor = ValueSymbolTableEditor::create(false, false);
+	symbolTableEditorWindow->setKeepInParent(false);
+	symbolTableEditorWindow->add(symbolTableEditor);
+	symbolTableEditorWindow->setSize("50%", "50%");
+	symbolTableEditorWindow->setTitle("Movable Point ID " + std::to_string(emp->getID()) + " Variables");
+	symbolTableEditor->connect("ValueChanged", [this](ValueSymbolTable table) {
+		this->emp->setSymbolTable(table);
+		onChange(table);
+	});
 }
 
 EditorMovablePointPanel::~EditorMovablePointPanel() {
 	levelPack.getOnChange()->sink().disconnect<EditorMovablePointPanel, &EditorMovablePointPanel::onLevelPackChange>(this);
+	mainEditorWindow.getGui()->remove(symbolTableEditorWindow);
 }
 
 std::shared_ptr<CopiedObject> EditorMovablePointPanel::copyFrom() {
@@ -1266,7 +1278,9 @@ void EditorMovablePointPanel::paste2Into(std::shared_ptr<CopiedObject> pastedObj
 }
 
 bool EditorMovablePointPanel::handleEvent(sf::Event event) {
-	if (tabs->handleEvent(event)) {
+	if (symbolTableEditorWindow->isFocused()) {
+		return symbolTableEditor->handleEvent(event);
+	} else if (tabs->handleEvent(event)) {
 		return true;
 	} else if (placingSpawnLocation) {
 		if (spawnTypePositionMarkerPlacer->handleEvent(event)) {
@@ -1289,6 +1303,9 @@ bool EditorMovablePointPanel::handleEvent(sf::Event event) {
 				clipboard.paste(this);
 				return true;
 			}
+		} else if (event.key.code == sf::Keyboard::V) {
+			mainEditorWindow.getGui()->add(symbolTableEditorWindow);
+			return true;
 		}
 	}
 	return false;
@@ -1299,6 +1316,18 @@ tgui::Signal & EditorMovablePointPanel::getSignal(std::string signalName) {
 		return onEMPModify;
 	}
 	return tgui::Panel::getSignal(signalName);
+}
+
+void EditorMovablePointPanel::propagateChangesToChildren() {
+	symbolTableEditor->setSymbolTablesHierarchy(symbolTables);
+
+	// movementEditorPanel acts as just a middleman between this widget and child widgets that
+	// use emp's ValueSymbolTable
+	movementEditorPanel->propagateChangesToChildren();
+}
+
+ValueSymbolTable EditorMovablePointPanel::getLevelPackObjectSymbolTable() {
+	return emp->getSymbolTable();
 }
 
 void EditorMovablePointPanel::updateAllWidgetValues() {
@@ -1383,23 +1412,23 @@ void EditorMovablePointPanel::finishEditingSpawnTypePosition() {
 	sf::Vector2f newPos = spawnTypePositionMarkerPlacer->getMarkerPositions()[0];
 	undoStack.execute(UndoableCommand(
 		[this, newPos]() {
-		emp->getSpawnType()->setX(std::to_string(newPos.x));
-		emp->getSpawnType()->setY(std::to_string(newPos.y));
+		emp->getSpawnType()->setX(formatNum(newPos.x));
+		emp->getSpawnType()->setY(formatNum(newPos.y));
 		onEMPModify.emit(this, this->emp);
 
 		this->ignoreSignals = true;
-		empiSpawnTypeX->setText(std::to_string(newPos.x));
-		empiSpawnTypeY->setText(std::to_string(newPos.y));
+		empiSpawnTypeX->setText(formatNum(newPos.x));
+		empiSpawnTypeY->setText(formatNum(newPos.y));
 		this->ignoreSignals = false;
 	},
 		[this, oldPosX, oldPosY]() {
-		emp->getSpawnType()->setX(std::to_string(oldPosX));
-		emp->getSpawnType()->setY(std::to_string(oldPosY));
+		emp->getSpawnType()->setX(formatNum(oldPosX));
+		emp->getSpawnType()->setY(formatNum(oldPosY));
 		onEMPModify.emit(this, this->emp);
 
 		this->ignoreSignals = true;
-		empiSpawnTypeX->setText(std::to_string(oldPosX));
-		empiSpawnTypeY->setText(std::to_string(oldPosY));
+		empiSpawnTypeX->setText(formatNum(oldPosX));
+		empiSpawnTypeY->setText(formatNum(oldPosY));
 		this->ignoreSignals = false;
 	}));
 

@@ -630,10 +630,28 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 	add(empaiY);
 	add(empaiXYManualSet);
 
+	symbolTableEditorWindow = tgui::ChildWindow::create();
+	symbolTableEditor = ValueSymbolTableEditor::create(false, false);
+	symbolTableEditorWindow->setKeepInParent(false);
+	symbolTableEditorWindow->add(symbolTableEditor);
+	symbolTableEditorWindow->setSize("50%", "50%");
+	symbolTableEditorWindow->setTitle("Movable Point Action Variables");
+	symbolTableEditor->connect("ValueChanged", [this](ValueSymbolTable table) {
+		this->empa->setSymbolTable(table);
+		onChange(table);
+	});
+
 	onEMPATypeChange();
 }
 
+EditorMovablePointActionPanel::~EditorMovablePointActionPanel() {
+	parentWindow.getGui()->remove(symbolTableEditorWindow);
+}
+
 bool EditorMovablePointActionPanel::handleEvent(sf::Event event) {
+	if (symbolTableEditorWindow->isFocused()) {
+		return symbolTableEditor->handleEvent(event);
+	}
 	if (editingBezierControlPoints) {
 		if (bezierControlPointsMarkerPlacer->handleEvent(event)) {
 			return true;
@@ -669,6 +687,9 @@ bool EditorMovablePointActionPanel::handleEvent(sf::Event event) {
 				undoStack.redo();
 				return true;
 			}
+		} else if (event.key.code == sf::Keyboard::V) {
+			parentWindow.getGui()->add(symbolTableEditorWindow);
+			return true;
 		}
 	}
 	return false;
@@ -681,8 +702,10 @@ tgui::Signal & EditorMovablePointActionPanel::getSignal(std::string signalName) 
 	return tgui::Panel::getSignal(signalName);
 }
 
-void EditorMovablePointActionPanel::onChange(std::vector<exprtk::symbol_table<float>> symbolTables) {
-	SymbolTablesChangePropagator::onChange(symbolTables);
+void EditorMovablePointActionPanel::propagateChangesToChildren() {
+	symbolTableEditor->setSymbolTablesHierarchy(symbolTables);
+	
+	// No children to continue propagation to
 }
 
 ValueSymbolTable EditorMovablePointActionPanel::getLevelPackObjectSymbolTable() {
@@ -893,13 +916,13 @@ void EditorMovablePointActionPanel::finishEditingXYPosition() {
 	undoStack.execute(UndoableCommand(
 		[this, newPos]() {
 		MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
-		concreteEMPA->setTargetX(std::to_string(newPos.x));
-		concreteEMPA->setTargetY(std::to_string(newPos.y));
+		concreteEMPA->setTargetX(formatNum(newPos.x));
+		concreteEMPA->setTargetY(formatNum(newPos.y));
 		onEMPAModify.emit(this, this->empa);
 
 		this->ignoreSignals = true;
-		empaiX->setText(std::to_string(newPos.x));
-		empaiY->setText(std::to_string(newPos.y));
+		empaiX->setText(formatNum(newPos.x));
+		empaiY->setText(formatNum(newPos.y));
 		this->ignoreSignals = false;
 	},
 		[this, oldX, oldY]() {

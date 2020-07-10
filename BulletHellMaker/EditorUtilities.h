@@ -447,8 +447,10 @@ The ListBox from getListBox() does not have to be added to a container, since it
 This widget can be treated as a normal ListBox, with the exception that onListBoxItemsUpdate() should be called
 anytime an item is added, removed, or changed from the ListBox.
 
-The only advantage of a ListBox over a ListView is that items can be identified by a
-unique id string. This can be easily implemented with your own std::map, however.
+ListBox vs ListView:
+-ListBox can attach unique ID strings to items / ListView cannot
+-ListBox has an ItemSelected signal / ListView does not
+-ListView can select multiple items / ListBox cannot
 */
 class ListBoxScrollablePanel : public tgui::ScrollablePanel {
 public:
@@ -479,8 +481,10 @@ The ListView from getListView() does not have to be added to a container, since 
 This widget can be treated as a normal ListView, with the exception that onListViewItemsUpdate() should be called
 anytime an item is added, removed, or changed from the ListView.
 
-The only advantage of a ListBox over a ListView is that items can be identified by a
-unique id string. This can be easily implemented with your own std::map, however.
+ListBox vs ListView:
+-ListBox can attach unique ID strings to items / ListView cannot
+-ListBox has an ItemSelected signal / ListView does not
+-ListView can select multiple items / ListBox cannot
 */
 class ListViewScrollablePanel : public tgui::ScrollablePanel {
 public:
@@ -784,6 +788,10 @@ public:
 	tabName - the unique name of the tab
 	*/
 	int getTabIndex(std::string tabName);
+	/*
+	Returns the panel for some tab name.
+	*/
+	std::shared_ptr<tgui::Panel> getTab(std::string name);
 
 	/*
 	Caches all currently added tabs so that the current set of tabs can be reopened at a later time.
