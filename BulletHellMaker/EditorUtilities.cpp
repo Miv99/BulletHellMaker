@@ -607,8 +607,8 @@ SoundSettingsGroup::SoundSettingsGroup(std::string pathToSoundsFolder) {
 	pitchLabel->setToolTip(createToolTip("The pitch of the audio when it is played."));
 	
 	volume->setMin(0, false);
-	volume->setMax(1.0f, false);
-	volume->setStep(0.01f);
+	volume->setMax(100, false);
+	volume->setStep(1);
 	pitch->setMin(1, false);
 	pitch->setMax(10, false);
 	pitch->setStep(0.01f);

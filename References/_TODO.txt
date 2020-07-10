@@ -136,7 +136,6 @@ Notes for me:
 -Known big bugs:
     -Player death -> death sound plays every time player gets hit again
         -This is only because player death hasn't been implemented yet in CollisionSystem
-    -open EMP tab -> counts as attack modified
 
 current todo:
 -Popup saying something was copied/pasted    
