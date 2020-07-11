@@ -60,17 +60,17 @@ attack(attack), undoStack(UndoStack(undoStackSize)) {
 	add(usedBy);
 }
 
-std::shared_ptr<CopiedObject> AttackEditorPropertiesPanel::copyFrom() {
+std::pair<std::shared_ptr<CopiedObject>, std::string> AttackEditorPropertiesPanel::copyFrom() {
 	// Can't copy this widget
-	return nullptr;
+	return std::make_pair(nullptr, "");
 }
 
-void AttackEditorPropertiesPanel::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+std::string AttackEditorPropertiesPanel::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
 	// Same functionality as paste2Into()
-	paste2Into(pastedObject);
+	return paste2Into(pastedObject);
 }
 
-void AttackEditorPropertiesPanel::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+std::string AttackEditorPropertiesPanel::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 	// Paste the first copied EditorAttack to override attack's properties
 	auto derived = std::static_pointer_cast<CopiedLevelPackObject>(pastedObject);
 	if (derived) {
@@ -86,6 +86,7 @@ void AttackEditorPropertiesPanel::paste2Into(std::shared_ptr<CopiedObject> paste
 				.connect<AttackEditorPropertiesPanel, &AttackEditorPropertiesPanel::onPasteIntoConfirmation>(this);
 		}
 	}
+	return "";
 }
 
 bool AttackEditorPropertiesPanel::handleEvent(sf::Event event) {
@@ -424,15 +425,15 @@ attack(attack), undoStack(UndoStack(undoStackSize)) {
 	add(empsTreeView);
 }
 
-std::shared_ptr<CopiedObject> EditorMovablePointTreePanel::copyFrom() {
+std::pair<std::shared_ptr<CopiedObject>, std::string> EditorMovablePointTreePanel::copyFrom() {
 	auto selected = empsTreeView->getSelectedItem();
 	if (selected.size() > 0) {
-		return std::make_shared<CopiedEditorMovablePoint>(getID(), attack->searchEMP(parentAttackEditorPanel.getEMPIDFromTreeViewText(selected[selected.size() - 1])));
+		return std::make_pair(std::make_shared<CopiedEditorMovablePoint>(getID(), attack->searchEMP(parentAttackEditorPanel.getEMPIDFromTreeViewText(selected[selected.size() - 1]))), "Copied 1 movable point");
 	}
-	return nullptr;
+	return std::make_pair(nullptr, "");
 }
 
-void EditorMovablePointTreePanel::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+std::string EditorMovablePointTreePanel::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
 	auto derived = std::static_pointer_cast<CopiedEditorMovablePoint>(pastedObject);
 	if (derived) {
 		auto selected = empsTreeView->getSelectedItem();
@@ -458,11 +459,14 @@ void EditorMovablePointTreePanel::pasteInto(std::shared_ptr<CopiedObject> pasted
 					onMainEMPChildDeletion.emit(this, deletedID);
 				}
 			}));
+
+			return "Pasted 1 movable point";
 		}
 	}
+	return "";
 }
 
-void EditorMovablePointTreePanel::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+std::string EditorMovablePointTreePanel::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 	auto derived = std::static_pointer_cast<CopiedEditorMovablePoint>(pastedObject);
 	if (derived) {
 		auto selected = empsTreeView->getSelectedItem();
@@ -502,8 +506,11 @@ void EditorMovablePointTreePanel::paste2Into(std::shared_ptr<CopiedObject> paste
 					onMainEMPChildDeletion.emit(this, deletedID);
 				}
 			}));
+
+			return "Replaced 1 movable point";
 		}
 	}
+	return "";
 }
 
 bool EditorMovablePointTreePanel::handleEvent(sf::Event event) {

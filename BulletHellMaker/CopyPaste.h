@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <memory>
+#include "entt/entt.hpp"
 #include "EditorMovablePoint.h"
 #include "Attack.h"
 #include "AttackPattern.h"
@@ -26,13 +28,19 @@ public:
 	*/
 	CopyPasteable(std::string id);
 
-	virtual std::shared_ptr<CopiedObject> copyFrom() = 0;
-	virtual void pasteInto(std::shared_ptr<CopiedObject> pastedObject) = 0;
+	/*
+	Returns the copied object and a string describing the operationr result.
+	*/
+	virtual std::pair<std::shared_ptr<CopiedObject>, std::string> copyFrom() = 0;
+	/*
+	Returns a string describing the operation result.
+	*/
+	virtual std::string pasteInto(std::shared_ptr<CopiedObject> pastedObject) = 0;
 	/*
 	Same thing as pasteInto(), but for if there needs to be some alternate
 	paste functionality.
 	*/
-	virtual void paste2Into(std::shared_ptr<CopiedObject> pastedObject) = 0;
+	virtual std::string paste2Into(std::shared_ptr<CopiedObject> pastedObject) = 0;
 
 	std::string getID();
 
@@ -42,6 +50,7 @@ private:
 
 class Clipboard {
 public:
+	Clipboard();
 
 	void copy(std::shared_ptr<CopyPasteable> source);
 	void paste(std::shared_ptr<CopyPasteable> target);
@@ -56,8 +65,16 @@ public:
 
 	void clear();
 
+	std::shared_ptr<entt::SigH<void(std::string)>> getOnCopy();
+	std::shared_ptr<entt::SigH<void(std::string)>> getOnPaste();
+
 private:
 	std::shared_ptr<CopiedObject> copied;
+
+	// 1 parameter: the message to be displayed to the user explaining the copy operation result
+	std::shared_ptr<entt::SigH<void(std::string)>> onCopy;
+	// 1 parameter: the message to be displayed to the user explaining the paste/paste2 operation result
+	std::shared_ptr<entt::SigH<void(std::string)>> onPaste;
 };
 
 class CopiedEditorMovablePoint : public CopiedObject {

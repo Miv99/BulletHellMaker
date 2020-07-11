@@ -9,16 +9,16 @@ EditorMovablePointActionsListView::EditorMovablePointActionsListView(EMPABasedMo
 	getListView()->setMultiSelect(true);
 }
 
-std::shared_ptr<CopiedObject> EditorMovablePointActionsListView::copyFrom() {
+std::pair<std::shared_ptr<CopiedObject>, std::string> EditorMovablePointActionsListView::copyFrom() {
 	return empaBasedMovementEditorPanel.manualCopy();
 }
 
-void EditorMovablePointActionsListView::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
-	empaBasedMovementEditorPanel.manualPaste(pastedObject);
+std::string EditorMovablePointActionsListView::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+	return empaBasedMovementEditorPanel.manualPaste(pastedObject);
 }
 
-void EditorMovablePointActionsListView::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
-	empaBasedMovementEditorPanel.manualPaste2(pastedObject);
+std::string EditorMovablePointActionsListView::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+	return empaBasedMovementEditorPanel.manualPaste2(pastedObject);
 }
 
 bool EditorMovablePointActionsListView::handleEvent(sf::Event event) {
@@ -407,7 +407,7 @@ void EMPABasedMovementEditorPanel::manualDelete() {
 	}));
 }
 
-std::shared_ptr<CopiedObject> EMPABasedMovementEditorPanel::manualCopy() {
+std::pair<std::shared_ptr<CopiedObject>, std::string> EMPABasedMovementEditorPanel::manualCopy() {
 	auto selected = visualizer->getEmpasListView()->getListView()->getSelectedItemIndices();
 	if (selected.size() > 0) {
 		std::vector<std::shared_ptr<EMPAction>> copied;
@@ -415,12 +415,18 @@ std::shared_ptr<CopiedObject> EMPABasedMovementEditorPanel::manualCopy() {
 			// No need to clone here because CopiedEMPActions's constructor will clone it
 			copied.push_back(actions[index]);
 		}
-		return std::make_shared<CopiedEMPActions>(visualizer->getEmpasListView()->getID(), copied);
+		std::string copyMessage;
+		if (selected.size() == 1) {
+			copyMessage = "Copied 1 movable point action";
+		} else {
+			copyMessage = "Copied " + std::to_string(selected.size()) + " movable point actions";
+		}
+		return std::make_pair(std::make_shared<CopiedEMPActions>(visualizer->getEmpasListView()->getID(), copied), copyMessage);
 	}
-	return nullptr;
+	return std::make_pair(nullptr, "");
 }
 
-void EMPABasedMovementEditorPanel::manualPaste(std::shared_ptr<CopiedObject> pastedObject) {
+std::string EMPABasedMovementEditorPanel::manualPaste(std::shared_ptr<CopiedObject> pastedObject) {
 	// Can just modify the code for manualDelete() a bit
 
 	auto derived = std::static_pointer_cast<CopiedEMPActions>(pastedObject);
@@ -520,10 +526,17 @@ void EMPABasedMovementEditorPanel::manualPaste(std::shared_ptr<CopiedObject> pas
 			updateEMPAList();
 			onEMPAListModify.emit(this, cloneActions(), sumOfDurations);
 		}));
+
+		if (numPasted == 1) {
+			return "Pasted 1 movable point action";
+		} else {
+			return "Pasted " + std::to_string(numPasted) + " movable point actions";
+		}
 	}
+	return "";
 }
 
-void EMPABasedMovementEditorPanel::manualPaste2(std::shared_ptr<CopiedObject> pastedObject) {
+std::string EMPABasedMovementEditorPanel::manualPaste2(std::shared_ptr<CopiedObject> pastedObject) {
 	std::set<size_t> selectedIndices = visualizer->getEmpasListView()->getListView()->getSelectedItemIndices();
 	auto derived = std::static_pointer_cast<CopiedEMPActions>(pastedObject);
 	if (selectedIndices.size() > 0 && derived) {
@@ -533,9 +546,22 @@ void EMPABasedMovementEditorPanel::manualPaste2(std::shared_ptr<CopiedObject> pa
 			parentWindow.promptConfirmation("Overwrite the selected action(s) with the copied action(s)? This will reload their tabs if they are currently open.", copiedEMPAs)->sink()
 				.connect<EMPABasedMovementEditorPanel, &EMPABasedMovementEditorPanel::onPasteIntoConfirmation>(this);
 		} else {
-			// TODO: small noninteractable popup in MainEditorWindow about size mismatch
+			std::string s1;
+			if (copiedEMPAs.size() == 1) {
+				s1 = "1 movable point action was";
+			} else {
+				s1 = std::to_string(copiedEMPAs.size()) + " movable point actions were";
+			}
+			std::string s2;
+			if (selectedIndices.size() == 1) {
+				s2 = "only 1 is";
+			} else {
+				s2 = std::to_string(selectedIndices.size()) + " are";
+			}
+			return "Size mismatch. " + s1 + " copied but " + s2 + " selected";
 		}
 	}
+	return "";
 }
 
 void EMPABasedMovementEditorPanel::manualOpenEMPA(int index) {

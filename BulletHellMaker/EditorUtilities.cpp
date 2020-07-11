@@ -1237,23 +1237,26 @@ a start time of t=0."));
 	deselectSegment();
 }
 
-std::shared_ptr<CopiedObject> TFVGroup::copyFrom() {
+std::pair<std::shared_ptr<CopiedObject>, std::string> TFVGroup::copyFrom() {
 	if (selectedSegment) {
 		float startTime = tfv->getSegment(selectedSegmentIndex).first;
-		return std::make_shared<CopiedPiecewiseTFVSegment>(getID(), std::make_pair(startTime, selectedSegment));
+		return std::make_pair(std::make_shared<CopiedPiecewiseTFVSegment>(getID(), std::make_pair(startTime, selectedSegment)), "Copied 1 time-function variable segment");
 	}
-	return nullptr;
+	return std::make_pair(nullptr, "");
 }
 
-void TFVGroup::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+std::string TFVGroup::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
 	auto derived = std::static_pointer_cast<CopiedPiecewiseTFVSegment>(pastedObject);
 	if (derived) {
 		selectSegment(tfv->insertSegment(derived->getSegment(), tfvLifespan));
 		onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+
+		return "Pasted 1 time-function variable segment";
 	}
+	return "";
 }
 
-void TFVGroup::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+std::string TFVGroup::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 	auto derived = std::static_pointer_cast<CopiedPiecewiseTFVSegment>(pastedObject);
 	if (derived && selectedSegment) {
 		auto pasted = derived->getSegment();
@@ -1261,7 +1264,10 @@ void TFVGroup::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 		// Change segment start time second because it may change the segment's index
 		selectSegment(tfv->changeSegmentStartTime(selectedSegmentIndex, pasted.first, tfvLifespan));
 		onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+
+		return "Replaced 1 time-function variable segment";
 	}
+	return "";
 }
 
 bool TFVGroup::handleEvent(sf::Event event) {
@@ -3350,14 +3356,14 @@ void MarkerPlacer::addExtraColumnWidget(std::shared_ptr<tgui::Widget> widget, fl
 	bottomRightMostExtraWidget = widget;
 }
 
-std::shared_ptr<CopiedObject> MarkerPlacer::copyFrom() {
+std::pair<std::shared_ptr<CopiedObject>, std::string> MarkerPlacer::copyFrom() {
 	if (selectedMarkerIndex > 0) {
-		return std::make_shared<CopiedMarker>(getID(), markers[selectedMarkerIndex]);
+		return std::make_pair(std::make_shared<CopiedMarker>(getID(), markers[selectedMarkerIndex]), "Copied 1 marker");
 	}
-	return nullptr;
+	return std::make_pair(nullptr, "");
 }
 
-void MarkerPlacer::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+std::string MarkerPlacer::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
 	std::shared_ptr<CopiedMarker> derived = std::static_pointer_cast<CopiedMarker>(pastedObject);
 	if (derived) {
 		sf::CircleShape marker = derived->getMarker();
@@ -3374,10 +3380,13 @@ void MarkerPlacer::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
 			[this, marker, index]() {
 			removeMarker(index);
 		}));
+
+		return "Pasted 1 marker";
 	}
+	return "";
 }
 
-void MarkerPlacer::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+std::string MarkerPlacer::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 	std::shared_ptr<CopiedMarker> derived = std::static_pointer_cast<CopiedMarker>(pastedObject);
 	if (derived && selectedMarkerIndex != -1) {
 		sf::CircleShape marker = derived->getMarker();
@@ -3392,7 +3401,10 @@ void MarkerPlacer::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 			markers[index] = oldMarker;
 			updateMarkersListView();
 		}));
+
+		return "Replaced 1 marker";
 	}
+	return "";
 }
 
 void MarkerPlacer::draw(sf::RenderTarget & target, sf::RenderStates states) const {
@@ -3488,14 +3500,16 @@ BezierControlPointsPlacer::BezierControlPointsPlacer(sf::RenderWindow & parentWi
 	addExtraColumnWidget(evaluatorResult, GUI_PADDING_X);
 }
 
-void BezierControlPointsPlacer::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
-	MarkerPlacer::pasteInto(pastedObject);
+std::string BezierControlPointsPlacer::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+	std::string result = MarkerPlacer::pasteInto(pastedObject);
 	updatePath();
+	return result;
 }
 
-void BezierControlPointsPlacer::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
-	MarkerPlacer::paste2Into(pastedObject);
+std::string BezierControlPointsPlacer::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+	std::string result = MarkerPlacer::paste2Into(pastedObject);
 	updatePath();
+	return result;
 }
 
 void BezierControlPointsPlacer::draw(sf::RenderTarget & target, sf::RenderStates states) const {
@@ -3580,8 +3594,9 @@ SingleMarkerPlacer::SingleMarkerPlacer(sf::RenderWindow & parentWindow, Clipboar
 	setMarkers({ std::make_pair(sf::Vector2f(0, 0), sf::Color::Red) });
 }
 
-void SingleMarkerPlacer::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+std::string SingleMarkerPlacer::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
 	// Disable marker paste
+	return "";
 }
 
 void SingleMarkerPlacer::manualDelete() {
@@ -3602,4 +3617,32 @@ tgui::Signal & EditBox::getSignal(std::string signalName) {
 		return onValueChange;
 	}
 	return tgui::EditBox::getSignal(signalName);
+}
+
+TextNotification::TextNotification(float notificationLifespan) : notificationLifespan(notificationLifespan) {
+	label = tgui::Label::create();
+	label->setTextSize(TEXT_SIZE);
+	label->setPosition(GUI_PADDING_X, GUI_LABEL_PADDING_Y);
+	add(label);
+
+	setSize(tgui::bindWidth(label) + GUI_PADDING_X * 2, tgui::bindHeight(label) + GUI_LABEL_PADDING_Y * 2);
+}
+
+bool TextNotification::update(sf::Time delta) {
+	if (textVisible) {
+		timeUntilDisappear -= delta.asSeconds();
+		if (timeUntilDisappear <= 0) {
+			setVisible(false);
+			textVisible = false;
+			return true;
+		}
+	}
+	return false;
+}
+
+void TextNotification::setText(std::string text) {
+	label->setText(text);
+	textVisible = true;
+	timeUntilDisappear = notificationLifespan;
+	setVisible(true);
 }

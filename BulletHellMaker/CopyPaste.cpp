@@ -14,6 +14,11 @@ std::string CopiedObject::getCopiedFromID() {
 	return copiedFromID;
 }
 
+Clipboard::Clipboard() {
+	onCopy = std::make_shared<entt::SigH<void(std::string)>>();
+	onPaste = std::make_shared<entt::SigH<void(std::string)>>();
+}
+
 void Clipboard::copy(std::shared_ptr<CopyPasteable> source) {
 	copy(source.get());
 }
@@ -27,23 +32,41 @@ void Clipboard::paste2(std::shared_ptr<CopyPasteable> target) {
 }
 
 void Clipboard::copy(CopyPasteable * source) {
-	copied = source->copyFrom();
+	auto result = source->copyFrom();
+	copied = result.first;
+	if (result.second != "") {
+		onCopy->publish(result.second);
+	}
 }
 
 void Clipboard::paste(CopyPasteable * target) {
 	if (copied && copied->getCopiedFromID() == target->getID()) {
-		target->pasteInto(copied);
+		std::string result = target->pasteInto(copied);
+		if (result != "") {
+			onPaste->publish(result);
+		}
 	}
 }
 
 void Clipboard::paste2(CopyPasteable * target) {
 	if (copied && copied->getCopiedFromID() == target->getID()) {
-		target->paste2Into(copied);
+		std::string result = target->paste2Into(copied);
+		if (result != "") {
+			onPaste->publish(result);
+		}
 	}
 }
 
 void Clipboard::clear() {
 	copied = nullptr;
+}
+
+std::shared_ptr<entt::SigH<void(std::string)>> Clipboard::getOnCopy() {
+	return onCopy;
+}
+
+std::shared_ptr<entt::SigH<void(std::string)>> Clipboard::getOnPaste() {
+	return onPaste;
 }
 
 CopiedEditorMovablePoint::CopiedEditorMovablePoint(std::string copiedFromID, std::shared_ptr<EditorMovablePoint> emp) : CopiedObject(copiedFromID) {

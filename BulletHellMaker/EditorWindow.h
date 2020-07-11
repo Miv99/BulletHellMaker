@@ -201,6 +201,7 @@ private:
 class MainEditorWindow : public EditorWindow {
 public:
 	MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL);
+	~MainEditorWindow();
 	inline static std::shared_ptr<MainEditorWindow> create(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL) {
 		return std::make_shared<MainEditorWindow>(tguiMutex, windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval);
 	}
@@ -262,6 +263,8 @@ private:
 	std::shared_ptr<TabsWithPanel> mainPanel;
 	std::shared_ptr<TabsWithPanel> leftPanel;
 
+	std::shared_ptr<TextNotification> clipboardNotification;
+
 	// For copy-pasting
 	Clipboard clipboard;
 
@@ -279,6 +282,8 @@ private:
 	std::map<int, std::shared_ptr<LevelPackObject>> unsavedEnemyPhases;
 	std::map<int, std::shared_ptr<LevelPackObject>> unsavedBulletModels;
 	// ------------------------------------------------------------
+
+	void showClipboardResult(std::string notification);
 };
 
 template<class T>

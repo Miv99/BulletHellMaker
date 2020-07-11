@@ -525,9 +525,9 @@ public:
 		return std::make_shared<TFVGroup>(parentWindow, clipboard);
 	}
 
-	std::shared_ptr<CopiedObject> copyFrom() override;
-	void pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
-	void paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
+	std::pair<std::shared_ptr<CopiedObject>, std::string> copyFrom() override;
+	std::string pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
+	std::string paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
 
 	bool handleEvent(sf::Event event) override;
 
@@ -1038,9 +1038,9 @@ public:
 		return std::make_shared<MarkerPlacer>(parentWindow, clipboard, resolution, undoStackSize);
 	}
 
-	virtual std::shared_ptr<CopiedObject> copyFrom() override;
-	virtual void pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
-	virtual void paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
+	virtual std::pair<std::shared_ptr<CopiedObject>, std::string> copyFrom() override;
+	virtual std::string pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
+	virtual std::string paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
 
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 	bool update(sf::Time elapsedTime) override;
@@ -1197,8 +1197,8 @@ public:
 		return std::make_shared<BezierControlPointsPlacer>(parentWindow, clipboard, resolution, undoStackSize);
 	}
 
-	virtual void pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
-	virtual void paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
+	virtual std::string pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
+	virtual std::string paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
 
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
@@ -1243,19 +1243,31 @@ public:
 		return std::make_shared<SingleMarkerPlacer>(parentWindow, clipboard, resolution, undoStackSize);
 	}
 
-	void pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
+	std::string pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
 
 protected:
 	void manualDelete() override;
 };
 
 /*
-A widget used to display small notifications that automatically disappear.
+A panel that can display text for some time before becoming invisible.
+The size of this panel will scale to fit exactly the label, with some padding.
 */
-class NotificationsManager : public tgui::Widget {
+class TextNotification : public tgui::Panel {
 public:
-	
+	TextNotification(float notificationLifespan = 3.0f);
+	static std::shared_ptr<TextNotification> create(float notificationLifespan = 3.0f) {
+		return std::make_shared<TextNotification>(notificationLifespan);
+	}
+
+	bool update(sf::Time delta) override;
+
+	void setText(std::string text);
 
 private:
+	float notificationLifespan;
 
+	std::shared_ptr<tgui::Label> label;
+	float timeUntilDisappear;
+	bool textVisible = false;
 };

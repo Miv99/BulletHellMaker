@@ -401,6 +401,7 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 	leftPanel->setSize("20%", "100%");
 	leftPanel->setVisible(true);
 	leftPanel->setMoreTabsListAlignment(TabsWithPanel::MoreTabsListAlignment::Right);
+	gui->add(leftPanel);
 
 	{
 		// Attacks tab in left panel
@@ -518,7 +519,17 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 	mainPanel->setMoreTabsListAlignment(TabsWithPanel::MoreTabsListAlignment::Left);
 	gui->add(mainPanel);
 
-	gui->add(leftPanel);
+	clipboardNotification = TextNotification::create();
+	clipboardNotification->setPosition(0, tgui::bindBottom(leftPanel) - tgui::bindHeight(clipboardNotification));
+	gui->add(clipboardNotification);
+
+	clipboard.getOnCopy()->sink().connect<MainEditorWindow, &MainEditorWindow::showClipboardResult>(this);
+	clipboard.getOnPaste()->sink().connect<MainEditorWindow, &MainEditorWindow::showClipboardResult>(this);
+}
+
+MainEditorWindow::~MainEditorWindow() {
+	clipboard.getOnCopy()->sink().disconnect(this);
+	clipboard.getOnPaste()->sink().disconnect(this);
 }
 
 void MainEditorWindow::loadLevelPack(std::string levelPackName) {
@@ -603,6 +614,10 @@ bool MainEditorWindow::handleEvent(sf::Event event) {
 		return mainPanel->handleEvent(event);
 	}
 	return false;
+}
+
+void MainEditorWindow::showClipboardResult(std::string notification) {
+	clipboardNotification->setText(notification);
 }
 
 void MainEditorWindow::openLeftPanelAttack(int attackID) {

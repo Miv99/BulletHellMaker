@@ -10,7 +10,7 @@ CopyPasteable(copyPasteableID), levelPack(nullptr), mainEditorWindow(mainEditorW
 	getListView()->setMultiSelect(true);
 }
 
-std::shared_ptr<CopiedObject> LevelPackObjectsListView::copyFrom() {
+std::pair<std::shared_ptr<CopiedObject>, std::string> LevelPackObjectsListView::copyFrom() {
 	// Copy every selected object
 	std::set<size_t> selectedIndices = listView->getSelectedItemIndices();
 	if (selectedIndices.size() > 0) {
@@ -25,13 +25,20 @@ std::shared_ptr<CopiedObject> LevelPackObjectsListView::copyFrom() {
 				objs.push_back(getLevelPackObjectFromLevelPack(id));
 			}
 		}
-		return std::make_shared<CopiedLevelPackObject>(getID(), objs);
+
+		std::string copyMessage;
+		if (selectedIndices.size() == 1) {
+			copyMessage = "Copied 1 " + getLevelPackObjectDisplayName();
+		} else {
+			copyMessage = "Copied " + std::to_string(selectedIndices.size()) + " " + getLevelPackObjectDisplayName() + "s";
+		}
+		return std::make_pair(std::make_shared<CopiedLevelPackObject>(getID(), objs), "Copied " + std::to_string(selectedIndices.size()) + " " + getLevelPackObjectDisplayName() + "(s)");
 	}
-	return nullptr;
+	return std::make_pair(nullptr, "");
 }
 
 
-void LevelPackObjectsListView::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+std::string LevelPackObjectsListView::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
 	// Create some new LevelPackObjects as clones of the copied LevelPackObjects
 
 	auto derived = std::static_pointer_cast<CopiedLevelPackObject>(pastedObject);
@@ -66,10 +73,17 @@ void LevelPackObjectsListView::pasteInto(std::shared_ptr<CopiedObject> pastedObj
 		if (derived->getLevelPackObjectsCount() == 1) {
 			openLevelPackObjectInMainEditorWindow(*newObjIDs.begin());
 		}
+
+		if (derived->getLevelPackObjectsCount() == 1) {
+			return "Pasted 1 " + getLevelPackObjectDisplayName();
+		} else {
+			return "Pasted " + std::to_string(derived->getLevelPackObjectsCount()) + " " + getLevelPackObjectDisplayName() + "s";
+		}
 	}
+	return "";
 }
 
-void LevelPackObjectsListView::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+std::string LevelPackObjectsListView::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 	// Paste the new LevelPackObjects such that they overwrite the selected LevelPackObjects
 
 	std::set<size_t> selectedIndices = listView->getSelectedItemIndices();
@@ -95,9 +109,22 @@ void LevelPackObjectsListView::paste2Into(std::shared_ptr<CopiedObject> pastedOb
 			mainEditorWindow.promptConfirmation(getPasteIntoConfirmationPrompt(), newObjects)->sink()
 				.connect<LevelPackObjectsListView, &LevelPackObjectsListView::onPasteIntoConfirmation>(this);
 		} else {
-			// TODO: small noninteractable popup in MainEditorWindow about size mismatch
+			std::string s1;
+			if (copiedObjs.size() == 1) {
+				s1 = "1 " + getLevelPackObjectDisplayName() + " was";
+			} else {
+				s1 = std::to_string(copiedObjs.size()) + " " + getLevelPackObjectDisplayName() + "s were";
+			}
+			std::string s2;
+			if (selectedIndices.size() == 1) {
+				s2 = "only 1 is";
+			} else {
+				s2 = std::to_string(selectedIndices.size()) + " are";
+			}
+			return "Size mismatch. " + s1 + " copied but " + s2 + " selected";
 		}
 	}
+	return "";
 }
 
 bool LevelPackObjectsListView::handleEvent(sf::Event event) {
@@ -334,6 +361,10 @@ std::string AttacksListView::getDeleteLevelPackObjectsInUseConfirmationPrompt() 
 
 bool AttacksListView::getLevelPackObjectIsInUse(int id) {
 	return levelPack->getAttackUsers(id).size() != 0;
+}
+
+std::string AttacksListView::getLevelPackObjectDisplayName() {
+	return "attack";
 }
 
 void AttacksListView::onPasteIntoConfirmation(bool confirmed, std::vector<std::shared_ptr<LevelPackObject>> newObjects) {

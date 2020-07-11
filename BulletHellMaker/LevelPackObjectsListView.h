@@ -20,9 +20,9 @@ public:
 	*/
 	LevelPackObjectsListView(std::string copyPasteableID, MainEditorWindow& mainEditorWindow, Clipboard& clipboard, int undoStackSize = 50);
 
-	std::shared_ptr<CopiedObject> copyFrom() override;
-	void pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
-	void paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
+	std::pair<std::shared_ptr<CopiedObject>, std::string> copyFrom() override;
+	std::string pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
+	std::string paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
 
 	bool handleEvent(sf::Event event) override;
 
@@ -104,6 +104,8 @@ protected:
 	virtual void openLevelPackObjectInMainEditorWindow(int id) = 0;
 	virtual void reloadLevelPackObjectTabInMainEditorWindow(int id) = 0;
 	virtual bool getLevelPackObjectIsInUse(int id) = 0;
+	// Should be in lowercase
+	virtual std::string getLevelPackObjectDisplayName() = 0;
 
 	virtual std::string getPasteIntoConfirmationPrompt() = 0;
 	virtual std::string getDeleteLevelPackObjectsInUseConfirmationPrompt() = 0;
@@ -148,6 +150,7 @@ protected:
 	std::string getPasteIntoConfirmationPrompt() override;
 	std::string getDeleteLevelPackObjectsInUseConfirmationPrompt() override;
 	bool getLevelPackObjectIsInUse(int id) override;
+	std::string getLevelPackObjectDisplayName() override;
 
 	void onPasteIntoConfirmation(bool confirmed, std::vector<std::shared_ptr<LevelPackObject>> newObjects) override;
 };

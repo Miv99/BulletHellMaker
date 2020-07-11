@@ -33,9 +33,9 @@ public:
 		return std::make_shared<EditorMovablePointPanel>(mainEditorWindow, levelPack, spriteLoader, clipboard, emp, undoStackSize);
 	}
 
-	std::shared_ptr<CopiedObject> copyFrom() override;
-	void pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
-	void paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
+	std::pair<std::shared_ptr<CopiedObject>, std::string> copyFrom() override;
+	std::string pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
+	std::string paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
 
 	bool handleEvent(sf::Event event) override;
 

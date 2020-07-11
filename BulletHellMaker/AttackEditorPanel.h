@@ -32,9 +32,9 @@ public:
 		return std::make_shared<AttackEditorPropertiesPanel>(mainEditorWindow, clipboard, attack, undoStackSize);
 	}
 
-	std::shared_ptr<CopiedObject> copyFrom() override;
-	void pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
-	void paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
+	std::pair<std::shared_ptr<CopiedObject>, std::string> copyFrom() override;
+	std::string pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
+	std::string paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
 
 	bool handleEvent(sf::Event event) override;
 
@@ -214,9 +214,9 @@ public:
 		return std::make_shared<EditorMovablePointTreePanel>(parentAttackEditorPanel, clipboard, attack, undoStackSize);
 	}
 
-	std::shared_ptr<CopiedObject> copyFrom() override;
-	void pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
-	void paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
+	std::pair<std::shared_ptr<CopiedObject>, std::string> copyFrom() override;
+	std::string pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
+	std::string paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
 
 	bool handleEvent(sf::Event event) override;
 
