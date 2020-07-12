@@ -318,7 +318,7 @@ void CreateMovementReferenceEntityCommand::execute(EntityCreationQueue& queue) {
 			auto reference = registry.create();
 			registry.assign<SimpleEMPReferenceComponent>(reference);
 			registry.assign<PositionComponent>(reference, lastPosX, lastPosY);
-			registry.assign<MovementPathComponent>(reference, queue, reference, registry, baseReference, std::make_shared<EntityAttachedEMPSpawn>("0", std::to_string(lastPosX - brLastPos.getX()), std::to_string(lastPosY - brLastPos.getY())), std::vector<std::shared_ptr<EMPAction>>(), timeLag);
+			registry.assign<MovementPathComponent>(reference, queue, reference, registry, baseReference, std::make_shared<EntityAttachedEMPSpawn>(0, lastPosX - brLastPos.getX(), lastPosY - brLastPos.getY()), std::vector<std::shared_ptr<EMPAction>>(), timeLag);
 			// Reference despawns when the entity executing this action despawns
 			registry.assign<DespawnComponent>(reference, registry, entity, reference);
 
@@ -331,7 +331,7 @@ void CreateMovementReferenceEntityCommand::execute(EntityCreationQueue& queue) {
 		auto reference = registry.create();
 		registry.assign<SimpleEMPReferenceComponent>(reference);
 		registry.assign<PositionComponent>(reference, lastPosX, lastPosY);
-		registry.assign<MovementPathComponent>(reference, queue, reference, registry, reference, std::make_shared<SpecificGlobalEMPSpawn>("0", std::to_string(lastPosX), std::to_string(lastPosY)), std::vector<std::shared_ptr<EMPAction>>(), timeLag);
+		registry.assign<MovementPathComponent>(reference, queue, reference, registry, reference, std::make_shared<SpecificGlobalEMPSpawn>(0, lastPosX, lastPosY), std::vector<std::shared_ptr<EMPAction>>(), timeLag);
 		// Reference despawns when the entity executing this action despawns
 		registry.assign<DespawnComponent>(reference, registry, entity, reference);
 
@@ -352,9 +352,9 @@ SpawnEnemyCommand::SpawnEnemyCommand(entt::DefaultRegistry & registry, SpriteLoa
 
 void SpawnEnemyCommand::execute(EntityCreationQueue & queue) {
 	auto enemy = registry.create();
-	registry.assign<PositionComponent>(enemy, spawnInfo->getX(), spawnInfo->getY());
+	auto& test = registry.assign<PositionComponent>(enemy, spawnInfo->getX(), spawnInfo->getY());
 	// EMPActions vector empty because it will be populated in EnemySystem when the enemy begins a phase
-	registry.assign<MovementPathComponent>(enemy, queue, enemy, registry, enemy, std::make_shared<SpecificGlobalEMPSpawn>("0", std::to_string(spawnInfo->getX()), std::to_string(spawnInfo->getY())), std::vector<std::shared_ptr<EMPAction>>(), 0);
+	registry.assign<MovementPathComponent>(enemy, queue, enemy, registry, enemy, std::make_shared<SpecificGlobalEMPSpawn>(0, spawnInfo->getX(), spawnInfo->getY()), std::vector<std::shared_ptr<EMPAction>>(), 0);
 	registry.assign<HealthComponent>(enemy, enemyInfo->getHealth(), enemyInfo->getHealth());
 	if (enemyInfo->getDespawnTime() > 0) {
 		registry.assign<DespawnComponent>(enemy, enemyInfo->getDespawnTime());
@@ -421,7 +421,7 @@ void EMPDropItemCommand::execute(EntityCreationQueue & queue) {
 		std::shared_ptr<TFV> dropDistance = std::make_shared<DampenedStartTFV>(0, MAP_HEIGHT + 250 + sprite.getSprite()->getOrigin().y, ITEM_DESPAWN_TIME - explosionTime, 10);
 		std::shared_ptr<TFV> dropAngle = std::make_shared<ConstantTFV>(3.0f * PI/2.0f);
 		actions.push_back(std::make_shared<MoveCustomPolarEMPA>(dropDistance, dropAngle, ITEM_DESPAWN_TIME));
-		registry.assign<MovementPathComponent>(itemEntity, queue, itemEntity, registry, NULL, std::make_shared<SpecificGlobalEMPSpawn>("0", std::to_string(x), std::to_string(y)), actions, 0);
+		registry.assign<MovementPathComponent>(itemEntity, queue, itemEntity, registry, NULL, std::make_shared<SpecificGlobalEMPSpawn>(0, x, y), actions, 0);
 	}
 }
 
@@ -455,7 +455,7 @@ void ParticleExplosionCommand::execute(EntityCreationQueue & queue) {
 		sprite.getSprite()->setColor(color);
 
 		std::vector<std::shared_ptr<EMPAction>> path = { std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, distance(eng), particleLifespan), std::make_shared<ConstantTFV>(angle(eng)), particleLifespan) };
-		registry.assign<MovementPathComponent>(particle, queue, particle, registry, particle, std::make_shared<SpecificGlobalEMPSpawn>("0", std::to_string(sourceX), std::to_string(sourceY)), path, 0);
+		registry.assign<MovementPathComponent>(particle, queue, particle, registry, particle, std::make_shared<SpecificGlobalEMPSpawn>(0, sourceX, sourceY), path, 0);
 
 		if (effect == ParticleExplosionDeathAction::PARTICLE_EFFECT::NONE) {
 			// Do nothing
