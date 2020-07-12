@@ -229,6 +229,8 @@ void EditorMovablePoint::compileExpressions(std::vector<exprtk::symbol_table<flo
 	COMPILE_EXPRESSION_FOR_INT(damage)
 	COMPILE_EXPRESSION_FOR_FLOAT(pierceResetTime)
 
+	spawnType->compileExpressions(symbolTables);
+
 	for (auto action : actions) {
 		action->compileExpressions(symbolTables);
 	}

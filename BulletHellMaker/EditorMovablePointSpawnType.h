@@ -22,13 +22,22 @@ struct MPSpawnInformation {
 /*
 Spawn type for an EMP.
 */
-class EMPSpawnType : public TextMarshallable {
+class EMPSpawnType : public LevelPackObject {
 public:
 	inline EMPSpawnType() {}
 	inline EMPSpawnType(std::string time, std::string x, std::string y) : time(time), x(x), y(y) {}
+	/*
+	This constructor should only be used during gameplay to avoid having to compile expressions for temporary objects.
+	*/
+	inline EMPSpawnType(float time, float x, float y) : timeExprCompiledValue(time), xExprCompiledValue(x), yExprCompiledValue(y) {}
 
-	std::string format() const = 0;
-	void load(std::string formattedString) = 0;
+	virtual std::shared_ptr<LevelPackObject> clone() const = 0;
+
+	virtual std::string format() const = 0;
+	virtual void load(std::string formattedString) = 0;
+
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
 	/*
 	entity - the entity spawning the EMP
@@ -71,6 +80,12 @@ class SpecificGlobalEMPSpawn : public EMPSpawnType {
 public:
 	inline SpecificGlobalEMPSpawn() {}
 	inline SpecificGlobalEMPSpawn(std::string time, std::string x, std::string y) : EMPSpawnType(time, x, y) {}
+	/*
+	This constructor should only be used during gameplay to avoid having to compile expressions for temporary objects.
+	*/
+	inline SpecificGlobalEMPSpawn(float time, float x, float y) : EMPSpawnType(time, x, y) {}
+
+	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
@@ -86,6 +101,12 @@ class EntityRelativeEMPSpawn : public EMPSpawnType {
 public:
 	inline EntityRelativeEMPSpawn() {}
 	inline EntityRelativeEMPSpawn(std::string time, std::string x, std::string y) : EMPSpawnType(time, x, y) {}
+	/*
+	This constructor should only be used during gameplay to avoid having to compile expressions for temporary objects.
+	*/
+	inline EntityRelativeEMPSpawn(float time, float x, float y) : EMPSpawnType(time, x, y) {}
+
+	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
@@ -105,6 +126,12 @@ class EntityAttachedEMPSpawn : public EMPSpawnType {
 public:
 	inline EntityAttachedEMPSpawn() {}
 	inline EntityAttachedEMPSpawn(std::string time, std::string x, std::string y) : EMPSpawnType(time, x, y) {}
+	/*
+	This constructor should only be used during gameplay to avoid having to compile expressions for temporary objects.
+	*/
+	inline EntityAttachedEMPSpawn(float time, float x, float y) : EMPSpawnType(time, x, y) {}
+
+	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
 	void load(std::string formattedString) override;

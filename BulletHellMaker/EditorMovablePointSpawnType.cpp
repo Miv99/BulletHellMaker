@@ -1,5 +1,11 @@
 #include "EditorMovablePointSpawnType.h"
 
+std::shared_ptr<LevelPackObject> SpecificGlobalEMPSpawn::clone() const {
+	auto clone = std::make_shared<SpecificGlobalEMPSpawn>();
+	clone->load(format());
+	return clone;
+}
+
 std::string SpecificGlobalEMPSpawn::format() const {
 	return formatString("SpecificGlobalEMPSpawn") + formatString(x) + formatString(y) + formatString(time);
 }
@@ -17,6 +23,12 @@ MPSpawnInformation SpecificGlobalEMPSpawn::getSpawnInfo(entt::DefaultRegistry & 
 
 MPSpawnInformation SpecificGlobalEMPSpawn::getForcedDetachmentSpawnInfo(entt::DefaultRegistry & registry, float timeLag) {
 	return MPSpawnInformation{ false, NULL, sf::Vector2f(xExprCompiledValue, yExprCompiledValue) };
+}
+
+std::shared_ptr<LevelPackObject> EntityRelativeEMPSpawn::clone() const {
+	auto clone = std::make_shared<EntityRelativeEMPSpawn>();
+	clone->load(format());
+	return clone;
 }
 
 std::string EntityRelativeEMPSpawn::format() const {
@@ -49,6 +61,12 @@ MPSpawnInformation EntityRelativeEMPSpawn::getSpawnInfo(entt::DefaultRegistry & 
 
 MPSpawnInformation EntityRelativeEMPSpawn::getForcedDetachmentSpawnInfo(entt::DefaultRegistry & registry, float timeLag) {
 	return MPSpawnInformation{ false, NULL, sf::Vector2f(xExprCompiledValue, yExprCompiledValue) };
+}
+
+std::shared_ptr<LevelPackObject> EntityAttachedEMPSpawn::clone() const {
+	auto clone = std::make_shared<EntityAttachedEMPSpawn>();
+	clone->load(format());
+	return clone;
 }
 
 std::string EntityAttachedEMPSpawn::format() const {
@@ -95,4 +113,23 @@ std::shared_ptr<EMPSpawnType> EMPSpawnTypeFactory::create(std::string formattedS
 
 bool EMPSpawnType::operator==(const EMPSpawnType& other) const {
 	return time == other.time && x == other.x && y == other.y;
+}
+
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EMPSpawnType::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
+	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
+	std::vector<std::string> messages;
+
+	DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK
+	LEGAL_CHECK_EXPRESSION(time, time)
+	LEGAL_CHECK_EXPRESSION(x, x)
+	LEGAL_CHECK_EXPRESSION(y, y)
+
+	return std::make_pair(status, messages);
+}
+
+void EMPSpawnType::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
+	DEFINE_PARSER_AND_EXPR_FOR_COMPILE
+	COMPILE_EXPRESSION_FOR_FLOAT(time)
+	COMPILE_EXPRESSION_FOR_FLOAT(x)
+	COMPILE_EXPRESSION_FOR_FLOAT(y)
 }
