@@ -382,6 +382,9 @@ bool EditorWindow::handleEvent(sf::Event event) {
 	}
 }
 
+void EditorWindow::onRenderWindowInitialization() {
+}
+
 void EditorWindow::closeConfirmationPanel() {
 	gui->remove(confirmationPanel);
 	confirmationPanelOpen = false;
@@ -530,6 +533,7 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 MainEditorWindow::~MainEditorWindow() {
 	clipboard.getOnCopy()->sink().disconnect(this);
 	clipboard.getOnPaste()->sink().disconnect(this);
+	previewWindow->close();
 }
 
 void MainEditorWindow::loadLevelPack(std::string levelPackName) {
@@ -541,6 +545,11 @@ void MainEditorWindow::loadLevelPack(std::string levelPackName) {
 	attacksListPanel->setLevelPack(levelPack.get());
 	attacksListView->setLevelPack(levelPack.get());
 	attacksListView->reload();
+
+	// TODO: window size from settings
+	previewWindow = std::make_shared<LevelPackObjectPreviewWindow>(tguiMutex, "Preview", 1024, 768, levelPack, spriteLoader);
+	boost::thread previewWindowThread = boost::thread(&LevelPackObjectPreviewWindow::start, &(*previewWindow));
+	previewWindowThread.detach();
 }
 
 void MainEditorWindow::overwriteAttacks(std::vector<std::shared_ptr<EditorAttack>> attacks, UndoStack* undoStack) {
@@ -743,4 +752,33 @@ void MainEditorWindow::createAttack() {
 		levelPack->deleteAttack(id);
 		attacksListView->reload();
 	}));
+}
+
+LevelPackObjectPreviewWindow::LevelPackObjectPreviewWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, std::shared_ptr<LevelPack> levelPack, std::shared_ptr<SpriteLoader> spriteLoader, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval)
+	: EditorWindow(tguiMutex, windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval), levelPack(levelPack), spriteLoader(spriteLoader) {
+}
+
+std::shared_ptr<LevelPackObjectPreviewPanel> LevelPackObjectPreviewWindow::getPreviewPanel() {
+	return previewPanel;
+}
+
+void LevelPackObjectPreviewWindow::onRenderWindowInitialization() {
+	previewPanel = LevelPackObjectPreviewPanel::create(*getWindow(), levelPack, spriteLoader);
+	previewPanel->setSize("100%", "100%");
+	gui->add(previewPanel);
+
+	previewPanel->loadLevel(0); //TODO: remove this
+	previewPanel->unpause();
+}
+
+void LevelPackObjectPreviewWindow::physicsUpdate(float deltaTime) {
+	EditorWindow::physicsUpdate(deltaTime);
+
+	previewPanel->physicsUpdate(deltaTime);
+}
+
+void LevelPackObjectPreviewWindow::render(float deltaTime) {
+	EditorWindow::render(deltaTime);
+
+	previewPanel->renderUpdate(deltaTime);
 }

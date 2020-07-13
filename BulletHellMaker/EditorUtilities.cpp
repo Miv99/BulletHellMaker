@@ -7,6 +7,7 @@
 #include <algorithm>
 #include "Level.h"
 #include "matplotlibcpp.h"
+#include "boost/thread.hpp"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -1899,33 +1900,6 @@ void SimpleEngineRenderer::updateWindowView() {
 	viewFromViewController.setViewport(viewportFloatRect);
 }
 
-void SimpleEngineRenderer::draw(sf::RenderTarget & target, sf::RenderStates states) const {
-	tgui::Panel::draw(target, states);
-
-	sf::Clock deltaClock;
-	float secondsSinceLastRender = 0;
-	while (secondsSinceLastRender < RENDER_INTERVAL) {
-		float dt = std::min(MAX_PHYSICS_DELTA_TIME, deltaClock.restart().asSeconds());
-		physicsUpdate(dt);
-		secondsSinceLastRender += dt;
-	}
-
-	// Viewport is set here because tgui::Gui's draw function changes it right before renderSystem is updated or something
-	sf::View originalView = parentWindow.getView();
-	if (viewController) {
-		parentWindow.setView(viewFromViewController);
-	} else {
-		sf::View view(viewFloatRect);
-		view.setViewport(viewportFloatRect);
-		parentWindow.setView(view);
-	}
-	if (!paused) {
-		spriteAnimationSystem->update(secondsSinceLastRender);
-	}
-	renderSystem->update(secondsSinceLastRender);
-	parentWindow.setView(originalView);
-}
-
 bool SimpleEngineRenderer::update(sf::Time elapsedTime) {
 	bool ret = tgui::Panel::update(elapsedTime);
 
@@ -1965,8 +1939,9 @@ void SimpleEngineRenderer::loadLevelPack(std::string name) {
 	updateWindowView();
 }
 
-void SimpleEngineRenderer::loadLevelPack(std::shared_ptr<LevelPack> levelPack) {
+void SimpleEngineRenderer::loadLevelPack(std::shared_ptr<LevelPack> levelPack, std::shared_ptr<SpriteLoader> spriteLoader) {
 	this->levelPack = levelPack;
+	this->spriteLoader = spriteLoader;
 	registry.reset();
 
 	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
@@ -2010,7 +1985,7 @@ void SimpleEngineRenderer::loadLevel(std::shared_ptr<Level> level) {
 	auto& levelManagerTag = registry.assign<LevelManagerTag>(entt::tag_t{}, levelManager, &(*levelPack), level);
 
 	// Create the player
-	auto params = levelPack->getPlayer();
+	auto params = levelPack->getGameplayPlayer();
 	registry.reserve(1);
 	registry.reserve<PlayerTag>(1);
 	registry.reserve<AnimatableSetComponent>(1);
@@ -2082,6 +2057,23 @@ void SimpleEngineRenderer::physicsUpdate(float deltaTime) const {
 		enemySystem->update(deltaTime);
 		queue->executeAll();
 	}
+}
+
+void SimpleEngineRenderer::renderUpdate(float deltaTime) const {
+	// Viewport is set here because tgui::Gui's draw function changes it right before renderSystem is updated or something
+	sf::View originalView = parentWindow.getView();
+	if (viewController) {
+		parentWindow.setView(viewFromViewController);
+	} else {
+		sf::View view(viewFloatRect);
+		view.setViewport(viewportFloatRect);
+		parentWindow.setView(view);
+	}
+	if (!paused) {
+		spriteAnimationSystem->update(deltaTime);
+	}
+	renderSystem->update(deltaTime);
+	parentWindow.setView(originalView);
 }
 
 TabsWithPanel::TabsWithPanel(EditorWindow& parentWindow) : parentWindow(parentWindow) {	

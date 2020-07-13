@@ -18,6 +18,7 @@
 #include "AudioPlayer.h"
 #include "LevelPackObjectsListView.h"
 #include "CopyPaste.h"
+#include "LevelPackObjectPreviewPanel.h"
 #include <map>
 #include <memory>
 #include <string>
@@ -27,9 +28,11 @@
 #include <SFML/Graphics.hpp>
 #include <TGUI/TGUI.hpp>
 #include <entt/entt.hpp>
+#include <boost/thread.hpp>
 
 class AttackEditorPanel;
 class LevelPackObjectsListPanel;
+class LevelPackObjectPreviewWindow;
 
 /*
 If the underlying RenderWindow is closed, one only needs to call start() or startAndHide() again to reopen the RenderWindow.
@@ -129,6 +132,11 @@ protected:
 	std::shared_ptr<sf::RenderWindow> window;
 	std::shared_ptr<tgui::Gui> gui;
 
+	// Mutex used to make sure multiple tgui widgets aren't being instantiated at the same time in different threads.
+	// tgui::Gui draw() calls also can't be done at the same time.
+	// Apparently tgui gets super messed up with multithreading.
+	std::shared_ptr<std::recursive_mutex> tguiMutex;
+
 	// The last known position of the mouse
 	sf::Vector2f mousePos = sf::Vector2f(0, 0);
 	// The position of the mouse at the last mouse press
@@ -144,7 +152,7 @@ protected:
 	/*
 	Called when the RenderWindow window is initialized.
 	*/
-	inline virtual void onRenderWindowInitialization() {}
+	virtual void onRenderWindowInitialization();
 
 private:
 	const float GUI_PADDING_X = 20;
@@ -177,11 +185,6 @@ private:
 
 	bool letterboxingEnabled;
 	bool scaleWidgetsOnResize;
-
-	// Mutex used to make sure multiple tgui widgets aren't being instantiated at the same time in different threads.
-	// tgui::Gui draw() calls also can't be done at the same time.
-	// Apparently tgui gets super messed up with multithreading.
-	std::shared_ptr<std::recursive_mutex> tguiMutex;
 	
 	float renderInterval;
 	// Signal that's emitted every time a render call is made
@@ -283,6 +286,8 @@ private:
 	std::map<int, std::shared_ptr<LevelPackObject>> unsavedBulletModels;
 	// ------------------------------------------------------------
 
+	std::shared_ptr<LevelPackObjectPreviewWindow> previewWindow;
+
 	void showClipboardResult(std::string notification);
 };
 
@@ -321,3 +326,25 @@ inline std::shared_ptr<entt::SigH<void(bool, T)>> EditorWindow::promptConfirmati
 
 	return confirmationSignal;
 }
+
+/*
+Window used to show a LevelPackObjectPreviewPanel.
+
+It's required to have a dedicated window for LevelPackObjectPreviewPanel because SFML requires that  
+*/
+class LevelPackObjectPreviewWindow : public EditorWindow {
+public:
+	LevelPackObjectPreviewWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, std::shared_ptr<LevelPack> levelPack, std::shared_ptr<SpriteLoader> spriteLoader, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL);
+
+	std::shared_ptr<LevelPackObjectPreviewPanel> getPreviewPanel();
+
+private:
+	std::shared_ptr<LevelPackObjectPreviewPanel> previewPanel;
+	std::shared_ptr<LevelPack> levelPack;
+	std::shared_ptr<SpriteLoader> spriteLoader;
+
+	void onRenderWindowInitialization() override;
+
+	void physicsUpdate(float deltaTime) override;
+	void render(float deltaTime) override;
+};

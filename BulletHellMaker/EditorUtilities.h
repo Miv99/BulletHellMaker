@@ -650,6 +650,13 @@ private:
 /*
 A panel that can load Levels and play them while rendering it either normally or in debug mode.
 A LevelPack must be loaded before anything can be done.
+
+Paused upon construction.
+
+start() or startAsync() must be called to begin the main loop, then unpause() to unpause the systems.
+
+Note that SFML requires the underlying RenderWindow to be created in the same thread as the
+render calls, so something like LevelPackObjectPreviewWindow must be used specifically for this widget.
 */
 class SimpleEngineRenderer : public tgui::Panel, public EventCapturable {
 public:
@@ -658,19 +665,21 @@ public:
 		return std::make_shared<SimpleEngineRenderer>(parentWindow);
 	}
 
-	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 	bool update(sf::Time elapsedTime) override;
 
 	bool handleEvent(sf::Event event) override;
 
 	void loadLevelPack(std::string name);
-	void loadLevelPack(std::shared_ptr<LevelPack> levelPack);
+	void loadLevelPack(std::shared_ptr<LevelPack> levelPack, std::shared_ptr<SpriteLoader> spriteLoader);
 
 	void loadLevel(int levelIndex);
 	void loadLevel(std::shared_ptr<Level> level);
 
 	void pause();
 	void unpause();
+
+	void physicsUpdate(float deltaTime) const;
+	void renderUpdate(float deltaTime) const;
 
 protected:
 	std::shared_ptr<LevelPack> levelPack;
@@ -692,7 +701,7 @@ private:
 
 	bool paused;
 
-	std::unique_ptr<SpriteLoader> spriteLoader;
+	std::shared_ptr<SpriteLoader> spriteLoader;
 	std::unique_ptr<EntityCreationQueue> queue;
 
 	sf::FloatRect viewportFloatRect, viewFloatRect;
@@ -703,7 +712,6 @@ private:
 	std::unique_ptr<ViewController> viewController;
 	sf::View viewFromViewController;
 
-	void physicsUpdate(float deltaTime) const;
 	void updateWindowView();
 };
 
