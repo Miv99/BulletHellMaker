@@ -329,7 +329,31 @@ std::shared_ptr<DeathAction> DeathActionFactory::create(std::string formattedStr
 		ptr = std::make_shared<ExecuteAttacksDeathAction>();
 	} else if (name == "ParticleExplosionDeathAction") {
 		ptr = std::make_shared<ParticleExplosionDeathAction>();
+	} else if (name == "NullDeathAction") {
+		ptr = std::make_shared<NullDeathAction>();
 	}
 	ptr->load(formattedString);
 	return ptr;
+}
+
+std::shared_ptr<LevelPackObject> NullDeathAction::clone() const {
+	return std::make_shared<NullDeathAction>();
+}
+
+std::string NullDeathAction::format() const {
+	return formatString("NullDeathAction");
+}
+
+void NullDeathAction::load(std::string formattedString) {
+}
+
+std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> NullDeathAction::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
+	// Always legal
+	return std::make_pair(LEGAL_STATUS::LEGAL, std::vector<std::string>());
+}
+
+void NullDeathAction::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
+}
+
+void NullDeathAction::execute(LevelPack& levelPack, EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) {
 }

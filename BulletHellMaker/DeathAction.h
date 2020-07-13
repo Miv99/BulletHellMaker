@@ -37,6 +37,24 @@ public:
 };
 
 /*
+Death action that does nothing.
+*/
+class NullDeathAction : public DeathAction {
+public:
+	inline NullDeathAction() {}
+
+	std::shared_ptr<LevelPackObject> clone() const;
+
+	std::string format() const override;
+	void load(std::string formattedString) override;
+
+	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const;
+	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables);
+
+	void execute(LevelPack& levelPack, EntityCreationQueue& queue, entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t entity) override;
+};
+
+/*
 Death action for spawning some entity that displays an Animatable.
 */
 class PlayAnimatableDeathAction : public DeathAction {
