@@ -301,12 +301,20 @@ void AttacksListView::addLevelPackObjectsToListView() {
 	auto& unsavedObjs = getUnsavedLevelPackObjects();
 	if (sortOption == SORT_OPTION::ID) {
 		for (auto it = levelPack->getAttackIteratorBegin(); it != levelPack->getAttackIteratorEnd(); it++) {
+			if (it->first < 0) {
+				continue;
+			}
+
 			bool objIsUnsaved = unsavedObjs.count(it->first) > 0;
 			addLevelPackObjectToListView(it->first, it->second->getName(), objIsUnsaved, objIsUnsaved ? unsavedObjs[it->first]->getName() : "");
 		}
 	} else {
 		std::vector<std::pair<std::string, int>> objsOrdering;
 		for (auto it = levelPack->getAttackIteratorBegin(); it != levelPack->getAttackIteratorEnd(); it++) {
+			if (it->first < 0) {
+				continue;
+			}
+
 			if (unsavedObjs.count(it->first) > 0) {
 				objsOrdering.push_back(std::make_pair(unsavedObjs[it->first]->getName(), it->first));
 			} else {

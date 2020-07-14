@@ -128,6 +128,7 @@ protected:
 	const static std::string INVALID_EXPRESSION_MESSAGE_FORMAT;
 
 	// ID unique to all other LevelPackObjects of the same derived class. Only used for non-unique objects (see references for definition of a unique object).
+	// Negative IDs should be reserved for object previews in the editor.
 	int id;
 	// User-defined name. Only used for non-unique objects.
 	std::string name;
