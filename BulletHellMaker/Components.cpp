@@ -454,8 +454,16 @@ PlayerTag::PlayerTag(entt::DefaultRegistry& registry, const LevelPack& levelPack
 		bombAttackPatterns.push_back(levelPack.getGameplayAttackPattern(powerTiers[i]->getBombAttackPatternID(), powerTiers[i]->getCompiledAttackPatternSymbolsDefiner()));
 
 		// Calculate attack pattern total times
-		attackPatternTotalTimes.push_back(std::get<0>(attackPatterns[i]->getAttackData(attackPatterns[i]->getAttacksCount() - 1)) + powerTiers[i]->getAttackPatternLoopDelay());
-		focusedAttackPatternTotalTimes.push_back(std::get<0>(focusedAttackPatterns[i]->getAttackData(focusedAttackPatterns[i]->getAttacksCount() - 1)) + powerTiers[i]->getFocusedAttackPatternLoopDelay());
+		if (attackPatterns[i]->getAttacksCount() > 0) {
+			attackPatternTotalTimes.push_back(std::get<0>(attackPatterns[i]->getAttackData(attackPatterns[i]->getAttacksCount() - 1)) + powerTiers[i]->getAttackPatternLoopDelay());
+		} else {
+			attackPatternTotalTimes.push_back(powerTiers[i]->getAttackPatternLoopDelay());
+		}
+		if (attackPatterns[i]->getAttacksCount() > 0) {
+			focusedAttackPatternTotalTimes.push_back(std::get<0>(focusedAttackPatterns[i]->getAttackData(focusedAttackPatterns[i]->getAttacksCount() - 1)) + powerTiers[i]->getFocusedAttackPatternLoopDelay());
+		} else {
+			focusedAttackPatternTotalTimes.push_back(powerTiers[i]->getFocusedAttackPatternLoopDelay());
+		}
 	}
 
 	currentPowerTierIndex = 0;
