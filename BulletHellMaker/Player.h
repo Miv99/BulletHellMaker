@@ -139,8 +139,8 @@ public:
 	inline void setSmoothPlayerHPBar(bool smoothPlayerHPBar) { this->smoothPlayerHPBar = smoothPlayerHPBar; }
 	inline void setPlayerHPBarColor(sf::Color playerHPBarColor) { this->playerHPBarColor = playerHPBarColor; }
 	inline void setDiscretePlayerHPSprite(Animatable discretePlayerHPSprite) { this->discretePlayerHPSprite = discretePlayerHPSprite; }
-	inline void getInitialBombs(std::string initialBombs) { this->initialBombs = initialBombs; }
-	inline void getMaxBombs(std::string initialBombs) { this->initialBombs = maxBombs; }
+	inline void setInitialBombs(std::string initialBombs) { this->initialBombs = initialBombs; }
+	inline void setMaxBombs(std::string initialBombs) { this->initialBombs = maxBombs; }
 	inline void setBombSprite(Animatable bombSprite) { this->bombSprite = bombSprite; }
 	inline void setBombInvincibilityTime(float bombInvincibilityTime) {	this->bombInvincibilityTime = bombInvincibilityTime; }
 
