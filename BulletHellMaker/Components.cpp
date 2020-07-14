@@ -340,6 +340,13 @@ void SpriteComponent::update(float deltaTime) {
 	}
 }
 
+bool SpriteComponent::animationIsDone() const {
+	if (animation) {
+		return animation->isDone();
+	}
+	return true;
+}
+
 EMPSpawnerComponent::EMPSpawnerComponent(std::vector<std::shared_ptr<EditorMovablePoint>> emps, uint32_t parent, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation) : parent(parent), attackID(attackID), attackPatternID(attackPatternID), enemyID(enemyID), enemyPhaseID(enemyPhaseID), playAttackAnimation(playAttackAnimation), isEnemyBulletSpawner(true) {
 	spawnedBulletType = 0;
 	for (auto emp : emps) {

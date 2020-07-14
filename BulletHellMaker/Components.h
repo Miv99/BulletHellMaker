@@ -253,7 +253,7 @@ public:
 
 	inline int getRenderLayer() const { return renderLayer; }
 	inline float getSubLayer() const { return subLayer; }
-	inline bool animationIsDone() { assert(animation != nullptr); return animation->isDone(); }
+	bool animationIsDone() const;
 	inline const std::shared_ptr<sf::Sprite> getSprite() { return sprite; }
 
 	/*
