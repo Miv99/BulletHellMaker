@@ -670,7 +670,6 @@ public:
 	bool handleEvent(sf::Event event) override;
 
 	void loadLevelPack(std::string name);
-	void loadLevelPack(std::shared_ptr<LevelPack> levelPack, std::shared_ptr<SpriteLoader> spriteLoader);
 
 	void loadLevel(int levelIndex);
 	void loadLevel(std::shared_ptr<Level> level);
@@ -684,6 +683,7 @@ public:
 protected:
 	std::shared_ptr<LevelPack> levelPack;
 	mutable entt::DefaultRegistry registry;
+	std::shared_ptr<SpriteLoader> spriteLoader;
 
 	std::unique_ptr<MovementSystem> movementSystem;
 	std::unique_ptr<RenderSystem> renderSystem;
@@ -695,13 +695,14 @@ protected:
 	std::unique_ptr<PlayerSystem> playerSystem;
 	std::unique_ptr<CollectibleSystem> collectibleSystem;
 	std::unique_ptr<AudioPlayer> audioPlayer;
+	
+	virtual std::shared_ptr<EditorPlayer> getPlayer();
 
 private:
 	sf::RenderWindow& parentWindow;
 
 	bool paused;
 
-	std::shared_ptr<SpriteLoader> spriteLoader;
 	std::unique_ptr<EntityCreationQueue> queue;
 
 	sf::FloatRect viewportFloatRect, viewFloatRect;

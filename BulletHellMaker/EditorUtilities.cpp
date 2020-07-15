@@ -1860,6 +1860,10 @@ paused(true), userControlledView(userControlledView), useDebugRenderSystem(useDe
 	});
 }
 
+std::shared_ptr<EditorPlayer> SimpleEngineRenderer::getPlayer() {
+	return levelPack->getGameplayPlayer();
+}
+
 void SimpleEngineRenderer::updateWindowView() {
 	if (!renderSystem) {
 		return;
@@ -1939,30 +1943,6 @@ void SimpleEngineRenderer::loadLevelPack(std::string name) {
 	updateWindowView();
 }
 
-void SimpleEngineRenderer::loadLevelPack(std::shared_ptr<LevelPack> levelPack, std::shared_ptr<SpriteLoader> spriteLoader) {
-	this->levelPack = levelPack;
-	this->spriteLoader = spriteLoader;
-	registry.reset();
-
-	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
-	//TODO: these numbers should come from settings
-	if (useDebugRenderSystem) {
-		renderSystem = std::make_unique<DebugRenderSystem>(registry, parentWindow, *spriteLoader, 1.0f);
-	} else {
-		renderSystem = std::make_unique<RenderSystem>(registry, parentWindow, *spriteLoader, 1.0f);
-	}
-	collisionSystem = std::make_unique<CollisionSystem>(*levelPack, *queue, *spriteLoader, registry, MAP_WIDTH, MAP_HEIGHT);
-	despawnSystem = std::make_unique<DespawnSystem>(registry);
-	enemySystem = std::make_unique<EnemySystem>(*queue, *spriteLoader, *levelPack, registry);
-	spriteAnimationSystem = std::make_unique<SpriteAnimationSystem>(*spriteLoader, registry);
-	shadowTrailSystem = std::make_unique<ShadowTrailSystem>(*queue, registry);
-	playerSystem = std::make_unique<PlayerSystem>(*levelPack, *queue, *spriteLoader, registry);
-	collectibleSystem = std::make_unique<CollectibleSystem>(*queue, registry, *levelPack, MAP_WIDTH, MAP_HEIGHT);
-
-	renderSystem->getOnResolutionChange()->sink().connect<SimpleEngineRenderer, &SimpleEngineRenderer::updateWindowView>(this);
-	updateWindowView();
-}
-
 void SimpleEngineRenderer::loadLevel(int levelIndex) {
 	if (!levelPack->hasLevel(levelIndex)) {
 		throw "The level does not exist";
@@ -1985,7 +1965,7 @@ void SimpleEngineRenderer::loadLevel(std::shared_ptr<Level> level) {
 	auto& levelManagerTag = registry.assign<LevelManagerTag>(entt::tag_t{}, levelManager, &(*levelPack), level);
 
 	// Create the player
-	auto params = levelPack->getGameplayPlayer();
+	auto params = getPlayer();
 	registry.reserve(1);
 	registry.reserve<PlayerTag>(1);
 	registry.reserve<AnimatableSetComponent>(1);

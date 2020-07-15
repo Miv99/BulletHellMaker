@@ -484,74 +484,94 @@ std::shared_ptr<BulletModel> LevelPack::createBulletModel() {
 	return bulletModel;
 }
 
-void LevelPack::updateAttack(std::shared_ptr<EditorAttack> attack) {
+void LevelPack::updateAttack(std::shared_ptr<EditorAttack> attack, bool emitOnChange) {
 	attackIDGen.markIDAsUsed(attack->getID());
 	attacks[attack->getID()] = attack;
-	onChange->publish();
+	if (emitOnChange) {
+		onChange->publish();
+	}
 }
 
-void LevelPack::updateAttack(std::shared_ptr<LevelPackObject> attack) {
+void LevelPack::updateAttack(std::shared_ptr<LevelPackObject> attack, bool emitOnChange) {
 	assert(std::dynamic_pointer_cast<EditorAttack>(attack));
 
 	attackIDGen.markIDAsUsed(attack->getID());
 	attacks[attack->getID()] = std::dynamic_pointer_cast<EditorAttack>(attack);
-	onChange->publish();
+	if (emitOnChange) {
+		onChange->publish();
+	}
 }
 
-void LevelPack::updateAttackPattern(std::shared_ptr<EditorAttackPattern> attackPattern) {
+void LevelPack::updateAttackPattern(std::shared_ptr<EditorAttackPattern> attackPattern, bool emitOnChange) {
 	attackPatternIDGen.markIDAsUsed(attackPattern->getID());
 	attackPatterns[attackPattern->getID()] = attackPattern;
-	onChange->publish();
+	if (emitOnChange) {
+		onChange->publish();
+	}
 }
 
-void LevelPack::updateAttackPattern(std::shared_ptr<LevelPackObject> attackPattern) {
+void LevelPack::updateAttackPattern(std::shared_ptr<LevelPackObject> attackPattern, bool emitOnChange) {
 	assert(std::dynamic_pointer_cast<EditorAttackPattern>(attackPattern));
 
 	attackPatternIDGen.markIDAsUsed(attackPattern->getID());
 	attackPatterns[attackPattern->getID()] = std::dynamic_pointer_cast<EditorAttackPattern>(attackPattern);
-	onChange->publish();
+	if (emitOnChange) {
+		onChange->publish();
+	}
 }
 
-void LevelPack::updateEnemy(std::shared_ptr<EditorEnemy> enemy) {
+void LevelPack::updateEnemy(std::shared_ptr<EditorEnemy> enemy, bool emitOnChange) {
 	enemyIDGen.markIDAsUsed(enemy->getID());
 	enemies[enemy->getID()] = enemy;
-	onChange->publish();
+	if (emitOnChange) {
+		onChange->publish();
+	}
 }
 
-void LevelPack::updateEnemy(std::shared_ptr<LevelPackObject> enemy) {
+void LevelPack::updateEnemy(std::shared_ptr<LevelPackObject> enemy, bool emitOnChange) {
 	assert(std::dynamic_pointer_cast<EditorEnemy>(enemy));
 
 	enemyIDGen.markIDAsUsed(enemy->getID());
 	enemies[enemy->getID()] = std::dynamic_pointer_cast<EditorEnemy>(enemy);
-	onChange->publish();
+	if (emitOnChange) {
+		onChange->publish();
+	}
 }
 
-void LevelPack::updateEnemyPhase(std::shared_ptr<EditorEnemyPhase> enemyPhase) {
+void LevelPack::updateEnemyPhase(std::shared_ptr<EditorEnemyPhase> enemyPhase, bool emitOnChange) {
 	enemyPhaseIDGen.markIDAsUsed(enemyPhase->getID());
 	enemyPhases[enemyPhase->getID()] = enemyPhase;
-	onChange->publish();
+	if (emitOnChange) {
+		onChange->publish();
+	}
 }
 
-void LevelPack::updateEnemyPhase(std::shared_ptr<LevelPackObject> enemyPhase) {
+void LevelPack::updateEnemyPhase(std::shared_ptr<LevelPackObject> enemyPhase, bool emitOnChange) {
 	assert(std::dynamic_pointer_cast<EditorEnemyPhase>(enemyPhase));
 
 	enemyPhaseIDGen.markIDAsUsed(enemyPhase->getID());
 	enemyPhases[enemyPhase->getID()] = std::dynamic_pointer_cast<EditorEnemyPhase>(enemyPhase);
-	onChange->publish();
+	if (emitOnChange) {
+		onChange->publish();
+	}
 }
 
-void LevelPack::updateBulletModel(std::shared_ptr<BulletModel> bulletModel) {
+void LevelPack::updateBulletModel(std::shared_ptr<BulletModel> bulletModel, bool emitOnChange) {
 	bulletModelIDGen.markIDAsUsed(bulletModel->getID());
 	bulletModels[bulletModel->getID()] = bulletModel;
-	onChange->publish();
+	if (emitOnChange) {
+		onChange->publish();
+	}
 }
 
-void LevelPack::updateBulletModel(std::shared_ptr<LevelPackObject> bulletModel) {
+void LevelPack::updateBulletModel(std::shared_ptr<LevelPackObject> bulletModel, bool emitOnChange) {
 	assert(std::dynamic_pointer_cast<BulletModel>(bulletModel));
 
 	bulletModelIDGen.markIDAsUsed(bulletModel->getID());
 	bulletModels[bulletModel->getID()] = std::dynamic_pointer_cast<BulletModel>(bulletModel);
-	onChange->publish();
+	if (emitOnChange) {
+		onChange->publish();
+	}
 }
 
 void LevelPack::deleteLevel(int levelIndex) {

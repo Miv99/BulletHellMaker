@@ -101,61 +101,61 @@ public:
 	If the attack ID is already in the LevelPack, overwrite the attack.
 	If the attack ID is not in the LevelPack, add in the attack.
 	*/
-	void updateAttack(std::shared_ptr<EditorAttack> attack);
+	void updateAttack(std::shared_ptr<EditorAttack> attack, bool emitOnChange = true);
 	/*
 	Updates an attack.
 	If the attack ID is already in the LevelPack, overwrite the attack.
 	If the attack ID is not in the LevelPack, add in the attack.
 	*/
-	void updateAttack(std::shared_ptr<LevelPackObject> attack);
+	void updateAttack(std::shared_ptr<LevelPackObject> attack, bool emitOnChange = true);
 	/*
 	Updates an attack pattern.
 	If the attack pattern ID is already in the LevelPack, overwrite the attack pattern.
 	If the attack pattern ID is not in the LevelPack, add in the attack pattern.
 	*/
-	void updateAttackPattern(std::shared_ptr<EditorAttackPattern> attackPattern);
+	void updateAttackPattern(std::shared_ptr<EditorAttackPattern> attackPattern, bool emitOnChange = true);
 	/*
 	Updates an attack pattern.
 	If the attack pattern ID is already in the LevelPack, overwrite the attack pattern.
 	If the attack pattern ID is not in the LevelPack, add in the attack pattern.
 	*/
-	void updateAttackPattern(std::shared_ptr<LevelPackObject> attackPattern);
+	void updateAttackPattern(std::shared_ptr<LevelPackObject> attackPattern, bool emitOnChange = true);
 	/*
 	Updates an enemy.
 	If the enemy ID is already in the LevelPack, overwrite the enemy.
 	If the enemy ID is not in the LevelPack, add in the enemy.
 	*/
-	void updateEnemy(std::shared_ptr<EditorEnemy> enemy);
+	void updateEnemy(std::shared_ptr<EditorEnemy> enemy, bool emitOnChange = true);
 	/*
 	Updates an enemy.
 	If the enemy ID is already in the LevelPack, overwrite the enemy.
 	If the enemy ID is not in the LevelPack, add in the enemy.
 	*/
-	void updateEnemy(std::shared_ptr<LevelPackObject> enemy);
+	void updateEnemy(std::shared_ptr<LevelPackObject> enemy, bool emitOnChange = true);
 	/*
 	Updates an enemy phase.
 	If the enemy phase ID is already in the LevelPack, overwrite the enemy phase.
 	If the enemy phase ID is not in the LevelPack, add in the enemy phase.
 	*/
-	void updateEnemyPhase(std::shared_ptr<EditorEnemyPhase> enemyPhase);
+	void updateEnemyPhase(std::shared_ptr<EditorEnemyPhase> enemyPhase, bool emitOnChange = true);
 	/*
 	Updates an enemy phase.
 	If the enemy phase ID is already in the LevelPack, overwrite the enemy phase.
 	If the enemy phase ID is not in the LevelPack, add in the enemy phase.
 	*/
-	void updateEnemyPhase(std::shared_ptr<LevelPackObject> enemyPhase);
+	void updateEnemyPhase(std::shared_ptr<LevelPackObject> enemyPhase, bool emitOnChange = true);
 	/*
 	Updates a bullet model.
 	If the bullet model ID is already in the LevelPack, overwrite the bullet model.
 	If the bullet model ID is not in the LevelPack, add in the bullet model.
 	*/
-	void updateBulletModel(std::shared_ptr<BulletModel> bulletModel);
+	void updateBulletModel(std::shared_ptr<BulletModel> bulletModel, bool emitOnChange = true);
 	/*
 	Updates a bullet model.
 	If the bullet model ID is already in the LevelPack, overwrite the bullet model.
 	If the bullet model ID is not in the LevelPack, add in the bullet model.
 	*/
-	void updateBulletModel(std::shared_ptr<LevelPackObject> bulletModel);
+	void updateBulletModel(std::shared_ptr<LevelPackObject> bulletModel, bool emitOnChange = true);
 
 	void deleteLevel(int levelIndex);
 	void deleteAttack(int id);

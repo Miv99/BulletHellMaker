@@ -148,6 +148,10 @@ current todo:
         with the symbolTable of the object being previewed such that every symbol in symbolTable is replaced by
         the one in additionalTable if it exists; additionalTable can't be redelegated; every redelegated symbol in
         symbolTable must be defined by additionalTable or else the preview won't start
+    -press R -> reloadPreview()
+    -separate LevelPack that contains all unsaved changes at any time; pass this one into LevelpackObjectPreviewPanel
+    -time multiplier; multiply dt in physics update by some user-adjustable value
+    -surround SimpleEngineRenderer in some try catch that prints exceptions to the user
 -marker placer label showing mouse world position
 -visualizer thing in EMPABasedMovementEditorPanel
     

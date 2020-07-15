@@ -330,18 +330,25 @@ inline std::shared_ptr<entt::SigH<void(bool, T)>> EditorWindow::promptConfirmati
 /*
 Window used to show a LevelPackObjectPreviewPanel.
 
-It's required to have a dedicated window for LevelPackObjectPreviewPanel because SFML requires that  
+This is necessary for LevelPackObjectPreviewPanel because SFML requires render calls
+to be made on the same thread as the construction of the RenderWindow. This object also acts
+as a controller between whatever uses it and the underlying LevelPackObjectPreviewPanel by
+limiting resource-intensive actions when the window is closed.
 */
 class LevelPackObjectPreviewWindow : public EditorWindow {
 public:
-	LevelPackObjectPreviewWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, std::shared_ptr<LevelPack> levelPack, std::shared_ptr<SpriteLoader> spriteLoader, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL);
+	LevelPackObjectPreviewWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, std::string levelPackName, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL);
 
-	std::shared_ptr<LevelPackObjectPreviewPanel> getPreviewPanel();
+	void previewAttack(const std::shared_ptr<EditorAttack> attack);
+
+	/*
+	Should be called whenever an EditorAttack in the LevelPack being edited is modified.
+	*/
+	void onOriginalLevelPackAttackModified(const std::shared_ptr<EditorAttack> attack);
 
 private:
 	std::shared_ptr<LevelPackObjectPreviewPanel> previewPanel;
-	std::shared_ptr<LevelPack> levelPack;
-	std::shared_ptr<SpriteLoader> spriteLoader;
+	std::string levelPackName;
 
 	void onRenderWindowInitialization() override;
 

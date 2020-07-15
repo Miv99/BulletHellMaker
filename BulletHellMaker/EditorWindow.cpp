@@ -547,7 +547,7 @@ void MainEditorWindow::loadLevelPack(std::string levelPackName) {
 	attacksListView->reload();
 
 	// TODO: window size from settings
-	previewWindow = std::make_shared<LevelPackObjectPreviewWindow>(tguiMutex, "Preview", 1024, 768, levelPack, spriteLoader);
+	previewWindow = std::make_shared<LevelPackObjectPreviewWindow>(tguiMutex, "Preview", 1024, 768, levelPackName);
 	boost::thread previewWindowThread = boost::thread(&LevelPackObjectPreviewWindow::start, &(*previewWindow));
 	previewWindowThread.detach();
 }
@@ -661,11 +661,14 @@ void MainEditorWindow::openLeftPanelAttack(int attackID) {
 		attackEditorPanel->connect("AttackModified", [&](std::shared_ptr<EditorAttack> attack) {
 			unsavedAttacks[attack->getID()] = std::dynamic_pointer_cast<LevelPackObject>(attack);
 			attacksListView->reload();
+
+			previewWindow->onOriginalLevelPackAttackModified(attack);
 		});
 		mainPanel->addTab(format(MAIN_PANEL_ATTACK_TAB_NAME_FORMAT, attackID), attackEditorPanel, true, true);
 	}
 
-	//TODO: load attack in preview panel; AttackModified -> update it
+	// View preview
+	previewWindow->previewAttack(openedAttack);
 }
 
 void MainEditorWindow::openLeftPanelAttackPattern(int attackPatternID) {
@@ -754,21 +757,26 @@ void MainEditorWindow::createAttack() {
 	}));
 }
 
-LevelPackObjectPreviewWindow::LevelPackObjectPreviewWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, std::shared_ptr<LevelPack> levelPack, std::shared_ptr<SpriteLoader> spriteLoader, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval)
-	: EditorWindow(tguiMutex, windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval), levelPack(levelPack), spriteLoader(spriteLoader) {
+LevelPackObjectPreviewWindow::LevelPackObjectPreviewWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, std::string levelPackName, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval)
+	: EditorWindow(tguiMutex, windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval), levelPackName(levelPackName) {
 }
 
-std::shared_ptr<LevelPackObjectPreviewPanel> LevelPackObjectPreviewWindow::getPreviewPanel() {
-	return previewPanel;
+void LevelPackObjectPreviewWindow::previewAttack(const std::shared_ptr<EditorAttack> attack) {
+	if (window->isOpen()) {
+		previewPanel->previewAttack(attack);
+	}
+}
+
+void LevelPackObjectPreviewWindow::onOriginalLevelPackAttackModified(const std::shared_ptr<EditorAttack> attack) {
+	if (window->isOpen()) {
+		previewPanel->getLevelPack()->updateAttack(attack);
+	}
 }
 
 void LevelPackObjectPreviewWindow::onRenderWindowInitialization() {
-	previewPanel = LevelPackObjectPreviewPanel::create(*getWindow(), levelPack, spriteLoader);
+	previewPanel = LevelPackObjectPreviewPanel::create(*getWindow(), levelPackName);
 	previewPanel->setSize("100%", "100%");
 	gui->add(previewPanel);
-
-	previewPanel->loadLevel(0); //TODO: remove this
-	previewPanel->unpause();
 }
 
 void LevelPackObjectPreviewWindow::physicsUpdate(float deltaTime) {

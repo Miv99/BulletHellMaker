@@ -50,37 +50,6 @@ int main() {
 	p->loadLevelPack("test pack");
 	p->start();
 
-	//std::string expression_str = "abs((2 * x)  - 1 + y)";
-
-	//float x = 1.1;
-
-	//// register x with the symbol_table
-	//exprtk::symbol_table<float> symbol_table;
-	//symbol_table.add_constant("x", x);
-
-	//// instantiate expression and register symbol_table
-	//exprtk::expression<float> expression;
-
-	//exprtk::symbol_table<float> unknown_var_st;
-	//expression.register_symbol_table(unknown_var_st);
-	//expression.register_symbol_table(symbol_table);
-
-	//// instantiate parser and compile the expression
-	//exprtk::parser<float> parser;
-	//parser.enable_unknown_symbol_resolver();
-	//parser.compile(expression_str, expression);
-
-	//std::vector<std::string> variableList;
-	//unknown_var_st.get_variable_list(variableList);
-	//// The expression is legal only if every symbol in unknownVarSymbolTable (meaning every symbol used in expressionStr)
-	//// is also in any symbol_table in symbolTables
-	//for (std::string& symbolName : variableList) {
-	//	std::cout << symbolName << std::endl;
-	//}
-
-	//// evaluate and print result for when x = 1.1
-	//float result = expression.value();
-
 	
 	std::system("pause");
 	return 0;
