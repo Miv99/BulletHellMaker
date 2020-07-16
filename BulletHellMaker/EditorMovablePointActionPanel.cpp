@@ -890,11 +890,15 @@ void EditorMovablePointActionPanel::finishEditingBezierControlPoints() {
 		MoveCustomBezierEMPA* ptr = dynamic_cast<MoveCustomBezierEMPA*>(empa.get());
 		ptr->setUnrotatedControlPoints(newControlPoints);
 		updateEmpaiBezierControlPoints();
+
+		onEMPAModify.emit(this, this->empa);
 	},
 		[this, oldControlPoints]() {
 		MoveCustomBezierEMPA* ptr = dynamic_cast<MoveCustomBezierEMPA*>(empa.get());
 		ptr->setUnrotatedControlPoints(oldControlPoints);
 		updateEmpaiBezierControlPoints();
+
+		onEMPAModify.emit(this, this->empa);
 	}));
 
 	editingBezierControlPoints = false;
