@@ -276,8 +276,6 @@ std::string StayStillAtLastPositionEMPA::getGuiFormat() {
 }
 
 std::shared_ptr<MovablePoint> StayStillAtLastPositionEMPA::execute(EntityCreationQueue& queue, entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
-	auto& mpc = registry.get<MovementPathComponent>(entity);
-
 	// Last known global position
 	auto& lastPos = registry.get<PositionComponent>(entity);
 	// Queue creation of the reference entity

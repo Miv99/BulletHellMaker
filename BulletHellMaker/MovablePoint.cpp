@@ -90,6 +90,13 @@ sf::Vector2f HomingMP::evaluate(float time) {
 		return newPos;
 	} else if (deltaTime < 0 && cachedPositions.size() > 0) {
 		// This function call is a request for some past position, so check the cache
+
+		if (cachedPositions.size() == 1) {
+			// Only 1 cached position, so that's the closest possible we can get
+
+			return cachedPositions[0].second;
+		}
+
 		auto it = std::lower_bound(cachedPositions.begin(), cachedPositions.end(), time, CachedPositionSearchComparator()) - 1;
 		if ((*it).first == time) {
 			// Perfect match for a cached time

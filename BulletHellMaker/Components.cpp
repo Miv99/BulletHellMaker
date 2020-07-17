@@ -29,6 +29,7 @@ MovementPathComponent::MovementPathComponent(EntityCreationQueue & queue, uint32
 
 void MovementPathComponent::update(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, PositionComponent& entityPosition, float deltaTime) {
 	time += deltaTime;
+	sf::Vector2f tempReference(0, 0);
 	// While loop for actions with lifespan of 0 like DetachFromParent 
 	while (currentActionsIndex < actions.size() && time >= path->getLifespan()) {
 		// Set this entity's position to last point of the ending MovablePoint to prevent inaccuracies from building up in updates
@@ -36,20 +37,23 @@ void MovementPathComponent::update(EntityCreationQueue& queue, entt::DefaultRegi
 			auto& pos = registry.get<PositionComponent>(referenceEntity);
 			entityPosition.setPosition(path->compute(sf::Vector2f(pos.getX(), pos.getY()), path->getLifespan()));
 		} else {
-			entityPosition.setPosition(path->compute(sf::Vector2f(0, 0), path->getLifespan()));
+			entityPosition.setPosition(path->compute(tempReference, path->getLifespan()));
 		}
 		
 		time -= path->getLifespan();
 		previousPaths.push_back(path);
 		path = actions[currentActionsIndex]->execute(queue, registry, entity, time);
 		currentActionsIndex++;
+
+		tempReference.x = entityPosition.getX();
+		tempReference.y = entityPosition.getY();
 	}
 	if (time <= path->getLifespan()) {
 		if (useReferenceEntity) {
 			auto& pos = registry.get<PositionComponent>(referenceEntity);
 			entityPosition.setPosition(path->compute(sf::Vector2f(pos.getX(), pos.getY()), time));
 		} else {
-			entityPosition.setPosition(path->compute(sf::Vector2f(0, 0), time));
+			entityPosition.setPosition(path->compute(tempReference, time));
 		}
 	} else {
 		// The path's lifespan has been exceeded and there are no more paths to execute, so just stay at the last position on the path, relative to the reference entity
@@ -58,7 +62,7 @@ void MovementPathComponent::update(EntityCreationQueue& queue, entt::DefaultRegi
 			auto& pos = registry.get<PositionComponent>(referenceEntity);
 			entityPosition.setPosition(path->compute(sf::Vector2f(pos.getX(), pos.getY()), path->getLifespan()));
 		} else {
-			entityPosition.setPosition(path->compute(sf::Vector2f(0, 0), path->getLifespan()));
+			entityPosition.setPosition(path->compute(tempReference, path->getLifespan()));
 		}
 	}
 }
