@@ -482,17 +482,17 @@ void RenderSystem::loadLevelRenderSettings(std::shared_ptr<Level> level) {
 	}
 }
 
-void RenderSystem::setBackground(sf::Texture background) {
+void RenderSystem::setBackground(std::shared_ptr<sf::Texture> background) {
 	this->background = background;
-	backgroundTextureSizeX = background.getSize().x;
-	backgroundTextureSizeY = background.getSize().y;
+	backgroundTextureSizeX = background->getSize().x;
+	backgroundTextureSizeY = background->getSize().y;
 	// Start the initial background view such that the bottom-left corner of the view is
 	// the bottom-left corner of the background texture
 	backgroundX = 0;
 	backgroundY = backgroundTextureSizeY - MAP_HEIGHT;
 
 	// Create the sprite
-	backgroundSprite.setTexture(this->background);
+	backgroundSprite.setTexture(*(this->background));
 }
 
 sf::Vector2u RenderSystem::getResolution() {

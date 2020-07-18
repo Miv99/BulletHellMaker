@@ -440,13 +440,13 @@ void GameInstance::loadLevel(int levelIndex) {
 
 	// Set the background
 	std::string backgroundFileName = currentLevel->getBackgroundFileName();
-	sf::Texture background;
-	if (!background.loadFromFile("Level Packs\\" + levelPack->getName() + "\\Backgrounds\\" + backgroundFileName)) {
+	std::shared_ptr<sf::Texture> background = std::make_shared<sf::Texture>();
+	if (!background->loadFromFile("Level Packs\\" + levelPack->getName() + "\\Backgrounds\\" + backgroundFileName)) {
 		//TODO: load a default background
 	}
-	background.setRepeated(true);
-	background.setSmooth(true);
-	renderSystem->setBackground(std::move(background));
+	background->setRepeated(true);
+	background->setSmooth(true);
+	renderSystem->setBackground(background);
 	renderSystem->setBackgroundScrollSpeedX(currentLevel->getBackgroundScrollSpeedX());
 	renderSystem->setBackgroundScrollSpeedY(currentLevel->getBackgroundScrollSpeedY());
 	renderSystem->setBackgroundTextureWidth(currentLevel->getBackgroundTextureWidth());

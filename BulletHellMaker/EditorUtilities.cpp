@@ -1849,7 +1849,7 @@ paused(true), userControlledView(userControlledView), useDebugRenderSystem(useDe
 	queue = std::make_unique<EntityCreationQueue>(registry);
 
 	if (userControlledView) {
-		viewController = std::make_unique<ViewController>(parentWindow);
+		viewController = std::make_unique<ViewController>(parentWindow, true, false);
 	}
 
 	connect("PositionChanged", [&]() {
@@ -1925,12 +1925,8 @@ void SimpleEngineRenderer::loadLevelPack(std::string name) {
 	spriteLoader->preloadTextures();
 
 	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
-	//TODO: these numbers should come from settings
-	if (useDebugRenderSystem) {
-		renderSystem = std::make_unique<DebugRenderSystem>(registry, parentWindow, *spriteLoader, 1.0f);
-	} else {
-		renderSystem = std::make_unique<RenderSystem>(registry, parentWindow, *spriteLoader, 1.0f);
-	}
+	debugRenderSystem = std::make_unique<DebugRenderSystem>(registry, parentWindow, *spriteLoader, 1.0f);
+	renderSystem = std::make_unique<RenderSystem>(registry, parentWindow, *spriteLoader, 1.0f);
 	collisionSystem = std::make_unique<CollisionSystem>(*levelPack, *queue, *spriteLoader, registry, MAP_WIDTH, MAP_HEIGHT);
 	despawnSystem = std::make_unique<DespawnSystem>(registry);
 	enemySystem = std::make_unique<EnemySystem>(*queue, *spriteLoader, *levelPack, registry);
@@ -1939,6 +1935,7 @@ void SimpleEngineRenderer::loadLevelPack(std::string name) {
 	playerSystem = std::make_unique<PlayerSystem>(*levelPack, *queue, *spriteLoader, registry);
 	collectibleSystem = std::make_unique<CollectibleSystem>(*queue, registry, *levelPack, MAP_WIDTH, MAP_HEIGHT);
 
+	debugRenderSystem->getOnResolutionChange()->sink().connect<SimpleEngineRenderer, &SimpleEngineRenderer::updateWindowView>(this);
 	renderSystem->getOnResolutionChange()->sink().connect<SimpleEngineRenderer, &SimpleEngineRenderer::updateWindowView>(this);
 	updateWindowView();
 }
@@ -1988,17 +1985,24 @@ void SimpleEngineRenderer::loadLevel(std::shared_ptr<Level> level) {
 
 	// Set the background
 	std::string backgroundFileName = level->getBackgroundFileName();
-	sf::Texture background;
-	if (!background.loadFromFile("Level Packs\\" + levelPack->getName() + "\\Backgrounds\\" + backgroundFileName)) {
+	std::shared_ptr<sf::Texture> background = std::make_shared<sf::Texture>();
+	if (!background->loadFromFile("Level Packs\\" + levelPack->getName() + "\\Backgrounds\\" + backgroundFileName)) {
 		//TODO: load a default background
 	}
-	background.setRepeated(true);
-	background.setSmooth(true);
-	renderSystem->setBackground(std::move(background));
+	background->setRepeated(true);
+	background->setSmooth(true);
+
+	renderSystem->setBackground(background);
 	renderSystem->setBackgroundScrollSpeedX(level->getBackgroundScrollSpeedX());
 	renderSystem->setBackgroundScrollSpeedY(level->getBackgroundScrollSpeedY());
 	renderSystem->setBackgroundTextureWidth(level->getBackgroundTextureWidth());
 	renderSystem->setBackgroundTextureHeight(level->getBackgroundTextureHeight());
+
+	debugRenderSystem->setBackground(background);
+	debugRenderSystem->setBackgroundScrollSpeedX(level->getBackgroundScrollSpeedX());
+	debugRenderSystem->setBackgroundScrollSpeedY(level->getBackgroundScrollSpeedY());
+	debugRenderSystem->setBackgroundTextureWidth(level->getBackgroundTextureWidth());
+	debugRenderSystem->setBackgroundTextureHeight(level->getBackgroundTextureHeight());
 }
 
 void SimpleEngineRenderer::pause() {
@@ -2052,8 +2056,20 @@ void SimpleEngineRenderer::renderUpdate(float deltaTime) const {
 	if (!paused) {
 		spriteAnimationSystem->update(deltaTime);
 	}
-	renderSystem->update(deltaTime);
+	if (useDebugRenderSystem) {
+		debugRenderSystem->update(deltaTime);
+	} else {
+		renderSystem->update(deltaTime);
+	}
 	parentWindow.setView(originalView);
+}
+
+void SimpleEngineRenderer::setUseDebugRenderSystem(bool useDebugRenderSystem) {
+	this->useDebugRenderSystem = useDebugRenderSystem;
+}
+
+bool SimpleEngineRenderer::getUseDebugRenderSystem() const {
+	return useDebugRenderSystem;
 }
 
 TabsWithPanel::TabsWithPanel(EditorWindow& parentWindow) : parentWindow(parentWindow) {	

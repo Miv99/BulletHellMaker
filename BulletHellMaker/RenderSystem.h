@@ -71,7 +71,7 @@ public:
 	*/
 	virtual void setResolution(SpriteLoader& spriteLoader, float resolutionMultiplier);
 	
-	void setBackground(sf::Texture background);
+	void setBackground(std::shared_ptr<sf::Texture> background);
 	inline void setBackgroundScrollSpeedX(float backgroundScrollSpeedX) { this->backgroundScrollSpeedX = backgroundScrollSpeedX; }
 	inline void setBackgroundScrollSpeedY(float backgroundScrollSpeedY) { this->backgroundScrollSpeedY = backgroundScrollSpeedY; }
 	inline void setBackgroundTextureWidth(float backgroundTextureWidth) {
@@ -127,7 +127,7 @@ protected:
 
 	float resolutionMultiplier = 1.0f;
 
-	sf::Texture background;
+	std::shared_ptr<sf::Texture> background;
 	// The background as a sprite
 	sf::Sprite backgroundSprite;
 	float backgroundScrollSpeedX, backgroundScrollSpeedY;

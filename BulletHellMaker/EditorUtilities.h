@@ -667,7 +667,7 @@ public:
 
 	bool update(sf::Time elapsedTime) override;
 
-	bool handleEvent(sf::Event event) override;
+	virtual bool handleEvent(sf::Event event) override;
 
 	void loadLevelPack(std::string name);
 
@@ -680,12 +680,16 @@ public:
 	void physicsUpdate(float deltaTime) const;
 	void renderUpdate(float deltaTime) const;
 
+	void setUseDebugRenderSystem(bool useDebugRenderSystem);
+	bool getUseDebugRenderSystem() const;
+
 protected:
 	std::shared_ptr<LevelPack> levelPack;
 	mutable entt::DefaultRegistry registry;
 	std::shared_ptr<SpriteLoader> spriteLoader;
 
 	std::unique_ptr<MovementSystem> movementSystem;
+	std::unique_ptr<DebugRenderSystem> debugRenderSystem;
 	std::unique_ptr<RenderSystem> renderSystem;
 	std::unique_ptr<CollisionSystem> collisionSystem;
 	std::unique_ptr<DespawnSystem> despawnSystem;
@@ -695,6 +699,8 @@ protected:
 	std::unique_ptr<PlayerSystem> playerSystem;
 	std::unique_ptr<CollectibleSystem> collectibleSystem;
 	std::unique_ptr<AudioPlayer> audioPlayer;
+
+	bool useDebugRenderSystem;
 	
 	virtual std::shared_ptr<EditorPlayer> getPlayer();
 
@@ -706,8 +712,6 @@ private:
 	std::unique_ptr<EntityCreationQueue> queue;
 
 	sf::FloatRect viewportFloatRect, viewFloatRect;
-
-	bool useDebugRenderSystem;
 
 	bool userControlledView;
 	std::unique_ptr<ViewController> viewController;
