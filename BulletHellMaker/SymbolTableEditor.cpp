@@ -12,6 +12,8 @@ ValueSymbolTableEditor::ValueSymbolTableEditor(bool isTableForTopLevelObject, bo
 	std::shared_ptr<tgui::Label> valueEditBoxLabel = tgui::Label::create();
 	valueEditBox = NumericalEditBoxWithLimits::create();
 
+	redelegateCheckBox->setVisible(canRedelegate);
+
 	symbolsList->setTextSize(TEXT_SIZE);
 	valueEditBoxLabel->setTextSize(TEXT_SIZE);
 	valueEditBox->setTextSize(TEXT_SIZE);
@@ -50,7 +52,7 @@ this object."));
 		valueEditBox->setSize(newSize.x / 2.0f - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 	});
 
-	symbolsList->getListBox()->connect("ItemSelected", [this, valueEditBoxLabel](int index) {
+	symbolsList->getListBox()->connect("ItemSelected", [this, valueEditBoxLabel, canRedelegate](int index) {
 		if (ignoreSignals) {
 			return;
 		}
@@ -61,7 +63,7 @@ this object."));
 			redelegateCheckBox->setChecked(definition.redelegated);
 			valueEditBox->setValue(definition.value);
 
-			redelegateCheckBox->setVisible(true);
+			redelegateCheckBox->setVisible(canRedelegate);
 			valueEditBoxLabel->setVisible(true);
 			valueEditBox->setVisible(true);
 
