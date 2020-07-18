@@ -3,7 +3,8 @@
 
 class ViewController {
 public:
-	inline ViewController(const sf::RenderWindow& window) : window(window) {}
+	inline ViewController(const sf::RenderWindow& window, bool controllableWithWASD = true, bool controllableWithArrowKeys = true) 
+		: window(window), controllableWithWASD(controllableWithWASD), controllableWithArrowKeys(controllableWithArrowKeys) {}
 
 	/*
 	Modifies view.
@@ -45,6 +46,9 @@ private:
 	bool draggingCamera = false;
 	// This should be modified only by setCameraZoom()
 	float cameraZoom = 1.0f;
+
+	bool controllableWithWASD;
+	bool controllableWithArrowKeys;
 
 	// Whether the camera is currently being panned by keyboard
 	bool panningUp = false, panningDown = false, panningLeft = false, panningRight = false;

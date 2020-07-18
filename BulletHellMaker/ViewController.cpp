@@ -52,24 +52,50 @@ bool ViewController::handleEvent(sf::View& view, sf::Event event) {
 			draggingCamera = false;
 		}
 	} else if (event.type == sf::Event::KeyPressed) {
-		if (event.key.code == sf::Keyboard::Up || event.key.code == sf::Keyboard::W) {
-			panningUp = true;
-		} else if (event.key.code == sf::Keyboard::Down || event.key.code == sf::Keyboard::S) {
-			panningDown = true;
-		} else if (event.key.code == sf::Keyboard::Left || event.key.code == sf::Keyboard::A) {
-			panningLeft = true;
-		} else if (event.key.code == sf::Keyboard::Right || event.key.code == sf::Keyboard::D) {
-			panningRight = true;
+		if (controllableWithWASD) {
+			if (event.key.code == sf::Keyboard::W) {
+				panningUp = true;
+			} else if (event.key.code == sf::Keyboard::S) {
+				panningDown = true;
+			} else if (event.key.code == sf::Keyboard::A) {
+				panningLeft = true;
+			} else if (event.key.code == sf::Keyboard::D) {
+				panningRight = true;
+			}
+		}
+		if (controllableWithArrowKeys) {
+			if (event.key.code == sf::Keyboard::Up) {
+				panningUp = true;
+			} else if (event.key.code == sf::Keyboard::Down) {
+				panningDown = true;
+			} else if (event.key.code == sf::Keyboard::Left) {
+				panningLeft = true;
+			} else if (event.key.code == sf::Keyboard::Right) {
+				panningRight = true;
+			}
 		}
 	} else if (event.type == sf::Event::KeyReleased) {
-		if (event.key.code == sf::Keyboard::Up || event.key.code == sf::Keyboard::W) {
-			panningUp = false;
-		} else if (event.key.code == sf::Keyboard::Down || event.key.code == sf::Keyboard::S) {
-			panningDown = false;
-		} else if (event.key.code == sf::Keyboard::Left || event.key.code == sf::Keyboard::A) {
-			panningLeft = false;
-		} else if (event.key.code == sf::Keyboard::Right || event.key.code == sf::Keyboard::D) {
-			panningRight = false;
+		if (controllableWithWASD) {
+			if (event.key.code == sf::Keyboard::W) {
+				panningUp = false;
+			} else if (event.key.code == sf::Keyboard::S) {
+				panningDown = false;
+			} else if (event.key.code == sf::Keyboard::A) {
+				panningLeft = false;
+			} else if (event.key.code == sf::Keyboard::D) {
+				panningRight = false;
+			}
+		}
+		if (controllableWithArrowKeys) {
+			if (event.key.code == sf::Keyboard::Up) {
+				panningUp = false;
+			} else if (event.key.code == sf::Keyboard::Down) {
+				panningDown = false;
+			} else if (event.key.code == sf::Keyboard::Left) {
+				panningLeft = false;
+			} else if (event.key.code == sf::Keyboard::Right) {
+				panningRight = false;
+			}
 		}
 	}
 
