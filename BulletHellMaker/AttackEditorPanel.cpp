@@ -261,6 +261,7 @@ spriteLoader(spriteLoader), clipboard(clipboard), undoStack(UndoStack(undoStackS
 	symbolTableEditor->connect("ValueChanged", [this](ValueSymbolTable table) {
 		this->attack->setSymbolTable(table);
 		onChange(table);
+		onAttackModify.emit(this, this->attack);
 	});
 
 	populateEMPsTreeView();
