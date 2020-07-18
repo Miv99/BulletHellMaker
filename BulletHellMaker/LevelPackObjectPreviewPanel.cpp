@@ -1,8 +1,9 @@
 #include "LevelPackObjectPreviewPanel.h"
 #include "LevelPackObject.h"
+#include "EditorWindow.h"
 
-LevelPackObjectPreviewPanel::LevelPackObjectPreviewPanel(sf::RenderWindow& parentWindow, std::string levelPackName)
-	: SimpleEngineRenderer(parentWindow, true, false) {
+LevelPackObjectPreviewPanel::LevelPackObjectPreviewPanel(EditorWindow& parentWindow, std::string levelPackName)
+	: SimpleEngineRenderer(*parentWindow.getWindow(), true, true), gui(parentWindow.getGui()) {
 	loadLevelPack(levelPackName);
 	levelPack->getOnChange()->sink().connect<LevelPackObjectPreviewPanel, &LevelPackObjectPreviewPanel::resetPreview>(this);
 
@@ -72,15 +73,31 @@ LevelPackObjectPreviewPanel::LevelPackObjectPreviewPanel(sf::RenderWindow& paren
 		attackPatternForAttack->compileExpressions({});
 		levelPack->updateAttackPattern(attackPatternForAttack);
 	}
+
+	symbolTableEditorWindow = tgui::ChildWindow::create();
+	symbolTableEditor = ValueSymbolTableEditor::create(true, true);
+	symbolTableEditorWindow->setKeepInParent(false);
+	symbolTableEditorWindow->add(symbolTableEditor);
+	symbolTableEditorWindow->setSize("50%", "50%");
+	symbolTableEditorWindow->setTitle("Test Variables");
+
+	symbolTableEditor->connect("ValueChanged", [this](ValueSymbolTable table) {
+		this->testTable = table;
+		resetPreview();
+	});
+
+	symbolTableEditor->setSymbolTablesHierarchy({ testTable });
 }
 
 LevelPackObjectPreviewPanel::~LevelPackObjectPreviewPanel() {
 	levelPack->getOnChange()->sink().disconnect(this);
+	gui->remove(symbolTableEditorWindow);
 }
 
 void LevelPackObjectPreviewPanel::previewAttack(const std::shared_ptr<EditorAttack> attack) {
-	// TODO: convert test table to symbol_table convertedTestTable here
-	exprtk::symbol_table<float> convertedTestTable;
+	exprtk::symbol_table<float> convertedTestTable = testTable.toExprtkSymbolTable();
+
+	// TODO: explicitly check every redefined symbol in attack is defined in testTable
 
 	auto legal = attack->legal(*levelPack, *spriteLoader, { convertedTestTable });
 	if (legal.first == LevelPackObject::LEGAL_STATUS::ILLEGAL) {
@@ -98,6 +115,25 @@ void LevelPackObjectPreviewPanel::previewAttack(const std::shared_ptr<EditorAtta
 
 	loadLevel(levelForAttack);
 	unpause();
+}
+
+bool LevelPackObjectPreviewPanel::handleEvent(sf::Event event) {
+	if (symbolTableEditorWindow->isFocused()) {
+		return symbolTableEditor->handleEvent(event);
+	} else if (SimpleEngineRenderer::handleEvent(event)) {
+		return true;
+	} else if (event.type == sf::Event::KeyPressed) {
+		if (event.key.code == sf::Keyboard::V) {
+			gui->add(symbolTableEditorWindow);
+			return true;
+		} else if (event.key.code == sf::Keyboard::I) {
+			// TODO: show info
+			return true;
+		} else if (event.key.code == sf::Keyboard::T) {
+			setUseDebugRenderSystem(!useDebugRenderSystem);
+			return true;
+		}
+	}
 }
 
 void LevelPackObjectPreviewPanel::setPreviewSource(float x, float y) {

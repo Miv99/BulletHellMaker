@@ -666,6 +666,7 @@ public:
 	}
 
 	bool update(sf::Time elapsedTime) override;
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 	virtual bool handleEvent(sf::Event event) override;
 

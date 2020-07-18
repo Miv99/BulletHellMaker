@@ -1910,6 +1910,16 @@ bool SimpleEngineRenderer::update(sf::Time elapsedTime) {
 	return viewController->update(viewFromViewController, elapsedTime.asSeconds()) || ret;
 }
 
+void SimpleEngineRenderer::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+	// LevelPackObjectPreviewWindow will draw the render system before calling this draw().
+	// To make sure the render system stuff is visible, we can't draw this widget's underlying tgui::Panel.
+	// However, there might be widgets in the panel, so draw only those widgets.
+
+	for (auto widget : getWidgets()) {
+		widget->draw(target, states);
+	}
+}
+
 bool SimpleEngineRenderer::handleEvent(sf::Event event) {
 	if (viewController) {
 		return viewController->handleEvent(viewFromViewController, event);

@@ -350,6 +350,8 @@ private:
 	std::shared_ptr<LevelPackObjectPreviewPanel> previewPanel;
 	std::string levelPackName;
 
+	bool handleEvent(sf::Event event) override;
+
 	void onRenderWindowInitialization() override;
 
 	void physicsUpdate(float deltaTime) override;

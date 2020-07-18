@@ -773,20 +773,27 @@ void LevelPackObjectPreviewWindow::onOriginalLevelPackAttackModified(const std::
 	}
 }
 
+bool LevelPackObjectPreviewWindow::handleEvent(sf::Event event) {
+	if (EditorWindow::handleEvent(event)) {
+		return true;
+	}
+	return previewPanel->handleEvent(event);
+}
+
 void LevelPackObjectPreviewWindow::onRenderWindowInitialization() {
-	previewPanel = LevelPackObjectPreviewPanel::create(*getWindow(), levelPackName);
-	previewPanel->setSize("100%", "100%");
+	previewPanel = LevelPackObjectPreviewPanel::create(*this, levelPackName);
+	previewPanel->setSize("70%", "100%");
+	previewPanel->setPosition("30%", 0);
+	//previewPanel->setVisible(false);
 	gui->add(previewPanel);
 }
 
 void LevelPackObjectPreviewWindow::physicsUpdate(float deltaTime) {
 	EditorWindow::physicsUpdate(deltaTime);
-
 	previewPanel->physicsUpdate(deltaTime);
 }
 
 void LevelPackObjectPreviewWindow::render(float deltaTime) {
-	EditorWindow::render(deltaTime);
-
 	previewPanel->renderUpdate(deltaTime);
+	EditorWindow::render(deltaTime);
 }

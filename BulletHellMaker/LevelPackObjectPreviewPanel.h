@@ -10,6 +10,9 @@
 #include "Player.h"
 #include "SpriteLoader.h"
 #include "Constants.h"
+#include "SymbolTableEditor.h"
+
+class EditorWindow;
 
 /*
 The LevelPack passed into this object's constructor will be cloned and should be synced with the
@@ -18,9 +21,9 @@ all unsaved changes in the editor's LevelPack.
 */
 class LevelPackObjectPreviewPanel : public SimpleEngineRenderer {
 public:
-	LevelPackObjectPreviewPanel(sf::RenderWindow& parentWindow, std::string levelPackName);
+	LevelPackObjectPreviewPanel(EditorWindow& parentWindow, std::string levelPackName);
 	~LevelPackObjectPreviewPanel();
-	static std::shared_ptr<LevelPackObjectPreviewPanel> create(sf::RenderWindow& parentWindow, std::string levelPackName) {
+	static std::shared_ptr<LevelPackObjectPreviewPanel> create(EditorWindow& parentWindow, std::string levelPackName) {
 		return std::make_shared<LevelPackObjectPreviewPanel>(parentWindow, levelPackName);
 	}
 
@@ -28,6 +31,8 @@ public:
 	The preview will use a clone of the attack.
 	*/
 	void previewAttack(const std::shared_ptr<EditorAttack> attack);
+
+	bool handleEvent(sf::Event event) override;
 
 	void setPreviewSource(float x, float y);
 	void setAttackLoopDelay(float attackLoopDelay);
@@ -51,6 +56,17 @@ private:
 	// Type of object currently being previewed
 	PREVIEW_OBJECT currentPreviewObjectType = PREVIEW_OBJECT::NONE;
 	int currentPreviewObjectID = -1;
+
+	// Gui of the EditorWindow
+	std::shared_ptr<tgui::Gui> gui;
+
+	// Symbol table editor child window.
+	// The window is added to the GUI directly and will be removed in this widget's destructor.
+	std::shared_ptr<tgui::ChildWindow> symbolTableEditorWindow;
+	// Symbol table editor
+	std::shared_ptr<ValueSymbolTableEditor> symbolTableEditor;
+	// Table containing variables for testing
+	ValueSymbolTable testTable;
 
 	// Spawn location of a previewed attack/attack pattern/enemy phase/enemy
 	float previewSourceX = MAP_WIDTH / 2.0f;
