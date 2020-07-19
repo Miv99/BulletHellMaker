@@ -38,8 +38,13 @@ bool ViewController::handleEvent(sf::View& view, sf::Event event) {
 	} else if (event.type == sf::Event::MouseMoved) {
 		if (draggingCamera) {
 			// Move camera depending on difference in world coordinates between event.mouseMove.x/y and previousCameraDragCoordsX/Y
-			// magic numbers idk why you have to multiply by 0.86; it's not perfect but hardly noticeable
-			sf::Vector2f diff = (window.mapPixelToCoords(sf::Vector2i(previousCameraDragCoordsX, previousCameraDragCoordsY)) - window.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y))) / (cameraZoom * 0.86f);
+			sf::Vector2f diff = (window.mapPixelToCoords(sf::Vector2i(previousCameraDragCoordsX, previousCameraDragCoordsY)) - window.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y))) / cameraZoom;
+			// I have no idea why this is needed
+			if (window.getSize().x > window.getSize().y) {
+				diff.x *= window.getSize().x / window.getSize().y;
+			} else {
+				diff.y *= window.getSize().y / window.getSize().x;
+			}
 			moveCamera(view, diff.x, diff.y);
 
 			previousCameraDragCoordsX = event.mouseMove.x;
