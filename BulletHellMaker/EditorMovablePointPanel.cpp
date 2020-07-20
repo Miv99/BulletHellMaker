@@ -22,7 +22,7 @@ std::string EditorMovablePointPanel::getID(std::shared_ptr<EMPSpawnType> spawnTy
 	}
 }
 
-EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWindow, LevelPack & levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorMovablePoint> emp, int undoStackSize)
+EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow& mainEditorWindow, std::shared_ptr<LevelPack> levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorMovablePoint> emp, int undoStackSize)
 	: CopyPasteable("EditorMovablePoint"), mainEditorWindow(mainEditorWindow), levelPack(levelPack), emp(emp), clipboard(clipboard), undoStack(UndoStack(undoStackSize)) {
 	spawnTypePositionMarkerPlacer = SingleMarkerPlacer::create(*(mainEditorWindow.getWindow()), clipboard);
 	spawnTypePositionMarkerPlacer->setPosition(0, 0);
@@ -91,7 +91,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow & mainEditorWi
 		empiPierceResetTime = EditBox::create();
 
 		empiSoundSettingsLabel = tgui::Label::create();
-		empiSoundSettings = SoundSettingsGroup::create(format(LEVEL_PACK_SOUND_FOLDER_PATH, levelPack.getName().c_str()));
+		empiSoundSettings = SoundSettingsGroup::create(format(LEVEL_PACK_SOUND_FOLDER_PATH, levelPack->getName().c_str()));
 
 		empiBulletModelLabel = tgui::Label::create();
 		// Entry ID is bullet model ID
@@ -232,13 +232,13 @@ point will update only the values it wants to inherit to match the model."));
 		empiOnCollisionAction->addItem("Pierce players/enemies", getID(PIERCE_ENTITY));
 
 		empiBulletModel->addItem("None", "-1");
-		for (auto it = levelPack.getBulletModelIteratorBegin(); it != levelPack.getBulletModelIteratorEnd(); it++) {
+		for (auto it = levelPack->getBulletModelIteratorBegin(); it != levelPack->getBulletModelIteratorEnd(); it++) {
 			empiBulletModel->addItem(it->second->getName(), std::to_string(it->second->getID()));
 		}
 
 		// Bullet model should be loaded whenever a change is made to the level pack
-		levelPack.getOnChange()->sink().connect<EditorMovablePointPanel, &EditorMovablePointPanel::onLevelPackChange>(this);
-		emp->loadBulletModel(levelPack);
+		levelPack->getOnChange()->sink().connect<EditorMovablePointPanel, &EditorMovablePointPanel::onLevelPackChange>(this);
+		emp->loadBulletModel(*levelPack);
 		
 		empiAnimatable->connect("ValueChanged", [this](Animatable value) {
 			if (this->ignoreSignals) {
@@ -720,7 +720,7 @@ point will update only the values it wants to inherit to match the model."));
 				if (bulletModelID == -1) {
 					this->emp->removeBulletModel();
 				} else {
-					this->emp->setBulletModel(this->levelPack.getBulletModel(bulletModelID));
+					this->emp->setBulletModel(this->levelPack->getBulletModel(bulletModelID));
 				}
 				onEMPModify.emit(this, this->emp);
 
@@ -774,7 +774,7 @@ point will update only the values it wants to inherit to match the model."));
 				if (oldBulletModelID == -1) {
 					this->emp->removeBulletModel();
 				} else {
-					this->emp->setBulletModel(this->levelPack.getBulletModel(oldBulletModelID));
+					this->emp->setBulletModel(this->levelPack->getBulletModel(oldBulletModelID));
 				}
 				onEMPModify.emit(this, this->emp);
 
@@ -823,7 +823,7 @@ point will update only the values it wants to inherit to match the model."));
 			std::string oldInheritValue = this->emp->getRawHitboxRadius();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
-				this->emp->setInheritRadius(value, this->levelPack);
+				this->emp->setInheritRadius(value, *this->levelPack);
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
@@ -833,7 +833,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			},
 				[this, oldValue, oldInheritValue]() {
-				this->emp->setInheritRadius(oldValue, this->levelPack);
+				this->emp->setInheritRadius(oldValue, *this->levelPack);
 				if (!oldValue) {
 					this->emp->setHitboxRadius(oldInheritValue);
 				}
@@ -855,7 +855,7 @@ point will update only the values it wants to inherit to match the model."));
 			float oldInheritValue = this->emp->getDespawnTime();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
-				this->emp->setInheritDespawnTime(value, this->levelPack);
+				this->emp->setInheritDespawnTime(value, *this->levelPack);
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
@@ -865,7 +865,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			},
 				[this, oldValue, oldInheritValue]() {
-				this->emp->setInheritDespawnTime(oldValue, this->levelPack);
+				this->emp->setInheritDespawnTime(oldValue, *this->levelPack);
 				if (!oldValue) {
 					this->emp->setDespawnTime(oldInheritValue);
 				}
@@ -887,7 +887,7 @@ point will update only the values it wants to inherit to match the model."));
 			std::string oldInheritValue = this->emp->getRawShadowTrailInterval();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
-				this->emp->setInheritShadowTrailInterval(value, this->levelPack);
+				this->emp->setInheritShadowTrailInterval(value, *this->levelPack);
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
@@ -897,7 +897,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			},
 				[this, oldValue, oldInheritValue]() {
-				this->emp->setInheritShadowTrailInterval(oldValue, this->levelPack);
+				this->emp->setInheritShadowTrailInterval(oldValue, *this->levelPack);
 				if (!oldValue) {
 					this->emp->setShadowTrailInterval(oldInheritValue);
 				}
@@ -919,7 +919,7 @@ point will update only the values it wants to inherit to match the model."));
 			std::string oldInheritValue = this->emp->getRawShadowTrailLifespan();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
-				this->emp->setInheritShadowTrailLifespan(value, this->levelPack);
+				this->emp->setInheritShadowTrailLifespan(value, *this->levelPack);
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
@@ -929,7 +929,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			},
 				[this, oldValue, oldInheritValue]() {
-				this->emp->setInheritShadowTrailLifespan(oldValue, this->levelPack);
+				this->emp->setInheritShadowTrailLifespan(oldValue, *this->levelPack);
 				if (!oldValue) {
 					this->emp->setShadowTrailLifespan(oldInheritValue);
 				}
@@ -953,7 +953,7 @@ point will update only the values it wants to inherit to match the model."));
 			bool oldLoopAnimation = this->emp->getLoopAnimation();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
-				this->emp->setInheritAnimatables(value, this->levelPack);
+				this->emp->setInheritAnimatables(value, *this->levelPack);
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
@@ -972,7 +972,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			},
 				[this, oldValue, oldAnimatable, oldBaseSprite, oldLoopAnimation]() {
-				this->emp->setInheritAnimatables(oldValue, this->levelPack);
+				this->emp->setInheritAnimatables(oldValue, *this->levelPack);
 				if (!oldValue) {
 					this->emp->setAnimatable(oldAnimatable);
 					this->emp->setBaseSprite(oldBaseSprite);
@@ -1005,7 +1005,7 @@ point will update only the values it wants to inherit to match the model."));
 			std::string oldInheritValue = this->emp->getRawDamage();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
-				this->emp->setInheritDamage(value, this->levelPack);
+				this->emp->setInheritDamage(value, *this->levelPack);
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
@@ -1015,7 +1015,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			},
 				[this, oldValue, oldInheritValue]() {
-				this->emp->setInheritDamage(oldValue, this->levelPack);
+				this->emp->setInheritDamage(oldValue, *this->levelPack);
 				if (!oldValue) {
 					this->emp->setDamage(oldInheritValue);
 				}
@@ -1037,7 +1037,7 @@ point will update only the values it wants to inherit to match the model."));
 			std::string oldInheritValue = this->emp->getRawPierceResetTime();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
-				this->emp->setInheritPierceResetTime(value, this->levelPack);
+				this->emp->setInheritPierceResetTime(value, *this->levelPack);
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
@@ -1047,7 +1047,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			},
 				[this, oldValue, oldInheritValue]() {
-				this->emp->setInheritPierceResetTime(oldValue, this->levelPack);
+				this->emp->setInheritPierceResetTime(oldValue, *this->levelPack);
 				if (!oldValue) {
 					this->emp->setPierceResetTime(oldInheritValue);
 				}
@@ -1069,7 +1069,7 @@ point will update only the values it wants to inherit to match the model."));
 			SoundSettings oldInheritValue = this->emp->getSoundSettings();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
-				this->emp->setInheritSoundSettings(value, this->levelPack);
+				this->emp->setInheritSoundSettings(value, *this->levelPack);
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
@@ -1079,7 +1079,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			},
 				[this, oldValue, oldInheritValue]() {
-				this->emp->setInheritSoundSettings(oldValue, this->levelPack);
+				this->emp->setInheritSoundSettings(oldValue, *this->levelPack);
 				if (!oldValue) {
 					this->emp->setSoundSettings(oldInheritValue);
 				}
@@ -1252,7 +1252,7 @@ point will update only the values it wants to inherit to match the model."));
 }
 
 EditorMovablePointPanel::~EditorMovablePointPanel() {
-	levelPack.getOnChange()->sink().disconnect<EditorMovablePointPanel, &EditorMovablePointPanel::onLevelPackChange>(this);
+	levelPack->getOnChange()->sink().disconnect<EditorMovablePointPanel, &EditorMovablePointPanel::onLevelPackChange>(this);
 	mainEditorWindow.getGui()->remove(symbolTableEditorWindow);
 }
 
@@ -1388,13 +1388,13 @@ void EditorMovablePointPanel::updateAllWidgetValues() {
 }
 
 void EditorMovablePointPanel::onLevelPackChange() {
-	emp->loadBulletModel(levelPack);
+	emp->loadBulletModel(*levelPack);
 
-	empiSoundSettings->populateFileNames(format(LEVEL_PACK_SOUND_FOLDER_PATH, levelPack.getName().c_str()));
+	empiSoundSettings->populateFileNames(format(LEVEL_PACK_SOUND_FOLDER_PATH, levelPack->getName().c_str()));
 
 	empiBulletModel->removeAllItems();
 	empiBulletModel->addItem("None", "-1");
-	for (auto it = levelPack.getBulletModelIteratorBegin(); it != levelPack.getBulletModelIteratorEnd(); it++) {
+	for (auto it = levelPack->getBulletModelIteratorBegin(); it != levelPack->getBulletModelIteratorEnd(); it++) {
 		empiBulletModel->addItem(it->second->getName(), std::to_string(it->second->getID()));
 	}
 }
@@ -1476,16 +1476,16 @@ void EditorMovablePointPanel::onPasteIntoConfirmation(bool confirmed, std::share
 			if (newEMP->getBulletModelID() == -1) {
 				emp->removeBulletModel();
 			} else {
-				emp->setBulletModel(this->levelPack.getBulletModel(newEMP->getBulletModelID()));
+				emp->setBulletModel(this->levelPack->getBulletModel(newEMP->getBulletModelID()));
 			}
 			emp->setActions(newEMP->getActions());
-			emp->setInheritRadius(newEMP->getInheritRadius(), levelPack);
-			emp->setInheritDespawnTime(newEMP->getInheritDespawnTime(), levelPack);
-			emp->setInheritShadowTrailInterval(newEMP->getInheritShadowTrailInterval(), levelPack);
-			emp->setInheritShadowTrailLifespan(newEMP->getInheritShadowTrailLifespan(), levelPack);
-			emp->setInheritAnimatables(newEMP->getInheritAnimatables(), levelPack);
-			emp->setInheritDamage(newEMP->getInheritDamage(), levelPack);
-			emp->setInheritSoundSettings(newEMP->getInheritSoundSettings(), levelPack);
+			emp->setInheritRadius(newEMP->getInheritRadius(), *levelPack);
+			emp->setInheritDespawnTime(newEMP->getInheritDespawnTime(), *levelPack);
+			emp->setInheritShadowTrailInterval(newEMP->getInheritShadowTrailInterval(), *levelPack);
+			emp->setInheritShadowTrailLifespan(newEMP->getInheritShadowTrailLifespan(), *levelPack);
+			emp->setInheritAnimatables(newEMP->getInheritAnimatables(), *levelPack);
+			emp->setInheritDamage(newEMP->getInheritDamage(), *levelPack);
+			emp->setInheritSoundSettings(newEMP->getInheritSoundSettings(), *levelPack);
 
 			updateAllWidgetValues();
 
@@ -1509,16 +1509,16 @@ void EditorMovablePointPanel::onPasteIntoConfirmation(bool confirmed, std::share
 			if (oldBulletModelID == -1) {
 				emp->removeBulletModel();
 			} else {
-				emp->setBulletModel(this->levelPack.getBulletModel(oldBulletModelID));
+				emp->setBulletModel(this->levelPack->getBulletModel(oldBulletModelID));
 			}
 			emp->setActions(oldActions);
-			emp->setInheritRadius(oldInheritRadius, levelPack);
-			emp->setInheritDespawnTime(oldInheritDespawnTime, levelPack);
-			emp->setInheritShadowTrailInterval(oldInheritShadowTrailInterval, levelPack);
-			emp->setInheritShadowTrailLifespan(oldInheritShadowTrailLifespan, levelPack);
-			emp->setInheritAnimatables(oldInheritAnimatables, levelPack);
-			emp->setInheritDamage(oldInheritDamage, levelPack);
-			emp->setInheritSoundSettings(oldInheritSoundSettings, levelPack);
+			emp->setInheritRadius(oldInheritRadius, *levelPack);
+			emp->setInheritDespawnTime(oldInheritDespawnTime, *levelPack);
+			emp->setInheritShadowTrailInterval(oldInheritShadowTrailInterval, *levelPack);
+			emp->setInheritShadowTrailLifespan(oldInheritShadowTrailLifespan, *levelPack);
+			emp->setInheritAnimatables(oldInheritAnimatables, *levelPack);
+			emp->setInheritDamage(oldInheritDamage, *levelPack);
+			emp->setInheritSoundSettings(oldInheritSoundSettings, *levelPack);
 
 			updateAllWidgetValues();
 

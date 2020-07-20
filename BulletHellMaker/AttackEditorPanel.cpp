@@ -149,7 +149,7 @@ void AttackEditorPropertiesPanel::onPasteIntoConfirmation(bool confirmed, std::s
 	}
 }
 
-AttackEditorPanel::AttackEditorPanel(MainEditorWindow& mainEditorWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize) : mainEditorWindow(mainEditorWindow), levelPack(levelPack), 
+AttackEditorPanel::AttackEditorPanel(MainEditorWindow& mainEditorWindow, std::shared_ptr<LevelPack> levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize) : mainEditorWindow(mainEditorWindow), levelPack(levelPack),
 spriteLoader(spriteLoader), clipboard(clipboard), undoStack(UndoStack(undoStackSize)), attack(attack) {
 	tabs = TabsWithPanel::create(mainEditorWindow);
 	tabs->setPosition(0, 0);
@@ -165,7 +165,7 @@ spriteLoader(spriteLoader), clipboard(clipboard), undoStack(UndoStack(undoStackS
 		tabs->addTab(PROPERTIES_TAB_NAME, properties);
 
 		// Populate the usedBy list when the level pack is changed
-		levelPack.getOnChange()->sink().connect<AttackEditorPanel, &AttackEditorPanel::populatePropertiesUsedByList>(this);
+		levelPack->getOnChange()->sink().connect<AttackEditorPanel, &AttackEditorPanel::populatePropertiesUsedByList>(this);
 		// Initial population
 		populatePropertiesUsedByList();
 
@@ -269,7 +269,7 @@ spriteLoader(spriteLoader), clipboard(clipboard), undoStack(UndoStack(undoStackS
 }
 
 AttackEditorPanel::~AttackEditorPanel() {
-	levelPack.getOnChange()->sink().disconnect<AttackEditorPanel, &AttackEditorPanel::populatePropertiesUsedByList>(this);
+	levelPack->getOnChange()->sink().disconnect<AttackEditorPanel, &AttackEditorPanel::populatePropertiesUsedByList>(this);
 	mainEditorWindow.getGui()->remove(symbolTableEditorWindow);
 }
 
@@ -347,7 +347,7 @@ void AttackEditorPanel::populatePropertiesUsedByList() {
 	usedByIDMap.clear();
 	auto usedBy = properties->getUsedByPanel();
 	usedBy->getListView()->removeAllItems();
-	auto attackPatternIDs = levelPack.getAttackUsers(attack->getID());
+	auto attackPatternIDs = levelPack->getAttackUsers(attack->getID());
 	for (int i = 0; i < attackPatternIDs.size(); i++) {
 		int id = attackPatternIDs[i];
 		usedByIDMap[i] = id;
@@ -369,7 +369,7 @@ void AttackEditorPanel::manualSave() {
 	int id = attack->getID();
 
 	if (unsavedAttacks.count(id) > 0) {
-		levelPack.updateAttack(unsavedAttacks[id]);
+		levelPack->updateAttack(unsavedAttacks[id]);
 		unsavedAttacks.erase(id);
 	}
 	// Do nothing if the attack doesn't have any unsaved changes

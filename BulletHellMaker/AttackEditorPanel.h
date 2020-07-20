@@ -86,9 +86,9 @@ public:
 	attack - the EditorAttack that is being edited
 	undoStackSize - the maximum number of undos stored
 	*/
-	AttackEditorPanel(MainEditorWindow& mainEditorWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50);
+	AttackEditorPanel(MainEditorWindow& mainEditorWindow, std::shared_ptr<LevelPack> levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50);
 	~AttackEditorPanel();
-	static std::shared_ptr<AttackEditorPanel> create(MainEditorWindow& mainEditorWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50) {
+	static std::shared_ptr<AttackEditorPanel> create(MainEditorWindow& mainEditorWindow, std::shared_ptr<LevelPack> levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50) {
 		return std::make_shared<AttackEditorPanel>(mainEditorWindow, levelPack, spriteLoader, clipboard, attack, undoStackSize);
 	}
 
@@ -113,7 +113,7 @@ private:
 	static const std::string EMP_TAB_NAME_FORMAT;
 
 	MainEditorWindow& mainEditorWindow;
-	LevelPack& levelPack;
+	std::shared_ptr<LevelPack> levelPack;
 	SpriteLoader& spriteLoader;
 	Clipboard& clipboard;
 	UndoStack undoStack;

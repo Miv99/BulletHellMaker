@@ -58,10 +58,11 @@ void EditorWindow::start() {
 		float timeSinceLastRender = 0;
 		while (timeSinceLastRender < RENDER_INTERVAL) {
 			sf::Event event;
-			while (window->pollEvent(event)) {
-				if (event.type == sf::Event::Closed) {
+			while (!windowCloseQueued && window->pollEvent(event)) {
+				if (windowCloseQueued || event.type == sf::Event::Closed) {
 					closeSignal->publish();
 					window->close();
+					return;
 				} else if (event.type == sf::Event::Resized) {
 					updateWindowView(event.size.width, event.size.height);
 				} else {
@@ -82,6 +83,10 @@ void EditorWindow::start() {
 					renderSignal->publish(dt);
 				}
 				window->display();
+			}
+
+			if (windowCloseQueued) {
+				return;
 			}
 
 			float dt = std::min(MAX_PHYSICS_DELTA_TIME, deltaClock.restart().asSeconds());
@@ -123,10 +128,11 @@ void EditorWindow::startAndHide() {
 		float timeSinceLastRender = 0;
 		while (timeSinceLastRender < RENDER_INTERVAL) {
 			sf::Event event;
-			while (window->pollEvent(event)) {
-				if (event.type == sf::Event::Closed) {
+			while (!windowCloseQueued && window->pollEvent(event)) {
+				if (windowCloseQueued || event.type == sf::Event::Closed) {
 					closeSignal->publish();
 					window->close();
+					return;
 				} else if (event.type == sf::Event::Resized) {
 					updateWindowView(event.size.width, event.size.height);
 				} else {
@@ -166,7 +172,7 @@ void EditorWindow::startAndHide() {
 
 void EditorWindow::close() {
 	if (window && window->isOpen()) {
-		window->close();
+		windowCloseQueued = true;
 	}
 }
 
@@ -654,7 +660,7 @@ void MainEditorWindow::openLeftPanelAttack(int attackID) {
 		mainPanel->selectTab(format(MAIN_PANEL_ATTACK_TAB_NAME_FORMAT, attackID));
 	} else {
 		// Create the tab
-		std::shared_ptr<AttackEditorPanel> attackEditorPanel = AttackEditorPanel::create(*this, *levelPack, *spriteLoader, clipboard, openedAttack);
+		std::shared_ptr<AttackEditorPanel> attackEditorPanel = AttackEditorPanel::create(*this, levelPack, *spriteLoader, clipboard, openedAttack);
 		attackEditorPanel->connect("AttackPatternBeginEdit", [&](int attackPatternID) {
 			openLeftPanelAttackPattern(attackPatternID);
 		});
@@ -699,7 +705,7 @@ void MainEditorWindow::reloadAttackTab(int attackID) {
 		}
 
 		// Create the tab
-		std::shared_ptr<AttackEditorPanel> attackEditorPanel = AttackEditorPanel::create(*this, *levelPack, *spriteLoader, clipboard, openedAttack);
+		std::shared_ptr<AttackEditorPanel> attackEditorPanel = AttackEditorPanel::create(*this, levelPack, *spriteLoader, clipboard, openedAttack);
 		attackEditorPanel->connect("AttackPatternBeginEdit", [&](int attackPatternID) {
 			openLeftPanelAttackPattern(attackPatternID);
 		});
@@ -782,9 +788,7 @@ bool LevelPackObjectPreviewWindow::handleEvent(sf::Event event) {
 
 void LevelPackObjectPreviewWindow::onRenderWindowInitialization() {
 	previewPanel = LevelPackObjectPreviewPanel::create(*this, levelPackName);
-	previewPanel->setSize("70%", "100%");
-	previewPanel->setPosition("30%", 0);
-	//previewPanel->setVisible(false);
+	previewPanel->setSize("100%", "100%");
 	gui->add(previewPanel);
 }
 

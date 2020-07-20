@@ -27,9 +27,9 @@ public:
 	levelPack - the LevelPack that emp is in
 	emp - the EditorMovablePoint being edited
 	*/
-	EditorMovablePointPanel(MainEditorWindow& mainEditorWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorMovablePoint> emp, int undoStackSize = 50);
+	EditorMovablePointPanel(MainEditorWindow& mainEditorWindow, std::shared_ptr<LevelPack> levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorMovablePoint> emp, int undoStackSize = 50);
 	~EditorMovablePointPanel();
-	inline static std::shared_ptr<EditorMovablePointPanel> create(MainEditorWindow& mainEditorWindow, LevelPack& levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorMovablePoint> emp, int undoStackSize = 50) {
+	inline static std::shared_ptr<EditorMovablePointPanel> create(MainEditorWindow& mainEditorWindow, std::shared_ptr<LevelPack> levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorMovablePoint> emp, int undoStackSize = 50) {
 		return std::make_shared<EditorMovablePointPanel>(mainEditorWindow, levelPack, spriteLoader, clipboard, emp, undoStackSize);
 	}
 
@@ -49,7 +49,7 @@ private:
 	static const std::string MOVEMENT_TAB_NAME;
 
 	MainEditorWindow& mainEditorWindow;
-	LevelPack& levelPack;
+	std::shared_ptr<LevelPack> levelPack;
 	Clipboard& clipboard;
 	UndoStack undoStack;
 	std::shared_ptr<EditorMovablePoint> emp;

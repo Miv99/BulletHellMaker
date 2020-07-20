@@ -164,6 +164,8 @@ private:
 	std::string windowTitle;
 	int windowWidth, windowHeight;
 
+	bool windowCloseQueued = false;
+
 	// The popup widget, if one exists.
 	// Only one popup widget can exist at any time. If a new widget pops up,
 	// the old one is removed from the Gui. When the user clicks outside the popup
