@@ -129,6 +129,11 @@ bool ViewController::update(sf::View& view, float deltaTime) {
 	return requireScreenRefresh;
 }
 
+void ViewController::setViewZone(sf::View& view, sf::FloatRect viewZone) {
+	view.setSize(originalViewWidth / cameraZoom, originalViewHeight / cameraZoom);
+	view.setCenter(viewZone.left + viewZone.width / 2.0f, viewZone.top + viewZone.height / 2.0f);
+}
+
 void ViewController::setCameraZoom(sf::View& view, float zoom) {
 	cameraZoom = zoom;
 	view.setSize(originalViewWidth / zoom, originalViewHeight / zoom);

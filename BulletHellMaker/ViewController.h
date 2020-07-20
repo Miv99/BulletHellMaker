@@ -20,6 +20,11 @@ public:
 	bool update(sf::View& view, float deltaTime);
 
 	/*
+	This should be used to set the view's view zone.
+	*/
+	void setViewZone(sf::View& view, sf::FloatRect viewZone);
+
+	/*
 	Sets the size of the view at 1x camera zoom.
 	*/
 	inline void setOriginalViewSize(float width, float height) {

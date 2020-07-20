@@ -1851,6 +1851,7 @@ paused(true), userControlledView(userControlledView), useDebugRenderSystem(useDe
 	if (userControlledView) {
 		viewController = std::make_unique<ViewController>(parentWindow, true, false);
 	}
+	viewFromViewController.setCenter(MAP_WIDTH / 2.0f, MAP_HEIGHT / 2.0f);
 
 	connect("PositionChanged", [&]() {
 		updateWindowView();
@@ -1881,13 +1882,13 @@ void SimpleEngineRenderer::updateWindowView() {
 		viewWidth = resolution.y * size.x / (float)size.y;
 		float viewX = -(viewWidth - resolution.x) / 2.0f;
 		float viewY = 0;
-		viewFloatRect = sf::FloatRect(viewX, viewY, viewWidth, viewHeight);
+		viewFloatRect = sf::FloatRect(0, viewY, viewWidth, viewHeight);
 	} else {
 		viewWidth = resolution.x;
 		viewHeight = resolution.x * size.y / (float)size.x;
 		float viewX = 0;
 		float viewY = -(viewHeight - resolution.y) / 2.0f;
-		viewFloatRect = sf::FloatRect(viewX, viewY, viewWidth, viewHeight);
+		viewFloatRect = sf::FloatRect(0, viewY, viewWidth, viewHeight);
 	}
 
 	if (viewController) {
@@ -1900,8 +1901,10 @@ void SimpleEngineRenderer::updateWindowView() {
 	float viewportHeight = getSize().y / windowSize.y;
 	viewportFloatRect = sf::FloatRect(viewportX, viewportY, viewportWidth, viewportHeight);
 
-	viewFromViewController = sf::View(viewFloatRect);
+	sf::Vector2f oldCenter = viewFromViewController.getCenter();
+	viewController->setViewZone(viewFromViewController, viewFloatRect);
 	viewFromViewController.setViewport(viewportFloatRect);
+	viewFromViewController.setCenter(oldCenter);
 }
 
 bool SimpleEngineRenderer::update(sf::Time elapsedTime) {
@@ -3292,7 +3295,7 @@ void MarkerPlacer::updateWindowView() {
 	viewportFloatRect = sf::FloatRect(viewportX, viewportY, viewportWidth, viewportHeight);
 
 	sf::Vector2f oldCenter = viewFromViewController.getCenter();
-	viewFromViewController = sf::View(viewFloatRect);
+	viewController->setViewZone(viewFromViewController, viewFloatRect);
 	viewFromViewController.setViewport(viewportFloatRect);
 	viewFromViewController.setCenter(oldCenter);
 
