@@ -341,6 +341,7 @@ class LevelPackObjectPreviewWindow : public EditorWindow {
 public:
 	LevelPackObjectPreviewWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, std::string levelPackName, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL);
 
+	void previewNothing();
 	void previewAttack(const std::shared_ptr<EditorAttack> attack);
 
 	/*
@@ -351,6 +352,9 @@ public:
 private:
 	std::shared_ptr<LevelPackObjectPreviewPanel> previewPanel;
 	std::string levelPackName;
+
+
+	boost::thread previewThread;
 
 	bool handleEvent(sf::Event event) override;
 

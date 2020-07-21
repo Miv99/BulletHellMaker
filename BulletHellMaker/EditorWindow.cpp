@@ -767,9 +767,23 @@ LevelPackObjectPreviewWindow::LevelPackObjectPreviewWindow(std::shared_ptr<std::
 	: EditorWindow(tguiMutex, windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval), levelPackName(levelPackName) {
 }
 
-void LevelPackObjectPreviewWindow::previewAttack(const std::shared_ptr<EditorAttack> attack) {
+void LevelPackObjectPreviewWindow::previewNothing() {
 	if (window->isOpen()) {
-		previewPanel->previewAttack(attack);
+		previewObjectLabel->setText("Nothing being previewed");
+
+		previewThread.join();
+		previewThread = boost::thread(&LevelPackObjectPreviewPanel::previewNothing, &(*previewPanel));
+		previewThread.detach();
+	}
+}
+
+void LevelPackObjectPreviewWindow::previewAttack(const std::shared_ptr<EditorAttack> attack) {
+	if (window->isOpen() && !lockCurrentPreview) {
+		previewObjectLabel->setText("Attack ID " + std::to_string(attack->getID()));
+
+		previewThread.join();
+		previewThread = boost::thread(&LevelPackObjectPreviewPanel::previewAttack, &(*previewPanel), attack);
+		previewThread.detach();
 	}
 }
 
