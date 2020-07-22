@@ -155,9 +155,6 @@ protected:
 	virtual void onRenderWindowInitialization();
 
 private:
-	const float GUI_PADDING_X = 20;
-	const float GUI_PADDING_Y = 10;
-
 	int nextVertexArrayID = 0;
 	std::map<int, sf::VertexArray> vertexArrays;
 
@@ -351,10 +348,28 @@ public:
 
 private:
 	std::shared_ptr<LevelPackObjectPreviewPanel> previewPanel;
+
+	std::shared_ptr<tgui::Panel> infoPanel;
+	std::shared_ptr<tgui::Label> previewObjectLabel;
+	std::shared_ptr<tgui::Label> delayLabel;
+	std::shared_ptr<NumericalEditBoxWithLimits> delay;
+	std::shared_ptr<tgui::Label> timeMultiplierLabel;
+	std::shared_ptr<SliderWithEditBox> timeMultiplier;
+	std::shared_ptr<tgui::Button> resetPreview;
+	std::shared_ptr<tgui::Button> resetCamera;
+	std::shared_ptr<tgui::Button> setPlayerSpawn;
+	std::shared_ptr<tgui::Button> setSource;
+	std::shared_ptr<tgui::CheckBox> useDebugRenderSystem;
+	std::shared_ptr<tgui::CheckBox> lockCurrentPreviewCheckBox;
+
 	std::string levelPackName;
 
+	// While this is checked, new previews cannot start
+	bool lockCurrentPreview = false;
 
 	boost::thread previewThread;
+
+	bool ignoreSignals = false;
 
 	bool handleEvent(sf::Event event) override;
 

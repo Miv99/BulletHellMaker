@@ -141,20 +141,15 @@ Notes for me:
 current todo:
 -Preview panel as a separate window; the object being previewed changes depending
  on the currently selected first-level tab in MainEditorWindow::mainPanel (have some "SelectedTabChanged" signal in TabsWithPanel)
-    -If object is an EditorAttack, when "AttackModified" signal received from AttackEditorPanel, reload the preview
-    -Same pattern for EditorAttackPattern and other first-level objects
     -If the object isn't legal, the preview panel will show the error message from legal()
     -if you see some weird bugs with the physics it's probably because of how i changed EditorWindow's main loop
     -ValueSymbolTableEditor that edits some ValueSymbolTable additionalTable; then additionalTable is combined
         with the symbolTable of the object being previewed such that every symbol in symbolTable is replaced by
         the one in additionalTable if it exists; additionalTable can't be redelegated; every redelegated symbol in
         symbolTable must be defined by additionalTable or else the preview won't start
-    -press R -> reloadPreview()
-    -separate LevelPack that contains all unsaved changes at any time; pass this one into LevelpackObjectPreviewPanel
-    -time multiplier; multiply dt in physics update by some user-adjustable value
     -surround SimpleEngineRenderer in some try catch that prints exceptions to the user
     -cache SimpleEngineRenderer backgrounds so that SimpleEngineRenderer::loadLevel isn't omega slow
-    -some text somewhere in LevelPackObjectPreviewPanel that says what's being previewed (eg Attack ID 0)
+    -select tab in maineditorwindow -> preview that thing; right now it only works with openLeftPanelAttack()
 -marker placer label showing mouse world position
 -visualizer thing in EMPABasedMovementEditorPanel
     

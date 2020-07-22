@@ -666,7 +666,7 @@ public:
 	}
 
 	bool update(sf::Time elapsedTime) override;
-	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 	virtual bool handleEvent(sf::Event event) override;
 
@@ -678,13 +678,24 @@ public:
 	void pause();
 	void unpause();
 
-	void physicsUpdate(float deltaTime) const;
-	void renderUpdate(float deltaTime) const;
+	void resetCamera();
+
+	void physicsUpdate(float deltaTime);
+	void renderUpdate(float deltaTime);
 
 	void setUseDebugRenderSystem(bool useDebugRenderSystem);
+	/*
+	timeMultiplier - in range [0, 1]
+	*/
+	void setTimeMultiplier(float timeMultiplier);
+	void setPlayerSpawn(float x, float y);
+
 	bool getUseDebugRenderSystem() const;
+	float getTimeMultiplier() const;
 
 protected:
+	sf::RenderWindow& parentWindow;
+
 	std::shared_ptr<LevelPack> levelPack;
 	mutable entt::DefaultRegistry registry;
 	std::shared_ptr<SpriteLoader> spriteLoader;
@@ -702,11 +713,12 @@ protected:
 	std::unique_ptr<AudioPlayer> audioPlayer;
 
 	bool useDebugRenderSystem;
+	sf::View viewFromViewController;
 	
 	virtual std::shared_ptr<EditorPlayer> getPlayer();
 
 private:
-	sf::RenderWindow& parentWindow;
+	std::mutex registryMutex;
 
 	bool paused;
 
@@ -716,7 +728,12 @@ private:
 
 	bool userControlledView;
 	std::unique_ptr<ViewController> viewController;
-	sf::View viewFromViewController;
+
+	float timeMultiplier = 1.0f;
+
+	// Spawn location of player for previews
+	float playerSpawnX = PLAYER_SPAWN_X;
+	float playerSpawnY = PLAYER_SPAWN_Y;
 
 	void updateWindowView();
 };

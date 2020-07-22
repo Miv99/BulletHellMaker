@@ -7,8 +7,20 @@ LevelPackObjectPreviewPanel::LevelPackObjectPreviewPanel(EditorWindow& parentWin
 	loadLevelPack(levelPackName);
 	levelPack->getOnChange()->sink().connect<LevelPackObjectPreviewPanel, &LevelPackObjectPreviewPanel::resetPreview>(this);
 
+	currentCursor = sf::CircleShape(-1);
+	currentCursor.setOutlineColor(sf::Color::Green);
+	currentCursor.setOutlineThickness(2.0f);
+	currentCursor.setFillColor(sf::Color::Transparent);
+	currentCursor.setOrigin(CURSOR_RADIUS, CURSOR_RADIUS);
+
 	Animatable defaultEnemyAnimatable = Animatable("Enemy Placeholder", "Default", true, ROTATION_TYPE::LOCK_ROTATION);
 	EntityAnimatableSet defaultEnemyAnimatableSet(defaultEnemyAnimatable, defaultEnemyAnimatable, defaultEnemyAnimatable);
+
+	{
+		emptyLevel = std::make_shared<Level>();
+		emptyLevel->setBackgroundFileName("Default1.png");
+		emptyLevel->compileExpressions({});
+	}
 
 	// Player reserves attack pattern ID -2
 	{
@@ -94,6 +106,34 @@ LevelPackObjectPreviewPanel::~LevelPackObjectPreviewPanel() {
 	gui->remove(symbolTableEditorWindow);
 }
 
+void LevelPackObjectPreviewPanel::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+	// Viewport is set here because tgui::Gui's draw function changes it right before renderSystem is updated or something
+	sf::View originalView = parentWindow.getView();
+	parentWindow.setView(viewFromViewController);
+	if (currentCursor.getRadius() > 0) {
+		auto pos = sf::Mouse::getPosition(parentWindow);
+		auto worldPos = parentWindow.mapPixelToCoords(pos);
+		sf::CircleShape currentCursor = sf::CircleShape(this->currentCursor);
+		// Show red cursor if setting player spawn in some invalid area
+		if (settingPlayerSpawn && ((worldPos.x < 0 || worldPos.x > MAP_WIDTH) || (worldPos.y < 0 || worldPos.y > MAP_HEIGHT))) {
+			currentCursor.setOutlineColor(sf::Color::Red);
+		}
+
+		currentCursor.setPosition(worldPos + sf::Vector2f(CURSOR_RADIUS/2.0f, CURSOR_RADIUS/2.0f));
+		parentWindow.draw(currentCursor);
+	}
+	parentWindow.setView(originalView);
+}
+
+void LevelPackObjectPreviewPanel::previewNothing() {
+	currentPreviewObjectType = PREVIEW_OBJECT::NONE;
+
+	loadLevel(emptyLevel);
+	unpause();
+
+	// TODO: emit signal back to window saying to change the object text thing
+}
+
 void LevelPackObjectPreviewPanel::previewAttack(const std::shared_ptr<EditorAttack> attack) {
 	exprtk::symbol_table<float> convertedTestTable = testTable.toExprtkSymbolTable();
 
@@ -115,6 +155,8 @@ void LevelPackObjectPreviewPanel::previewAttack(const std::shared_ptr<EditorAtta
 
 	loadLevel(levelForAttack);
 	unpause();
+
+	// TODO: emit signal back to window saying to change the object text thing
 }
 
 bool LevelPackObjectPreviewPanel::handleEvent(sf::Event event) {
@@ -126,13 +168,57 @@ bool LevelPackObjectPreviewPanel::handleEvent(sf::Event event) {
 		if (event.key.code == sf::Keyboard::V) {
 			gui->add(symbolTableEditorWindow);
 			return true;
-		} else if (event.key.code == sf::Keyboard::I) {
-			// TODO: show info
+		}
+	} else if ((settingPlayerSpawn || settingSource) && event.type == sf::Event::MouseButtonPressed) {
+		if (event.mouseButton.button == sf::Mouse::Right) {
+			if (settingPlayerSpawn) {
+				setSettingPlayerSpawn(false);
+			} else if (settingSource) {
+				setSettingSource(false);
+			}
 			return true;
-		} else if (event.key.code == sf::Keyboard::T) {
-			setUseDebugRenderSystem(!useDebugRenderSystem);
+		} else if (event.mouseButton.button == sf::Mouse::Left) {
+			sf::View originalView = parentWindow.getView();
+			parentWindow.setView(viewFromViewController);
+			sf::Vector2f mouseWorldPos = parentWindow.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y));
+			// Convert to coordinate system the game uses
+			mouseWorldPos.y = -mouseWorldPos.y + MAP_HEIGHT;
+			parentWindow.setView(originalView);
+
+			if (settingPlayerSpawn) {
+				if (!(mouseWorldPos.x < 0 || mouseWorldPos.x > MAP_WIDTH || mouseWorldPos.y < 0 || mouseWorldPos.y > MAP_HEIGHT)) {
+					setPlayerSpawn(mouseWorldPos.x, mouseWorldPos.y);
+					setSettingPlayerSpawn(false);
+				}
+			} else if (settingSource) {
+				setPreviewSource(mouseWorldPos.x, mouseWorldPos.y);
+				setSettingSource(false);
+			}
 			return true;
 		}
+	}
+	return false;
+}
+
+void LevelPackObjectPreviewPanel::setSettingPlayerSpawn(bool settingPlayerSpawn) {
+	this->settingPlayerSpawn = settingPlayerSpawn;
+
+	if (settingPlayerSpawn) {
+		settingSource = false;
+		currentCursor.setRadius(CURSOR_RADIUS);
+	} else {
+		currentCursor.setRadius(-1);
+	}
+}
+
+void LevelPackObjectPreviewPanel::setSettingSource(bool settingSource) {
+	this->settingSource = settingSource;
+
+	if (settingSource) {
+		settingPlayerSpawn = false;
+		currentCursor.setRadius(CURSOR_RADIUS);
+	} else {
+		currentCursor.setRadius(-1);
 	}
 }
 
@@ -154,11 +240,8 @@ void LevelPackObjectPreviewPanel::setAttackLoopDelay(float attackLoopDelay) {
 	attackPatternForAttack->insertAction(0, std::make_shared<StayStillAtLastPositionEMPA>(attackLoopDelay));
 	enemyPhaseForAttack->setAttackPatternLoopDelay(std::to_string(attackLoopDelay));
 	enemyPhaseForAttack->compileExpressions({});
-}
 
-void LevelPackObjectPreviewPanel::setAttackPatternLoopDelay(float attackPatternLoopDelay) {
-	//TODO
-	this->attackPatternLoopDelay = attackPatternLoopDelay;
+	// TODO: change stuff for attack pattern stuff
 }
 
 float LevelPackObjectPreviewPanel::getPreviewSourceX() const {
@@ -173,17 +256,15 @@ float LevelPackObjectPreviewPanel::getAttackLoopDelay() const {
 	return attackLoopDelay;
 }
 
-float LevelPackObjectPreviewPanel::getAttackPatternLoopDelay() const {
-	return attackPatternLoopDelay;
-}
-
 std::shared_ptr<LevelPack> LevelPackObjectPreviewPanel::getLevelPack() {
 	return levelPack;
 }
 
 void LevelPackObjectPreviewPanel::resetPreview() {
 	// TODO
-	if (currentPreviewObjectType == PREVIEW_OBJECT::ATTACK) {
+	if (currentPreviewObjectType == PREVIEW_OBJECT::NONE) {
+		previewNothing();
+	} else if (currentPreviewObjectType == PREVIEW_OBJECT::ATTACK) {
 		previewAttack(levelPack->getAttack(currentPreviewObjectID));
 	}
 }

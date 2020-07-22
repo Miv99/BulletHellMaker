@@ -796,6 +796,37 @@ void LevelPackObjectPreviewWindow::onOriginalLevelPackAttackModified(const std::
 bool LevelPackObjectPreviewWindow::handleEvent(sf::Event event) {
 	if (EditorWindow::handleEvent(event)) {
 		return true;
+	} else if (previewPanel->handleEvent(event)) {
+		return true;
+	} else if (event.type == sf::Event::KeyPressed) {
+		if (event.key.code == sf::Keyboard::I) {
+			if (infoPanel->isVisible()) {
+				infoPanel->setVisible(false);
+				previewPanel->setSize("100%", "100%");
+				previewPanel->setPosition(0, 0);
+			} else {
+				infoPanel->setVisible(true);
+				previewPanel->setSize("70%", "100%");
+				previewPanel->setPosition("30%", 0);
+			}
+			return true;
+		} else if (event.key.code == sf::Keyboard::T) {
+			previewPanel->setUseDebugRenderSystem(!useDebugRenderSystem);
+			ignoreSignals = true;
+			useDebugRenderSystem->setChecked(previewPanel->getUseDebugRenderSystem());
+			ignoreSignals = false;
+
+			return true;
+		} else if (event.key.code == sf::Keyboard::G) {
+			previewPanel->resetCamera();
+			return true;
+		} else if (event.key.code == sf::Keyboard::R) {
+			previewPanel->resetPreview();
+			return true;
+		} else if (event.key.code == sf::Keyboard::Escape) {
+			previewNothing();
+			return true;
+		}
 	}
 	return previewPanel->handleEvent(event);
 }
@@ -804,6 +835,140 @@ void LevelPackObjectPreviewWindow::onRenderWindowInitialization() {
 	previewPanel = LevelPackObjectPreviewPanel::create(*this, levelPackName);
 	previewPanel->setSize("100%", "100%");
 	gui->add(previewPanel);
+
+	infoPanel = tgui::Panel::create();
+	infoPanel->setVisible(false);
+	gui->add(infoPanel);
+
+	previewObjectLabel = tgui::Label::create();
+	delayLabel = tgui::Label::create();
+	delay = NumericalEditBoxWithLimits::create();
+	timeMultiplierLabel = tgui::Label::create();
+	timeMultiplier = SliderWithEditBox::create(false);
+	resetPreview = tgui::Button::create();
+	resetCamera = tgui::Button::create();
+	setPlayerSpawn = tgui::Button::create();
+	setSource = tgui::Button::create();
+	useDebugRenderSystem = tgui::CheckBox::create();
+	lockCurrentPreviewCheckBox = tgui::CheckBox::create();
+
+	delay->setMin(0);
+	delay->setValue(previewPanel->getAttackLoopDelay());
+	timeMultiplier->setMin(0, false);
+	timeMultiplier->setMax(1, false);
+	timeMultiplier->setStep(0.01f);
+	timeMultiplier->setValue(previewPanel->getTimeMultiplier());
+	useDebugRenderSystem->setChecked(previewPanel->getUseDebugRenderSystem());
+	lockCurrentPreviewCheckBox->setChecked(lockCurrentPreview);
+
+	delay->connect("ValueChanged", [this](float value) {
+		if (ignoreSignals) {
+			return;
+		}
+
+		previewPanel->setAttackLoopDelay(value);
+	});
+	timeMultiplier->connect("ValueChanged", [this](float value) {
+		if (ignoreSignals) {
+			return;
+		}
+
+		previewPanel->setTimeMultiplier(value);
+	});
+	resetPreview->connect("Pressed", [this]() {
+		previewPanel->resetPreview();
+	});
+	resetCamera->connect("Pressed", [this]() {
+		previewPanel->resetCamera();
+	});
+	setPlayerSpawn->connect("Pressed", [this]() {
+		previewPanel->setSettingPlayerSpawn(true);
+	});
+	setSource->connect("Pressed", [this]() {
+		previewPanel->setSettingSource(true);
+	});
+	useDebugRenderSystem->connect("Changed", [this](bool checked) {
+		if (ignoreSignals) {
+			return;
+		}
+
+		previewPanel->setUseDebugRenderSystem(checked);
+	});
+	lockCurrentPreviewCheckBox->connect("Changed", [this](bool checked) {
+		if (ignoreSignals) {
+			return;
+		}
+
+		this->lockCurrentPreview = checked;
+	});
+
+	useDebugRenderSystem->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
+	lockCurrentPreviewCheckBox->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
+
+	previewObjectLabel->setTextSize(TEXT_SIZE);
+	delayLabel->setTextSize(TEXT_SIZE);
+	delay->setTextSize(TEXT_SIZE);
+	timeMultiplierLabel->setTextSize(TEXT_SIZE);
+	timeMultiplier->setTextSize(TEXT_SIZE);
+	resetPreview->setTextSize(TEXT_SIZE);
+	resetCamera->setTextSize(TEXT_SIZE);
+	setPlayerSpawn->setTextSize(TEXT_SIZE);
+	setSource->setTextSize(TEXT_SIZE);
+	useDebugRenderSystem->setTextSize(TEXT_SIZE);
+	lockCurrentPreviewCheckBox->setTextSize(TEXT_SIZE);
+
+	delayLabel->setText("Attack/Attack pattern repeat interval");
+	timeMultiplierLabel->setText("Time multiplier");
+	resetPreview->setText("Reset preview");
+	resetCamera->setText("Reset camera");
+	setPlayerSpawn->setText("Set player spawn");
+	setSource->setText("Set preview source");
+	useDebugRenderSystem->setText("Hitboxes visible");
+	lockCurrentPreviewCheckBox->setText("Lock current preview");
+
+	delayLabel->setToolTip(createToolTip("Seconds before the attack or attack pattern being previewed is executed again."));
+	useDebugRenderSystem->setToolTip(createToolTip("If this is checked, all hitboxes will be visible and sprites will be drawn outside the map boundaries \
+but shader effects (such as piercing bullets flashing after hitting a player) will be unavailable due to technical limitations. Note that bullets with collision action \
+\"Destroy self only\" only become invisible after hitting a player, so their hitboxes will still be visible even though they cannot interact with the player again."));
+	lockCurrentPreviewCheckBox->setToolTip(createToolTip("While this is checked, new objects will not be previewed."));
+	setPlayerSpawn->setToolTip(createToolTip("Sets the player's spawn position for future previews to be the next clicked position. The spawn position must be within the map boundaries."));
+	setSource->setToolTip(createToolTip("Sets the preview source position for future previews to be the next clicked position. The spawn position can be outside the map boundaries."));
+
+	previewObjectLabel->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
+	delayLabel->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(previewObjectLabel) + GUI_PADDING_Y);
+	delay->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(delayLabel) + GUI_LABEL_PADDING_Y);
+	timeMultiplierLabel->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(delay) + GUI_PADDING_Y);
+	timeMultiplier->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(timeMultiplierLabel) + GUI_LABEL_PADDING_Y);
+	resetPreview->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(timeMultiplier) + GUI_PADDING_Y);
+	resetCamera->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(resetPreview) + GUI_PADDING_Y);
+	setPlayerSpawn->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(resetCamera) + GUI_PADDING_Y);
+	setSource->setPosition(tgui::bindRight(setPlayerSpawn) + GUI_PADDING_X, tgui::bindTop(setPlayerSpawn));
+	useDebugRenderSystem->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(setSource) + GUI_PADDING_Y);
+	lockCurrentPreviewCheckBox->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(useDebugRenderSystem) + GUI_PADDING_Y);
+
+	infoPanel->connect("SizeChanged", [this](sf::Vector2f newSize) {
+		delay->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+		timeMultiplier->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
+		resetPreview->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BUTTON_HEIGHT);
+		resetCamera->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BUTTON_HEIGHT);
+		setPlayerSpawn->setSize((newSize.x - GUI_PADDING_X * 3)/2.0f, TEXT_BUTTON_HEIGHT);
+		setSource->setSize((newSize.x - GUI_PADDING_X * 3) / 2.0f, TEXT_BUTTON_HEIGHT);
+	});
+	infoPanel->setSize("30%", "100%");
+
+	infoPanel->add(previewObjectLabel);
+	infoPanel->add(delayLabel);
+	infoPanel->add(delay);
+	infoPanel->add(timeMultiplierLabel);
+	infoPanel->add(timeMultiplier);
+	infoPanel->add(resetPreview);
+	infoPanel->add(resetCamera);
+	infoPanel->add(setPlayerSpawn);
+	infoPanel->add(setSource);
+	infoPanel->add(useDebugRenderSystem);
+	infoPanel->add(lockCurrentPreviewCheckBox);
+
+	previewNothing();
 }
 
 void LevelPackObjectPreviewWindow::physicsUpdate(float deltaTime) {

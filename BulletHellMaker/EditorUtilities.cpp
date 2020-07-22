@@ -1961,6 +1961,8 @@ void SimpleEngineRenderer::loadLevel(int levelIndex) {
 }
 
 void SimpleEngineRenderer::loadLevel(std::shared_ptr<Level> level) {
+	std::lock_guard<std::mutex> lock(registryMutex);
+
 	// Load bloom settings
 	renderSystem->loadLevelRenderSettings(level);
 
@@ -1990,7 +1992,7 @@ void SimpleEngineRenderer::loadLevel(std::shared_ptr<Level> level) {
 	auto& health = registry.assign<HealthComponent>(player, params->getInitialHealth(), params->getMaxHealth());
 	// Hitbox temporarily at 0, 0 until an Animatable is assigned to the player later
 	registry.assign<HitboxComponent>(player, LOCK_ROTATION, params->getHitboxRadius(), 0, 0);
-	registry.assign<PositionComponent>(player, PLAYER_SPAWN_X - params->getHitboxPosX(), PLAYER_SPAWN_Y - params->getHitboxPosY());
+	registry.assign<PositionComponent>(player, playerSpawnX - params->getHitboxPosX(), playerSpawnY - params->getHitboxPosY());
 	registry.assign<SpriteComponent>(player, PLAYER_LAYER, 0);
 
 	// Play level music
@@ -2026,8 +2028,15 @@ void SimpleEngineRenderer::unpause() {
 	paused = false;
 }
 
-void SimpleEngineRenderer::physicsUpdate(float deltaTime) const {
+void SimpleEngineRenderer::resetCamera() {
+	viewFromViewController.setCenter(MAP_WIDTH / 2.0f, MAP_HEIGHT / 2.0f);
+}
+
+void SimpleEngineRenderer::physicsUpdate(float deltaTime) {
 	if (!paused) {
+		std::lock_guard<std::mutex> lock(registryMutex);
+		deltaTime *= timeMultiplier;
+
 		audioPlayer->update(deltaTime);
 
 		collisionSystem->update(deltaTime);
@@ -2056,7 +2065,10 @@ void SimpleEngineRenderer::physicsUpdate(float deltaTime) const {
 	}
 }
 
-void SimpleEngineRenderer::renderUpdate(float deltaTime) const {
+void SimpleEngineRenderer::renderUpdate(float deltaTime) {
+	std::lock_guard<std::mutex> lock(registryMutex);
+	deltaTime *= timeMultiplier;
+
 	// Viewport is set here because tgui::Gui's draw function changes it right before renderSystem is updated or something
 	sf::View originalView = parentWindow.getView();
 	if (viewController) {
@@ -2079,10 +2091,24 @@ void SimpleEngineRenderer::renderUpdate(float deltaTime) const {
 
 void SimpleEngineRenderer::setUseDebugRenderSystem(bool useDebugRenderSystem) {
 	this->useDebugRenderSystem = useDebugRenderSystem;
+	// TODO: emit signal back to window saying to change the checkbox thing
+}
+
+void SimpleEngineRenderer::setTimeMultiplier(float timeMultiplier) {
+	this->timeMultiplier = timeMultiplier;
+}
+
+void SimpleEngineRenderer::setPlayerSpawn(float x, float y) {
+	playerSpawnX = x;
+	playerSpawnY = y;
 }
 
 bool SimpleEngineRenderer::getUseDebugRenderSystem() const {
 	return useDebugRenderSystem;
+}
+
+float SimpleEngineRenderer::getTimeMultiplier() const {
+	return timeMultiplier;
 }
 
 TabsWithPanel::TabsWithPanel(EditorWindow& parentWindow) : parentWindow(parentWindow) {	

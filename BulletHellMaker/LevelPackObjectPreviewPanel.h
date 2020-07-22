@@ -27,24 +27,32 @@ public:
 		return std::make_shared<LevelPackObjectPreviewPanel>(parentWindow, levelPackName);
 	}
 
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+
+	void previewNothing();
 	/*
 	The preview will use a clone of the attack.
 	*/
 	void previewAttack(const std::shared_ptr<EditorAttack> attack);
 
+	void resetPreview();
+
 	bool handleEvent(sf::Event event) override;
+
+	void setSettingPlayerSpawn(bool settingPlayerSpawn);
+	void setSettingSource(bool settingSource);
 
 	void setPreviewSource(float x, float y);
 	void setAttackLoopDelay(float attackLoopDelay);
-	void setAttackPatternLoopDelay(float attackPatternLoopDelay);
 	
 	float getPreviewSourceX() const;
 	float getPreviewSourceY() const;
 	float getAttackLoopDelay() const;
-	float getAttackPatternLoopDelay() const;
 	std::shared_ptr<LevelPack> getLevelPack();
 
 private:
+	const float CURSOR_RADIUS = 5.0f;
+
 	enum class PREVIEW_OBJECT {
 		NONE,
 		ATTACK,
@@ -68,25 +76,25 @@ private:
 	// Table containing variables for testing
 	ValueSymbolTable testTable;
 
+	bool settingPlayerSpawn = false;
+	bool settingSource = false;
+	// Radius will be < 0 if no cursor
+	sf::CircleShape currentCursor;
+
 	// Spawn location of a previewed attack/attack pattern/enemy phase/enemy
 	float previewSourceX = MAP_WIDTH / 2.0f;
 	float previewSourceY = 2.0f * MAP_HEIGHT / 3.0f;
-	// Seconds between attacks when previewing an attack
+	// Seconds between attacks when previewing an attack/attack pattern
 	float attackLoopDelay = 2.0f;
-	// Seconds between attack patterns when previewing an attack pattern
-	float attackPatternLoopDelay = 2.0f;
 
 	std::shared_ptr<EditorPlayer> defaultPlayer;
 
+	// Objects used for an empty preview
+	std::shared_ptr<Level> emptyLevel;
 	// Objects used to preview an attack
 	std::shared_ptr<Level> levelForAttack;
 	std::shared_ptr<EditorEnemyPhase> enemyPhaseForAttack;
 	std::shared_ptr<EditorAttackPattern> attackPatternForAttack;
-
-	/*
-	Resets a preview to start back at time 0.
-	*/
-	void resetPreview();
 
 	std::shared_ptr<EditorPlayer> getPlayer() override;
 };
