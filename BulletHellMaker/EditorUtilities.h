@@ -809,6 +809,10 @@ public:
 	*/
 	void setTabCloseButtonConfirmationPrompt(std::string tabName, std::string message);
 	/*
+	Sets a function to be called whenever a certain tab is selected.
+	*/
+	void setTabOnSelectFunction(std::string tabName, std::function<void()> function);
+	/*
 	Returns whether the tab exists.
 	tabName - the unique name of the tab
 	*/
@@ -902,6 +906,8 @@ private:
 	std::shared_ptr<tgui::Tabs> tabs;
 	// Maps tab name to the Panel that will be showed when the tab is selected
 	std::map<std::string, std::shared_ptr<tgui::Panel>> panelsMap;
+	// Maps tab name to the function to be executed on tab selection
+	std::map<std::string, std::function<void()>> onSelectFunctionMap;
 	// Tracks the order of the tabs in moreTabsList. Each entry is a tab name at some index.
 	std::vector<std::string> tabsOrdering;
 	// A vector of pairs of close button and the confirmation prompt message to be shown, one pair for every tab. 

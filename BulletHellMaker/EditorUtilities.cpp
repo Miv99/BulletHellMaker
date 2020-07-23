@@ -2241,6 +2241,9 @@ void TabsWithPanel::removeTab(std::string tabName) {
 		currentPanel = nullptr;
 	}
 	panelsMap.erase(tabName);
+	if (onSelectFunctionMap.count(tabName) > 0) {
+		onSelectFunctionMap.erase(tabName);
+	}
 	tabs->remove(tabName);
 
 	int pos;
@@ -2264,6 +2267,7 @@ void TabsWithPanel::removeAllTabs() {
 		remove(it->second);
 	}
 	panelsMap.clear();
+	onSelectFunctionMap.clear();
 	tabsOrdering.clear();
 	for (std::pair<std::shared_ptr<tgui::Button>, std::string> closeButtonAndPrompt : closeButtons) {
 		currentPanel->remove(closeButtonAndPrompt.first);
@@ -2302,6 +2306,11 @@ void TabsWithPanel::setTabCloseButtonConfirmationPrompt(std::string tabName, std
 		if (tabsOrdering[pos] == tabName) break;
 	}
 	setTabCloseButtonConfirmationPrompt(pos, message);
+}
+
+void TabsWithPanel::setTabOnSelectFunction(std::string tabName, std::function<void()> function) {
+	tabName += tabNameAppendedSpaces;
+	onSelectFunctionMap[tabName] = function;
 }
 
 bool TabsWithPanel::hasTab(std::string tabName) {
@@ -2414,6 +2423,11 @@ void TabsWithPanel::onTabSelected(std::string tabName) {
 	currentPanel->setVisible(true);
 
 	moreTabsList->getListBox()->setSelectedItem(tabName);
+
+	// Call the associated onSelect function, if any
+	if (onSelectFunctionMap.count(tabName) > 0) {
+		onSelectFunctionMap[tabName]();
+	}
 }
 
 void TabsWithPanel::onTabsChange() {

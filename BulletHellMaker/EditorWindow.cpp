@@ -670,7 +670,11 @@ void MainEditorWindow::openLeftPanelAttack(int attackID) {
 
 			previewWindow->onOriginalLevelPackAttackModified(attack);
 		});
-		mainPanel->addTab(format(MAIN_PANEL_ATTACK_TAB_NAME_FORMAT, attackID), attackEditorPanel, true, true);
+		std::string tabName = format(MAIN_PANEL_ATTACK_TAB_NAME_FORMAT, attackID);
+		mainPanel->addTab(tabName, attackEditorPanel, true, true);
+		mainPanel->setTabOnSelectFunction(tabName, [this, openedAttack]() {
+			previewWindow->previewAttack(openedAttack);
+		});
 	}
 
 	// View preview
@@ -713,7 +717,11 @@ void MainEditorWindow::reloadAttackTab(int attackID) {
 			unsavedAttacks[attack->getID()] = std::dynamic_pointer_cast<LevelPackObject>(attack);
 			attacksListView->reload();
 		});
-		mainPanel->insertTab(format(MAIN_PANEL_ATTACK_TAB_NAME_FORMAT, attackID), attackEditorPanel, tabIndex, tabWasSelected, true);
+		std::string tabName = format(MAIN_PANEL_ATTACK_TAB_NAME_FORMAT, attackID);
+		mainPanel->insertTab(tabName, attackEditorPanel, tabIndex, tabWasSelected, true);
+		mainPanel->setTabOnSelectFunction(tabName, [this, openedAttack]() {
+			previewWindow->previewAttack(openedAttack);
+		});
 	}
 }
 
