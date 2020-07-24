@@ -1,9 +1,10 @@
 #include "SpriteLoader.h"
 #include "TextFileParser.h"
 #include "TextMarshallable.h"
+#include "IOUtils.h"
 #include <fstream>
-#include <sys/stat.h>
 #include <boost/log/trivial.hpp>
+#include <boost/filesystem.hpp>
 #include <regex>
 #include <sstream>
 #include <limits>
@@ -14,6 +15,7 @@ static const std::string SPRITE_TEXTURE_BOUNDS_TAG = "BoundingRectangleSize";
 static const std::string SPRITE_COLOR_TAG = "Color";
 static const std::string SPRITE_SIZE_TAG = "SpriteSize";
 static const std::string SPRITE_ORIGIN_TAG = "Origin";
+const std::size_t SpriteLoader::BACKGROUNDS_CACHE_MAX_SIZE = 10;
 
 std::vector<int> extractInts(const std::string& str) {
 	std::vector<int> vect;
@@ -110,7 +112,9 @@ bool SpriteData::operator==(const SpriteData & other) const {
 	return this->area == other.area && this->color == other.color;
 }
 
-SpriteLoader::SpriteLoader(const std::string& levelPackRelativePath, const std::vector<std::pair<std::string, std::string>>& spriteSheetNamePairs) : levelPackRelativePath(levelPackRelativePath) {
+SpriteLoader::SpriteLoader(const std::string& levelPackRelativePath, const std::vector<std::pair<std::string, std::string>>& spriteSheetNamePairs) 
+	: levelPackRelativePath(levelPackRelativePath) {
+	backgroundsCache = std::make_unique<Cache<std::string, std::pair<std::shared_ptr<sf::Texture>, std::time_t>>>(BACKGROUNDS_CACHE_MAX_SIZE);
 	for (std::pair<std::string, std::string> namesPair : spriteSheetNamePairs) {
 		if (!loadSpriteSheet(namesPair.first, namesPair.second)) {
 			throw "Unable to load sprite sheet meta file \"" + namesPair.first + "\" and/or sprite sheet \"" + namesPair.second + "\"";
@@ -128,6 +132,33 @@ std::shared_ptr<sf::Sprite> SpriteLoader::getSprite(const std::string& spriteNam
 
 std::unique_ptr<Animation> SpriteLoader::getAnimation(const std::string & animationName, const std::string & spriteSheetName, bool loop) {
 	return spriteSheets[spriteSheetName]->getAnimation(animationName, loop);
+}
+
+std::shared_ptr<sf::Texture> SpriteLoader::getBackground(const std::string& backgroundFileName) {
+	std::string filePath = levelPackRelativePath + "\\Backgrounds\\" + backgroundFileName;
+	if (!fileExists(filePath)) {
+		return nullptr;
+	}
+	std::time_t fileLastModified = boost::filesystem::last_write_time(filePath);
+	if (backgroundsCache->contains(backgroundFileName)) {
+		std::pair<std::shared_ptr<sf::Texture>, std::time_t> backgroundData = backgroundsCache->get(backgroundFileName);
+		if (backgroundData.second == fileLastModified) {
+			// File has not been modified, so return the cached texture
+			return backgroundData.first;
+		} else {
+			// File has been modified, so remove the old texture from the cache
+			backgroundsCache->remove(backgroundFileName);
+		}
+	}
+	// Load the background from file and insert into cache
+	std::shared_ptr<sf::Texture> background = std::make_shared<sf::Texture>();
+	if (!background->loadFromFile(filePath)) {
+		return nullptr;
+	}
+	background->setRepeated(true);
+	background->setSmooth(true);
+	backgroundsCache->insert(backgroundFileName, std::make_pair(background, fileLastModified));
+	return background;
 }
 
 void SpriteLoader::preloadTextures() {

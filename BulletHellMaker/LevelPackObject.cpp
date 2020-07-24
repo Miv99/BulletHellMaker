@@ -4,11 +4,6 @@
 
 const std::string LevelPackObject::INVALID_EXPRESSION_MESSAGE_FORMAT = "Invalid expression for %s";
 
-static bool fileExists(const std::string& name) {
-	struct stat buffer;
-	return (stat(name.c_str(), &buffer) == 0);
-}
-
 void tabEveryLine(std::vector<std::string>& strings) {
 	for (std::string& str : strings) {
 		str = "\t" + str;

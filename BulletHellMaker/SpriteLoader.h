@@ -5,6 +5,7 @@
 #include <map>
 #include <memory>
 #include "Animation.h"
+#include "LRUCache.h"
 
 /*
 The only purpose of this class is to have an IntRect that can be used as a key for maps
@@ -104,17 +105,28 @@ public:
 	*/
 	std::shared_ptr<sf::Sprite> getSprite(const std::string& spriteName, const std::string& spriteSheetName);
 	std::unique_ptr<Animation> getAnimation(const std::string& animationName, const std::string& spriteSheetName, bool loop);
+	/*
+	Returns nullptr if the background could not be loaded.
+	*/
+	std::shared_ptr<sf::Texture> getBackground(const std::string& backgroundFileName);
 	inline const std::map<std::string, std::shared_ptr<SpriteSheet>> getSpriteSheets() { return spriteSheets; }
+	/*
+	Preloads all textures except backgrounds.
+	*/
 	void preloadTextures();
 	void clearSpriteSheets();
 	// Scale all sprites by the same amount
 	void setGlobalSpriteScale(float scale);
 
 private:
+	const static std::size_t BACKGROUNDS_CACHE_MAX_SIZE;
+
 	// Relative path to the level path containing the files
 	std::string levelPackRelativePath;
 	// Maps SpriteSheet name (as specified in the meta file) to SpriteSheet
 	std::map<std::string, std::shared_ptr<SpriteSheet>> spriteSheets;
+	// Cache of backgrounds; key is a pair of the background file name and value is a pair of the texture and the file's last modified time
+	std::unique_ptr<Cache<std::string, std::pair<std::shared_ptr<sf::Texture>, std::time_t>>> backgroundsCache;
 	// Returns true if the meta file and image file were successfully loaded
 	bool loadSpriteSheet(const std::string& spriteSheetMetaFileName, const std::string& spriteSheetImageFileName);
 };

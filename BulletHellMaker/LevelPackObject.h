@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <memory>
+#include "IOUtils.h"
 #include "LevelPack.h"
 #include "SpriteLoader.h"
 #include "TextMarshallable.h"
@@ -66,10 +67,7 @@ status = std::max(status, LEGAL_STATUS::ILLEGAL); \
 messages.push_back(std::string("Invalid expression for ").append(#DisplayedName)); \
 } \
 
-/*
-Returns whether the file in the file path exists.
-*/
-bool fileExists(const std::string& name);
+
 /*
 Appends a tab before every string.
 */

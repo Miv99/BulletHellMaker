@@ -148,8 +148,6 @@ current todo:
         the one in additionalTable if it exists; additionalTable can't be redelegated; every redelegated symbol in
         symbolTable must be defined by additionalTable or else the preview won't start
     -surround SimpleEngineRenderer in some try catch that prints exceptions to the user
-    -cache SimpleEngineRenderer backgrounds so that SimpleEngineRenderer::loadLevel isn't omega slow
-    -select tab in maineditorwindow -> preview that thing; right now it only works with openLeftPanelAttack()
 -marker placer label showing mouse world position
 -visualizer thing in EMPABasedMovementEditorPanel
     

@@ -439,13 +439,8 @@ void GameInstance::loadLevel(int levelIndex) {
 	currentLevelMusic = levelPack->playMusic(currentLevel->getMusicSettings());
 
 	// Set the background
-	std::string backgroundFileName = currentLevel->getBackgroundFileName();
-	std::shared_ptr<sf::Texture> background = std::make_shared<sf::Texture>();
-	if (!background->loadFromFile("Level Packs\\" + levelPack->getName() + "\\Backgrounds\\" + backgroundFileName)) {
-		//TODO: load a default background
-	}
-	background->setRepeated(true);
-	background->setSmooth(true);
+	std::shared_ptr<sf::Texture> background = spriteLoader->getBackground(currentLevel->getBackgroundFileName());
+
 	renderSystem->setBackground(background);
 	renderSystem->setBackgroundScrollSpeedX(currentLevel->getBackgroundScrollSpeedX());
 	renderSystem->setBackgroundScrollSpeedY(currentLevel->getBackgroundScrollSpeedY());

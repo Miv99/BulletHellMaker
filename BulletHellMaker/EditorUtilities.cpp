@@ -1999,13 +1999,7 @@ void SimpleEngineRenderer::loadLevel(std::shared_ptr<Level> level) {
 	levelPack->playMusic(level->getMusicSettings());
 
 	// Set the background
-	std::string backgroundFileName = level->getBackgroundFileName();
-	std::shared_ptr<sf::Texture> background = std::make_shared<sf::Texture>();
-	if (!background->loadFromFile("Level Packs\\" + levelPack->getName() + "\\Backgrounds\\" + backgroundFileName)) {
-		//TODO: load a default background
-	}
-	background->setRepeated(true);
-	background->setSmooth(true);
+	std::shared_ptr<sf::Texture> background = spriteLoader->getBackground(level->getBackgroundFileName());
 
 	renderSystem->setBackground(background);
 	renderSystem->setBackgroundScrollSpeedX(level->getBackgroundScrollSpeedX());
