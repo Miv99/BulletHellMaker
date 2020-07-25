@@ -59,13 +59,16 @@ void EMPSpawnFromEnemyCommand::execute(EntityCreationQueue& queue) {
 		sprite.setAnimatable(spriteLoader, animatable, emp->getLoopAnimation());
 		if (emp->getIsBullet()) {
 			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
+		} else {
+			registry.assign<HitboxComponent>(bullet, ROTATION_TYPE::LOCK_ROTATION, 0, 0, 0);
 		}
-	}
-	else {
+	} else {
 		Animatable animatable = emp->getAnimatable();
 		auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, animatable, emp->getLoopAnimation(), ENEMY_BULLET_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel() - timeLag);
 		if (emp->getIsBullet()) {
 			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
+		} else {
+			registry.assign<HitboxComponent>(bullet, ROTATION_TYPE::LOCK_ROTATION, 0, 0, 0);
 		}
 	}
 
@@ -147,12 +150,16 @@ void EMPSpawnFromNothingCommand::execute(EntityCreationQueue & queue) {
 		sprite.setAnimatable(spriteLoader, animatable, emp->getLoopAnimation());
 		if (emp->getIsBullet()) {
 			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
+		} else {
+			registry.assign<HitboxComponent>(bullet, ROTATION_TYPE::LOCK_ROTATION, 0, 0, 0);
 		}
 	} else {
 		Animatable animatable = emp->getAnimatable();
 		auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, animatable, emp->getLoopAnimation(), ENEMY_BULLET_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel() - timeLag);
 		if (emp->getIsBullet()) {
 			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
+		} else {
+			registry.assign<HitboxComponent>(bullet, ROTATION_TYPE::LOCK_ROTATION, 0, 0, 0);
 		}
 	}
 
@@ -233,6 +240,8 @@ void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
 		sprite.setAnimatable(spriteLoader, animatable, emp->getLoopAnimation());
 		if (emp->getIsBullet()) {
 			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
+		} else {
+			registry.assign<HitboxComponent>(bullet, ROTATION_TYPE::LOCK_ROTATION, 0, 0, 0);
 		}
 	}
 	else {
@@ -240,6 +249,8 @@ void EMPSpawnFromPlayerCommand::execute(EntityCreationQueue& queue) {
 		auto& sprite = registry.assign<SpriteComponent>(bullet, spriteLoader, animatable, emp->getLoopAnimation(), PLAYER_BULLET_LAYER, registry.get<LevelManagerTag>().getTimeSinceStartOfLevel() - timeLag);
 		if (emp->getIsBullet()) {
 			registry.assign<HitboxComponent>(bullet, emp->getHitboxRadius(), sprite.getSprite());
+		} else {
+			registry.assign<HitboxComponent>(bullet, ROTATION_TYPE::LOCK_ROTATION, 0, 0, 0);
 		}
 	}
 
