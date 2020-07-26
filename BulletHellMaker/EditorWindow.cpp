@@ -801,6 +801,25 @@ void LevelPackObjectPreviewWindow::onOriginalLevelPackAttackModified(const std::
 	}
 }
 
+void LevelPackObjectPreviewWindow::updateWidgetsPositionsAndSizes() {
+	if (infoPanel->isVisible()) {
+		infoPanel->setSize("20%", "100%");
+		if (logs->isVisible()) {
+			previewPanel->setSize("80%", "60%");
+		} else {
+			previewPanel->setSize("80%", "100%");
+		}
+		previewPanel->setPosition("20%", 0);
+	} else {
+		if (logs->isVisible()) {
+			previewPanel->setSize("100%", "60%");
+		} else {
+			previewPanel->setSize("100%", "100%");
+		}
+		previewPanel->setPosition(0, 0);
+	}
+}
+
 bool LevelPackObjectPreviewWindow::handleEvent(sf::Event event) {
 	if (EditorWindow::handleEvent(event)) {
 		return true;
@@ -808,15 +827,12 @@ bool LevelPackObjectPreviewWindow::handleEvent(sf::Event event) {
 		return true;
 	} else if (event.type == sf::Event::KeyPressed) {
 		if (event.key.code == sf::Keyboard::I) {
-			if (infoPanel->isVisible()) {
-				infoPanel->setVisible(false);
-				previewPanel->setSize("100%", "100%");
-				previewPanel->setPosition(0, 0);
-			} else {
-				infoPanel->setVisible(true);
-				previewPanel->setSize("70%", "100%");
-				previewPanel->setPosition("30%", 0);
-			}
+			infoPanel->setVisible(!infoPanel->isVisible());
+			updateWidgetsPositionsAndSizes();
+			return true;
+		} else if (event.key.code == sf::Keyboard::L) {
+			logs->setVisible(!logs->isVisible());
+			updateWidgetsPositionsAndSizes();
 			return true;
 		} else if (event.key.code == sf::Keyboard::T) {
 			previewPanel->setUseDebugRenderSystem(!useDebugRenderSystem);
@@ -976,7 +992,35 @@ but shader effects (such as piercing bullets flashing after hitting a player) wi
 	infoPanel->add(useDebugRenderSystem);
 	infoPanel->add(lockCurrentPreviewCheckBox);
 
+	logs = tgui::TextBox::create();
+	logs->setVisible(false);
+	logs->setSize(tgui::bindWidth(previewPanel), "40%");
+	logs->setEnabled(false);
+	logs->setPosition(tgui::bindLeft(previewPanel), tgui::bindBottom(previewPanel));
+	gui->add(logs);
+
+	previewPanel->connect("PreviewAttempted", [this](LevelPackObject::LEGAL_STATUS status, std::vector<std::string> messages) {
+		// The first string in messages is a description of the attempted action
+
+		if (status == LevelPackObject::LEGAL_STATUS::LEGAL) {
+			logs->setText(messages[0]);
+		} else if (status == LevelPackObject::LEGAL_STATUS::WARNING) {
+			std::string fullString = messages[0] + "\nWarning(s):";
+			for (int i = 1; i < messages.size(); i++) {
+				fullString += "\n" + messages[i];
+			}
+			logs->setText(fullString);
+		} else {
+			std::string fullString = messages[0] + "\nError(s):";
+			for (int i = 1; i < messages.size(); i++) {
+				fullString += "\n" + messages[i];
+			}
+			logs->setText(fullString);
+		}
+	});
+
 	previewNothing();
+	updateWidgetsPositionsAndSizes();
 }
 
 void LevelPackObjectPreviewWindow::physicsUpdate(float deltaTime) {

@@ -18,6 +18,11 @@ class EditorWindow;
 The LevelPack passed into this object's constructor will be cloned and should be synced with the
 LevelPack being edited in the editor such that this object's LevelPack, at any time, contains
 all unsaved changes in the editor's LevelPack.
+
+Signals:
+	PreviewAttempted - emitted when a LevelPackObject is attempted to be previewed; 
+		Optional parameter: the object's legal status and a vector of strings representing the error/warning message from the legal check.
+			The first string in the messages will always be a description of the attempted action.
 */
 class LevelPackObjectPreviewPanel : public SimpleEngineRenderer {
 public:
@@ -50,6 +55,8 @@ public:
 	float getAttackLoopDelay() const;
 	std::shared_ptr<LevelPack> getLevelPack();
 
+	tgui::Signal& getSignal(std::string signalName) override;
+
 private:
 	const float CURSOR_RADIUS = 5.0f;
 
@@ -60,6 +67,8 @@ private:
 		ENEMY,
 		ENEMY_PHASE
 	};
+
+	tgui::SignalLevelPackObjectLegalResult onPreview = { "PreviewAttempted" };
 
 	// Type of object currently being previewed
 	PREVIEW_OBJECT currentPreviewObjectType = PREVIEW_OBJECT::NONE;

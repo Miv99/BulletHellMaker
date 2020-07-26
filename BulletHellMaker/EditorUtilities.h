@@ -964,7 +964,7 @@ private:
 A timeline whose elements are clickable buttons.
 
 Signals:
-"ElementClicked" - emitted when an element is clicked; 
+ElementClicked - emitted when an element is clicked; 
 	Optional parameter: the index of the element as given in setElements() (int)
 */
 class ClickableTimeline : public tgui::Group {

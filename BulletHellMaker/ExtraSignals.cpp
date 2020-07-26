@@ -190,4 +190,32 @@ namespace tgui {
 		else
 			return Signal::validateTypes(unboundParameters);
 	}
+
+	unsigned int SignalLevelPackObjectLegalResult::connect(const DelegateRange& handler) {
+		const auto id = generateUniqueId();
+		m_handlers[id] = [handler]() { handler(internal_signal::dereference<LevelPackObject::LEGAL_STATUS>(internal_signal::parameters[1]), internal_signal::dereference<std::vector<std::string>>(internal_signal::parameters[2])); };
+		return id;
+	}
+
+	unsigned int SignalLevelPackObjectLegalResult::connect(const DelegateRangeEx& handler) {
+		const auto id = generateUniqueId();
+		m_handlers[id] = [handler, name = m_name]() { handler(getWidget(), name, internal_signal::dereference<LevelPackObject::LEGAL_STATUS>(internal_signal::parameters[1]), internal_signal::dereference<std::vector<std::string>>(internal_signal::parameters[2])); };
+		return id;
+	}
+
+	bool SignalLevelPackObjectLegalResult::emit(const Widget* widget, LevelPackObject::LEGAL_STATUS int1, std::vector<std::string> int2) {
+		if (m_handlers.empty())
+			return false;
+
+		internal_signal::parameters[1] = static_cast<const void*>(&int1);
+		internal_signal::parameters[2] = static_cast<const void*>(&int2);
+		return Signal::emit(widget);
+	}
+
+	unsigned int SignalLevelPackObjectLegalResult::validateTypes(std::initializer_list<std::type_index> unboundParameters) const {
+		if ((unboundParameters.size() == 2) && checkParamType<LevelPackObject::LEGAL_STATUS>(unboundParameters.begin()) && checkParamType<std::vector<std::string>>(unboundParameters.begin() + 1))
+			return 1;
+		else
+			return Signal::validateTypes(unboundParameters);
+	}
 }

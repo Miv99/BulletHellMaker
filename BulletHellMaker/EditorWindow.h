@@ -362,6 +362,8 @@ private:
 	std::shared_ptr<tgui::CheckBox> useDebugRenderSystem;
 	std::shared_ptr<tgui::CheckBox> lockCurrentPreviewCheckBox;
 
+	std::shared_ptr<tgui::TextBox> logs;
+
 	std::string levelPackName;
 
 	// While this is checked, new previews cannot start
@@ -370,6 +372,11 @@ private:
 	boost::thread previewThread;
 
 	bool ignoreSignals = false;
+
+	/*
+	Update widget positions/sizes depending on which ones are visible.
+	*/
+	void updateWidgetsPositionsAndSizes();
 
 	bool handleEvent(sf::Event event) override;
 

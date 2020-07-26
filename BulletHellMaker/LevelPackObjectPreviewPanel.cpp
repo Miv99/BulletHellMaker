@@ -130,8 +130,6 @@ void LevelPackObjectPreviewPanel::previewNothing() {
 
 	loadLevel(emptyLevel);
 	unpause();
-
-	// TODO: emit signal back to window saying to change the object text thing
 }
 
 void LevelPackObjectPreviewPanel::previewAttack(const std::shared_ptr<EditorAttack> attack) {
@@ -141,7 +139,12 @@ void LevelPackObjectPreviewPanel::previewAttack(const std::shared_ptr<EditorAtta
 
 	auto legal = attack->legal(*levelPack, *spriteLoader, { convertedTestTable });
 	if (legal.first == LevelPackObject::LEGAL_STATUS::ILLEGAL) {
-		// TODO: handle illegal attack
+		legal.second.insert(legal.second.begin(), "Failed to load preview for attack ID " + std::to_string(attack->getID()) + ": \"" + attack->getName() + "\"");
+
+		loadLevel(emptyLevel);
+		unpause();
+
+		onPreview.emit(this, legal.first, legal.second);
 		return;
 	}
 
@@ -156,7 +159,8 @@ void LevelPackObjectPreviewPanel::previewAttack(const std::shared_ptr<EditorAtta
 	loadLevel(levelForAttack);
 	unpause();
 
-	// TODO: emit signal back to window saying to change the object text thing
+	legal.second.insert(legal.second.begin(), "Successfully loaded preview for attack ID " + std::to_string(attack->getID()) + ": \"" + attack->getName() + "\"");
+	onPreview.emit(this, legal.first, legal.second);
 }
 
 bool LevelPackObjectPreviewPanel::handleEvent(sf::Event event) {
@@ -258,6 +262,13 @@ float LevelPackObjectPreviewPanel::getAttackLoopDelay() const {
 
 std::shared_ptr<LevelPack> LevelPackObjectPreviewPanel::getLevelPack() {
 	return levelPack;
+}
+
+tgui::Signal& LevelPackObjectPreviewPanel::getSignal(std::string signalName) {
+	if (signalName == tgui::toLower(onPreview.getName())) {
+		return onPreview;
+	}
+	return SimpleEngineRenderer::getSignal(signalName);
 }
 
 void LevelPackObjectPreviewPanel::resetPreview() {
