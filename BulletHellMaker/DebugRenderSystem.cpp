@@ -53,14 +53,16 @@ void DebugRenderSystem::update(float deltaTime) {
 	view2.each([&](auto entity, auto position, auto hitbox) {
 		// Radius takes into account outline thickness expanding outwards,
 		// making the circle appear larger than it actually is
-		circleFormat.setRadius(hitbox.getRadius() - circleFormat.getOutlineThickness());
-		if (registry.attachee<PlayerTag>() == entity) {
-			circleFormat.setOutlineColor(sf::Color(sf::Color::Blue));
-		} else {
-			circleFormat.setOutlineColor(sf::Color(sf::Color::Magenta));
+		if (hitbox.getRadius() > 0) {
+			circleFormat.setRadius(hitbox.getRadius() - circleFormat.getOutlineThickness());
+			if (registry.attachee<PlayerTag>() == entity) {
+				circleFormat.setOutlineColor(sf::Color(sf::Color::Blue));
+			} else {
+				circleFormat.setOutlineColor(sf::Color(sf::Color::Magenta));
+			}
+			circleFormat.setPosition((position.getX() + hitbox.getX() - circleFormat.getRadius()) * resolutionMultiplier, (MAP_HEIGHT - (position.getY() + hitbox.getY() + circleFormat.getRadius())) * resolutionMultiplier);
+			window.draw(circleFormat);
 		}
-		circleFormat.setPosition((position.getX() + hitbox.getX() - circleFormat.getRadius()) * resolutionMultiplier, (MAP_HEIGHT - (position.getY() + hitbox.getY() + circleFormat.getRadius())) * resolutionMultiplier);
-		window.draw(circleFormat);
 	});
 }
 
