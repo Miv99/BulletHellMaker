@@ -192,7 +192,13 @@ public:
 	}
 
 	float getValue();
+	/*
+	Will not emit the ValueChanged signal.
+	*/
 	void setValue(int value);
+	/*
+	Will not emit the ValueChanged signal.
+	*/
 	void setValue(float value);
 	/*
 	Sets the min value of the edit box.
@@ -231,6 +237,8 @@ private:
 	float min, max;
 	// if true, the inputted number must be an integer
 	bool mustBeInt = false;
+
+	float lastKnownValue;
 
 	// bool used to ignore signals to prevent infinite loops
 	bool ignoreSignals = false;

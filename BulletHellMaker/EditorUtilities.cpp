@@ -759,7 +759,10 @@ NumericalEditBoxWithLimits::NumericalEditBoxWithLimits() {
 			setText(formatNum(value));
 			ignoreSignals = false;
 
-			onValueChange.emit(this, value);
+			if (value != lastKnownValue) {
+				lastKnownValue = value;
+				onValueChange.emit(this, value);
+			}
 		} catch (...) {
 
 		}
@@ -782,7 +785,10 @@ NumericalEditBoxWithLimits::NumericalEditBoxWithLimits() {
 			setText(formatNum(value));
 			ignoreSignals = false;
 
-			onValueChange.emit(this, value);
+			if (value != lastKnownValue) {
+				lastKnownValue = value;
+				onValueChange.emit(this, value);
+			}
 		} catch (...) {
 
 		}
@@ -796,10 +802,12 @@ float NumericalEditBoxWithLimits::getValue() {
 }
 
 void NumericalEditBoxWithLimits::setValue(int value) {
+	lastKnownValue = value;
 	setText(formatNum(value));
 }
 
 void NumericalEditBoxWithLimits::setValue(float value) {
+	lastKnownValue = value;
 	if (mustBeInt) {
 		setText(formatNum(std::round(value)));
 	} else {
