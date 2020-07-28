@@ -84,6 +84,12 @@ public:
 	*/
 	std::shared_ptr<EditorAttackPattern> createAttackPattern();
 	/*
+	Create an EditorAttackPattern and add it to this LevelPack.
+	id - the ID of the new attack pattern. If it is already in use, the old EditorAttackPattern
+		with this ID will be overwritten.
+	*/
+	std::shared_ptr<EditorAttackPattern> createAttackPattern(int id);
+	/*
 	Create an EditorEnemy and add it to this LevelPack.
 	*/
 	std::shared_ptr<EditorEnemy> createEnemy();
@@ -184,6 +190,11 @@ public:
 	with ID attackPatternID.
 	*/
 	std::vector<int> getAttackPatternEnemyUsers(int attackPatternID);
+	/*
+	Returns whether the attack pattern with ID attackPatternID is used
+	by the player.
+	*/
+	bool getAttackPatternIsUsedByPlayer(int attackPatternID);
 	/*
 	Returns a list of IDs of EditorAttackPatterns that use the EditorAttack
 	with ID attackID.

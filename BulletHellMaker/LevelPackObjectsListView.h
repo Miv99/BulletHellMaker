@@ -154,3 +154,28 @@ protected:
 
 	void onPasteIntoConfirmation(bool confirmed, std::vector<std::shared_ptr<LevelPackObject>> newObjects) override;
 };
+
+class AttackPatternsListView : public LevelPackObjectsListView {
+public:
+	AttackPatternsListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, int undoStackSize = 50);
+	static std::shared_ptr<AttackPatternsListView> create(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, int undoStackSize = 50) {
+		return std::make_shared<AttackPatternsListView>(mainEditorWindow, clipboard, undoStackSize);
+	}
+
+protected:
+	void addLevelPackObjectsToListView() override;
+
+	std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedLevelPackObjects() override;
+	void updateLevelPackObjectInLevelPack(std::shared_ptr<LevelPackObject> obj) override;
+	void deleteLevelPackObjectInLevelPack(int id) override;
+	std::shared_ptr<LevelPackObject> getLevelPackObjectFromLevelPack(int id) override;
+	std::set<int> getNextLevelPackObjectIDs(int count) override;
+	void openLevelPackObjectInMainEditorWindow(int id) override;
+	void reloadLevelPackObjectTabInMainEditorWindow(int id) override;
+	std::string getPasteIntoConfirmationPrompt() override;
+	std::string getDeleteLevelPackObjectsInUseConfirmationPrompt() override;
+	bool getLevelPackObjectIsInUse(int id) override;
+	std::string getLevelPackObjectDisplayName() override;
+
+	void onPasteIntoConfirmation(bool confirmed, std::vector<std::shared_ptr<LevelPackObject>> newObjects) override;
+};

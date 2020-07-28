@@ -463,6 +463,14 @@ std::shared_ptr<EditorAttackPattern> LevelPack::createAttackPattern() {
 	return attackPattern;
 }
 
+std::shared_ptr<EditorAttackPattern> LevelPack::createAttackPattern(int id) {
+	attackPatternIDGen.markIDAsUsed(id);
+	auto attackPattern = std::make_shared<EditorAttackPattern>(id);
+	attackPatterns[attackPattern->getID()] = attackPattern;
+	onChange->publish();
+	return attackPattern;
+}
+
 std::shared_ptr<EditorEnemy> LevelPack::createEnemy() {
 	auto enemy = std::make_shared<EditorEnemy>(enemyIDGen.generateID());
 	enemies[enemy->getID()] = enemy;
@@ -641,6 +649,10 @@ std::vector<int> LevelPack::getAttackPatternEnemyUsers(int attackPatternID) {
 		}
 	}
 	return results;
+}
+
+bool LevelPack::getAttackPatternIsUsedByPlayer(int attackPatternID) {
+	return metadata.getPlayer()->usesAttackPattern(attackPatternID);
 }
 
 std::vector<int> LevelPack::getAttackUsers(int attackID) {

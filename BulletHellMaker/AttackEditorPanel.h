@@ -72,7 +72,7 @@ private:
 Panel that contains everything needed to edit a specific EditorAttack.
 
 Signals:
-AttackPatternDoubleClicked - emitted when an EditorAttackPattern in the list of attack users is to be edited.
+AttackPatternBeginEdit - emitted when an EditorAttackPattern in the list of attack users is to be edited.
 	Optional parameter: the ID of the EditorAttackPattern
 AttackModified - emitted when the EditorAttack being edited is modified.
 	Optional parameter: a shared_ptr to the newly modified EditorAttack

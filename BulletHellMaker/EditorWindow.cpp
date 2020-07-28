@@ -4,6 +4,7 @@
 #include "EnemyPhase.h"
 #include "Level.h"
 #include "AttackEditorPanel.h"
+#include "AttackPatternEditorPanel.h"
 #include "LevelPackObjectsListPanel.h"
 #include <algorithm>
 #include <boost/date_time.hpp>
@@ -416,109 +417,29 @@ MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMut
 		// Attacks tab in left panel
 		attacksListView = AttacksListView::create(*this, clipboard);
 		attacksListPanel = LevelPackObjectsListPanel::create(*this, clipboard);
-		{
-			// Add button
-			auto attacksAddButton = tgui::Button::create();
-			attacksAddButton->setText("+");
-			attacksAddButton->setPosition(0, 0);
-			attacksAddButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
-			attacksAddButton->connect("Pressed", [this]() {
-				createAttack();
-			});
-			attacksListPanel->add(attacksAddButton);
-
-			// Save all button
-			auto attacksSaveAllButton = tgui::Button::create();
-			attacksSaveAllButton->setText("S");
-			attacksSaveAllButton->setPosition(tgui::bindRight(attacksAddButton), 0);
-			attacksSaveAllButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
-			attacksSaveAllButton->connect("Pressed", [this]() {
-				attacksListView->manualSaveAll();
-			});
-			attacksListPanel->add(attacksSaveAllButton);
-
-			// Sort button
-			auto attacksSortButton = tgui::Button::create();
-			attacksSortButton->setText("=");
-			attacksSortButton->setPosition(tgui::bindRight(attacksSaveAllButton), 0);
-			attacksSortButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
-			attacksSortButton->connect("Pressed", [this]() {
-				attacksListView->cycleSortOption();
-			});
-			attacksListPanel->add(attacksSortButton);
-
-			// List view
-			attacksListView->setPosition(0, tgui::bindBottom(attacksAddButton));
-			attacksListView->setSize("100%", tgui::bindHeight(attacksListPanel) - tgui::bindBottom(attacksAddButton));
-			{
-				// Right click menu
-				// Menu for single attack selection
-				auto rightClickMenuPopupSingleSelection = createMenuPopup({
-					std::make_pair("Open", [&]() {
-						openLeftPanelAttack(attacksListView->getLevelPackObjectIDFromIndex(attacksListView->getListView()->getSelectedItemIndex()));
-					}),
-					std::make_pair("Copy", [&]() {
-						attacksListView->manualCopy();
-					}),
-					std::make_pair("Paste", [&]() {
-						attacksListView->manualPaste();
-					}),
-					std::make_pair("Paste (override this)", [&]() {
-						attacksListView->manualPaste2();
-					}),
-					std::make_pair("Save", [&]() {
-						attacksListView->manualSave();
-					}),
-					std::make_pair("Delete", [&]() {
-						attacksListView->manualDelete();
-					})
-				});
-				// Menu for multiple attack selections
-				auto rightClickMenuPopupMultiSelection = createMenuPopup({
-					std::make_pair("Copy", [&]() {
-						attacksListView->manualCopy();
-					}),
-					std::make_pair("Paste", [&]() {
-						attacksListView->manualPaste();
-					}),
-					std::make_pair("Paste (override these)", [&]() {
-						attacksListView->manualPaste2();
-					}),
-					std::make_pair("Save", [&]() {
-						attacksListView->manualSave();
-					}),
-					std::make_pair("Delete", [&]() {
-						attacksListView->manualDelete();
-					})
-				});
-				attacksListView->getListView()->connect("RightClicked", [&, rightClickMenuPopupSingleSelection, rightClickMenuPopupMultiSelection](int index) {
-					std::set<std::size_t> selectedItemIndices = attacksListView->getListView()->getSelectedItemIndices();
-					if (selectedItemIndices.find(index) != selectedItemIndices.end()) {
-						// Right clicked a selected item
-
-						// Open the corresponding menu
-						if (selectedItemIndices.size() == 1) {
-							addPopupWidget(rightClickMenuPopupSingleSelection, mousePos.x, mousePos.y, 150, rightClickMenuPopupSingleSelection->getSize().y);
-						} else {
-							addPopupWidget(rightClickMenuPopupMultiSelection, mousePos.x, mousePos.y, 150, rightClickMenuPopupMultiSelection->getSize().y);
-						}
-					} else {
-						// Right clicked a nonselected item
-
-						// Select the right clicked item
-						attacksListView->getListView()->setSelectedItem(index);
-
-						// Open the menu normally
-						addPopupWidget(rightClickMenuPopupSingleSelection, mousePos.x, mousePos.y, 150, rightClickMenuPopupSingleSelection->getSize().y);
-					}
-				});
+		populateLeftPanelLevelPackObjectListPanel(attacksListView, attacksListPanel,
+			[this]() { 
+				this->createAttack();
+			}, 
+			[this](int id) { 
+				this->openLeftPanelAttack(id); 
 			}
-			attacksListView->getListView()->connect("DoubleClicked", [&](int index) {
-				openLeftPanelAttack(attacksListView->getLevelPackObjectIDFromIndex(index));
-			});
-			attacksListPanel->add(attacksListView);
-		}
+		);
 		leftPanel->addTab(LEFT_PANEL_ATTACK_LIST_TAB_NAME, attacksListPanel, true);
+	}
+	{
+		// Attack patterns tab in left panel
+		attackPatternsListView = AttackPatternsListView::create(*this, clipboard);
+		attackPatternsListPanel = LevelPackObjectsListPanel::create(*this, clipboard);
+		populateLeftPanelLevelPackObjectListPanel(attackPatternsListView, attackPatternsListPanel,
+			[this]() {
+			this->createAttackPattern();
+			},
+			[this](int id) {
+				this->openLeftPanelAttackPattern(id);
+			}
+		);
+		leftPanel->addTab(LEFT_PANEL_ATTACK_PATTERN_LIST_TAB_NAME, attackPatternsListPanel, true);
 	}
 
 	mainPanel = TabsWithPanel::create(*this);
@@ -551,6 +472,12 @@ void MainEditorWindow::loadLevelPack(std::string levelPackName) {
 	attacksListPanel->setLevelPack(levelPack.get());
 	attacksListView->setLevelPack(levelPack.get());
 	attacksListView->reload();
+
+	attackPatternsListPanel->setLevelPack(levelPack.get());
+	attackPatternsListView->setLevelPack(levelPack.get());
+	attackPatternsListView->reload();
+
+	// TODO: add more left panel panels to here
 
 	// TODO: window size from settings
 	previewWindow = std::make_shared<LevelPackObjectPreviewWindow>(tguiMutex, "Preview", 1024, 768, levelPackName);
@@ -618,6 +545,14 @@ void MainEditorWindow::overwriteAttacks(std::vector<std::shared_ptr<EditorAttack
 	}
 }
 
+void MainEditorWindow::openLeftPanelEnemyPhase(int enemyPhaseID) {
+	// TODO
+}
+
+void MainEditorWindow::openLeftPanelPlayer() {
+	// TODO
+}
+
 bool MainEditorWindow::handleEvent(sf::Event event) {
 	if (EditorWindow::handleEvent(event)) {
 		return true;
@@ -633,6 +568,110 @@ bool MainEditorWindow::handleEvent(sf::Event event) {
 
 void MainEditorWindow::showClipboardResult(std::string notification) {
 	clipboardNotification->setText(notification);
+}
+
+void MainEditorWindow::populateLeftPanelLevelPackObjectListPanel(std::shared_ptr<LevelPackObjectsListView> listView, 
+		std::shared_ptr<LevelPackObjectsListPanel> listPanel, std::function<void()> createLevelPackObject, std::function<void(int)> openLevelPackObjectTab) {
+	// Add button
+	auto addButton = tgui::Button::create();
+	addButton->setText("+");
+	addButton->setPosition(0, 0);
+	addButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
+	addButton->connect("Pressed", [this, createLevelPackObject]() {
+		createLevelPackObject();
+	});
+	listPanel->add(addButton);
+
+	// Save all button
+	auto saveAllButton = tgui::Button::create();
+	saveAllButton->setText("S");
+	saveAllButton->setPosition(tgui::bindRight(addButton), 0);
+	saveAllButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
+	saveAllButton->connect("Pressed", [this, listView]() {
+		listView->manualSaveAll();
+	});
+	listPanel->add(saveAllButton);
+
+	// Sort button
+	auto sortButton = tgui::Button::create();
+	sortButton->setText("=");
+	sortButton->setPosition(tgui::bindRight(saveAllButton), 0);
+	sortButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
+	sortButton->connect("Pressed", [this, listView]() {
+		listView->cycleSortOption();
+	});
+	listPanel->add(sortButton);
+
+	// List view
+	listView->setPosition(0, tgui::bindBottom(addButton));
+	listView->setSize("100%", tgui::bindHeight(listPanel) - tgui::bindBottom(addButton));
+	{
+		// Right click menu
+		// Menu for single selection
+		auto rightClickMenuPopupSingleSelection = createMenuPopup({
+			std::make_pair("Open", [this, listView, openLevelPackObjectTab]() {
+				openLevelPackObjectTab(listView->getLevelPackObjectIDFromIndex(listView->getListView()->getSelectedItemIndex()));
+			}),
+			std::make_pair("Copy", [listView]() {
+				listView->manualCopy();
+			}),
+			std::make_pair("Paste", [listView]() {
+				listView->manualPaste();
+			}),
+			std::make_pair("Paste (override this)", [listView]() {
+				listView->manualPaste2();
+			}),
+			std::make_pair("Save", [listView]() {
+				listView->manualSave();
+			}),
+			std::make_pair("Delete", [listView]() {
+				listView->manualDelete();
+			})
+			});
+		// Menu for multiple selections
+		auto rightClickMenuPopupMultiSelection = createMenuPopup({
+			std::make_pair("Copy", [listView]() {
+				listView->manualCopy();
+			}),
+			std::make_pair("Paste", [listView]() {
+				listView->manualPaste();
+			}),
+			std::make_pair("Paste (override these)", [listView]() {
+				listView->manualPaste2();
+			}),
+			std::make_pair("Save", [listView]() {
+				listView->manualSave();
+			}),
+			std::make_pair("Delete", [listView]() {
+				listView->manualDelete();
+			})
+			});
+		listView->getListView()->connect("RightClicked", [this, listView, rightClickMenuPopupSingleSelection, rightClickMenuPopupMultiSelection](int index) {
+			std::set<std::size_t> selectedItemIndices = listView->getListView()->getSelectedItemIndices();
+			if (selectedItemIndices.find(index) != selectedItemIndices.end()) {
+				// Right clicked a selected item
+
+				// Open the corresponding menu
+				if (selectedItemIndices.size() == 1) {
+					addPopupWidget(rightClickMenuPopupSingleSelection, mousePos.x, mousePos.y, 150, rightClickMenuPopupSingleSelection->getSize().y);
+				} else {
+					addPopupWidget(rightClickMenuPopupMultiSelection, mousePos.x, mousePos.y, 150, rightClickMenuPopupMultiSelection->getSize().y);
+				}
+			} else {
+				// Right clicked a nonselected item
+
+				// Select the right clicked item
+				listView->getListView()->setSelectedItem(index);
+
+				// Open the menu normally
+				addPopupWidget(rightClickMenuPopupSingleSelection, mousePos.x, mousePos.y, 150, rightClickMenuPopupSingleSelection->getSize().y);
+			}
+		});
+	}
+	listView->getListView()->connect("DoubleClicked", [this, listView, openLevelPackObjectTab](int index) {
+		openLevelPackObjectTab(listView->getLevelPackObjectIDFromIndex(index));
+	});
+	listPanel->add(listView);
 }
 
 void MainEditorWindow::openLeftPanelAttack(int attackID) {
@@ -661,10 +700,10 @@ void MainEditorWindow::openLeftPanelAttack(int attackID) {
 	} else {
 		// Create the tab
 		std::shared_ptr<AttackEditorPanel> attackEditorPanel = AttackEditorPanel::create(*this, levelPack, *spriteLoader, clipboard, openedAttack);
-		attackEditorPanel->connect("AttackPatternBeginEdit", [&](int attackPatternID) {
+		attackEditorPanel->connect("AttackPatternBeginEdit", [this](int attackPatternID) {
 			openLeftPanelAttackPattern(attackPatternID);
 		});
-		attackEditorPanel->connect("AttackModified", [&](std::shared_ptr<EditorAttack> attack) {
+		attackEditorPanel->connect("AttackModified", [this](std::shared_ptr<EditorAttack> attack) {
 			unsavedAttacks[attack->getID()] = std::dynamic_pointer_cast<LevelPackObject>(attack);
 			attacksListView->reload();
 
@@ -681,8 +720,113 @@ void MainEditorWindow::openLeftPanelAttack(int attackID) {
 	previewWindow->previewAttack(openedAttack);
 }
 
-void MainEditorWindow::openLeftPanelAttackPattern(int attackPatternID) {
-	//TODO
+void MainEditorWindow::openLeftPanelAttackPattern(int id) {
+	// Open tab in left panel if not already open
+	if (leftPanel->getSelectedTab() != LEFT_PANEL_ATTACK_PATTERN_LIST_TAB_NAME) {
+		leftPanel->selectTab(LEFT_PANEL_ATTACK_PATTERN_LIST_TAB_NAME);
+	}
+	// Select the object in the list view
+	attackPatternsListView->getListView()->setSelectedItem(attackPatternsListView->getIndexFromLevelPackObjectID(id));
+
+	// Get the object
+	std::shared_ptr<EditorAttackPattern> openedObject;
+	if (unsavedAttacks.count(id) > 0) {
+		// There are unsaved changes for this object, so open the one with unsaved changes
+		openedObject = std::dynamic_pointer_cast<EditorAttackPattern>(unsavedAttackPatterns[id]);
+	} else {
+		// Make a copy of the object in the LevelPack so that changes can be applied/discarded
+		// whenever the user wants instead of modifying the LevelPack directly.
+		openedObject = std::make_shared<EditorAttackPattern>(levelPack->getAttackPattern(id));
+	}
+
+	// Open the tab in mainPanel
+	if (mainPanel->hasTab(format(MAIN_PANEL_ATTACK_PATTERN_TAB_NAME_FORMAT, id))) {
+		// Tab already exists, so just select it
+		mainPanel->selectTab(format(MAIN_PANEL_ATTACK_PATTERN_TAB_NAME_FORMAT, id));
+	} else {
+		// Create the tab
+		std::shared_ptr<AttackPatternEditorPanel> attackPatternEditorPanel = AttackPatternEditorPanel::create(*this, levelPack, *spriteLoader, clipboard, openedObject);
+		attackPatternEditorPanel->connect("EnemyPhaseBeginEdit", [this](int enemyPhaseID) {
+			openLeftPanelEnemyPhase(enemyPhaseID);
+		});
+		attackPatternEditorPanel->connect("PlayerBeginEdit", [this]() {
+			openLeftPanelPlayer();
+		});
+		attackPatternEditorPanel->connect("AttackPatternModified", [this](std::shared_ptr<EditorAttackPattern> attackPattern) {
+			unsavedAttacks[attackPattern->getID()] = std::dynamic_pointer_cast<LevelPackObject>(attackPattern);
+			attackPatternsListView->reload();
+
+			previewWindow->onOriginalLevelPackAttackPatternModified(attackPattern);
+		});
+		std::string tabName = format(MAIN_PANEL_ATTACK_PATTERN_TAB_NAME_FORMAT, id);
+		mainPanel->addTab(tabName, attackPatternEditorPanel, true, true);
+		mainPanel->setTabOnSelectFunction(tabName, [this, openedObject]() {
+			previewWindow->previewAttackPattern(openedObject);
+		});
+	}
+
+	// View preview
+	previewWindow->previewAttackPattern(openedObject);
+}
+
+void MainEditorWindow::overwriteAttackPatterns(std::vector<std::shared_ptr<EditorAttackPattern>> objects, UndoStack* undoStack) {
+	std::vector<std::shared_ptr<EditorAttackPattern>> oldObjects;
+	for (std::shared_ptr<EditorAttackPattern> obj : objects) {
+		int id = obj->getID();
+		if (unsavedAttackPatterns.count(id) > 0) {
+			oldObjects.push_back(std::dynamic_pointer_cast<EditorAttackPattern>(unsavedAttackPatterns[id]->clone()));
+		} else {
+			oldObjects.push_back(std::make_shared<EditorAttackPattern>(levelPack->getAttackPattern(id)));
+		}
+	}
+
+	if (undoStack) {
+		undoStack->execute(UndoableCommand([this, objects]() {
+			for (std::shared_ptr<EditorAttackPattern> obj : objects) {
+				int id = obj->getID();
+
+				// Overwrite existing object
+				if (unsavedAttackPatterns.count(id) > 0) {
+					std::dynamic_pointer_cast<EditorAttackPattern>(unsavedAttackPatterns[id])->load(obj->format());
+				} else {
+					unsavedAttackPatterns[id] = std::dynamic_pointer_cast<LevelPackObject>(std::make_shared<EditorAttackPattern>(obj));
+				}
+
+				reloadAttackPatternTab(id);
+				attackPatternsListView->reload();
+			}
+		}, [this, oldObjects]() {
+			for (std::shared_ptr<EditorAttackPattern> obj : oldObjects) {
+				int id = obj->getID();
+
+				// Overwrite existing object
+				if (unsavedAttackPatterns.count(id) > 0) {
+					std::dynamic_pointer_cast<EditorAttackPattern>(unsavedAttackPatterns[id])->load(obj->format());
+				} else {
+					unsavedAttackPatterns[id] = std::dynamic_pointer_cast<LevelPackObject>(std::make_shared<EditorAttackPattern>(obj));
+				}
+
+				reloadAttackPatternTab(id);
+				attackPatternsListView->reload();
+			}
+		}));
+	} else {
+		// Overwrite without pushing to an undo stack
+
+		for (std::shared_ptr<EditorAttackPattern> obj : objects) {
+			int id = obj->getID();
+
+			// Overwrite existing object
+			if (unsavedAttackPatterns.count(id) > 0) {
+				std::dynamic_pointer_cast<EditorAttackPattern>(unsavedAttackPatterns[id])->load(obj->format());
+			} else {
+				unsavedAttackPatterns[id] = std::dynamic_pointer_cast<LevelPackObject>(std::make_shared<EditorAttackPattern>(obj));
+			}
+
+			reloadAttackPatternTab(id);
+			attackPatternsListView->reload();
+		}
+	}
 }
 
 void MainEditorWindow::reloadAttackTab(int attackID) {
@@ -710,10 +854,10 @@ void MainEditorWindow::reloadAttackTab(int attackID) {
 
 		// Create the tab
 		std::shared_ptr<AttackEditorPanel> attackEditorPanel = AttackEditorPanel::create(*this, levelPack, *spriteLoader, clipboard, openedAttack);
-		attackEditorPanel->connect("AttackPatternBeginEdit", [&](int attackPatternID) {
+		attackEditorPanel->connect("AttackPatternBeginEdit", [this](int attackPatternID) {
 			openLeftPanelAttackPattern(attackPatternID);
 		});
-		attackEditorPanel->connect("AttackModified", [&](std::shared_ptr<EditorAttack> attack) {
+		attackEditorPanel->connect("AttackModified", [this](std::shared_ptr<EditorAttack> attack) {
 			unsavedAttacks[attack->getID()] = std::dynamic_pointer_cast<LevelPackObject>(attack);
 			attacksListView->reload();
 		});
@@ -721,6 +865,51 @@ void MainEditorWindow::reloadAttackTab(int attackID) {
 		mainPanel->insertTab(tabName, attackEditorPanel, tabIndex, tabWasSelected, true);
 		mainPanel->setTabOnSelectFunction(tabName, [this, openedAttack]() {
 			previewWindow->previewAttack(openedAttack);
+		});
+	}
+}
+
+void MainEditorWindow::reloadAttackPatternTab(int id) {
+	std::string tabName = format(MAIN_PANEL_ATTACK_PATTERN_TAB_NAME_FORMAT, id);
+	// Do nothing if the tab doesn't exist
+	if (mainPanel->hasTab(tabName)) {
+		// Remove the tab and then re-insert it at its old index
+		bool tabWasSelected = mainPanel->getSelectedTab() == tabName;
+		int tabIndex = mainPanel->getTabIndex(tabName);
+		mainPanel->removeTab(tabName);
+
+		// Get the object
+		std::shared_ptr<EditorAttackPattern> openedObject;
+		if (unsavedAttackPatterns.count(id) > 0) {
+			// There are unsaved changes for this attack, so open the one with unsaved changes
+			openedObject = std::dynamic_pointer_cast<EditorAttackPattern>(unsavedAttackPatterns[id]);
+		} else if (levelPack->hasAttackPattern(id)) {
+			// Make a copy of the attack in the LevelPack so that changes can be applied/discarded
+			// whenever the user wants instead of modifying the LevelPack directly.
+			openedObject = std::make_shared<EditorAttackPattern>(levelPack->getAttackPattern(id));
+		} else {
+			// The object doesn't exist, so keep the tab removed
+			return;
+		}
+
+		// Create the tab
+		std::shared_ptr<AttackPatternEditorPanel> attackPatternEditorPanel = AttackPatternEditorPanel::create(*this, levelPack, *spriteLoader, clipboard, openedObject);
+		attackPatternEditorPanel->connect("EnemyPhaseBeginEdit", [this](int enemyPhaseID) {
+			openLeftPanelEnemyPhase(enemyPhaseID);
+		});
+		attackPatternEditorPanel->connect("PlayerBeginEdit", [this]() {
+			openLeftPanelPlayer();
+		});
+		attackPatternEditorPanel->connect("AttackPatternModified", [this](std::shared_ptr<EditorAttackPattern> attackPattern) {
+			unsavedAttacks[attackPattern->getID()] = std::dynamic_pointer_cast<LevelPackObject>(attackPattern);
+			attackPatternsListView->reload();
+
+			previewWindow->onOriginalLevelPackAttackPatternModified(attackPattern);
+		});
+		std::string tabName = format(MAIN_PANEL_ATTACK_PATTERN_TAB_NAME_FORMAT, id);
+		mainPanel->insertTab(tabName, attackPatternEditorPanel, tabIndex, tabWasSelected, true);
+		mainPanel->setTabOnSelectFunction(tabName, [this, openedObject]() {
+			previewWindow->previewAttackPattern(openedObject);
 		});
 	}
 }
@@ -771,6 +960,24 @@ void MainEditorWindow::createAttack() {
 	}));
 }
 
+void MainEditorWindow::createAttackPattern() {
+	int id = levelPack->getNextAttackPatternID();
+	attackPatternsListView->getUndoStack().execute(UndoableCommand([this, id]() {
+		levelPack->createAttackPattern(id);
+
+		// Open the newly created attack
+		openLeftPanelAttackPattern(id);
+
+		attackPatternsListView->reload();
+
+		// Select it in attacksListView
+		attackPatternsListView->getListView()->setSelectedItem(attackPatternsListView->getIndexFromLevelPackObjectID(id));
+	}, [this, id]() {
+		levelPack->deleteAttackPattern(id);
+		attackPatternsListView->reload();
+	}));
+}
+
 LevelPackObjectPreviewWindow::LevelPackObjectPreviewWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, std::string levelPackName, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval)
 	: EditorWindow(tguiMutex, windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval), levelPackName(levelPackName) {
 }
@@ -795,9 +1002,25 @@ void LevelPackObjectPreviewWindow::previewAttack(const std::shared_ptr<EditorAtt
 	}
 }
 
+void LevelPackObjectPreviewWindow::previewAttackPattern(const std::shared_ptr<EditorAttackPattern> attackPattern) {
+	if (window->isOpen() && !lockCurrentPreview) {
+		previewObjectLabel->setText("Attack Pattern ID " + std::to_string(attackPattern->getID()));
+
+		previewThread.join();
+		previewThread = boost::thread(&LevelPackObjectPreviewPanel::previewAttackPattern, &(*previewPanel), attackPattern);
+		previewThread.detach();
+	}
+}
+
 void LevelPackObjectPreviewWindow::onOriginalLevelPackAttackModified(const std::shared_ptr<EditorAttack> attack) {
 	if (window->isOpen()) {
 		previewPanel->getLevelPack()->updateAttack(attack);
+	}
+}
+
+void LevelPackObjectPreviewWindow::onOriginalLevelPackAttackPatternModified(const std::shared_ptr<EditorAttackPattern> attackPattern) {
+	if (window->isOpen()) {
+		previewPanel->getLevelPack()->updateAttackPattern(attackPattern);
 	}
 }
 

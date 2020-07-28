@@ -441,3 +441,95 @@ void LevelPackObjectsListView::deleteObjects(std::set<size_t> selectedIndices, s
 		getListView()->setSelectedItems(newSelectedIndices);
 	}));
 }
+
+AttackPatternsListView::AttackPatternsListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, int undoStackSize) : LevelPackObjectsListView("EditorAttackPattern", mainEditorWindow, clipboard, undoStackSize) {
+}
+
+void AttackPatternsListView::addLevelPackObjectsToListView() {
+	auto& unsavedObjs = getUnsavedLevelPackObjects();
+	if (sortOption == SORT_OPTION::ID) {
+		for (auto it = levelPack->getAttackPatternIteratorBegin(); it != levelPack->getAttackPatternIteratorEnd(); it++) {
+			if (it->first < 0) {
+				continue;
+			}
+
+			bool objIsUnsaved = unsavedObjs.count(it->first) > 0;
+			addLevelPackObjectToListView(it->first, it->second->getName(), objIsUnsaved, objIsUnsaved ? unsavedObjs[it->first]->getName() : "");
+		}
+	} else {
+		std::vector<std::pair<std::string, int>> objsOrdering;
+		for (auto it = levelPack->getAttackPatternIteratorBegin(); it != levelPack->getAttackPatternIteratorEnd(); it++) {
+			if (it->first < 0) {
+				continue;
+			}
+
+			if (unsavedObjs.count(it->first) > 0) {
+				objsOrdering.push_back(std::make_pair(unsavedObjs[it->first]->getName(), it->first));
+			} else {
+				objsOrdering.push_back(std::make_pair(it->second->getName(), it->first));
+			}
+		}
+		std::sort(objsOrdering.begin(), objsOrdering.end());
+
+		for (auto p : objsOrdering) {
+			bool objIsUnsaved = unsavedObjs.count(p.second) > 0;
+			addLevelPackObjectToListView(p.second, p.first, objIsUnsaved, objIsUnsaved ? unsavedObjs[p.second]->getName() : "");
+		}
+	}
+}
+
+std::map<int, std::shared_ptr<LevelPackObject>>& AttackPatternsListView::getUnsavedLevelPackObjects() {
+	return mainEditorWindow.getUnsavedAttackPatterns();
+}
+
+void AttackPatternsListView::updateLevelPackObjectInLevelPack(std::shared_ptr<LevelPackObject> obj) {
+	levelPack->updateAttack(std::dynamic_pointer_cast<EditorAttackPattern>(obj));
+}
+
+void AttackPatternsListView::deleteLevelPackObjectInLevelPack(int id) {
+	levelPack->deleteAttackPattern(id);
+	reloadLevelPackObjectTabInMainEditorWindow(id);
+}
+
+std::shared_ptr<LevelPackObject> AttackPatternsListView::getLevelPackObjectFromLevelPack(int id) {
+	return levelPack->getAttackPattern(id);
+}
+
+std::set<int> AttackPatternsListView::getNextLevelPackObjectIDs(int count) {
+	return levelPack->getNextAttackPatternIDs(count);
+}
+
+void AttackPatternsListView::openLevelPackObjectInMainEditorWindow(int id) {
+	mainEditorWindow.openLeftPanelAttackPattern(id);
+}
+
+void AttackPatternsListView::reloadLevelPackObjectTabInMainEditorWindow(int id) {
+	mainEditorWindow.reloadAttackPatternTab(id);
+}
+
+std::string AttackPatternsListView::getPasteIntoConfirmationPrompt() {
+	return "Overwrite the selected attack patterns(s) with the copied attack patterns(s)? This will reload their tabs if they are currently open.";
+}
+
+std::string AttackPatternsListView::getDeleteLevelPackObjectsInUseConfirmationPrompt() {
+	return "Are you sure you want to delete the selected attack patterns(s)? One or more are currently being used by an enemy phase or by the player.";
+}
+
+bool AttackPatternsListView::getLevelPackObjectIsInUse(int id) {
+	return levelPack->getAttackPatternEnemyUsers(id).size() != 0 || levelPack->getAttackPatternIsUsedByPlayer(id);
+}
+
+std::string AttackPatternsListView::getLevelPackObjectDisplayName() {
+	return "attack pattern";
+}
+
+void AttackPatternsListView::onPasteIntoConfirmation(bool confirmed, std::vector<std::shared_ptr<LevelPackObject>> newObjects) {
+	if (confirmed) {
+		std::vector<std::shared_ptr<EditorAttackPattern>> derivedObjects;
+		for (auto obj : newObjects) {
+			derivedObjects.push_back(std::dynamic_pointer_cast<EditorAttackPattern>(obj));
+		}
+		mainEditorWindow.overwriteAttackPatterns(derivedObjects, &undoStack);
+		reload();
+	}
+}

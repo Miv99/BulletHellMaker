@@ -83,6 +83,7 @@ namespace tgui {
 
 	EXTRA_SIGNAL_VALUE_DECLARATION(EditorAttack, std::shared_ptr<EditorAttack>)
 	EXTRA_SIGNAL_VALUE_DECLARATION(EditorMovablePoint, std::shared_ptr<EditorMovablePoint>)
+	EXTRA_SIGNAL_VALUE_DECLARATION(EditorAttackPattern, std::shared_ptr<EditorAttackPattern>)
 	EXTRA_SIGNAL_VALUE_DECLARATION(SoundSettings, SoundSettings)
 	EXTRA_SIGNAL_VALUE_DECLARATION(Animatable, Animatable)
 	EXTRA_SIGNAL_VALUE_DECLARATION(EMPA, std::shared_ptr<EMPAction>)

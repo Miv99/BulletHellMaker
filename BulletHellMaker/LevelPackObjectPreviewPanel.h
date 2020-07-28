@@ -39,6 +39,10 @@ public:
 	The preview will use a clone of the attack.
 	*/
 	void previewAttack(const std::shared_ptr<EditorAttack> attack);
+	/*
+	The preview will use a clone of the attack pattern.
+	*/
+	void previewAttackPattern(const std::shared_ptr<EditorAttackPattern> attackPattern);
 
 	void resetPreview();
 

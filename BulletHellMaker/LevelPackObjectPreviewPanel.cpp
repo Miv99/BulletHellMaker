@@ -271,6 +271,10 @@ tgui::Signal& LevelPackObjectPreviewPanel::getSignal(std::string signalName) {
 	return SimpleEngineRenderer::getSignal(signalName);
 }
 
+void LevelPackObjectPreviewPanel::previewAttackPattern(const std::shared_ptr<EditorAttackPattern> attackPattern) {
+	// TODO
+}
+
 void LevelPackObjectPreviewPanel::resetPreview() {
 	// TODO
 	if (currentPreviewObjectType == PREVIEW_OBJECT::NONE) {
