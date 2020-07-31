@@ -1026,13 +1026,13 @@ void LevelPackObjectPreviewWindow::onOriginalLevelPackAttackPatternModified(cons
 
 void LevelPackObjectPreviewWindow::updateWidgetsPositionsAndSizes() {
 	if (infoPanel->isVisible()) {
-		infoPanel->setSize("20%", "100%");
+		infoPanel->setSize("30%", "100%");
 		if (logs->isVisible()) {
-			previewPanel->setSize("80%", "60%");
+			previewPanel->setSize("70%", "60%");
 		} else {
-			previewPanel->setSize("80%", "100%");
+			previewPanel->setSize("70%", "100%");
 		}
-		previewPanel->setPosition("20%", 0);
+		previewPanel->setPosition("30%", 0);
 	} else {
 		if (logs->isVisible()) {
 			previewPanel->setSize("100%", "60%");
