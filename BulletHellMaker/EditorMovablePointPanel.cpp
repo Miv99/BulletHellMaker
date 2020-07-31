@@ -538,8 +538,17 @@ point will update only the values it wants to inherit to match the model."));
 			properties->setHorizontalScrollbarValue(0);
 			properties->setVerticalScrollbarValue(0);
 
+			float x, y;
+			try {
+				x = std::stof(this->emp->getSpawnType()->getRawX());
+				y = std::stof(this->emp->getSpawnType()->getRawY());
+			} catch (...) {
+				x = 0;
+				y = 0;
+			}
+
 			spawnTypePositionMarkerPlacer->clearUndoStack();
-			spawnTypePositionMarkerPlacer->setMarkers({std::make_pair(sf::Vector2f(this->emp->getSpawnType()->getX(), this->emp->getSpawnType()->getY()), sf::Color::Red)});
+			spawnTypePositionMarkerPlacer->setMarkers({std::make_pair(sf::Vector2f(x, y), sf::Color::Red)});
 			spawnTypePositionMarkerPlacer->lookAt(sf::Vector2f(0, 0));
 
 			properties->add(spawnTypePositionMarkerPlacer);
@@ -1408,8 +1417,8 @@ void EditorMovablePointPanel::finishEditingSpawnTypePosition() {
 	properties->setHorizontalScrollbarValue(horizontalScrollPos);
 	properties->setVerticalScrollbarValue(verticalScrollPos);
 
-	float oldPosX = emp->getSpawnType()->getX();
-	float oldPosY = emp->getSpawnType()->getY();
+	std::string oldPosX = emp->getSpawnType()->getRawX();
+	std::string oldPosY = emp->getSpawnType()->getRawY();
 	sf::Vector2f newPos = spawnTypePositionMarkerPlacer->getMarkerPositions()[0];
 	undoStack.execute(UndoableCommand(
 		[this, newPos]() {
@@ -1423,13 +1432,13 @@ void EditorMovablePointPanel::finishEditingSpawnTypePosition() {
 		this->ignoreSignals = false;
 	},
 		[this, oldPosX, oldPosY]() {
-		emp->getSpawnType()->setX(formatNum(oldPosX));
-		emp->getSpawnType()->setY(formatNum(oldPosY));
+		emp->getSpawnType()->setX(oldPosX);
+		emp->getSpawnType()->setY(oldPosY);
 		onEMPModify.emit(this, this->emp);
 
 		this->ignoreSignals = true;
-		empiSpawnTypeX->setText(formatNum(oldPosX));
-		empiSpawnTypeY->setText(formatNum(oldPosY));
+		empiSpawnTypeX->setText(oldPosX);
+		empiSpawnTypeY->setText(oldPosY);
 		this->ignoreSignals = false;
 	}));
 

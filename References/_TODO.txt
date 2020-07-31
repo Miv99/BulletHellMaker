@@ -147,7 +147,6 @@ current todo:
         the one in additionalTable if it exists; additionalTable can't be redelegated; every redelegated symbol in
         symbolTable must be defined by additionalTable or else the preview won't start
     -surround SimpleEngineRenderer in some try catch that prints exceptions to the user
--marker placer label showing mouse world position
 -visualizer thing in EMPABasedMovementEditorPanel
 -LevelPackObjectPreviewPanel::previewAttackPattern()
 -info panel for preview missing attack delay edit box thing
