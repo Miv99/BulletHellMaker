@@ -151,6 +151,8 @@ private:
 	std::vector<std::shared_ptr<EMPAction>> actions;
 	// Sum of durations in actions
 	float sumOfDurations;
+	// Maps EditorMovablePointActionPanels to the index of the action it edits
+	std::map<std::shared_ptr<tgui::Panel>, int> panelToActionIndexMap;
 
 	EditorWindow& parentWindow;
 	Clipboard& clipboard;

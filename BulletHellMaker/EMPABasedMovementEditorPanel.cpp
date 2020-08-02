@@ -203,7 +203,8 @@ EMPABasedMovementEditorPanel::EMPABasedMovementEditorPanel(EditorWindow& parentW
 			// there can't be a situation where 2 tabs have the same name
 			std::sort(actionIndicesToBeRenamed.begin(), actionIndicesToBeRenamed.end(), std::greater<int>());
 			for (int actionIndex : actionIndicesToBeRenamed) {
-				tabs->renameTab(format(EMPA_TAB_NAME_FORMAT, actionIndex), format(EMPA_TAB_NAME_FORMAT, actionIndex + 1));
+				std::shared_ptr<tgui::Panel> panel = tabs->renameTab(format(EMPA_TAB_NAME_FORMAT, actionIndex), format(EMPA_TAB_NAME_FORMAT, actionIndex + 1));
+				panelToActionIndexMap[panel] = actionIndex + 1;
 			}
 
 			std::set<size_t> newSelectedIndices;
@@ -233,7 +234,8 @@ EMPABasedMovementEditorPanel::EMPABasedMovementEditorPanel(EditorWindow& parentW
 			// there can't be a situation where 2 tabs have the same name
 			std::sort(actionIndicesToBeRenamed.begin(), actionIndicesToBeRenamed.end());
 			for (int actionIndex : actionIndicesToBeRenamed) {
-				tabs->renameTab(format(EMPA_TAB_NAME_FORMAT, actionIndex), format(EMPA_TAB_NAME_FORMAT, actionIndex - 1));
+				std::shared_ptr<tgui::Panel> panel = tabs->renameTab(format(EMPA_TAB_NAME_FORMAT, actionIndex), format(EMPA_TAB_NAME_FORMAT, actionIndex - 1));
+				panelToActionIndexMap[panel] = actionIndex - 1;
 			}
 
 			updateEMPAList();
@@ -263,6 +265,7 @@ float EMPABasedMovementEditorPanel::getSumOfDurations() {
 }
 
 void EMPABasedMovementEditorPanel::setActions(std::vector<std::shared_ptr<EMPAction>> actions) {
+	panelToActionIndexMap.clear();
 	this->actions.clear();
 	for (auto action : actions) {
 		this->actions.push_back(std::dynamic_pointer_cast<EMPAction>(action->clone()));
@@ -591,12 +594,13 @@ ValueSymbolTable EMPABasedMovementEditorPanel::getLevelPackObjectSymbolTable() {
 std::shared_ptr<tgui::Panel> EMPABasedMovementEditorPanel::createEMPAPanel(std::shared_ptr<EMPAction> empa, int index, std::shared_ptr<ListViewScrollablePanel> empiActions) {
 	std::shared_ptr<EditorMovablePointActionPanel> empaPanel = EditorMovablePointActionPanel::create(parentWindow, clipboard, std::dynamic_pointer_cast<EMPAction>(empa->clone()));
 	empaPanel->updateSymbolTables(symbolTables);
-	empaPanel->connect("EMPAModified", [this, index, empiActions](std::shared_ptr<EMPAction> value) {
-		this->actions[index] = value;
+	empaPanel->connect("EMPAModified", [this, index, empiActions, empaPanel](std::shared_ptr<EMPAction> value) {
+		this->actions[this->panelToActionIndexMap[empaPanel]] = value;
 
 		updateEMPAList();
 		onEMPAListModify.emit(this, cloneActions(), sumOfDurations);
 	});
+	panelToActionIndexMap[empaPanel] = index;
 	return empaPanel;
 }
 
