@@ -77,14 +77,28 @@ public:
 
 	bool handleEvent(sf::Event event) override;
 
+	void updatePath(std::vector<std::shared_ptr<EMPAction>> empas);
+
 	std::shared_ptr<EditorMovablePointActionsListView> getEmpasListView();
 	std::shared_ptr<EditorMovablePointActionsListPanel> getEmpasListPanel();
+
+	/*
+	Sets the starting position of the first EMPA in the visualizer.
+	If the string cannot be converted to a float, it will default to 0.
+	*/
+	void setVisualizerStartPosX(std::string startX);
+	/*
+	Sets the starting position of the first EMPA in the visualizer.
+	If the string cannot be converted to a float, it will default to 0.
+	*/
+	void setVisualizerStartPosY(std::string startY);
 
 private:
 	// The left panel
 	std::shared_ptr<EditorMovablePointActionsListPanel> empasListPanel;
 	// Stores the actual visualizer
 	std::shared_ptr<tgui::Panel> mainPanel;
+	std::shared_ptr<EMPAListVisualizer> visualizer;
 };
 
 /*
@@ -114,6 +128,16 @@ public:
 	This will deep-copy every action in the vector and will not cause the EMPAListModified signal to emit.
 	*/
 	void setActions(std::vector<std::shared_ptr<EMPAction>> actions);
+	/*
+	Sets the starting position of the first EMPA in the visualizer.
+	If the string cannot be converted to a float, it will default to 0.
+	*/
+	void setVisualizerStartPosX(std::string startX);
+	/*
+	Sets the starting position of the first EMPA in the visualizer.
+	If the string cannot be converted to a float, it will default to 0.
+	*/
+	void setVisualizerStartPosY(std::string startY);
 
 	/*
 	Does the delete command depending on what is selected in the EditorMovablePointActionsListView.

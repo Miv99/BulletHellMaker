@@ -494,6 +494,7 @@ point will update only the values it wants to inherit to match the model."));
 
 				ignoreSignals = true;
 				empiSpawnTypeX->setText(this->emp->getSpawnType()->getRawX());
+				movementEditorPanel->setVisualizerStartPosX(this->emp->getSpawnType()->getRawX());
 				ignoreSignals = false;
 			},
 				[this, oldValue]() {
@@ -502,6 +503,7 @@ point will update only the values it wants to inherit to match the model."));
 
 				ignoreSignals = true;
 				empiSpawnTypeX->setText(this->emp->getSpawnType()->getRawX());
+				movementEditorPanel->setVisualizerStartPosX(this->emp->getSpawnType()->getRawX());
 				ignoreSignals = false;
 			}));
 		});
@@ -518,6 +520,7 @@ point will update only the values it wants to inherit to match the model."));
 
 				ignoreSignals = true;
 				empiSpawnTypeY->setText(this->emp->getSpawnType()->getRawY());
+				movementEditorPanel->setVisualizerStartPosY(this->emp->getSpawnType()->getRawY());
 				ignoreSignals = false;
 			},
 				[this, oldValue]() {
@@ -526,6 +529,7 @@ point will update only the values it wants to inherit to match the model."));
 
 				ignoreSignals = true;
 				empiSpawnTypeY->setText(this->emp->getSpawnType()->getRawY());
+				movementEditorPanel->setVisualizerStartPosY(this->emp->getSpawnType()->getRawY());
 				ignoreSignals = false;
 			}));
 		});

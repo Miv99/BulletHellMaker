@@ -19,6 +19,8 @@ const sf::Color MarkerPlacer::MAP_BORDER_COLOR = sf::Color(255, 0, 0);
 const sf::Color MarkerPlacer::MAP_LINE_COLOR = sf::Color(143, 0, 0);
 const float MarkerPlacer::MAX_GRID_SNAP_DISTANCE = 15.0f;
 const float MarkerPlacer::MAX_GRID_SNAP_DISTANCE_SQUARED = MAX_GRID_SNAP_DISTANCE * MAX_GRID_SNAP_DISTANCE;
+const float BezierControlPointsPlacer::EVALUATOR_CIRCLE_RADIUS = 3.0f;
+const float EMPAListVisualizer::EVALUATOR_CIRCLE_RADIUS = 3.0f;
 
 std::string getID(std::shared_ptr<EMPAAngleOffset> offset) {
 	if (dynamic_cast<EMPAAngleOffsetZero*>(offset.get())) {
@@ -68,7 +70,7 @@ std::shared_ptr<tgui::ListBox> createMenuPopup(std::vector<std::pair<std::string
 	return popup;
 }
 
-sf::VertexArray generateVertexArray(std::vector<std::shared_ptr<EMPAction>> actions, float timeResolution, float x, float y, float playerX, float playerY, sf::Color startColor, sf::Color endColor) {
+sf::VertexArray generateVertexArray(std::vector<std::shared_ptr<EMPAction>> actions, float timeResolution, float x, float y, bool invertY, sf::Color startColor, sf::Color endColor) {
 	float totalTime = 0;
 	for (auto action : actions) {
 		totalTime += action->getTime();
@@ -78,11 +80,22 @@ sf::VertexArray generateVertexArray(std::vector<std::shared_ptr<EMPAction>> acti
 	float totalTimeElapsed = 0;
 	float time = 0;
 	float curX = x, curY = y;
+	int invertYMultiplier = 1;
+	if (invertY) {
+		invertYMultiplier = -1;
+	}
 	for (auto action : actions) {
-		auto mp = action->generateStandaloneMP(curX, curY, playerX, playerY); 
+		if (skippedByGenerateVertexArray(action)) {
+			// Skip action if it requires the registry
+			totalTimeElapsed += action->getTime();
+			continue;
+		}
+
+		auto mp = action->generateStandaloneMP(curX, curY, 0, 0);
 		while (time < action->getTime()) {
 			sf::Vector2f pos = mp->compute(sf::Vector2f(0, 0), time);
-			sf::Color color = sf::Color((endColor.r - startColor.r)*(totalTimeElapsed / totalTime) + startColor.r, (endColor.g - startColor.g)*(totalTimeElapsed / totalTime) + startColor.g, (endColor.b - startColor.b)*(totalTimeElapsed / totalTime) + startColor.b, (endColor.a - startColor.a)*(totalTimeElapsed / totalTime) + startColor.a);
+			pos.y *= invertYMultiplier;
+			sf::Color color = sf::Color((endColor.r - startColor.r) * (totalTimeElapsed / totalTime) + startColor.r, (endColor.g - startColor.g) * (totalTimeElapsed / totalTime) + startColor.g, (endColor.b - startColor.b) * (totalTimeElapsed / totalTime) + startColor.b, (endColor.a - startColor.a) * (totalTimeElapsed / totalTime) + startColor.a);
 			ret.append(sf::Vertex(pos + sf::Vector2f(curX, curY), color));
 			time += timeResolution;
 			totalTimeElapsed += timeResolution;
@@ -90,29 +103,31 @@ sf::VertexArray generateVertexArray(std::vector<std::shared_ptr<EMPAction>> acti
 		time -= action->getTime();
 		sf::Vector2f newPos = mp->compute(sf::Vector2f(0, 0), mp->getLifespan());
 		curX += newPos.x;
+		if (invertY) {
+			newPos.y *= -1;
+		}
 		curY += newPos.y;
 	}
 	return ret;
 }
 
-sf::VertexArray generateVertexArray(std::shared_ptr<EMPAction> action, float timeResolution, float x, float y, float playerX, float playerY, sf::Color startColor, sf::Color endColor) {
+sf::VertexArray generateVertexArray(std::shared_ptr<EMPAction> action, float timeResolution, float x, float y, sf::Color startColor, sf::Color endColor) {
 	float totalTime = action->getTime();
 	sf::VertexArray ret;
 	float totalTimeElapsed = 0;
 	float time = 0;
-	auto mp = action->generateStandaloneMP(x, y, playerX, playerY);
+	auto mp = action->generateStandaloneMP(x, y, 0, 0);
 	while (time < action->getTime()) {
 		sf::Vector2f pos = mp->compute(sf::Vector2f(0, 0), time);
-		sf::Color color = sf::Color((endColor.r - startColor.r)*(totalTimeElapsed / totalTime) + startColor.r, (endColor.g - startColor.g)*(totalTimeElapsed / totalTime) + startColor.g, (endColor.b - startColor.b)*(totalTimeElapsed / totalTime) + startColor.b, (endColor.a - startColor.a)*(totalTimeElapsed / totalTime) + startColor.a);
+		sf::Color color = sf::Color((endColor.r - startColor.r) * (totalTimeElapsed / totalTime) + startColor.r, (endColor.g - startColor.g) * (totalTimeElapsed / totalTime) + startColor.g, (endColor.b - startColor.b) * (totalTimeElapsed / totalTime) + startColor.b, (endColor.a - startColor.a) * (totalTimeElapsed / totalTime) + startColor.a);
 		ret.append(sf::Vertex(pos + sf::Vector2f(x, y), color));
 		time += timeResolution;
 		totalTimeElapsed += timeResolution;
 	}
-	time -= action->getTime();
 	return ret;
 }
 
-std::vector<std::pair<std::vector<float>, std::vector<float>>> generateMPLPoints(std::shared_ptr<PiecewiseTFV> tfv, float tfvLifespan, float timeResolution) {
+std::vector<std::pair<std::vector<float>, std::vector<float>>> generateMPPoints(std::shared_ptr<PiecewiseTFV> tfv, float tfvLifespan, float timeResolution) {
 	std::vector<std::pair<std::vector<float>, std::vector<float>>> ret;
 	float time = 0;
 	int prevSegmentIndex = -1;
@@ -154,6 +169,12 @@ std::vector<std::pair<std::vector<float>, std::vector<float>>> generateMPLPoints
 	return ret;
 }
 
+bool skippedByGenerateVertexArray(std::shared_ptr<EMPAction> empa) {
+	if (std::dynamic_pointer_cast<MovePlayerHomingEMPA>(empa) || std::dynamic_pointer_cast<MoveGlobalHomingEMPA>(empa)) {
+		return true;
+	}
+	return false;
+}
 
 const tgui::Layout2d & HideableGroup::getSizeLayout() const {
 	if (!isVisible()) {
@@ -865,7 +886,7 @@ TFVGroup::TFVGroup(EditorWindow& parentWindow, Clipboard& clipboard) : CopyPaste
 	showGraph->setToolTip(createToolTip("Plots the graph of this value with the x-axis representing time in seconds and the y-axis representing the result of this value's evaluation. \
 This might take a while to load the first time."));
 	showGraph->connect("Pressed", [&]() {
-		auto points = generateMPLPoints(tfv, tfvLifespan, TFV_TIME_RESOLUTION);
+		auto points = generateMPPoints(tfv, tfvLifespan, TFV_TIME_RESOLUTION);
 		matplotlibcpp::clf();
 		matplotlibcpp::close();
 		for (int i = 0; i < points.size(); i++) {
@@ -2281,7 +2302,7 @@ void TabsWithPanel::removeAllTabs() {
 	onTabsChange();
 }
 
-void TabsWithPanel::renameTab(std::string oldTabName, std::string newTabName) {
+std::shared_ptr<tgui::Panel> TabsWithPanel::renameTab(std::string oldTabName, std::string newTabName) {
 	std::string oldTabInternalName = oldTabName + tabNameAppendedSpaces;
 	int tabIndex = -1;
 	for (int i = 0; i < tabsOrdering.size(); i++) {
@@ -2299,6 +2320,8 @@ void TabsWithPanel::renameTab(std::string oldTabName, std::string newTabName) {
 	removeTab(oldTabName);
 	insertTab(newTabName, panel, tabIndex, wasSelected, closeable);
 	setTabCloseButtonConfirmationPrompt(newTabName, closeButtonConfirmationPrompt);
+
+	return panel;
 }
 
 void TabsWithPanel::setTabCloseButtonConfirmationPrompt(std::string tabName, std::string message) {
@@ -2330,6 +2353,7 @@ int TabsWithPanel::getTabIndex(std::string tabName) {
 }
 
 std::shared_ptr<tgui::Panel> TabsWithPanel::getTab(std::string name) {
+	name += tabNameAppendedSpaces;
 	return panelsMap.at(name);
 }
 
@@ -2396,7 +2420,8 @@ void TabsWithPanel::setMoreTabsListAlignment(MoreTabsListAlignment moreTabsListA
 std::vector<std::string> TabsWithPanel::getTabNames() {
 	std::vector<std::string> res;
 	for (int i = 0; i < panelsMap.size(); i++) {
-		res.push_back(tabs->getText(i));
+		std::string str = tabs->getText(i);
+		res.push_back(str.substr(0, str.length() - tabNameAppendedSpaces.length()));
 	}
 	return res;
 }
@@ -3485,9 +3510,15 @@ void MarkerPlacer::draw(sf::RenderTarget & target, sf::RenderStates states) cons
 	parentWindow.setView(originalView);
 
 	// Draw panels again so that it covers the markers
-	leftPanel->draw(target, states);
-	extraWidgetsPanel->draw(target, states);
-	mouseWorldPosPanel->draw(target, states);
+	if (leftPanel->isVisible()) {
+		leftPanel->draw(target, states);
+	}
+	if (extraWidgetsPanel->isVisible()) {
+		extraWidgetsPanel->draw(target, states);
+	}
+	if (mouseWorldPosPanel->isVisible()) {
+		mouseWorldPosPanel->draw(target, states);
+	}
 }
 
 bool MarkerPlacer::update(sf::Time elapsedTime) {
@@ -3501,19 +3532,29 @@ bool MarkerPlacer::update(sf::Time elapsedTime) {
 }
 
 BezierControlPointsPlacer::BezierControlPointsPlacer(sf::RenderWindow & parentWindow, Clipboard& clipboard, sf::Vector2u resolution, int undoStackSize) : MarkerPlacer(parentWindow, clipboard, resolution, undoStackSize) {
+	evaluatorCircle = sf::CircleShape(EVALUATOR_CIRCLE_RADIUS);
+	evaluatorCircle.setFillColor(sf::Color::Transparent);
+	evaluatorCircle.setOutlineColor(sf::Color::Magenta);
+	evaluatorCircle.setOrigin(sf::Vector2f(EVALUATOR_CIRCLE_RADIUS, EVALUATOR_CIRCLE_RADIUS));
+	evaluatorCircle.setOutlineThickness(1);
+	
 	timeResolution = SliderWithEditBox::create();
 	evaluator = SliderWithEditBox::create(false);
 	evaluatorResult = tgui::Label::create();
+	std::shared_ptr<tgui::Button> cycleMovementPathPrimitiveTypeButton = tgui::Button::create();
 
 	timeResolution->setToolTip(createToolTip("Amount of time in seconds between each movement dot"));
 	evaluator->setToolTip(createToolTip("Evaluates a position given some time in seconds"));
 	evaluatorResult->setToolTip(createToolTip("The result of the evaluation relative to the first control point"));
+	cycleMovementPathPrimitiveTypeButton->setToolTip(createToolTip("Cycles between points and lines for movement path"));
 
 	timeResolution->setTextSize(TEXT_SIZE);
 	evaluator->setTextSize(TEXT_SIZE);
 	evaluatorResult->setTextSize(TEXT_SIZE);
+	cycleMovementPathPrimitiveTypeButton->setTextSize(TEXT_SIZE);
 
 	evaluatorResult->setText("Result:                   ");
+	cycleMovementPathPrimitiveTypeButton->setText("Cycle path type");
 
 	timeResolution->setIntegerMode(false);
 	timeResolution->setMin(MAX_PHYSICS_DELTA_TIME);
@@ -3529,18 +3570,20 @@ BezierControlPointsPlacer::BezierControlPointsPlacer(sf::RenderWindow & parentWi
 		updatePath();
 	});
 	evaluator->connect("ValueChanged", [this](float value) {
-		std::shared_ptr<BezierMP> mp = std::make_shared<BezierMP>(movementPathTime, getMarkerPositions());
-		sf::Vector2f res = mp->compute(sf::Vector2f(0, 0), value);
-		evaluatorResult->setText(format("Result: (%.3f, %.3f)", res.x, res.y));
-		evaluator->setSize(std::min((getSize().x - leftPanel->getSize().x) / 2.0f, (getSize().x - leftPanel->getSize().x) - evaluatorResult->getSize().x - GUI_PADDING_X), TEXT_BOX_HEIGHT);
+		updateEvaluatorResult();
+	});
+	cycleMovementPathPrimitiveTypeButton->connect("Pressed", [this]() {
+		cycleMovementPathPrimitiveType();
 	});
 
 	timeResolution->setSize("50%", SLIDER_HEIGHT);
 	evaluator->setSize("50%", TEXT_BOX_HEIGHT);
+	cycleMovementPathPrimitiveTypeButton->setSize("50%", TEXT_BOX_HEIGHT);
 
 	addExtraRowWidget(timeResolution, GUI_PADDING_Y);
 	addExtraRowWidget(evaluator, GUI_LABEL_PADDING_Y);
 	addExtraColumnWidget(evaluatorResult, GUI_PADDING_X);
+	addExtraRowWidget(cycleMovementPathPrimitiveTypeButton, GUI_LABEL_PADDING_Y);
 }
 
 std::string BezierControlPointsPlacer::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
@@ -3565,7 +3608,19 @@ void BezierControlPointsPlacer::draw(sf::RenderTarget & target, sf::RenderStates
 	offsetView.setCenter(offsetView.getCenter() + getAbsolutePosition());
 	parentWindow.setView(offsetView);
 	parentWindow.draw(movementPath, states);
+	if (evaluatorCircle.getRadius() > 0) {
+		parentWindow.draw(evaluatorCircle, states);
+	}
 	parentWindow.setView(originalView);
+}
+
+void BezierControlPointsPlacer::cycleMovementPathPrimitiveType() {
+	if (movementPathPrimitiveType == sf::PrimitiveType::Points) {
+		movementPathPrimitiveType = sf::PrimitiveType::LineStrip;
+	} else {
+		movementPathPrimitiveType = sf::PrimitiveType::Points;
+	}
+	updatePath();
 }
 
 void BezierControlPointsPlacer::setMovementDuration(float time) {
@@ -3615,19 +3670,26 @@ void BezierControlPointsPlacer::updatePath() {
 		movementPath = sf::VertexArray();
 		return;
 	}
+
 	auto markerPositions = std::vector<sf::Vector2f>();
 	for (auto p : markers) {
 		markerPositions.push_back(p.getPosition() - markers[0].getPosition());
 	}
 
 	std::shared_ptr<EMPAction> empa = std::make_shared<MoveCustomBezierEMPA>(markerPositions, movementPathTime);
-	movementPath = generateVertexArray(empa, timeResolution->getValue(), markers[0].getPosition().x, markers[0].getPosition().y, 0, 0, sf::Color::Red, sf::Color::Blue);
-	movementPath.setPrimitiveType(sf::PrimitiveType::Points);
+	movementPath = generateVertexArray(empa, timeResolution->getValue(), markers[0].getPosition().x, markers[0].getPosition().y, sf::Color::Red, sf::Color::Blue);
+	movementPath.setPrimitiveType(movementPathPrimitiveType);
 
+	updateEvaluatorResult();
+}
+
+void BezierControlPointsPlacer::updateEvaluatorResult() {
 	std::shared_ptr<BezierMP> mp = std::make_shared<BezierMP>(movementPathTime, getMarkerPositions());
 	sf::Vector2f res = mp->compute(sf::Vector2f(0, 0), evaluator->getValue());
 	evaluatorResult->setText(format("Result: (%.3f, %.3f)", res.x, res.y));
 	evaluator->setSize(std::min((getSize().x - leftPanel->getSize().x) / 2.0f, (getSize().x - leftPanel->getSize().x) - evaluatorResult->getSize().x - GUI_PADDING_X), TEXT_BOX_HEIGHT);
+
+	evaluatorCircle.setPosition(sf::Vector2f(res.x, -res.y));
 }
 
 SingleMarkerPlacer::SingleMarkerPlacer(sf::RenderWindow & parentWindow, Clipboard& clipboard, sf::Vector2u resolution, int undoStackSize) : MarkerPlacer(parentWindow, clipboard, resolution, undoStackSize) {
@@ -3688,4 +3750,189 @@ void TextNotification::setText(std::string text) {
 	textVisible = true;
 	timeUntilDisappear = notificationLifespan;
 	setVisible(true);
+}
+
+EMPAListVisualizer::EMPAListVisualizer(sf::RenderWindow& parentWindow, Clipboard& clipboard, sf::Vector2u resolution, int undoStackSize)
+	: MarkerPlacer(parentWindow, clipboard, resolution, undoStackSize) {
+	leftPanel->setVisible(false);
+	leftPanel->setSize(0, 0);
+
+	evaluatorCircle = sf::CircleShape(EVALUATOR_CIRCLE_RADIUS);
+	evaluatorCircle.setFillColor(sf::Color::Transparent);
+	evaluatorCircle.setOutlineColor(sf::Color::Magenta);
+	evaluatorCircle.setOrigin(sf::Vector2f(EVALUATOR_CIRCLE_RADIUS, EVALUATOR_CIRCLE_RADIUS));
+	evaluatorCircle.setOutlineThickness(1);
+
+	timeResolution = SliderWithEditBox::create();
+	evaluator = SliderWithEditBox::create(false);
+	evaluatorResult = tgui::Label::create();
+	std::shared_ptr<tgui::Button> cycleMovementPathPrimitiveTypeButton = tgui::Button::create();
+
+	timeResolution->setToolTip(createToolTip("Amount of time in seconds between each movement dot"));
+	evaluator->setToolTip(createToolTip("Evaluates a position given some time in seconds. Note that homing actions cannot be evaluated and will be treated as not moving at all when \
+calculating the movement path and when evaluating positions."));
+	evaluatorResult->setToolTip(createToolTip("The result of the evaluation. Note that homing actions cannot be evaluated and will be treated as not moving at all when \
+calculating the movement path and when evaluating positions."));
+	cycleMovementPathPrimitiveTypeButton->setToolTip(createToolTip("Cycles between points and lines for movement path"));
+
+	timeResolution->setTextSize(TEXT_SIZE);
+	evaluator->setTextSize(TEXT_SIZE);
+	evaluatorResult->setTextSize(TEXT_SIZE);
+	cycleMovementPathPrimitiveTypeButton->setTextSize(TEXT_SIZE);
+
+	evaluatorResult->setText("Result:                   ");
+	cycleMovementPathPrimitiveTypeButton->setText("Cycle path type");
+
+	timeResolution->setIntegerMode(false);
+	timeResolution->setMin(MAX_PHYSICS_DELTA_TIME);
+	timeResolution->setMax(1.0f);
+	timeResolution->setStep(MAX_PHYSICS_DELTA_TIME);
+
+	evaluator->setIntegerMode(false);
+	evaluator->setMin(0);
+	evaluator->setMax(0);
+	evaluator->setStep(MAX_PHYSICS_DELTA_TIME);
+
+	timeResolution->connect("ValueChanged", [this]() {
+		updatePath(this->empas);
+	});
+	evaluator->connect("ValueChanged", [this](float value) {
+		updateEvaluatorResult();
+	});
+	cycleMovementPathPrimitiveTypeButton->connect("Pressed", [this]() {
+		cycleMovementPathPrimitiveType();
+	});
+
+	timeResolution->setSize("50%", SLIDER_HEIGHT);
+	evaluator->setSize("50%", TEXT_BOX_HEIGHT);
+	cycleMovementPathPrimitiveTypeButton->setSize("50%", TEXT_BOX_HEIGHT);
+
+	addExtraRowWidget(timeResolution, GUI_PADDING_Y);
+	addExtraRowWidget(evaluator, GUI_LABEL_PADDING_Y);
+	addExtraColumnWidget(evaluatorResult, GUI_PADDING_X);
+	addExtraRowWidget(cycleMovementPathPrimitiveTypeButton, GUI_LABEL_PADDING_Y);
+
+	connect("SizeChanged", [this](sf::Vector2f newSize) {
+		mouseWorldPosPanel->setPosition(0, newSize.y - mouseWorldPosPanel->getSize().y);
+	});
+}
+
+void EMPAListVisualizer::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+	MarkerPlacer::draw(target, states);
+
+	// Draw movement path
+	sf::View originalView = parentWindow.getView();
+	sf::View offsetView = viewFromViewController;
+	// Not sure why this is necessary
+	offsetView.setCenter(offsetView.getCenter() + getAbsolutePosition());
+	parentWindow.setView(offsetView);
+	parentWindow.draw(movementPath, states);
+	if (evaluatorCircle.getRadius() > 0) {
+		parentWindow.draw(evaluatorCircle, states);
+	}
+	parentWindow.setView(originalView);
+}
+
+void EMPAListVisualizer::updatePath(std::vector<std::shared_ptr<EMPAction>> empas) {
+	this->empas = empas;
+	movementPath = generateVertexArray(empas, timeResolution->getValue(), startX, startY, true, sf::Color::Red, sf::Color::Blue);
+	movementPath.setPrimitiveType(movementPathPrimitiveType);
+	movementPathWithoutSpecialColor = sf::VertexArray(movementPath);
+
+	empaEndingPos.clear();
+	empaActiveTime.clear();
+	float curTime = 0;
+	sf::Vector2f lastPos(startX, startY);
+	for (std::shared_ptr<EMPAction> empa : empas) {
+		empaActiveTime.push_back(curTime);
+		curTime += empa->getTime();
+
+		// Cannot be calculated without a registry
+		if (std::dynamic_pointer_cast<MovePlayerHomingEMPA>(empa) || std::dynamic_pointer_cast<MoveGlobalHomingEMPA>(empa)) {
+			empaEndingPos.push_back(lastPos);
+			continue;
+		}
+
+		sf::Vector2f endingPos = empa->generateStandaloneMP(lastPos.x, lastPos.y, 0, 0)->compute(sf::Vector2f(0, 0), empa->getTime());
+		empaEndingPos.push_back(endingPos + lastPos);
+		lastPos = endingPos + lastPos;
+	}
+	evaluator->setMax(curTime);
+
+	updateEvaluatorResult();
+	setEMPAPathColor(specialColorIndex, specialColor);
+}
+
+void EMPAListVisualizer::cycleMovementPathPrimitiveType() {
+	if (movementPathPrimitiveType == sf::PrimitiveType::Points) {
+		movementPathPrimitiveType = sf::PrimitiveType::LineStrip;
+	} else {
+		movementPathPrimitiveType = sf::PrimitiveType::Points;
+	}
+	updatePath(this->empas);
+}
+
+void EMPAListVisualizer::setEMPAPathColor(int empaIndex, sf::Color color) {
+	specialColorIndex = empaIndex;
+	specialColor = color;
+
+	if (empaIndex == -1 || empaIndex >= empas.size()) {
+		movementPath = sf::VertexArray(movementPathWithoutSpecialColor);
+		return;
+	}
+	movementPath = sf::VertexArray(movementPathWithoutSpecialColor);
+	if (skippedByGenerateVertexArray(empas[empaIndex])) {
+		return;
+	}
+	// O(n) where n is empaIndex
+	float empaTimeStart = 0;
+	for (int i = 0; i < empaIndex; i++) {
+		// If the EMPA is skipped by generateVertexArray(), its points won't be in movementPath
+		if (!skippedByGenerateVertexArray(empas[i])) {
+			empaTimeStart += empas[i]->getTime();
+		}
+	}
+	int start = empaTimeStart / timeResolution->getValue();
+	for (int i = start; i < std::min((int)(start + (empas[empaIndex]->getTime() / timeResolution->getValue())), (int)movementPath.getVertexCount()); i++) {
+		movementPath[i].color = color;
+	}
+}
+
+void EMPAListVisualizer::setStartPosX(float x) {
+	startX = x;
+	updatePath(empas);
+}
+
+void EMPAListVisualizer::setStartPosY(float y) {
+	// MarkerPlacer uses an inverted y coordinate system
+	startY = -y;
+	updatePath(empas);
+}
+
+void EMPAListVisualizer::updateEvaluatorResult() {
+	float time = evaluator->getValue();
+	auto it = std::lower_bound(empaActiveTime.begin(), empaActiveTime.end(), time);
+	if (it == empaActiveTime.begin()) {
+		evaluatorResult->setText(format("Result: (%.3f, %.3f)", startX, startY));
+	} else {
+		it--;
+		int index = it - empaActiveTime.begin();
+		sf::Vector2f start(startX, startY);
+		if (index != 0) {
+			start = empaEndingPos[index - 1];
+		}
+		// Cannot be calculated without a registry
+		if (skippedByGenerateVertexArray(empas[index])) {
+			evaluatorResult->setText("Result: Unknown (homing action)");
+
+			evaluatorCircle.setRadius(-1);
+		} else {
+			sf::Vector2f res = empas[index]->generateStandaloneMP(start.x, start.y, 0, 0)->compute(sf::Vector2f(0, 0), time - empaActiveTime[index]) + start;
+			evaluatorResult->setText(format("Result: (%.3f, %.3f)", res.x, res.y));
+
+			evaluatorCircle.setPosition(sf::Vector2f(res.x, -res.y));
+			evaluatorCircle.setRadius(EVALUATOR_CIRCLE_RADIUS);
+		}
+	}
+	evaluator->setSize(std::min((getSize().x - leftPanel->getSize().x) / 2.0f, (getSize().x - leftPanel->getSize().x) - evaluatorResult->getSize().x - GUI_PADDING_X), TEXT_BOX_HEIGHT);
 }

@@ -53,15 +53,24 @@ elements - a vector of pairs containing the text of the button and the function 
 std::shared_ptr<tgui::ListBox> createMenuPopup(std::vector<std::pair<std::string, std::function<void()>>> elements);
 /*
 Returns a sf::VertexArray that contains the positions that an entity following the array of EMPAs will be in over time.
-Note that there must be an entity with the PlayerTag component if any of the EMPAs or their EMPAAngleOffsets require the player's position.
+Will skip EMPAs that require the registry (Homing EMPAs).
 The vertices linearly interpolate from startColor to endColor as the path progresses.
 
 timeResolution - the amount of time between each point
 x, y - the starting position of the returned vertex array
-playerX, playerY - position of the player
+invertY - whether to negate all y values
 */
-sf::VertexArray generateVertexArray(std::vector<std::shared_ptr<EMPAction>> actions, float timeResolution, float x, float y, float playerX, float playerY, sf::Color startColor = sf::Color::Red, sf::Color endColor = sf::Color::Blue);
-sf::VertexArray generateVertexArray(std::shared_ptr<EMPAction> action, float timeResolution, float x, float y, float playerX, float playerY, sf::Color startColor = sf::Color::Red, sf::Color endColor = sf::Color::Blue);
+sf::VertexArray generateVertexArray(std::vector<std::shared_ptr<EMPAction>> actions, float timeResolution, float x, float y, bool invertY = false, sf::Color startColor = sf::Color::Red, sf::Color endColor = sf::Color::Blue);
+/*
+Returns a sf::VertexArray that contains the positions that an entity following the EMPA will be in over time.
+Will not work if the EMPA requires the registry (Homing EMPAs).
+The vertices linearly interpolate from startColor to endColor as the path progresses.
+
+timeResolution - the amount of time between each point
+x, y - the starting position of the returned vertex array
+invertY - whether to negate all y values
+*/
+sf::VertexArray generateVertexArray(std::shared_ptr<EMPAction> action, float timeResolution, float x, float y, sf::Color startColor = sf::Color::Red, sf::Color endColor = sf::Color::Blue);
 /*
 Returns an array of segment data. Each segment data is 2 vectors of floats in order:
 the x-coordinates and the y-coordinates of a matplotlibc curve.
@@ -70,7 +79,11 @@ The x-axis represents time in seconds and the y-axis the TFV's value.
 timeResolution - the amount of time between each point
 colors - the list of colors that will be looped to determine the color of each segment of the curve
 */
-std::vector<std::pair<std::vector<float>, std::vector<float>>> generateMPLPoints(std::shared_ptr<PiecewiseTFV> tfv, float tfvLifespan, float timeResolution);
+std::vector<std::pair<std::vector<float>, std::vector<float>>> generateMPPoints(std::shared_ptr<PiecewiseTFV> tfv, float tfvLifespan, float timeResolution);
+/*
+Returns whether the EMPA will be skipped by generateVertexArray().
+*/
+bool skippedByGenerateVertexArray(std::shared_ptr<EMPAction> empa);
 
 class EditorWindow;
 class UndoableEditorWindow;
@@ -804,8 +817,9 @@ public:
 	/*
 	Rename a tab.
 	Undefined behavior if newTabName is already an existing tab name or if oldTabName does not exist.
+	Returns the panel associated with the renamed tab.
 	*/
-	void renameTab(std::string oldTabName, std::string newTabName);
+	std::shared_ptr<tgui::Panel> renameTab(std::string oldTabName, std::string newTabName);
 	/*
 	Mark/Unmark a specific tab as requiring pressing "Yes" to a confirmation prompt before
 	the tab is actually closed. This function does nothing if hasCloseButtons is false.
@@ -1128,6 +1142,8 @@ protected:
 	// Whether to snap to grid
 	bool snapToGrid = false;
 
+	std::shared_ptr<tgui::Panel> mouseWorldPosPanel;
+
 	std::vector<sf::CircleShape> markers;
 	std::shared_ptr<tgui::ScrollablePanel> leftPanel;
 	std::shared_ptr<ListViewScrollablePanel> markersListView;
@@ -1195,7 +1211,6 @@ private:
 	std::shared_ptr<tgui::Widget> bottomLeftMostExtraWidget;
 	std::shared_ptr<tgui::Widget> bottomRightMostExtraWidget;
 
-	std::shared_ptr<tgui::Panel> mouseWorldPosPanel;
 	std::shared_ptr<tgui::Label> mouseWorldPosLabel;
 
 	sf::FloatRect viewportFloatRect, viewFloatRect;
@@ -1247,6 +1262,8 @@ public:
 
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
+	void cycleMovementPathPrimitiveType();
+
 	/*
 	Sets the duration of the bezier movement.
 	*/
@@ -1258,15 +1275,14 @@ public:
 	*/
 	std::vector<sf::Vector2f> getMarkerPositions() override;
 
-protected:
-	void setSelectedMarkerXWidgetValue(float value) override;
-	void setSelectedMarkerYWidgetValue(float value) override;
-	void updateMarkersListView() override;
-	void updateMarkersListViewItem(int index) override;
-
 private:
+	const static float EVALUATOR_CIRCLE_RADIUS;
+
 	sf::VertexArray movementPath;
 	float movementPathTime;
+	sf::PrimitiveType movementPathPrimitiveType = sf::PrimitiveType::LineStrip;
+	// Shows position on movement path of the evaluator; radius <= 0 if invisible
+	sf::CircleShape evaluatorCircle;
 
 	std::shared_ptr<SliderWithEditBox> timeResolution;
 	std::shared_ptr<SliderWithEditBox> evaluator;
@@ -1276,6 +1292,12 @@ private:
 	Update the movement path to reflect changes in the markers.
 	*/
 	void updatePath();
+	void updateEvaluatorResult();
+
+	void setSelectedMarkerXWidgetValue(float value) override;
+	void setSelectedMarkerYWidgetValue(float value) override;
+	void updateMarkersListView() override;
+	void updateMarkersListViewItem(int index) override;
 };
 
 /*
@@ -1292,6 +1314,69 @@ public:
 
 protected:
 	void manualDelete() override;
+};
+
+/*
+A general visualizer for a list of EMPAs.
+*/
+class EMPAListVisualizer : public MarkerPlacer {
+public:
+	EMPAListVisualizer(sf::RenderWindow& parentWindow, Clipboard& clipboard, sf::Vector2u resolution = sf::Vector2u(MAP_WIDTH, MAP_HEIGHT), int undoStackSize = 50);
+	static std::shared_ptr<EMPAListVisualizer> create(sf::RenderWindow& parentWindow, Clipboard& clipboard, sf::Vector2u resolution = sf::Vector2u(MAP_WIDTH, MAP_HEIGHT), int undoStackSize = 50) {
+		return std::make_shared<EMPAListVisualizer>(parentWindow, clipboard, resolution, undoStackSize);
+	}
+
+	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+
+	/*
+	Will not modify empas.
+	*/
+	void updatePath(std::vector<std::shared_ptr<EMPAction>> empas);
+	void cycleMovementPathPrimitiveType();
+
+	/*
+	Sets the path of an EMPA in the list of EMPAs given in updatePath() to have a special color.
+	Only one EMPA can have a special color at a time.
+	Set empaIndex to -1 to have no EMPA have a special color.
+	*/
+	void setEMPAPathColor(int empaIndex, sf::Color color);
+	/*
+	Set starting position of the first EMPA.
+	*/
+	void setStartPosX(float x);
+	/*
+	Set starting position of the first EMPA.
+	*/
+	void setStartPosY(float y);
+
+private:
+	const static float EVALUATOR_CIRCLE_RADIUS;
+
+	sf::VertexArray movementPath;
+	sf::VertexArray movementPathWithoutSpecialColor;
+	float movementPathTime;
+	sf::PrimitiveType movementPathPrimitiveType = sf::PrimitiveType::LineStrip;
+	// Shows position on movement path of the evaluator; radius <= 0 if invisible
+	sf::CircleShape evaluatorCircle;
+
+	std::shared_ptr<SliderWithEditBox> timeResolution;
+	std::shared_ptr<SliderWithEditBox> evaluator;
+	std::shared_ptr<tgui::Label> evaluatorResult;
+
+	std::vector<std::shared_ptr<EMPAction>> empas;
+	// The ending position of every EMPA in empas (including the movement from the previous EMPA)
+	std::vector<sf::Vector2f> empaEndingPos;
+	// The time at which every EMPA in empas becomes active
+	std::vector<float> empaActiveTime;
+	int specialColorIndex = -1;
+	sf::Color specialColor;
+
+	float startX = 0, startY = 0;
+
+	/*
+	Updates
+	*/
+	void updateEvaluatorResult();
 };
 
 /*

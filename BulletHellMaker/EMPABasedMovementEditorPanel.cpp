@@ -274,6 +274,14 @@ void EMPABasedMovementEditorPanel::setActions(std::vector<std::shared_ptr<EMPAct
 	updateEMPAList();
 }
 
+void EMPABasedMovementEditorPanel::setVisualizerStartPosX(std::string startX) {
+	visualizer->setVisualizerStartPosX(startX);
+}
+
+void EMPABasedMovementEditorPanel::setVisualizerStartPosY(std::string startY) {
+	visualizer->setVisualizerStartPosY(startY);
+}
+
 void EMPABasedMovementEditorPanel::manualDelete() {
 	std::set<size_t> curSelectedIndices = visualizer->getEmpasListView()->getListView()->getSelectedItemIndices();
 	if (curSelectedIndices.size() == 0) {
@@ -617,7 +625,11 @@ void EMPABasedMovementEditorPanel::updateEMPAList(bool setSelectedIndices, std::
 	}
 	actionsListBoxScrollablePanel->onListViewItemsUpdate();
 	if (setSelectedIndices) {
-		listView->setSelectedItems(newSelectedIndices);
+		if (newSelectedIndices.size() == 1) {
+			listView->setSelectedItem(*newSelectedIndices.begin());
+		} else {
+			listView->setSelectedItems(newSelectedIndices);
+		}
 	} else {
 		// Reselect previous EMPAs
 		if (oldSelectedIndices.size() > 0) {
@@ -631,9 +643,15 @@ void EMPABasedMovementEditorPanel::updateEMPAList(bool setSelectedIndices, std::
 				}
 			}
 
-			listView->setSelectedItems(afterRemoval);
+			if (afterRemoval.size() == 1) {
+				listView->setSelectedItem(*afterRemoval.begin());
+			} else {
+				listView->setSelectedItems(afterRemoval);
+			}
 		}
 	}
+
+	visualizer->updatePath(actions);
 }
 
 std::vector<std::shared_ptr<EMPAction>> EMPABasedMovementEditorPanel::cloneActions() {
@@ -701,7 +719,14 @@ EMPAsVisualizerPanel::EMPAsVisualizerPanel(EditorWindow& parentWindow, EMPABased
 	empasListPanel = EditorMovablePointActionsListPanel::create(parentWindow, empaBasedMovementEditorPanel, clipboard);
 	mainPanel = tgui::Panel::create();
 
-	// TODO: add visualizer thing to mainPanel
+	visualizer = EMPAListVisualizer::create(*parentWindow.getWindow(), clipboard);
+	visualizer->setSize("100%", "100%");
+	visualizer->lookAt(sf::Vector2f(MAP_WIDTH/2.0f, MAP_HEIGHT/2.0f));
+	mainPanel->add(visualizer);
+
+	empasListPanel->getEmpasListView()->getListView()->connect("ItemSelected", [this](int index) {
+		visualizer->setEMPAPathColor(index, sf::Color::Green);
+	});
 
 	empasListPanel->setSize("25%", "100%");
 	mainPanel->setSize("75%", "100%");
@@ -713,8 +738,14 @@ EMPAsVisualizerPanel::EMPAsVisualizerPanel(EditorWindow& parentWindow, EMPABased
 }
 
 bool EMPAsVisualizerPanel::handleEvent(sf::Event event) {
-	// mainPanel doesn't need to handle any events
-	return empasListPanel->handleEvent(event);
+	if (empasListPanel->handleEvent(event)) {
+		return true;
+	}
+	return visualizer->handleEvent(event);
+}
+
+void EMPAsVisualizerPanel::updatePath(std::vector<std::shared_ptr<EMPAction>> empas) {
+	visualizer->updatePath(empas);
 }
 
 std::shared_ptr<EditorMovablePointActionsListView> EMPAsVisualizerPanel::getEmpasListView() {
@@ -723,4 +754,24 @@ std::shared_ptr<EditorMovablePointActionsListView> EMPAsVisualizerPanel::getEmpa
 
 std::shared_ptr<EditorMovablePointActionsListPanel> EMPAsVisualizerPanel::getEmpasListPanel() {
 	return empasListPanel;
+}
+
+void EMPAsVisualizerPanel::setVisualizerStartPosX(std::string startX) {
+	float x;
+	try {
+		x = std::stof(startX);
+	} catch (...) {
+		x = 0;
+	}
+	visualizer->setStartPosX(x);
+}
+
+void EMPAsVisualizerPanel::setVisualizerStartPosY(std::string startY) {
+	float y;
+	try {
+		y = std::stof(startY);
+	} catch (...) {
+		y = 0;
+	}
+	visualizer->setStartPosY(y);
 }

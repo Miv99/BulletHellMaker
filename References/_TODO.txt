@@ -43,6 +43,8 @@ Tips to put in editor somewhere:
 -symbol_tables from lower-level objects take precedence over ones from higher-level objects when compiling expressions
     and the same symbol is used multiple times
 -The transition time of a level music determines how long it takes for music to change back after killing a boss
+-The EMPA list visualizer for an EMP will have starting position (0, 0) if the EMP spawn position uses variables. It also
+    does not take into account for the EMP being attached to a parent.
 
 Notes for me:
 -The mainEMP of an attack is always spawned at the exact same time of an attack; spawnType's time is ignored
@@ -133,6 +135,9 @@ Notes for me:
         -> undo in EMPABasedMovementEditorPanel -> empiDespawnTime max changes back, but its value doesn't change back
     -BezierControlPointsPlacer movement path is drawn over the panels
     -MarkerPlacer snap to grid doesn't work when adding a new marker
+    -EMPABasedMovementEditorPanel: when the EMPA list is modified, the visualizer special color for the selected EMPA
+        disappears. This happens because EditorMovablePointActionsListView does not receive an item selection signal in updateEMPAList() 
+        due to TGUI's ListView not emitting a signal for multiple selected indices.
 -Known big bugs:
     -Player death -> death sound plays every time player gets hit again
         -This is only because player death hasn't been implemented yet in CollisionSystem
