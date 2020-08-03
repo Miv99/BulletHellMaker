@@ -710,6 +710,7 @@ public:
 	*/
 	void setTimeMultiplier(float timeMultiplier);
 	void setPlayerSpawn(float x, float y);
+	void setInvinciblePlayer(bool invinciblePlayer);
 
 	bool getUseDebugRenderSystem() const;
 	float getTimeMultiplier() const;
@@ -755,6 +756,8 @@ private:
 	// Spawn location of player for previews
 	float playerSpawnX = PLAYER_SPAWN_X;
 	float playerSpawnY = PLAYER_SPAWN_Y;
+
+	bool invinciblePlayer = false;
 
 	void updateWindowView();
 };

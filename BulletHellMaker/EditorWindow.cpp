@@ -1084,7 +1084,7 @@ void LevelPackObjectPreviewWindow::onRenderWindowInitialization() {
 	gui->add(previewPanel);
 
 	infoPanel = tgui::Panel::create();
-	infoPanel->setVisible(false);
+	infoPanel->setVisible(true);
 	gui->add(infoPanel);
 
 	previewObjectLabel = tgui::Label::create();
@@ -1098,6 +1098,7 @@ void LevelPackObjectPreviewWindow::onRenderWindowInitialization() {
 	setSource = tgui::Button::create();
 	useDebugRenderSystem = tgui::CheckBox::create();
 	lockCurrentPreviewCheckBox = tgui::CheckBox::create();
+	invinciblePlayer = tgui::CheckBox::create();
 
 	delay->setMin(0);
 	delay->setValue(previewPanel->getAttackLoopDelay());
@@ -1148,9 +1149,17 @@ void LevelPackObjectPreviewWindow::onRenderWindowInitialization() {
 
 		this->lockCurrentPreview = checked;
 	});
+	invinciblePlayer->connect("Changed", [this](bool checked) {
+		if (ignoreSignals) {
+			return;
+		}
+
+		previewPanel->setInvinciblePlayer(checked);
+	});
 
 	useDebugRenderSystem->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
 	lockCurrentPreviewCheckBox->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
+	invinciblePlayer->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
 
 	previewObjectLabel->setTextSize(TEXT_SIZE);
 	delayLabel->setTextSize(TEXT_SIZE);
@@ -1163,6 +1172,7 @@ void LevelPackObjectPreviewWindow::onRenderWindowInitialization() {
 	setSource->setTextSize(TEXT_SIZE);
 	useDebugRenderSystem->setTextSize(TEXT_SIZE);
 	lockCurrentPreviewCheckBox->setTextSize(TEXT_SIZE);
+	invinciblePlayer->setTextSize(TEXT_SIZE);
 
 	delayLabel->setText("Attack/Attack pattern repeat interval");
 	timeMultiplierLabel->setText("Time multiplier");
@@ -1172,6 +1182,7 @@ void LevelPackObjectPreviewWindow::onRenderWindowInitialization() {
 	setSource->setText("Set preview source");
 	useDebugRenderSystem->setText("Hitboxes visible");
 	lockCurrentPreviewCheckBox->setText("Lock current preview");
+	invinciblePlayer->setText("Invincible player");
 
 	delayLabel->setToolTip(createToolTip("Seconds before the attack or attack pattern being previewed is executed again."));
 	useDebugRenderSystem->setToolTip(createToolTip("If this is checked, all hitboxes will be visible and sprites will be drawn outside the map boundaries \
@@ -1180,6 +1191,7 @@ but shader effects (such as piercing bullets flashing after hitting a player) wi
 	lockCurrentPreviewCheckBox->setToolTip(createToolTip("While this is checked, new objects will not be previewed."));
 	setPlayerSpawn->setToolTip(createToolTip("Sets the player's spawn position for future previews to be the next clicked position. The spawn position must be within the map boundaries."));
 	setSource->setToolTip(createToolTip("Sets the preview source position for future previews to be the next clicked position. The spawn position can be outside the map boundaries."));
+	invinciblePlayer->setToolTip(createToolTip("While this is checked, the player cannot take damage."));
 
 	previewObjectLabel->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
 	delayLabel->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(previewObjectLabel) + GUI_PADDING_Y);
@@ -1192,6 +1204,7 @@ but shader effects (such as piercing bullets flashing after hitting a player) wi
 	setSource->setPosition(tgui::bindRight(setPlayerSpawn) + GUI_PADDING_X, tgui::bindTop(setPlayerSpawn));
 	useDebugRenderSystem->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(setSource) + GUI_PADDING_Y);
 	lockCurrentPreviewCheckBox->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(useDebugRenderSystem) + GUI_PADDING_Y);
+	invinciblePlayer->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(lockCurrentPreviewCheckBox) + GUI_PADDING_Y);
 
 	infoPanel->connect("SizeChanged", [this](sf::Vector2f newSize) {
 		delay->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
@@ -1214,6 +1227,7 @@ but shader effects (such as piercing bullets flashing after hitting a player) wi
 	infoPanel->add(setSource);
 	infoPanel->add(useDebugRenderSystem);
 	infoPanel->add(lockCurrentPreviewCheckBox);
+	infoPanel->add(invinciblePlayer);
 
 	logs = tgui::TextBox::create();
 	logs->setVisible(false);

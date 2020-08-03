@@ -7,6 +7,9 @@ void PlayerSystem::update(float deltaTime) {
 	}
 
 	auto& playerTag = registry.get<PlayerTag>();
+	if (playerTag.isDead()) {
+		return;
+	}
 
 	int verticalInput = 0;
 	int horizontalInput = 0;

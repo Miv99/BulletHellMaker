@@ -30,6 +30,9 @@ const static int ENTITY_RESERVATION_INCREMENT = 50000;
 // Time before an item despawns
 const static float ITEM_DESPAWN_TIME = 11.0f;
 
+// Time it takes for player to fade away upon death
+const static float PLAYER_DEATH_FADE_TIME = 2.0f;
+
 /*
 Render layers
 

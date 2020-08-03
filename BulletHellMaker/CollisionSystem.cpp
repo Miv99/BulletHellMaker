@@ -73,10 +73,11 @@ void CollisionSystem::update(float deltaTime) {
 		uint32_t player = registry.attachee<PlayerTag>();
 		auto& playerHitbox = registry.get<HitboxComponent>(player);
 		auto& playerPosition = registry.get<PositionComponent>(player);
+		auto& playerTag = registry.get<PlayerTag>();
 
 		// Check for player
 		
-		if (!playerHitbox.isDisabled()) {
+		if (!playerHitbox.isDisabled() && !playerTag.isDead() && !playerTag.isInvincible()) {
 			auto all = defaultTable.getNearbyObjects(playerHitbox, playerPosition);
 			auto large = largeObjectsTable.getNearbyObjects(playerHitbox, playerPosition);
 			all.insert(all.end(), large.begin(), large.end());
@@ -96,22 +97,23 @@ void CollisionSystem::update(float deltaTime) {
 				auto& bulletHitbox = enemyBulletView.get<HitboxComponent>(bullet);
 				// Note: No DeathComponent::isMarkedForDeath() check here because player does not despawn on death
 				if (registry.get<EnemyBulletComponent>(bullet).isValidCollision(player) && !bulletHitbox.isDisabled() && collides(playerPosition, playerHitbox, bulletPosition, bulletHitbox)) {
-					// Player takes damage
 					// Disable hitbox for invulnerability time
-					float invulnTime = registry.get<PlayerTag>().getInvulnerabilityTime();
+					float invulnTime = playerTag.getInvulnerabilityTime();
 					if (invulnTime > 0) {
 						playerHitbox.disable(invulnTime);
 						// Player flashes white
 						registry.get<SpriteComponent>(player).setEffectAnimation(std::make_unique<FlashWhiteSEA>(registry.get<SpriteComponent>(player).getSprite(), invulnTime));
 					}
+
+					// Player takes damage
 					if (registry.has<HealthComponent>(player) && registry.get<HealthComponent>(player).takeDamage(registry.get<EnemyBulletComponent>(bullet).getDamage())) {
 						// Player is dead
 
 						// Play death sound
 						registry.get<LevelManagerTag>().getLevelPack()->playSound(registry.get<PlayerTag>().getDeathSound());
 
-						//TODO: handle death stuff
-						// if player despawns, make sure to add isMarkedForDeath() check (see above comment)
+						playerTag.setIsDead(true);
+						registry.get<SpriteComponent>(player).setEffectAnimation(std::make_unique<FadeAwaySEA>(registry.get<SpriteComponent>(player).getSprite(), 0, 1, PLAYER_DEATH_FADE_TIME, true));
 					} else {
 						registry.get<EnemyBulletComponent>(bullet).onCollision(player);
 

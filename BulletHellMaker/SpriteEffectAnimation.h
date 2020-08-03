@@ -77,9 +77,10 @@ public:
 	minOpacity - minimum opacity in range [0, 1]
 	maxOpacity - maximum opacity in range [0, 1]
 	animationDuration - total time for the sprite to fade from maxOpacity to minOpacity
+	keepEffectAfterEnding - if true, the sprite will maintain minOpacity even after the effect ends
 	*/
-	inline FadeAwaySEA(std::shared_ptr<sf::Sprite> sprite, float minOpacity, float maxOpacity, float animationDuration) : SpriteEffectAnimation(sprite), minOpacity(minOpacity), 
-		maxOpacity(maxOpacity), animationDuration(animationDuration) {
+	inline FadeAwaySEA(std::shared_ptr<sf::Sprite> sprite, float minOpacity, float maxOpacity, float animationDuration, bool keepEffectAfterEnding = false) : SpriteEffectAnimation(sprite), minOpacity(minOpacity),
+		maxOpacity(maxOpacity), animationDuration(animationDuration), keepEffectAfterEnding(keepEffectAfterEnding) {
 		useShader = false;
 	}
 
@@ -89,6 +90,7 @@ private:
 	float minOpacity;
 	float maxOpacity;
 	float animationDuration;
+	bool keepEffectAfterEnding;
 };
 
 /*

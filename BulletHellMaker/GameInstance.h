@@ -48,6 +48,11 @@ public:
 	*/
 	void endLevel();
 
+	/*
+	Ends the game with a loss.
+	*/
+	void gameOver();
+
 	void handleEvent(sf::Event event);
 	void pause();
 	void resume();

@@ -31,6 +31,11 @@ void FlashWhiteSEA::update(float deltaTime) {
 
 void FadeAwaySEA::update(float deltaTime) {
 	if (time > animationDuration) {
+		if (keepEffectAfterEnding) {
+			auto color = sprite->getColor();
+			sprite->setColor(sf::Color(color.r, color.g, color.b, minOpacity * 255.0f));
+		}
+
 		return;
 	}
 

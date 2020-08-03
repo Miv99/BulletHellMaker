@@ -372,6 +372,10 @@ void GameInstance::physicsUpdate(float deltaTime) {
 
 		enemySystem->update(deltaTime);
 		queue->executeAll();
+
+		if (registry.get<PlayerTag>().isDead()) {
+			gameOver();
+		}
 	}
 }
 
@@ -459,6 +463,11 @@ void GameInstance::endLevel() {
 
 	// Add points from the level that is ending
 	points += registry.get<LevelManagerTag>().getPoints();
+}
+
+void GameInstance::gameOver() {
+	// TODO
+	std::cout << "player died" << std::endl;
 }
 
 void GameInstance::handleEvent(sf::Event event) {

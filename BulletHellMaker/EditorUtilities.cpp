@@ -2023,6 +2023,10 @@ void SimpleEngineRenderer::loadLevel(std::shared_ptr<Level> level) {
 	registry.assign<HitboxComponent>(player, LOCK_ROTATION, params->getHitboxRadius(), 0, 0);
 	registry.assign<PositionComponent>(player, playerSpawnX - params->getHitboxPosX(), playerSpawnY - params->getHitboxPosY());
 	registry.assign<SpriteComponent>(player, PLAYER_LAYER, 0);
+	
+	if (invinciblePlayer) {
+		playerTag.setIsInvincible(true);
+	}
 
 	// Play level music
 	levelPack->playMusic(level->getMusicSettings());
@@ -2114,7 +2118,6 @@ void SimpleEngineRenderer::renderUpdate(float deltaTime) {
 
 void SimpleEngineRenderer::setUseDebugRenderSystem(bool useDebugRenderSystem) {
 	this->useDebugRenderSystem = useDebugRenderSystem;
-	// TODO: emit signal back to window saying to change the checkbox thing
 }
 
 void SimpleEngineRenderer::setTimeMultiplier(float timeMultiplier) {
@@ -2124,6 +2127,13 @@ void SimpleEngineRenderer::setTimeMultiplier(float timeMultiplier) {
 void SimpleEngineRenderer::setPlayerSpawn(float x, float y) {
 	playerSpawnX = x;
 	playerSpawnY = y;
+}
+
+void SimpleEngineRenderer::setInvinciblePlayer(bool invinciblePlayer) {
+	this->invinciblePlayer = invinciblePlayer;
+	if (registry.has<PlayerTag>()) {
+		registry.get<PlayerTag>().setIsInvincible(invinciblePlayer);
+	}
 }
 
 bool SimpleEngineRenderer::getUseDebugRenderSystem() const {

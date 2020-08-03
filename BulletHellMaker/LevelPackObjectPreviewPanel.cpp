@@ -246,6 +246,8 @@ void LevelPackObjectPreviewPanel::setAttackLoopDelay(float attackLoopDelay) {
 	enemyPhaseForAttack->compileExpressions({});
 
 	// TODO: change stuff for attack pattern stuff
+
+	resetPreview();
 }
 
 float LevelPackObjectPreviewPanel::getPreviewSourceX() const {

@@ -364,9 +364,13 @@ public:
 	inline int getBombCount() { return bombs; }
 	inline float getBombCooldown() { return bombCooldowns[currentPowerTierIndex]; }
 	int getPowerToNextTier();
+	bool isDead() { return dead; }
+	bool isInvincible() { return invincibile; }
 
 	void setFocused(bool focused);
 	inline void setAttacking(bool attacking) { this->attacking = attacking; }
+	void setIsDead(bool isDead) { dead = isDead; }
+	void setIsInvincible(bool isInvincible) { invincibile = isInvincible; }
 
 	/*
 	power - power to increase by
@@ -385,6 +389,9 @@ public:
 	std::shared_ptr<entt::SigH<void(int)>> getBombCountChangeSignal();
 
 private:
+	bool dead = false;
+	bool invincibile = false;
+
 	float speed;
 	float focusedSpeed;
 

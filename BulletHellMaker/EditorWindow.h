@@ -396,6 +396,7 @@ private:
 	std::shared_ptr<tgui::Button> setSource;
 	std::shared_ptr<tgui::CheckBox> useDebugRenderSystem;
 	std::shared_ptr<tgui::CheckBox> lockCurrentPreviewCheckBox;
+	std::shared_ptr<tgui::CheckBox> invinciblePlayer;
 
 	std::shared_ptr<tgui::TextBox> logs;
 
