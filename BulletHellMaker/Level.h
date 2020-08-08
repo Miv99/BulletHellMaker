@@ -74,12 +74,10 @@ public:
 	inline float getBackgroundScrollSpeedY() const { return backgroundScrollSpeedY; }
 	inline sf::Color getBossNameColor() const { return bossNameColor; }
 	inline sf::Color getBossHPBarColor() const { return bossHPBarColor; }
-	inline std::vector<BloomSettings> getBloomLayerSettings() { return bloomLayerSettings; }
 	inline float getBackgroundTextureWidth() const { return backgroundTextureWidth; }
 	inline float getBackgroundTextureHeight() const { return backgroundTextureHeight; }
 	inline bool usesEnemy(int enemyID) const { return enemyIDCount.count(enemyID) > 0 && enemyIDCount.at(enemyID) > 0; }
 
-	inline void setBloomLayerSettings(std::vector<BloomSettings> bloomLayerSettings) { this->bloomLayerSettings = bloomLayerSettings; }
 	inline void setMusicSettings(MusicSettings musicSettings) { this->musicSettings = musicSettings; }
 	inline void setName(std::string name) { this->name = name; }
 	inline void setBackgroundFileName(std::string backgroundFileName) { this->backgroundFileName = backgroundFileName; }
@@ -134,9 +132,6 @@ private:
 	// on top of the background, so they should be up to Level to decide
 	sf::Color bossNameColor = sf::Color::White;
 	sf::Color bossHPBarColor = sf::Color::Red;
-
-	// Bloom settings for the level; each index is a separate layer
-	std::vector<BloomSettings> bloomLayerSettings = std::vector<BloomSettings>(HIGHEST_RENDER_LAYER + 1, BloomSettings());
 
 	// Maps an EditorEnemy ID to the number of times it will be spawned in events.
 	// This is not saved on format() but is reconstructed in load().

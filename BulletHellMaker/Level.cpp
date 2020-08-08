@@ -14,10 +14,7 @@ std::string Level::format() const {
 	res += formatTMObject(*healthPack) + formatTMObject(*pointPack) + formatTMObject(*powerPack) + formatTMObject(*bombItem) + formatTMObject(musicSettings)
 		+ formatString(backgroundFileName) + tos(backgroundScrollSpeedX) + tos(backgroundScrollSpeedY) + tos(backgroundTextureWidth)
 		+ tos(backgroundTextureHeight) + tos(bossNameColor.r) + tos(bossNameColor.g) + tos(bossNameColor.b) + tos(bossNameColor.a)
-		+ tos(bossHPBarColor.r) + tos(bossHPBarColor.g) + tos(bossHPBarColor.b) + tos(bossHPBarColor.a) + tos(bloomLayerSettings.size());
-	for (auto settings : bloomLayerSettings) {
-		res += formatTMObject(settings);
-	}
+		+ tos(bossHPBarColor.r) + tos(bossHPBarColor.g) + tos(bossHPBarColor.b) + tos(bossHPBarColor.a);
 	res += formatTMObject(symbolTable);
 	return res;
 }
@@ -63,13 +60,6 @@ void Level::load(std::string formattedString) {
 	backgroundTextureHeight = std::stof(items[i++]);
 	bossNameColor = sf::Color(std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]));
 	bossHPBarColor = sf::Color(std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]));
-	bloomLayerSettings = std::vector<BloomSettings>(HIGHEST_RENDER_LAYER + 1, BloomSettings());
-	int temp = i++;
-	for (int a = 0; a < std::stoi(items[temp]); a++) {
-		BloomSettings settings;
-		settings.load(items[i++]);
-		bloomLayerSettings[a] = settings;
-	}
 	symbolTable.load(items[i++]);
 }
 

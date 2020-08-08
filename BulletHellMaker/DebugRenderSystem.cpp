@@ -9,19 +9,19 @@ DebugRenderSystem::DebugRenderSystem(entt::DefaultRegistry& registry, sf::Render
 
 void DebugRenderSystem::update(float deltaTime) {
 	for (int i = 0; i < layers.size(); i++) {
-		layers[i].second.clear();
+		layers[i].clear();
 	}
 
 	auto view = registry.view<PositionComponent, SpriteComponent>(entt::persistent_t{});
 	view.each([&](auto entity, auto& position, auto& sprite) {
 		if (sprite.getSprite()) {
 			sprite.getSprite()->setPosition(position.getX() * resolutionMultiplier, (MAP_HEIGHT - position.getY()) * resolutionMultiplier);
-			layers[sprite.getRenderLayer()].second.push_back(std::ref(sprite));
+			layers[sprite.getRenderLayer()].push_back(std::ref(sprite));
 		}
 	});
 
-	for (std::pair<int, std::vector<std::reference_wrapper<SpriteComponent>>>& pair : layers) {
-		std::sort(pair.second.begin(), pair.second.end(), SubLayerComparator());
+	for (std::vector<std::reference_wrapper<SpriteComponent>>& layer : layers) {
+		std::sort(layer.begin(), layer.end(), SubLayerComparator());
 	}
 
 	// Move background
@@ -30,18 +30,18 @@ void DebugRenderSystem::update(float deltaTime) {
 	backgroundSprite.setTextureRect(sf::IntRect(backgroundX, backgroundY, backgroundTextureWidth, backgroundTextureHeight));
 
 	// Draw background by drawing onto the temp layer first to limit the visible part of the background to the play area
-	tempLayerTexture.clear(sf::Color::Transparent);
+	backgroundTempLayerTexture.clear(sf::Color::Transparent);
 	backgroundSprite.setPosition(0, -MAP_HEIGHT * resolutionMultiplier);
-	tempLayerTexture.draw(backgroundSprite);
-	tempLayerTexture.display();
-	sf::Sprite backgroundAsSprite(tempLayerTexture.getTexture());
+	backgroundTempLayerTexture.draw(backgroundSprite);
+	backgroundTempLayerTexture.display();
+	sf::Sprite backgroundAsSprite(backgroundTempLayerTexture.getTexture());
 	sf::RenderStates backgroundStates;
 	backgroundStates.blendMode = DEFAULT_BLEND_MODE;
 	window.draw(backgroundAsSprite, backgroundStates);
 
 	// Draw the layers onto the window directly
 	for (int i = 0; i < layers.size(); i++) {
-		for (SpriteComponent& sprite : layers[i].second) {
+		for (SpriteComponent& sprite : layers[i]) {
 			std::shared_ptr<sf::Sprite> spritePtr = sprite.getSprite();
 
 			window.draw(*spritePtr);
@@ -73,11 +73,8 @@ void DebugRenderSystem::setResolution(SpriteLoader& spriteLoader, float resoluti
 	int newPlayAreaHeight = (int)std::round(MAP_HEIGHT * resolutionMultiplier);
 
 	sf::View view(sf::FloatRect(0, -newPlayAreaHeight, newPlayAreaWidth, newPlayAreaHeight));
-	tempLayerTexture.create(newPlayAreaWidth, newPlayAreaHeight);
-	tempLayerTexture.setView(view);
-
-	spriteHorizontalScale = view.getSize().x / tempLayerTexture.getSize().x;
-	spriteVerticalScale = view.getSize().y / tempLayerTexture.getSize().y;
+	backgroundTempLayerTexture.create(newPlayAreaWidth, newPlayAreaHeight);
+	backgroundTempLayerTexture.setView(view);
 
 	backgroundSprite.setScale(MAP_WIDTH / backgroundTextureWidth * resolutionMultiplier, MAP_HEIGHT / backgroundTextureHeight * resolutionMultiplier);
 

@@ -1992,9 +1992,6 @@ void SimpleEngineRenderer::loadLevel(int levelIndex) {
 void SimpleEngineRenderer::loadLevel(std::shared_ptr<Level> level) {
 	std::lock_guard<std::mutex> lock(registryMutex);
 
-	// Load bloom settings
-	renderSystem->loadLevelRenderSettings(level);
-
 	// Remove all existing entities from the registry
 	registry.reset();
 	reserveMemory(registry, INITIAL_EDITOR_ENTITY_RESERVATION);

@@ -18,6 +18,4 @@ public:
 
 private:
 	sf::CircleShape circleFormat;
-
-	using RenderSystem::loadLevelRenderSettings;
 };

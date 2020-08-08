@@ -417,9 +417,6 @@ void GameInstance::render(float deltaTime) {
 void GameInstance::loadLevel(int levelIndex) {
 	currentLevel = levelPack->getGameplayLevel(levelIndex);
 
-	// Load bloom settings
-	renderSystem->loadLevelRenderSettings(currentLevel);
-
 	// Update relevant gui elements
 	levelNameLabel->setText(currentLevel->getName());
 

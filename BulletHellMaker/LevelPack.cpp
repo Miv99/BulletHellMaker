@@ -243,14 +243,6 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	level->setBackgroundScrollSpeedX(50);
 	level->setBackgroundScrollSpeedY(-100);
 	
-	/*level->getBloomLayerSettings()[PLAYER_LAYER] = BloomSettings(1.3f, 0.0f);
-	level->getBloomLayerSettings()[ENEMY_LAYER] = BloomSettings(1.3f, 0.0f);
-	level->getBloomLayerSettings()[ENEMY_BOSS_LAYER] = BloomSettings(1.3f, 0.0f);
-	level->getBloomLayerSettings()[PLAYER_BULLET_LAYER] = BloomSettings(1.2f, 0.05f);
-	level->getBloomLayerSettings()[ENEMY_BULLET_LAYER] = BloomSettings(1.2f, 0.05f);
-	level->getBloomLayerSettings()[ITEM_LAYER] = BloomSettings(1.3f, 0.0f);
-	*/
-	
 	this->insertLevel(0, level);
 	auto player = std::make_shared<EditorPlayer>();
 	/*

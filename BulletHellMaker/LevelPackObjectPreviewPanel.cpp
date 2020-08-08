@@ -86,6 +86,35 @@ LevelPackObjectPreviewPanel::LevelPackObjectPreviewPanel(EditorWindow& parentWin
 		levelPack->updateAttackPattern(attackPatternForAttack);
 	}
 
+	// Attack pattern preview reserves enemy ID -2, enemy phase ID -2, and attack pattern ID -2
+	{
+		levelForAttackPattern = std::make_shared<Level>();
+		std::shared_ptr<EnemySpawnInfo> enemySpawnInfo = std::make_shared<EnemySpawnInfo>(-2, std::to_string(previewSourceX), std::to_string(previewSourceY), std::vector<std::pair<std::shared_ptr<Item>, std::string>>());
+		std::vector<std::shared_ptr<EnemySpawnInfo>> enemySpawnInfoVector = { enemySpawnInfo };
+		std::shared_ptr<SpawnEnemiesLevelEvent> spawnEnemyLevelEvent = std::make_shared<SpawnEnemiesLevelEvent>(enemySpawnInfoVector);
+		levelForAttackPattern->insertEvent(0, std::make_shared<GlobalTimeBasedEnemySpawnCondition>("0"), spawnEnemyLevelEvent);
+		levelForAttackPattern->setBackgroundFileName("Default1.png");
+		levelForAttackPattern->compileExpressions({});
+
+		std::shared_ptr<EditorEnemy> enemy = std::make_shared<EditorEnemy>(-2);
+		enemy->setHitboxRadius("0");
+		enemy->setHealth("99999");
+		enemy->setDespawnTime("2000000000");
+		enemy->setIsBoss(false);
+		enemy->addPhaseID(0, std::make_shared<TimeBasedEnemyPhaseStartCondition>("0"), -2, defaultEnemyAnimatableSet, ExprSymbolTable());
+		enemy->compileExpressions({});
+		levelPack->updateEnemy(enemy);
+
+		enemyPhaseForAttackPattern = std::make_shared<EditorEnemyPhase>(-2);
+		enemyPhaseForAttackPattern->addAttackPatternID("0", -2, ExprSymbolTable());
+		enemyPhaseForAttackPattern->setAttackPatternLoopDelay(std::to_string(attackLoopDelay));
+		enemyPhaseForAttackPattern->setPhaseBeginAction(std::make_shared<NullEPA>());
+		enemyPhaseForAttackPattern->setPhaseEndAction(std::make_shared<NullEPA>());
+		enemyPhaseForAttackPattern->setPlayMusic(false);
+		enemyPhaseForAttackPattern->compileExpressions({});
+		levelPack->updateEnemyPhase(enemyPhaseForAttackPattern);
+	}
+
 	symbolTableEditorWindow = tgui::ChildWindow::create();
 	symbolTableEditor = ValueSymbolTableEditor::create(true, true);
 	symbolTableEditorWindow->setKeepInParent(false);
@@ -160,6 +189,37 @@ void LevelPackObjectPreviewPanel::previewAttack(const std::shared_ptr<EditorAtta
 	unpause();
 
 	legal.second.insert(legal.second.begin(), "Successfully loaded preview for attack ID " + std::to_string(attack->getID()) + ": \"" + attack->getName() + "\"");
+	onPreview.emit(this, legal.first, legal.second);
+}
+
+void LevelPackObjectPreviewPanel::previewAttackPattern(const std::shared_ptr<EditorAttackPattern> attackPattern) {
+	exprtk::symbol_table<float> convertedTestTable = testTable.toExprtkSymbolTable();
+
+	// TODO: explicitly check every redefined symbol in attackPattern is defined in testTable
+
+	auto legal = attackPattern->legal(*levelPack, *spriteLoader, { convertedTestTable });
+	if (legal.first == LevelPackObject::LEGAL_STATUS::ILLEGAL) {
+		legal.second.insert(legal.second.begin(), "Failed to load preview for attack pattern ID " + std::to_string(attackPattern->getID()) + ": \"" + attackPattern->getName() + "\"");
+
+		loadLevel(emptyLevel);
+		unpause();
+
+		onPreview.emit(this, legal.first, legal.second);
+		return;
+	}
+
+	std::shared_ptr<EditorAttackPattern> currentPreviewObject = std::dynamic_pointer_cast<EditorAttackPattern>(attackPattern->clone());
+	currentPreviewObjectID = currentPreviewObject->getID();
+	currentPreviewObjectType = PREVIEW_OBJECT::ATTACK_PATTERN;
+
+	currentPreviewObject->setID(-2);
+	levelPack->updateAttackPattern(currentPreviewObject, false);
+	currentPreviewObject->compileExpressions({ convertedTestTable });
+
+	loadLevel(levelForAttackPattern);
+	unpause();
+
+	legal.second.insert(legal.second.begin(), "Successfully loaded preview for attack pattern ID " + std::to_string(attackPattern->getID()) + ": \"" + attackPattern->getName() + "\"");
 	onPreview.emit(this, legal.first, legal.second);
 }
 
@@ -240,12 +300,15 @@ void LevelPackObjectPreviewPanel::setPreviewSource(float x, float y) {
 
 void LevelPackObjectPreviewPanel::setAttackLoopDelay(float attackLoopDelay) {
 	this->attackLoopDelay = attackLoopDelay;
+
+	// For attack
 	attackPatternForAttack->removeAction(0);
 	attackPatternForAttack->insertAction(0, std::make_shared<StayStillAtLastPositionEMPA>(attackLoopDelay));
 	enemyPhaseForAttack->setAttackPatternLoopDelay(std::to_string(attackLoopDelay));
 	enemyPhaseForAttack->compileExpressions({});
 
-	// TODO: change stuff for attack pattern stuff
+	// For attack pattern
+	enemyPhaseForAttackPattern->setAttackPatternLoopDelay(std::to_string(attackLoopDelay));
 
 	resetPreview();
 }
@@ -271,10 +334,6 @@ tgui::Signal& LevelPackObjectPreviewPanel::getSignal(std::string signalName) {
 		return onPreview;
 	}
 	return SimpleEngineRenderer::getSignal(signalName);
-}
-
-void LevelPackObjectPreviewPanel::previewAttackPattern(const std::shared_ptr<EditorAttackPattern> attackPattern) {
-	// TODO
 }
 
 void LevelPackObjectPreviewPanel::resetPreview() {

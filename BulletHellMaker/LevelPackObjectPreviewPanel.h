@@ -108,6 +108,9 @@ private:
 	std::shared_ptr<Level> levelForAttack;
 	std::shared_ptr<EditorEnemyPhase> enemyPhaseForAttack;
 	std::shared_ptr<EditorAttackPattern> attackPatternForAttack;
+	// Objects used to preview an attack pattern
+	std::shared_ptr<Level> levelForAttackPattern;
+	std::shared_ptr<EditorEnemyPhase> enemyPhaseForAttackPattern;
 
 	std::shared_ptr<EditorPlayer> getPlayer() override;
 };
