@@ -13,7 +13,7 @@ std::string GlobalTimeBasedEnemySpawnCondition::format() const {
 
 void GlobalTimeBasedEnemySpawnCondition::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
-	time = std::stof(items[1]);
+	time = items[1];
 	symbolTable.load(items[2]);
 }
 
@@ -48,7 +48,7 @@ std::string EnemyCountBasedEnemySpawnCondition::format() const {
 
 void EnemyCountBasedEnemySpawnCondition::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
-	enemyCount = std::stoi(items[1]);
+	enemyCount = items[1];
 	symbolTable.load(items[2]);
 }
 
@@ -83,7 +83,7 @@ std::string TimeBasedEnemySpawnCondition::format() const {
 
 void TimeBasedEnemySpawnCondition::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
-	time = std::stof(items[1]);
+	time = items[1];
 	symbolTable.load(items[2]);
 }
 
