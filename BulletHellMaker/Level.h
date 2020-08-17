@@ -23,8 +23,8 @@ meaning every symbol in this object's symbol table is not redelegated.
 */
 class Level : public LevelPackObject {
 public:
-	inline Level() {}
-	inline Level(std::string name) : name(name) {}
+	Level() {}
+	Level(int id);
 
 	std::shared_ptr<LevelPackObject> clone() const override;
 

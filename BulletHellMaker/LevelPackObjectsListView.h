@@ -8,7 +8,7 @@
 class MainEditorWindow;
 
 /*
-A ListViewScrollablePanel of EditorAttacks, for use by MainEditorWindow.
+A ListViewScrollablePanel of LevelPackObjects, for use by MainEditorWindow.
 Items should not be added or removed from this with the exception of from reload().
 handleEvent() is called from this widget's container, EditorWindow::LevelPackObjectsListPanel.
 */
@@ -29,7 +29,7 @@ public:
 	void setLevelPack(LevelPack* levelPack);
 
 	/*
-	Reload the list of EditorAttacks from the LevelPack.
+	Reload the list of LevelPackObjects from the LevelPack.
 	*/
 	void reload();
 
@@ -85,7 +85,7 @@ protected:
 	UndoStack undoStack;
 	Clipboard& clipboard;
 
-	// Maps an EditorAttack ID to its index
+	// Maps an LevelPackObject ID to its index
 	std::map<int, int> levelPackObjectIDToListViewIndexMap;
 	// Maps an index to the associated EditorAtack ID
 	std::map<int, int> listViewIndexToLevelPackObjectIDMap;

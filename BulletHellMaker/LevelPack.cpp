@@ -27,7 +27,7 @@
 #include "EntityCreationQueue.h"
 
 LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(audioPlayer), name(name) {
-	onChange = std::make_shared<entt::SigH<void()>>();
+	onChange = std::make_shared<entt::SigH<void(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE, int)>>();
 
 
 	/*
@@ -159,7 +159,8 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	enemy1->addDeathAction(std::make_shared<ExecuteAttacksDeathAction>(e1DeathAttacks));
 	enemy1->addDeathAction(std::make_shared<ParticleExplosionDeathAction>(ParticleExplosionDeathAction::PARTICLE_EFFECT::FADE_AWAY, Animatable("Bomb", "sheet1", true, LOCK_ROTATION), false, sf::Color::Yellow));
 
-	auto level = std::make_shared<Level>("test level 1 with a really long name");
+	auto level = createLevel();
+	level->setName("test level name that is really long");
 	auto playerAP = createAttackPattern();
 	auto playerAttack1 = createAttack();
 	auto pemp0 = playerAttack1->searchEMP(0);
@@ -243,7 +244,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	level->setBackgroundScrollSpeedX(50);
 	level->setBackgroundScrollSpeedY(-100);
 	
-	this->insertLevel(0, level);
+	this->insertLevel(0, level->getID());
 	auto player = std::make_shared<EditorPlayer>();
 	/*
 	std::make_shared<EditorPlayer>(10, 11, 300, 100, 5, 0, 0, 2.0f, std::vector<PlayerPowerTier>{ PlayerPowerTier(pset1, playerAP->getID(), 0.1f, playerFocusedAP->getID(), 0.5f, bombAP->getID(), 5.0f),
@@ -279,7 +280,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	metadata.addSpriteSheet("sheet1.txt", "sheet1.png");
 	metadata.addSpriteSheet("Default.txt", "Default.png");
 	
-	//save();
+	save();
 	//
 	//TODO: uncomment
 	//load();
@@ -300,34 +301,50 @@ void LevelPack::load() {
 	}
 
 	// Read levels
+	levelsMap.clear();
+	levels.clear();
 	std::ifstream levelsFile("Level Packs\\" + name + "\\levels.txt");
 	std::string line;
-	while (std::getline(levelsFile, line)) {
+	// First line is number of levels
+	std::getline(levelsFile, line);
+	int numLevels = std::stoi(line);
+	for (int i = 0; i < numLevels; i++) {
+		std::getline(levelsFile, line);
+
 		std::shared_ptr<Level> level = std::make_shared<Level>();
 		level->load(line);
-		levels.push_back(level);
+		levelIDGen.markIDAsUsed(level->getID());
+
+		levelsMap[level->getID()] = level;
+	}
+	// Every other line determines level order
+	while (std::getline(levelsFile, line)) {
+		int levelID = std::stoi(line);
+		levels.push_back(levelID);
 	}
 	levelsFile.close();
 
 	// Read bullet models
+	bulletModels.clear();
 	std::ifstream bulletModelsFile("Level Packs\\" + name + "\\bullet_models.txt");
-	std::getline(bulletModelsFile, line);
 	while (std::getline(bulletModelsFile, line)) {
 		std::shared_ptr<BulletModel> bulletModel = std::make_shared<BulletModel>();
 		bulletModel->load(line);
+		bulletModelIDGen.markIDAsUsed(bulletModel->getID());
+
 		assert(bulletModels.count(bulletModel->getID()) == 0 && "Bullet model ID conflict");
 		bulletModels[bulletModel->getID()] = bulletModel;
 	}
 	bulletModelsFile.close();
 
 	// Read attacks
+	attacks.clear();
 	std::ifstream attacksFile("Level Packs\\" + name + "\\attacks.txt");
-	std::getline(attacksFile, line);
 	while (std::getline(attacksFile, line)) {
 		std::shared_ptr<EditorAttack> attack = std::make_shared<EditorAttack>();
 		attack->load(line);
-		// Update attackIDGen with the newly loaded attack ID
 		attackIDGen.markIDAsUsed(attack->getID());
+
 		// Load bullet models for every EMP
 		attack->loadEMPBulletModels(*this);
 		assert(attacks.count(attack->getID()) == 0 && "Attack ID conflict");
@@ -336,33 +353,39 @@ void LevelPack::load() {
 	attacksFile.close();
 
 	// Read attack patterns
+	attackPatterns.clear();
 	std::ifstream attackPatternsFile("Level Packs\\" + name + "\\attack_patterns.txt");
-	std::getline(attackPatternsFile, line);
 	while (std::getline(attackPatternsFile, line)) {
 		std::shared_ptr<EditorAttackPattern> attackPattern = std::make_shared<EditorAttackPattern>();
 		attackPattern->load(line);
+		attackPatternIDGen.markIDAsUsed(attackPattern->getID());
+
 		assert(attackPatterns.count(attackPattern->getID()) == 0 && "Attack pattern ID conflict");
 		attackPatterns[attackPattern->getID()] = attackPattern;
 	}
 	attackPatternsFile.close();
 
 	// Read enemies
+	enemies.clear();
 	std::ifstream enemiesFile("Level Packs\\" + name + "\\enemies.txt");
-	std::getline(enemiesFile, line);
 	while (std::getline(enemiesFile, line)) {
 		std::shared_ptr<EditorEnemy> enemy = std::make_shared<EditorEnemy>();
 		enemy->load(line);
+		enemyIDGen.markIDAsUsed(enemy->getID());
+
 		assert(enemies.count(enemy->getID()) == 0 && "Enemy ID conflict");
 		enemies[enemy->getID()] = enemy;
 	}
 	enemiesFile.close();
 
 	// Read enemy phases
+	enemyPhases.clear();
 	std::ifstream enemyPhasesFile("Level Packs\\" + name + "\\enemy_phases.txt");
-	std::getline(enemyPhasesFile, line);
 	while (std::getline(enemyPhasesFile, line)) {
 		std::shared_ptr<EditorEnemyPhase> enemyPhase = std::make_shared<EditorEnemyPhase>();
 		enemyPhase->load(line);
+		enemyPhaseIDGen.markIDAsUsed(enemyPhase->getID());
+
 		assert(enemyPhases.count(enemyPhase->getID()) == 0 && "Enemy phase ID conflict");
 		enemyPhases[enemyPhase->getID()] = enemyPhase;
 	}
@@ -377,14 +400,22 @@ void LevelPack::save() {
 
 	// Save levels
 	std::ofstream levelsFile("Level Packs\\" + name + "\\levels.txt");
-	for (auto level : levels) {
-		levelsFile << level->format() << std::endl;
+	levelsFile << levelsMap.size() << std::endl;
+	for (auto p : levelsMap) {
+		// Skip if ID < 0, because that signifies that it's a temporary object
+		if (p.first < 0) continue;
+		levelsFile << p.second->format() << std::endl;
+	}
+	for (int id : levels) {
+		levelsFile << id << std::endl;
 	}
 	levelsFile.close();
 
 	// Save bullet models
 	std::ofstream bulletModelsFile("Level Packs\\" + name + "\\bullet_models.txt");
 	for (auto p : bulletModels) {
+		// Skip if ID < 0, because that signifies that it's a temporary object
+		if (p.first < 0) continue;
 		bulletModelsFile << p.second->format() << std::endl;
 	}
 	bulletModelsFile.close();
@@ -392,7 +423,6 @@ void LevelPack::save() {
 	// Save attacks
 	std::ofstream attacksFile("Level Packs\\" + name + "\\attacks.txt");
 	for (auto p : attacks) {
-		// Skip if ID < 0, because that signifies that it's a temporary EditorAttack
 		if (p.first < 0) continue;
 		attacksFile << p.second->format() << std::endl;
 	}
@@ -401,6 +431,7 @@ void LevelPack::save() {
 	// Save attack patterns
 	std::ofstream attackPatternsFile("Level Packs\\" + name + "\\attack_patterns.txt");
 	for (auto p : attackPatterns) {
+		// Skip if ID < 0, because that signifies that it's a temporary object
 		if (p.first < 0) continue;
 		attackPatternsFile << p.second->format() << std::endl;
 	}
@@ -409,6 +440,7 @@ void LevelPack::save() {
 	// Save enemies
 	std::ofstream enemiesFile("Level Packs\\" + name + "\\enemies.txt");
 	for (auto p : enemies) {
+		// Skip if ID < 0, because that signifies that it's a temporary object
 		if (p.first < 0) continue;
 		enemiesFile << p.second->format() << std::endl;
 	}
@@ -417,6 +449,7 @@ void LevelPack::save() {
 	// Save enemy phases
 	std::ofstream enemyPhasesFile("Level Packs\\" + name + "\\enemy_phases.txt");
 	for (auto p : enemyPhases) {
+		// Skip if ID < 0, because that signifies that it's a temporary object
 		if (p.first < 0) continue;
 		enemyPhasesFile << p.second->format() << std::endl;
 	}
@@ -428,59 +461,74 @@ std::unique_ptr<SpriteLoader> LevelPack::createSpriteLoader() {
 	return std::move(spriteLoader);
 }
 
-void LevelPack::insertLevel(int index, std::shared_ptr<Level> level) {
-	levels.insert(levels.begin() + index, level);
-	onChange->publish();
+void LevelPack::insertLevel(int index, int levelID) {
+	levels.insert(levels.begin() + index, levelID);
+	onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::LEVEL, levelID);
+}
+
+std::shared_ptr<Level> LevelPack::createLevel() {
+	return createLevel(levelIDGen.generateID());
+}
+
+std::shared_ptr<Level> LevelPack::createLevel(int id) {
+	auto level = std::make_shared<Level>(id);
+	levelsMap[level->getID()] = level;
+	onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::LEVEL, level->getID());
+	return level;
 }
 
 std::shared_ptr<EditorAttack> LevelPack::createAttack() {
-	auto attack = std::make_shared<EditorAttack>(attackIDGen.generateID());
-	attacks[attack->getID()] = attack;
-	onChange->publish();
-	return attack;
+	return createAttack(attackIDGen.generateID());
 }
 
 std::shared_ptr<EditorAttack> LevelPack::createAttack(int id) {
 	attackIDGen.markIDAsUsed(id);
 	auto attack = std::make_shared<EditorAttack>(id);
 	attacks[attack->getID()] = attack;
-	onChange->publish();
+	onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ATTACK, attack->getID());
 	return attack;
 }
 
 std::shared_ptr<EditorAttackPattern> LevelPack::createAttackPattern() {
-	auto attackPattern = std::make_shared<EditorAttackPattern>(attackPatternIDGen.generateID());
-	attackPatterns[attackPattern->getID()] = attackPattern;
-	onChange->publish();
-	return attackPattern;
+	return createAttackPattern(attackPatternIDGen.generateID());
+
 }
 
 std::shared_ptr<EditorAttackPattern> LevelPack::createAttackPattern(int id) {
 	attackPatternIDGen.markIDAsUsed(id);
 	auto attackPattern = std::make_shared<EditorAttackPattern>(id);
 	attackPatterns[attackPattern->getID()] = attackPattern;
-	onChange->publish();
+	onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ATTACK_PATTERN, attackPattern->getID());
 	return attackPattern;
 }
 
 std::shared_ptr<EditorEnemy> LevelPack::createEnemy() {
-	auto enemy = std::make_shared<EditorEnemy>(enemyIDGen.generateID());
+	return createEnemy(enemyIDGen.generateID());
+
+}
+
+std::shared_ptr<EditorEnemy> LevelPack::createEnemy(int id) {
+	auto enemy = std::make_shared<EditorEnemy>(id);
 	enemies[enemy->getID()] = enemy;
-	onChange->publish();
+	onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ENEMY, enemy->getID());
 	return enemy;
 }
 
 std::shared_ptr<EditorEnemyPhase> LevelPack::createEnemyPhase() {
-	auto enemyPhase = std::make_shared<EditorEnemyPhase>(enemyPhaseIDGen.generateID());
+	return createEnemyPhase(enemyPhaseIDGen.generateID());
+}
+
+std::shared_ptr<EditorEnemyPhase> LevelPack::createEnemyPhase(int id) {
+	auto enemyPhase = std::make_shared<EditorEnemyPhase>(id);
 	enemyPhases[enemyPhase->getID()] = enemyPhase;
-	onChange->publish();
+	onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ENEMY_PHASE, enemyPhase->getID());
 	return enemyPhase;
 }
 
 std::shared_ptr<BulletModel> LevelPack::createBulletModel() {
 	auto bulletModel = std::make_shared<BulletModel>(bulletModelIDGen.generateID());
 	bulletModels[bulletModel->getID()] = bulletModel;
-	onChange->publish();
+	onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::BULLET_MODEL, bulletModel->getID());
 	return bulletModel;
 }
 
@@ -488,7 +536,7 @@ void LevelPack::updateAttack(std::shared_ptr<EditorAttack> attack, bool emitOnCh
 	attackIDGen.markIDAsUsed(attack->getID());
 	attacks[attack->getID()] = attack;
 	if (emitOnChange) {
-		onChange->publish();
+		onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ATTACK, attack->getID());
 	}
 }
 
@@ -498,7 +546,7 @@ void LevelPack::updateAttack(std::shared_ptr<LevelPackObject> attack, bool emitO
 	attackIDGen.markIDAsUsed(attack->getID());
 	attacks[attack->getID()] = std::dynamic_pointer_cast<EditorAttack>(attack);
 	if (emitOnChange) {
-		onChange->publish();
+		onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ATTACK, attack->getID());
 	}
 }
 
@@ -506,7 +554,7 @@ void LevelPack::updateAttackPattern(std::shared_ptr<EditorAttackPattern> attackP
 	attackPatternIDGen.markIDAsUsed(attackPattern->getID());
 	attackPatterns[attackPattern->getID()] = attackPattern;
 	if (emitOnChange) {
-		onChange->publish();
+		onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ATTACK_PATTERN, attackPattern->getID());
 	}
 }
 
@@ -516,7 +564,7 @@ void LevelPack::updateAttackPattern(std::shared_ptr<LevelPackObject> attackPatte
 	attackPatternIDGen.markIDAsUsed(attackPattern->getID());
 	attackPatterns[attackPattern->getID()] = std::dynamic_pointer_cast<EditorAttackPattern>(attackPattern);
 	if (emitOnChange) {
-		onChange->publish();
+		onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ATTACK_PATTERN, attackPattern->getID());
 	}
 }
 
@@ -524,7 +572,7 @@ void LevelPack::updateEnemy(std::shared_ptr<EditorEnemy> enemy, bool emitOnChang
 	enemyIDGen.markIDAsUsed(enemy->getID());
 	enemies[enemy->getID()] = enemy;
 	if (emitOnChange) {
-		onChange->publish();
+		onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ENEMY, enemy->getID());
 	}
 }
 
@@ -534,7 +582,7 @@ void LevelPack::updateEnemy(std::shared_ptr<LevelPackObject> enemy, bool emitOnC
 	enemyIDGen.markIDAsUsed(enemy->getID());
 	enemies[enemy->getID()] = std::dynamic_pointer_cast<EditorEnemy>(enemy);
 	if (emitOnChange) {
-		onChange->publish();
+		onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ENEMY, enemy->getID());
 	}
 }
 
@@ -542,7 +590,7 @@ void LevelPack::updateEnemyPhase(std::shared_ptr<EditorEnemyPhase> enemyPhase, b
 	enemyPhaseIDGen.markIDAsUsed(enemyPhase->getID());
 	enemyPhases[enemyPhase->getID()] = enemyPhase;
 	if (emitOnChange) {
-		onChange->publish();
+		onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ENEMY_PHASE, enemyPhase->getID());
 	}
 }
 
@@ -552,7 +600,7 @@ void LevelPack::updateEnemyPhase(std::shared_ptr<LevelPackObject> enemyPhase, bo
 	enemyPhaseIDGen.markIDAsUsed(enemyPhase->getID());
 	enemyPhases[enemyPhase->getID()] = std::dynamic_pointer_cast<EditorEnemyPhase>(enemyPhase);
 	if (emitOnChange) {
-		onChange->publish();
+		onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ENEMY_PHASE, enemyPhase->getID());
 	}
 }
 
@@ -560,7 +608,7 @@ void LevelPack::updateBulletModel(std::shared_ptr<BulletModel> bulletModel, bool
 	bulletModelIDGen.markIDAsUsed(bulletModel->getID());
 	bulletModels[bulletModel->getID()] = bulletModel;
 	if (emitOnChange) {
-		onChange->publish();
+		onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::BULLET_MODEL, bulletModel->getID());
 	}
 }
 
@@ -570,50 +618,65 @@ void LevelPack::updateBulletModel(std::shared_ptr<LevelPackObject> bulletModel, 
 	bulletModelIDGen.markIDAsUsed(bulletModel->getID());
 	bulletModels[bulletModel->getID()] = std::dynamic_pointer_cast<BulletModel>(bulletModel);
 	if (emitOnChange) {
-		onChange->publish();
+		onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::BULLET_MODEL, bulletModel->getID());
 	}
 }
 
-void LevelPack::deleteLevel(int levelIndex) {
+void LevelPack::removeLevelFromPlayableLevelsList(int levelIndex) {
 	levels.erase(levels.begin() + levelIndex);
-	onChange->publish();
+	// Don't emit onChange here because the actual Level isn't modified from this operation
+}
+
+void LevelPack::deleteLevel(int id) {
+	levelIDGen.deleteID(id);
+	levelsMap.erase(id);
+
+	for (int i = 0; i < levels.size();) {
+		if (levels[i] == id) {
+			removeLevelFromPlayableLevelsList(i);
+		} else {
+			i++;
+		}
+	}
+
+	onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::LEVEL, id);
 }
 
 void LevelPack::deleteAttack(int id) {
 	attackIDGen.deleteID(id);
 	attacks.erase(id);
-	onChange->publish();
+	onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ATTACK, id);
 }
 
 void LevelPack::deleteAttackPattern(int id) {
 	attackPatternIDGen.deleteID(id);
 	attackPatterns.erase(id);
-	onChange->publish();
+	onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ATTACK_PATTERN, id);
 }
 
 void LevelPack::deleteEnemy(int id) {
 	enemyIDGen.deleteID (id);
 	enemies.erase(id);
-	onChange->publish();
+	onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ENEMY, id);
 }
 
 void LevelPack::deleteEnemyPhase(int id) {
 	enemyPhaseIDGen.deleteID(id);
 	enemyPhases.erase(id);
-	onChange->publish();
+	onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ENEMY_PHASE, id);
 }
 
 void LevelPack::deleteBulletModel(int id) {
 	bulletModelIDGen.deleteID(id);
 	bulletModels.erase(id);
-	onChange->publish();
+	onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::BULLET_MODEL, id);
 }
 
 std::vector<int> LevelPack::getEnemyUsers(int enemyID) {
 	std::vector<int> results;
-	for (int i = 0; i < levels.size(); i++) {
-		if (levels[i]->usesEnemy(enemyID)) {
-			results.push_back(i);
+	for (auto it = levelsMap.begin(); it != levelsMap.end(); it++) {
+		if (it->second->usesEnemy(enemyID)) {
+			results.push_back(it->first);
 		}
 	}
 	return results;
@@ -627,10 +690,6 @@ std::vector<int> LevelPack::getEditorEnemyUsers(int editorEnemyPhaseID) {
 		}
 	}
 	return results;
-}
-
-bool LevelPack::attackPatternIsUsedByPlayer(int attackPatternID) {
-	return getPlayer()->usesAttackPattern(attackPatternID);
 }
 
 std::vector<int> LevelPack::getAttackPatternEnemyUsers(int attackPatternID) {
@@ -696,11 +755,11 @@ std::string LevelPack::getName() {
 }
 
 std::shared_ptr<Level> LevelPack::getLevel(int levelIndex) const {
-	return levels[levelIndex];
+	return levelsMap.at(levels[levelIndex]);
 }
 
 std::shared_ptr<Level> LevelPack::getGameplayLevel(int levelIndex) const {
-	auto level = levels[levelIndex]->clone();
+	auto level = levelsMap.at(levels[levelIndex])->clone();
 	// Level is a top-level object so every expression it uses should be in terms of only its own
 	// unredelegated, well-defined symbols
 	auto derived = std::dynamic_pointer_cast<Level>(level);
@@ -853,9 +912,9 @@ std::set<int> LevelPack::getNextBulletModelIDs(int count) const {
 	return bulletModelIDGen.getNextIDs(count);
 }
 
-std::shared_ptr<entt::SigH<void()>> LevelPack::getOnChange() {
+std::shared_ptr<entt::SigH<void(LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE, int)>> LevelPack::getOnChange() {
 	if (!onChange) {
-		onChange = std::make_shared<entt::SigH<void()>>();
+		onChange = std::make_shared<entt::SigH<void(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE, int)>>();
 	}
 	return onChange;
 }
@@ -866,7 +925,7 @@ bool LevelPack::hasBulletModel(int id) const {
 
 void LevelPack::setPlayer(std::shared_ptr<EditorPlayer> player) {
 	metadata.setPlayer(player);
-	onChange->publish();
+	onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::PLAYER, player->getID());
 }
 
 float LevelPack::searchLargestBulletHitbox() const {
@@ -879,7 +938,8 @@ float LevelPack::searchLargestBulletHitbox() const {
 
 float LevelPack::searchLargestItemActivationHitbox() const {
 	float max = 0;
-	for (auto level : levels) {
+	for (int levelID : levels) {
+		std::shared_ptr<Level> level = levelsMap.at(levelID);
 		max = std::max(max, level->getHealthPack()->getActivationRadius());
 		max = std::max(max, level->getPointsPack()->getActivationRadius());
 		max = std::max(max, level->getPowerPack()->getActivationRadius());
@@ -890,7 +950,8 @@ float LevelPack::searchLargestItemActivationHitbox() const {
 
 float LevelPack::searchLargestItemCollectionHitbox() const {
 	float max = 0;
-	for (auto level : levels) {
+	for (int levelID : levels) {
+		std::shared_ptr<Level> level = levelsMap.at(levelID);
 		max = std::max(max, level->getHealthPack()->getHitboxRadius());
 		max = std::max(max, level->getPointsPack()->getHitboxRadius());
 		max = std::max(max, level->getPowerPack()->getHitboxRadius());

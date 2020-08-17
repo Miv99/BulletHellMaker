@@ -163,6 +163,10 @@ private:
 	void openEMPTab(int empID);
 
 	/*
+	Called whenever onChange from levelPack is emitted.
+	*/
+	void onLevelPackChange(LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE type, int id);
+	/*
 	Clear and populate usedBy, the list of EditorAttackPatterns that use the 
 	EditorAttack being edited.
 	*/

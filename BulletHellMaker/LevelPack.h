@@ -48,6 +48,21 @@ private:
 
 class LevelPack {
 public:
+	/*
+	The list of types of LevelPackObjects that can be the roots of a layer in the
+	LevelPackObject hierarchy. LevelPackObjects of these types can reference each other
+	only by ID.
+	*/
+	enum class LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE {
+		PLAYER,
+		LEVEL,
+		ENEMY,
+		ENEMY_PHASE,
+		ATTACK_PATTERN,
+		ATTACK,
+		BULLET_MODEL
+	};
+
 	LevelPack(AudioPlayer& audioPlayer, std::string name);
 
 	/*
@@ -65,10 +80,20 @@ public:
 	std::unique_ptr<SpriteLoader> createSpriteLoader();
 
 	/*
-	Insert a Level into this LevelPack at the specified index.
+	Insert a Level's ID into this LevelPack at the specified index.
 	*/
-	void insertLevel(int index, std::shared_ptr<Level> level);
+	void insertLevel(int index, int levelID);
 
+	/*
+	Create a Level without adding it to the levels list order.
+	*/
+	std::shared_ptr<Level> createLevel();
+	/*
+	Create a Level and add it to this LevelPack.
+	id - the ID of the new level. If it is already in use, the old Level
+		with this ID will be overwritten.
+	*/
+	std::shared_ptr<Level> createLevel(int id);
 	/*
 	Create an EditorAttack and add it to this LevelPack.
 	*/
@@ -94,9 +119,21 @@ public:
 	*/
 	std::shared_ptr<EditorEnemy> createEnemy();
 	/*
+	Create an EditorEnemy and add it to this LevelPack.
+	id - the ID of the new enemy. If it is already in use, the old EditorEnemy
+		with this ID will be overwritten.
+	*/
+	std::shared_ptr<EditorEnemy> createEnemy(int id);
+	/*
 	Create an EditorEnemyPhase and add it to this LevelPack.
 	*/
 	std::shared_ptr<EditorEnemyPhase> createEnemyPhase();
+	/*
+	Create an EditorEnemyPhase and add it to this LevelPack.
+	id - the ID of the new enemy phase. If it is already in use, the old EditorEnemyPhase
+		with this ID will be overwritten.
+	*/
+	std::shared_ptr<EditorEnemyPhase> createEnemyPhase(int id);
 	/*
 	Create an BulletModel and add it to this LevelPack.
 	*/
@@ -163,7 +200,15 @@ public:
 	*/
 	void updateBulletModel(std::shared_ptr<LevelPackObject> bulletModel, bool emitOnChange = true);
 
-	void deleteLevel(int levelIndex);
+	/*
+	Removes a level from the list of levels that the player can play.
+	*/
+	void removeLevelFromPlayableLevelsList(int levelIndex);
+	/*
+	Deletes a level from this LevelPack. This also removes the level from
+	the playable levels list if it was there.
+	*/
+	void deleteLevel(int id);
 	void deleteAttack(int id);
 	void deleteAttackPattern(int id);
 	void deleteEnemy(int id);
@@ -171,7 +216,7 @@ public:
 	void deleteBulletModel(int id);
 
 	/*
-	Returns a list of indices of Levels that use the EditorEnemy
+	Returns a list of IDs of Levels that use the EditorEnemy
 	with ID enemyID.
 	*/
 	std::vector<int> getEnemyUsers(int enemyID);
@@ -181,20 +226,10 @@ public:
 	*/
 	std::vector<int> getEditorEnemyUsers(int editorEnemyPhaseID);
 	/*
-	Returns whether the LevelPack's EditorPlayer uses the EditorAttackPattern
-	with ID attackPatternID.
-	*/
-	bool attackPatternIsUsedByPlayer(int attackPatternID);
-	/*
 	Returns a list of IDs of EditorEnemyPhases that use the EditorAttackPattern
 	with ID attackPatternID.
 	*/
 	std::vector<int> getAttackPatternEnemyUsers(int attackPatternID);
-	/*
-	Returns whether the attack pattern with ID attackPatternID is used
-	by the player.
-	*/
-	bool getAttackPatternIsUsedByPlayer(int attackPatternID);
 	/*
 	Returns a list of IDs of EditorAttackPatterns that use the EditorAttack
 	with ID attackID.
@@ -205,6 +240,12 @@ public:
 	with ID bulletModelID.
 	*/
 	std::vector<int> getBulletModelUsers(int bulletModelID);
+
+	/*
+	Returns whether the attack pattern with ID attackPatternID is used
+	by the player.
+	*/
+	bool getAttackPatternIsUsedByPlayer(int attackPatternID);
 
 	bool hasEnemy(int id);
 	bool hasEnemyPhase(int id);
@@ -333,7 +374,7 @@ public:
 	*/
 	std::set<int> getNextBulletModelIDs(int count) const;
 
-	std::shared_ptr<entt::SigH<void()>> getOnChange();
+	std::shared_ptr<entt::SigH<void(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE, int)>> getOnChange();
 
 	void setPlayer(std::shared_ptr<EditorPlayer> player);
 	void setFontFileName(std::string fontFileName) { this->fontFileName = fontFileName; }
@@ -364,15 +405,18 @@ private:
 
 	LevelPackMetadata metadata;
 
+	IDGenerator levelIDGen;
 	IDGenerator attackIDGen;
 	IDGenerator attackPatternIDGen;
 	IDGenerator enemyIDGen;
 	IDGenerator enemyPhaseIDGen;
 	IDGenerator bulletModelIDGen;
 
-	// Ordered levels
-	std::vector<std::shared_ptr<Level>> levels;
-	// The IDs of EditorAttack/EditorAttackPattern/EditorEnemy/EditorEnemyPhase are always positive
+	// Ordered level IDs
+	std::vector<int> levels;
+	// The IDs of Level/EditorAttack/EditorAttackPattern/EditorEnemy/EditorEnemyPhase are always positive
+	// Maps level ID to the level
+	std::map<int, std::shared_ptr<Level>> levelsMap;
 	// Maps attack ID to the attack
 	std::map<int, std::shared_ptr<EditorAttack>> attacks;
 	// Maps attack pattern ID to the attack pattern
@@ -386,8 +430,15 @@ private:
 
 	std::string fontFileName;
 
-	// Called when a change is made to one of the level pack objects, which
-	// includes EditorAttack, EditorAttackPattern, EditorEnemy, EditorEnemyPhase,
-	// Level, BulletModel, and EditorPlayer.
-	std::shared_ptr<entt::SigH<void()>> onChange;
+	/*
+	Emitted right after whenever a change is made to an object of a type included in
+	LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE.
+
+	Parameters:
+		LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE - the type of the LevelPackObject that was just modified
+		int - the ID of the LevelPackObject
+
+	*/
+	std::shared_ptr<entt::SigH<void(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE, int)>> onChange;
+
 };

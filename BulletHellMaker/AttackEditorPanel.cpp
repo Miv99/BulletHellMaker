@@ -165,7 +165,7 @@ spriteLoader(spriteLoader), clipboard(clipboard), undoStack(UndoStack(undoStackS
 		tabs->addTab(PROPERTIES_TAB_NAME, properties);
 
 		// Populate the usedBy list when the level pack is changed
-		levelPack->getOnChange()->sink().connect<AttackEditorPanel, &AttackEditorPanel::populatePropertiesUsedByList>(this);
+		levelPack->getOnChange()->sink().connect<AttackEditorPanel, &AttackEditorPanel::onLevelPackChange>(this);
 		// Initial population
 		populatePropertiesUsedByList();
 
@@ -269,7 +269,7 @@ spriteLoader(spriteLoader), clipboard(clipboard), undoStack(UndoStack(undoStackS
 }
 
 AttackEditorPanel::~AttackEditorPanel() {
-	levelPack->getOnChange()->sink().disconnect<AttackEditorPanel, &AttackEditorPanel::populatePropertiesUsedByList>(this);
+	levelPack->getOnChange()->sink().disconnect<AttackEditorPanel, &AttackEditorPanel::onLevelPackChange>(this);
 	mainEditorWindow.getGui()->remove(symbolTableEditorWindow);
 }
 
@@ -340,6 +340,13 @@ void AttackEditorPanel::openEMPTab(int empID) {
 			onAttackModify.emit(this, this->attack);
 		});
 		tabs->addTab(format(EMP_TAB_NAME_FORMAT, empID), empEditorPanel, true, true);
+	}
+}
+
+void AttackEditorPanel::onLevelPackChange(LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE type, int id) {
+	// Attacks can be used only by attack patterns, so update usedBy only if the modified attack pattern uses this attack
+	if (type == LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ATTACK_PATTERN && levelPack->getAttackPattern(id)->usesAttack(attack->getID())) {
+		populatePropertiesUsedByList();
 	}
 }
 

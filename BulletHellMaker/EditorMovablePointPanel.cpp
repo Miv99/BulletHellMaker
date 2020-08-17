@@ -1400,15 +1400,18 @@ void EditorMovablePointPanel::updateAllWidgetValues() {
 	ignoreSignals = false;
 }
 
-void EditorMovablePointPanel::onLevelPackChange() {
-	emp->loadBulletModel(*levelPack);
+void EditorMovablePointPanel::onLevelPackChange(LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE type, int id) {
+	// EMPs can be used only by attacks, so reload only if the modified attack uses this EMP
+	if (type == LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ATTACK && levelPack->getAttack(id)->searchEMP(emp->getID()) != nullptr) {
+		emp->loadBulletModel(*levelPack);
 
-	empiSoundSettings->populateFileNames(format(LEVEL_PACK_SOUND_FOLDER_PATH, levelPack->getName().c_str()));
+		empiSoundSettings->populateFileNames(format(LEVEL_PACK_SOUND_FOLDER_PATH, levelPack->getName().c_str()));
 
-	empiBulletModel->removeAllItems();
-	empiBulletModel->addItem("None", "-1");
-	for (auto it = levelPack->getBulletModelIteratorBegin(); it != levelPack->getBulletModelIteratorEnd(); it++) {
-		empiBulletModel->addItem(it->second->getName(), std::to_string(it->second->getID()));
+		empiBulletModel->removeAllItems();
+		empiBulletModel->addItem("None", "-1");
+		for (auto it = levelPack->getBulletModelIteratorBegin(); it != levelPack->getBulletModelIteratorEnd(); it++) {
+			empiBulletModel->addItem(it->second->getName(), std::to_string(it->second->getID()));
+		}
 	}
 }
 

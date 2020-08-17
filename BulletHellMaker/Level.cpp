@@ -1,5 +1,9 @@
 #include "Level.h"
 
+Level::Level(int id) {
+	this->id = id;
+}
+
 std::shared_ptr<LevelPackObject> Level::clone() const {
 	auto clone = std::make_shared<Level>();
 	clone->load(format());
@@ -7,7 +11,7 @@ std::shared_ptr<LevelPackObject> Level::clone() const {
 }
 
 std::string Level::format() const {
-	std::string res = formatString(name) + tos(events.size());
+	std::string res = tos(id) + formatString(name) + tos(events.size());
 	for (std::pair<std::shared_ptr<LevelEventStartCondition>, std::shared_ptr<LevelEvent>> p : events) {
 		res += formatTMObject(*p.first) + formatTMObject(*p.second);
 	}
@@ -21,12 +25,13 @@ std::string Level::format() const {
 
 void Level::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
-	name = items[0];
+	id = std::stoi(items[0]);
+	name = items[1];
 
 	events.clear();
 	enemyIDCount.clear();
 	int i;
-	for (i = 2; i < std::stoi(items[1]) + 2;) {
+	for (i = 3; i < std::stoi(items[2]) + 3;) {
 		std::shared_ptr<LevelEventStartCondition> condition = LevelEventStartConditionFactory::create(items[i++]);
 		std::shared_ptr<LevelEvent> event = LevelEventFactory::create(items[i++]);
 		events.push_back(std::make_pair(condition, event));

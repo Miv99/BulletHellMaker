@@ -113,4 +113,6 @@ private:
 	std::shared_ptr<EditorEnemyPhase> enemyPhaseForAttackPattern;
 
 	std::shared_ptr<EditorPlayer> getPlayer() override;
+
+	void onLevelPackChange(LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE type, int id);
 };

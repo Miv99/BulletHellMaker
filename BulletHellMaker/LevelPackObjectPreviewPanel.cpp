@@ -5,7 +5,7 @@
 LevelPackObjectPreviewPanel::LevelPackObjectPreviewPanel(EditorWindow& parentWindow, std::string levelPackName)
 	: SimpleEngineRenderer(*parentWindow.getWindow(), true, true), gui(parentWindow.getGui()) {
 	loadLevelPack(levelPackName);
-	levelPack->getOnChange()->sink().connect<LevelPackObjectPreviewPanel, &LevelPackObjectPreviewPanel::resetPreview>(this);
+	levelPack->getOnChange()->sink().connect<LevelPackObjectPreviewPanel, &LevelPackObjectPreviewPanel::onLevelPackChange>(this);
 
 	currentCursor = sf::CircleShape(-1);
 	currentCursor.setOutlineColor(sf::Color::Green);
@@ -131,7 +131,7 @@ LevelPackObjectPreviewPanel::LevelPackObjectPreviewPanel(EditorWindow& parentWin
 }
 
 LevelPackObjectPreviewPanel::~LevelPackObjectPreviewPanel() {
-	levelPack->getOnChange()->sink().disconnect(this);
+	levelPack->getOnChange()->sink().disconnect<LevelPackObjectPreviewPanel, &LevelPackObjectPreviewPanel::onLevelPackChange>(this);
 	gui->remove(symbolTableEditorWindow);
 }
 
@@ -354,4 +354,15 @@ std::shared_ptr<EditorPlayer> LevelPackObjectPreviewPanel::getPlayer() {
 	} else {
 		return levelPackPlayer;
 	}
+}
+
+void LevelPackObjectPreviewPanel::onLevelPackChange(LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE type, int id) {
+	// TODO
+	if (currentPreviewObjectType == PREVIEW_OBJECT::NONE) {
+		resetPreview();
+	} else if (currentPreviewObjectType == PREVIEW_OBJECT::ATTACK && type == LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ATTACK && currentPreviewObjectID == id) {
+		resetPreview();
+	}
+	// make sure for when previewing attack pattern, reset preview if type is attack pattern and ID matches OR type is attack and attack
+	// pattern being previewed uses the attack id
 }
