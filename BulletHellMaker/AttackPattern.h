@@ -15,10 +15,8 @@ If an EditorAttackPattern is being used by a player, EMPActions are unused.
 */
 class EditorAttackPattern : public LevelPackObject {
 public:
-	inline EditorAttackPattern() {}
-	inline EditorAttackPattern(int id) {
-		this->id = id;
-	}
+	EditorAttackPattern();
+	EditorAttackPattern(int id);
 	/*
 	Copy constructor.
 	*/
@@ -38,19 +36,20 @@ public:
 
 	void changeEntityPathToAttackPatternActions(EntityCreationQueue& queue, entt::DefaultRegistry& registry, uint32_t entity, float timeLag);
 
-	inline std::vector<std::tuple<std::string, int, ExprSymbolTable>> getAttacks() { return attackIDs; }
-	inline std::tuple<float, int, exprtk::symbol_table<float>> getAttackData(int index) const { return compiledAttackIDs[index]; }
-	inline std::shared_ptr<EMPAction> getAction(int index) const { return actions[index]; }
-	inline const std::vector<std::shared_ptr<EMPAction>> getActions() const { return actions; }
-	inline int getAttacksCount() const { return attackIDs.size(); }
-	inline int getActionsCount() const { return actions.size(); }
-	inline float getShadowTrailInterval() const { return shadowTrailIntervalExprCompiledValue; }
-	inline float getShadowTrailLifespan() const { return shadowTrailLifespanExprCompiledValue; }
-	inline float getActionsTotalTime() const { return actionsTotalTime; }
-	inline bool usesAttack(int attackID) const { return attackIDCount.count(attackID) > 0 && attackIDCount.at(attackID) > 0; }
+	std::vector<std::tuple<std::string, int, ExprSymbolTable>> getAttacks();
+	std::tuple<float, int, exprtk::symbol_table<float>> getAttackData(int index) const;
+	std::shared_ptr<EMPAction> getAction(int index) const;
+	const std::vector<std::shared_ptr<EMPAction>> getActions() const;
+	int getAttacksCount() const;
+	int getActionsCount() const;
+	float getShadowTrailInterval() const;
+	float getShadowTrailLifespan() const;
+	float getActionsTotalTime() const;
+	bool usesAttack(int attackID) const;
 
-	inline void setShadowTrailInterval(std::string shadowTrailInterval) { this->shadowTrailInterval = shadowTrailInterval; }
-	inline void setShadowTrailLifespan(std::string shadowTrailLifespan) { this->shadowTrailLifespan = shadowTrailLifespan; }
+	void setShadowTrailInterval(std::string shadowTrailInterval);
+	void setShadowTrailLifespan(std::string shadowTrailLifespan);
+	void setActions(std::vector<std::shared_ptr<EMPAction>> actions);
 
 	/*
 	Add an EditorAttack to this attack pattern.
@@ -90,4 +89,9 @@ private:
 	// Maps an attack ID to the number of times it appears in attackIDs.
 	// Not saved in format(), but reconstructed in load().
 	std::map<int, int> attackIDCount;
+
+	/*
+	Should be called any time actions is modified.
+	*/
+	void onActionsModified();
 };

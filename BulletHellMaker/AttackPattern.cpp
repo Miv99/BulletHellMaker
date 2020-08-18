@@ -2,6 +2,13 @@
 #include "Components.h"
 #include "EditorMovablePointSpawnType.h"
 
+EditorAttackPattern::EditorAttackPattern() {
+}
+
+EditorAttackPattern::EditorAttackPattern(int id) {
+	this->id = id;
+}
+
 EditorAttackPattern::EditorAttackPattern(std::shared_ptr<const EditorAttackPattern> copy) {
 	load(copy->format());
 }
@@ -63,10 +70,7 @@ void EditorAttackPattern::load(std::string formattedString) {
 	shadowTrailLifespan = items[i++];
 	symbolTable.load(items[i++]);
 
-	actionsTotalTime = 0;
-	for (auto action : actions) {
-		actionsTotalTime += action->getTime();
-	}
+	onActionsModified();
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorAttackPattern::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -129,6 +133,59 @@ void EditorAttackPattern::changeEntityPathToAttackPatternActions(EntityCreationQ
 	registry.replace<MovementPathComponent>(entity, queue, entity, registry, entity, std::make_shared<SpecificGlobalEMPSpawn>(0, pos.getX(), pos.getY()), actions, timeLag);
 }
 
+std::vector<std::tuple<std::string, int, ExprSymbolTable>> EditorAttackPattern::getAttacks() {
+	return attackIDs;
+}
+
+std::tuple<float, int, exprtk::symbol_table<float>> EditorAttackPattern::getAttackData(int index) const {
+	return compiledAttackIDs[index];
+}
+
+std::shared_ptr<EMPAction> EditorAttackPattern::getAction(int index) const {
+	return actions[index];
+}
+
+const std::vector<std::shared_ptr<EMPAction>> EditorAttackPattern::getActions() const {
+	return actions;
+}
+
+int EditorAttackPattern::getAttacksCount() const {
+	return attackIDs.size();
+}
+
+int EditorAttackPattern::getActionsCount() const {
+	return actions.size();
+}
+
+float EditorAttackPattern::getShadowTrailInterval() const {
+	return shadowTrailIntervalExprCompiledValue;
+}
+
+float EditorAttackPattern::getShadowTrailLifespan() const {
+	return shadowTrailLifespanExprCompiledValue;
+}
+
+float EditorAttackPattern::getActionsTotalTime() const {
+	return actionsTotalTime;
+}
+
+bool EditorAttackPattern::usesAttack(int attackID) const {
+	return attackIDCount.count(attackID) > 0 && attackIDCount.at(attackID) > 0;
+}
+
+void EditorAttackPattern::setShadowTrailInterval(std::string shadowTrailInterval) {
+	this->shadowTrailInterval = shadowTrailInterval;
+}
+
+void EditorAttackPattern::setShadowTrailLifespan(std::string shadowTrailLifespan) {
+	this->shadowTrailLifespan = shadowTrailLifespan;
+}
+
+void EditorAttackPattern::setActions(std::vector<std::shared_ptr<EMPAction>> actions) {
+	this->actions = actions;
+	onActionsModified();
+}
+
 void EditorAttackPattern::addAttack(std::string time, int id, ExprSymbolTable attackSymbolsDefiner) {
 	attackIDs.push_back(std::make_tuple(time, id, attackSymbolsDefiner));
 
@@ -147,18 +204,15 @@ void EditorAttackPattern::removeAttack(int index) {
 
 void EditorAttackPattern::insertAction(int index, std::shared_ptr<EMPAction> action) {
 	actions.insert(actions.begin() + index, action);
-
-	// Recalculate completely just in case of floating point imprecision
-	actionsTotalTime = 0;
-	for (auto action : actions) {
-		actionsTotalTime += action->getTime();
-	}
+	onActionsModified();
 }
 
 void EditorAttackPattern::removeAction(int index) {
 	actions.erase(actions.begin() + index);
+	onActionsModified();
+}
 
-	// Recalculate completely just in case of floating point imprecision
+void EditorAttackPattern::onActionsModified() {
 	actionsTotalTime = 0;
 	for (auto action : actions) {
 		actionsTotalTime += action->getTime();

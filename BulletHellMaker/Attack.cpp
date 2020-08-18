@@ -1,6 +1,9 @@
 #include "Attack.h"
 #include "EditorMovablePoint.h"
 
+EditorAttack::EditorAttack() {
+}
+
 EditorAttack::EditorAttack(int id) {
 	this->id = id;
 	mainEMP = std::make_shared<EditorMovablePoint>(&empIDGen, true, &bulletModelsCount);
@@ -70,6 +73,30 @@ void EditorAttack::executeAsEnemy(EntityCreationQueue& queue, SpriteLoader& spri
 
 void EditorAttack::executeAsPlayer(EntityCreationQueue & queue, SpriteLoader & spriteLoader, entt::DefaultRegistry & registry, uint32_t entity, float timeLag, int attackPatternID) const {
 	queue.pushBack(std::make_unique<EMPSpawnFromPlayerCommand>(registry, spriteLoader, mainEMP, true, entity, timeLag, id, attackPatternID, playAttackAnimation));
+}
+
+const bool EditorAttack::usesBulletModel(int bulletModelID) const {
+	return bulletModelsCount.count(bulletModelID) > 0 && bulletModelsCount.at(bulletModelID) > 0;
+}
+
+bool EditorAttack::getPlayAttackAnimation() const {
+	return playAttackAnimation;
+}
+
+std::shared_ptr<EditorMovablePoint> EditorAttack::getMainEMP() const {
+	return mainEMP;
+}
+
+IDGenerator* EditorAttack::getNextEMPID() {
+	return &empIDGen;
+}
+
+std::map<int, int>* EditorAttack::getBulletModelsCount() {
+	return &bulletModelsCount;
+}
+
+void EditorAttack::setPlayAttackAnimation(bool playAttackAnimation) {
+	this->playAttackAnimation = playAttackAnimation;
 }
 
 float EditorAttack::searchLargestHitbox() const {

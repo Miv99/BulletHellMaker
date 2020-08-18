@@ -14,7 +14,7 @@ class EditorMovablePoint;
 
 class EditorAttack : public LevelPackObject {
 public:
-	inline EditorAttack() {}
+	EditorAttack();
 	EditorAttack(int id);
 	/*
 	Copy constructor.
@@ -58,12 +58,12 @@ public:
 	Returns whether this EditorAttack and any of its its children EMPs uses the BulletModel
 	with ID bulletModelID.
 	*/
-	inline const bool usesBulletModel(int bulletModelID) const { return bulletModelsCount.count(bulletModelID) > 0 && bulletModelsCount.at(bulletModelID) > 0; }
-	inline bool getPlayAttackAnimation() const { return playAttackAnimation; }
-	inline std::shared_ptr<EditorMovablePoint> getMainEMP() const { return mainEMP; }
-	inline IDGenerator* getNextEMPID() { return &empIDGen; }
-	inline std::map<int, int>*  getBulletModelsCount() { return &bulletModelsCount; }
-	inline void setPlayAttackAnimation(bool playAttackAnimation) { this->playAttackAnimation = playAttackAnimation; }
+	const bool usesBulletModel(int bulletModelID) const;
+	bool getPlayAttackAnimation() const;
+	std::shared_ptr<EditorMovablePoint> getMainEMP() const;
+	IDGenerator* getNextEMPID();
+	std::map<int, int>* getBulletModelsCount();
+	void setPlayAttackAnimation(bool playAttackAnimation);
 	
 	float searchLargestHitbox() const;
 	// Search for the EMP with the ID
