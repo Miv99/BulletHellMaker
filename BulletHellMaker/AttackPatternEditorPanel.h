@@ -47,8 +47,10 @@ public:
 private:
 	MainEditorWindow& mainEditorWindow;
 	Clipboard& clipboard;
-	std::shared_ptr<EditorAttackPattern> attackPattern;
 	UndoStack undoStack;
+
+	// The AttackPattern being edited
+	std::shared_ptr<EditorAttackPattern> attackPattern;
 
 	// Lists the EditorEnemyPhases (and possibly EditorPlayer) that use the EditorAttackPattern being edited
 	std::shared_ptr<ListViewScrollablePanel> usedBy;
@@ -101,11 +103,29 @@ protected:
 	ValueSymbolTable getLevelPackObjectSymbolTable() override;
 
 private:
+	static const std::string PROPERTIES_TAB_NAME;
+	static const std::string MOVEMENT_TAB_NAME;
+
+	static const int USED_BY_ID_MAP_PLAYER_RESERVED_ID;
+
 	MainEditorWindow& mainEditorWindow;
 	std::shared_ptr<LevelPack> levelPack;
 	SpriteLoader& spriteLoader;
 	Clipboard& clipboard;
 	UndoStack undoStack;
+
+	// The attack pattern being edited
+	std::shared_ptr<EditorAttackPattern> attackPattern;
+
+	std::shared_ptr<TabsWithPanel> tabs;
+	// The properties tab
+	std::shared_ptr<AttackPatternEditorPropertiesPanel> propertiesPanel;
+
+	// The ID of the EditorEnemyPhase (or USED_BY_ID_MAP_PLAYER_RESERVED_ID) in usedBy that was just right clicked
+	int usedByRightClickedID;
+	// Maps an index in usedBy to the ID of the EditorEnemyPhase being shown in that index.
+	// ID -1 is reserved for representing the LevelPack's EditorPlayer
+	std::map<int, int> usedByIDMap;
 
 	/*
 	Signal emitted when an EditorEnemyPhase in the list of attack pattern users is to be edited.
@@ -122,6 +142,13 @@ private:
 	*/
 	tgui::SignalEditorAttackPattern onAttackPatternModify = { "AttackPatternModified" };
 
-	// The attack pattern being edited
-	std::shared_ptr<EditorAttackPattern> attackPattern;
+	/*
+	Called whenever onChange from levelPack is emitted.
+	*/
+	void onLevelPackChange(LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE type, int id);
+	/*
+	Clear and populate usedBy, the list of EditorPlayer and/or EditorEnemyPhases that use the 
+	EditorAttackPattern being edited.
+	*/
+	void populatePropertiesUsedByList();
 };

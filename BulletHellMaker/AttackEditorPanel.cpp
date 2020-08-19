@@ -158,18 +158,18 @@ spriteLoader(spriteLoader), clipboard(clipboard), undoStack(UndoStack(undoStackS
 
 	{
 		// Properties
-		properties = AttackEditorPropertiesPanel::create(mainEditorWindow, clipboard, attack);
-		properties->connect("AttackModified", [this]() {
+		propertiesPanel = AttackEditorPropertiesPanel::create(mainEditorWindow, clipboard, attack);
+		propertiesPanel->connect("AttackModified", [this]() {
 			onAttackModify.emit(this, this->attack);
 		});
-		tabs->addTab(PROPERTIES_TAB_NAME, properties);
+		tabs->addTab(PROPERTIES_TAB_NAME, propertiesPanel);
 
 		// Populate the usedBy list when the level pack is changed
 		levelPack->getOnChange()->sink().connect<AttackEditorPanel, &AttackEditorPanel::onLevelPackChange>(this);
 		// Initial population
 		populatePropertiesUsedByList();
 
-		properties->getUsedByPanel()->getListView()->connect("DoubleClicked", [&](int index) {
+		propertiesPanel->getUsedByPanel()->getListView()->connect("DoubleClicked", [&](int index) {
 			if (usedByIDMap.count(index) > 0) {
 				onAttackPatternBeginEdit.emit(this, usedByIDMap[index]);
 			}
@@ -182,7 +182,7 @@ spriteLoader(spriteLoader), clipboard(clipboard), undoStack(UndoStack(undoStackS
 					this->onAttackPatternBeginEdit.emit(this, usedByRightClickedAttackPatternID);
 				})
 			});
-			properties->getUsedByPanel()->getListView()->connect("RightClicked", [this, rightClickMenuPopup](int index) {
+			propertiesPanel->getUsedByPanel()->getListView()->connect("RightClicked", [this, rightClickMenuPopup](int index) {
 				if (this->usedByIDMap.count(index) > 0) {
 					this->usedByRightClickedAttackPatternID = usedByIDMap[index];
 					// Open right click menu
@@ -352,7 +352,7 @@ void AttackEditorPanel::onLevelPackChange(LevelPack::LEVEL_PACK_OBJECT_HIERARCHY
 
 void AttackEditorPanel::populatePropertiesUsedByList() {
 	usedByIDMap.clear();
-	auto usedBy = properties->getUsedByPanel();
+	auto usedBy = propertiesPanel->getUsedByPanel();
 	usedBy->getListView()->removeAllItems();
 	auto attackPatternIDs = levelPack->getAttackUsers(attack->getID());
 	for (int i = 0; i < attackPatternIDs.size(); i++) {

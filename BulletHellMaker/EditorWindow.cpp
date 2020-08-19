@@ -753,7 +753,7 @@ void MainEditorWindow::openLeftPanelAttackPattern(int id) {
 			openLeftPanelPlayer();
 		});
 		attackPatternEditorPanel->connect("AttackPatternModified", [this](std::shared_ptr<EditorAttackPattern> attackPattern) {
-			unsavedAttacks[attackPattern->getID()] = std::dynamic_pointer_cast<LevelPackObject>(attackPattern);
+			unsavedAttackPatterns[attackPattern->getID()] = std::dynamic_pointer_cast<LevelPackObject>(attackPattern);
 			attackPatternsListView->reload();
 
 			previewWindow->onOriginalLevelPackAttackPatternModified(attackPattern);

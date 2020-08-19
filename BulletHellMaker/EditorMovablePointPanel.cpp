@@ -43,7 +43,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow& mainEditorWin
 	{
 		// Properties
 
-		properties = tgui::ScrollablePanel::create();
+		propertiesPanel = tgui::ScrollablePanel::create();
 		
 		id = tgui::Label::create();
 		empiAnimatableLabel = tgui::Label::create();
@@ -150,8 +150,8 @@ point will update only the values it wants to inherit to match the model."));
 		empiInheritPierceResetTime->setToolTip(createToolTip("If this is checked, this movable point will use its model's pierce reset time."));
 		empiInheritSoundSettings->setToolTip(createToolTip("If this is checked, this movable point will use its model's sound settings."));
 
-		properties->setHorizontalScrollAmount(SCROLL_AMOUNT);
-		properties->setVerticalScrollAmount(SCROLL_AMOUNT);
+		propertiesPanel->setHorizontalScrollAmount(SCROLL_AMOUNT);
+		propertiesPanel->setVerticalScrollAmount(SCROLL_AMOUNT);
 
 		empiSpawnType->setChangeItemOnScroll(false);
 		empiOnCollisionAction->setChangeItemOnScroll(false);
@@ -534,13 +534,13 @@ point will update only the values it wants to inherit to match the model."));
 			}));
 		});
 		empiSpawnLocationManualSet->connect("Pressed", [&]() {
-			savedWidgets = properties->getWidgets();
-			horizontalScrollPos = properties->getHorizontalScrollbarValue();
-			verticalScrollPos = properties->getVerticalScrollbarValue();
+			savedWidgets = propertiesPanel->getWidgets();
+			horizontalScrollPos = propertiesPanel->getHorizontalScrollbarValue();
+			verticalScrollPos = propertiesPanel->getVerticalScrollbarValue();
 
-			properties->removeAllWidgets();
-			properties->setHorizontalScrollbarValue(0);
-			properties->setVerticalScrollbarValue(0);
+			propertiesPanel->removeAllWidgets();
+			propertiesPanel->setHorizontalScrollbarValue(0);
+			propertiesPanel->setVerticalScrollbarValue(0);
 
 			float x, y;
 			try {
@@ -555,8 +555,8 @@ point will update only the values it wants to inherit to match the model."));
 			spawnTypePositionMarkerPlacer->setMarkers({std::make_pair(sf::Vector2f(x, y), sf::Color::Red)});
 			spawnTypePositionMarkerPlacer->lookAt(sf::Vector2f(0, 0));
 
-			properties->add(spawnTypePositionMarkerPlacer);
-			properties->add(spawnTypePositionMarkerPlacerFinishEditing);
+			propertiesPanel->add(spawnTypePositionMarkerPlacer);
+			propertiesPanel->add(spawnTypePositionMarkerPlacerFinishEditing);
 			spawnTypePositionMarkerPlacer->setFocused(true);
 
 			placingSpawnLocation = true;
@@ -1154,12 +1154,12 @@ point will update only the values it wants to inherit to match the model."));
 		empiShadowTrailIntervalLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiShadowTrailLifespan) + GUI_PADDING_Y);
 		empiShadowTrailInterval->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiShadowTrailIntervalLabel) + GUI_LABEL_PADDING_Y);
 
-		tgui::Layout fillWidth = tgui::bindWidth(properties) - GUI_PADDING_X * 2;
+		tgui::Layout fillWidth = tgui::bindWidth(propertiesPanel) - GUI_PADDING_X * 2;
 		empiLoopAnimation->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
 		empiAnimatable->setSize(fillWidth, 0);
 		empiBaseSprite->setSize(fillWidth, 0);
-		empiAnimatable->setAnimatablePictureSize(fillWidth, tgui::bindMin(tgui::bindWidth(properties) - GUI_PADDING_X * 2, 120));
-		empiBaseSprite->setAnimatablePictureSize(fillWidth, tgui::bindMin(tgui::bindWidth(properties) - GUI_PADDING_X * 2, 120));
+		empiAnimatable->setAnimatablePictureSize(fillWidth, tgui::bindMin(tgui::bindWidth(propertiesPanel) - GUI_PADDING_X * 2, 120));
+		empiBaseSprite->setAnimatablePictureSize(fillWidth, tgui::bindMin(tgui::bindWidth(propertiesPanel) - GUI_PADDING_X * 2, 120));
 		empiHitboxRadius->setSize(fillWidth, TEXT_BOX_HEIGHT);
 		empiDespawnTime->setSize(fillWidth, TEXT_BOX_HEIGHT);
 		empiSpawnType->setSize(fillWidth, TEXT_BOX_HEIGHT);
@@ -1182,57 +1182,57 @@ point will update only the values it wants to inherit to match the model."));
 		empiInheritPierceResetTime->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
 		empiInheritSoundSettings->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
 
-		properties->add(id);
-		properties->add(empiAnimatableLabel);
-		properties->add(empiAnimatable);
-		properties->add(empiLoopAnimation);
-		properties->add(empiBaseSpriteLabel);
-		properties->add(empiBaseSprite);
-		properties->add(isBullet);
-		properties->add(empiHitboxRadiusLabel);
-		properties->add(empiHitboxRadius);
-		properties->add(empiDespawnTimeLabel);
-		properties->add(empiDespawnTime);
-		properties->add(empiSpawnTypeLabel);
-		properties->add(empiSpawnType);
-		properties->add(empiSpawnTypeTimeLabel);
-		properties->add(empiSpawnTypeTime);
-		properties->add(empiSpawnTypeXLabel);
-		properties->add(empiSpawnTypeX);
-		properties->add(empiSpawnTypeYLabel);
-		properties->add(empiSpawnTypeY);
-		properties->add(empiSpawnLocationManualSet);
-		properties->add(empiShadowTrailLifespanLabel);
-		properties->add(empiShadowTrailLifespan);
-		properties->add(empiShadowTrailIntervalLabel);
-		properties->add(empiShadowTrailInterval);
-		properties->add(empiDamageLabel);
-		properties->add(empiDamage);
-		properties->add(empiOnCollisionActionLabel);
-		properties->add(empiOnCollisionAction);
-		properties->add(empiPierceResetTimeLabel);
-		properties->add(empiPierceResetTime);
-		properties->add(empiSoundSettingsLabel);
-		properties->add(empiSoundSettings);
-		properties->add(empiBulletModelLabel);
-		properties->add(empiBulletModel);
-		properties->add(empiInheritRadius);
-		properties->add(empiInheritDespawnTime);
-		properties->add(empiInheritShadowTrailInterval);
-		properties->add(empiInheritShadowTrailLifespan);
-		properties->add(empiInheritAnimatables);
-		properties->add(empiInheritDamage);
-		properties->add(empiInheritPierceResetTime);
-		properties->add(empiInheritSoundSettings);
+		propertiesPanel->add(id);
+		propertiesPanel->add(empiAnimatableLabel);
+		propertiesPanel->add(empiAnimatable);
+		propertiesPanel->add(empiLoopAnimation);
+		propertiesPanel->add(empiBaseSpriteLabel);
+		propertiesPanel->add(empiBaseSprite);
+		propertiesPanel->add(isBullet);
+		propertiesPanel->add(empiHitboxRadiusLabel);
+		propertiesPanel->add(empiHitboxRadius);
+		propertiesPanel->add(empiDespawnTimeLabel);
+		propertiesPanel->add(empiDespawnTime);
+		propertiesPanel->add(empiSpawnTypeLabel);
+		propertiesPanel->add(empiSpawnType);
+		propertiesPanel->add(empiSpawnTypeTimeLabel);
+		propertiesPanel->add(empiSpawnTypeTime);
+		propertiesPanel->add(empiSpawnTypeXLabel);
+		propertiesPanel->add(empiSpawnTypeX);
+		propertiesPanel->add(empiSpawnTypeYLabel);
+		propertiesPanel->add(empiSpawnTypeY);
+		propertiesPanel->add(empiSpawnLocationManualSet);
+		propertiesPanel->add(empiShadowTrailLifespanLabel);
+		propertiesPanel->add(empiShadowTrailLifespan);
+		propertiesPanel->add(empiShadowTrailIntervalLabel);
+		propertiesPanel->add(empiShadowTrailInterval);
+		propertiesPanel->add(empiDamageLabel);
+		propertiesPanel->add(empiDamage);
+		propertiesPanel->add(empiOnCollisionActionLabel);
+		propertiesPanel->add(empiOnCollisionAction);
+		propertiesPanel->add(empiPierceResetTimeLabel);
+		propertiesPanel->add(empiPierceResetTime);
+		propertiesPanel->add(empiSoundSettingsLabel);
+		propertiesPanel->add(empiSoundSettings);
+		propertiesPanel->add(empiBulletModelLabel);
+		propertiesPanel->add(empiBulletModel);
+		propertiesPanel->add(empiInheritRadius);
+		propertiesPanel->add(empiInheritDespawnTime);
+		propertiesPanel->add(empiInheritShadowTrailInterval);
+		propertiesPanel->add(empiInheritShadowTrailLifespan);
+		propertiesPanel->add(empiInheritAnimatables);
+		propertiesPanel->add(empiInheritDamage);
+		propertiesPanel->add(empiInheritPierceResetTime);
+		propertiesPanel->add(empiInheritSoundSettings);
 
-		properties->connect("SizeChanged", [this](sf::Vector2f newSize) {
+		propertiesPanel->connect("SizeChanged", [this](sf::Vector2f newSize) {
 			// This is here because of some random bug with SoundSettingsGroup
 			empiSoundSettings->setSize(newSize.x - GUI_PADDING_X * 2, 0);
 
 			spawnTypePositionMarkerPlacerFinishEditing->setPosition(newSize.x - spawnTypePositionMarkerPlacerFinishEditing->getSize().x, newSize.y - spawnTypePositionMarkerPlacerFinishEditing->getSize().y);
 		});
 
-		tabs->addTab(PROPERTIES_TAB_NAME, properties);
+		tabs->addTab(PROPERTIES_TAB_NAME, propertiesPanel);
 	}
 	{
 		// Movement tab
@@ -1416,13 +1416,13 @@ void EditorMovablePointPanel::onLevelPackChange(LevelPack::LEVEL_PACK_OBJECT_HIE
 }
 
 void EditorMovablePointPanel::finishEditingSpawnTypePosition() {
-	properties->removeAllWidgets();
+	propertiesPanel->removeAllWidgets();
 	for (auto widget : savedWidgets) {
-		properties->add(widget);
+		propertiesPanel->add(widget);
 	}
 	savedWidgets.clear();
-	properties->setHorizontalScrollbarValue(horizontalScrollPos);
-	properties->setVerticalScrollbarValue(verticalScrollPos);
+	propertiesPanel->setHorizontalScrollbarValue(horizontalScrollPos);
+	propertiesPanel->setVerticalScrollbarValue(verticalScrollPos);
 
 	std::string oldPosX = emp->getSpawnType()->getRawX();
 	std::string oldPosY = emp->getSpawnType()->getRawY();

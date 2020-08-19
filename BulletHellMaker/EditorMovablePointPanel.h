@@ -63,7 +63,7 @@ private:
 	std::shared_ptr<EMPABasedMovementEditorPanel> movementEditorPanel;
 
 	// Properties tab panel
-	std::shared_ptr<tgui::ScrollablePanel> properties;
+	std::shared_ptr<tgui::ScrollablePanel> propertiesPanel;
 	// Widgets in properties tab
 	std::shared_ptr<tgui::Label> id;
 	std::shared_ptr<tgui::Label> empiAnimatableLabel;

@@ -142,8 +142,25 @@ Notes for me:
 -Known big bugs:
     -Player death -> death sound plays every time player gets hit again
         -This is only because player death hasn't been implemented yet in CollisionSystem
+    -press V in attack editor name -> opens variables
 
 current todo:
+-PlayerPowerTier->AttackPattern                  int id, ExprSymbolTable
+ EnemySpawnInfo->Enemy                           int id, ExprSymbolTable
+ Enemy->EnemyPhase                               vector<shared_ptr<EnemyPhaseStartCondition>, int id, EntityAnimatableSet, ExprSymbolTable>>
+ ExecuteAttacksDeathAction->Attack               vector<int id, ExprSymbolTable>
+ EnemyPhase->AttackPattern                       vector<string time, int id, ExprSymbolTable>
+ AttackPattern->Attack                           vector<string time, int id, ExprSymbolTable>
+ EMP->BulletModel                                int id
+-a listview (exactly like the one created in MainEditorWindow::populateLeftPanelLevelPackObjectListPanel except
+ without "Save" right click selection); when doubleclicked/opened, populate a panel to the right of the listview;
+ for relationships without vectors, have just the panel
+    -levelpackobject deleted -> levelpack emits LevelPackObjectDeleted signal
+    -LevelPackObjectDeleted emits std::shared_ptr<Editor_____> of object that is about to get deleted; MainEditorWindow
+     captures signal and gets all of that object's users (separate signal for each level pack object type) -> updates
+     each user's usages such that the ID field of the about-to-be-deleted object relationship becomes -1 ("unselected" to
+     the user); this operation should modify the MainEditorWindow's unsavedAttacks/unsaved______ (for the users);
+     any user's open tab should reload its LevelPackObjectUseRelationshipEditor
 -Preview panel as a separate window; the object being previewed changes depending
  on the currently selected first-level tab in MainEditorWindow::mainPanel (have some "SelectedTabChanged" signal in TabsWithPanel)
     -If the object isn't legal, the preview panel will show the error message from legal()
@@ -160,6 +177,9 @@ Random things for TODOs that are noted here so I don't forget:
 -legal check for EMP should make sure there aren't illegal detach actions
 -don't allow DetachFromParentEMPAs to exist in attack patterns' actions
 -legal checks for everything should make sure all IDs used (ie attack IDs in attack patterns) are valid
+
+Code cleanup TODO:
+-Export all the CopyPasteable object constructions' strings to const static ones stored in some file
 
 TODO:
 -MoveCustomFunctionEMPA: an EMPA where x and y are expressions that can use a special symbol "t" defined in CustomFunctionMP to be

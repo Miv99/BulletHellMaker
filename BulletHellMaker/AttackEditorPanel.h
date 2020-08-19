@@ -140,7 +140,7 @@ private:
 
 	std::shared_ptr<TabsWithPanel> tabs;
 	// The properties tab
-	std::shared_ptr<AttackEditorPropertiesPanel> properties;
+	std::shared_ptr<AttackEditorPropertiesPanel> propertiesPanel;
 	// The ID of the EditorAttackPattern in usedBy that was just right clicked
 	int usedByRightClickedAttackPatternID;
 	// Maps an index in usedBy to the ID of the EditorAttackPattern being shown in that index
