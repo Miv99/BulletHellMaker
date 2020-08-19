@@ -381,7 +381,12 @@ bool EditorWindow::handleEvent(sf::Event event) {
 
 	// Disable keyboard events when confirmation panel is open
 	if (!(confirmationPanelOpen && (event.type == sf::Event::TextEntered || event.type == sf::Event::KeyPressed || event.type == sf::Event::KeyReleased))) {
-		return gui->handleEvent(event);
+		if (event.type == sf::Event::KeyPressed) {
+			return gui->handleEvent(event);
+		} else {
+			gui->handleEvent(event);
+			return false;
+		}
 	} else {
 		return true;
 	}
