@@ -28,7 +28,7 @@
 #include <SFML/Graphics.hpp>
 #include <TGUI/TGUI.hpp>
 #include <entt/entt.hpp>
-#include <boost/thread.hpp>
+#include <thread>
 
 class AttackEditorPanel;
 class LevelPackObjectsListPanel;
@@ -405,7 +405,7 @@ private:
 	// While this is checked, new previews cannot start
 	bool lockCurrentPreview = false;
 
-	boost::thread previewThread;
+	std::thread previewThread;
 
 	bool ignoreSignals = false;
 

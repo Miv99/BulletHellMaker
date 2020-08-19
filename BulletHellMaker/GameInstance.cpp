@@ -4,7 +4,6 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
-#include <boost/format.hpp>
 #include "SpriteLoader.h"
 #include "TextFileParser.h"
 #include "Components.h"
@@ -16,8 +15,7 @@
 #include "Level.h"
 #include "Enemy.h"
 #include "EnemyPhaseStartCondition.h"
-
-#include <iostream>
+#include "StringUtils.h"
 
 void GameInstance::updateWindowView(int windowWidth, int windowHeight) {
 	sf::Vector2u resolution = renderSystem->getResolution();
@@ -177,7 +175,7 @@ GameInstance::GameInstance(std::string levelPackName) {
 	scoreLabel = tgui::Label::create();
 	scoreLabel->setTextSize(24);
 	scoreLabel->setMaximumTextWidth(0);
-	scoreLabel->setText((boost::format("Score\n%010d") % 0).str());
+	scoreLabel->setText(string_format("Score\n%010d", 0));
 
 	windowHeight = window->getSize().y;
 
@@ -394,7 +392,7 @@ void GameInstance::render(float deltaTime) {
 		bossPhaseHealthBar->setValue(registry.get<HealthComponent>(currentBoss).getHealth());
 	}
 	if (bossPhaseTimeLeft->isVisible()) {
-		bossPhaseTimeLeft->setText((boost::format("%.2f") % (bossNextPhaseStartTime - registry.get<EnemyComponent>(currentBoss).getTimeSinceLastPhase())).str());
+		bossPhaseTimeLeft->setText(string_format("%.2f", (bossNextPhaseStartTime - registry.get<EnemyComponent>(currentBoss).getTimeSinceLastPhase())));
 
 		// Move timer based on player position so that the user's vision isn't obstructed
 		uint32_t player = registry.attachee<PlayerTag>();
@@ -464,7 +462,6 @@ void GameInstance::endLevel() {
 
 void GameInstance::gameOver() {
 	// TODO
-	std::cout << "player died" << std::endl;
 }
 
 void GameInstance::handleEvent(sf::Event event) {
@@ -557,7 +554,7 @@ void GameInstance::onPlayerHPChange(int newHP, int maxHP) {
 }
 
 void GameInstance::onPointsChange(int levelPoints) {
-	scoreLabel->setText((boost::format("Score\n%010d") % (points + levelPoints)).str());
+	scoreLabel->setText(string_format("Score\n%010d", points + levelPoints));
 }
 
 void GameInstance::onPlayerPowerLevelChange(int powerLevelIndex, int powerLevelMaxTierCount, int powerLevel) {
@@ -629,7 +626,7 @@ void GameInstance::onBossPhaseChange(uint32_t boss, std::shared_ptr<EditorEnemyP
 		// Show timer
 		bossPhaseTimeLeft->setVisible(true);
 		bossPhaseHealthBar->setVisible(false);
-		bossPhaseTimeLeft->setText((boost::format("%.2f") % (bossNextPhaseStartTime - registry.get<EnemyComponent>(boss).getTimeSinceLastPhase())).str());
+		bossPhaseTimeLeft->setText(string_format("%.2f", bossNextPhaseStartTime - registry.get<EnemyComponent>(boss).getTimeSinceLastPhase()));
 
 		bossNextPhaseStartTime = std::dynamic_pointer_cast<TimeBasedEnemyPhaseStartCondition>(nextPhaseStartCondition)->getTime();
 

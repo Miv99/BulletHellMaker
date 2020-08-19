@@ -2,12 +2,12 @@
 #include "Constants.h"
 #include "EditorWindow.h"
 #include <map>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <iostream>
 #include <algorithm>
+#include <filesystem>
 #include "Level.h"
 #include "matplotlibcpp.h"
-#include "boost/thread.hpp"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -736,7 +736,7 @@ void SoundSettingsGroup::populateFileNames(std::string pathToSoundsFolder) {
 	fileNameLabel->setToolTip(createToolTip("The name of the audio file. Only WAV, OGG/Vorbis, and FLAC files are supported. Files must be in the folder \"" + pathToSoundsFolder + "\""));
 
 	// Populate fileName with all supported sound files in the directory
-	for (const auto & entry : boost::filesystem::directory_iterator(pathToSoundsFolder)) {
+	for (const auto & entry : std::filesystem::directory_iterator(pathToSoundsFolder)) {
 		std::string filePath = entry.path().string();
 		std::string type = filePath.substr(filePath.find_last_of('.'));
 		if (!(type == ".wav" || type == ".ogg" || type == ".flac")) {

@@ -6,7 +6,7 @@
 #include "TimeFunctionVariable.h"
 #include "Constants.h"
 #include "Components.h"
-#include <boost/math/special_functions/binomial.hpp>
+#include "MathUtil.h"
 
 /*
 A point that can move.
@@ -183,7 +183,7 @@ private:
 		} else {
 			sf::Vector2f sum(0, 0);
 			for (int i = 0; i < numControlPoints; i++) {
-				sum += boost::math::binomial_coefficient<float>(numControlPoints - 1, i) * std::pow(1.0f - time, numControlPoints - 1 - i) * std::pow(time, i) * controlPoints[i];
+				sum += binom(numControlPoints - 1, i) * std::pow(1.0f - time, numControlPoints - 1 - i) * std::pow(time, i) * controlPoints[i];
 			}
 			return sum;
 		}

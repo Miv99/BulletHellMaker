@@ -3,8 +3,6 @@
 #include "TextMarshallable.h"
 #include "IOUtils.h"
 #include <fstream>
-#include <boost/log/trivial.hpp>
-#include <boost/filesystem.hpp>
 #include <regex>
 #include <sstream>
 #include <limits>
@@ -114,7 +112,7 @@ bool SpriteData::operator==(const SpriteData & other) const {
 
 SpriteLoader::SpriteLoader(const std::string& levelPackRelativePath, const std::vector<std::pair<std::string, std::string>>& spriteSheetNamePairs) 
 	: levelPackRelativePath(levelPackRelativePath) {
-	backgroundsCache = std::make_unique<Cache<std::string, std::pair<std::shared_ptr<sf::Texture>, std::time_t>>>(BACKGROUNDS_CACHE_MAX_SIZE);
+	backgroundsCache = std::make_unique<Cache<std::string, std::pair<std::shared_ptr<sf::Texture>, std::filesystem::file_time_type>>>(BACKGROUNDS_CACHE_MAX_SIZE);
 	for (std::pair<std::string, std::string> namesPair : spriteSheetNamePairs) {
 		if (!loadSpriteSheet(namesPair.first, namesPair.second)) {
 			throw "Unable to load sprite sheet meta file \"" + namesPair.first + "\" and/or sprite sheet \"" + namesPair.second + "\"";
@@ -139,9 +137,9 @@ std::shared_ptr<sf::Texture> SpriteLoader::getBackground(const std::string& back
 	if (!fileExists(filePath)) {
 		return nullptr;
 	}
-	std::time_t fileLastModified = boost::filesystem::last_write_time(filePath);
+	std::filesystem::file_time_type fileLastModified = std::filesystem::last_write_time(filePath);
 	if (backgroundsCache->contains(backgroundFileName)) {
-		std::pair<std::shared_ptr<sf::Texture>, std::time_t> backgroundData = backgroundsCache->get(backgroundFileName);
+		std::pair<std::shared_ptr<sf::Texture>, std::filesystem::file_time_type> backgroundData = backgroundsCache->get(backgroundFileName);
 		if (backgroundData.second == fileLastModified) {
 			// File has not been modified, so return the cached texture
 			return backgroundData.first;
@@ -304,7 +302,8 @@ bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, c
 		spriteSheets[spriteSheetName] = sheet;
 	}
 	catch (std::exception e) {
-		BOOST_LOG_TRIVIAL(error) << "Invalid format in \"" + spriteSheetMetaFileName + "\"; " + e.what();
+		// TODO: log this
+		// BOOST_LOG_TRIVIAL(error) << "Invalid format in \"" + spriteSheetMetaFileName + "\"; " + e.what();
 		metafile.close();
 		return false;
 	}

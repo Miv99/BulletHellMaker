@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include <filesystem>
 #include "Animation.h"
 #include "LRUCache.h"
 
@@ -126,7 +127,7 @@ private:
 	// Maps SpriteSheet name (as specified in the meta file) to SpriteSheet
 	std::map<std::string, std::shared_ptr<SpriteSheet>> spriteSheets;
 	// Cache of backgrounds; key is a pair of the background file name and value is a pair of the texture and the file's last modified time
-	std::unique_ptr<Cache<std::string, std::pair<std::shared_ptr<sf::Texture>, std::time_t>>> backgroundsCache;
+	std::unique_ptr<Cache<std::string, std::pair<std::shared_ptr<sf::Texture>, std::filesystem::file_time_type>>> backgroundsCache;
 	// Returns true if the meta file and image file were successfully loaded
 	bool loadSpriteSheet(const std::string& spriteSheetMetaFileName, const std::string& spriteSheetImageFileName);
 };

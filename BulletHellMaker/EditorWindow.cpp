@@ -7,7 +7,6 @@
 #include "AttackPatternEditorPanel.h"
 #include "LevelPackObjectsListPanel.h"
 #include <algorithm>
-#include <boost/date_time.hpp>
 #include <sstream>
 #include <iterator>
 #include <set>
@@ -480,7 +479,7 @@ void MainEditorWindow::loadLevelPack(std::string levelPackName) {
 
 	// TODO: window size from settings
 	previewWindow = std::make_shared<LevelPackObjectPreviewWindow>(tguiMutex, "Preview", 1024, 768, levelPackName);
-	boost::thread previewWindowThread = boost::thread(&LevelPackObjectPreviewWindow::start, &(*previewWindow));
+	std::thread previewWindowThread = std::thread(&LevelPackObjectPreviewWindow::start, &(*previewWindow));
 	previewWindowThread.detach();
 }
 
@@ -985,8 +984,10 @@ void LevelPackObjectPreviewWindow::previewNothing() {
 	if (window->isOpen()) {
 		previewObjectLabel->setText("Nothing being previewed");
 
-		previewThread.join();
-		previewThread = boost::thread(&LevelPackObjectPreviewPanel::previewNothing, &(*previewPanel));
+		if (previewThread.joinable()) {
+			previewThread.join();
+		}
+		previewThread = std::thread(&LevelPackObjectPreviewPanel::previewNothing, &(*previewPanel));
 		previewThread.detach();
 	}
 }
@@ -995,8 +996,10 @@ void LevelPackObjectPreviewWindow::previewAttack(const std::shared_ptr<EditorAtt
 	if (window->isOpen() && !lockCurrentPreview) {
 		previewObjectLabel->setText("Attack ID " + std::to_string(attack->getID()));
 
-		previewThread.join();
-		previewThread = boost::thread(&LevelPackObjectPreviewPanel::previewAttack, &(*previewPanel), attack);
+		if (previewThread.joinable()) {
+			previewThread.join();
+		}
+		previewThread = std::thread(&LevelPackObjectPreviewPanel::previewAttack, &(*previewPanel), attack);
 		previewThread.detach();
 	}
 }
@@ -1005,8 +1008,10 @@ void LevelPackObjectPreviewWindow::previewAttackPattern(const std::shared_ptr<Ed
 	if (window->isOpen() && !lockCurrentPreview) {
 		previewObjectLabel->setText("Attack Pattern ID " + std::to_string(attackPattern->getID()));
 
-		previewThread.join();
-		previewThread = boost::thread(&LevelPackObjectPreviewPanel::previewAttackPattern, &(*previewPanel), attackPattern);
+		if (previewThread.joinable()) {
+			previewThread.join();
+		}
+		previewThread = std::thread(&LevelPackObjectPreviewPanel::previewAttackPattern, &(*previewPanel), attackPattern);
 		previewThread.detach();
 	}
 }
