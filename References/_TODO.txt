@@ -142,7 +142,7 @@ Notes for me:
 -Known big bugs:
     -Player death -> death sound plays every time player gets hit again
         -This is only because player death hasn't been implemented yet in CollisionSystem
-    -press V in attack editor name -> opens variables
+    -edit movable point variables -> attack unchanged
 
 current todo:
 -PlayerPowerTier->AttackPattern                  int id, ExprSymbolTable
