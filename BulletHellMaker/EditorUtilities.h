@@ -565,7 +565,8 @@ public:
 	tgui::Signal& getSignal(std::string signalName) override;
 
 private:
-	const float TFV_TIME_RESOLUTION = 0.05f; // Time between each tfv curve vertex
+	// Time between each tfv curve vertex
+	const static float TFV_TIME_RESOLUTION; 
 
 	EditorWindow& parentWindow;
 	Clipboard& clipboard;

@@ -21,6 +21,7 @@ const float MarkerPlacer::MAX_GRID_SNAP_DISTANCE = 15.0f;
 const float MarkerPlacer::MAX_GRID_SNAP_DISTANCE_SQUARED = MAX_GRID_SNAP_DISTANCE * MAX_GRID_SNAP_DISTANCE;
 const float BezierControlPointsPlacer::EVALUATOR_CIRCLE_RADIUS = 3.0f;
 const float EMPAListVisualizer::EVALUATOR_CIRCLE_RADIUS = 3.0f;
+const float TFVGroup::TFV_TIME_RESOLUTION = MAX_PHYSICS_DELTA_TIME;
 
 std::string getID(std::shared_ptr<EMPAAngleOffset> offset) {
 	if (dynamic_cast<EMPAAngleOffsetZero*>(offset.get())) {
@@ -131,8 +132,6 @@ std::vector<std::pair<std::vector<float>, std::vector<float>>> generateMPPoints(
 	std::vector<std::pair<std::vector<float>, std::vector<float>>> ret;
 	float time = 0;
 	int prevSegmentIndex = -1;
-	float lowestY = 2147483647;
-	float highestY = -2147483647;
 	std::vector<float> singleSegmentX;
 	std::vector<float> singleSegmentY;
 	while (time < tfvLifespan) {
@@ -142,6 +141,12 @@ std::vector<std::pair<std::vector<float>, std::vector<float>>> generateMPPoints(
 
 			if (valueAndSegmentIndex.second != prevSegmentIndex) {
 				if (prevSegmentIndex != -1) {
+					// Put a point at the end of the segment
+					float nextSegmentStartTime = tfv->getSegment(valueAndSegmentIndex.second).first;
+					sf::Vector2f endPos(nextSegmentStartTime, tfv->getSegment(prevSegmentIndex).second->evaluate(nextSegmentStartTime));
+					singleSegmentX.push_back(pos.x);
+					singleSegmentY.push_back(pos.y);
+
 					ret.push_back(std::make_pair(singleSegmentX, singleSegmentY));
 					singleSegmentX.clear();
 					singleSegmentY.clear();
@@ -149,8 +154,6 @@ std::vector<std::pair<std::vector<float>, std::vector<float>>> generateMPPoints(
 
 				prevSegmentIndex = valueAndSegmentIndex.second;
 			}
-			lowestY = std::min(lowestY, valueAndSegmentIndex.first);
-			highestY = std::max(highestY, valueAndSegmentIndex.first);
 
 			singleSegmentX.push_back(pos.x);
 			singleSegmentY.push_back(pos.y);
