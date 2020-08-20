@@ -1,4 +1,3 @@
-*.dll
 Debug
 Release
 ReleaseTest
@@ -14,7 +13,5 @@ BulletHellMaker\Release
 BulletHellMaker\ReleaseTest
 .vs
 *.pdb
-*.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
-*.sln
