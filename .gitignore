@@ -11,6 +11,7 @@ Tests\Release
 BulletHellMaker\Debug
 BulletHellMaker\Release
 BulletHellMaker\ReleaseTest
+BulletHellMaker\*.dll
 .vs
 *.pdb
 *.vcxproj.filters

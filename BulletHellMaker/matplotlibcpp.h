@@ -9,8 +9,11 @@
 #include <iostream>
 #include <cstdint> // <cstdint> requires c++11 support
 #include <functional>
+#include <Windows.h>
 
 #include <Python.h>
+
+#include "Config.h"
 
 #ifndef WITHOUT_NUMPY
 #  define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
@@ -138,7 +141,15 @@ private:
 #else
         char name[] = "plotting";
 #endif
+        // By default, Python searches PYTHONHOME to find imports. However, since BulletHellMaker provides
+        // a portable Python and we don't want to modify the user's environmental variables,
+        // we set the interpreter's python home to be the directory as defined in Config.h
+        char curDirectory[MAX_PATH_LENGTH];
+        GetCurrentDirectory(MAX_PATH_LENGTH, curDirectory);
+        strcat_s(curDirectory, RELATIVE_PYTHON_PATH);
+
         Py_SetProgramName(name);
+        Py_SetPythonHome(curDirectory);
         Py_Initialize();
 
 #ifndef WITHOUT_NUMPY

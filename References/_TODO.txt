@@ -48,6 +48,7 @@ Tips to put in editor somewhere:
 -User-defined sprite colors are modulated (multiplied) with the original sprite
 
 Notes for me:
+-Portable python installation 2.7.12; then install in order: numpy 1.16.5, kiwisolver 1.1.0, matplotlib 2.2.3
 -The mainEMP of an attack is always spawned at the exact same time of an attack; spawnType's time is ignored
 -Remember to call animatableSetComponent.changeState on player when it attacks
 -All sf::Sprite pointers in all Animations point to the same sf::Sprite object (if same name), so sf::Sprites from Animations must never be

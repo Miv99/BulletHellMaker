@@ -1,22 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug dev|Win32">
-      <Configuration>Debug dev</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug dev|x64">
-      <Configuration>Debug dev</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="DebugTests|Win32">
-      <Configuration>DebugTests</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="DebugTests|x64">
-      <Configuration>DebugTests</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
@@ -43,26 +27,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <Keyword>Qt4VSv1.0</Keyword>
-    <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{059C6482-912B-47A8-8399-D34E55538E46}</ProjectGuid>
-    <RootNamespace>BulletHellMaker</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugTests|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug dev|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
@@ -85,18 +53,6 @@
     <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugTests|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug dev|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
@@ -158,42 +114,15 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\C++ Libs\TGUI\include;C:\Python27\include;C:\Python27\Lib\site-packages\numpy\core\include;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\mpg123\debug;C:\C++ Libs\entt-2.7.3\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\C++ Libs\TGUI\include;packages\Python27\include;packages\Python27\Lib\site-packages\numpy\core\include;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\mpg123\debug;C:\C++ Libs\entt-2.7.3\src</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/bigobj /std:c++17 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>C:\Python27\libs;C:\C++ Libs\SFML-2.5.1\lib;C:\Python27\Lib\site-packages\numpy\core\lib;C:\C++ Libs\TGUI\build\lib\Debug;C:\C++ Libs\mpg123\debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>packages\Python27\libs;packages\Python27\Lib\site-packages\numpy\core\lib;C:\C++ Libs\SFML-2.5.1\lib;C:\C++ Libs\TGUI\build\lib\Debug;C:\C++ Libs\mpg123\debug</AdditionalLibraryDirectories>
       <AdditionalDependencies>sfml-window-d.lib;sfml-system-d.lib;sfml-main-d.lib;sfml-graphics-d.lib;sfml-audio-d.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;tgui-d.lib;libmpg123-0.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugTests|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\C++ Libs\TGUI\include;C:\Python27\include;C:\Python27\Lib\site-packages\numpy\core\include;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\mpg123\debug;C:\C++ Libs\entt-2.7.3\src;C:\C++ Libs\boost_1_69_0</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_HAS_ITERATOR_DEBUGGING=2;_ITERATOR_DEBUG_LEVEL=2;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
-    <Link>
-      <AdditionalLibraryDirectories>C:\Python27\libs;C:\C++ Libs\SFML-2.5.1\lib;C:\Python27\Lib\site-packages\numpy\core\lib;C:\C++ Libs\TGUI\build\lib\Debug;C:\C++ Libs\boost_1_69_0\stage\lib;C:\C++ Libs\mpg123\debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-window-d.lib;sfml-system-d.lib;sfml-main-d.lib;sfml-graphics-d.lib;sfml-audio-d.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;tgui-d.lib;libmpg123-0.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug dev|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(QTDIR)\include\QtWidgets;$(QTDIR)\include;C:\C++ Libs\TGUI-0.8\include;C:\Python27\include;C:\Python27\Lib\site-packages\numpy\core\include;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\mpg123\debug;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\entt-2.7.3\src;C:\C++ Libs\boost_1_69_0;C:\C++ Libs\TGUI-0.8\include</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <AdditionalLibraryDirectories>$(QTDIR)\lib;C:\C++ Libs\SFML-2.5.1\lib;C:\Python27\libs;C:\Python27\Lib\site-packages\numpy\core\lib;C:\C++ Libs\TGUI-0.8\build\lib\Debug;C:\C++ Libs\boost_1_69_0\stage\lib;C:\C++ Libs\mpg123\debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-window-d.lib;sfml-system-d.lib;sfml-main-d.lib;sfml-graphics-d.lib;sfml-audio-d.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;tgui-d.lib;libmpg123-0.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -201,36 +130,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\C++ Libs\entt-2.7.3\src;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\boost_1_69_0;C:\C++ Libs\TGUI\include;C:\Python27\Lib\site-packages\numpy\core\include;C:\Python27\include;C:\Qt\5.9.8\msvc2017_64\include\QtWidgets;C:\Qt\5.9.8\msvc2017_64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\C++ Libs\entt-2.7.3\src;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\TGUI\include;packages\Python27\Lib\site-packages\numpy\core\include;packages\Python27\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>C:\C++ Libs\mpg123\debug;C:\C++ Libs\TGUI\build\lib\Debug;C:\C++ Libs\SFML-2.5.1\lib;C:\Python27\Lib\site-packages\numpy\core\lib;C:\C++ Libs\boost_1_69_0\stage\lib;C:\Python27\libs;C:\Qt\5.9.8\msvc2017_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\C++ Libs\mpg123\debug;C:\C++ Libs\TGUI\build\lib\Debug;C:\C++ Libs\SFML-2.5.1\lib;packages\Python27\Lib\site-packages\numpy\core\lib;packages\Python27\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>sfml-window-d.lib;sfml-system-d.lib;sfml-main-d.lib;sfml-graphics-d.lib;sfml-audio-d.lib;tgui-d.lib;libmpg123-0.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugTests|x64'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\C++ Libs\entt-2.7.3\src;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\boost_1_69_0;C:\C++ Libs\TGUI\include;C:\Python27\Lib\site-packages\numpy\core\include;C:\Python27\include;C:\Qt\5.9.8\msvc2017_64\include\QtWidgets;C:\Qt\5.9.8\msvc2017_64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
-    </ClCompile>
-    <Link>
-      <AdditionalLibraryDirectories>C:\C++ Libs\mpg123\debug;C:\C++ Libs\TGUI\build\lib\Debug;C:\C++ Libs\SFML-2.5.1\lib;C:\Python27\Lib\site-packages\numpy\core\lib;C:\C++ Libs\boost_1_69_0\stage\lib;C:\Python27\libs;C:\Qt\5.9.8\msvc2017_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-window-d.lib;sfml-system-d.lib;sfml-main-d.lib;sfml-graphics-d.lib;sfml-audio-d.lib;tgui-d.lib;libmpg123-0.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug dev|x64'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\C++ Libs\entt-2.7.3\src;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\boost_1_69_0;C:\C++ Libs\TGUI\include;C:\Python27\Lib\site-packages\numpy\core\include;C:\Python27\include;C:\Qt\5.9.8\msvc2017_64\include\QtWidgets;C:\Qt\5.9.8\msvc2017_64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <AdditionalLibraryDirectories>C:\C++ Libs\mpg123\debug;C:\C++ Libs\TGUI\build\lib\Debug;C:\C++ Libs\SFML-2.5.1\lib;C:\Python27\Lib\site-packages\numpy\core\lib;C:\C++ Libs\boost_1_69_0\stage\lib;C:\Python27\libs;C:\Qt\5.9.8\msvc2017_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -240,13 +145,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\C++ Libs\TGUI\include;C:\Python27\include;C:\Python27\Lib\site-packages\numpy\core\include;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\mpg123\release;C:\C++ Libs\entt-2.7.3\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\C++ Libs\TGUI\include;packages\Python27\include;packages\Python27\Lib\site-packages\numpy\core\include;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\mpg123\release;C:\C++ Libs\entt-2.7.3\src</AdditionalIncludeDirectories>
       <AdditionalOptions>/std:c++17 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>C:\Python27\libs;C:\C++ Libs\SFML-2.5.1\lib;C:\Python27\Lib\site-packages\numpy\core\lib;C:\C++ Libs\TGUI\build\lib\Release;C:\C++ Libs\mpg123\release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>packages\Python27\libs;C:\C++ Libs\SFML-2.5.1\lib;packages\Python27\Lib\site-packages\numpy\core\lib;C:\C++ Libs\TGUI\build\lib\Release;C:\C++ Libs\mpg123\release</AdditionalLibraryDirectories>
       <AdditionalDependencies>sfml-window.lib;sfml-system.lib;sfml-main.lib;sfml-graphics.lib;sfml-audio.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;tgui.lib;libmpg123-0.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -257,17 +162,17 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\C++ Libs\TGUI\include;C:\Python27\include;C:\Python27\Lib\site-packages\numpy\core\include;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\mpg123\release;C:\C++ Libs\entt-2.7.3\src;C:\C++ Libs\boost_1_69_0</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\C++ Libs\TGUI\include;packages\Python27\include;packages\Python27\Lib\site-packages\numpy\core\include;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\mpg123\release;C:\C++ Libs\entt-2.7.3\src</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>C:\Python27\libs;C:\C++ Libs\SFML-2.5.1\lib;C:\Python27\Lib\site-packages\numpy\core\lib;C:\C++ Libs\TGUI\build\lib\Release;C:\C++ Libs\boost_1_69_0\stage\lib;C:\C++ Libs\mpg123\release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>packages\Python27\libs;C:\C++ Libs\SFML-2.5.1\lib;packages\Python27\Lib\site-packages\numpy\core\lib;C:\C++ Libs\TGUI\build\lib\Release;C:\C++ Libs\mpg123\release</AdditionalLibraryDirectories>
       <AdditionalDependencies>sfml-window.lib;sfml-system.lib;sfml-main.lib;sfml-graphics.lib;sfml-audio.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;tgui.lib;libmpg123-0.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>C:\Python27\libs;C:\C++ Libs\SFML-2.5.1\lib;C:\Python27\Lib\site-packages\numpy\core\lib;C:\C++ Libs\TGUI\build\lib\Release;C:\C++ Libs\boost_1_69_0\stage\lib;C:\C++ Libs\mpg123\release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>packages\Python27\libs;C:\C++ Libs\SFML-2.5.1\lib;packages\Python27\Lib\site-packages\numpy\core\lib;C:\C++ Libs\TGUI\build\lib\Release;C:\C++ Libs\mpg123\release</AdditionalLibraryDirectories>
       <AdditionalDependencies>sfml-window.lib;sfml-system.lib;sfml-main.lib;sfml-graphics.lib;sfml-audio.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;tgui.lib;libmpg123-0.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
@@ -278,12 +183,12 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\C++ Libs\entt-2.7.3\src;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\boost_1_69_0;C:\C++ Libs\TGUI-0.8\include;C:\Python27\Lib\site-packages\numpy\core\include;C:\Python27\include;C:\Qt\5.9.8\msvc2017_64\include\QtWidgets;C:\Qt\5.9.8\msvc2017_64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\C++ Libs\entt-2.7.3\src;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\TGUI\include;packages\Python27\Lib\site-packages\numpy\core\include;packages\Python27\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>C:\C++ Libs\mpg123\debug;C:\C++ Libs\TGUI-0.8\build\lib\Debug;C:\C++ Libs\SFML-2.5.1\lib;C:\Python27\Lib\site-packages\numpy\core\lib;C:\C++ Libs\boost_1_69_0\stage\lib;C:\Python27\libs;C:\Qt\5.9.8\msvc2017_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\C++ Libs\mpg123\debug;C:\C++ Libs\TGUI\build\lib\Debug;C:\C++ Libs\SFML-2.5.1\lib;packages\Python27\Lib\site-packages\numpy\core\lib;packages\Python27\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseTest|x64'">
@@ -293,12 +198,12 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\C++ Libs\entt-2.7.3\src;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\boost_1_69_0;C:\C++ Libs\TGUI-0.8\include;C:\Python27\Lib\site-packages\numpy\core\include;C:\Python27\include;C:\Qt\5.9.8\msvc2017_64\include\QtWidgets;C:\Qt\5.9.8\msvc2017_64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\C++ Libs\entt-2.7.3\src;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\TGUI-0.8\include;packages\Python27\Lib\site-packages\numpy\core\include;packages\Python27\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>C:\C++ Libs\mpg123\debug;C:\C++ Libs\TGUI-0.8\build\lib\Debug;C:\C++ Libs\SFML-2.5.1\lib;C:\Python27\Lib\site-packages\numpy\core\lib;C:\C++ Libs\boost_1_69_0\stage\lib;C:\Python27\libs;C:\Qt\5.9.8\msvc2017_64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\C++ Libs\mpg123\debug;C:\C++ Libs\TGUI-0.8\build\lib\Debug;C:\C++ Libs\SFML-2.5.1\lib;packages\Python27\Lib\site-packages\numpy\core\lib;packages\Python27\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -372,6 +277,7 @@
     <ClInclude Include="AttackEditorPanel.h" />
     <ClInclude Include="AttackPatternEditorPanel.h" />
     <ClInclude Include="BlurEffect.h" />
+    <ClInclude Include="Config.h" />
     <ClInclude Include="LevelPackObjectUseRelationshipEditor.h" />
     <ClInclude Include="EMPABasedMovementEditorPanel.h" />
     <ClInclude Include="ExpressionCompilable.h" />
@@ -443,9 +349,4 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-  <ProjectExtensions>
-    <VisualStudio>
-      <UserProperties Qt5Version_x0020_x64="msvc2017_64" />
-    </VisualStudio>
-  </ProjectExtensions>
 </Project>
