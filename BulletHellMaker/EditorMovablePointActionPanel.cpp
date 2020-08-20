@@ -639,6 +639,7 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 	symbolTableEditor->connect("ValueChanged", [this](ValueSymbolTable table) {
 		this->empa->setSymbolTable(table);
 		onChange(table);
+		onEMPAModify.emit(this, this->empa);
 	});
 
 	onEMPATypeChange();

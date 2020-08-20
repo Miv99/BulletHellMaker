@@ -1261,6 +1261,7 @@ point will update only the values it wants to inherit to match the model."));
 	symbolTableEditor->connect("ValueChanged", [this](ValueSymbolTable table) {
 		this->emp->setSymbolTable(table);
 		onChange(table);
+		onEMPModify.emit(this, this->emp);
 	});
 }
 
