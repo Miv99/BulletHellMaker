@@ -114,7 +114,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\C++ Libs\TGUI\include;packages\Python27\include;packages\Python27\Lib\site-packages\numpy\core\include;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\mpg123\debug;C:\C++ Libs\entt-2.7.3\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;C:\C++ Libs\TGUI\include;packages\Python27\include;packages\Python27\Lib\site-packages\numpy\core\include;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\mpg123\debug;C:\C++ Libs\entt-2.7.3\src</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/bigobj /std:c++17 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -130,7 +130,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\C++ Libs\entt-2.7.3\src;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\TGUI\include;packages\Python27\Lib\site-packages\numpy\core\include;packages\Python27\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;C:\C++ Libs\entt-2.7.3\src;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\TGUI\include;packages\Python27\Lib\site-packages\numpy\core\include;packages\Python27\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -145,7 +145,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\C++ Libs\TGUI\include;packages\Python27\include;packages\Python27\Lib\site-packages\numpy\core\include;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\mpg123\release;C:\C++ Libs\entt-2.7.3\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;C:\C++ Libs\TGUI\include;packages\Python27\include;packages\Python27\Lib\site-packages\numpy\core\include;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\mpg123\release;C:\C++ Libs\entt-2.7.3\src</AdditionalIncludeDirectories>
       <AdditionalOptions>/std:c++17 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -162,7 +162,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\C++ Libs\TGUI\include;packages\Python27\include;packages\Python27\Lib\site-packages\numpy\core\include;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\mpg123\release;C:\C++ Libs\entt-2.7.3\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;C:\C++ Libs\TGUI\include;packages\Python27\include;packages\Python27\Lib\site-packages\numpy\core\include;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\mpg123\release;C:\C++ Libs\entt-2.7.3\src</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -183,7 +183,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\C++ Libs\entt-2.7.3\src;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\TGUI\include;packages\Python27\Lib\site-packages\numpy\core\include;packages\Python27\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;C:\C++ Libs\entt-2.7.3\src;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\TGUI\include;packages\Python27\Lib\site-packages\numpy\core\include;packages\Python27\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -198,7 +198,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\C++ Libs\entt-2.7.3\src;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\TGUI-0.8\include;packages\Python27\Lib\site-packages\numpy\core\include;packages\Python27\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include;C:\C++ Libs\entt-2.7.3\src;C:\C++ Libs\SFML-2.5.1\include;C:\C++ Libs\TGUI-0.8\include;packages\Python27\Lib\site-packages\numpy\core\include;packages\Python27\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -207,144 +207,143 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Animatable.cpp" />
-    <ClCompile Include="Animation.cpp" />
-    <ClCompile Include="Attack.cpp" />
-    <ClCompile Include="AttackEditorPanel.cpp" />
-    <ClCompile Include="AttackPatternEditorPanel.cpp" />
-    <ClCompile Include="BlurEffect.cpp" />
-    <ClCompile Include="LevelPackObjectUseRelationshipEditor.cpp" />
-    <ClCompile Include="EMPABasedMovementEditorPanel.cpp" />
-    <ClCompile Include="LevelPackObjectPreviewPanel.cpp" />
-    <ClCompile Include="LevelPackObjectsListView.cpp" />
-    <ClCompile Include="AudioPlayer.cpp" />
-    <ClCompile Include="CopyPaste.cpp" />
-    <ClCompile Include="DeathAction.cpp" />
-    <ClCompile Include="DebugRenderSystem.cpp" />
-    <ClCompile Include="EditorMovablePointActionPanel.cpp" />
-    <ClCompile Include="EditorMovablePointPanel.cpp" />
-    <ClCompile Include="EditorMovablePointSpawnType.cpp" />
-    <ClCompile Include="AttackPattern.cpp" />
-    <ClCompile Include="CollisionSystem.cpp" />
-    <ClCompile Include="Components.cpp" />
-    <ClCompile Include="DespawnSystem.cpp" />
-    <ClCompile Include="EditorMovablePoint.cpp" />
-    <ClCompile Include="EditorMovablePointAction.cpp" />
-    <ClCompile Include="EditorUtilities.cpp" />
-    <ClCompile Include="EditorWindow.cpp" />
-    <ClCompile Include="Enemy.cpp" />
-    <ClCompile Include="EnemyPhase.cpp" />
-    <ClCompile Include="EnemyPhaseAction.cpp" />
-    <ClCompile Include="EnemyPhaseStartCondition.cpp" />
-    <ClCompile Include="EnemySpawn.cpp" />
-    <ClCompile Include="EnemySystem.cpp" />
-    <ClCompile Include="EntityAnimatableSet.cpp" />
-    <ClCompile Include="EntityCreationQueue.cpp" />
-    <ClCompile Include="ExtraSignals.cpp" />
-    <ClCompile Include="GameInstance.cpp" />
-    <ClCompile Include="CollectibleSystem.cpp" />
-    <ClCompile Include="IDGenerator.cpp" />
-    <ClCompile Include="Item.cpp" />
-    <ClCompile Include="Level.cpp" />
-    <ClCompile Include="LevelEvent.cpp" />
-    <ClCompile Include="LevelEventStartCondition.cpp" />
-    <ClCompile Include="LevelPack.cpp" />
-    <ClCompile Include="LevelPackObject.cpp" />
-    <ClCompile Include="LevelPackObjectsListPanel.cpp" />
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="MathUtil.cpp" />
-    <ClCompile Include="MovablePoint.cpp" />
-    <ClCompile Include="MovementSystem.cpp" />
-    <ClCompile Include="Player.cpp" />
-    <ClCompile Include="PlayerSystem.cpp" />
-    <ClCompile Include="PostEffect.cpp" />
-    <ClCompile Include="RenderSystem.cpp" />
-    <ClCompile Include="ShadowTrailSystem.cpp" />
-    <ClCompile Include="SpriteAnimationSystem.cpp" />
-    <ClCompile Include="SpriteEffectAnimation.cpp" />
-    <ClCompile Include="SpriteLoader.cpp" />
-    <ClCompile Include="SymbolTable.cpp" />
-    <ClCompile Include="SymbolTableEditor.cpp" />
-    <ClCompile Include="TextFileParser.cpp" />
-    <ClCompile Include="TextMarshallable.cpp" />
-    <ClCompile Include="TimeFunctionVariable.cpp" />
-    <ClCompile Include="ViewController.cpp" />
+    <ClInclude Include="include\Config.h" />
+    <ClInclude Include="include\Constants.h" />
+    <ClInclude Include="include\LevelPack\Animation.h" />
+    <ClInclude Include="include\DataStructs\IDGenerator.h" />
+    <ClInclude Include="include\DataStructs\LRUCache.h" />
+    <ClInclude Include="include\DataStructs\MovablePoint.h" />
+    <ClInclude Include="include\DataStructs\SpatialHashTable.h" />
+    <ClInclude Include="include\DataStructs\SpriteEffectAnimation.h" />
+    <ClInclude Include="include\DataStructs\SpriteLoader.h" />
+    <ClInclude Include="include\DataStructs\SymbolTable.h" />
+    <ClInclude Include="include\DataStructs\TimeFunctionVariable.h" />
+    <ClInclude Include="include\DataStructs\UndoStack.h" />
+    <ClInclude Include="include\Editor\AttackEditor.h" />
+    <ClInclude Include="include\Editor\AttackPattern\AttackPatternEditorPanel.h" />
+    <ClInclude Include="include\Editor\Attack\AttackEditorPanel.h" />
+    <ClInclude Include="include\Editor\CopyPaste.h" />
+    <ClInclude Include="include\Editor\CustomWidgets\EditorUtilities.h" />
+    <ClInclude Include="include\Editor\CustomWidgets\SymbolTableEditor.h" />
+    <ClInclude Include="include\Editor\EditorWindow.h" />
+    <ClInclude Include="include\Editor\EMPA\EditorMovablePointActionPanel.h" />
+    <ClInclude Include="include\Editor\EMPA\EMPABasedMovementEditorPanel.h" />
+    <ClInclude Include="include\Editor\EMP\EditorMovablePointPanel.h" />
+    <ClInclude Include="include\Editor\EventCapturable.h" />
+    <ClInclude Include="include\Editor\LevelPackObjectList\LevelPackObjectsListPanel.h" />
+    <ClInclude Include="include\Editor\LevelPackObjectList\LevelPackObjectsListView.h" />
+    <ClInclude Include="include\Editor\LevelPackObjectUseRelationship\LevelPackObjectUseRelationshipEditor.h" />
+    <ClInclude Include="include\Editor\Previewer\LevelPackObjectPreviewPanel.h" />
+    <ClInclude Include="include\Editor\Util\ExtraSignals.h" />
+    <ClInclude Include="include\Editor\ViewController.h" />
+    <ClInclude Include="include\Game\AudioPlayer.h" />
+    <ClInclude Include="include\Game\Components\Components.h" />
+    <ClInclude Include="include\Game\EntityCreationQueue.h" />
+    <ClInclude Include="include\Game\GameInstance.h" />
+    <ClInclude Include="include\Game\Systems\CollectibleSystem.h" />
+    <ClInclude Include="include\Game\Systems\CollisionSystem.h" />
+    <ClInclude Include="include\Game\Systems\DebugRenderSystem.h" />
+    <ClInclude Include="include\Game\Systems\DespawnSystem.h" />
+    <ClInclude Include="include\Game\Systems\EnemySystem.h" />
+    <ClInclude Include="include\Game\Systems\MovementSystem.h" />
+    <ClInclude Include="include\Game\Systems\PlayerSystem.h" />
+    <ClInclude Include="include\Game\Systems\RenderSystem\BlurEffect.h" />
+    <ClInclude Include="include\Game\Systems\RenderSystem\PostEffect.h" />
+    <ClInclude Include="include\Game\Systems\RenderSystem\RenderSystem.h" />
+    <ClInclude Include="include\Game\Systems\RenderSystem\ResourceHolder.h" />
+    <ClInclude Include="include\Game\Systems\ShadowTrailSystem.h" />
+    <ClInclude Include="include\Game\Systems\SpriteAnimationSystem.h" />
+    <ClInclude Include="include\LevelPack\Animatable.h" />
+    <ClInclude Include="include\LevelPack\Attack.h" />
+    <ClInclude Include="include\LevelPack\AttackPattern.h" />
+    <ClInclude Include="include\LevelPack\DeathAction.h" />
+    <ClInclude Include="include\LevelPack\EditorMovablePoint.h" />
+    <ClInclude Include="include\LevelPack\EditorMovablePointAction.h" />
+    <ClInclude Include="include\LevelPack\EditorMovablePointSpawnType.h" />
+    <ClInclude Include="include\LevelPack\Enemy.h" />
+    <ClInclude Include="include\LevelPack\EnemyPhase.h" />
+    <ClInclude Include="include\LevelPack\EnemyPhaseAction.h" />
+    <ClInclude Include="include\LevelPack\EnemyPhaseStartCondition.h" />
+    <ClInclude Include="include\LevelPack\EnemySpawn.h" />
+    <ClInclude Include="include\LevelPack\EntityAnimatableSet.h" />
+    <ClInclude Include="include\LevelPack\ExpressionCompilable.h" />
+    <ClInclude Include="include\LevelPack\Item.h" />
+    <ClInclude Include="include\LevelPack\Level.h" />
+    <ClInclude Include="include\LevelPack\LevelEvent.h" />
+    <ClInclude Include="include\LevelPack\LevelEventStartCondition.h" />
+    <ClInclude Include="include\LevelPack\LevelPack.h" />
+    <ClInclude Include="include\LevelPack\LevelPackObject.h" />
+    <ClInclude Include="include\LevelPack\Player.h" />
+    <ClInclude Include="include\LevelPack\TextMarshallable.h" />
+    <ClInclude Include="include\matplotlibcpp.h" />
+    <ClInclude Include="include\Util\IOUtils.h" />
+    <ClInclude Include="include\Util\MathUtils.h" />
+    <ClInclude Include="include\Util\StringUtils.h" />
+    <ClInclude Include="include\Util\TextFileParser.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Animatable.h" />
-    <ClInclude Include="Animation.h" />
-    <ClInclude Include="Attack.h" />
-    <ClInclude Include="AttackEditorPanel.h" />
-    <ClInclude Include="AttackPatternEditorPanel.h" />
-    <ClInclude Include="BlurEffect.h" />
-    <ClInclude Include="Config.h" />
-    <ClInclude Include="LevelPackObjectUseRelationshipEditor.h" />
-    <ClInclude Include="EMPABasedMovementEditorPanel.h" />
-    <ClInclude Include="ExpressionCompilable.h" />
-    <ClInclude Include="exprtk.hpp" />
-    <ClInclude Include="IOUtils.h" />
-    <ClInclude Include="LevelPackObjectsListPanel.h" />
-    <ClInclude Include="LevelPackObjectsListView.h" />
-    <ClInclude Include="AudioPlayer.h" />
-    <ClInclude Include="Constants.h" />
-    <ClInclude Include="CopyPaste.h" />
-    <ClInclude Include="DeathAction.h" />
-    <ClInclude Include="DebugRenderSystem.h" />
-    <ClInclude Include="EditorMovablePointActionPanel.h" />
-    <ClInclude Include="EditorMovablePointPanel.h" />
-    <ClInclude Include="EditorMovablePointSpawnType.h" />
-    <ClInclude Include="AttackPattern.h" />
-    <ClInclude Include="BulletPathFactory.h" />
-    <ClInclude Include="CollisionSystem.h" />
-    <ClInclude Include="Components.h" />
-    <ClInclude Include="DespawnSystem.h" />
-    <ClInclude Include="EditorMovablePoint.h" />
-    <ClInclude Include="EditorMovablePointAction.h" />
-    <ClInclude Include="EditorUtilities.h" />
-    <ClInclude Include="EditorWindow.h" />
-    <ClInclude Include="Enemy.h" />
-    <ClInclude Include="EnemyPhase.h" />
-    <ClInclude Include="EnemyPhaseAction.h" />
-    <ClInclude Include="EnemyPhaseStartCondition.h" />
-    <ClInclude Include="EnemySpawn.h" />
-    <ClInclude Include="EnemySystem.h" />
-    <ClInclude Include="EntityAnimatableSet.h" />
-    <ClInclude Include="EntityCreationQueue.h" />
-    <ClInclude Include="EventCapturable.h" />
-    <ClInclude Include="ExtraSignals.h" />
-    <ClInclude Include="GameInstance.h" />
-    <ClInclude Include="IDGenerator.h" />
-    <ClInclude Include="Item.h" />
-    <ClInclude Include="CollectibleSystem.h" />
-    <ClInclude Include="Level.h" />
-    <ClInclude Include="LevelEvent.h" />
-    <ClInclude Include="LevelEventStartCondition.h" />
-    <ClInclude Include="LevelPack.h" />
-    <ClInclude Include="LevelPackObject.h" />
-    <ClInclude Include="LevelPackObjectPreviewPanel.h" />
-    <ClInclude Include="LRUCache.h" />
-    <ClInclude Include="MathUtil.h" />
-    <ClInclude Include="matplotlibcpp.h" />
-    <ClInclude Include="MovablePoint.h" />
-    <ClInclude Include="MovementSystem.h" />
-    <ClInclude Include="Player.h" />
-    <ClInclude Include="PlayerSystem.h" />
-    <ClInclude Include="PostEffect.h" />
-    <ClInclude Include="RenderSystem.h" />
-    <ClInclude Include="ResourceHolder.h" />
-    <ClInclude Include="ShadowTrailSystem.h" />
-    <ClInclude Include="SpatialHashTable.h" />
-    <ClInclude Include="SpriteEffectAnimation.h" />
-    <ClInclude Include="SpriteAnimationSystem.h" />
-    <ClInclude Include="StringUtils.h" />
-    <ClInclude Include="SymbolTable.h" />
-    <ClInclude Include="SymbolTableEditor.h" />
-    <ClInclude Include="TextFileParser.h" />
-    <ClInclude Include="SpriteLoader.h" />
-    <ClInclude Include="TextMarshallable.h" />
-    <ClInclude Include="TimeFunctionVariable.h" />
-    <ClInclude Include="UndoStack.h" />
-    <ClInclude Include="ViewController.h" />
+    <ClCompile Include="src\LevelPack\Animation.cpp" />
+    <ClCompile Include="src\DataStructs\IDGenerator.cpp" />
+    <ClCompile Include="src\DataStructs\MovablePoint.cpp" />
+    <ClCompile Include="src\DataStructs\SpriteEffectAnimation.cpp" />
+    <ClCompile Include="src\DataStructs\SpriteLoader.cpp" />
+    <ClCompile Include="src\DataStructs\SymbolTable.cpp" />
+    <ClCompile Include="src\DataStructs\TimeFunctionVariable.cpp" />
+    <ClCompile Include="src\Editor\AttackPattern\AttackPatternEditorPanel.cpp" />
+    <ClCompile Include="src\Editor\Attack\AttackEditorPanel.cpp" />
+    <ClCompile Include="src\Editor\CopyPaste.cpp" />
+    <ClCompile Include="src\Editor\CustomWidgets\EditorUtilities.cpp" />
+    <ClCompile Include="src\Editor\CustomWidgets\SymbolTableEditor.cpp" />
+    <ClCompile Include="src\Editor\EditorWindow.cpp" />
+    <ClCompile Include="src\Editor\EMPA\EditorMovablePointActionPanel.cpp" />
+    <ClCompile Include="src\Editor\EMPA\EMPABasedMovementEditorPanel.cpp" />
+    <ClCompile Include="src\Editor\EMP\EditorMovablePointPanel.cpp" />
+    <ClCompile Include="src\Editor\LevelPackObjectList\LevelPackObjectsListPanel.cpp" />
+    <ClCompile Include="src\Editor\LevelPackObjectList\LevelPackObjectsListView.cpp" />
+    <ClCompile Include="src\Editor\LevelPackObjectUseRelationship\LevelPackObjectUseRelationshipEditor.cpp" />
+    <ClCompile Include="src\Editor\Previewer\LevelPackObjectPreviewPanel.cpp" />
+    <ClCompile Include="src\Editor\Util\ExtraSignals.cpp" />
+    <ClCompile Include="src\Editor\ViewController.cpp" />
+    <ClCompile Include="src\Game\AudioPlayer.cpp" />
+    <ClCompile Include="src\Game\Components\Components.cpp" />
+    <ClCompile Include="src\Game\EntityCreationQueue.cpp" />
+    <ClCompile Include="src\Game\GameInstance.cpp" />
+    <ClCompile Include="src\Game\Systems\CollectibleSystem.cpp" />
+    <ClCompile Include="src\Game\Systems\CollisionSystem.cpp" />
+    <ClCompile Include="src\Game\Systems\DebugRenderSystem.cpp" />
+    <ClCompile Include="src\Game\Systems\DespawnSystem.cpp" />
+    <ClCompile Include="src\Game\Systems\EnemySystem.cpp" />
+    <ClCompile Include="src\Game\Systems\MovementSystem.cpp" />
+    <ClCompile Include="src\Game\Systems\PlayerSystem.cpp" />
+    <ClCompile Include="src\Game\Systems\RenderSystem\BlurEffect.cpp" />
+    <ClCompile Include="src\Game\Systems\RenderSystem\PostEffect.cpp" />
+    <ClCompile Include="src\Game\Systems\RenderSystem\RenderSystem.cpp" />
+    <ClCompile Include="src\Game\Systems\ShadowTrailSystem.cpp" />
+    <ClCompile Include="src\Game\Systems\SpriteAnimationSystem.cpp" />
+    <ClCompile Include="src\LevelPack\Animatable.cpp" />
+    <ClCompile Include="src\LevelPack\Attack.cpp" />
+    <ClCompile Include="src\LevelPack\AttackPattern.cpp" />
+    <ClCompile Include="src\LevelPack\DeathAction.cpp" />
+    <ClCompile Include="src\LevelPack\EditorMovablePoint.cpp" />
+    <ClCompile Include="src\LevelPack\EditorMovablePointAction.cpp" />
+    <ClCompile Include="src\LevelPack\EditorMovablePointSpawnType.cpp" />
+    <ClCompile Include="src\LevelPack\Enemy.cpp" />
+    <ClCompile Include="src\LevelPack\EnemyPhase.cpp" />
+    <ClCompile Include="src\LevelPack\EnemyPhaseAction.cpp" />
+    <ClCompile Include="src\LevelPack\EnemyPhaseStartCondition.cpp" />
+    <ClCompile Include="src\LevelPack\EnemySpawn.cpp" />
+    <ClCompile Include="src\LevelPack\EntityAnimatableSet.cpp" />
+    <ClCompile Include="src\LevelPack\Item.cpp" />
+    <ClCompile Include="src\LevelPack\Level.cpp" />
+    <ClCompile Include="src\LevelPack\LevelEvent.cpp" />
+    <ClCompile Include="src\LevelPack\LevelEventStartCondition.cpp" />
+    <ClCompile Include="src\LevelPack\LevelPack.cpp" />
+    <ClCompile Include="src\LevelPack\LevelPackObject.cpp" />
+    <ClCompile Include="src\LevelPack\Player.cpp" />
+    <ClCompile Include="src\LevelPack\TextMarshallable.cpp" />
+    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Util\MathUtils.cpp" />
+    <ClCompile Include="src\Util\TextFileParser.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
