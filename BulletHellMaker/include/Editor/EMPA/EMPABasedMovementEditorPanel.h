@@ -1,7 +1,7 @@
 #pragma once
 #include <TGUI/TGUI.hpp>
 
-#include <Editor/CustomWidgets/EditorUtilities.h>
+#include <Editor/CustomWidgets/EMPAListVisualizer.h>
 #include <Editor/CopyPaste.h>
 #include <DataStructs/UndoStack.h>
 #include <Editor/EditorWindow.h>
@@ -11,6 +11,8 @@
 class EMPABasedMovementEditorPanel;
 
 /*
+Helper class for EMPABasedMovementEditorPanel.
+
 Panel containing a ListView used to edit a vector of EMPActions.
 */
 class EditorMovablePointActionsListView : public ListViewScrollablePanel, public EventCapturable, public CopyPasteable {
@@ -39,6 +41,8 @@ private:
 };
 
 /*
+Helper class for EMPABasedMovementEditorPanel.
+
 An EventCapturable basic tgui::Panel to be used by EMPABasedMovementEditorPanel for viewing a EditorMovablePointActionsListView.
 This widget's main purpose is to pass events down to the child EditorMovablePointActionsListView widget and hold
 utility buttons that can't be scrolled past.
@@ -67,6 +71,8 @@ private:
 };
 
 /*
+Helper class for EMPABasedMovementEditorPanel.
+
 A tgui::Panel used as a tab in EMPABasedMovementEditorPanel to view all EMPAs and their combined movement path.
 */
 class EMPAsVisualizerPanel : public tgui::Panel, public EventCapturable {

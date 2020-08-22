@@ -1,5 +1,9 @@
 #include <Editor/EMP/EditorMovablePointPanel.h>
 
+#include <Config.h>
+#include <GuiConfig.h>
+#include <Util/StringUtils.h>
+#include <Editor/Util/EditorUtils.h>
 #include <Editor/EMPA/EditorMovablePointActionPanel.h>
 
 const std::string EditorMovablePointPanel::PROPERTIES_TAB_NAME = "MP Properties";

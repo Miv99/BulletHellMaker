@@ -10,6 +10,11 @@
 #include <DataStructs/UndoStack.h>
 #include <Editor/Util/ExtraSignals.h>
 #include <Editor/CustomWidgets/SymbolTableEditor.h>
+#include <Editor/CustomWidgets/EditBox.h>
+#include <Editor/CustomWidgets/TFVGroup.h>
+#include <Editor/CustomWidgets/EMPAAngleOffsetGroup.h>
+#include <Editor/CustomWidgets/BezierControlPointsPlacer.h>
+#include <Editor/CustomWidgets/SingleMarkerPlacer.h>
 
 /*
 Panel used to edit an EMPAction.

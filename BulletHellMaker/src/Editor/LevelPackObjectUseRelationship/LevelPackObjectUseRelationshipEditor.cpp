@@ -1,5 +1,8 @@
 #include <Editor/LevelPackObjectUseRelationship/LevelPackObjectUseRelationshipEditor.h>
 
+#include <GuiConfig.h>
+#include <Editor/Util/EditorUtils.h>
+
 LevelPackObjectUseRelationshipEditor::LevelPackObjectUseRelationshipEditor(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, LevelPack& levelPack, int undoStackSize) 
 	: mainEditorWindow(mainEditorWindow), clipboard(clipboard), levelPack(levelPack) {
 	listPanel = tgui::Panel::create();

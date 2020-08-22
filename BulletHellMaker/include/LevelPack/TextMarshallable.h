@@ -51,37 +51,6 @@ and split()
 std::string formatString(std::string str);
 
 /*
-Format a number for display only.
-*/
-template<typename T>
-std::string formatNum(const T &n) {
-	std::string s = std::to_string(n);
-	int dotpos = s.find_first_of('.');
-	if (dotpos != std::string::npos) {
-		int ipos = s.size() - 1;
-		while (s[ipos] == '0' && ipos > dotpos) {
-			--ipos;
-		}
-		s.erase(ipos + 1, std::string::npos);
-	}
-
-	if (s.size() > 0 && s.find('.') != std::string::npos) {
-		// Remove trailing zeros and dot if the string has a dot
-		int i = s.size() - 1;
-		while (i > 0 && (s[i] == '0' || s[i] == '.')) {
-			i--;
-			if (s[i + 1] == '.') {
-				break;
-			}
-		}
-
-		return s.substr(0, i + 1);
-	} else {
-		return s;
-	}
-}
-
-/*
 Due to spaghetti code with split() and encodeString(), the user's implementation of format() can
 never have the character '@' or '|', unless it is part of another TextMarshallable object or in a string.
 */

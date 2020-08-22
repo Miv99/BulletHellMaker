@@ -1,153 +1,11 @@
 #include <Editor/Attack/AttackEditorPanel.h>
 
+#include <Editor/EditorWindow.h>
+#include <Editor/Util/EditorUtils.h>
+#include <Editor/Attack/EditorMovablePointTreePanel.h>
+
 const std::string AttackEditorPanel::PROPERTIES_TAB_NAME = "Atk. Properties";
 const std::string AttackEditorPanel::EMP_TAB_NAME_FORMAT = "MP %d";
-
-AttackEditorPropertiesPanel::AttackEditorPropertiesPanel(MainEditorWindow& mainEditorWindow, Clipboard & clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize) : CopyPasteable("EditorAttack"), mainEditorWindow(mainEditorWindow), clipboard(clipboard), 
-attack(attack), undoStack(UndoStack(undoStackSize)) {
-	std::shared_ptr<tgui::Label> id = tgui::Label::create();
-	std::shared_ptr<tgui::Label> nameLabel = tgui::Label::create();
-	name = EditBox::create();
-	std::shared_ptr<tgui::Label> usedByLabel = tgui::Label::create();
-	usedBy = ListViewScrollablePanel::create();
-
-	id->setText("Attack ID " + std::to_string(attack->getID()));
-	nameLabel->setText("Name");
-	name->setText(attack->getName());
-	usedByLabel->setText("Used by");
-
-	id->setTextSize(TEXT_SIZE);
-	nameLabel->setTextSize(TEXT_SIZE);
-	name->setTextSize(TEXT_SIZE);
-	usedByLabel->setTextSize(TEXT_SIZE);
-	usedBy->getListView()->setTextSize(TEXT_SIZE);
-
-	id->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
-	nameLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(id) + GUI_PADDING_Y);
-	name->setPosition(tgui::bindLeft(id), tgui::bindBottom(nameLabel) + GUI_LABEL_PADDING_Y);
-	usedByLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(name) + GUI_PADDING_Y);
-	usedBy->setPosition(tgui::bindLeft(id), tgui::bindBottom(usedByLabel) + GUI_LABEL_PADDING_Y);
-
-	connect("SizeChanged", [this](sf::Vector2f newSize) {
-		name->setSize(newSize.x - GUI_PADDING_X * 2, tgui::bindHeight(name));
-		usedBy->setSize(newSize.x - GUI_PADDING_X * 2, newSize.y - tgui::bindTop(usedBy) - GUI_PADDING_Y);
-	});
-
-	name->connect("ValueChanged", [this](std::string text) {
-		if (ignoreSignals) {
-			return;
-		}
-
-		std::string oldName = this->attack->getName();
-
-		if (text != oldName) {
-			undoStack.execute(UndoableCommand([this, text]() {
-				this->attack->setName(text);
-				name->setText(text);
-				onAttackModify.emit(this);
-			}, [this, oldName]() {
-				this->attack->setName(oldName);
-				name->setText(oldName);
-				onAttackModify.emit(this);
-			}));
-		}
-	});
-
-	add(id);
-	add(nameLabel);
-	add(name);
-	add(usedByLabel);
-	add(usedBy);
-}
-
-std::pair<std::shared_ptr<CopiedObject>, std::string> AttackEditorPropertiesPanel::copyFrom() {
-	// Can't copy this widget
-	return std::make_pair(nullptr, "");
-}
-
-std::string AttackEditorPropertiesPanel::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
-	// Same functionality as paste2Into()
-	return paste2Into(pastedObject);
-}
-
-std::string AttackEditorPropertiesPanel::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
-	// Paste the first copied EditorAttack to override attack's properties
-	auto derived = std::static_pointer_cast<CopiedLevelPackObject>(pastedObject);
-	if (derived) {
-		std::vector<std::shared_ptr<EditorAttack>> copiedAttacks;
-		for (auto obj : derived->getLevelPackObjects()) {
-			copiedAttacks.push_back(std::dynamic_pointer_cast<EditorAttack>(obj));
-		}
-		if (copiedAttacks.size() > 0) {
-			std::shared_ptr<EditorAttack> newAttack = std::make_shared<EditorAttack>(attack);
-			newAttack->setName(copiedAttacks[0]->getName());
-
-			mainEditorWindow.promptConfirmation("Overwrite this attack's properties with the copied attack's properties?", newAttack)->sink()
-				.connect<AttackEditorPropertiesPanel, &AttackEditorPropertiesPanel::onPasteIntoConfirmation>(this);
-		}
-	}
-	return "";
-}
-
-bool AttackEditorPropertiesPanel::handleEvent(sf::Event event) {
-	if (event.type == sf::Event::KeyPressed) {
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
-			if (event.key.code == sf::Keyboard::Z) {
-				manualUndo();
-				return true;
-			} else if (event.key.code == sf::Keyboard::Y) {
-				manualRedo();
-				return true;
-			} else if (event.key.code == sf::Keyboard::V) {
-				manualPaste();
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-tgui::Signal & AttackEditorPropertiesPanel::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onAttackModify.getName())) {
-		return onAttackModify;
-	}
-	return tgui::Panel::getSignal(signalName);
-}
-
-void AttackEditorPropertiesPanel::manualPaste() {
-	clipboard.paste2(this);
-}
-
-std::shared_ptr<ListViewScrollablePanel> AttackEditorPropertiesPanel::getUsedByPanel() {
-	return usedBy;
-}
-
-void AttackEditorPropertiesPanel::manualUndo() {
-	undoStack.undo();
-}
-
-void AttackEditorPropertiesPanel::manualRedo() {
-	undoStack.redo();
-}
-
-void AttackEditorPropertiesPanel::onPasteIntoConfirmation(bool confirmed, std::shared_ptr<EditorAttack> newAttack) {
-	if (confirmed) {
-		std::string oldName = attack->getName();
-		std::string newName = newAttack->getName();
-		undoStack.execute(UndoableCommand([this, newName]() {
-			ignoreSignals = true;
-			attack->setName(newName);
-			this->name->setText(newName);
-			ignoreSignals = false;
-
-			onAttackModify.emit(this);
-		}, [this, oldName]() {
-			attack->setName(oldName);
-			this->name->setText(oldName);
-			onAttackModify.emit(this);
-		}));
-	}
-}
 
 AttackEditorPanel::AttackEditorPanel(MainEditorWindow& mainEditorWindow, std::shared_ptr<LevelPack> levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize) : mainEditorWindow(mainEditorWindow), levelPack(levelPack),
 spriteLoader(spriteLoader), clipboard(clipboard), undoStack(UndoStack(undoStackSize)), attack(attack) {
@@ -156,100 +14,95 @@ spriteLoader(spriteLoader), clipboard(clipboard), undoStack(UndoStack(undoStackS
 	tabs->setSize("100%", "100%");
 	add(tabs);
 
-	{
-		// Properties
-		propertiesPanel = AttackEditorPropertiesPanel::create(mainEditorWindow, clipboard, attack);
-		propertiesPanel->connect("AttackModified", [this]() {
-			onAttackModify.emit(this, this->attack);
-		});
-		tabs->addTab(PROPERTIES_TAB_NAME, propertiesPanel);
+	// Properties
+	propertiesPanel = AttackEditorPropertiesPanel::create(mainEditorWindow, clipboard, attack);
+	propertiesPanel->connect("AttackModified", [this]() {
+		onAttackModify.emit(this, this->attack);
+	});
+	tabs->addTab(PROPERTIES_TAB_NAME, propertiesPanel);
 
-		// Populate the usedBy list when the level pack is changed
-		levelPack->getOnChange()->sink().connect<AttackEditorPanel, &AttackEditorPanel::onLevelPackChange>(this);
-		// Initial population
-		populatePropertiesUsedByList();
+	// Populate the usedBy list when the level pack is changed
+	levelPack->getOnChange()->sink().connect<AttackEditorPanel, &AttackEditorPanel::onLevelPackChange>(this);
+	// Initial population
+	populatePropertiesUsedByList();
 
-		propertiesPanel->getUsedByPanel()->getListView()->connect("DoubleClicked", [&](int index) {
-			if (usedByIDMap.count(index) > 0) {
-				onAttackPatternBeginEdit.emit(this, usedByIDMap[index]);
-			}
-		});
-
-		{
-			// Right click menu for usedBy
-			auto rightClickMenuPopup = createMenuPopup({
-				std::make_pair("Edit", [this]() {
-					this->onAttackPatternBeginEdit.emit(this, usedByRightClickedAttackPatternID);
-				})
-			});
-			propertiesPanel->getUsedByPanel()->getListView()->connect("RightClicked", [this, rightClickMenuPopup](int index) {
-				if (this->usedByIDMap.count(index) > 0) {
-					this->usedByRightClickedAttackPatternID = usedByIDMap[index];
-					// Open right click menu
-					this->mainEditorWindow.addPopupWidget(rightClickMenuPopup, this->mainEditorWindow.getMousePos().x, this->mainEditorWindow.getMousePos().y, 150, rightClickMenuPopup->getSize().y);
-				}
-			});
+	propertiesPanel->getUsedByPanel()->getListView()->connect("DoubleClicked", [&](int index) {
+		if (usedByIDMap.count(index) > 0) {
+			onAttackPatternBeginEdit.emit(this, usedByIDMap[index]);
 		}
-	}
+	});
+
 	{
-		// EMP tree view
-		std::shared_ptr<EditorMovablePointTreePanel> emps = EditorMovablePointTreePanel::create(*this, clipboard, attack);
-		emps->connect("EMPModified", [this](std::shared_ptr<EditorMovablePoint> modifiedEMP) {
-			populateEMPsTreeView();
-
-			// Reload EMP tab of the modifiedEMP and all its children
-			if (modifiedEMP) {
-				std::vector<int> modifiedEmpIDs = modifiedEMP->getChildrenIDs();
-				reloadEMPTab(modifiedEMP->getID());
-				for (auto modifiedEmpID : modifiedEmpIDs) {
-					reloadEMPTab(modifiedEmpID);
-				}
-			}
-
-			onAttackModify.emit(this, this->attack);
+		// Right click menu for usedBy
+		auto rightClickMenuPopup = createMenuPopup({
+			std::make_pair("Edit", [this]() {
+				this->onAttackPatternBeginEdit.emit(this, usedByRightClickedAttackPatternID);
+			})
 		});
-		emps->connect("MainEMPChildDeleted", [this](int empID) {
-			// Remove the EMP tab if it exists
-			std::string tabName = format(EMP_TAB_NAME_FORMAT, empID);
-			if (tabs->hasTab(tabName)) {
-				tabs->removeTab(tabName);
+		propertiesPanel->getUsedByPanel()->getListView()->connect("RightClicked", [this, rightClickMenuPopup](int index) {
+			if (this->usedByIDMap.count(index) > 0) {
+				this->usedByRightClickedAttackPatternID = usedByIDMap[index];
+				// Open right click menu
+				this->mainEditorWindow.addPopupWidget(rightClickMenuPopup, this->mainEditorWindow.getMousePos().x, this->mainEditorWindow.getMousePos().y, 150, rightClickMenuPopup->getSize().y);
 			}
 		});
-		empsTreeView = emps->getEmpsTreeView();
-		tabs->addTab("MP Tree", emps, false);
-
-		{
-			// Right click menu for empsTreeView
-			auto rightClickMenuPopup = createMenuPopup({
-				// The RightClicked signal defined below guarantees that whatever node is right-clicked in emps's tree view
-				// will be selected at the time this 
-
-				std::make_pair("Open", [this]() {
-					this->openEMPTab(empsTreeView->getSelectedItem());
-				}),
-				std::make_pair("Copy", [this, emps]() {
-					emps->manualCopy();
-				}),
-				std::make_pair("Paste", [this, emps]() {
-					emps->manualPaste();
-				}),
-				std::make_pair("Paste (override this)", [this, emps]() {
-					emps->manualPaste2();
-				}),
-				std::make_pair("Delete", [this, emps]() {
-					emps->manualDelete();
-				})
-			});
-			empsTreeView->connect("RightClicked", [this, rightClickMenuPopup](std::vector<sf::String> nodeHierarchy) {
-				if (nodeHierarchy.size() > 0) {
-					// Select item manually here because right-clicking tgui::TreeView doesn't select the item automatically
-					empsTreeView->selectItem(nodeHierarchy);
-					// Open right click menu
-					this->mainEditorWindow.addPopupWidget(rightClickMenuPopup, this->mainEditorWindow.getMousePos().x, this->mainEditorWindow.getMousePos().y, 150, rightClickMenuPopup->getSize().y);
-				}
-			});
-		}
 	}
+
+	// EMP tree view
+	std::shared_ptr<EditorMovablePointTreePanel> emps = EditorMovablePointTreePanel::create(*this, clipboard, attack);
+	emps->connect("EMPModified", [this](std::shared_ptr<EditorMovablePoint> modifiedEMP) {
+		populateEMPsTreeView();
+
+		// Reload EMP tab of the modifiedEMP and all its children
+		if (modifiedEMP) {
+			std::vector<int> modifiedEmpIDs = modifiedEMP->getChildrenIDs();
+			reloadEMPTab(modifiedEMP->getID());
+			for (auto modifiedEmpID : modifiedEmpIDs) {
+				reloadEMPTab(modifiedEmpID);
+			}
+		}
+
+		onAttackModify.emit(this, this->attack);
+	});
+	emps->connect("MainEMPChildDeleted", [this](int empID) {
+		// Remove the EMP tab if it exists
+		std::string tabName = format(EMP_TAB_NAME_FORMAT, empID);
+		if (tabs->hasTab(tabName)) {
+			tabs->removeTab(tabName);
+		}
+	});
+	empsTreeView = emps->getEmpsTreeView();
+	tabs->addTab("MP Tree", emps, false);
+
+	// Right click menu for empsTreeView
+	auto rightClickMenuPopup = createMenuPopup({
+		// The RightClicked signal defined below guarantees that whatever node is right-clicked in emps's tree view
+		// will be selected at the time this 
+
+		std::make_pair("Open", [this]() {
+			this->openEMPTab(empsTreeView->getSelectedItem());
+		}),
+		std::make_pair("Copy", [this, emps]() {
+			emps->manualCopy();
+		}),
+		std::make_pair("Paste", [this, emps]() {
+			emps->manualPaste();
+		}),
+		std::make_pair("Paste (override this)", [this, emps]() {
+			emps->manualPaste2();
+		}),
+		std::make_pair("Delete", [this, emps]() {
+			emps->manualDelete();
+		})
+	});
+	empsTreeView->connect("RightClicked", [this, rightClickMenuPopup](std::vector<sf::String> nodeHierarchy) {
+		if (nodeHierarchy.size() > 0) {
+			// Select item manually here because right-clicking tgui::TreeView doesn't select the item automatically
+			empsTreeView->selectItem(nodeHierarchy);
+			// Open right click menu
+			this->mainEditorWindow.addPopupWidget(rightClickMenuPopup, this->mainEditorWindow.getMousePos().x, this->mainEditorWindow.getMousePos().y, 150, rightClickMenuPopup->getSize().y);
+		}
+	});
 
 	symbolTableEditorWindow = tgui::ChildWindow::create();
 	symbolTableEditor = ValueSymbolTableEditor::create(false, true);
@@ -411,205 +264,4 @@ sf::String AttackEditorPanel::getEMPTextInTreeView(const EditorMovablePoint& emp
 
 int AttackEditorPanel::getEMPIDFromTreeViewText(std::string text) {
 	return std::stoi(text.substr(5, text.length() - 5));
-}
-
-EditorMovablePointTreePanel::EditorMovablePointTreePanel(AttackEditorPanel& parentAttackEditorPanel, Clipboard & clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize) : CopyPasteable("EditorMovablePoint"), parentAttackEditorPanel(parentAttackEditorPanel), clipboard(clipboard),
-attack(attack), undoStack(UndoStack(undoStackSize)) {
-	empsTreeView = tgui::TreeView::create();
-	std::shared_ptr<tgui::Label> empsTreeViewLabel = tgui::Label::create();
-
-	empsTreeViewLabel->setText("Movable points");
-
-	empsTreeViewLabel->setTextSize(TEXT_SIZE);
-	empsTreeView->setTextSize(TEXT_SIZE);
-
-	empsTreeViewLabel->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
-	empsTreeView->setPosition(tgui::bindLeft(empsTreeViewLabel), tgui::bindBottom(empsTreeViewLabel) + GUI_LABEL_PADDING_Y);
-	connect("SizeChanged", [&](sf::Vector2f newSize) {
-		empsTreeView->setSize(newSize.x - GUI_PADDING_X * 2, newSize.y - tgui::bindTop(empsTreeView) - GUI_PADDING_Y);
-	});
-
-	add(empsTreeViewLabel);
-	add(empsTreeView);
-}
-
-std::pair<std::shared_ptr<CopiedObject>, std::string> EditorMovablePointTreePanel::copyFrom() {
-	auto selected = empsTreeView->getSelectedItem();
-	if (selected.size() > 0) {
-		return std::make_pair(std::make_shared<CopiedEditorMovablePoint>(getID(), attack->searchEMP(parentAttackEditorPanel.getEMPIDFromTreeViewText(selected[selected.size() - 1]))), "Copied 1 movable point");
-	}
-	return std::make_pair(nullptr, "");
-}
-
-std::string EditorMovablePointTreePanel::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
-	auto derived = std::static_pointer_cast<CopiedEditorMovablePoint>(pastedObject);
-	if (derived) {
-		auto selected = empsTreeView->getSelectedItem();
-		if (selected.size() > 0) {
-			std::shared_ptr<EditorMovablePoint> emp = derived->getEMP();
-			emp->onNewParentEditorAttack(attack);
-
-			std::shared_ptr<EditorMovablePoint> selectedEMP = attack->searchEMP(parentAttackEditorPanel.getEMPIDFromTreeViewText(selected[selected.size() - 1]));
-
-			undoStack.execute(UndoableCommand([this, emp, selectedEMP]() {
-				// Add the copied EMP as a child of the selected EMP
-				selectedEMP->addChild(emp);
-
-				onEMPModify.emit(this, emp);
-			}, [this, emp, selectedEMP]() {
-				selectedEMP->removeChild(emp->getID());
-
-				onEMPModify.emit(this, emp);
-				// Emit onMainEMPChildDeletion for the deleted EMP and all its children
-				onMainEMPChildDeletion.emit(this, emp->getID());
-				std::vector<int> deletedEmpIDs = emp->getChildrenIDs();
-				for (int deletedID : deletedEmpIDs) {
-					onMainEMPChildDeletion.emit(this, deletedID);
-				}
-			}));
-
-			return "Pasted 1 movable point";
-		}
-	}
-	return "";
-}
-
-std::string EditorMovablePointTreePanel::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
-	auto derived = std::static_pointer_cast<CopiedEditorMovablePoint>(pastedObject);
-	if (derived) {
-		auto selected = empsTreeView->getSelectedItem();
-		if (selected.size() > 0) {
-			// Overwrite the selected EMP with the copied EMP but keep the ID
-
-			std::shared_ptr<EditorMovablePoint> selectedEMP = attack->searchEMP(parentAttackEditorPanel.getEMPIDFromTreeViewText(selected[selected.size() - 1]));
-			std::string selectedEMPOldFormat = selectedEMP->format();
-
-			undoStack.execute(UndoableCommand([this, derived, selectedEMP]() {
-				std::shared_ptr<EditorMovablePoint> pastedEMP = derived->getEMP();
-
-				// Gather the ID of every EMP that will be deleted
-				std::vector<int> deletedEmpIDs = selectedEMP->getChildrenIDs();
-
-				// Do the actual pasting
-				int oldID = selectedEMP->getID();
-				selectedEMP->load(pastedEMP->format());
-				selectedEMP->setID(oldID);
-
-				onEMPModify.emit(this, selectedEMP);
-				// Emit onMainEMPChildDeletion for every deleted EMP
-				for (int deletedID : deletedEmpIDs) {
-					onMainEMPChildDeletion.emit(this, deletedID);
-				}
-			}, [this, selectedEMP, selectedEMPOldFormat]() {
-				// Gather the ID of every EMP that will be deleted
-				std::vector<int> deletedEmpIDs = selectedEMP->getChildrenIDs();
-
-				int oldID = selectedEMP->getID();
-				selectedEMP->load(selectedEMPOldFormat);
-				selectedEMP->setID(oldID);
-
-				onEMPModify.emit(this, selectedEMP);
-				// Emit onMainEMPChildDeletion for every deleted EMP
-				for (int deletedID : deletedEmpIDs) {
-					onMainEMPChildDeletion.emit(this, deletedID);
-				}
-			}));
-
-			return "Replaced 1 movable point";
-		}
-	}
-	return "";
-}
-
-bool EditorMovablePointTreePanel::handleEvent(sf::Event event) {
-	if (event.type == sf::Event::KeyPressed) {
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
-			if (event.key.code == sf::Keyboard::Z) {
-				manualUndo();
-				return true;
-			} else if (event.key.code == sf::Keyboard::Y) {
-				manualRedo();
-				return true;
-			} else if (event.key.code == sf::Keyboard::C) {
-				manualCopy();
-				return true;
-			} else if (event.key.code == sf::Keyboard::V) {
-				if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
-					manualPaste2();
-				} else {
-					manualPaste();
-				}
-				return true;
-			}
-		}
-		if (event.key.code == sf::Keyboard::Delete) {
-			manualDelete();
-		}
-	}
-	return false;
-}
-
-tgui::Signal & EditorMovablePointTreePanel::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onEMPModify.getName())) {
-		return onEMPModify;
-	} else if (signalName == tgui::toLower(onMainEMPChildDeletion.getName())) {
-		return onMainEMPChildDeletion;
-	}
-	return tgui::Panel::getSignal(signalName);
-}
-
-std::shared_ptr<tgui::TreeView> EditorMovablePointTreePanel::getEmpsTreeView() {
-	return empsTreeView;
-}
-
-void EditorMovablePointTreePanel::manualDelete() {
-	auto selected = empsTreeView->getSelectedItem();
-	// The hierarchy size must be > 1 because a size of 1 means
-	// the main EMP is selected, which should not be able to be deleted
-	if (selected.size() > 1) {
-		std::shared_ptr<EditorMovablePoint> removedEMP = attack->searchEMP(AttackEditorPanel::getEMPIDFromTreeViewText(selected[selected.size() - 1]));
-		std::shared_ptr<EditorMovablePoint> parentEMP = attack->searchEMP(AttackEditorPanel::getEMPIDFromTreeViewText(selected[selected.size() - 2]));
-
-		undoStack.execute(UndoableCommand([this, removedEMP, parentEMP]() {
-			// Remove the EMP from attack
-			int empID = removedEMP->getID();
-			parentEMP->removeChild(empID);
-
-			// Tab deletion will be taken care of by the onMainEMPChildDeletion signal, so no need to reload any tabs with the onEMPModify signal
-			onEMPModify.emit(this, nullptr);
-			// Emit onMainEMPChildDeletion for the deleted EMP and all its children
-			onMainEMPChildDeletion.emit(this, empID);
-			std::vector<int> deletedEmpIDs = removedEMP->getChildrenIDs();
-			for (int deletedID : deletedEmpIDs) {
-				onMainEMPChildDeletion.emit(this, deletedID);
-			}
-		}, [this, selected, removedEMP, empParentID = parentEMP->getID()]() {
-			// Add removedEMP back
-			int empParentID = AttackEditorPanel::getEMPIDFromTreeViewText(selected[selected.size() - 2]);
-			attack->searchEMP(empParentID)->addChild(removedEMP);
-
-			// An EMP is being added back, so no need to reload any tabs in the parent AttackEditorPanel
-			onEMPModify.emit(this, nullptr);
-		}));
-	}
-}
-
-void EditorMovablePointTreePanel::manualUndo() {
-	undoStack.undo();
-}
-
-void EditorMovablePointTreePanel::manualRedo() {
-	undoStack.redo();
-}
-
-void EditorMovablePointTreePanel::manualCopy() {
-	clipboard.copy(this);
-}
-
-void EditorMovablePointTreePanel::manualPaste() {
-	clipboard.paste(this);
-}
-
-void EditorMovablePointTreePanel::manualPaste2() {
-	clipboard.paste2(this);
 }

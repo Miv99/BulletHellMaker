@@ -6,13 +6,14 @@
 #include <vector>
 #include <algorithm>
 
+#include <GuiConfig.h>
+#include <Constants.h>
 #include <DataStructs/SpriteLoader.h>
 #include <Util/TextFileParser.h>
 #include <Game/Components/Components.h>
 #include <DataStructs/TimeFunctionVariable.h>
 #include <DataStructs/MovablePoint.h>
 #include <LevelPack/LevelPack.h>
-#include <Constants.h>
 #include <LevelPack/Player.h>
 #include <LevelPack/Level.h>
 #include <LevelPack/Enemy.h>

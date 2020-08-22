@@ -1,5 +1,10 @@
 #include <Editor/CustomWidgets/SymbolTableEditor.h>
 
+#include <GuiConfig.h>
+#include <Util/StringUtils.h>
+#include <Editor/Util/EditorUtils.h>
+#include <Editor/CustomWidgets/EditBox.h>
+
 ValueSymbolTableEditor::ValueSymbolTableEditor(bool isTableForTopLevelObject, bool isTableForObjectInTopOfLayer, int undoStackSize) : undoStack(UndoStack(undoStackSize)) {
 	canShowParentSymbols = !isTableForTopLevelObject && !isTableForObjectInTopOfLayer;
 	bool canRedelegate = !isTableForTopLevelObject && isTableForObjectInTopOfLayer;

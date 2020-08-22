@@ -5,10 +5,12 @@
 #include <iterator>
 #include <set>
 
+#include <GuiConfig.h>
 #include <Game/Components/Components.h>
 #include <LevelPack/Enemy.h>
 #include <LevelPack/EnemyPhase.h>
 #include <LevelPack/Level.h>
+#include <Editor/Util/EditorUtils.h>
 #include <Editor/Attack/AttackEditorPanel.h>
 #include <Editor/AttackPattern/AttackPatternEditorPanel.h>
 #include <Editor/LevelPackObjectList/LevelPackObjectsListPanel.h>

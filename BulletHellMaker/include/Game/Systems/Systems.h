@@ -1,0 +1,11 @@
+#pragma once
+#include <Game/Systems/RenderSystem/RenderSystem.h>
+#include <Game/Systems/CollectibleSystem.h>
+#include <Game/Systems/CollisionSystem.h>
+#include <Game/Systems/DebugRenderSystem.h>
+#include <Game/Systems/DespawnSystem.h>
+#include <Game/Systems/EnemySystem.h>
+#include <Game/Systems/MovementSystem.h>
+#include <Game/Systems/PlayerSystem.h>
+#include <Game/Systems/ShadowTrailSystem.h>
+#include <Game/Systems/SpriteAnimationSystem.h>

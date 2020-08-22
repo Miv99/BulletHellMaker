@@ -1,7 +1,7 @@
 #pragma once
 #include <TGUI/TGUI.hpp>
 
-#include <Editor/CustomWidgets/EditorUtilities.h>
+#include <Editor/CustomWidgets/ListViewScrollablePanel.h>
 #include <LevelPack/LevelPack.h>
 #include <Editor/EditorWindow.h>
 

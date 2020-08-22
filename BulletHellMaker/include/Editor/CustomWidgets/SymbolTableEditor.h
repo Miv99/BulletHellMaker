@@ -5,9 +5,11 @@
 #include <TGUI/TGUI.hpp>
 
 #include <DataStructs/SymbolTable.h>
+#include <DataStructs/UndoStack.h>
 #include <Editor/Util/ExtraSignals.h>
 #include <Editor/EventCapturable.h>
-#include <Editor/CustomWidgets/EditorUtilities.h>
+#include <Editor/CustomWidgets/NumericalEditBoxWithLimits.h>
+#include <Editor/CustomWidgets/ListBoxScrollablePanel.h>
 
 /*
 A widget that allows the user to edit a ValueSymbolTable.

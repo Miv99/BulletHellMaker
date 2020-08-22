@@ -9,7 +9,10 @@
 #include <Editor/EditorWindow.h>
 #include <DataStructs/UndoStack.h>
 #include <Editor/Util/ExtraSignals.h>
-#include <Editor/CustomWidgets/EditorUtilities.h>
+#include <Editor/CustomWidgets/EditBox.h>
+#include <Editor/CustomWidgets/AnimatableChooser.h>
+#include <Editor/CustomWidgets/SoundSettingsGroup.h>
+#include <Editor/CustomWidgets/SingleMarkerPlacer.h>
 #include <Editor/CopyPaste.h>
 #include <Editor/EMPA/EMPABasedMovementEditorPanel.h>
 #include <Editor/CustomWidgets/SymbolTableEditor.h>

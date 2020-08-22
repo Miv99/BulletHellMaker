@@ -22,7 +22,9 @@
 #include <Game/Systems/PlayerSystem.h>
 #include <Game/Systems/CollectibleSystem.h>
 #include <Game/Systems/DebugRenderSystem.h>
-#include <Editor/CustomWidgets/EditorUtilities.h>
+#include <Editor/CustomWidgets/SliderWithEditBox.h>
+#include <Editor/CustomWidgets/TextNotification.h>
+#include <Editor/CustomWidgets/TabsWithPanel.h>
 #include <Constants.h>
 #include <LevelPack/LevelPack.h>
 #include <LevelPack/Attack.h>

@@ -18,7 +18,7 @@
 #include <Game/Systems/PlayerSystem.h>
 #include <Game/AudioPlayer.h>
 #include <Game/Systems/CollectibleSystem.h>
-#include <Editor/CustomWidgets/EditorUtilities.h>
+#include <Editor/CustomWidgets/TimedLabel.h>
 #include <DataStructs/LRUCache.h>
 #include <LevelPack/Player.h>
 

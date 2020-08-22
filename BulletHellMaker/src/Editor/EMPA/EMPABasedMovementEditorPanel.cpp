@@ -1,5 +1,8 @@
 #include <Editor/EMPA/EMPABasedMovementEditorPanel.h>
 
+#include <GuiConfig.h>
+#include <Util/StringUtils.h>
+#include <Editor/Util/EditorUtils.h>
 #include <Editor/EMPA/EditorMovablePointActionPanel.h>
 
 const std::string EMPABasedMovementEditorPanel::EMPA_TAB_NAME_FORMAT = "Action %d";
