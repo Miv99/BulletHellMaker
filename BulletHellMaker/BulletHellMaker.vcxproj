@@ -235,6 +235,22 @@
     <ClInclude Include="include\Editor\CustomWidgets\TFVGroup.h" />
     <ClInclude Include="include\Editor\CustomWidgets\TimedLabel.h" />
     <ClInclude Include="include\Editor\Util\EditorUtils.h" />
+    <ClInclude Include="include\Game\Components\AnimatableSetComponent.h" />
+    <ClInclude Include="include\Game\Components\CollectibleComponent.h" />
+    <ClInclude Include="include\Game\Components\DespawnComponent.h" />
+    <ClInclude Include="include\Game\Components\EMPSpawnerComponent.h" />
+    <ClInclude Include="include\Game\Components\EnemyBulletComponent.h" />
+    <ClInclude Include="include\Game\Components\EnemyComponent.h" />
+    <ClInclude Include="include\Game\Components\HealthComponent.h" />
+    <ClInclude Include="include\Game\Components\HitboxComponent.h" />
+    <ClInclude Include="include\Game\Components\LevelManagerTag.h" />
+    <ClInclude Include="include\Game\Components\MovementPathComponent.h" />
+    <ClInclude Include="include\Game\Components\PlayerBulletComponent.h" />
+    <ClInclude Include="include\Game\Components\PlayerTag.h" />
+    <ClInclude Include="include\Game\Components\PositionComponent.h" />
+    <ClInclude Include="include\Game\Components\ShadowTrailComponent.h" />
+    <ClInclude Include="include\Game\Components\SimpleEMPReferenceComponent.h" />
+    <ClInclude Include="include\Game\Components\SpriteComponent.h" />
     <ClInclude Include="include\Game\Systems\Systems.h" />
     <ClInclude Include="include\GuiConfig.h" />
     <ClInclude Include="include\LevelPack\Animation.h" />
@@ -309,6 +325,7 @@
     <ClInclude Include="include\Util\TextFileParser.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\DataStructs\UndoStack.cpp" />
     <ClCompile Include="src\Editor\AttackPattern\AttackPatternEditorPropertiesPanel.cpp" />
     <ClCompile Include="src\Editor\Attack\AttackEditorPropertiesPanel.cpp" />
     <ClCompile Include="src\Editor\Attack\EditorMovablePointTreePanel.cpp" />
@@ -335,6 +352,21 @@
     <ClCompile Include="src\Editor\CustomWidgets\TFVGroup.cpp" />
     <ClCompile Include="src\Editor\CustomWidgets\TimedLabel.cpp" />
     <ClCompile Include="src\Editor\Util\EditorUtils.cpp" />
+    <ClCompile Include="src\Game\Components\AnimatableSetComponent.cpp" />
+    <ClCompile Include="src\Game\Components\CollectibleComponent.cpp" />
+    <ClCompile Include="src\Game\Components\DespawnComponent.cpp" />
+    <ClCompile Include="src\Game\Components\EMPSpawnerComponent.cpp" />
+    <ClCompile Include="src\Game\Components\EnemyBulletComponent.cpp" />
+    <ClCompile Include="src\Game\Components\EnemyComponent.cpp" />
+    <ClCompile Include="src\Game\Components\HealthComponent.cpp" />
+    <ClCompile Include="src\Game\Components\HitboxComponent.cpp" />
+    <ClCompile Include="src\Game\Components\LevelManagerTag.cpp" />
+    <ClCompile Include="src\Game\Components\MovementPathComponent.cpp" />
+    <ClCompile Include="src\Game\Components\PlayerBulletComponent.cpp" />
+    <ClCompile Include="src\Game\Components\PlayerTag.cpp" />
+    <ClCompile Include="src\Game\Components\PositionComponent.cpp" />
+    <ClCompile Include="src\Game\Components\ShadowTrailComponent.cpp" />
+    <ClCompile Include="src\Game\Components\SpriteComponent.cpp" />
     <ClCompile Include="src\LevelPack\Animation.cpp" />
     <ClCompile Include="src\DataStructs\IDGenerator.cpp" />
     <ClCompile Include="src\DataStructs\MovablePoint.cpp" />
@@ -357,7 +389,6 @@
     <ClCompile Include="src\Editor\Util\ExtraSignals.cpp" />
     <ClCompile Include="src\Editor\ViewController.cpp" />
     <ClCompile Include="src\Game\AudioPlayer.cpp" />
-    <ClCompile Include="src\Game\Components\Components.cpp" />
     <ClCompile Include="src\Game\EntityCreationQueue.cpp" />
     <ClCompile Include="src\Game\GameInstance.cpp" />
     <ClCompile Include="src\Game\Systems\CollectibleSystem.cpp" />
@@ -395,6 +426,7 @@
     <ClCompile Include="src\LevelPack\TextMarshallable.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Util\MathUtils.cpp" />
+    <ClCompile Include="src\Util\StringUtils.cpp" />
     <ClCompile Include="src\Util\TextFileParser.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

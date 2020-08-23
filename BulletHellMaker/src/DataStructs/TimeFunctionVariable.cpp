@@ -1,5 +1,22 @@
 #include <DataStructs/TimeFunctionVariable.h>
 
+#include <Game/Components/HitboxComponent.h>
+#include <Game/Components/PositionComponent.h>
+
+TFV::TFV() {
+}
+
+TFV::TFV(float maxTime) 
+	: maxTime(maxTime) {
+}
+
+ConstantTFV::ConstantTFV() {
+}
+
+ConstantTFV::ConstantTFV(float value) 
+	: value(value) {
+}
+
 std::shared_ptr<TFV> ConstantTFV::clone() {
 	return std::make_shared<ConstantTFV>(value);
 }
@@ -16,6 +33,13 @@ void ConstantTFV::load(std::string formattedString) {
 bool ConstantTFV::operator==(const TFV& other) const {
 	const ConstantTFV& derived = dynamic_cast<const ConstantTFV&>(other);
 	return value == derived.value;
+}
+
+LinearTFV::LinearTFV() {
+}
+
+LinearTFV::LinearTFV(float startValue, float endValue, float maxTime) 
+	: TFV(maxTime), startValue(startValue), endValue(endValue) {
 }
 
 std::shared_ptr<TFV> LinearTFV::clone() {
@@ -36,6 +60,13 @@ void LinearTFV::load(std::string formattedString) {
 bool LinearTFV::operator==(const TFV& other) const {
 	const LinearTFV& derived = dynamic_cast<const LinearTFV&>(other);
 	return startValue == derived.startValue && endValue == derived.endValue;
+}
+
+SineWaveTFV::SineWaveTFV() {
+}
+
+SineWaveTFV::SineWaveTFV(float period, float amplitude, float valueShift, float phaseShift)
+	: period(period), amplitude(amplitude), valueShift(valueShift), phaseShift(phaseShift) {
 }
 
 std::shared_ptr<TFV> SineWaveTFV::clone() {
@@ -59,6 +90,13 @@ bool SineWaveTFV::operator==(const TFV& other) const {
 	return period == derived.period && amplitude == derived.amplitude && valueShift == derived.valueShift && phaseShift == derived.phaseShift;
 }
 
+ConstantAccelerationDistanceTFV::ConstantAccelerationDistanceTFV() {
+}
+
+ConstantAccelerationDistanceTFV::ConstantAccelerationDistanceTFV(float initialDistance, float initialVelocity, float acceleration)
+	: initialDistance(initialDistance), initialVelocity(initialVelocity), acceleration(acceleration) {
+}
+
 std::shared_ptr<TFV> ConstantAccelerationDistanceTFV::clone() {
 	return std::make_shared<ConstantAccelerationDistanceTFV>(initialDistance, initialVelocity, acceleration);
 }
@@ -77,6 +115,15 @@ void ConstantAccelerationDistanceTFV::load(std::string formattedString) {
 bool ConstantAccelerationDistanceTFV::operator==(const TFV& other) const {
 	const ConstantAccelerationDistanceTFV& derived = dynamic_cast<const ConstantAccelerationDistanceTFV&>(other);
 	return initialDistance == derived.initialDistance && initialVelocity == derived.initialVelocity && acceleration == derived.acceleration;
+}
+
+DampenedStartTFV::DampenedStartTFV() {
+	a = (endValue - startValue) / pow(maxTime, 0.08f * dampeningFactor + 1);
+}
+
+DampenedStartTFV::DampenedStartTFV(float startValue, float endValue, float maxTime, int dampeningFactor) 
+	: TFV(maxTime), dampeningFactor(dampeningFactor), startValue(startValue), endValue(endValue) {
+	a = (endValue - startValue) / pow(maxTime, 0.08f * dampeningFactor + 1);
 }
 
 std::shared_ptr<TFV> DampenedStartTFV::clone() {
@@ -102,6 +149,14 @@ bool DampenedStartTFV::operator==(const TFV& other) const {
 	return a == derived.a && startValue == derived.startValue && endValue == derived.endValue && dampeningFactor == derived.dampeningFactor;
 }
 
+DampenedEndTFV::DampenedEndTFV() {
+	a = (endValue - startValue) / pow(maxTime, 0.08f * dampeningFactor + 1);
+}
+DampenedEndTFV::DampenedEndTFV(float startValue, float endValue, float maxTime, int dampeningFactor) 
+	: TFV(maxTime), dampeningFactor(dampeningFactor), startValue(startValue), endValue(endValue) {
+	a = (endValue - startValue) / pow(maxTime, 0.08f * dampeningFactor + 1);
+}
+
 std::shared_ptr<TFV> DampenedEndTFV::clone() {
 	std::shared_ptr<TFV> copy = std::make_shared<DampenedEndTFV>();
 	copy->load(format());
@@ -121,9 +176,37 @@ void DampenedEndTFV::load(std::string formattedString) {
 	dampeningFactor = std::stoi(items[5]);
 }
 
+void DampenedEndTFV::setStartValue(float startValue) {
+	this->startValue = startValue;
+	a = (endValue - startValue) / pow(maxTime, 0.08f * dampeningFactor + 1);
+}
+
+void DampenedEndTFV::setEndValue(float endValue) {
+	this->endValue = endValue;
+	a = (endValue - startValue) / pow(maxTime, 0.08f * dampeningFactor + 1);
+}
+
+void DampenedEndTFV::setDampeningFactor(int dampeningFactor) {
+	this->dampeningFactor = dampeningFactor;
+	a = (endValue - startValue) / pow(maxTime, 0.08f * dampeningFactor + 1);
+}
+
+void DampenedEndTFV::setMaxTime(float maxTime) {
+	this->maxTime = maxTime;
+	a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f * dampeningFactor + 1);
+}
+
 bool DampenedEndTFV::operator==(const TFV& other) const {
 	const DampenedEndTFV& derived = dynamic_cast<const DampenedEndTFV&>(other);
 	return a == derived.a && startValue == derived.startValue && endValue == derived.endValue && dampeningFactor == derived.dampeningFactor;
+}
+
+DoubleDampenedTFV::DoubleDampenedTFV() {
+	a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f * dampeningFactor + 1);
+}
+DoubleDampenedTFV::DoubleDampenedTFV(float startValue, float endValue, float maxTime, int dampeningFactor) 
+	: TFV(maxTime), dampeningFactor(dampeningFactor), startValue(startValue), endValue(endValue) {
+	a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f * dampeningFactor + 1);
 }
 
 std::shared_ptr<TFV> DoubleDampenedTFV::clone() {
@@ -143,9 +226,44 @@ void DoubleDampenedTFV::load(std::string formattedString) {
 	dampeningFactor = std::stoi(items[5]);
 }
 
+float DoubleDampenedTFV::evaluate(float time) {
+	if (time < maxTime / 2) {
+		return a * pow(time, 0.08f * dampeningFactor + 1) + startValue;
+	} else {
+		return -a * pow(maxTime - time, 0.08f * dampeningFactor + 1) + endValue;
+	}
+}
+
+void DoubleDampenedTFV::setStartValue(float startValue) {
+	this->startValue = startValue;
+	a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f * dampeningFactor + 1);
+}
+
+void DoubleDampenedTFV::setEndValue(float endValue) {
+	this->endValue = endValue;
+	a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f * dampeningFactor + 1);
+}
+
+void DoubleDampenedTFV::setDampeningFactor(int dampeningFactor) {
+	this->dampeningFactor = dampeningFactor;
+	a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f * dampeningFactor + 1);
+}
+
+void DoubleDampenedTFV::setMaxTime(float maxTime) {
+	this->maxTime = maxTime;
+	a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f * dampeningFactor + 1);
+}
+
 bool DoubleDampenedTFV::operator==(const TFV& other) const {
 	const DoubleDampenedTFV& derived = dynamic_cast<const DoubleDampenedTFV&>(other);
 	return a == derived.a && startValue == derived.startValue && endValue == derived.endValue && dampeningFactor == derived.dampeningFactor;
+}
+
+TranslationWrapperTFV::TranslationWrapperTFV() {
+}
+
+TranslationWrapperTFV::TranslationWrapperTFV(std::shared_ptr<TFV> wrappedTFV, float valueTranslation) 
+	: wrappedTFV(wrappedTFV), valueTranslation(valueTranslation) {
 }
 
 std::shared_ptr<TFV> TranslationWrapperTFV::clone() {
@@ -167,6 +285,9 @@ void TranslationWrapperTFV::load(std::string formattedString) {
 bool TranslationWrapperTFV::operator==(const TFV& other) const {
 	const TranslationWrapperTFV& derived = dynamic_cast<const TranslationWrapperTFV&>(other);
 	return *wrappedTFV == *derived.wrappedTFV && valueTranslation == derived.valueTranslation;
+}
+
+PiecewiseTFV::PiecewiseTFV() {
 }
 
 std::shared_ptr<TFV> PiecewiseTFV::clone() {

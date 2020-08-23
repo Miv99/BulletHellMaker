@@ -145,7 +145,7 @@ void SimpleEngineRenderer::loadLevel(std::shared_ptr<Level> level) {
 		params->getPowerTiers(), params->getHurtSound(), params->getDeathSound(), params->getInitialBombs(), params->getMaxBombs(), params->getBombInvincibilityTime());
 	auto& health = registry.assign<HealthComponent>(player, params->getInitialHealth(), params->getMaxHealth());
 	// Hitbox temporarily at 0, 0 until an Animatable is assigned to the player later
-	registry.assign<HitboxComponent>(player, LOCK_ROTATION, params->getHitboxRadius(), 0, 0);
+	registry.assign<HitboxComponent>(player, ROTATION_TYPE::LOCK_ROTATION, params->getHitboxRadius(), 0, 0);
 	registry.assign<PositionComponent>(player, playerSpawnX - params->getHitboxPosX(), playerSpawnY - params->getHitboxPosY());
 	registry.assign<SpriteComponent>(player, PLAYER_LAYER, 0);
 

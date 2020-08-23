@@ -45,30 +45,10 @@ public:
 
 	inline std::string getName() const { return name; }
 	inline int getEventsCount() const { return events.size(); }
-	inline std::shared_ptr<HealthPackItem> getHealthPack() {
-		if (!healthPack) {
-			healthPack = std::make_shared<HealthPackItem>();
-		}
-		return healthPack;
-	}
-	inline std::shared_ptr<PointsPackItem> getPointsPack() {
-		if (!pointPack) {
-			pointPack = std::make_shared<PointsPackItem>();
-		}
-		return pointPack;
-	}
-	inline std::shared_ptr<PowerPackItem> getPowerPack() {
-		if (!powerPack) {
-			powerPack = std::make_shared<PowerPackItem>();
-		}
-		return powerPack;
-	}
-	inline std::shared_ptr<BombItem> getBombItem() {
-		if (!bombItem) {
-			bombItem = std::make_shared<BombItem>();
-		}
-		return bombItem;
-	}
+	std::shared_ptr<HealthPackItem> getHealthPack();
+	std::shared_ptr<PointsPackItem> getPointsPack();
+	std::shared_ptr<PowerPackItem> getPowerPack();
+	std::shared_ptr<BombItem> getBombItem();
 
 	inline MusicSettings getMusicSettings() { return musicSettings; }
 	inline std::string getBackgroundFileName() const { return backgroundFileName; }

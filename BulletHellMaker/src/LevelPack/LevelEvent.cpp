@@ -1,5 +1,12 @@
 #include <LevelPack/LevelEvent.h>
 
+SpawnEnemiesLevelEvent::SpawnEnemiesLevelEvent() {
+}
+
+SpawnEnemiesLevelEvent::SpawnEnemiesLevelEvent(std::vector<std::shared_ptr<EnemySpawnInfo>> spawnInfo)
+	: spawnInfo(spawnInfo) {
+}
+
 std::string SpawnEnemiesLevelEvent::format() const {
 	std::string res = formatString("SpawnEnemiesLevelEvent") + tos(spawnInfo.size()) + formatTMObject(symbolTable);
 	for (auto info : spawnInfo) {
@@ -63,6 +70,13 @@ void SpawnEnemiesLevelEvent::execute(SpriteLoader & spriteLoader, LevelPack & le
 	for (std::shared_ptr<EnemySpawnInfo> info : spawnInfo) {
 		info->spawnEnemy(spriteLoader, levelPack, registry, queue);
 	}
+}
+
+ShowDialogueLevelEvent::ShowDialogueLevelEvent() {
+}
+
+ShowDialogueLevelEvent::ShowDialogueLevelEvent(std::string dialogueBoxTextureFileName, std::vector<std::string> text, PositionOnScreen pos, tgui::ShowAnimationType showAnimation) 
+	: text(text), dialogueBoxPosition(pos), dialogueBoxShowAnimationType(showAnimation), dialogueBoxTextureFileName(dialogueBoxTextureFileName) {
 }
 
 std::string ShowDialogueLevelEvent::format() const {

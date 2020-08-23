@@ -13,7 +13,6 @@
 #include <Game/Systems/EnemySystem.h>
 #include <Game/Systems/DespawnSystem.h>
 #include <Game/Systems/SpriteAnimationSystem.h>
-#include <Game/EntityCreationQueue.h>
 #include <Game/Systems/ShadowTrailSystem.h>
 #include <Game/Systems/PlayerSystem.h>
 #include <Game/AudioPlayer.h>
@@ -24,6 +23,7 @@
 
 class LevelPack;
 class LevelManagerTag;
+class EntityCreationQueue;
 
 class GameInstance {
 public:

@@ -34,8 +34,8 @@ A LevelEvent that spawns enemies.
 */
 class SpawnEnemiesLevelEvent : public LevelEvent {
 public:
-	inline SpawnEnemiesLevelEvent() {}
-	inline SpawnEnemiesLevelEvent(std::vector<std::shared_ptr<EnemySpawnInfo>> spawnInfo) : spawnInfo(spawnInfo) {}
+	SpawnEnemiesLevelEvent();
+	SpawnEnemiesLevelEvent(std::vector<std::shared_ptr<EnemySpawnInfo>> spawnInfo);
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
@@ -64,10 +64,8 @@ public:
 		BOTTOM = 1
 	};
 
-	inline ShowDialogueLevelEvent() {}
-	inline ShowDialogueLevelEvent(std::string dialogueBoxTextureFileName, std::vector<std::string> text, PositionOnScreen pos, tgui::ShowAnimationType showAnimation) : text(text),
-		dialogueBoxPosition(pos), dialogueBoxShowAnimationType(showAnimation), dialogueBoxTextureFileName(dialogueBoxTextureFileName) {
-	}
+	ShowDialogueLevelEvent();
+	ShowDialogueLevelEvent(std::string dialogueBoxTextureFileName, std::vector<std::string> text, PositionOnScreen pos, tgui::ShowAnimationType showAnimation);
 
 	std::string format() const override;
 	void load(std::string formattedString) override;

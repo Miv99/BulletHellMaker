@@ -35,9 +35,9 @@ AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprit
 		}
 	}
 
-	rotationType->addItem("Rotate with movement", std::to_string(static_cast<int>(ROTATE_WITH_MOVEMENT)));
-	rotationType->addItem("Never rotate", std::to_string(static_cast<int>(LOCK_ROTATION)));
-	rotationType->addItem("Face horizontal movement", std::to_string(static_cast<int>(LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT)));
+	rotationType->addItem("Rotate with movement", std::to_string(static_cast<int>(ROTATION_TYPE::ROTATE_WITH_MOVEMENT)));
+	rotationType->addItem("Never rotate", std::to_string(static_cast<int>(ROTATION_TYPE::LOCK_ROTATION)));
+	rotationType->addItem("Face horizontal movement", std::to_string(static_cast<int>(ROTATION_TYPE::LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT)));
 
 	if (forceSprite) {
 		animatable->setToolTip(createToolTip("The selected sprite."));
@@ -111,7 +111,7 @@ or (270, 360)) or 180 (when it is moving at angle in range (90, 270))."));
 		}
 	});
 	ignoreSignals = true;
-	rotationType->setSelectedItemById(std::to_string(static_cast<int>(LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT)));
+	rotationType->setSelectedItemById(std::to_string(static_cast<int>(ROTATION_TYPE::LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT)));
 	ignoreSignals = false;
 
 	animatable->getSharedRenderer()->setOpacityDisabled(WIDGET_OPACITY_DISABLED);
@@ -168,7 +168,7 @@ void AnimatableChooser::setValue(Animatable animatable) {
 Animatable AnimatableChooser::getValue() {
 	std::string itemText = animatable->getSelectedItem();
 	if (itemText == "") {
-		return Animatable("", "", false, LOCK_ROTATION);
+		return Animatable("", "", false, ROTATION_TYPE::LOCK_ROTATION);
 	}
 	std::string id = animatable->getSelectedItemId();
 

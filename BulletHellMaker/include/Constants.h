@@ -1,9 +1,6 @@
 #pragma once
 #include <string>
 
-#define PI 3.14159265358979323846f
-#define PI2 6.28318530717958647692
-
 // The slowest time between each physics update. If the program takes longer than this time,
 // physics is simulated at 1/MAX_PHYSICS_DELTA_TIME FPS.
 const static float MAX_PHYSICS_DELTA_TIME = 1 / 30.0f;

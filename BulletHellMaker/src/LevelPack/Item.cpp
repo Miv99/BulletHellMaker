@@ -1,6 +1,9 @@
 #include <LevelPack/Item.h>
 
 #include <LevelPack/LevelPack.h>
+#include <Game/Components/PlayerTag.h>
+#include <Game/Components/LevelManagerTag.h>
+#include <Game/Components/HealthComponent.h>
 
 std::shared_ptr<Item> ItemFactory::create(std::string formattedString) {
 	auto name = split(formattedString, DELIMITER)[0];
@@ -16,6 +19,29 @@ std::shared_ptr<Item> ItemFactory::create(std::string formattedString) {
 	}
 	ptr->load(formattedString);
 	return ptr;
+}
+
+Item::Item() {
+}
+
+Item::Item(Animatable animatable, float hitboxRadius, float activationRadius) 
+	: animatable(animatable), hitboxRadius(hitboxRadius), activationRadius(activationRadius) {
+}
+
+Item::Item(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius) 
+	: animatable(animatable), hitboxRadius(hitboxRadius), onCollectSound(onCollectSound), activationRadius(activationRadius) {
+}
+
+HealthPackItem::HealthPackItem() 
+	: Item() {
+}
+
+HealthPackItem::HealthPackItem(Animatable animatable, float hitboxRadius, float activationRadius) 
+	: Item(animatable, hitboxRadius, activationRadius) {
+}
+
+HealthPackItem::HealthPackItem(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius) 
+	: Item(animatable, hitboxRadius, onCollectSound, activationRadius) {
 }
 
 std::shared_ptr<LevelPackObject> HealthPackItem::clone() const {
@@ -57,6 +83,18 @@ void HealthPackItem::compileExpressions(std::vector<exprtk::symbol_table<float>>
 void HealthPackItem::onPlayerContact(entt::DefaultRegistry & registry, uint32_t player) {
 	Item::onPlayerContact(registry, player);
 	registry.get<HealthComponent>(player).heal(healthRestoreAmountExprCompiledValue);
+}
+
+PowerPackItem::PowerPackItem()
+	: Item() {
+}
+
+PowerPackItem::PowerPackItem(Animatable animatable, float hitboxRadius, float activationRadius)
+	: Item(animatable, hitboxRadius, activationRadius) {
+}
+
+PowerPackItem::PowerPackItem(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius)
+	: Item(animatable, hitboxRadius, onCollectSound, activationRadius) {
 }
 
 std::shared_ptr<LevelPackObject> PowerPackItem::clone() const {
@@ -103,6 +141,18 @@ void PowerPackItem::onPlayerContact(entt::DefaultRegistry & registry, uint32_t p
 	registry.get<PlayerTag>().increasePower(registry, player, powerAmountExprCompiledValue, pointsPerExtraPowerExprCompiledValue);
 }
 
+PointsPackItem::PointsPackItem()
+	: Item() {
+}
+
+PointsPackItem::PointsPackItem(Animatable animatable, float hitboxRadius, float activationRadius)
+	: Item(animatable, hitboxRadius, activationRadius) {
+}
+
+PointsPackItem::PointsPackItem(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius)
+	: Item(animatable, hitboxRadius, onCollectSound, activationRadius) {
+}
+
 std::shared_ptr<LevelPackObject> PointsPackItem::clone() const {
 	auto clone = std::make_shared<PointsPackItem>();
 	clone->load(format());
@@ -142,6 +192,18 @@ void PointsPackItem::compileExpressions(std::vector<exprtk::symbol_table<float>>
 void PointsPackItem::onPlayerContact(entt::DefaultRegistry & registry, uint32_t player) {
 	Item::onPlayerContact(registry, player);
 	registry.get<LevelManagerTag>().addPoints(pointsAmountExprCompiledValue);
+}
+
+BombItem::BombItem()
+	: Item() {
+}
+
+BombItem::BombItem(Animatable animatable, float hitboxRadius, float activationRadius)
+	: Item(animatable, hitboxRadius, activationRadius) {
+}
+
+BombItem::BombItem(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius)
+	: Item(animatable, hitboxRadius, onCollectSound, activationRadius) {
 }
 
 std::shared_ptr<LevelPackObject> BombItem::clone() const {

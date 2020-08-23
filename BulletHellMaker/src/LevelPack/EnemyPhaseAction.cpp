@@ -1,6 +1,7 @@
 #include <LevelPack/EnemyPhaseAction.h>
 
-#include <Game/Components/Components.h>
+#include <Game/Components/DespawnComponent.h>
+#include <Game/Components/EnemyBulletComponent.h>
 
 std::string NullEPA::format() const {
 	return formatString("NullEPA");

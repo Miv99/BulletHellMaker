@@ -27,8 +27,8 @@ LevelEventStartCondition that depends on the time since the start of the level.
 */
 class GlobalTimeBasedEnemySpawnCondition : public LevelEventStartCondition {
 public:
-	inline GlobalTimeBasedEnemySpawnCondition() {}
-	inline GlobalTimeBasedEnemySpawnCondition(std::string time) : time(time) {}
+	GlobalTimeBasedEnemySpawnCondition();
+	GlobalTimeBasedEnemySpawnCondition(std::string time);
 
 	std::shared_ptr<LevelPackObject> clone() const override;
 
@@ -50,8 +50,8 @@ LevelEventStartCondition that depends on the time since the last enemy spawn.
 */
 class TimeBasedEnemySpawnCondition : public LevelEventStartCondition {
 public:
-	inline TimeBasedEnemySpawnCondition() {}
-	inline TimeBasedEnemySpawnCondition(std::string time) : time(time) {}
+	TimeBasedEnemySpawnCondition();
+	TimeBasedEnemySpawnCondition(std::string time);
 
 	std::shared_ptr<LevelPackObject> clone() const override;
 
@@ -73,8 +73,8 @@ LevelEventStartCondition that depends on the number of enemies alive.
 */
 class EnemyCountBasedEnemySpawnCondition : public LevelEventStartCondition {
 public:
-	inline EnemyCountBasedEnemySpawnCondition() {}
-	inline EnemyCountBasedEnemySpawnCondition(std::string enemyCount) : enemyCount(enemyCount) {}
+	EnemyCountBasedEnemySpawnCondition();
+	EnemyCountBasedEnemySpawnCondition(std::string enemyCount);
 
 	std::shared_ptr<LevelPackObject> clone() const override;
 

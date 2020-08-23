@@ -2,6 +2,8 @@
 
 #include <set>
 
+#include <Game/Components/DespawnComponent.h>
+
 void dfsInsertChildren(entt::DefaultRegistry& registry, std::set<uint32_t>& dest, const std::vector<uint32_t>& source) {
 	for (uint32_t entity : source) {
 		if (registry.valid(entity)) {
@@ -9,6 +11,10 @@ void dfsInsertChildren(entt::DefaultRegistry& registry, std::set<uint32_t>& dest
 			dest.insert(entity);
 		}
 	}
+}
+
+DespawnSystem::DespawnSystem(entt::DefaultRegistry& registry) 
+	: registry(registry) {
 }
 
 void DespawnSystem::update(float deltaTime) {

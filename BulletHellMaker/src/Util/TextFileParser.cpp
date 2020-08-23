@@ -1,9 +1,9 @@
 #include <Util/TextFileParser.h>
 
-#include <regex>
+#include <Util/StringUtils.h>
 
-std::string removeTrailingWhitespace(const std::string& str) {
-	return std::regex_replace(str, std::regex("^ +| +$|( ) +"), "$1");
+TextFileParser::TextFileParser(std::ifstream& stream)
+	: stream(stream) {
 }
 
 std::unique_ptr<std::map<std::string, std::unique_ptr<std::map<std::string, std::string>>>> TextFileParser::read(char delimiter) {

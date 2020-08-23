@@ -10,6 +10,7 @@
 #include <LevelPack/DeathAction.h>
 #include <LevelPack/EditorMovablePointSpawnType.h>
 
+class EntityCreationQueue;
 class EditorMovablePoint;
 class SpriteLoader;
 class EditorEnemy;
@@ -43,7 +44,7 @@ A command that spawns entity/entities. The amount spawned is always known.
 */
 class EntityCreationCommand {
 public:
-	inline EntityCreationCommand(entt::DefaultRegistry& registry) : registry(registry) {}
+	EntityCreationCommand(entt::DefaultRegistry& registry);
 
 	virtual void execute(EntityCreationQueue& queue) = 0;
 	virtual int getEntitiesQueuedCount() = 0;
@@ -57,7 +58,7 @@ Command for creating an entity that acts as a part of a shadow trail.
 */
 class SpawnShadowTrailCommand : public EntityCreationCommand {
 public:
-	inline SpawnShadowTrailCommand(entt::DefaultRegistry& registry, sf::Sprite sprite, float x, float y, float shadowRotationAngle, float shadowLifespan) : EntityCreationCommand(registry), sprite(sprite), x(x), y(y), angle(shadowRotationAngle), shadowLifespan(shadowLifespan) {}
+	SpawnShadowTrailCommand(entt::DefaultRegistry& registry, sf::Sprite sprite, float x, float y, float shadowRotationAngle, float shadowLifespan);
 
 	void execute(EntityCreationQueue& queue) override;
 	int getEntitiesQueuedCount() override;
@@ -97,7 +98,7 @@ the executor's reference entity.
 */
 class EMPADetachFromParentCommand : public EntityCreationCommand {
 public:
-	inline EMPADetachFromParentCommand(entt::DefaultRegistry& registry, uint32_t entity, float lastPosX, float lastPosY) : EntityCreationCommand(registry), entity(entity), lastPosX(lastPosX), lastPosY(lastPosY) {}
+	EMPADetachFromParentCommand(entt::DefaultRegistry& registry, uint32_t entity, float lastPosX, float lastPosY);
 
 	void execute(EntityCreationQueue& queue) override;
 	int getEntitiesQueuedCount() override;
@@ -115,7 +116,7 @@ This command must be pushed to the front of the EntityCreationQueue.
 */
 class CreateMovementReferenceEntityCommand : public EntityCreationCommand {
 public:
-	inline CreateMovementReferenceEntityCommand(entt::DefaultRegistry& registry, uint32_t entity, float timeLag, float lastPosX, float lastPosY) : EntityCreationCommand(registry), entity(entity), timeLag(timeLag), lastPosX(lastPosX), lastPosY(lastPosY) {}
+	CreateMovementReferenceEntityCommand(entt::DefaultRegistry& registry, uint32_t entity, float timeLag, float lastPosX, float lastPosY);
 
 	void execute(EntityCreationQueue& queue) override;
 	int getEntitiesQueuedCount() override;
@@ -141,7 +142,8 @@ public:
 	enemyPhaseID - ID of enemy phase at the time of attack execution
 	playAttackAnimation - whether the attack executor should play its attack animation
 	*/
-	EMPSpawnFromEnemyCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, bool isMainEMP, uint32_t entity, float timeLag, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation);
+	EMPSpawnFromEnemyCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, 
+		bool isMainEMP, uint32_t entity, float timeLag, int attackID, int attackPatternID, int enemyID, int enemyPhaseID, bool playAttackAnimation);
 
 	void execute(EntityCreationQueue& queue) override;
 	int getEntitiesQueuedCount() override;
@@ -161,44 +163,6 @@ private:
 };
 
 /*
-Command for creating the entity/entities associated with an attack.
-The entity that spawns will never be attached to any other entity.
-*/
-class EMPSpawnFromNothingCommand : public EntityCreationCommand {
-public:
-	/*
-	emp - the EMP whose data will be used for the bullet
-	isMainEMP - whether emp is the mainEMP of its EditorAttack
-	timeLag - time when attack should have occurred minus time when the attack actually occurred
-	attackPatternID - ID of enemy attack pattern that this attack came from
-	*/
-	EMPSpawnFromNothingCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, bool isMainEMP, float timeLag, int attackID, int attackPatternID);
-	/*
-	Same as the other constructor, but with a custom MPSpawnInformation
-
-	emp - the EMP whose data will be used for the bullet
-	spawnInfo - the spawn information that emp will be forced to use. Note that spawnInfo will be used instead of the MPSpawnInformation from emp->getSpawnInfo()
-	isMainEMP - whether emp is the mainEMP of its EditorAttack
-	timeLag - time when attack should have occurred minus time when the attack actually occurred
-	attackPatternID - ID of enemy attack pattern that this attack came from
-	*/
-	EMPSpawnFromNothingCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, MPSpawnInformation spawnInfo, bool isMainEMP, float timeLag, int attackID, int attackPatternID);
-
-	void execute(EntityCreationQueue& queue) override;
-	int getEntitiesQueuedCount() override;
-
-private:
-	SpriteLoader& spriteLoader;
-	std::shared_ptr<EditorMovablePoint> emp;
-	bool isMainEMP;
-	float timeLag;
-	int attackID;
-	int attackPatternID;
-	MPSpawnInformation spawnInfo;
-	bool spawnInfoIsDefined;
-};
-
-/*
 Command for creating the entity/entities associated with an attack by a player.
 */
 class EMPSpawnFromPlayerCommand : public EntityCreationCommand {
@@ -211,7 +175,8 @@ public:
 	attackPatternID - ID of enemy attack pattern that this attack came from
 	playAttackAnimation - whether the attack executor should play its attack animation
 	*/
-	EMPSpawnFromPlayerCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, bool isMainMP, uint32_t entity, float timeLag, int attackID, int attackPatternID, bool playAttackAnimation);
+	EMPSpawnFromPlayerCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, std::shared_ptr<EditorMovablePoint> emp, 
+		bool isMainMP, uint32_t entity, float timeLag, int attackID, int attackPatternID, bool playAttackAnimation);
 
 	void execute(EntityCreationQueue& queue) override;
 	int getEntitiesQueuedCount() override;
@@ -256,8 +221,9 @@ Command for creating an explosion of purely visual particles.
 */
 class ParticleExplosionCommand : public EntityCreationCommand {
 public:
-	ParticleExplosionCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, float sourceX, float sourceY, Animatable animatable, bool loopAnimatable,
-		ParticleExplosionDeathAction::PARTICLE_EFFECT effect, sf::Color color, int minParticles, int maxParticles, float minDistance, float maxDistance, float minLifespan, float maxLifespan);
+	ParticleExplosionCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, float sourceX, float sourceY, 
+		Animatable animatable, bool loopAnimatable, ParticleExplosionDeathAction::PARTICLE_EFFECT effect, sf::Color color, 
+		int minParticles, int maxParticles, float minDistance, float maxDistance, float minLifespan, float maxLifespan);
 
 	void execute(EntityCreationQueue& queue) override;
 	int getEntitiesQueuedCount() override;
@@ -289,7 +255,8 @@ Command for spawning some entity that displays an Animatable from a dying entity
 */
 class PlayDeathAnimatableCommand : public EntityCreationCommand {
 public:
-	PlayDeathAnimatableCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t dyingEntity, Animatable animatable, PlayAnimatableDeathAction::DEATH_ANIMATION_EFFECT effect, float duration);
+	PlayDeathAnimatableCommand(entt::DefaultRegistry& registry, SpriteLoader& spriteLoader, uint32_t dyingEntity, 
+		Animatable animatable, PlayAnimatableDeathAction::DEATH_ANIMATION_EFFECT effect, float duration);
 
 	void execute(EntityCreationQueue& queue) override;
 	int getEntitiesQueuedCount() override;
@@ -315,26 +282,15 @@ is being looped through.
 */
 class EntityCreationQueue {
 public:
-	inline EntityCreationQueue(entt::DefaultRegistry& registry) : registry(registry) {}
+	EntityCreationQueue(entt::DefaultRegistry& registry);
 
-	inline void pushBack(std::unique_ptr<EntityCreationCommand> command) {
+	void pushBack(std::unique_ptr<EntityCreationCommand> command) {
 		queue.push_back(std::move(command));
 	}
-	inline void pushFront(std::unique_ptr<EntityCreationCommand> command) {
+	void pushFront(std::unique_ptr<EntityCreationCommand> command) {
 		queue.push_front(std::move(command));
 	}
-	inline void executeAll() {
-		while (!queue.empty()) {
-			std::unique_ptr<EntityCreationCommand> command = std::move(queue.front());
-			queue.pop_front();
-
-			// Reserve space for the entities that will be spawned by the command
-			int reserve = registry.alive() + command->getEntitiesQueuedCount();
-			reserveMemory(registry, reserve);
-
-			command->execute(*this);
-		}
-	}
+	void executeAll();
 
 private:
 	entt::DefaultRegistry& registry;

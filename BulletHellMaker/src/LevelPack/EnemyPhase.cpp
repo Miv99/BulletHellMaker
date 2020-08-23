@@ -2,6 +2,13 @@
 
 #include <LevelPack/LevelPack.h>
 
+EditorEnemyPhase::EditorEnemyPhase() {
+}
+
+EditorEnemyPhase::EditorEnemyPhase(int id) {
+	this->id = id;
+}
+
 EditorEnemyPhase::EditorEnemyPhase(std::shared_ptr<const EditorEnemyPhase> copy) {
 	load(copy->format());
 }
@@ -105,6 +112,10 @@ std::tuple<float, int, exprtk::symbol_table<float>> EditorEnemyPhase::getAttackP
 	// Increase time of the attack pattern at some index by the loop count multiplied by total time for all attack patterns to finish
 	std::get<0>(item) += (std::get<0>(compiledAttackPatternIDs[size - 1]) + lastAttackPatternActionsTotalTime + attackPatternLoopDelayExprCompiledValue) * (int)(index / size);
 	return item;
+}
+
+bool EditorEnemyPhase::usesAttackPattern(int attackPatternID) const {
+	return attackPatternIDCount.count(attackPatternID) > 0 && attackPatternIDCount.at(attackPatternID) > 0;
 }
 
 void EditorEnemyPhase::addAttackPatternID(std::string time, int id, ExprSymbolTable attackPatternSymbolsDefiner) {

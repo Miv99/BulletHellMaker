@@ -2,6 +2,18 @@
 
 #include <iostream>
 
+MovablePoint::MovablePoint(float lifespan, bool returnGlobalPositions) 
+	: lifespan(lifespan), returnGlobalPositions(returnGlobalPositions) {
+}
+
+sf::Vector2f MovablePoint::compute(sf::Vector2f relativeTo, float time) {
+	if (returnGlobalPositions) {
+		return evaluate(time);
+	} else {
+		return relativeTo + evaluate(time);
+	}
+}
+
 float lerpRadians(float start, float end, float amount) {
 	float difference = std::abs(end - start);
 	if (difference > PI) {
@@ -25,6 +37,46 @@ float lerpRadians(float start, float end, float amount) {
 		return value;
 
 	return std::fmod(value, rangeZero);
+}
+
+AggregatorMP::AggregatorMP(std::vector<std::shared_ptr<MovablePoint>> movablePoints) : MovablePoint(this->calculateLifespan(), false), mps(movablePoints) {
+	calculateMinTimes();
+}
+
+void AggregatorMP::clearMPs() {
+	mps.clear();
+	minTimes.clear();
+	calculateLifespan();
+}
+void AggregatorMP::pushBackMP(std::shared_ptr<MovablePoint> newPoint) {
+	mps.push_back(newPoint);
+	calculateMinTimes();
+	calculateLifespan();
+}
+
+void AggregatorMP::calculateMinTimes() {
+	float curTime = 0.0f;
+	minTimes.clear();
+	for (std::shared_ptr<MovablePoint> mp : mps) {
+		minTimes.push_back(curTime);
+		curTime += mp->getLifespan();
+	}
+}
+
+float AggregatorMP::calculateLifespan() {
+	lifespan = 0;
+	for (std::shared_ptr<MovablePoint> mp : mps) {
+		lifespan += mp->getLifespan();
+	}
+	return lifespan;
+}
+
+sf::Vector2f AggregatorMP::evaluate(float time) {
+	for (int i = mps.size() - 1; i >= 0; i--) {
+		if (time >= minTimes[i]) {
+			return mps[i]->compute(sf::Vector2f(0, 0), time - minTimes[i]);
+		}
+	}
 }
 
 HomingMP::HomingMP(float lifespan, std::shared_ptr<TFV> speed, std::shared_ptr<TFV> homingStrength, uint32_t from, uint32_t to, entt::DefaultRegistry& registry) : MovablePoint(lifespan, true), speed(speed), homingStrength(homingStrength), registry(registry), from(from) {
@@ -116,5 +168,48 @@ sf::Vector2f HomingMP::evaluate(float time) {
 	} else {
 		// deltaTime is 0
 		return sf::Vector2f(fromPos.getX(), fromPos.getY());
+	}
+}
+
+EntityMP::EntityMP(const PositionComponent& entityPosition, float lifespan) 
+	: MovablePoint(lifespan, false), entityPosition(entityPosition) {
+}
+
+StationaryMP::StationaryMP(sf::Vector2f position, float lifespan) 
+	: MovablePoint(lifespan, false), position(position) {
+}
+
+PolarMP::PolarMP(float lifespan, std::shared_ptr<TFV> distance, std::shared_ptr<TFV> angle) 
+	: MovablePoint(lifespan, false), angle(angle), distance(distance) {
+}
+
+sf::Vector2f PolarMP::evaluate(float time) {
+	auto a = distance->evaluate(time);
+	auto b = angle->evaluate(time);
+	return sf::Vector2f(distance->evaluate(time) * cos(angle->evaluate(time)), distance->evaluate(time) * sin(angle->evaluate(time)));
+}
+
+BezierMP::BezierMP(float lifespan, std::vector<sf::Vector2f> controlPoints) 
+	: MovablePoint(lifespan, false), controlPoints(controlPoints), numControlPoints(controlPoints.size()) {
+}
+
+sf::Vector2f BezierMP::evaluate(float time) {
+	// Scale time to be in range [0, 1]
+	time /= lifespan;
+
+	if (numControlPoints == 2) {
+		return controlPoints[0] + time * (controlPoints[1] - controlPoints[0]);
+	} else if (numControlPoints == 3) {
+		float a = 1 - time;
+		return a * a * controlPoints[0] + 2.0f * a * time * controlPoints[1] + time * time * controlPoints[2];
+	} else if (numControlPoints == 4) {
+		float a = 1 - time;
+		return (a * a * a * controlPoints[0]) + (3.0f * a * a * time * controlPoints[1]) + (3.0f * a * time * time * controlPoints[2]) + (time * time * time * controlPoints[3]);
+	} else {
+		sf::Vector2f sum(0, 0);
+		for (int i = 0; i < numControlPoints; i++) {
+			sum += binom(numControlPoints - 1, i) * std::pow(1.0f - time, numControlPoints - 1 - i) * std::pow(time, i) * controlPoints[i];
+		}
+		return sum;
 	}
 }

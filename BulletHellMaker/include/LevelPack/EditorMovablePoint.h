@@ -12,7 +12,6 @@
 #include <Game/EntityCreationQueue.h>
 #include <LevelPack/Animatable.h>
 #include <DataStructs/SpriteLoader.h>
-#include <Game/Components/Components.h>
 #include <Game/Systems/CollisionSystem.h>
 #include <Game/AudioPlayer.h>
 #include <LevelPack/LevelPackObject.h>
@@ -23,10 +22,8 @@ class EditorMovablePoint;
 
 class BulletModel : public LevelPackObject, public std::enable_shared_from_this<BulletModel> {
 public:
-	inline BulletModel() {}
-	inline BulletModel(int id) {
-		this->id = id;
-	}
+	BulletModel();
+	BulletModel(int id);
 	/*
 	Copy constructor.
 	*/
@@ -56,22 +53,21 @@ public:
 	inline bool getPlaysSound() const { return playSoundOnSpawn; }
 	inline SoundSettings& getSoundSettings() { return soundSettings; }
 
-	inline void setName(std::string name) { this->name = name; onModelChange(); }
-	inline void setPlaysSound(bool playsSound) { playSoundOnSpawn = playsSound; onModelChange(); }
-	inline void setDamage(float damage) { this->damage = damage; onModelChange(); }
-	inline void setPierceResetTime(float pierceResetTime) { this->pierceResetTime = pierceResetTime; }
-	inline void setAnimatable(Animatable animatable) { this->animatable = animatable; onModelChange(); }
-	inline void setLoopAnimation(bool loopAnimation) { this->loopAnimation = loopAnimation; onModelChange(); }
-	inline void setBaseSprite(Animatable baseSprite) { assert(baseSprite.isSprite()); this->baseSprite = baseSprite; onModelChange(); }
-	inline void setHitboxRadius(float hitboxRadius) { this->hitboxRadius = hitboxRadius; onModelChange(); }
-	inline void setDespawnTime(float despawnTime) { this->despawnTime = despawnTime; onModelChange(); }
-	inline void setShadowTrailInterval(float shadowTrailInterval) { this->shadowTrailInterval = shadowTrailInterval; onModelChange(); }
-	inline void setShadowTrailLifespan(float shadowTrailLifespan) { this->shadowTrailLifespan = shadowTrailLifespan; onModelChange(); }
+	void setName(std::string name);
+	void setPlaysSound(bool playsSound);
+	void setDamage(float damage);
+	void setPierceResetTime(float pierceResetTime);
+	void setAnimatable(Animatable animatable);
+	void setLoopAnimation(bool loopAnimation);
+	void setBaseSprite(Animatable baseSprite);
+	void setHitboxRadius(float hitboxRadius);
+	void setDespawnTime(float despawnTime);
+	void setShadowTrailInterval(float shadowTrailInterval);
+	void setShadowTrailLifespan(float shadowTrailLifespan);
 
 	inline void addModelUser(std::shared_ptr<EditorMovablePoint> user) {
 		modelUsers.insert(user);
 	}
-	void onModelChange();
 
 private:
 	// Radius of the EMP's hitbox. Set to <= 0 if the EMP is not a bullet.
@@ -104,6 +100,8 @@ private:
 
 	// Set of all EMPs that use this bullet model. Not saved.
 	std::set<std::shared_ptr<EditorMovablePoint>> modelUsers;
+
+	void onModelChange();
 };
 
 /*
@@ -183,13 +181,7 @@ public:
 	inline float getShadowTrailLifespan() const { return shadowTrailLifespanExprCompiledValue; }
 	inline std::string getRawShadowTrailInterval() const { return shadowTrailInterval; }
 	inline std::string getRawShadowTrailLifespan() const { return shadowTrailLifespan; }
-	inline float getTotalPathTime() const {
-		float total = 0;
-		for (auto action : actions) {
-			total += action->getTime();
-		}
-		return total;
-	}
+	float getTotalPathTime() const;
 	inline std::shared_ptr<EditorMovablePoint> getParent() { return parent.lock(); }
 	inline int getDamage() const { return damageExprCompiledValue; }
 	inline std::string getRawDamage() const { return damage; }
@@ -230,16 +222,16 @@ public:
 	inline void setDespawnTime(float despawnTime) { this->despawnTime = despawnTime; }
 	void setSpawnType(std::shared_ptr<EMPSpawnType> spawnType);
 	void setSpawnTypeTime(std::string time);
-	inline void setShadowTrailInterval(std::string shadowTrailInterval) { this->shadowTrailInterval = shadowTrailInterval; }
-	inline void setShadowTrailLifespan(std::string shadowTrailLifespan) { this->shadowTrailLifespan = shadowTrailLifespan; }
-	inline void setInheritRadius(bool inheritRadius, const LevelPack& levelPack) { this->inheritRadius = inheritRadius; loadBulletModel(levelPack);  }
-	inline void setInheritDespawnTime(bool inheritDespawnTime, const LevelPack& levelPack) { this->inheritDespawnTime = inheritDespawnTime; }
-	inline void setInheritShadowTrailInterval(bool inheritShadowTrailInterval, const LevelPack& levelPack) { this->inheritShadowTrailInterval = inheritShadowTrailInterval; loadBulletModel(levelPack); }
-	inline void setInheritShadowTrailLifespan(bool inheritShadowTrailLifespan, const LevelPack& levelPack) { this->inheritShadowTrailLifespan = inheritShadowTrailLifespan; loadBulletModel(levelPack); }
-	inline void setInheritAnimatables(bool inheritAnimatables, const LevelPack& levelPack) { this->inheritAnimatables = inheritAnimatables; loadBulletModel(levelPack); }
-	inline void setInheritDamage(bool inheritDamage, const LevelPack& levelPack) { this->inheritDamage = inheritDamage; loadBulletModel(levelPack); }
-	inline void setInheritPierceResetTime(bool inheritPierceResetTime, const LevelPack& levelPack) { this->inheritPierceResetTime = inheritPierceResetTime; loadBulletModel(levelPack); }
-	inline void setInheritSoundSettings(bool inheritSoundSettings, const LevelPack& levelPack) { this->inheritSoundSettings = inheritSoundSettings; loadBulletModel(levelPack); }
+	void setShadowTrailInterval(std::string shadowTrailInterval);
+	void setShadowTrailLifespan(std::string shadowTrailLifespan);
+	void setInheritRadius(bool inheritRadius, const LevelPack& levelPack);
+	void setInheritDespawnTime(bool inheritDespawnTime, const LevelPack& levelPack);
+	void setInheritShadowTrailInterval(bool inheritShadowTrailInterval, const LevelPack& levelPack);
+	void setInheritShadowTrailLifespan(bool inheritShadowTrailLifespan, const LevelPack& levelPack);
+	void setInheritAnimatables(bool inheritAnimatables, const LevelPack& levelPack);
+	void setInheritDamage(bool inheritDamage, const LevelPack& levelPack);
+	void setInheritPierceResetTime(bool inheritPierceResetTime, const LevelPack& levelPack);
+	void setInheritSoundSettings(bool inheritSoundSettings, const LevelPack& levelPack);
 	inline void setIsBullet(bool isBullet) { this->isBullet = isBullet; }
 	inline void setSoundSettings(SoundSettings soundSettings) { this->soundSettings = soundSettings; }
 	inline void setActions(std::vector<std::shared_ptr<EMPAction>> actions) { this->actions = actions; }
@@ -351,7 +343,7 @@ private:
 	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(damage, int, 1)
 
 	// Only for bullets; determines what happens when the bullet makes contact with something
-	BULLET_ON_COLLISION_ACTION onCollisionAction = DESTROY_THIS_BULLET_ONLY;
+	BULLET_ON_COLLISION_ACTION onCollisionAction = BULLET_ON_COLLISION_ACTION::DESTROY_THIS_BULLET_ONLY;
 	// Time after hitting an enemy that the entity is able to be hit by this same bullet again; only for PIERCE_ENTITY onCollisionAction
 	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(pierceResetTime, float, 2)
 	

@@ -33,7 +33,7 @@ public:
 	*/
 	EditorMovablePointPanel(MainEditorWindow& mainEditorWindow, std::shared_ptr<LevelPack> levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorMovablePoint> emp, int undoStackSize = 50);
 	~EditorMovablePointPanel();
-	inline static std::shared_ptr<EditorMovablePointPanel> create(MainEditorWindow& mainEditorWindow, std::shared_ptr<LevelPack> levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorMovablePoint> emp, int undoStackSize = 50) {
+	static std::shared_ptr<EditorMovablePointPanel> create(MainEditorWindow& mainEditorWindow, std::shared_ptr<LevelPack> levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorMovablePoint> emp, int undoStackSize = 50) {
 		return std::make_shared<EditorMovablePointPanel>(mainEditorWindow, levelPack, spriteLoader, clipboard, emp, undoStackSize);
 	}
 

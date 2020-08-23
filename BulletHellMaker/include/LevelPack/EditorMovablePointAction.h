@@ -23,7 +23,8 @@ Base class used to determine an angle in radians.
 */
 class EMPAAngleOffset : public LevelPackObject {
 public:
-	inline EMPAAngleOffset() {}
+	EMPAAngleOffset();
+
 	virtual std::shared_ptr<LevelPackObject> clone() const = 0;
 
 	virtual std::string getName() = 0;
@@ -46,7 +47,8 @@ Angle in radians to the player.
 */
 class EMPAAngleOffsetToPlayer : public EMPAAngleOffset {
 public:
-	inline EMPAAngleOffsetToPlayer(std::string xOffset = "0", std::string yOffset = "0") : xOffset(xOffset), yOffset(yOffset) {}
+	EMPAAngleOffsetToPlayer(std::string xOffset = "0", std::string yOffset = "0");
+
 	std::shared_ptr<LevelPackObject> clone() const override;
 
 	inline std::string getName() override { return "Relative to player"; }
@@ -78,8 +80,9 @@ Angle in radians to some global position.
 */
 class EMPAAngleOffsetToGlobalPosition : public EMPAAngleOffset {
 public:
-	inline EMPAAngleOffsetToGlobalPosition() {}
-	inline EMPAAngleOffsetToGlobalPosition(std::string x, std::string y) : x(x), y(y) {}
+	EMPAAngleOffsetToGlobalPosition();
+	EMPAAngleOffsetToGlobalPosition(std::string x, std::string y);
+
 	std::shared_ptr<LevelPackObject> clone() const override;
 
 	inline std::string getName() override { return "Absolute position"; }
@@ -111,7 +114,8 @@ Angle offset that always returns 0.
 */
 class EMPAAngleOffsetZero : public EMPAAngleOffset {
 public:
-	inline EMPAAngleOffsetZero() {}
+	EMPAAngleOffsetZero();
+
 	std::shared_ptr<LevelPackObject> clone() const override;
 
 	inline std::string getName() override { return "No offset"; }
@@ -134,8 +138,9 @@ Angle offset that always returns a constant, in radians.
 */
 class EMPAAngleOffsetConstant : public EMPAAngleOffset {
 public:
-	inline EMPAAngleOffsetConstant() {}
-	inline EMPAAngleOffsetConstant(std::string value) : value(value) {}
+	EMPAAngleOffsetConstant();
+	EMPAAngleOffsetConstant(std::string value);
+
 	std::shared_ptr<LevelPackObject> clone() const override;
 
 	inline std::string getName() override { return "Constant"; }
@@ -163,7 +168,8 @@ Angle offset that always returns the angle that the player's sprite is facing.
 */
 class EMPAngleOffsetPlayerSpriteAngle : public EMPAAngleOffset {
 public:
-	inline EMPAngleOffsetPlayerSpriteAngle() {}
+	EMPAngleOffsetPlayerSpriteAngle();
+
 	std::shared_ptr<LevelPackObject> clone() const override;
 
 	inline std::string getName() override { return "Bind to player's direction"; }
@@ -232,7 +238,8 @@ Cannot be used by by enemies.
 */
 class DetachFromParentEMPA : public EMPAction {
 public:
-	inline DetachFromParentEMPA() {}
+	DetachFromParentEMPA();
+
 	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
@@ -257,8 +264,9 @@ EMPA for when an MP stays still relative to its reference at the last position f
 */
 class StayStillAtLastPositionEMPA : public EMPAction {
 public:
-	inline StayStillAtLastPositionEMPA() {}
-	inline StayStillAtLastPositionEMPA(float duration) : duration(duration) {}
+	StayStillAtLastPositionEMPA();
+	StayStillAtLastPositionEMPA(float duration);
+
 	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
@@ -286,9 +294,10 @@ EMPA for custom movement in polar coordinates.
 */
 class MoveCustomPolarEMPA : public EMPAction {
 public:
-	inline MoveCustomPolarEMPA() {}
-	inline MoveCustomPolarEMPA(std::shared_ptr<TFV> distance, std::shared_ptr<TFV> angle, float time) : distance(distance), angle(angle), time(time), angleOffset(std::make_shared<EMPAAngleOffsetZero>()) {}
-	inline MoveCustomPolarEMPA(std::shared_ptr<TFV> distance, std::shared_ptr<TFV> angle, float time, std::shared_ptr<EMPAAngleOffset> angleOffset) : distance(distance), angle(angle), time(time), angleOffset(angleOffset) {}
+	MoveCustomPolarEMPA();
+	MoveCustomPolarEMPA(std::shared_ptr<TFV> distance, std::shared_ptr<TFV> angle, float time);
+	MoveCustomPolarEMPA(std::shared_ptr<TFV> distance, std::shared_ptr<TFV> angle, float time, std::shared_ptr<EMPAAngleOffset> angleOffset);
+	
 	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
@@ -329,13 +338,10 @@ The first control point must be at (0, 0) because all movement is done relative 
 */
 class MoveCustomBezierEMPA : public EMPAction {
 public:
-	inline MoveCustomBezierEMPA() {}
-	inline MoveCustomBezierEMPA(std::vector<sf::Vector2f> unrotatedControlPoints, float time) : time(time), rotationAngle(std::make_shared<EMPAAngleOffsetZero>()) {
-		setUnrotatedControlPoints(unrotatedControlPoints);
-	}
-	inline MoveCustomBezierEMPA(std::vector<sf::Vector2f> unrotatedControlPoints, float time, std::shared_ptr<EMPAAngleOffset> rotationAngle) : time(time), rotationAngle(rotationAngle) {
-		setUnrotatedControlPoints(unrotatedControlPoints);
-	}
+	MoveCustomBezierEMPA();
+	MoveCustomBezierEMPA(std::vector<sf::Vector2f> unrotatedControlPoints, float time);
+	MoveCustomBezierEMPA(std::vector<sf::Vector2f> unrotatedControlPoints, float time, std::shared_ptr<EMPAAngleOffset> rotationAngle);
+
 	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
@@ -374,12 +380,13 @@ EMPA for homing movement towards the player.
 */
 class MovePlayerHomingEMPA : public EMPAction {
 public:
-	inline MovePlayerHomingEMPA() {}
+	MovePlayerHomingEMPA();
 	/*
 	homingStrength - determines how quickly the entity homes in on the player; in range (0, 1]. A value of 0.02 is already pretty strong 
 		and a value of 1.0 is a completely linear path assuming the player does not move
 	*/
-	inline MovePlayerHomingEMPA(std::shared_ptr<TFV> homingStrength, std::shared_ptr<TFV> speed, float time) : homingStrength(homingStrength), speed(speed), time(time) {}
+	MovePlayerHomingEMPA(std::shared_ptr<TFV> homingStrength, std::shared_ptr<TFV> speed, float time);
+
 	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;
@@ -416,12 +423,13 @@ EMPA for homing movement towards a static global position.
 */
 class MoveGlobalHomingEMPA : public EMPAction {
 public:
-	inline MoveGlobalHomingEMPA() {}
+	MoveGlobalHomingEMPA();
 	/*
 	homingStrength - determines how quickly the entity homes in on the player; in range (0, 1]. A value of 0.02 is already pretty strong
 		and a value of 1.0 is a completely linear path assuming the player does not move
 	*/
-	inline MoveGlobalHomingEMPA(std::shared_ptr<TFV> homingStrength, std::shared_ptr<TFV> speed, std::string targetX, std::string targetY, float time) : homingStrength(homingStrength), speed(speed), targetX(targetX), targetY(targetY), time(time) {}
+	MoveGlobalHomingEMPA(std::shared_ptr<TFV> homingStrength, std::shared_ptr<TFV> speed, std::string targetX, std::string targetY, float time);
+	
 	std::shared_ptr<LevelPackObject> clone() const override;
 
 	std::string format() const override;

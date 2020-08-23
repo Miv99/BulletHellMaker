@@ -1,7 +1,8 @@
 #include <Game/Systems/DebugRenderSystem.h>
 
-#include <Game/Components/Components.h>
 #include <Constants.h>
+#include <Game/Components/SpriteComponent.h>
+#include <Game/Components/PlayerTag.h>
 
 DebugRenderSystem::DebugRenderSystem(entt::DefaultRegistry& registry, sf::RenderWindow& window, SpriteLoader& spriteLoader, float resolutionMultiplier) : RenderSystem(registry, window, spriteLoader, resolutionMultiplier, false) {
 	circleFormat.setFillColor(sf::Color(sf::Color::Transparent));

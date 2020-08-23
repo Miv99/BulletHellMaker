@@ -232,9 +232,9 @@ point will update only the values it wants to inherit to match the model."));
 		empiSpawnType->addItem("Detached, relative to parent", "1");
 		empiSpawnType->addItem("Attached, relative to parent", "2");
 
-		empiOnCollisionAction->addItem("Destroy self only", getID(DESTROY_THIS_BULLET_ONLY));
-		empiOnCollisionAction->addItem("Destroy self and attached children", getID(DESTROY_THIS_BULLET_AND_ATTACHED_CHILDREN));
-		empiOnCollisionAction->addItem("Pierce players/enemies", getID(PIERCE_ENTITY));
+		empiOnCollisionAction->addItem("Destroy self only", getID(BULLET_ON_COLLISION_ACTION::DESTROY_THIS_BULLET_ONLY));
+		empiOnCollisionAction->addItem("Destroy self and attached children", getID(BULLET_ON_COLLISION_ACTION::DESTROY_THIS_BULLET_AND_ATTACHED_CHILDREN));
+		empiOnCollisionAction->addItem("Pierce players/enemies", getID(BULLET_ON_COLLISION_ACTION::PIERCE_ENTITY));
 
 		empiBulletModel->addItem("None", "-1");
 		for (auto it = levelPack->getBulletModelIteratorBegin(); it != levelPack->getBulletModelIteratorEnd(); it++) {
@@ -337,8 +337,8 @@ point will update only the values it wants to inherit to match the model."));
 				empiOnCollisionAction->setEnabled(this->emp->getIsBullet());
 				empiHitboxRadius->setEnabled((!this->emp->getInheritRadius() || this->emp->getBulletModelID() < 0) && this->emp->getIsBullet());
 				empiDamage->setEnabled((!this->emp->getInheritDamage() || this->emp->getBulletModelID() < 0) && this->emp->getIsBullet());
-				empiPierceResetTimeLabel->setVisible(this->emp->getOnCollisionAction() == PIERCE_ENTITY && this->emp->getIsBullet());
-				empiPierceResetTime->setVisible(this->emp->getOnCollisionAction() == PIERCE_ENTITY && this->emp->getIsBullet());
+				empiPierceResetTimeLabel->setVisible(this->emp->getOnCollisionAction() == BULLET_ON_COLLISION_ACTION::PIERCE_ENTITY && this->emp->getIsBullet());
+				empiPierceResetTime->setVisible(this->emp->getOnCollisionAction() == BULLET_ON_COLLISION_ACTION::PIERCE_ENTITY && this->emp->getIsBullet());
 				this->ignoreSignals = false;
 
 				onEMPModify.emit(this, this->emp);
@@ -350,8 +350,8 @@ point will update only the values it wants to inherit to match the model."));
 				empiOnCollisionAction->setEnabled(this->emp->getIsBullet());
 				empiHitboxRadius->setEnabled((!this->emp->getInheritRadius() || this->emp->getBulletModelID() < 0) && this->emp->getIsBullet());
 				empiDamage->setEnabled((!this->emp->getInheritDamage() || this->emp->getBulletModelID() < 0) && this->emp->getIsBullet());
-				empiPierceResetTimeLabel->setVisible(this->emp->getOnCollisionAction() == PIERCE_ENTITY && this->emp->getIsBullet());
-				empiPierceResetTime->setVisible(this->emp->getOnCollisionAction() == PIERCE_ENTITY && this->emp->getIsBullet());
+				empiPierceResetTimeLabel->setVisible(this->emp->getOnCollisionAction() == BULLET_ON_COLLISION_ACTION::PIERCE_ENTITY && this->emp->getIsBullet());
+				empiPierceResetTime->setVisible(this->emp->getOnCollisionAction() == BULLET_ON_COLLISION_ACTION::PIERCE_ENTITY && this->emp->getIsBullet());
 				this->ignoreSignals = false;
 
 				onEMPModify.emit(this, this->emp);
@@ -652,8 +652,8 @@ point will update only the values it wants to inherit to match the model."));
 
 				ignoreSignals = true;
 				empiOnCollisionAction->setSelectedItemById(getID(action));
-				empiPierceResetTimeLabel->setVisible(action == PIERCE_ENTITY && this->emp->getIsBullet());
-				empiPierceResetTime->setVisible(action == PIERCE_ENTITY && this->emp->getIsBullet());
+				empiPierceResetTimeLabel->setVisible(action == BULLET_ON_COLLISION_ACTION::PIERCE_ENTITY && this->emp->getIsBullet());
+				empiPierceResetTime->setVisible(action == BULLET_ON_COLLISION_ACTION::PIERCE_ENTITY && this->emp->getIsBullet());
 				ignoreSignals = false;
 			},
 				[this, oldAction]() {
@@ -662,8 +662,8 @@ point will update only the values it wants to inherit to match the model."));
 
 				ignoreSignals = true;
 				empiOnCollisionAction->setSelectedItemById(getID(oldAction));
-				empiPierceResetTimeLabel->setVisible(oldAction == PIERCE_ENTITY && this->emp->getIsBullet());
-				empiPierceResetTime->setVisible(oldAction == PIERCE_ENTITY && this->emp->getIsBullet());
+				empiPierceResetTimeLabel->setVisible(oldAction == BULLET_ON_COLLISION_ACTION::PIERCE_ENTITY && this->emp->getIsBullet());
+				empiPierceResetTime->setVisible(oldAction == BULLET_ON_COLLISION_ACTION::PIERCE_ENTITY && this->emp->getIsBullet());
 				ignoreSignals = false;
 			}));
 		});
@@ -763,8 +763,8 @@ point will update only the values it wants to inherit to match the model."));
 				empiLoopAnimation->setVisible(!this->emp->getAnimatable().isSprite());
 				empiBaseSprite->setVisible(!this->emp->getLoopAnimation() && !this->emp->getAnimatable().isSprite());
 				empiBaseSpriteLabel->setVisible(empiBaseSprite->isVisible());
-				empiPierceResetTimeLabel->setVisible((this->emp->getOnCollisionAction() == PIERCE_ENTITY) && this->emp->getIsBullet());
-				empiPierceResetTime->setVisible((this->emp->getOnCollisionAction() == PIERCE_ENTITY) && this->emp->getIsBullet());
+				empiPierceResetTimeLabel->setVisible((this->emp->getOnCollisionAction() == BULLET_ON_COLLISION_ACTION::PIERCE_ENTITY) && this->emp->getIsBullet());
+				empiPierceResetTime->setVisible((this->emp->getOnCollisionAction() == BULLET_ON_COLLISION_ACTION::PIERCE_ENTITY) && this->emp->getIsBullet());
 
 				empiHitboxRadius->setEnabled((!this->emp->getInheritRadius() || this->emp->getBulletModelID() < 0) && this->emp->getIsBullet());
 				empiDespawnTime->setEnabled(!this->emp->getInheritDespawnTime() || this->emp->getBulletModelID() < 0);
@@ -816,8 +816,8 @@ point will update only the values it wants to inherit to match the model."));
 				empiLoopAnimation->setVisible(!this->emp->getAnimatable().isSprite());
 				empiBaseSprite->setVisible(!this->emp->getLoopAnimation() && !this->emp->getAnimatable().isSprite());
 				empiBaseSpriteLabel->setVisible(empiBaseSprite->isVisible());
-				empiPierceResetTimeLabel->setVisible((this->emp->getOnCollisionAction() == PIERCE_ENTITY) && this->emp->getIsBullet());
-				empiPierceResetTime->setVisible((this->emp->getOnCollisionAction() == PIERCE_ENTITY) && this->emp->getIsBullet());
+				empiPierceResetTimeLabel->setVisible((this->emp->getOnCollisionAction() == BULLET_ON_COLLISION_ACTION::PIERCE_ENTITY) && this->emp->getIsBullet());
+				empiPierceResetTime->setVisible((this->emp->getOnCollisionAction() == BULLET_ON_COLLISION_ACTION::PIERCE_ENTITY) && this->emp->getIsBullet());
 
 				empiHitboxRadius->setEnabled(!this->emp->getInheritRadius() || this->emp->getBulletModelID() < 0);
 				empiDespawnTime->setEnabled(!this->emp->getInheritDespawnTime() || this->emp->getBulletModelID() < 0);
@@ -1401,8 +1401,8 @@ void EditorMovablePointPanel::updateAllWidgetValues() {
 	empiLoopAnimation->setVisible(!emp->getAnimatable().isSprite());
 	empiBaseSprite->setVisible(!emp->getLoopAnimation() && !emp->getAnimatable().isSprite());
 	empiBaseSpriteLabel->setVisible(empiBaseSprite->isVisible());
-	empiPierceResetTimeLabel->setVisible((emp->getOnCollisionAction() == PIERCE_ENTITY) && emp->getIsBullet());
-	empiPierceResetTime->setVisible((emp->getOnCollisionAction() == PIERCE_ENTITY) && emp->getIsBullet());
+	empiPierceResetTimeLabel->setVisible((emp->getOnCollisionAction() == BULLET_ON_COLLISION_ACTION::PIERCE_ENTITY) && emp->getIsBullet());
+	empiPierceResetTime->setVisible((emp->getOnCollisionAction() == BULLET_ON_COLLISION_ACTION::PIERCE_ENTITY) && emp->getIsBullet());
 	ignoreSignals = false;
 }
 

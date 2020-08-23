@@ -4,11 +4,9 @@
 #include <map>
 #include <string>
 
-std::string removeTrailingWhitespace(const std::string& str);
-
 class TextFileParser {
 public:
-	inline TextFileParser(std::ifstream& stream) : stream(stream) {}
+	TextFileParser(std::ifstream& stream);
 	/*
 	Example:
 	[Header text]

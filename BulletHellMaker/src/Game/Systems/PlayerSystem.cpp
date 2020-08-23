@@ -2,6 +2,15 @@
 
 #include <Constants.h>
 
+#include <Game/EntityCreationQueue.h>
+#include <Game/Components/PositionComponent.h>
+#include <Game/Components/HitboxComponent.h>
+#include <Game/Components/SpriteComponent.h>
+
+PlayerSystem::PlayerSystem(LevelPack& levelPack, EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry)
+	: levelPack(levelPack), queue(queue), spriteLoader(spriteLoader), registry(registry) {
+}
+
 void PlayerSystem::update(float deltaTime) {
 	if (!registry.has<PlayerTag>()) {
 		return;

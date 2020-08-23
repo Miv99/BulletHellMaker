@@ -3,7 +3,6 @@
 
 #include <entt/entt.hpp>
 
-#include <Game/Components/Components.h>
 #include <Constants.h>
 #include <LevelPack/TextMarshallable.h>
 #include <LevelPack/Player.h>
@@ -18,9 +17,9 @@ An item is something that can be picked up by the player and does something on p
 */
 class Item : public LevelPackObject {
 public:
-	inline Item() {}
-	inline Item(Animatable animatable, float hitboxRadius, float activationRadius = 75.0f) : animatable(animatable), hitboxRadius(hitboxRadius), activationRadius(activationRadius) {}
-	inline Item(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius = 75.0f) : animatable(animatable), hitboxRadius(hitboxRadius), onCollectSound(onCollectSound), activationRadius(activationRadius) {}
+	Item();
+	Item(Animatable animatable, float hitboxRadius, float activationRadius = 75.0f);
+	Item(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius = 75.0f);
 
 	virtual std::shared_ptr<LevelPackObject> clone() const = 0;
 
@@ -59,9 +58,9 @@ Item that heals the player.
 */
 class HealthPackItem : public Item {
 public:
-	inline HealthPackItem() : Item() {}
-	inline HealthPackItem(Animatable animatable, float hitboxRadius, float activationRadius = 75.0f) : Item(animatable, hitboxRadius, activationRadius) {}
-	inline HealthPackItem(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius = 75.0f) : Item(animatable, hitboxRadius, onCollectSound, activationRadius) {}
+	HealthPackItem();
+	HealthPackItem(Animatable animatable, float hitboxRadius, float activationRadius = 75.0f);
+	HealthPackItem(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius = 75.0f);
 
 	std::shared_ptr<LevelPackObject> clone() const override;
 
@@ -83,9 +82,9 @@ Item that powers up the player.
 */
 class PowerPackItem : public Item {
 public:
-	inline PowerPackItem() : Item() {}
-	inline PowerPackItem(Animatable animatable, float hitboxRadius, float activationRadius = 75.0f) : Item(animatable, hitboxRadius, activationRadius) {}
-	inline PowerPackItem(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius = 75.0f) : Item(animatable, hitboxRadius, onCollectSound, activationRadius) {}
+	PowerPackItem();
+	PowerPackItem(Animatable animatable, float hitboxRadius, float activationRadius = 75.0f);
+	PowerPackItem(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius = 75.0f);
 
 	std::shared_ptr<LevelPackObject> clone() const override;
 
@@ -109,9 +108,9 @@ Item that gives the player a bomb.
 */
 class BombItem : public Item {
 public:
-	inline BombItem() : Item() {}
-	inline BombItem(Animatable animatable, float hitboxRadius, float activationRadius = 75.0f) : Item(animatable, hitboxRadius, activationRadius) {}
-	inline BombItem(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius = 75.0f) : Item(animatable, hitboxRadius, onCollectSound, activationRadius) {}
+	BombItem();
+	BombItem(Animatable animatable, float hitboxRadius, float activationRadius = 75.0f);
+	BombItem(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius = 75.0f);
 
 	std::shared_ptr<LevelPackObject> clone() const override;
 
@@ -135,9 +134,9 @@ Item that adds to total points.
 */
 class PointsPackItem : public Item {
 public:
-	inline PointsPackItem() : Item() {}
-	inline PointsPackItem(Animatable animatable, float hitboxRadius, float activationRadius = 150.0f) : Item(animatable, hitboxRadius, activationRadius) {}
-	inline PointsPackItem(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius = 150.0f) : Item(animatable, hitboxRadius, onCollectSound, activationRadius) {}
+	PointsPackItem();
+	PointsPackItem(Animatable animatable, float hitboxRadius, float activationRadius = 150.0f);
+	PointsPackItem(Animatable animatable, float hitboxRadius, SoundSettings onCollectSound, float activationRadius = 150.0f);
 
 	std::shared_ptr<LevelPackObject> clone() const override;
 

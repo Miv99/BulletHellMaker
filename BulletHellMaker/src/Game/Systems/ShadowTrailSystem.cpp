@@ -2,6 +2,12 @@
 
 #include <memory>
 
+#include <Game/EntityCreationQueue.h>
+
+ShadowTrailSystem::ShadowTrailSystem(EntityCreationQueue& queue, entt::DefaultRegistry& registry) 
+	: queue(queue), registry(registry) {
+}
+
 void ShadowTrailSystem::update(float deltaTime) {
 	auto view = registry.view<PositionComponent, SpriteComponent, ShadowTrailComponent>(entt::persistent_t{});
 

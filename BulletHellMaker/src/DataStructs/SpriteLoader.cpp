@@ -33,6 +33,10 @@ std::vector<int> extractInts(const std::string& str) {
 	return vect;
 }
 
+SpriteSheet::SpriteSheet(std::string name) 
+	: name(name) {
+}
+
 std::shared_ptr<sf::Sprite> SpriteSheet::getSprite(const std::string& spriteName) {
 	if (spriteData.count(spriteName) == 0) {
 		// Missing sprite
@@ -106,6 +110,10 @@ void SpriteSheet::setGlobalSpriteScale(float scale) {
 		getSprite(it->first)->setScale((float)it->second->getSpriteWidth() / area.width * globalSpriteScale, (float)it->second->getSpriteHeight() / area.height * globalSpriteScale);
 
 	}
+}
+
+SpriteData::SpriteData(std::string spriteName, ComparableIntRect area, int spriteWidth, int spriteHeight, int spriteOriginX, int spriteOriginY, sf::Color color) 
+	: spriteName(spriteName), area(area), color(color), spriteWidth(spriteWidth), spriteHeight(spriteHeight), spriteOriginX(spriteOriginX), spriteOriginY(spriteOriginY) {
 }
 
 bool SpriteData::operator==(const SpriteData & other) const {
@@ -312,6 +320,10 @@ bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, c
 	metafile.close();
 
 	return true;
+}
+
+AnimationData::AnimationData(std::string animationName, std::vector<std::pair<float, std::string>> spriteNames) 
+	: animationName(animationName), spriteNames(spriteNames) {
 }
 
 bool AnimationData::operator==(const AnimationData & other) const {

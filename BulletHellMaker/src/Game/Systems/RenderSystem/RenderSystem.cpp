@@ -5,6 +5,8 @@
 #include <cmath>
 
 #include <LevelPack/Level.h>
+#include <Game/Components/PositionComponent.h>
+#include <Game/Components/SpriteComponent.h>
 
 const sf::BlendMode RenderSystem::DEFAULT_BLEND_MODE = sf::BlendMode(sf::BlendMode::Factor::SrcAlpha, sf::BlendMode::Factor::OneMinusSrcAlpha, sf::BlendMode::Equation::Add, sf::BlendMode::Factor::SrcAlpha, sf::BlendMode::Factor::OneMinusSrcAlpha, sf::BlendMode::Equation::Add);
 
@@ -109,6 +111,16 @@ void RenderSystem::setBackground(std::shared_ptr<sf::Texture> background) {
 
 	// Create the sprite
 	backgroundSprite.setTexture(*(this->background));
+}
+
+void RenderSystem::setBackgroundTextureWidth(float backgroundTextureWidth) {
+	this->backgroundTextureWidth = backgroundTextureWidth;
+	backgroundSprite.setScale(MAP_WIDTH / backgroundTextureWidth * resolutionMultiplier, MAP_HEIGHT / backgroundTextureHeight * resolutionMultiplier);
+}
+
+void RenderSystem::setBackgroundTextureHeight(float backgroundTextureHeight) {
+	this->backgroundTextureHeight = backgroundTextureHeight;
+	backgroundSprite.setScale(MAP_WIDTH / backgroundTextureWidth * resolutionMultiplier, MAP_HEIGHT / backgroundTextureHeight * resolutionMultiplier);
 }
 
 sf::Vector2u RenderSystem::getResolution() {

@@ -7,11 +7,7 @@
 
 class Animation {
 public:
-	inline Animation(std::string name, std::vector<std::pair<float, std::shared_ptr<sf::Sprite>>> sprites, bool loops) : name(name), sprites(sprites), looping(loops) {
-		for (auto p : sprites) {
-			totalDuration += p.first;
-		}
-	}
+	Animation(std::string name, std::vector<std::pair<float, std::shared_ptr<sf::Sprite>>> sprites, bool loops);
 
 	/*
 	Returns a pointer to the current sprite.

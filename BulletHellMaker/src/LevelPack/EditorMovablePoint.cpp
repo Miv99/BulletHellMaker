@@ -297,6 +297,14 @@ void EditorMovablePoint::removeBulletModel() {
 	setBulletModelID(-1);
 }
 
+float EditorMovablePoint::getTotalPathTime() const {
+	float total = 0;
+	for (auto action : actions) {
+		total += action->getTime();
+	}
+	return total;
+}
+
 std::vector<int> EditorMovablePoint::getChildrenIDs() const {
 	std::vector<int> ids;
 	for (auto child : children) {
@@ -342,6 +350,54 @@ void EditorMovablePoint::setSpawnTypeTime(std::string time) {
 		parentPtr->removeChild(id);
 		parentPtr->addChild(shared_from_this());
 	}
+}
+
+void EditorMovablePoint::setInheritShadowTrailInterval(bool inheritShadowTrailInterval, const LevelPack& levelPack) {
+	this->inheritShadowTrailInterval = inheritShadowTrailInterval; 
+	loadBulletModel(levelPack);
+}
+
+void EditorMovablePoint::setInheritShadowTrailLifespan(bool inheritShadowTrailLifespan, const LevelPack& levelPack) {
+	this->inheritShadowTrailLifespan = inheritShadowTrailLifespan;
+	loadBulletModel(levelPack);
+}
+
+void EditorMovablePoint::setInheritRadius(bool inheritRadius, const LevelPack& levelPack) {
+	this->inheritRadius = inheritRadius;
+	loadBulletModel(levelPack);
+}
+
+void EditorMovablePoint::setInheritDespawnTime(bool inheritDespawnTime, const LevelPack& levelPack) {
+	this->inheritDespawnTime = inheritDespawnTime;
+	loadBulletModel(levelPack);
+}
+
+void EditorMovablePoint::setShadowTrailInterval(std::string shadowTrailInterval) {
+	this->shadowTrailInterval = shadowTrailInterval;
+}
+
+void EditorMovablePoint::setShadowTrailLifespan(std::string shadowTrailLifespan) {
+	this->shadowTrailLifespan = shadowTrailLifespan;
+}
+
+void EditorMovablePoint::setInheritAnimatables(bool inheritAnimatables, const LevelPack& levelPack) {
+	this->inheritAnimatables = inheritAnimatables;
+	loadBulletModel(levelPack);
+}
+
+void EditorMovablePoint::setInheritDamage(bool inheritDamage, const LevelPack& levelPack) {
+	this->inheritDamage = inheritDamage;
+	loadBulletModel(levelPack);
+}
+
+void EditorMovablePoint::setInheritPierceResetTime(bool inheritPierceResetTime, const LevelPack& levelPack) {
+	this->inheritPierceResetTime = inheritPierceResetTime;
+	loadBulletModel(levelPack);
+}
+
+void EditorMovablePoint::setInheritSoundSettings(bool inheritSoundSettings, const LevelPack& levelPack) {
+	this->inheritSoundSettings = inheritSoundSettings;
+	loadBulletModel(levelPack);
 }
 
 void EditorMovablePoint::insertAction(int index, std::shared_ptr<EMPAction> action) {
@@ -637,6 +693,13 @@ void EditorMovablePoint::updateBulletModelToBulletModelsCount(bool recurseOnChil
 	}
 }
 
+BulletModel::BulletModel() {
+}
+
+BulletModel::BulletModel(int id) {
+	this->id = id;
+}
+
 BulletModel::BulletModel(std::shared_ptr<const BulletModel> copy) {
 	load(copy->format());
 }
@@ -683,7 +746,62 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> BulletModel::
 }
 
 void BulletModel::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
-	//TODO: compileExpressions
+	// Nothing to compile
+}
+
+void BulletModel::setName(std::string name) {
+	this->name = name;
+	onModelChange();
+}
+
+void BulletModel::setPlaysSound(bool playsSound) {
+	playSoundOnSpawn = playsSound;
+	onModelChange();
+}
+
+void BulletModel::setDamage(float damage) {
+	this->damage = damage;
+	onModelChange();
+}
+
+void BulletModel::setPierceResetTime(float pierceResetTime) {
+	this->pierceResetTime = pierceResetTime;
+	onModelChange();
+}
+
+void BulletModel::setAnimatable(Animatable animatable) {
+	this->animatable = animatable;
+	onModelChange();
+}
+
+void BulletModel::setLoopAnimation(bool loopAnimation) {
+	this->loopAnimation = loopAnimation;
+	onModelChange();
+}
+
+void BulletModel::setBaseSprite(Animatable baseSprite) { 
+	this->baseSprite = baseSprite;
+	onModelChange();
+}
+
+void BulletModel::setHitboxRadius(float hitboxRadius) { 
+	this->hitboxRadius = hitboxRadius;
+	onModelChange();
+}
+
+void BulletModel::setDespawnTime(float despawnTime) { 
+	this->despawnTime = despawnTime; 
+	onModelChange(); 
+}
+
+void BulletModel::setShadowTrailInterval(float shadowTrailInterval) { 
+	this->shadowTrailInterval = shadowTrailInterval;
+	onModelChange();
+}
+
+void BulletModel::setShadowTrailLifespan(float shadowTrailLifespan) { 
+	this->shadowTrailLifespan = shadowTrailLifespan;
+	onModelChange();
 }
 
 void BulletModel::onModelChange() {

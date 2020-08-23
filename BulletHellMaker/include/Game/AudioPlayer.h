@@ -11,7 +11,7 @@
 
 class AudioSettings {
 public:
-	inline AudioSettings() {}
+	AudioSettings();
 
 	inline std::string getFileName() const { return fileName; }
 	inline float getVolume() const { return volume; }
@@ -39,24 +39,10 @@ protected:
 
 class SoundSettings : public TextMarshallable, public AudioSettings {
 public:
-	inline SoundSettings() {}
-	inline SoundSettings(std::string fileName, float volume = 100, float pitch = 1) {
-		this->fileName = fileName;
-		this->volume = volume;
-		this->pitch = pitch;
-	}
-	inline SoundSettings(std::string fileName, float volume, float pitch, bool disabled) {
-		this->fileName = fileName;
-		this->volume = volume;
-		this->pitch = pitch;
-		this->disabled = disabled;
-	}
-	inline SoundSettings(const SoundSettings& copy) {
-		fileName = copy.fileName;
-		volume = copy.volume;
-		pitch = copy.pitch;
-		disabled = copy.disabled;
-	}
+	SoundSettings();
+	SoundSettings(std::string fileName, float volume = 100, float pitch = 1);
+	SoundSettings(std::string fileName, float volume, float pitch, bool disabled);
+	SoundSettings(const SoundSettings& copy);
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
@@ -64,25 +50,9 @@ public:
 
 class MusicSettings : public TextMarshallable, public AudioSettings {
 public:
-	inline MusicSettings() {}
-	inline MusicSettings(std::string fileName, bool loops = false, int loopStartMilliseconds = 0, int loopLengthMilliseconds = 0, float volume = 100, float pitch = 1) {
-		this->fileName = fileName;
-		this->loops = loops;
-		this->loopStartMilliseconds = loopStartMilliseconds;
-		this->loopLengthMilliseconds = loopLengthMilliseconds;
-		this->volume = volume;
-		this->pitch = pitch;
-	}
-	inline MusicSettings(const MusicSettings& copy) {
-		fileName = copy.fileName;
-		loops = copy.loops;
-		loopStartMilliseconds = copy.loopStartMilliseconds;
-		loopLengthMilliseconds = copy.loopLengthMilliseconds;
-		volume = copy.volume;
-		pitch = copy.pitch;
-		transitionTime = copy.transitionTime;
-		disabled = copy.disabled;
-	}
+	MusicSettings();
+	MusicSettings(std::string fileName, bool loops = false, int loopStartMilliseconds = 0, int loopLengthMilliseconds = 0, float volume = 100, float pitch = 1);
+	MusicSettings(const MusicSettings& copy);
 
 	std::string format() const override;
 	void load(std::string formattedString) override;

@@ -23,7 +23,7 @@ public:
 
 class SpriteData {
 public:
-	inline SpriteData(std::string spriteName, ComparableIntRect area, int spriteWidth, int spriteHeight, int spriteOriginX, int spriteOriginY, sf::Color color = sf::Color(255, 255, 255, 255)) : spriteName(spriteName), area(area), color(color), spriteWidth(spriteWidth), spriteHeight(spriteHeight), spriteOriginX(spriteOriginX), spriteOriginY(spriteOriginY) {}
+	SpriteData(std::string spriteName, ComparableIntRect area, int spriteWidth, int spriteHeight, int spriteOriginX, int spriteOriginY, sf::Color color = sf::Color(255, 255, 255, 255));
 
 	bool operator==(const SpriteData& other) const;
 	inline ComparableIntRect getArea() const { return area; }
@@ -47,7 +47,7 @@ private:
 
 class AnimationData {
 public:
-	inline AnimationData(std::string animationName, std::vector<std::pair<float, std::string>> spriteNames) : animationName(animationName), spriteNames(spriteNames) {}
+	AnimationData(std::string animationName, std::vector<std::pair<float, std::string>> spriteNames);
 
 	bool operator==(const AnimationData& other) const;
 	inline const std::vector<std::pair<float, std::string>> getSpriteNames() const { return spriteNames; }
@@ -66,7 +66,8 @@ private:
 
 class SpriteSheet {
 public:
-	inline SpriteSheet(std::string name) : name(name) {}
+	SpriteSheet(std::string name);
+
 	std::shared_ptr<sf::Sprite> getSprite(const std::string& spriteName);
 	std::unique_ptr<Animation> getAnimation(const std::string& animationName, bool loop);
 	void insertSprite(const std::string&, std::shared_ptr<SpriteData>);

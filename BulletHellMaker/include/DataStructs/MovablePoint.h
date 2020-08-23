@@ -5,10 +5,10 @@
 #include <SFML/Graphics.hpp>
 #include <entt/entt.hpp>
 
-#include <DataStructs/TimeFunctionVariable.h>
 #include <Constants.h>
-#include <Game/Components/Components.h>
 #include <Util/MathUtils.h>
+#include <DataStructs/TimeFunctionVariable.h>
+#include <Game/Components/PositionComponent.h>
 
 /*
 A point that can move.
@@ -20,22 +20,18 @@ public:
 	returnGlobalPositions - if true, the return value of this MovablePoint should not be added to the position of its reference entity, if any.
 							This is only here because of HomingMP, which uses weird black magic.
 	*/
-	inline MovablePoint(float lifespan, bool returnGlobalPositions) : lifespan(lifespan), returnGlobalPositions(returnGlobalPositions) {}
+	MovablePoint(float lifespan, bool returnGlobalPositions);
+
 	/*
 	Returns the global position of the MP at some time.
 	0 <= time <= lifespan
 	*/
-	inline sf::Vector2f compute(sf::Vector2f relativeTo, float time) {
-		if (returnGlobalPositions) {
-			return evaluate(time);
-		} else {
-			return relativeTo + evaluate(time);
-		}
-	}
+	sf::Vector2f compute(sf::Vector2f relativeTo, float time);
 
 	inline float getLifespan() {
 		return lifespan;
 	}
+
 	inline void setLifespan(float lifespan) {
 		this->lifespan = lifespan;
 	}
@@ -56,20 +52,11 @@ The order of the MPs in the constructor matters.
 */
 class AggregatorMP : public MovablePoint {
 public:
-	AggregatorMP(std::vector<std::shared_ptr<MovablePoint>> movablePoints) : MovablePoint(this->calculateLifespan(), false), mps(movablePoints) {
-		calculateMinTimes();
-	}
+	AggregatorMP(std::vector<std::shared_ptr<MovablePoint>> movablePoints);
 
-	inline void clearMPs() {
-		mps.clear();
-		minTimes.clear();
-		calculateLifespan();
-	}
-	inline void pushBackMP(std::shared_ptr<MovablePoint> newPoint) {
-		mps.push_back(newPoint);
-		calculateMinTimes();
-		calculateLifespan();
-	}
+	void clearMPs();
+	void pushBackMP(std::shared_ptr<MovablePoint> newPoint);
+
 	inline std::shared_ptr<MovablePoint> getLastMP() {
 		return mps[mps.size() - 1];
 	}
@@ -79,29 +66,12 @@ private:
 	// The minimum amount of time before reaching the MP; index of minTimes corresponds to index of mps
 	std::vector<float> minTimes;
 
-	// Should be called every time mps is updated
-	void calculateMinTimes() {
-		float curTime = 0.0f;
-		minTimes.clear();
-		for (std::shared_ptr<MovablePoint> mp : mps) {
-			minTimes.push_back(curTime);
-			curTime += mp->getLifespan();
-		}
-	}
-	float calculateLifespan() {
-		lifespan = 0;
-		for (std::shared_ptr<MovablePoint> mp : mps) {
-			lifespan += mp->getLifespan();
-		}
-		return lifespan;
-	}
-	sf::Vector2f evaluate(float time) override {
-		for (int i = mps.size() - 1; i >= 0; i--) {
-			if (time >= minTimes[i]) {
-				return mps[i]->compute(sf::Vector2f(0, 0), time - minTimes[i]);
-			}
-		}
-	}
+	/*
+	Should be called every time mps is updated
+	*/
+	void calculateMinTimes();
+	float calculateLifespan();
+	sf::Vector2f evaluate(float time) override;
 };
 
 /*
@@ -109,7 +79,7 @@ MP that always evaluates to an entity's position.
 */
 class EntityMP : public MovablePoint {
 public:
-	EntityMP(const PositionComponent& entityPosition, float lifespan) : MovablePoint(lifespan, false), entityPosition(entityPosition) {}
+	EntityMP(const PositionComponent& entityPosition, float lifespan);
 
 private:
 	const PositionComponent& entityPosition;
@@ -125,7 +95,7 @@ Acts as the base unit of all concrete MovablePoint references.
 */
 class StationaryMP : public MovablePoint {
 public:
-	inline StationaryMP(sf::Vector2f position, float lifespan) : MovablePoint(lifespan, false), position(position) {}
+	StationaryMP(sf::Vector2f position, float lifespan);
 
 private:
 	sf::Vector2f position;
@@ -143,17 +113,13 @@ public:
 	/*
 	angle - in radians
 	*/
-	inline PolarMP(float lifespan, std::shared_ptr<TFV> distance, std::shared_ptr<TFV> angle) : MovablePoint(lifespan, false), angle(angle), distance(distance) {}
+	PolarMP(float lifespan, std::shared_ptr<TFV> distance, std::shared_ptr<TFV> angle);
 
 private:
 	std::shared_ptr<TFV> angle;
 	std::shared_ptr<TFV> distance;
 
-	inline sf::Vector2f evaluate(float time) override {
-		auto a = distance->evaluate(time);
-		auto b = angle->evaluate(time);
-		return sf::Vector2f(distance->evaluate(time) * cos(angle->evaluate(time)), distance->evaluate(time) * sin(angle->evaluate(time)));
-	}
+	sf::Vector2f evaluate(float time);
 };
 
 /*
@@ -164,32 +130,13 @@ public:
 	/*
 	angle - in radians
 	*/
-	inline BezierMP(float lifespan, std::vector<sf::Vector2f> controlPoints) : MovablePoint(lifespan, false), controlPoints(controlPoints), numControlPoints(controlPoints.size()) {}
+	BezierMP(float lifespan, std::vector<sf::Vector2f> controlPoints);
 
 private:
 	const std::vector<sf::Vector2f> controlPoints;
 	int numControlPoints;
 
-	inline sf::Vector2f evaluate(float time) override {
-		// Scale time to be in range [0, 1]
-		time /= lifespan;
-		
-		if (numControlPoints == 2) {
-			return controlPoints[0] + time * (controlPoints[1] - controlPoints[0]);
-		} else if (numControlPoints == 3) {
-			float a = 1 - time;
-			return a*a*controlPoints[0] + 2.0f*a*time*controlPoints[1] + time*time*controlPoints[2];
-		} else if (numControlPoints == 4) {
-			float a = 1 - time;
-			return (a*a*a*controlPoints[0]) + (3.0f * a*a*time*controlPoints[1]) + (3.0f * a*time*time*controlPoints[2]) + (time*time*time*controlPoints[3]);
-		} else {
-			sf::Vector2f sum(0, 0);
-			for (int i = 0; i < numControlPoints; i++) {
-				sum += binom(numControlPoints - 1, i) * std::pow(1.0f - time, numControlPoints - 1 - i) * std::pow(time, i) * controlPoints[i];
-			}
-			return sum;
-		}
-	}
+	sf::Vector2f evaluate(float time) override;
 };
 
 /*

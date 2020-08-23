@@ -30,8 +30,8 @@ EnemyPhaseStartCondition that depends on the time since the enemy's last phase.
 */
 class TimeBasedEnemyPhaseStartCondition : public EnemyPhaseStartCondition {
 public:
-	inline TimeBasedEnemyPhaseStartCondition() {}
-	inline TimeBasedEnemyPhaseStartCondition(std::string time) : time(time) {}
+	TimeBasedEnemyPhaseStartCondition();
+	TimeBasedEnemyPhaseStartCondition(std::string time);
 
 	std::shared_ptr<LevelPackObject> clone() const override;
 
@@ -57,8 +57,8 @@ EnemyPhaseStartCondition that depends on the enemy's percent health remaining.
 */
 class HPBasedEnemyPhaseStartCondition : public EnemyPhaseStartCondition {
 public:
-	inline HPBasedEnemyPhaseStartCondition() {}
-	inline HPBasedEnemyPhaseStartCondition(std::string ratio) : ratio(ratio) {}
+	HPBasedEnemyPhaseStartCondition();
+	HPBasedEnemyPhaseStartCondition(std::string ratio);
 
 	std::shared_ptr<LevelPackObject> clone() const override;
 
@@ -85,8 +85,8 @@ The enemy that this condition belongs to does not count.
 */
 class EnemyCountBasedEnemyPhaseStartCondition : public EnemyPhaseStartCondition {
 public:
-	inline EnemyCountBasedEnemyPhaseStartCondition() {}
-	inline EnemyCountBasedEnemyPhaseStartCondition(std::string enemyCount) : enemyCount(enemyCount) {}
+	EnemyCountBasedEnemyPhaseStartCondition();
+	EnemyCountBasedEnemyPhaseStartCondition(std::string enemyCount);
 
 	std::shared_ptr<LevelPackObject> clone() const override;
 

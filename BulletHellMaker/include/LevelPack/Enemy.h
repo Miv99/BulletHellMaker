@@ -13,7 +13,6 @@
 #include <LevelPack/DeathAction.h>
 #include <LevelPack/LevelPackObject.h>
 #include <LevelPack/ExpressionCompilable.h>
-#include <Game/Components/Components.h>
 
 /*
 An enemy in the editor.
@@ -23,10 +22,8 @@ The first PhaseStartCondition must be set such that the enemy is always in a pha
 */
 class EditorEnemy : public LevelPackObject {
 public:
-	inline EditorEnemy() {}
-	inline EditorEnemy(int id) {
-		this->id = id;
-	}
+	EditorEnemy();
+	EditorEnemy(int id);
 	/*
 	Copy constructor.
 	*/

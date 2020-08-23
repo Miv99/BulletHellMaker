@@ -105,6 +105,34 @@ void Level::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTa
 	}
 }
 
+std::shared_ptr<HealthPackItem> Level::getHealthPack() {
+	if (!healthPack) {
+		healthPack = std::make_shared<HealthPackItem>();
+	}
+	return healthPack;
+}
+
+std::shared_ptr<PointsPackItem> Level::getPointsPack() {
+	if (!pointPack) {
+		pointPack = std::make_shared<PointsPackItem>();
+	}
+	return pointPack;
+}
+
+std::shared_ptr<PowerPackItem> Level::getPowerPack() {
+	if (!powerPack) {
+		powerPack = std::make_shared<PowerPackItem>();
+	}
+	return powerPack;
+}
+
+std::shared_ptr<BombItem> Level::getBombItem() {
+	if (!bombItem) {
+		bombItem = std::make_shared<BombItem>();
+	}
+	return bombItem;
+}
+
 void Level::insertEvent(int eventIndex, std::shared_ptr<LevelEventStartCondition> startCondition, std::shared_ptr<LevelEvent> event) {
 	events.insert(events.begin() + eventIndex, std::make_pair(startCondition, event));
 

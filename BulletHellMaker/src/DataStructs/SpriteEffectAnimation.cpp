@@ -2,6 +2,20 @@
 
 #include <algorithm>
 
+SpriteEffectAnimation::SpriteEffectAnimation(std::shared_ptr<sf::Sprite> sprite)
+	: sprite(sprite) {
+}
+
+FlashWhiteSEA::FlashWhiteSEA(std::shared_ptr<sf::Sprite> sprite, float animationDuration, float flashInterval, float flashDuration) 
+	: SpriteEffectAnimation(sprite), flashInterval(flashInterval), flashDuration(flashDuration), animationDuration(animationDuration) {
+	// Load shader
+	if (!shader.loadFromFile("Shaders/tint.frag", sf::Shader::Fragment)) {
+		throw "Could not load Shaders/tint.frag";
+	}
+	shader.setUniform("flashColor", sf::Glsl::Vec4(1, 1, 1, 0));
+	useShader = true;
+}
+
 void FlashWhiteSEA::update(float deltaTime) {
 	if (done) {
 		return;
@@ -31,6 +45,11 @@ void FlashWhiteSEA::update(float deltaTime) {
 	shader.setUniform("textureModulatedColor", sf::Glsl::Vec4(sprite->getColor()));
 }
 
+FadeAwaySEA::FadeAwaySEA(std::shared_ptr<sf::Sprite> sprite, float minOpacity, float maxOpacity, float animationDuration, bool keepEffectAfterEnding) 
+	: SpriteEffectAnimation(sprite), minOpacity(minOpacity), maxOpacity(maxOpacity), animationDuration(animationDuration), keepEffectAfterEnding(keepEffectAfterEnding) {
+	useShader = false;
+}
+
 void FadeAwaySEA::update(float deltaTime) {
 	if (time > animationDuration) {
 		if (keepEffectAfterEnding) {
@@ -46,6 +65,10 @@ void FadeAwaySEA::update(float deltaTime) {
 	sprite->setColor(sf::Color(color.r, color.g, color.b, std::max(minOpacity * 255.0f, 255.0f * (-(maxOpacity - minOpacity) / animationDuration * time + maxOpacity))));
 }
 
+ChangeSizeSEA::ChangeSizeSEA(std::shared_ptr<sf::Sprite> sprite, float startScale, float endScale, float animationDuration) 
+	: SpriteEffectAnimation(sprite), startScale(startScale), endScale(endScale), animationDuration(animationDuration) {
+	useShader = false;
+}
 
 void ChangeSizeSEA::update(float deltaTime) {
 	if (time > animationDuration) {

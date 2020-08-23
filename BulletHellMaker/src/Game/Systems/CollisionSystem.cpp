@@ -1,13 +1,19 @@
-#include <Game/Components/Components.h>
+#include <Game/Systems/CollisionSystem.h>
 
 #include <algorithm>
 
-#include <Game/Systems/CollisionSystem.h>
-#include <LevelPack/Enemy.h>
-#include <LevelPack/Level.h>
-#include <Game/Components/Components.h>
-#include <DataStructs/SpriteEffectAnimation.h>
+#include <Util/MathUtils.h>
 #include <LevelPack/LevelPack.h>
+#include <LevelPack/Level.h>
+#include <LevelPack/Enemy.h>
+#include <Game/Components/PlayerTag.h>
+#include <Game/Components/EnemyComponent.h>
+#include <Game/Components/EnemyBulletComponent.h>
+#include <Game/Components/SpriteComponent.h>
+#include <Game/Components/PositionComponent.h>
+#include <Game/Components/HitboxComponent.h>
+#include <Game/EntityCreationQueue.h>
+#include <DataStructs/SpriteEffectAnimation.h>
 
 CollisionSystem::CollisionSystem(LevelPack& levelPack, EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry & registry, float mapWidth, float mapHeight) : levelPack(levelPack), queue(queue), spriteLoader(spriteLoader), registry(registry) {
 	defaultTableObjectMaxSize = 2.0f * std::max(mapWidth, mapHeight) / 10.0;
@@ -125,10 +131,10 @@ void CollisionSystem::update(float deltaTime) {
 
 					// Handle OnCollisionAction
 					switch (registry.get<EnemyBulletComponent>(bullet).getOnCollisionAction()) {
-					case DESTROY_THIS_BULLET_AND_ATTACHED_CHILDREN:
+					case BULLET_ON_COLLISION_ACTION::DESTROY_THIS_BULLET_AND_ATTACHED_CHILDREN:
 						registry.get<DespawnComponent>(bullet).setMaxTime(0);
 						break;
-					case DESTROY_THIS_BULLET_ONLY:
+					case BULLET_ON_COLLISION_ACTION::DESTROY_THIS_BULLET_ONLY:
 						// Remove all components except for MovementPathComponent, PositionComponent, and DespawnComponent
 						// Hitbox is simply disabled indefinitely in case other stuff uses its hitbox
 						registry.get<HitboxComponent>(bullet).disable(9999999999);
@@ -142,7 +148,7 @@ void CollisionSystem::update(float deltaTime) {
 							registry.remove<EMPSpawnerComponent>(bullet);
 						}
 						break;
-					case PIERCE_ENTITY:
+					case BULLET_ON_COLLISION_ACTION::PIERCE_ENTITY:
 						// Flash bullet
 						auto& sprite = registry.get<SpriteComponent>(bullet);
 						sprite.setEffectAnimation(std::make_unique<FlashWhiteSEA>(sprite.getSprite(), registry.get<EnemyBulletComponent>(bullet).getPierceResetTime()));
@@ -197,10 +203,10 @@ void CollisionSystem::update(float deltaTime) {
 
 					// Handle OnCollisionAction
 					switch (registry.get<PlayerBulletComponent>(bullet).getOnCollisionAction()) {
-					case DESTROY_THIS_BULLET_AND_ATTACHED_CHILDREN:
+					case BULLET_ON_COLLISION_ACTION::DESTROY_THIS_BULLET_AND_ATTACHED_CHILDREN:
 						registry.get<DespawnComponent>(bullet).setMaxTime(0);
 						break;
-					case DESTROY_THIS_BULLET_ONLY:
+					case BULLET_ON_COLLISION_ACTION::DESTROY_THIS_BULLET_ONLY:
 						// Remove all components except for MovementPathComponent, PositionComponent, and DespawnComponent
 						// Hitbox is simply disabled indefinitely in case other stuff uses its hitbox
 						registry.get<HitboxComponent>(bullet).disable(9999999999);
@@ -214,7 +220,7 @@ void CollisionSystem::update(float deltaTime) {
 							registry.remove<EMPSpawnerComponent>(bullet);
 						}
 						break;
-					case PIERCE_ENTITY:
+					case BULLET_ON_COLLISION_ACTION::PIERCE_ENTITY:
 						// Do nothing
 						break;
 					}

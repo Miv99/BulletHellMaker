@@ -14,11 +14,9 @@
 
 class PlayerPowerTier : public LevelPackObject {
 public:
-	inline PlayerPowerTier() {}
-	inline PlayerPowerTier(EntityAnimatableSet animatableSet, int attackPatternID, std::string attackPatternLoopDelay, int focusedAttackPatternID, 
-		std::string focusedAttackPatternLoopDelay, int bombAttackPatternID, std::string bombCooldown, std::string powerToNextTier) :
-		animatableSet(animatableSet), attackPatternID(attackPatternID), attackPatternLoopDelay(attackPatternLoopDelay), focusedAttackPatternID(focusedAttackPatternID), 
-		focusedAttackPatternLoopDelay(focusedAttackPatternLoopDelay), bombAttackPatternID(bombAttackPatternID), bombCooldown(bombCooldown), powerToNextTier(powerToNextTier) {}
+	PlayerPowerTier();
+	PlayerPowerTier(EntityAnimatableSet animatableSet, int attackPatternID, std::string attackPatternLoopDelay, int focusedAttackPatternID,
+		std::string focusedAttackPatternLoopDelay, int bombAttackPatternID, std::string bombCooldown, std::string powerToNextTier);
 
 	std::shared_ptr<LevelPackObject> clone() const;
 
@@ -70,7 +68,7 @@ private:
 
 class EditorPlayer : public LevelPackObject {
 public:
-	inline EditorPlayer() {}
+	EditorPlayer();
 
 	std::shared_ptr<LevelPackObject> clone() const;
 
@@ -99,7 +97,7 @@ public:
 	inline Animatable getBombSprite() const { return bombSprite; }
 	inline SoundSettings getBombReadySound() const { return bombReadySound; }
 	inline float getBombInvincibilityTime() const { return bombInvincibilityTimeExprCompiledValue; }
-	inline bool usesAttackPattern(int attackPatternID) const { return attackPatternIDCount.count(attackPatternID) > 0 && attackPatternIDCount.at(attackPatternID) > 0; }
+	bool usesAttackPattern(int attackPatternID) const;
 
 	inline std::shared_ptr<PlayerPowerTier> getPowerTier(int index) { return powerTiers[index]; }
 

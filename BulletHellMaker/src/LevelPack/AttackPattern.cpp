@@ -1,6 +1,7 @@
 #include <LevelPack/AttackPattern.h>
 
-#include <Game/Components/Components.h>
+#include <Game/Components/PositionComponent.h>
+#include <Game/Components/MovementPathComponent.h>
 #include <LevelPack/EditorMovablePointSpawnType.h>
 
 EditorAttackPattern::EditorAttackPattern() {

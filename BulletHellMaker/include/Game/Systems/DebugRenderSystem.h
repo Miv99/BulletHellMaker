@@ -5,7 +5,6 @@
 #include <entt/entt.hpp>
 #include <SFML/Graphics.hpp>
 
-#include <Game/Components/Components.h>
 #include <Game/Systems/RenderSystem/RenderSystem.h>
 
 /*

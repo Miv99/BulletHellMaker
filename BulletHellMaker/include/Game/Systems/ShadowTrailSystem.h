@@ -1,14 +1,15 @@
 #pragma once
 #include <entt/entt.hpp>
 
-#include <Game/EntityCreationQueue.h>
+class EntityCreationQueue;
 
 /*
 System for creating a trail of shadows behind entities.
 */
 class ShadowTrailSystem {
 public:
-	ShadowTrailSystem(EntityCreationQueue& queue, entt::DefaultRegistry& registry) : queue(queue), registry(registry) {}
+	ShadowTrailSystem(EntityCreationQueue& queue, entt::DefaultRegistry& registry);
+
 	void update(float deltaTime);
 
 private:

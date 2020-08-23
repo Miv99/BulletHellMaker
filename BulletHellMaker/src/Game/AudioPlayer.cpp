@@ -7,6 +7,32 @@ float masterVolume = 0.8f;
 float soundVolume = 0.2f;
 float musicVolume = 0.2f;
 
+AudioSettings::AudioSettings() {
+}
+
+SoundSettings::SoundSettings() {
+}
+
+SoundSettings::SoundSettings(std::string fileName, float volume, float pitch) {
+	this->fileName = fileName;
+	this->volume = volume;
+	this->pitch = pitch;
+}
+
+SoundSettings::SoundSettings(std::string fileName, float volume, float pitch, bool disabled) {
+	this->fileName = fileName;
+	this->volume = volume;
+	this->pitch = pitch;
+	this->disabled = disabled;
+}
+
+SoundSettings::SoundSettings(const SoundSettings& copy) {
+	fileName = copy.fileName;
+	volume = copy.volume;
+	pitch = copy.pitch;
+	disabled = copy.disabled;
+}
+
 std::string SoundSettings::format() const {
 	return formatString(fileName) + tos(volume) + tos(pitch) + formatBool(disabled);
 }
@@ -17,6 +43,29 @@ void SoundSettings::load(std::string formattedString) {
 	volume = std::stof(items[1]);
 	pitch = std::stof(items[2]);
 	disabled = unformatBool(items[3]);
+}
+
+MusicSettings::MusicSettings() {
+}
+
+MusicSettings::MusicSettings(std::string fileName, bool loops, int loopStartMilliseconds, int loopLengthMilliseconds, float volume, float pitch) {
+	this->fileName = fileName;
+	this->loops = loops;
+	this->loopStartMilliseconds = loopStartMilliseconds;
+	this->loopLengthMilliseconds = loopLengthMilliseconds;
+	this->volume = volume;
+	this->pitch = pitch;
+}
+
+MusicSettings::MusicSettings(const MusicSettings& copy) {
+	fileName = copy.fileName;
+	loops = copy.loops;
+	loopStartMilliseconds = copy.loopStartMilliseconds;
+	loopLengthMilliseconds = copy.loopLengthMilliseconds;
+	volume = copy.volume;
+	pitch = copy.pitch;
+	transitionTime = copy.transitionTime;
+	disabled = copy.disabled;
 }
 
 std::string MusicSettings::format() const {

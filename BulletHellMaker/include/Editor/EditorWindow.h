@@ -13,7 +13,6 @@
 
 #include <DataStructs/MovablePoint.h>
 #include <DataStructs/UndoStack.h>
-#include <Game/EntityCreationQueue.h>
 #include <Game/Systems/MovementSystem.h>
 #include <Game/Systems/DespawnSystem.h>
 #include <Game/Systems/EnemySystem.h>
@@ -37,6 +36,7 @@
 class AttackEditorPanel;
 class LevelPackObjectsListPanel;
 class LevelPackObjectPreviewWindow;
+class EntityCreationQueue;
 
 /*
 If the underlying RenderWindow is closed, one only needs to call start() or startAndHide() again to reopen the RenderWindow.

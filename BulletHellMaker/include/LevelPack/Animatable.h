@@ -3,7 +3,7 @@
 
 #include <LevelPack/TextMarshallable.h>
 
-static enum ROTATION_TYPE {
+enum class ROTATION_TYPE {
 	ROTATE_WITH_MOVEMENT, // Rotate depending on angle from last position to current position
 	LOCK_ROTATION, // Never rotate
 	LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT // Never rotate but flip sprite/hitbox across y-axis depending on angle from last position to current position
@@ -11,9 +11,8 @@ static enum ROTATION_TYPE {
 
 class Animatable : public TextMarshallable {
 public:
-	inline Animatable() {}
-	inline Animatable(std::string animatableName, std::string spriteSheetName, bool animatableIsSprite, ROTATION_TYPE rotationType) : animatableName(animatableName), 
-		spriteSheetName(spriteSheetName), animatableIsSprite(animatableIsSprite), rotationType(rotationType) {}
+	Animatable();
+	Animatable(std::string animatableName, std::string spriteSheetName, bool animatableIsSprite, ROTATION_TYPE rotationType);
 
 	bool operator==(const Animatable& other) {
 		return animatableName == other.animatableName && spriteSheetName == other.spriteSheetName && animatableIsSprite == other.animatableIsSprite && rotationType == other.rotationType;
@@ -46,5 +45,5 @@ private:
 	// True if the associated animatable is a sprite. False if it's an animation
 	bool animatableIsSprite;
 
-	ROTATION_TYPE rotationType = LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT;
+	ROTATION_TYPE rotationType = ROTATION_TYPE::LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT;
 };

@@ -22,7 +22,7 @@ render calls, so something like LevelPackObjectPreviewWindow must be used specif
 class SimpleEngineRenderer : public tgui::Panel, public EventCapturable {
 public:
 	SimpleEngineRenderer(sf::RenderWindow& parentWindow, bool userControlleView = true, bool useDebugRenderSystem = true);
-	inline static std::shared_ptr<SimpleEngineRenderer> create(sf::RenderWindow& parentWindow) {
+	static std::shared_ptr<SimpleEngineRenderer> create(sf::RenderWindow& parentWindow) {
 		return std::make_shared<SimpleEngineRenderer>(parentWindow);
 	}
 

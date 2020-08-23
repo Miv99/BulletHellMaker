@@ -2,7 +2,9 @@
 
 #include <SFML/Graphics.hpp>
 
-#include <Game/Components/Components.h>
+#include <Game/Components/PositionComponent.h>
+#include <Game/Components/AnimatableSetComponent.h>
+#include <Game/Components/SpriteComponent.h>
 
 void SpriteAnimationSystem::update(float deltaTime) {
 	auto view = registry.view<SpriteComponent>();

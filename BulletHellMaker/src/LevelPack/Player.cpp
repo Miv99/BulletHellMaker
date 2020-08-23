@@ -1,5 +1,8 @@
 #include <LevelPack/Player.h>
 
+EditorPlayer::EditorPlayer() {
+}
+
 std::shared_ptr<LevelPackObject> EditorPlayer::clone() const {
 	std::shared_ptr<EditorPlayer> clone = std::make_shared<EditorPlayer>();
 	clone->load(format());
@@ -109,6 +112,19 @@ void EditorPlayer::compileExpressions(std::vector<exprtk::symbol_table<float>> s
 	for (auto tier : powerTiers) {
 		tier->compileExpressions(symbolTables);
 	}
+}
+
+bool EditorPlayer::usesAttackPattern(int attackPatternID) const {
+	return attackPatternIDCount.count(attackPatternID) > 0 && attackPatternIDCount.at(attackPatternID) > 0;
+}
+
+PlayerPowerTier::PlayerPowerTier() {
+}
+
+PlayerPowerTier::PlayerPowerTier(EntityAnimatableSet animatableSet, int attackPatternID, std::string attackPatternLoopDelay, int focusedAttackPatternID,
+	std::string focusedAttackPatternLoopDelay, int bombAttackPatternID, std::string bombCooldown, std::string powerToNextTier) 
+	: animatableSet(animatableSet), attackPatternID(attackPatternID), attackPatternLoopDelay(attackPatternLoopDelay), focusedAttackPatternID(focusedAttackPatternID),
+	focusedAttackPatternLoopDelay(focusedAttackPatternLoopDelay), bombAttackPatternID(bombAttackPatternID), bombCooldown(bombCooldown), powerToNextTier(powerToNextTier) {
 }
 
 std::shared_ptr<LevelPackObject> PlayerPowerTier::clone() const {

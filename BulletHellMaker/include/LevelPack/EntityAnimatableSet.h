@@ -14,7 +14,7 @@ or with each player power tier.
 */
 class EntityAnimatableSet : public TextMarshallable {
 public:
-	inline EntityAnimatableSet() {}
+	EntityAnimatableSet();
 	EntityAnimatableSet(Animatable idle, Animatable movement, Animatable attack, std::shared_ptr<DeathAction> deathAction);
 	EntityAnimatableSet(Animatable idle, Animatable movement, Animatable attack);
 

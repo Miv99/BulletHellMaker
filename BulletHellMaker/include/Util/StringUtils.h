@@ -45,3 +45,8 @@ std::string formatNum(const T& n) {
 		return s;
 	}
 }
+
+/*
+Removes trailing whitespace from a string.
+*/
+std::string removeTrailingWhitespace(const std::string& str);

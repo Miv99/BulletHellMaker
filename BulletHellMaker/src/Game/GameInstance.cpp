@@ -8,9 +8,9 @@
 
 #include <GuiConfig.h>
 #include <Constants.h>
-#include <DataStructs/SpriteLoader.h>
 #include <Util/TextFileParser.h>
-#include <Game/Components/Components.h>
+#include <Util/StringUtils.h>
+#include <DataStructs/SpriteLoader.h>
 #include <DataStructs/TimeFunctionVariable.h>
 #include <DataStructs/MovablePoint.h>
 #include <LevelPack/LevelPack.h>
@@ -18,7 +18,8 @@
 #include <LevelPack/Level.h>
 #include <LevelPack/Enemy.h>
 #include <LevelPack/EnemyPhaseStartCondition.h>
-#include <Util/StringUtils.h>
+#include <Game/Components/Components.h>
+#include <Game/EntityCreationQueue.h>
 
 void GameInstance::updateWindowView(int windowWidth, int windowHeight) {
 	sf::Vector2u resolution = renderSystem->getResolution();
@@ -668,7 +669,7 @@ void GameInstance::createPlayer(EditorPlayer params) {
 		params.getPowerTiers(), params.getHurtSound(), params.getDeathSound(), params.getInitialBombs(), params.getMaxBombs(), params.getBombInvincibilityTime());
 	auto& health = registry.assign<HealthComponent>(player, params.getInitialHealth(), params.getMaxHealth());
 	// Hitbox temporarily at 0, 0 until an Animatable is assigned to the player later
-	registry.assign<HitboxComponent>(player, LOCK_ROTATION, params.getHitboxRadius(), 0, 0);
+	registry.assign<HitboxComponent>(player, ROTATION_TYPE::LOCK_ROTATION, params.getHitboxRadius(), 0, 0);
 	registry.assign<PositionComponent>(player, PLAYER_SPAWN_X - params.getHitboxPosX(), PLAYER_SPAWN_Y - params.getHitboxPosY());
 	registry.assign<SpriteComponent>(player, PLAYER_LAYER, 0);
 

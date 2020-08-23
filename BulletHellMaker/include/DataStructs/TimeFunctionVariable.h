@@ -10,8 +10,8 @@
 #include <entt/entt.hpp>
 
 #include <Constants.h>
+#include <Util/MathUtils.h>
 #include <LevelPack/TextMarshallable.h>
-#include <Game/Components/Components.h>
 
 struct InvalidEvaluationDomainException : public std::exception {
 	const char* what() const throw () {
@@ -26,8 +26,9 @@ Evaluation of a TFV does not change it internally, so the same TFV can be reused
 */
 class TFV : public TextMarshallable {
 public:
-	inline TFV() {}
-	inline TFV(float maxTime) : maxTime(maxTime) {}
+	TFV();
+	TFV(float maxTime);
+
 	virtual std::shared_ptr<TFV> clone() = 0;
 
 	virtual std::string format() const = 0;
@@ -60,8 +61,9 @@ float
 */
 class LinearTFV : public TFV {
 public:
-	inline LinearTFV() {}
-	inline LinearTFV(float startValue, float endValue, float maxTime) : TFV(maxTime), startValue(startValue), endValue(endValue) {}
+	LinearTFV();
+	LinearTFV(float startValue, float endValue, float maxTime);
+
 	std::shared_ptr<TFV> clone() override;
 
 	std::string format() const override;
@@ -91,8 +93,9 @@ float value
 */
 class ConstantTFV : public TFV {
 public:
-	inline ConstantTFV() {}
-	inline ConstantTFV(float value) : value(value) {}
+	ConstantTFV();
+	ConstantTFV(float value);
+
 	std::shared_ptr<TFV> clone() override;
 
 	std::string format() const override;
@@ -123,8 +126,9 @@ float phaseShift = 0.0f
 */
 class SineWaveTFV : public TFV {
 public:
-	inline SineWaveTFV() {}
-	inline SineWaveTFV(float period, float amplitude, float valueShift, float phaseShift = 0.0f) : period(period), amplitude(amplitude), valueShift(valueShift), phaseShift(phaseShift) {}
+	SineWaveTFV();
+	SineWaveTFV(float period, float amplitude, float valueShift, float phaseShift = 0.0f);
+
 	std::shared_ptr<TFV> clone() override;
 	
 	std::string format() const override;
@@ -162,8 +166,9 @@ float acceleration
 */
 class ConstantAccelerationDistanceTFV : public TFV {
 public:
-	inline ConstantAccelerationDistanceTFV() {}
-	inline ConstantAccelerationDistanceTFV(float initialDistance, float initialVelocity, float acceleration) : initialDistance(initialDistance), initialVelocity(initialVelocity), acceleration(acceleration) {}
+	ConstantAccelerationDistanceTFV();
+	ConstantAccelerationDistanceTFV(float initialDistance, float initialVelocity, float acceleration);
+
 	std::shared_ptr<TFV> clone() override;
 
 	std::string format() const override;
@@ -199,12 +204,9 @@ int dampeningFactor - range [1, infinity]; no upper limit but ~100 is already pr
 */
 class DampenedStartTFV : public TFV {
 public:
-	inline DampenedStartTFV() {
-		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
-	}
-	inline DampenedStartTFV(float startValue, float endValue, float maxTime, int dampeningFactor) : TFV(maxTime), dampeningFactor(dampeningFactor), startValue(startValue), endValue(endValue) {
-		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
-	}
+	DampenedStartTFV();
+	DampenedStartTFV(float startValue, float endValue, float maxTime, int dampeningFactor);
+
 	std::shared_ptr<TFV> clone() override;
 	
 	std::string format() const override;
@@ -254,12 +256,9 @@ int dampeningFactor - range [1, infinity]; no upper limit but ~100 is already pr
 */
 class DampenedEndTFV : public TFV {
 public:
-	inline DampenedEndTFV() {
-		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
-	}
-	inline DampenedEndTFV(float startValue, float endValue, float maxTime, int dampeningFactor) : TFV(maxTime), dampeningFactor(dampeningFactor), startValue(startValue), endValue(endValue) {
-		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
-	}
+	DampenedEndTFV();
+	DampenedEndTFV(float startValue, float endValue, float maxTime, int dampeningFactor);
+
 	std::shared_ptr<TFV> clone() override;
 	
 	std::string format() const override;
@@ -270,25 +269,14 @@ public:
 		return -a * pow(maxTime - time, 0.08f*dampeningFactor + 1) + endValue;
 	}
 
-	inline void setStartValue(float startValue) {
-		this->startValue = startValue;
-		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
-	}
-	inline void setEndValue(float endValue) {
-		this->endValue = endValue;
-		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
-	}
-	inline void setDampeningFactor(int dampeningFactor) {
-		this->dampeningFactor = dampeningFactor;
-		a = (endValue - startValue) / pow(maxTime, 0.08f*dampeningFactor + 1);
-	}
-	inline void setMaxTime(float maxTime) override {
-		this->maxTime = maxTime;
-		a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f*dampeningFactor + 1);
-	}
-	inline float getStartValue() { return startValue; }
-	inline float getEndValue() { return endValue; }
-	inline int getDampeningFactor() { return dampeningFactor; }
+	void setStartValue(float startValue);
+	void setEndValue(float endValue);
+	void setDampeningFactor(int dampeningFactor);
+	void setMaxTime(float maxTime) override;
+
+	inline float getStartValue() const { return startValue; }
+	inline float getEndValue() const { return endValue; }
+	inline int getDampeningFactor() const { return dampeningFactor; }
 
 	bool operator==(const TFV& other) const override;
 
@@ -310,45 +298,25 @@ int dampeningFactor - range [1, infinity]; no upper limit but ~100 is already pr
 */
 class DoubleDampenedTFV : public TFV {
 public:
-	inline DoubleDampenedTFV() {
-		a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f*dampeningFactor + 1);
-	}
-	inline DoubleDampenedTFV(float startValue, float endValue, float maxTime, int dampeningFactor) : TFV(maxTime), dampeningFactor(dampeningFactor), startValue(startValue), endValue(endValue) {
-		a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f*dampeningFactor + 1);
-	}
+	DoubleDampenedTFV();
+	DoubleDampenedTFV(float startValue, float endValue, float maxTime, int dampeningFactor);
+
 	std::shared_ptr<TFV> clone() override;
 	
 	std::string format() const override;
 	void load(std::string formattedString) override;
 	std::string getName() override { return "Dampened start and end"; }
 	
-	inline float evaluate(float time) override {
-		if (time < maxTime / 2) {
-			return a * pow(time, 0.08f*dampeningFactor + 1) + startValue;
-		} else {
-			return -a * pow(maxTime - time, 0.08f*dampeningFactor + 1) + endValue;
-		}
-	}
+	float evaluate(float time) override;
 
-	inline void setStartValue(float startValue) {
-		this->startValue = startValue;
-		a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f*dampeningFactor + 1);
-	}
-	inline void setEndValue(float endValue) {
-		this->endValue = endValue;
-		a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f*dampeningFactor + 1);
-	}
-	inline void setDampeningFactor(int dampeningFactor) {
-		this->dampeningFactor = dampeningFactor;
-		a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f*dampeningFactor + 1);
-	}
-	inline void setMaxTime(float maxTime) override {
-		this->maxTime = maxTime;
-		a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f*dampeningFactor + 1);
-	}
-	inline float getStartValue() { return startValue; }
-	inline float getEndValue() { return endValue; }
-	inline int getDampeningFactor() { return dampeningFactor; }
+	void setStartValue(float startValue);
+	void setEndValue(float endValue);
+	void setDampeningFactor(int dampeningFactor);
+	void setMaxTime(float maxTime) override;
+
+	inline float getStartValue() const { return startValue; }
+	inline float getEndValue() const { return endValue; }
+	inline int getDampeningFactor() const { return dampeningFactor; }
 
 	bool operator==(const TFV& other) const override;
 
@@ -368,10 +336,9 @@ float valueTranslation
 */
 class TranslationWrapperTFV : public TFV {
 public:
-	inline TranslationWrapperTFV() {}
-	inline TranslationWrapperTFV(std::shared_ptr<TFV> wrappedTFV, float valueTranslation) : wrappedTFV(wrappedTFV), valueTranslation(valueTranslation) {
-		assert(dynamic_cast<TranslationWrapperTFV*>(wrappedTFV.get()) == nullptr && "TranslationWrapperTFV should never wrap another; they can be combined");
-	}
+	TranslationWrapperTFV();
+	TranslationWrapperTFV(std::shared_ptr<TFV> wrappedTFV, float valueTranslation);
+
 	std::shared_ptr<TFV> clone() override;
 
 	std::string format() const override;
@@ -445,7 +412,8 @@ Some functions here have an optional parameter totalLifespan, which if set to be
 */
 class PiecewiseTFV : public TFV {
 public:
-	inline PiecewiseTFV() {}
+	PiecewiseTFV();
+
 	std::shared_ptr<TFV> clone() override;
 
 	std::string format() const override;

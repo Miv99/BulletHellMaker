@@ -7,6 +7,10 @@ const float ViewController::MAX_CAMERA_ZOOM = 8.0f;
 const float ViewController::CAMERA_ZOOM_DELTA = 0.2f;
 const float ViewController::KEYBOARD_PAN_STRENGTH = 300.0f;
 
+ViewController::ViewController(const sf::RenderWindow& window, bool controllableWithWASD, bool controllableWithArrowKeys)
+	: window(window), controllableWithWASD(controllableWithWASD), controllableWithArrowKeys(controllableWithArrowKeys) {
+}
+
 bool ViewController::handleEvent(sf::View& view, sf::Event event) {
 	bool consumeEvent = false;
 
@@ -133,6 +137,11 @@ bool ViewController::update(sf::View& view, float deltaTime) {
 void ViewController::setViewZone(sf::View& view, sf::FloatRect viewZone) {
 	view.setSize(originalViewWidth / cameraZoom, originalViewHeight / cameraZoom);
 	view.setCenter(viewZone.left + viewZone.width / 2.0f, viewZone.top + viewZone.height / 2.0f);
+}
+
+void ViewController::setOriginalViewSize(float width, float height) {
+	originalViewWidth = width;
+	originalViewHeight = height;
 }
 
 void ViewController::setCameraZoom(sf::View& view, float zoom) {

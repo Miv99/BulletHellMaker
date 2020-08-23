@@ -1,10 +1,12 @@
 #include <LevelPack/EnemySpawn.h>
 
 #include <LevelPack/LevelPack.h>
-#include <Game/Components/Components.h>
 #include <LevelPack/EditorMovablePointSpawnType.h>
 #include <Game/EntityCreationQueue.h>
 #include <LevelPack/Item.h>
+
+EnemySpawnInfo::EnemySpawnInfo() {
+}
 
 EnemySpawnInfo::EnemySpawnInfo(int enemyID, std::string x, std::string y, std::vector<std::pair<std::shared_ptr<Item>, std::string>> itemsDroppedOnDeath) : enemyID(enemyID), x(x), y(y), itemsDroppedOnDeath(itemsDroppedOnDeath) {
 }

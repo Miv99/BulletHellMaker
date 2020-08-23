@@ -6,7 +6,6 @@
 #include <set>
 
 #include <GuiConfig.h>
-#include <Game/Components/Components.h>
 #include <LevelPack/Enemy.h>
 #include <LevelPack/EnemyPhase.h>
 #include <LevelPack/Level.h>
@@ -14,6 +13,7 @@
 #include <Editor/Attack/AttackEditorPanel.h>
 #include <Editor/AttackPattern/AttackPatternEditorPanel.h>
 #include <Editor/LevelPackObjectList/LevelPackObjectsListPanel.h>
+#include <Game/EntityCreationQueue.h>
 
 EditorWindow::EditorWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval) :
 	tguiMutex(tguiMutex), windowTitle(windowTitle), windowWidth(width), windowHeight(height), scaleWidgetsOnResize(scaleWidgetsOnResize), letterboxingEnabled(letterboxingEnabled), renderInterval(renderInterval) {

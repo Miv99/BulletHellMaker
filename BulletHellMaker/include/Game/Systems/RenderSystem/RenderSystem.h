@@ -38,14 +38,8 @@ public:
 	void setBackground(std::shared_ptr<sf::Texture> background);
 	inline void setBackgroundScrollSpeedX(float backgroundScrollSpeedX) { this->backgroundScrollSpeedX = backgroundScrollSpeedX; }
 	inline void setBackgroundScrollSpeedY(float backgroundScrollSpeedY) { this->backgroundScrollSpeedY = backgroundScrollSpeedY; }
-	inline void setBackgroundTextureWidth(float backgroundTextureWidth) {
-		this->backgroundTextureWidth = backgroundTextureWidth;
-		backgroundSprite.setScale(MAP_WIDTH / backgroundTextureWidth * resolutionMultiplier, MAP_HEIGHT / backgroundTextureHeight * resolutionMultiplier);
-	}
-	inline void setBackgroundTextureHeight(float backgroundTextureHeight) {
-		this->backgroundTextureHeight = backgroundTextureHeight;
-		backgroundSprite.setScale(MAP_WIDTH / backgroundTextureWidth * resolutionMultiplier, MAP_HEIGHT / backgroundTextureHeight * resolutionMultiplier);
-	}
+	void setBackgroundTextureWidth(float backgroundTextureWidth);
+	void setBackgroundTextureHeight(float backgroundTextureHeight);
 
 	sf::Vector2u getResolution();
 	std::shared_ptr<entt::SigH<void()>> getOnResolutionChange();

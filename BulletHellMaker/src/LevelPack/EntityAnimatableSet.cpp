@@ -2,6 +2,9 @@
 
 #include <LevelPack/DeathAction.h>
 
+EntityAnimatableSet::EntityAnimatableSet() {
+}
+
 EntityAnimatableSet::EntityAnimatableSet(Animatable idle, Animatable movement, Animatable attack, std::shared_ptr<DeathAction> deathAction) : idleAnimatable(idle), movementAnimatable(movement), attackAnimatable(attack), deathAction(deathAction) {
 }
 

@@ -1,10 +1,18 @@
 #include <LevelPack/DeathAction.h>
 
-#include <Game/Components/Components.h>
+#include <Game/Components/EnemyComponent.h>
+#include <Game/Components/PositionComponent.h>
 #include <LevelPack/LevelPack.h>
 #include <LevelPack/Attack.h>
 #include <LevelPack/Enemy.h>
 #include <Game/EntityCreationQueue.h>
+
+PlayAnimatableDeathAction::PlayAnimatableDeathAction() {
+}
+
+PlayAnimatableDeathAction::PlayAnimatableDeathAction(Animatable animatable, DEATH_ANIMATION_EFFECT effect, std::string duration) 
+	: animatable(animatable), effect(effect), duration(duration) {
+}
 
 std::shared_ptr<LevelPackObject> PlayAnimatableDeathAction::clone() const {
 	auto clone = std::make_shared<PlayAnimatableDeathAction>();
@@ -68,6 +76,13 @@ void PlayAnimatableDeathAction::setEffect(DEATH_ANIMATION_EFFECT effect) {
 	this->effect = effect;
 }
 
+PlaySoundDeathAction::PlaySoundDeathAction() {
+}
+
+PlaySoundDeathAction::PlaySoundDeathAction(SoundSettings soundSettings) 
+	: soundSettings(soundSettings) {
+}
+
 std::shared_ptr<LevelPackObject> PlaySoundDeathAction::clone() const {
 	auto clone = std::make_shared<PlaySoundDeathAction>();
 	clone->load(format());
@@ -105,6 +120,13 @@ SoundSettings PlaySoundDeathAction::getSoundSettings() {
 
 void PlaySoundDeathAction::setSoundSettings(SoundSettings soundSettings) {
 	this->soundSettings = soundSettings;
+}
+
+ExecuteAttacksDeathAction::ExecuteAttacksDeathAction() {
+}
+
+ExecuteAttacksDeathAction::ExecuteAttacksDeathAction(std::vector<std::pair<int, ExprSymbolTable>> attackIDs) 
+	: attackIDs(attackIDs) {
 }
 
 std::shared_ptr<LevelPackObject> ExecuteAttacksDeathAction::clone() const {
@@ -187,6 +209,16 @@ std::vector<std::pair<int, ExprSymbolTable>> ExecuteAttacksDeathAction::getAttac
 void ExecuteAttacksDeathAction::setAttackIDs(std::vector<std::pair<int, ExprSymbolTable>> attackIDs) {
 	this->attackIDs = attackIDs;
 }
+
+ParticleExplosionDeathAction::ParticleExplosionDeathAction() {
+}
+
+ParticleExplosionDeathAction::ParticleExplosionDeathAction(PARTICLE_EFFECT effect, Animatable animatable, bool loopAnimatable, sf::Color color, std::string minParticles, 
+	std::string maxParticles, std::string minDistance, std::string maxDistance, std::string minLifespan, std::string maxLifespan) 
+	: effect(effect), animatable(animatable), color(color), minParticles(minParticles), maxParticles(maxParticles), minDistance(minDistance), 
+	maxDistance(maxDistance), minLifespan(minLifespan), maxLifespan(maxLifespan) {
+}
+
 
 std::shared_ptr<LevelPackObject> ParticleExplosionDeathAction::clone() const {
 	auto clone = std::make_shared<ParticleExplosionDeathAction>();
@@ -335,6 +367,9 @@ std::shared_ptr<DeathAction> DeathActionFactory::create(std::string formattedStr
 	}
 	ptr->load(formattedString);
 	return ptr;
+}
+
+NullDeathAction::NullDeathAction() {
 }
 
 std::shared_ptr<LevelPackObject> NullDeathAction::clone() const {

@@ -14,7 +14,6 @@
 #include <LevelPack/Level.h>
 #include <LevelPack/LevelPackObject.h>
 #include <DataStructs/MovablePoint.h>
-#include <Game/Components/Components.h>
 #include <DataStructs/SymbolTable.h>
 
 //TODO delete these
@@ -38,7 +37,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	*/
 	
 	auto model1 = createBulletModel();
-	model1->setAnimatable(Animatable("Bullet", "sheet1", true, LOCK_ROTATION));
+	model1->setAnimatable(Animatable("Bullet", "sheet1", true, ROTATION_TYPE::LOCK_ROTATION));
 	model1->setDamage(1);
 	model1->setName("test model");
 	model1->setHitboxRadius(30);
@@ -51,12 +50,12 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	auto attack1emp0 = attack1->searchEMP(0);
 	attack1emp0->setBulletModel(model1);
 	attack1emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>("1", "0", "0"));
-	attack1emp0->setOnCollisionAction(PIERCE_ENTITY);
+	attack1emp0->setOnCollisionAction(BULLET_ON_COLLISION_ACTION::PIERCE_ENTITY);
 	attack1emp0->setPierceResetTime("999999");
 
 	auto attack1emp1 = attack1emp0->createChild();
 	attack1emp1->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>("1", "0", "0"));
-	attack1emp1->setAnimatable(Animatable("Bullet2", "sheet1", true, LOCK_ROTATION));
+	attack1emp1->setAnimatable(Animatable("Bullet2", "sheet1", true, ROTATION_TYPE::LOCK_ROTATION));
 	attack1emp1->setHitboxRadius("30");
 	attack1emp1->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 200, 10), std::make_shared<ConstantTFV>(4.7f), 10));
 
@@ -74,7 +73,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	distanceSegments->insertSegment(std::make_pair(1, std::make_shared<LinearTFV>(100, 200, 2)));
 	distanceSegments->insertSegment(std::make_pair(3, std::make_shared<LinearTFV>(200, 300, 3)), 6);
 	attack2emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(distanceSegments, std::make_shared<ConstantTFV>(-PI), 6));
-	attack2emp0->setOnCollisionAction(PIERCE_ENTITY);
+	attack2emp0->setOnCollisionAction(BULLET_ON_COLLISION_ACTION::PIERCE_ENTITY);
 
 	auto ap1 = createAttackPattern();
 	ap1->setShadowTrailLifespan("3.0");
@@ -127,10 +126,10 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	
 
 	auto enemy1 = createEnemy();
-	auto e1set = EntityAnimatableSet(Animatable("Megaman idle", "sheet1", false, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT), 
-		Animatable("Megaman movement", "sheet1", false, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT), 
-		Animatable("Megaman attack", "sheet1", false, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT),
-		std::make_shared<PlayAnimatableDeathAction>(Animatable("oh my god he's dead", "sheet1", true, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT), PlayAnimatableDeathAction::DEATH_ANIMATION_EFFECT::NONE, "3.0"));
+	auto e1set = EntityAnimatableSet(Animatable("Megaman idle", "sheet1", false, ROTATION_TYPE::LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT),
+		Animatable("Megaman movement", "sheet1", false, ROTATION_TYPE::LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT),
+		Animatable("Megaman attack", "sheet1", false, ROTATION_TYPE::LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT),
+		std::make_shared<PlayAnimatableDeathAction>(Animatable("oh my god he's dead", "sheet1", true, ROTATION_TYPE::LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT), PlayAnimatableDeathAction::DEATH_ANIMATION_EFFECT::NONE, "3.0"));
 	enemy1->addPhaseID(0, std::make_shared<TimeBasedEnemyPhaseStartCondition>("0"), ep1->getID(), e1set, ExprSymbolTable());
 	enemy1->addPhaseID(1, std::make_shared<TimeBasedEnemyPhaseStartCondition>("10"), ep2->getID(), e1set, ExprSymbolTable());
 	enemy1->setHealth("health + 5");
@@ -152,26 +151,26 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	for (int i = 0; i < 10; i++) {
 		auto atk = createAttack();
 		auto emp = atk->searchEMP(0);
-		emp->setAnimatable(Animatable("Bullet", "sheet1", true, ROTATE_WITH_MOVEMENT));
+		emp->setAnimatable(Animatable("Bullet", "sheet1", true, ROTATION_TYPE::ROTATE_WITH_MOVEMENT));
 		emp->setHitboxRadius("30");
 		emp->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>("0", "0", "0"));
 		emp->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 2.0f + (i * 0.3f)), std::make_shared<ConstantTFV>(0), 2.0f, std::make_shared<EMPAAngleOffsetToPlayer>()));
-		emp->setOnCollisionAction(DESTROY_THIS_BULLET_ONLY);
+		emp->setOnCollisionAction(BULLET_ON_COLLISION_ACTION::DESTROY_THIS_BULLET_ONLY);
 		e1DeathAttacks.push_back(std::make_pair(atk->getID(), ExprSymbolTable()));
 	}
 	enemy1->addDeathAction(std::make_shared<ExecuteAttacksDeathAction>(e1DeathAttacks));
-	enemy1->addDeathAction(std::make_shared<ParticleExplosionDeathAction>(ParticleExplosionDeathAction::PARTICLE_EFFECT::FADE_AWAY, Animatable("Bomb", "sheet1", true, LOCK_ROTATION), false, sf::Color::Yellow));
+	enemy1->addDeathAction(std::make_shared<ParticleExplosionDeathAction>(ParticleExplosionDeathAction::PARTICLE_EFFECT::FADE_AWAY, Animatable("Bomb", "sheet1", true, ROTATION_TYPE::LOCK_ROTATION), false, sf::Color::Yellow));
 
 	auto level = createLevel();
 	level->setName("test level name that is really long");
 	auto playerAP = createAttackPattern();
 	auto playerAttack1 = createAttack();
 	auto pemp0 = playerAttack1->searchEMP(0);
-	pemp0->setAnimatable(Animatable("Bullet", "sheet1", true, LOCK_ROTATION));
+	pemp0->setAnimatable(Animatable("Bullet", "sheet1", true, ROTATION_TYPE::LOCK_ROTATION));
 	pemp0->setHitboxRadius("30");
 	pemp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>("1", "0", "0"));
 	pemp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 2), std::make_shared<ConstantTFV>(PI/2.0f), 2.0f));
-	pemp0->setOnCollisionAction(PIERCE_ENTITY);
+	pemp0->setOnCollisionAction(BULLET_ON_COLLISION_ACTION::PIERCE_ENTITY);
 	playerAP->addAttack("0.1", playerAttack1->getID(), ExprSymbolTable());
 
 	auto playerAP2 = createAttackPattern();
@@ -181,7 +180,7 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	auto playerAttack2 = createAttack();
 	auto p2emp0 = playerAttack2->searchEMP(0);
 	auto p2emp1 = p2emp0->createChild();
-	p2emp1->setAnimatable(Animatable("Megaman stepping", "sheet1", true, LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT));
+	p2emp1->setAnimatable(Animatable("Megaman stepping", "sheet1", true, ROTATION_TYPE::LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT));
 	p2emp1->setHitboxRadius("30");
 	p2emp1->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>("1", "0", "0"));
 	p2emp1->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 700, 1.1f), std::make_shared<ConstantTFV>(PI / 2.0f), 1.1f));
@@ -191,19 +190,19 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	for (int i = 0; i < 10; i++) {
 		auto bombAttack1 = createAttack();
 		auto b1emp0 = bombAttack1->searchEMP(0);
-		b1emp0->setAnimatable(Animatable("Bullet", "sheet1", true, LOCK_ROTATION));
+		b1emp0->setAnimatable(Animatable("Bullet", "sheet1", true, ROTATION_TYPE::LOCK_ROTATION));
 		b1emp0->setHitboxRadius("30");
 		b1emp0->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>("1", "0", "0"));
 		b1emp0->insertAction(0, std::make_shared<MoveCustomPolarEMPA>(std::make_shared<LinearTFV>(0, 1000, 2), std::make_shared<ConstantTFV>(1.0f + i*0.13f), 2.0f));
-		b1emp0->setOnCollisionAction(PIERCE_ENTITY);
+		b1emp0->setOnCollisionAction(BULLET_ON_COLLISION_ACTION::PIERCE_ENTITY);
 		bombAP->addAttack("0", bombAttack1->getID(), ExprSymbolTable());
 	}
 
 	auto pset1 = e1set;
-	auto pset2 = EntityAnimatableSet(Animatable("Megaman idle", "sheet1", false, ROTATE_WITH_MOVEMENT),
-		Animatable("Megaman movement", "sheet1", false, ROTATE_WITH_MOVEMENT),
-		Animatable("Megaman attack", "sheet1", false, ROTATE_WITH_MOVEMENT),
-		std::make_shared<PlayAnimatableDeathAction>(Animatable("oh my god he's dead", "sheet1", true, ROTATE_WITH_MOVEMENT), PlayAnimatableDeathAction::DEATH_ANIMATION_EFFECT::NONE, "3.0"));
+	auto pset2 = EntityAnimatableSet(Animatable("Megaman idle", "sheet1", false, ROTATION_TYPE::ROTATE_WITH_MOVEMENT),
+		Animatable("Megaman movement", "sheet1", false, ROTATION_TYPE::ROTATE_WITH_MOVEMENT),
+		Animatable("Megaman attack", "sheet1", false, ROTATION_TYPE::ROTATE_WITH_MOVEMENT),
+		std::make_shared<PlayAnimatableDeathAction>(Animatable("oh my god he's dead", "sheet1", true, ROTATION_TYPE::ROTATE_WITH_MOVEMENT), PlayAnimatableDeathAction::DEATH_ANIMATION_EFFECT::NONE, "3.0"));
 	auto v1 = std::vector<std::shared_ptr<EnemySpawnInfo>>();
 	std::vector<std::pair<std::shared_ptr<Item>, std::string>> items;
 	items.push_back(std::make_pair(level->getHealthPack(), "3"));
@@ -218,22 +217,22 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	level->insertEvent(0, std::make_shared<TimeBasedEnemySpawnCondition>("0"), std::make_shared<SpawnEnemiesLevelEvent>(v1));
 
 	level->getHealthPack()->setActivationRadius(150);
-	level->getHealthPack()->setAnimatable(Animatable("Health", "sheet1", true, LOCK_ROTATION));
+	level->getHealthPack()->setAnimatable(Animatable("Health", "sheet1", true, ROTATION_TYPE::LOCK_ROTATION));
 	level->getHealthPack()->setHitboxRadius(40);
 	level->getHealthPack()->getOnCollectSound().setFileName("item.wav");
 
 	level->getPointsPack()->setActivationRadius(75);
-	level->getPointsPack()->setAnimatable(Animatable("Points", "sheet1", true, LOCK_ROTATION));
+	level->getPointsPack()->setAnimatable(Animatable("Points", "sheet1", true, ROTATION_TYPE::LOCK_ROTATION));
 	level->getPointsPack()->setHitboxRadius(40);
 	level->getPointsPack()->getOnCollectSound().setFileName("item.wav");
 
 	level->getPowerPack()->setActivationRadius(75);
-	level->getPowerPack()->setAnimatable(Animatable("Power", "sheet1", true, LOCK_ROTATION));
+	level->getPowerPack()->setAnimatable(Animatable("Power", "sheet1", true, ROTATION_TYPE::LOCK_ROTATION));
 	level->getPowerPack()->setHitboxRadius(40);
 	level->getPowerPack()->getOnCollectSound().setFileName("item.wav");
 
 	level->getBombItem()->setActivationRadius(75);
-	level->getBombItem()->setAnimatable(Animatable("Bomb", "sheet1", true, LOCK_ROTATION));
+	level->getBombItem()->setAnimatable(Animatable("Bomb", "sheet1", true, ROTATION_TYPE::LOCK_ROTATION));
 	level->getBombItem()->setHitboxRadius(40);
 	level->getBombItem()->getOnCollectSound().setFileName("item.wav");
 
@@ -255,8 +254,8 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 		3, 10, Animatable("bomb.png", "", true, LOCK_ROTATION), SoundSettings("bomb_ready.wav"), 5.0f)
 	*/
 	player->setBombInvincibilityTime(5);
-	player->setBombSprite(Animatable("GUI\\bomb.png", "", true, LOCK_ROTATION));
-	player->setDiscretePlayerHPSprite(Animatable("GUI\\heart.png", "", true, LOCK_ROTATION));
+	player->setBombSprite(Animatable("GUI\\bomb.png", "", true, ROTATION_TYPE::LOCK_ROTATION));
+	player->setDiscretePlayerHPSprite(Animatable("GUI\\heart.png", "", true, ROTATION_TYPE::LOCK_ROTATION));
 	player->setFocusedSpeed("150");
 	player->setHitboxRadius("1");
 

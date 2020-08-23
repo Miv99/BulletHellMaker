@@ -9,7 +9,6 @@
 #include <LevelPack/TextMarshallable.h>
 #include <LevelPack/Animatable.h>
 #include <DataStructs/SpriteLoader.h>
-#include <Game/Components/Components.h>
 #include <Game/AudioPlayer.h>
 #include <DataStructs/SpriteEffectAnimation.h>
 #include <LevelPack/ExpressionCompilable.h>
@@ -43,7 +42,7 @@ Death action that does nothing.
 */
 class NullDeathAction : public DeathAction {
 public:
-	inline NullDeathAction() {}
+	NullDeathAction();
 
 	std::shared_ptr<LevelPackObject> clone() const;
 
@@ -69,8 +68,8 @@ public:
 		FADE_AWAY
 	};
 
-	inline PlayAnimatableDeathAction() {}
-	inline PlayAnimatableDeathAction(Animatable animatable, DEATH_ANIMATION_EFFECT effect, std::string duration) : animatable(animatable), effect(effect), duration(duration) {}
+	PlayAnimatableDeathAction();
+	PlayAnimatableDeathAction(Animatable animatable, DEATH_ANIMATION_EFFECT effect, std::string duration);
 
 	std::shared_ptr<LevelPackObject> clone() const;
 
@@ -105,12 +104,12 @@ This is separate from a player/enemy's death sound.
 */
 class PlaySoundDeathAction : public DeathAction {
 public:
-	inline PlaySoundDeathAction() {}
+	PlaySoundDeathAction();
 	/*
 	fileName - file name with extension
 	volume - volume multiplier in range [0, 100]
 	*/
-	inline PlaySoundDeathAction(SoundSettings soundSettings) : soundSettings(soundSettings) {}
+	PlaySoundDeathAction(SoundSettings soundSettings);
 
 	std::shared_ptr<LevelPackObject> clone() const;
 
@@ -136,8 +135,8 @@ Note that this executes a number of attacks, not an attack pattern, meaning all 
 */
 class ExecuteAttacksDeathAction : public DeathAction {
 public:
-	inline ExecuteAttacksDeathAction() {}
-	inline ExecuteAttacksDeathAction(std::vector<std::pair<int, ExprSymbolTable>> attackIDs) : attackIDs(attackIDs) {}
+	ExecuteAttacksDeathAction();
+	ExecuteAttacksDeathAction(std::vector<std::pair<int, ExprSymbolTable>> attackIDs);
 
 	std::shared_ptr<LevelPackObject> clone() const;
 
@@ -174,10 +173,9 @@ public:
 		SHRINK
 	};
 
-	inline ParticleExplosionDeathAction() {}
-	inline ParticleExplosionDeathAction(PARTICLE_EFFECT effect, Animatable animatable, bool loopAnimatable, sf::Color color, std::string minParticles = "20", std::string maxParticles = "30", 
-		std::string minDistance = "20", std::string maxDistance = "500", std::string minLifespan = "0.75", std::string maxLifespan = "2.5") :
-		effect(effect), animatable(animatable), color(color), minParticles(minParticles), maxParticles(maxParticles), minDistance(minDistance), maxDistance(maxDistance), minLifespan(minLifespan), maxLifespan(maxLifespan) {}
+	ParticleExplosionDeathAction();
+	ParticleExplosionDeathAction(PARTICLE_EFFECT effect, Animatable animatable, bool loopAnimatable, sf::Color color, std::string minParticles = "20", std::string maxParticles = "30",
+		std::string minDistance = "20", std::string maxDistance = "500", std::string minLifespan = "0.75", std::string maxLifespan = "2.5");
 
 	std::shared_ptr<LevelPackObject> clone() const;
 

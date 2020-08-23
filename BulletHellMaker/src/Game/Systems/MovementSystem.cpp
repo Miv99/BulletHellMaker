@@ -2,6 +2,17 @@
 
 #include <cmath>
 
+#include <Game/Components/PositionComponent.h>
+#include <Game/Components/MovementPathComponent.h>
+#include <Game/Components/HitboxComponent.h>
+#include <Game/Components/SpriteComponent.h>
+#include <Game/Components/EMPSpawnerComponent.h>
+#include <Game/EntityCreationQueue.h>
+
+MovementSystem::MovementSystem(EntityCreationQueue& queue, SpriteLoader& spriteLoader, entt::DefaultRegistry& registry)
+	: queue(queue), spriteLoader(spriteLoader), registry(registry) {
+}
+
 void MovementSystem::update(float deltaTime) {
 	auto view = registry.view<PositionComponent, MovementPathComponent>(entt::persistent_t{});
 	view.each([&](auto entity, auto& position, auto& path) {

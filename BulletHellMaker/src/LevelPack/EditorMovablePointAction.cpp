@@ -4,6 +4,13 @@
 
 #include <LevelPack/EditorMovablePointSpawnType.h>
 
+EMPAAngleOffset::EMPAAngleOffset() {
+}
+
+EMPAAngleOffsetToPlayer::EMPAAngleOffsetToPlayer(std::string xOffset, std::string yOffset) 
+	: xOffset(xOffset), yOffset(yOffset) {
+}
+
 std::shared_ptr<LevelPackObject> EMPAAngleOffsetToPlayer::clone() const {
 	return std::make_shared<EMPAAngleOffsetToPlayer>(xOffset, yOffset);
 }
@@ -51,6 +58,13 @@ bool EMPAAngleOffsetToPlayer::operator==(const EMPAAngleOffset& other) const {
 	return xOffset == derived.xOffset && yOffset == derived.yOffset;
 }
 
+EMPAAngleOffsetToGlobalPosition::EMPAAngleOffsetToGlobalPosition() {
+}
+
+EMPAAngleOffsetToGlobalPosition::EMPAAngleOffsetToGlobalPosition(std::string x, std::string y) 
+	: x(x), y(y) {
+}
+
 std::shared_ptr<LevelPackObject> EMPAAngleOffsetToGlobalPosition::clone() const {
 	return std::make_shared<EMPAAngleOffsetToGlobalPosition>(x, y);
 }
@@ -96,6 +110,9 @@ bool EMPAAngleOffsetToGlobalPosition::operator==(const EMPAAngleOffset& other) c
 	return x == derived.x && y == derived.y;
 }
 
+EMPAAngleOffsetZero::EMPAAngleOffsetZero() {
+}
+
 std::shared_ptr<LevelPackObject> EMPAAngleOffsetZero::clone() const {
 	return std::make_shared<EMPAAngleOffsetZero>();
 }
@@ -120,6 +137,13 @@ void EMPAAngleOffsetZero::compileExpressions(std::vector<exprtk::symbol_table<fl
 
 bool EMPAAngleOffsetZero::operator==(const EMPAAngleOffset& other) const {
 	return true;
+}
+
+EMPAAngleOffsetConstant::EMPAAngleOffsetConstant() {
+}
+
+EMPAAngleOffsetConstant::EMPAAngleOffsetConstant(std::string value)
+	: value(value) {
 }
 
 std::shared_ptr<LevelPackObject> EMPAAngleOffsetConstant::clone() const {
@@ -154,6 +178,9 @@ void EMPAAngleOffsetConstant::compileExpressions(std::vector<exprtk::symbol_tabl
 bool EMPAAngleOffsetConstant::operator==(const EMPAAngleOffset& other) const {
 	const EMPAAngleOffsetConstant& derived = dynamic_cast<const EMPAAngleOffsetConstant&>(other);
 	return value == derived.value;
+}
+
+EMPAngleOffsetPlayerSpriteAngle::EMPAngleOffsetPlayerSpriteAngle() {
 }
 
 std::shared_ptr<LevelPackObject> EMPAngleOffsetPlayerSpriteAngle::clone() const {
@@ -191,6 +218,8 @@ bool EMPAngleOffsetPlayerSpriteAngle::operator==(const EMPAAngleOffset& other) c
 	return true;
 }
 
+DetachFromParentEMPA::DetachFromParentEMPA() {
+}
 
 std::shared_ptr<LevelPackObject> DetachFromParentEMPA::clone() const {
 	std::shared_ptr<LevelPackObject> copy = std::make_shared<DetachFromParentEMPA>();
@@ -239,6 +268,13 @@ std::shared_ptr<MovablePoint> DetachFromParentEMPA::generateStandaloneMP(float x
 
 bool DetachFromParentEMPA::operator==(const EMPAction& other) const {
 	return true;
+}
+
+StayStillAtLastPositionEMPA::StayStillAtLastPositionEMPA() {
+}
+
+StayStillAtLastPositionEMPA::StayStillAtLastPositionEMPA(float duration) 
+	: duration(duration) {
 }
 
 std::shared_ptr<LevelPackObject> StayStillAtLastPositionEMPA::clone() const {
@@ -293,6 +329,17 @@ std::shared_ptr<MovablePoint> StayStillAtLastPositionEMPA::generateStandaloneMP(
 bool StayStillAtLastPositionEMPA::operator==(const EMPAction& other) const {
 	const StayStillAtLastPositionEMPA& derived = dynamic_cast<const StayStillAtLastPositionEMPA&>(other);
 	return duration == derived.duration;
+}
+
+MoveCustomPolarEMPA::MoveCustomPolarEMPA() {
+}
+
+MoveCustomPolarEMPA::MoveCustomPolarEMPA(std::shared_ptr<TFV> distance, std::shared_ptr<TFV> angle, float time) 
+	: distance(distance), angle(angle), time(time), angleOffset(std::make_shared<EMPAAngleOffsetZero>()) {
+}
+
+MoveCustomPolarEMPA::MoveCustomPolarEMPA(std::shared_ptr<TFV> distance, std::shared_ptr<TFV> angle, float time, std::shared_ptr<EMPAAngleOffset> angleOffset) 
+	: distance(distance), angle(angle), time(time), angleOffset(angleOffset) {
 }
 
 std::shared_ptr<LevelPackObject> MoveCustomPolarEMPA::clone() const {
@@ -379,6 +426,19 @@ std::shared_ptr<MovablePoint> MoveCustomPolarEMPA::generateStandaloneMP(float x,
 bool MoveCustomPolarEMPA::operator==(const EMPAction& other) const {
 	const MoveCustomPolarEMPA& derived = dynamic_cast<const MoveCustomPolarEMPA&>(other);
 	return *distance == *derived.distance && *angle == *derived.angle && time == derived.time && ((!angleOffset && !derived.angleOffset) || *angleOffset == *derived.angleOffset);
+}
+
+MoveCustomBezierEMPA::MoveCustomBezierEMPA() {
+}
+
+MoveCustomBezierEMPA::MoveCustomBezierEMPA(std::vector<sf::Vector2f> unrotatedControlPoints, float time) 
+	: time(time), rotationAngle(std::make_shared<EMPAAngleOffsetZero>()) {
+	setUnrotatedControlPoints(unrotatedControlPoints);
+}
+
+MoveCustomBezierEMPA::MoveCustomBezierEMPA(std::vector<sf::Vector2f> unrotatedControlPoints, float time, std::shared_ptr<EMPAAngleOffset> rotationAngle) 
+	: time(time), rotationAngle(rotationAngle) {
+	setUnrotatedControlPoints(unrotatedControlPoints);
 }
 
 std::shared_ptr<LevelPackObject> MoveCustomBezierEMPA::clone() const {
@@ -495,6 +555,13 @@ bool MoveCustomBezierEMPA::operator==(const EMPAction& other) const {
 		&& std::equal(unrotatedControlPoints.begin(), unrotatedControlPoints.end(), derived.unrotatedControlPoints.begin());
 }
 
+MovePlayerHomingEMPA::MovePlayerHomingEMPA() {
+}
+
+MovePlayerHomingEMPA::MovePlayerHomingEMPA(std::shared_ptr<TFV> homingStrength, std::shared_ptr<TFV> speed, float time) 
+	: homingStrength(homingStrength), speed(speed), time(time) {
+}
+
 std::shared_ptr<LevelPackObject> MovePlayerHomingEMPA::clone() const {
 	std::shared_ptr<LevelPackObject> copy = std::make_shared<MovePlayerHomingEMPA>();
 	copy->load(format());
@@ -549,6 +616,13 @@ std::shared_ptr<MovablePoint> MovePlayerHomingEMPA::generateStandaloneMP(float x
 bool MovePlayerHomingEMPA::operator==(const EMPAction& other) const {
 	const MovePlayerHomingEMPA& derived = dynamic_cast<const MovePlayerHomingEMPA&>(other);
 	return *homingStrength == *derived.homingStrength && *speed == *derived.speed && time == derived.time;
+}
+
+MoveGlobalHomingEMPA::MoveGlobalHomingEMPA() {
+}
+
+MoveGlobalHomingEMPA::MoveGlobalHomingEMPA(std::shared_ptr<TFV> homingStrength, std::shared_ptr<TFV> speed, std::string targetX, std::string targetY, float time)
+	: homingStrength(homingStrength), speed(speed), targetX(targetX), targetY(targetY), time(time) {
 }
 
 std::shared_ptr<LevelPackObject> MoveGlobalHomingEMPA::clone() const {

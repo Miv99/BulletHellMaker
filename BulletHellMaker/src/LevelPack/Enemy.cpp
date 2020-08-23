@@ -1,5 +1,12 @@
 #include <LevelPack/Enemy.h>
 
+EditorEnemy::EditorEnemy() {
+}
+
+EditorEnemy::EditorEnemy(int id) {
+	this->id = id;
+}
+
 EditorEnemy::EditorEnemy(std::shared_ptr<const EditorEnemy> copy) {
 	load(copy->format());
 }

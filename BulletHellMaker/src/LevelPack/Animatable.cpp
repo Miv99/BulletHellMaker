@@ -1,5 +1,12 @@
 #include <LevelPack/Animatable.h>
 
+Animatable::Animatable() {
+}
+
+Animatable::Animatable(std::string animatableName, std::string spriteSheetName, bool animatableIsSprite, ROTATION_TYPE rotationType) 
+	: animatableName(animatableName), spriteSheetName(spriteSheetName), animatableIsSprite(animatableIsSprite), rotationType(rotationType) {
+}
+
 std::string Animatable::format() const {
 	return formatString(animatableName) + formatString(spriteSheetName) + formatBool(animatableIsSprite) + tos(static_cast<int>(rotationType));
 }

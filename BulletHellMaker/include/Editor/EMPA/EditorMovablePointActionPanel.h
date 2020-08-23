@@ -30,7 +30,7 @@ public:
 	*/
 	EditorMovablePointActionPanel(EditorWindow& parentWindow, Clipboard& clipboard, std::shared_ptr<EMPAction> empa, int undoStackSize = 50);
 	~EditorMovablePointActionPanel();
-	inline static std::shared_ptr<EditorMovablePointActionPanel> create(EditorWindow& parentWindow, Clipboard& clipboard, std::shared_ptr<EMPAction> empa, int undoStackSize = 50) {
+	static std::shared_ptr<EditorMovablePointActionPanel> create(EditorWindow& parentWindow, Clipboard& clipboard, std::shared_ptr<EMPAction> empa, int undoStackSize = 50) {
 		return std::make_shared<EditorMovablePointActionPanel>(parentWindow, clipboard, empa, undoStackSize);
 	}
 

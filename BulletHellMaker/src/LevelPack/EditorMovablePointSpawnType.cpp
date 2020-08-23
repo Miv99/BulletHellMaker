@@ -1,5 +1,30 @@
 #include <LevelPack/EditorMovablePointSpawnType.h>
 
+#include <Game/Components/HitboxComponent.h>
+#include <Game/Components/MovementPathComponent.h>
+
+EMPSpawnType::EMPSpawnType() {
+}
+
+EMPSpawnType::EMPSpawnType(std::string time, std::string x, std::string y) 
+	: time(time), x(x), y(y) {
+}
+
+EMPSpawnType::EMPSpawnType(float time, float x, float y) 
+	: timeExprCompiledValue(time), xExprCompiledValue(x), yExprCompiledValue(y) {
+}
+
+SpecificGlobalEMPSpawn::SpecificGlobalEMPSpawn() {
+}
+
+SpecificGlobalEMPSpawn::SpecificGlobalEMPSpawn(std::string time, std::string x, std::string y)
+	: EMPSpawnType(time, x, y) {
+}
+
+SpecificGlobalEMPSpawn::SpecificGlobalEMPSpawn(float time, float x, float y) 
+	: EMPSpawnType(time, x, y) {
+}
+
 std::shared_ptr<LevelPackObject> SpecificGlobalEMPSpawn::clone() const {
 	auto clone = std::make_shared<SpecificGlobalEMPSpawn>();
 	clone->load(format());
@@ -23,6 +48,17 @@ MPSpawnInformation SpecificGlobalEMPSpawn::getSpawnInfo(entt::DefaultRegistry & 
 
 MPSpawnInformation SpecificGlobalEMPSpawn::getForcedDetachmentSpawnInfo(entt::DefaultRegistry & registry, float timeLag) {
 	return MPSpawnInformation{ false, NULL, sf::Vector2f(xExprCompiledValue, yExprCompiledValue) };
+}
+
+EntityRelativeEMPSpawn::EntityRelativeEMPSpawn() {
+}
+
+EntityRelativeEMPSpawn::EntityRelativeEMPSpawn(std::string time, std::string x, std::string y)
+	: EMPSpawnType(time, x, y) {
+}
+
+EntityRelativeEMPSpawn::EntityRelativeEMPSpawn(float time, float x, float y)
+	: EMPSpawnType(time, x, y) {
 }
 
 std::shared_ptr<LevelPackObject> EntityRelativeEMPSpawn::clone() const {
@@ -61,6 +97,17 @@ MPSpawnInformation EntityRelativeEMPSpawn::getSpawnInfo(entt::DefaultRegistry & 
 
 MPSpawnInformation EntityRelativeEMPSpawn::getForcedDetachmentSpawnInfo(entt::DefaultRegistry & registry, float timeLag) {
 	return MPSpawnInformation{ false, NULL, sf::Vector2f(xExprCompiledValue, yExprCompiledValue) };
+}
+
+EntityAttachedEMPSpawn::EntityAttachedEMPSpawn() {
+}
+
+EntityAttachedEMPSpawn::EntityAttachedEMPSpawn(std::string time, std::string x, std::string y)
+	: EMPSpawnType(time, x, y) {
+}
+
+EntityAttachedEMPSpawn::EntityAttachedEMPSpawn(float time, float x, float y)
+	: EMPSpawnType(time, x, y) {
 }
 
 std::shared_ptr<LevelPackObject> EntityAttachedEMPSpawn::clone() const {

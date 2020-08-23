@@ -19,10 +19,8 @@ An enemy phase consists of a list of attack patterns and at what time each begin
 */
 class EditorEnemyPhase : public LevelPackObject {
 public:
-	inline EditorEnemyPhase() {}
-	inline EditorEnemyPhase(int id) {
-		this->id = id;
-	}
+	EditorEnemyPhase();
+	EditorEnemyPhase(int id);
 	/*
 	Copy constructor.
 	*/
@@ -60,14 +58,14 @@ public:
 	Note that there is no upper bound on index, since attack patterns can loop, so this function takes that into account.
 	*/
 	std::tuple<float, int, exprtk::symbol_table<float>> getAttackPatternData(const LevelPack& levelPack, int index);
-	inline std::vector<std::tuple<std::string, int, ExprSymbolTable>> getAttackPatterns() { return attackPatternIDs; }
+	inline std::vector<std::tuple<std::string, int, ExprSymbolTable>> getAttackPatterns() const { return attackPatternIDs; }
 	inline int getAttackPatternsCount() const { return attackPatternIDs.size(); }
 	inline std::shared_ptr<EnemyPhaseAction> getPhaseBeginAction() const { return phaseBeginAction; }
 	inline std::shared_ptr<EnemyPhaseAction> getPhaseEndAction() const { return phaseEndAction; }
 	inline float getAttackPatternLoopDelay() const { return attackPatternLoopDelayExprCompiledValue; }
 	inline bool getPlayMusic() const { return playMusic; }
-	inline MusicSettings getMusicSettings() { return musicSettings; }
-	inline bool usesAttackPattern(int attackPatternID) { return attackPatternIDCount.count(attackPatternID) > 0 && attackPatternIDCount.at(attackPatternID) > 0; }
+	inline MusicSettings getMusicSettings() const { return musicSettings; }
+	bool usesAttackPattern(int attackPatternID) const;
 
 	inline void setAttackPatternLoopDelay(std::string attackPatternLoopDelay) { this->attackPatternLoopDelay = attackPatternLoopDelay; }
 	inline void setPhaseBeginAction(std::shared_ptr<EnemyPhaseAction> phaseBeginAction) { this->phaseBeginAction = phaseBeginAction; }

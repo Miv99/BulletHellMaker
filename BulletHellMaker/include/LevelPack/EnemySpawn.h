@@ -19,7 +19,7 @@ class Item;
 
 class EnemySpawnInfo : public LevelPackObject, public std::enable_shared_from_this<EnemySpawnInfo> {
 public:
-	inline EnemySpawnInfo() {}
+	EnemySpawnInfo();
 	EnemySpawnInfo(int enemyID, std::string x, std::string y, std::vector<std::pair<std::shared_ptr<Item>, std::string>> itemsDroppedOnDeath);
 
 	std::shared_ptr<LevelPackObject> clone() const override;

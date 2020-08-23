@@ -17,7 +17,7 @@ public:
 	/*
 	sprite - the pointer to the sprite that will be modified
 	*/
-	inline SpriteEffectAnimation(std::shared_ptr<sf::Sprite> sprite) : sprite(sprite) {}
+	SpriteEffectAnimation(std::shared_ptr<sf::Sprite> sprite);
 	virtual void update(float deltaTime) = 0;
 
 	bool usesShader() { return useShader; }
@@ -50,15 +50,7 @@ public:
 
 	The total interval between each entire flash animation is (flashInterval + flashDuration)
 	*/
-	inline FlashWhiteSEA(std::shared_ptr<sf::Sprite> sprite, float animationDuration, float flashInterval = 0.3f, float flashDuration = 0.2f) : SpriteEffectAnimation(sprite),
-		flashInterval(flashInterval), flashDuration(flashDuration), animationDuration(animationDuration) {
-		// Load shader
-		if (!shader.loadFromFile("Shaders/tint.frag", sf::Shader::Fragment)) {
-			throw "Could not load Shaders/tint.frag";
-		}
-		shader.setUniform("flashColor", sf::Glsl::Vec4(1, 1, 1, 0));
-		useShader = true;
-	}
+	FlashWhiteSEA(std::shared_ptr<sf::Sprite> sprite, float animationDuration, float flashInterval = 0.3f, float flashDuration = 0.2f);
 
 	void update(float deltaTime) override;
 
@@ -80,10 +72,7 @@ public:
 	animationDuration - total time for the sprite to fade from maxOpacity to minOpacity
 	keepEffectAfterEnding - if true, the sprite will maintain minOpacity even after the effect ends
 	*/
-	inline FadeAwaySEA(std::shared_ptr<sf::Sprite> sprite, float minOpacity, float maxOpacity, float animationDuration, bool keepEffectAfterEnding = false) : SpriteEffectAnimation(sprite), minOpacity(minOpacity),
-		maxOpacity(maxOpacity), animationDuration(animationDuration), keepEffectAfterEnding(keepEffectAfterEnding) {
-		useShader = false;
-	}
+	FadeAwaySEA(std::shared_ptr<sf::Sprite> sprite, float minOpacity, float maxOpacity, float animationDuration, bool keepEffectAfterEnding = false);
 
 	void update(float deltaTime) override;
 
@@ -105,10 +94,7 @@ public:
 	endScale - ending sprite scale
 	animationDuration - total time for the sprite to fade from maxOpacity to minOpacity
 	*/
-	inline ChangeSizeSEA(std::shared_ptr<sf::Sprite> sprite, float startScale, float endScale, float animationDuration) : SpriteEffectAnimation(sprite), startScale(startScale),
-		endScale(endScale), animationDuration(animationDuration) {
-		useShader = false;
-	}
+	ChangeSizeSEA(std::shared_ptr<sf::Sprite> sprite, float startScale, float endScale, float animationDuration);
 
 	void update(float deltaTime) override;
 

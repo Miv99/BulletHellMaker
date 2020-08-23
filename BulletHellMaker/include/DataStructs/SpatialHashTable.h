@@ -4,7 +4,8 @@
 #include <memory>
 #include <algorithm>
 
-#include <Game/Components/Components.h>
+#include <Game/Components/HitboxComponent.h>
+#include <Game/Components/PositionComponent.h>
 
 /*
 Spatial hash table
@@ -18,20 +19,20 @@ The table will not work for getting objects nearby objects that are outside map 
 template<class T>
 class SpatialHashTable {
 public:
-	inline SpatialHashTable() {}
-	inline SpatialHashTable(float mapWidth, float mapHeight, float cellSize) : mapWidth(mapWidth), mapHeight(mapHeight), cellSize(cellSize) {
+	SpatialHashTable() {}
+	SpatialHashTable(float mapWidth, float mapHeight, float cellSize) : mapWidth(mapWidth), mapHeight(mapHeight), cellSize(cellSize) {
 		buckets = std::vector<std::vector<T>>(int(ceil(mapWidth / cellSize)) * int(ceil(mapHeight / cellSize)));
 		cellsPerMapWidth = int(mapWidth / cellSize);
 		cellsPerMapHeight = int(mapHeight / cellSize);
 	}
 
-	inline void clear() {
+	void clear() {
 		for (std::vector<T>& bucket : buckets) {
 			bucket.clear();
 		}
 	}
 
-	inline void insert(T object, float hitboxX, float hitboxY, float hitboxRadius, const PositionComponent& position) {
+	void insert(T object, float hitboxX, float hitboxY, float hitboxRadius, const PositionComponent& position) {
 		int leftmostXCell = std::max(0, (int)((position.getX() + hitboxX - hitboxRadius) / cellSize));
 		int rightmostXCell = std::min(cellsPerMapWidth, (int)((position.getX() + hitboxX + hitboxRadius) / cellSize));
 		int topmostYCell = std::min(cellsPerMapHeight, (int)((position.getY() + hitboxY + hitboxRadius) / cellSize));
@@ -44,11 +45,11 @@ public:
 		}
 	}
 
-	inline void insert(T object, const HitboxComponent& hitbox, const PositionComponent& position) {
+	void insert(T object, const HitboxComponent& hitbox, const PositionComponent& position) {
 		insert(object, hitbox.getX(), hitbox.getY(), hitbox.getRadius(), position);
 	}
 
-	inline std::vector<T> getNearbyObjects(const HitboxComponent& hitbox, const PositionComponent& position) {
+	std::vector<T> getNearbyObjects(const HitboxComponent& hitbox, const PositionComponent& position) {
 		int leftmostXCell = std::max(0, (int)((position.getX() + hitbox.getX() - hitbox.getRadius()) / cellSize));
 		int rightmostXCell = std::min(cellsPerMapWidth, (int)((position.getX() + hitbox.getX() + hitbox.getRadius()) / cellSize));
 		int topmostYCell = std::min(cellsPerMapHeight, (int)((position.getY() + hitbox.getY() + hitbox.getRadius()) / cellSize));

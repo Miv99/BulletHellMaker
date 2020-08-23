@@ -1,6 +1,14 @@
 #include <LevelPack/EnemyPhaseStartCondition.h>
 
-#include <Game/Components/Components.h>
+#include <Game/Components/HealthComponent.h>
+#include <Game/Components/EnemyComponent.h>
+
+TimeBasedEnemyPhaseStartCondition::TimeBasedEnemyPhaseStartCondition() {
+}
+
+TimeBasedEnemyPhaseStartCondition::TimeBasedEnemyPhaseStartCondition(std::string time) 
+	: time(time) {
+}
 
 std::shared_ptr<LevelPackObject> TimeBasedEnemyPhaseStartCondition::clone() const {
 	auto clone = std::make_shared<TimeBasedEnemyPhaseStartCondition>();
@@ -45,6 +53,12 @@ void TimeBasedEnemyPhaseStartCondition::setTime(std::string time) {
 	this->time = time;
 }
 
+HPBasedEnemyPhaseStartCondition::HPBasedEnemyPhaseStartCondition() {
+}
+
+HPBasedEnemyPhaseStartCondition::HPBasedEnemyPhaseStartCondition(std::string ratio) : ratio(ratio) {
+}
+
 std::shared_ptr<LevelPackObject> HPBasedEnemyPhaseStartCondition::clone() const {
 	auto clone = std::make_shared<HPBasedEnemyPhaseStartCondition>();
 	clone->load(format());
@@ -87,6 +101,13 @@ float HPBasedEnemyPhaseStartCondition::getRatio() {
 
 void HPBasedEnemyPhaseStartCondition::setRatio(std::string ratio) {
 	this->ratio = ratio;
+}
+
+EnemyCountBasedEnemyPhaseStartCondition::EnemyCountBasedEnemyPhaseStartCondition() {
+}
+
+EnemyCountBasedEnemyPhaseStartCondition::EnemyCountBasedEnemyPhaseStartCondition(std::string enemyCount) 
+	: enemyCount(enemyCount) {
 }
 
 std::shared_ptr<LevelPackObject> EnemyCountBasedEnemyPhaseStartCondition::clone() const {

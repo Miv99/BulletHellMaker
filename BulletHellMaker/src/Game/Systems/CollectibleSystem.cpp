@@ -2,6 +2,9 @@
 
 #include <algorithm>
 
+#include <Util/MathUtils.h>
+#include <Game/EntityCreationQueue.h>
+
 CollectibleSystem::CollectibleSystem(EntityCreationQueue & queue, entt::DefaultRegistry & registry, const LevelPack& levelPack, float mapWidth, float mapHeight) : queue(queue), registry(registry) {
 	itemHitboxTable = SpatialHashTable<uint32_t>(mapWidth, mapHeight, levelPack.searchLargestItemCollectionHitbox() * 2.0f);
 	activationTable = SpatialHashTable<uint32_t>(mapWidth, mapHeight, levelPack.searchLargestItemActivationHitbox() * 2.0f);

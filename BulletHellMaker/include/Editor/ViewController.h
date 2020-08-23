@@ -3,8 +3,7 @@
 
 class ViewController {
 public:
-	inline ViewController(const sf::RenderWindow& window, bool controllableWithWASD = true, bool controllableWithArrowKeys = true) 
-		: window(window), controllableWithWASD(controllableWithWASD), controllableWithArrowKeys(controllableWithArrowKeys) {}
+	ViewController(const sf::RenderWindow& window, bool controllableWithWASD = true, bool controllableWithArrowKeys = true);
 
 	/*
 	Modifies view.
@@ -27,10 +26,7 @@ public:
 	/*
 	Sets the size of the view at 1x camera zoom.
 	*/
-	inline void setOriginalViewSize(float width, float height) {
-		originalViewWidth = width;
-		originalViewHeight = height;
-	}
+	void setOriginalViewSize(float width, float height);
 
 	inline float getZoomAmount() { return cameraZoom; }
 

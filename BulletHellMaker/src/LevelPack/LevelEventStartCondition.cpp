@@ -1,6 +1,13 @@
 #include <LevelPack/LevelEventStartCondition.h>
 
-#include <Game/Components/Components.h>
+#include <Game/Components/EnemyComponent.h>
+#include <Game/Components/LevelManagerTag.h>
+
+GlobalTimeBasedEnemySpawnCondition::GlobalTimeBasedEnemySpawnCondition() {
+}
+
+GlobalTimeBasedEnemySpawnCondition::GlobalTimeBasedEnemySpawnCondition(std::string time) : time(time) {
+}
 
 std::shared_ptr<LevelPackObject> GlobalTimeBasedEnemySpawnCondition::clone() const {
 	auto clone = std::make_shared<GlobalTimeBasedEnemySpawnCondition>();
@@ -37,6 +44,13 @@ bool GlobalTimeBasedEnemySpawnCondition::satisfied(entt::DefaultRegistry & regis
 	return registry.get<LevelManagerTag>().getTimeSinceStartOfLevel() >= timeExprCompiledValue;
 }
 
+EnemyCountBasedEnemySpawnCondition::EnemyCountBasedEnemySpawnCondition() {
+}
+
+EnemyCountBasedEnemySpawnCondition::EnemyCountBasedEnemySpawnCondition(std::string enemyCount)
+	: enemyCount(enemyCount) {
+}
+
 std::shared_ptr<LevelPackObject> EnemyCountBasedEnemySpawnCondition::clone() const {
 	auto clone = std::make_shared<EnemyCountBasedEnemySpawnCondition>();
 	clone->load(format());
@@ -70,6 +84,13 @@ void EnemyCountBasedEnemySpawnCondition::compileExpressions(std::vector<exprtk::
 
 bool EnemyCountBasedEnemySpawnCondition::satisfied(entt::DefaultRegistry & registry) {
 	return registry.view<EnemyComponent>().size() - 1 <= enemyCountExprCompiledValue;
+}
+
+TimeBasedEnemySpawnCondition::TimeBasedEnemySpawnCondition() {
+}
+
+TimeBasedEnemySpawnCondition::TimeBasedEnemySpawnCondition(std::string time) 
+	: time(time) {
 }
 
 std::shared_ptr<LevelPackObject> TimeBasedEnemySpawnCondition::clone() const {
