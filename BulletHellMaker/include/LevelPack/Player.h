@@ -142,11 +142,11 @@ public:
 	inline void setInitialBombs(std::string initialBombs) { this->initialBombs = initialBombs; }
 	inline void setMaxBombs(std::string initialBombs) { this->initialBombs = maxBombs; }
 	inline void setBombSprite(Animatable bombSprite) { this->bombSprite = bombSprite; }
-	inline void setBombInvincibilityTime(float bombInvincibilityTime) {	this->bombInvincibilityTime = bombInvincibilityTime; }
+	inline void setBombInvincibilityTime(std::string bombInvincibilityTime) {	this->bombInvincibilityTime = bombInvincibilityTime; }
 
 private:
-	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(initialHealth, float, 3)
-	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(maxHealth, float, 5)
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(initialHealth, int, 3)
+	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(maxHealth, int, 5)
 	// Default player speed
 	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(speed, float, 120)
 	// Player speed when holding focus key

@@ -759,7 +759,7 @@ void BulletModel::setPlaysSound(bool playsSound) {
 	onModelChange();
 }
 
-void BulletModel::setDamage(float damage) {
+void BulletModel::setDamage(int damage) {
 	this->damage = damage;
 	onModelChange();
 }

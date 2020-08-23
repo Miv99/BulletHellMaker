@@ -55,7 +55,7 @@ public:
 
 	void setName(std::string name);
 	void setPlaysSound(bool playsSound);
-	void setDamage(float damage);
+	void setDamage(int damage);
 	void setPierceResetTime(float pierceResetTime);
 	void setAnimatable(Animatable animatable);
 	void setLoopAnimation(bool loopAnimation);
