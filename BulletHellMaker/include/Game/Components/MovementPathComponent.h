@@ -3,7 +3,7 @@
 #include <entt/entt.hpp>
 
 class MovablePoint;
-class MPSpawnInformation;
+struct MPSpawnInformation;
 class EntityCreationQueue;
 class EMPSpawnType;
 class EMPAction;

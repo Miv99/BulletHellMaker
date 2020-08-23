@@ -15,7 +15,7 @@ class EditorMovablePoint;
 class SpriteLoader;
 class EditorEnemy;
 
-static void reserveMemory(entt::DefaultRegistry& registry, int reserve) {
+static void reserveMemory(entt::DefaultRegistry& registry, unsigned int reserve) {
 	// If capacity is reached, increase capacity by a set amount of entities
 	if (reserve > registry.capacity()) {
 		reserve = registry.capacity() + ENTITY_RESERVATION_INCREMENT;
