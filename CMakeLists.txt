@@ -16,7 +16,7 @@ set_option(BUILD_TESTS FALSE BOOL "TRUE to build tests")
 set(SFML_ROOT "" CACHE PATH "SFML root directory")
 set(TGUI_ROOT "" CACHE PATH "TGUI root directory")
 set(ENTT_ROOT "" CACHE PATH "entt root directory")
-set(PYTHON_ROOT "" CACHE PATH "Python root directory. If you ran setup.bat, this is \"YOUR_BUILD_DIR/packages/Python27\"")
+set(PYTHON_ROOT "" CACHE PATH "Python root directory. If you ran setup.bat, this is \"EXE_TARGET_FOLDER/packages/Python27\"")
 set(TGUI_BUILD_DIR "" CACHE PATH "TGUI's build directory. TGUI should be built before BulletHellMaker is built.")
 
 # Try to find SFML's config file
