@@ -5,6 +5,7 @@ x64
 .git
 Debug
 packages
+build
 Release
 ReleaseTest
 Tests\Release

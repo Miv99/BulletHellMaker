@@ -1,281 +1,142 @@
-set(TGUI_SRC
-    Animation.cpp
-    Clipboard.cpp
-    Clipping.cpp
-    Color.cpp
-    Container.cpp
-    CustomWidgetForBindings.cpp
-    Filesystem.cpp
-    Font.cpp
-    Global.cpp
-    Gui.cpp
-    Layout.cpp
-    ObjectConverter.cpp
-    Sprite.cpp
-    Signal.cpp
-    String.cpp
-    SignalManager.cpp
-    SvgImage.cpp
-    TextStyle.cpp
-    Text.cpp
-    Texture.cpp
-    TextureManager.cpp
-    ToolTip.cpp
-    Widget.cpp
-    Loading/DataIO.cpp
-    Loading/Deserializer.cpp
-    Loading/Serializer.cpp
-    Loading/Theme.cpp
-    Loading/ThemeLoader.cpp
-    Loading/WidgetFactory.cpp
-    Renderers/BoxLayoutRenderer.cpp
-    Renderers/ButtonRenderer.cpp
-    Renderers/ChatBoxRenderer.cpp
-    Renderers/ChildWindowRenderer.cpp
-    Renderers/ComboBoxRenderer.cpp
-    Renderers/EditBoxRenderer.cpp
-    Renderers/GroupRenderer.cpp
-    Renderers/KnobRenderer.cpp
-    Renderers/LabelRenderer.cpp
-    Renderers/ListBoxRenderer.cpp
-    Renderers/ListViewRenderer.cpp
-    Renderers/MenuBarRenderer.cpp
-    Renderers/MessageBoxRenderer.cpp
-    Renderers/PanelRenderer.cpp
-    Renderers/PictureRenderer.cpp
-    Renderers/ProgressBarRenderer.cpp
-    Renderers/RadioButtonRenderer.cpp
-    Renderers/RangeSliderRenderer.cpp
-    Renderers/ScrollablePanelRenderer.cpp
-    Renderers/ScrollbarRenderer.cpp
-    Renderers/SliderRenderer.cpp
-    Renderers/SpinButtonRenderer.cpp
-    Renderers/TabsRenderer.cpp
-    Renderers/TextBoxRenderer.cpp
-    Renderers/TreeViewRenderer.cpp
-    Renderers/WidgetRenderer.cpp
-    Widgets/BitmapButton.cpp
-    Widgets/BoxLayout.cpp
-    Widgets/BoxLayoutRatios.cpp
-    Widgets/Button.cpp
-    Widgets/Canvas.cpp
-    Widgets/ChatBox.cpp
-    Widgets/CheckBox.cpp
-    Widgets/ChildWindow.cpp
-    Widgets/ClickableWidget.cpp
-    Widgets/ComboBox.cpp
-    Widgets/EditBox.cpp
-    Widgets/Group.cpp
-    Widgets/Grid.cpp
-    Widgets/HorizontalLayout.cpp
-    Widgets/HorizontalWrap.cpp
-    Widgets/Knob.cpp
-    Widgets/Label.cpp
-    Widgets/ListBox.cpp
-    Widgets/ListView.cpp
-    Widgets/MenuBar.cpp
-    Widgets/MessageBox.cpp
-    Widgets/Panel.cpp
-    Widgets/Picture.cpp
-    Widgets/ProgressBar.cpp
-    Widgets/RadioButton.cpp
-    Widgets/RadioButtonGroup.cpp
-    Widgets/RangeSlider.cpp
-    Widgets/ScrollablePanel.cpp
-    Widgets/Scrollbar.cpp
-    Widgets/Slider.cpp
-    Widgets/SpinButton.cpp
-    Widgets/Tabs.cpp
-    Widgets/TextBox.cpp
-    Widgets/TreeView.cpp
-    Widgets/VerticalLayout.cpp
+set(BHM_SRC
+    Main.cpp
+    DataStructs/IDGenerator.cpp
+    DataStructs/MovablePoint.cpp
+    DataStructs/SpriteEffectAnimation.cpp
+    DataStructs/SpriteLoader.cpp
+    DataStructs/SymbolTable.cpp
+    DataStructs/TimeFunctionVariable.cpp
+    DataStructs/UndoStack.cpp
+    Editor/CopyPaste.cpp
+    Editor/EditorWindow.cpp
+    Editor/ViewController.cpp
+    Editor/Attack/AttackEditorPanel.cpp
+    Editor/Attack/AttackEditorPropertiesPanel.cpp
+    Editor/Attack/EditorMovablePointTreePanel.cpp
+    Editor/AttackPattern/AttackPatternEditorPanel.cpp
+    Editor/AttackPattern/AttackPatternEditorPropertiesPanel.cpp
+    Editor/CustomWidgets/AnimatableChooser.cpp
+    Editor/CustomWidgets/AnimatablePicture.cpp
+    Editor/CustomWidgets/BezierControlPointsPlacer.cpp
+    Editor/CustomWidgets/ClickableTimeline.cpp
+    Editor/CustomWidgets/DelayedSlider.cpp
+    Editor/CustomWidgets/EditBox.cpp
+    Editor/CustomWidgets/EMPAAngleOffsetGroup.cpp
+    Editor/CustomWidgets/EMPAListVisualizer.cpp
+    Editor/CustomWidgets/HideableGroup.cpp
+    Editor/CustomWidgets/ListBoxScrollablePanel.cpp
+    Editor/CustomWidgets/ListViewScrollablePanel.cpp
+    Editor/CustomWidgets/MarkerPlacer.cpp
+    Editor/CustomWidgets/NumericalEditBoxWithLimits.cpp
+    Editor/CustomWidgets/SimpleEngineRenderer.cpp
+    Editor/CustomWidgets/SingleMarkerPlacer.cpp
+    Editor/CustomWidgets/Slider.cpp
+    Editor/CustomWidgets/SliderWithEditBox.cpp
+    Editor/CustomWidgets/SoundSettingsGroup.cpp
+    Editor/CustomWidgets/SymbolTableEditor.cpp
+    Editor/CustomWidgets/TabsWithPanel.cpp
+    Editor/CustomWidgets/TextNotification.cpp
+    Editor/CustomWidgets/TFVGroup.cpp
+    Editor/CustomWidgets/TimedLabel.cpp
+    Editor/EMP/EditorMovablePointPanel.cpp
+    Editor/EMPA/EditorMovablePointActionPanel.cpp
+    Editor/EMPA/EMPABasedMovementEditorPanel.cpp
+    Editor/LevelPackObjectList/LevelPackObjectsListPanel.cpp
+    Editor/LevelPackObjectList/LevelPackObjectsListView.cpp
+    Editor/LevelPackObjectUseRelationship/LevelPackObjectUseRelationshipEditor.cpp
+    Editor/Previewer/LevelPackObjectPreviewPanel.cpp
+    Editor/Util/EditorUtils.cpp
+    Editor/Util/ExtraSignals.cpp
+    Game/AudioPlayer.cpp
+    Game/EntityCreationQueue.cpp
+    Game/GameInstance.cpp
+    Game/Components/AnimatableSetComponent.cpp
+    Game/Components/CollectibleComponent.cpp
+    Game/Components/DespawnComponent.cpp
+    Game/Components/EMPSpawnerComponent.cpp
+    Game/Components/EnemyBulletComponent.cpp
+    Game/Components/EnemyComponent.cpp
+    Game/Components/HealthComponent.cpp
+    Game/Components/HitboxComponent.cpp
+    Game/Components/LevelManagerTag.cpp
+    Game/Components/MovementPathComponent.cpp
+    Game/Components/PlayerBulletComponent.cpp
+    Game/Components/PlayerTag.cpp
+    Game/Components/PositionComponent.cpp
+    Game/Components/ShadowTrailComponent.cpp
+    Game/Components/SpriteComponent.cpp
+    Game/Systems/CollectibleSystem.cpp
+    Game/Systems/CollisionSystem.cpp
+    Game/Systems/DebugRenderSystem.cpp
+    Game/Systems/DespawnSystem.cpp
+    Game/Systems/EnemySystem.cpp
+    Game/Systems/MovementSystem.cpp
+    Game/Systems/PlayerSystem.cpp
+    Game/Systems/ShadowTrailSystem.cpp
+    Game/Systems/SpriteAnimationSystem.cpp
+    Game/Systems/RenderSystem/BlurEffect.cpp
+    Game/Systems/RenderSystem/PostEffect.cpp
+    Game/Systems/RenderSystem/RenderSystem.cpp
+    LevelPack/Animatable.cpp
+    LevelPack/Animation.cpp
+    LevelPack/Attack.cpp
+    LevelPack/AttackPattern.cpp
+    LevelPack/DeathAction.cpp
+    LevelPack/EditorMovablePoint.cpp
+    LevelPack/EditorMovablePointAction.cpp
+    LevelPack/EditorMovablePointSpawnType.cpp
+    LevelPack/Enemy.cpp
+    LevelPack/EnemyPhase.cpp
+    LevelPack/EnemyPhaseAction.cpp
+    LevelPack/EnemyPhaseStartCondition.cpp
+    LevelPack/EnemySpawn.cpp
+    LevelPack/EntityAnimatableSet.cpp
+    LevelPack/Item.cpp
+    LevelPack/Level.cpp
+    LevelPack/LevelEvent.cpp
+    LevelPack/LevelEventStartCondition.cpp
+    LevelPack/LevelPack.cpp
+    LevelPack/LevelPackObject.cpp
+    LevelPack/Player.cpp
+    LevelPack/TextMarshallable.cpp
+    Util/MathUtils.cpp
+    Util/StringUtils.cpp
+    Util/TextFileParser.cpp
 )
 
-if(TGUI_OPTIMIZE_SINGLE_BUILD)
-    list(LENGTH TGUI_SRC fileCount)
-    if(TGUI_OPTIMIZE_SINGLE_BUILD_THREADS)
-        set(threads ${TGUI_OPTIMIZE_SINGLE_BUILD_THREADS})
-    else()
-        include(ProcessorCount)
-        ProcessorCount(threads)
-    endif()
+add_executable(BHM ${BHM_SRC})
 
-    if(${threads} LESS ${fileCount})
-        math(EXPR threads "(${threads} / 2) + 1")
-        math(EXPR fileCountMinusOne "${fileCount} - 1")
-        math(EXPR threadsMinusOne "${threads} - 1")
-
-        set(NEW_TGUI_SRC "")
-        foreach(i RANGE 0 ${threadsMinusOne})
-            set(OutputFile "${CMAKE_CURRENT_SOURCE_DIR}/CombinedSources-${i}.cpp")
-            file(WRITE "${OutputFile}" "")
-            foreach(j RANGE ${i} ${fileCountMinusOne} ${threads})
-                list(GET TGUI_SRC ${j} inputFile)
-                file(READ ${inputFile} CONTENTS)
-                file(APPEND "${OutputFile}" "${CONTENTS}")
-                list(APPEND NEW_TGUI_SRC "${OutputFile}")
-            endforeach()
-        endforeach()
-
-        set(TGUI_SRC ${NEW_TGUI_SRC})
-    endif()
-endif()
-
-# Determine library suffixes depending on static/shared configuration
-if(TGUI_SHARED_LIBS)
-    add_library(tgui SHARED ${TGUI_SRC})
-    set_target_properties(tgui PROPERTIES DEFINE_SYMBOL TGUI_EXPORTS)
-    set_target_properties(tgui PROPERTIES DEBUG_POSTFIX -d)
-
-    # Set the version and soversion of the target (for compatible systems -- mostly Linuxes)
-    # Except for Android which strips soversion suffixes
-    if(NOT TGUI_OS_ANDROID)
-        set_target_properties(tgui PROPERTIES SOVERSION ${TGUI_VERSION_MAJOR}.${TGUI_VERSION_MINOR}.${TGUI_VERSION_PATCH})
-        set_target_properties(tgui PROPERTIES VERSION ${TGUI_VERSION_MAJOR}.${TGUI_VERSION_MINOR}.${TGUI_VERSION_PATCH})
-    endif()
-
-    # on Windows/gcc get rid of "lib" prefix for shared libraries,
-    # and transform the ".dll.a" suffix into ".a" for import libraries
-    if(TGUI_OS_WINDOWS AND TGUI_COMPILER_GCC)
-        set_target_properties(tgui PROPERTIES PREFIX "")
-        set_target_properties(tgui PROPERTIES IMPORT_SUFFIX ".a")
-    endif()
-
-else()
-    add_library(tgui STATIC ${TGUI_SRC})
-    set_target_properties(tgui PROPERTIES DEBUG_POSTFIX -s-d)
-    set_target_properties(tgui PROPERTIES RELEASE_POSTFIX -s)
-    set_target_properties(tgui PROPERTIES MINSIZEREL_POSTFIX -s)
-    set_target_properties(tgui PROPERTIES RELWITHDEBINFO_POSTFIX -s)
-endif()
-
-# Define either TGUI_STATIC or TGUI_DYNAMIC
-if(TGUI_SHARED_LIBS)
-    target_compile_definitions(tgui PUBLIC TGUI_DYNAMIC)
-else()
-    target_compile_definitions(tgui PUBLIC TGUI_STATIC)
-endif()
-
-tgui_set_global_compile_flags(tgui)
-tgui_set_stdlib(tgui)
-
-if(TGUI_OPTIMIZE_SINGLE_BUILD AND TGUI_COMPILER_MSVC)
-    target_compile_options(tgui PRIVATE /bigobj)
-endif()
+target_compile_options(BHM PRIVATE /bigobj)
 
 # Add <project>/include as public include directory
-target_include_directories(tgui PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>)
-if (TGUI_BUILD_FRAMEWORK)
-    target_include_directories(tgui INTERFACE $<INSTALL_INTERFACE:TGUI.framework>)
+include_directories($<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/BulletHellMaker/include>)
+
+# Include SFMl, TGUI, entt, and Python
+target_include_directories(BHM PRIVATE ${SFML_ROOT}/include)
+target_include_directories(BHM PRIVATE ${TGUI_ROOT}/include)
+target_include_directories(BHM PRIVATE ${ENTT_ROOT}/src)
+target_include_directories(BHM PRIVATE ${PYTHON_ROOT}/include)
+target_include_directories(BHM PRIVATE ${PYTHON_ROOT}/Lib/site-packages/numpy/core/include)
+
+target_link_libraries(BHM ${PYTHON_ROOT}/Lib/site-packages/numpy/core/lib/npymath.lib)
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    target_link_libraries(BHM ${PYTHON_ROOT}/libs/python27_d.lib)
+
+    target_link_libraries(BHM ${SFML_ROOT}/lib/sfml-window-d.lib)
+    target_link_libraries(BHM ${SFML_ROOT}/lib/sfml-system-d.lib)
+    target_link_libraries(BHM ${SFML_ROOT}/lib/sfml-main-d.lib)
+    target_link_libraries(BHM ${SFML_ROOT}/lib/sfml-graphics-d.lib)
+    target_link_libraries(BHM ${SFML_ROOT}/lib/sfml-audio-d.lib)
+    
+    target_link_libraries(BHM ${TGUI_BUILD_DIR}/lib/Debug/tgui-d.lib)
 else()
-    target_include_directories(tgui INTERFACE $<INSTALL_INTERFACE:include>)
+    target_link_libraries(BHM ${PYTHON_ROOT}/libs/python27.lib)
+
+    target_link_libraries(BHM ${SFML_ROOT}/lib/sfml-window.lib)
+    target_link_libraries(BHM ${SFML_ROOT}/lib/sfml-system.lib)
+    target_link_libraries(BHM ${SFML_ROOT}/lib/sfml-main.lib)
+    target_link_libraries(BHM ${SFML_ROOT}/lib/sfml-graphics.lib)
+    target_link_libraries(BHM ${SFML_ROOT}/lib/sfml-audio.lib)
+    
+    target_link_libraries(BHM ${TGUI_BUILD_DIR}/lib/Release/tgui.lib)
 endif()
-
-# Link to SFML
-# Altough we could use PUBLIC here instead of PRIVATE, it causes the files in lib/cmake/TGUI to
-# hardcode the SFML directories, making it harder to distribute them with the precompiled libs.
-# You will thus have to link to SFML yourself, but you were likely to already do this anyway.
-if(DEFINED SFML_LIBRARIES)
-    # SFML found via FindSFML.cmake
-    target_include_directories(tgui PRIVATE ${SFML_INCLUDE_DIR})
-    target_link_libraries(tgui PRIVATE ${SFML_LIBRARIES} ${SFML_DEPENDENCIES})
-else()
-    # SFML found via SFMLConfig.cmake
-    target_link_libraries(tgui PRIVATE sfml-graphics)
-endif()
-
-# define TGUI_USE_CPP17 if requested
-if(TGUI_USE_CPP17)
-    target_compile_definitions(tgui PUBLIC TGUI_USE_CPP17)
-endif()
-
-# We need to link to an extra library on android (to use the asset manager)
-if(TGUI_OS_ANDROID)
-    target_link_libraries(tgui PRIVATE android)
-endif()
-
-# Enable automatic reference counting on iOS
-if(TGUI_OS_IOS)
-    set_target_properties(tgui PROPERTIES XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC YES)
-endif()
-
-# Hide public symbols by default (exported ones are explicitly marked)
-if(NOT TGUI_OS_WINDOWS)
-    target_compile_options(tgui PRIVATE -fvisibility=hidden)
-endif()
-
-# For Visual Studio on Windows, export debug symbols (PDB files) to lib directory
-if(TGUI_GENERATE_PDB)
-    # PDB files are only generated in Debug and RelWithDebInfo configurations, find out which one
-    if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-        set(TGUI_PDB_POSTFIX "-d")
-    else()
-        set(TGUI_PDB_POSTFIX "")
-    endif()
-
-    if(TGUI_SHARED_LIBS)
-        # DLLs export debug symbols in the linker PDB (the compiler PDB is an intermediate file)
-        set_target_properties(tgui PROPERTIES
-                              PDB_NAME "tgui${TGUI_PDB_POSTFIX}"
-                              PDB_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
-    else()
-        # Static libraries have no linker PDBs, thus the compiler PDBs are relevant
-        set_target_properties(tgui PROPERTIES
-                              COMPILE_PDB_NAME "tgui-s${TGUI_PDB_POSTFIX}"
-                              COMPILE_PDB_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib")
-    endif()
-endif()
-
-# Build frameworks or dylibs
-if(TGUI_OS_MACOSX AND TGUI_SHARED_LIBS)
-    if(TGUI_BUILD_FRAMEWORK)
-        # Adapt target to build frameworks instead of dylibs
-        set_target_properties(tgui PROPERTIES
-                              FRAMEWORK TRUE
-                              FRAMEWORK_VERSION ${TGUI_VERSION_MAJOR}.${TGUI_VERSION_MINOR}.${TGUI_VERSION_PATCH}
-                              MACOSX_FRAMEWORK_IDENTIFIER org.tgui.tgui
-                              MACOSX_FRAMEWORK_SHORT_VERSION_STRING ${TGUI_VERSION_MAJOR}.${TGUI_VERSION_MINOR}.${TGUI_VERSION_PATCH}
-                              MACOSX_FRAMEWORK_BUNDLE_VERSION ${TGUI_VERSION_MAJOR}.${TGUI_VERSION_MINOR}.${TGUI_VERSION_PATCH})
-
-        # Install the header files to the framework
-        add_custom_command(TARGET tgui
-                           POST_BUILD
-                           COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:tgui>/Headers
-                           COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/include/TGUI $<TARGET_FILE_DIR:tgui>/Headers
-                           COMMAND ${CMAKE_COMMAND} -E create_symlink Versions/${TGUI_VERSION_MAJOR}.${TGUI_VERSION_MINOR}.${TGUI_VERSION_PATCH}/Headers $<TARGET_FILE_DIR:tgui>/../../Headers)
-
-        # The framework has to be with a capital letter (because it includes the header files which must be found in a "TGUI" directory)
-        set_target_properties(tgui PROPERTIES OUTPUT_NAME TGUI)
-    endif()
-
-    # Adapt install directory to allow distributing dylibs/frameworks in user’s frameworks/application bundle but only if cmake rpath options aren't set
-    if(NOT CMAKE_SKIP_RPATH AND NOT CMAKE_SKIP_INSTALL_RPATH AND NOT CMAKE_INSTALL_RPATH AND NOT CMAKE_INSTALL_RPATH_USE_LINK_PATH AND NOT CMAKE_INSTALL_NAME_DIR)
-        set_target_properties(tgui PROPERTIES INSTALL_NAME_DIR "@rpath")
-        if(NOT CMAKE_SKIP_BUILD_RPATH)
-            if(CMAKE_VERSION VERSION_LESS 3.9)
-                set_target_properties(tgui PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
-            else()
-                set_target_properties(tgui PROPERTIES BUILD_WITH_INSTALL_NAME_DIR TRUE)
-            endif()
-        endif()
-    endif()
-endif()
-
-# Build tgui-activity on android
-if(TGUI_OS_ANDROID)
-    add_subdirectory(Android)
-endif()
-
-# Install library
-install(TARGETS tgui EXPORT TGUIConfigExport
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT bin
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT bin
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT devel
-        FRAMEWORK DESTINATION "." COMPONENT bin
-)
-
-# Generate the TGUIConfig.cmake file
-# This has to happen here instead of in the root CMakeLists.txt because otherwise
-# it might try to write to the macOS framework before the framework is installed.
-# This is because the order of install rules is undefined between directories.
-tgui_export_target(TGUIConfigExport)
