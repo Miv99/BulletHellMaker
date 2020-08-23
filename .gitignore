@@ -17,3 +17,6 @@ BulletHellMaker\*.dll
 *.pdb
 *.vcxproj.filters
 *.vcxproj.user
+*.sln
+*.vcxproj
+*.dll
