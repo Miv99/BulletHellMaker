@@ -6,13 +6,19 @@
 #include <LevelPack/EditorMovablePointAction.h>
 #include <DataStructs/MovablePoint.h>
 
-MovementPathComponent::MovementPathComponent(EntityCreationQueue& queue, uint32_t self, entt::DefaultRegistry& registry, uint32_t entity, std::shared_ptr<EMPSpawnType> spawnType, std::vector<std::shared_ptr<EMPAction>> actions, float initialTime) : actions(actions), time(initialTime) {
+MovementPathComponent::MovementPathComponent(EntityCreationQueue& queue, uint32_t self, entt::DefaultRegistry& registry, uint32_t entity, 
+	std::shared_ptr<EMPSpawnType> spawnType, std::vector<std::shared_ptr<EMPAction>> actions, float initialTime) 
+	: actions(actions), time(initialTime) {
 	initialSpawn(registry, entity, spawnType, actions);
+	// Can call update with deltaTime of 0 because time was initialized to initialTime already
 	update(queue, registry, self, registry.get<PositionComponent>(self), 0);
 }
 
-MovementPathComponent::MovementPathComponent(EntityCreationQueue& queue, uint32_t self, entt::DefaultRegistry& registry, uint32_t entity, MPSpawnInformation spawnInfo, std::vector<std::shared_ptr<EMPAction>> actions, float initialTime) : actions(actions), time(initialTime) {
+MovementPathComponent::MovementPathComponent(EntityCreationQueue& queue, uint32_t self, entt::DefaultRegistry& registry, uint32_t entity, 
+	MPSpawnInformation spawnInfo, std::vector<std::shared_ptr<EMPAction>> actions, float initialTime) 
+	: actions(actions), time(initialTime) {
 	initialSpawn(registry, entity, spawnInfo, actions);
+	// Can call update with deltaTime of 0 because time was initialized to initialTime already
 	update(queue, registry, self, registry.get<PositionComponent>(self), 0);
 }
 
@@ -82,7 +88,7 @@ sf::Vector2f MovementPathComponent::getPreviousPosition(entt::DefaultRegistry& r
 		}
 	} else {
 		int curPathIndex = previousPaths.size();
-		while (curTime < 0) {
+		while (curTime < 0 && curPathIndex - 1 >= 0) {
 			assert(curPathIndex - 1 >= 0 && "Somehow looking back in the past too far");
 			curTime += previousPaths[curPathIndex - 1]->getLifespan();
 			curPathIndex--;
