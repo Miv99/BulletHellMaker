@@ -7,8 +7,9 @@ Debug
 packages
 build
 Release
-ReleaseTest
-Tests\Release
+Game
+DebugGenerateLib
+DebugTests
 BulletHellMaker\Debug
 BulletHellMaker\Release
 BulletHellMaker\ReleaseTest
@@ -20,3 +21,9 @@ BulletHellMaker\*.dll
 *.sln
 *.vcxproj
 *.dll
+*.lastbuildstate
+*.tlog
+*.log
+*.obj
+*.idb
+*.exe

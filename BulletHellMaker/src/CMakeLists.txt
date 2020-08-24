@@ -121,14 +121,31 @@ target_include_directories(BHM PRIVATE ${PYTHON_ROOT}/Lib/site-packages/numpy/co
 target_link_libraries(BHM ${PYTHON_ROOT}/Lib/site-packages/numpy/core/lib/npymath.lib)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_link_libraries(BHM ${PYTHON_ROOT}/libs/python27_d.lib)
-
     target_link_libraries(BHM ${SFML_ROOT}/lib/sfml-window-d.lib)
     target_link_libraries(BHM ${SFML_ROOT}/lib/sfml-system-d.lib)
     target_link_libraries(BHM ${SFML_ROOT}/lib/sfml-main-d.lib)
     target_link_libraries(BHM ${SFML_ROOT}/lib/sfml-graphics-d.lib)
     target_link_libraries(BHM ${SFML_ROOT}/lib/sfml-audio-d.lib)
-    
     target_link_libraries(BHM ${TGUI_BUILD_DIR}/lib/Debug/tgui-d.lib)
+    
+    # Add .lib for test to link to later
+    if(BUILD_TESTS)
+        add_library(BHM_lib ${BHM_SRC})
+        target_compile_options(BHM_lib PRIVATE /bigobj)
+        target_include_directories(BHM_lib PRIVATE ${SFML_ROOT}/include)
+        target_include_directories(BHM_lib PRIVATE ${TGUI_ROOT}/include)
+        target_include_directories(BHM_lib PRIVATE ${ENTT_ROOT}/src)
+        target_include_directories(BHM_lib PRIVATE ${PYTHON_ROOT}/include)
+        target_include_directories(BHM_lib PRIVATE ${PYTHON_ROOT}/Lib/site-packages/numpy/core/include)
+        target_link_libraries(BHM_lib ${PYTHON_ROOT}/Lib/site-packages/numpy/core/lib/npymath.lib)
+        target_link_libraries(BHM_lib ${PYTHON_ROOT}/libs/python27_d.lib)
+        target_link_libraries(BHM_lib ${SFML_ROOT}/lib/sfml-window-d.lib)
+        target_link_libraries(BHM_lib ${SFML_ROOT}/lib/sfml-system-d.lib)
+        target_link_libraries(BHM_lib ${SFML_ROOT}/lib/sfml-main-d.lib)
+        target_link_libraries(BHM_lib ${SFML_ROOT}/lib/sfml-graphics-d.lib)
+        target_link_libraries(BHM_lib ${SFML_ROOT}/lib/sfml-audio-d.lib)
+        target_link_libraries(BHM_lib ${TGUI_BUILD_DIR}/lib/Debug/tgui-d.lib)
+    endif()
 else()
     target_link_libraries(BHM ${PYTHON_ROOT}/libs/python27.lib)
 
