@@ -1,6 +1,7 @@
-#include "gtest/gtest.h"
-#include "../BulletHellMaker/Attack.h"
-#include "../BulletHellMaker/EditorMovablePoint.h"
+#include <gtest/gtest.h>
+#include <LevelPack/Attack.h>
+#include <LevelPack/EditorMovablePoint.h>
+
 TEST(EditorAttackTest, Constructor) {
     EditorAttack attack(3);
     EXPECT_EQ(attack.getID(), 3);
@@ -31,8 +32,9 @@ TEST(EditorAttackTest, Setters) {
 
 TEST(EditorAttackTest, HitboxSearch) {
     EditorAttack attack(0);
-    attack.getMainEMP()->setHitboxRadius(40);
-    attack.getMainEMP()->createChild()->setHitboxRadius(75.2f);
+    attack.getMainEMP()->setHitboxRadius("40");
+    attack.getMainEMP()->createChild()->setHitboxRadius("75.2");
+    attack.getMainEMP()->compileExpressions({});
     EXPECT_EQ(attack.searchLargestHitbox(), 75.2f);
 }
 
