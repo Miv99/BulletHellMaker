@@ -103,7 +103,7 @@ private:
 
 	std::string dialogueBoxTextureFileName;
 	// The middle part of the dialogue box texture to be used for 9-slicing
-	sf::IntRect textureMiddlePart;
+	sf::IntRect textureMiddlePart = sf::IntRect();
 
 	// Empty string if no portrait is to be used
 	std::string dialogueBoxPortraitFileName = "";

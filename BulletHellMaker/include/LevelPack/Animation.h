@@ -26,10 +26,10 @@ protected:
 	int currentSpriteIndex = 0;
 
 	// Total duration of the animation, not including loops
-	float totalDuration;
+	float totalDuration = 0;
 
 	// True if the animation loops
-	bool looping;
+	bool looping = true;
 
 	// True if animation is finished (can only be true if looping is false)
 	bool done = false;

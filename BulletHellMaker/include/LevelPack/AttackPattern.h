@@ -92,7 +92,7 @@ private:
 	std::map<int, int> attackIDCount;
 
 	/*
-	Should be called any time actions is modified.
+	Called any time actions is modified.
 	*/
 	void onActionsModified();
 };

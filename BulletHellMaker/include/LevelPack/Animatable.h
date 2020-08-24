@@ -14,13 +14,6 @@ public:
 	Animatable();
 	Animatable(std::string animatableName, std::string spriteSheetName, bool animatableIsSprite, ROTATION_TYPE rotationType);
 
-	bool operator==(const Animatable& other) {
-		return animatableName == other.animatableName && spriteSheetName == other.spriteSheetName && animatableIsSprite == other.animatableIsSprite && rotationType == other.rotationType;
-	}
-	bool operator!=(const Animatable& other) {
-		return !(*this == other);
-	}
-
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
@@ -32,10 +25,7 @@ public:
 	/*
 	For testing.
 	*/
-	bool operator==(const Animatable& other) const {
-		return animatableName == other.animatableName && spriteSheetName == other.spriteSheetName
-			&& animatableIsSprite == other.animatableIsSprite && rotationType == other.rotationType;
-	}
+	bool operator==(const Animatable& other) const;
 
 private:
 	// Name of sprite/animation
@@ -43,7 +33,7 @@ private:
 	// Name of sprite sheet the animatable is in
 	std::string spriteSheetName;
 	// True if the associated animatable is a sprite. False if it's an animation
-	bool animatableIsSprite;
+	bool animatableIsSprite = true;
 
 	ROTATION_TYPE rotationType = ROTATION_TYPE::LOCK_ROTATION_AND_FACE_HORIZONTAL_MOVEMENT;
 };

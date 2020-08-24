@@ -14,12 +14,12 @@
 Provides information on the spawn location of a MP.
 */
 struct MPSpawnInformation {
-	bool useReferenceEntity;
+	bool useReferenceEntity = false;
 	
 	// The entity whose MovementPathComponent will be a reference
 	uint32_t referenceEntity;
 	// Global position
-	sf::Vector2f position;
+	sf::Vector2f position = sf::Vector2f(0, 0);
 };
 
 /*

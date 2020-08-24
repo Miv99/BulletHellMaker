@@ -18,3 +18,8 @@ void Animatable::load(std::string formattedString) {
 	animatableIsSprite = unformatBool(items[2]);
 	rotationType = static_cast<ROTATION_TYPE>(std::stoi(items[3]));
 }
+
+bool Animatable::operator==(const Animatable& other) const {
+	return animatableName == other.animatableName && spriteSheetName == other.spriteSheetName
+		&& animatableIsSprite == other.animatableIsSprite && rotationType == other.rotationType;
+}

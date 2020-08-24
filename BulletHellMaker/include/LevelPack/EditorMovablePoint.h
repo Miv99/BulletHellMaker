@@ -335,7 +335,7 @@ private:
 	// Only applicable if the EMP is not a bullet (hitboxRadius <= 0)
 	Animatable animatable;
 	// Only applicable if animatable is an animation
-	bool loopAnimation;
+	bool loopAnimation = true;
 	// The animatable that will be used after the animation ends. Only necessary if animatable is an animation and loopAnimation is false
 	Animatable baseSprite;
 

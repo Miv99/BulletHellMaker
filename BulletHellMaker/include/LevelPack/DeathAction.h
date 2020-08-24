@@ -214,9 +214,9 @@ private:
 	// Animatable used for the particle
 	Animatable animatable;
 	// Only applicable if animatable is an animation
-	bool loopAnimatable;
+	bool loopAnimatable = true;
 	// Particle color. Note: this will overwrite the animatable's color as specified in its sprite sheet entry.
-	sf::Color color;
+	sf::Color color = sf::Color::Red;
 	// Number of particles
 	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(minParticles, int, 20)
 	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(maxParticles, int, 30)

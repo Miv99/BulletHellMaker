@@ -45,9 +45,9 @@ public:
 protected:
 	// If this is an animation, it always loops
 	Animatable animatable;
-	float hitboxRadius;
+	float hitboxRadius = 0;
 	// Minimum distance between an item and player before the item begins moving towards the player
-	float activationRadius;
+	float activationRadius = 0;
 
 	// Sound to be played when item is collected by the player
 	SoundSettings onCollectSound;

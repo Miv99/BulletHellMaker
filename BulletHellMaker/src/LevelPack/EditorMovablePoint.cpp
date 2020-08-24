@@ -4,7 +4,8 @@
 #include <LevelPack/Attack.h>
 #include <LevelPack/LevelPack.h>
 
-EditorMovablePoint::EditorMovablePoint(IDGenerator* idGen, bool setID, std::map<int, int>* bulletModelsCount) : idGen(idGen), bulletModelsCount(bulletModelsCount) {
+EditorMovablePoint::EditorMovablePoint(IDGenerator* idGen, bool setID, std::map<int, int>* bulletModelsCount) 
+	: idGen(idGen), bulletModelsCount(bulletModelsCount) {
 	this->idGen = idGen;
 	if (setID) {
 		id = idGen->generateID();
@@ -13,18 +14,10 @@ EditorMovablePoint::EditorMovablePoint(IDGenerator* idGen, bool setID, std::map<
 		idResolved = false;
 	}
 	spawnType = std::make_shared<EntityRelativeEMPSpawn>("0", "0", "0");
-
-	// Update bulletModelsCount
-	if (bulletModelID >= 0) {
-		if (bulletModelsCount->count(bulletModelID) == 0) {
-			bulletModelsCount->emplace(bulletModelID, 1);
-		} else {
-			bulletModelsCount->at(bulletModelID)++;
-		}
-	}
 }
 
-EditorMovablePoint::EditorMovablePoint(IDGenerator* idGen, std::weak_ptr<EditorMovablePoint> parent, std::map<int, int>* bulletModelsCount, bool setID) : idGen(idGen), parent(parent), bulletModelsCount(bulletModelsCount) {
+EditorMovablePoint::EditorMovablePoint(IDGenerator* idGen, std::weak_ptr<EditorMovablePoint> parent, std::map<int, int>* bulletModelsCount, bool setID) 
+	: idGen(idGen), parent(parent), bulletModelsCount(bulletModelsCount) {
 	if (setID) {
 		id = idGen->generateID();
 		idResolved = true;
@@ -32,15 +25,6 @@ EditorMovablePoint::EditorMovablePoint(IDGenerator* idGen, std::weak_ptr<EditorM
 		idResolved = false;
 	}
 	spawnType = std::make_shared<EntityRelativeEMPSpawn>("0", "0", "0");
-
-	// Update bulletModelsCount
-	if (bulletModelID >= 0) {
-		if (bulletModelsCount->count(bulletModelID) == 0) {
-			bulletModelsCount->emplace(bulletModelID, 1);
-		} else {
-			bulletModelsCount->at(bulletModelID)++;
-		}
-	}
 }
 
 EditorMovablePoint::EditorMovablePoint(std::shared_ptr<const EditorMovablePoint> copy) : idGen(copy->idGen), bulletModelsCount(copy->bulletModelsCount) {
@@ -86,6 +70,9 @@ void EditorMovablePoint::load(std::string formattedString) {
 	idResolved = false;
 	// Resolve any possible conflicts from loading this ID
 	resolveIDConflicts(false);
+
+	// Update bulletModelsCount
+	updateBulletModelToBulletModelsCount(false);
 
 	hitboxRadius = items[1];
 	despawnTime = std::stof(items[2]);
@@ -645,6 +632,8 @@ void EditorMovablePoint::recursiveDeleteID() {
 	if (idResolved) {
 		idGen->deleteID(id);
 		idResolved = false;
+
+
 	}
 	for (auto child : children) {
 		child->recursiveDeleteID();
