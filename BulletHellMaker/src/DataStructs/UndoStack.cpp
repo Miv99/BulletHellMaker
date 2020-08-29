@@ -18,7 +18,7 @@ void UndoStack::execute(UndoableCommand command) {
 	redoStack.clear();
 }
 
-void UndoStack::undo() {
+bool UndoStack::undo() {
 	if (undoStack.size() > 0) {
 		undoStack.front().undo();
 
@@ -28,10 +28,12 @@ void UndoStack::undo() {
 		}
 
 		undoStack.pop_front();
+		return true;
 	}
+	return false;
 }
 
-void UndoStack::redo() {
+bool UndoStack::redo() {
 	if (redoStack.size() > 0) {
 		redoStack.front().execute();
 
@@ -41,7 +43,9 @@ void UndoStack::redo() {
 		}
 
 		redoStack.pop_front();
+		return true;
 	}
+	return false;
 }
 
 void UndoStack::clear() {

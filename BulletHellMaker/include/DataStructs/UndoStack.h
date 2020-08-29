@@ -19,8 +19,14 @@ public:
 	UndoStack(int maxCommands);
 
 	void execute(UndoableCommand command);
-	void undo();
-	void redo();
+	/*
+	Returns true if an undo command was executed.
+	*/
+	bool undo();
+	/*
+	Returns true if a redo command was executed.
+	*/
+	bool redo();
 	void clear();
 
 private:
