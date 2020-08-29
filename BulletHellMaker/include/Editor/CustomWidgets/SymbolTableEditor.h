@@ -158,7 +158,7 @@ public:
 private:
 	tgui::SignalExprSymbolTable onValueChange = { "ValueChanged" };
 
-	UndoStack undoStack;
+	UndoStack* undoStack;
 
 	std::vector<ValueSymbolTable> symbolTablesHierarchy;
 	ExprSymbolTable exprSymbolTable;
