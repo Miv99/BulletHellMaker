@@ -36,7 +36,8 @@ public:
 
 	higherLevelSymbolTables - the list of symbol_tables that, combined, defines all symbols needed to evaluate the expression
 		in every ExprSymbolDefinition. In the case of the same symbol being defined multiple times, the definition
-		in the farthest-back symbol table will be used.
+		in the farthest-back symbol table will be used. Values from symbol_tables in this list are not added
+		to this ExprSymbolTable.
 	*/
 	exprtk::symbol_table<float> toLowerLevelSymbolTable(std::vector<exprtk::symbol_table<float>> higherLevelSymbolTables);
 	/*

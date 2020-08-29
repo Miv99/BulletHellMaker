@@ -63,7 +63,9 @@ public:
 	Removes the EditorAttack at the specified index from the list of EditorAttacks to be executed.
 	*/
 	void removeAttack(int index);
-	// Inserts an EMPAction such that the new action is at the specified index
+	/*
+	Inserts an EMPAction such that the new action is at the specified index
+	*/
 	void insertAction(int index, std::shared_ptr<EMPAction> action);
 	void removeAction(int index);
 
