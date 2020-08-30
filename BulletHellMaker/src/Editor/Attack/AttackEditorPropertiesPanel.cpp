@@ -78,12 +78,14 @@ std::string AttackEditorPropertiesPanel::paste2Into(std::shared_ptr<CopiedObject
 		for (auto obj : derived->getLevelPackObjects()) {
 			copiedAttacks.push_back(std::dynamic_pointer_cast<EditorAttack>(obj));
 		}
-		if (copiedAttacks.size() > 0) {
+		if (copiedAttacks.size() == 1) {
 			std::shared_ptr<EditorAttack> newAttack = std::make_shared<EditorAttack>(attack);
 			newAttack->setName(copiedAttacks[0]->getName());
 
 			mainEditorWindow.promptConfirmation("Overwrite this attack's properties with the copied attack's properties?", newAttack)->sink()
 				.connect<AttackEditorPropertiesPanel, &AttackEditorPropertiesPanel::onPasteIntoConfirmation>(this);
+		} else {
+			return "Cannot overwrite this attack's properties when copying more than one attack.";
 		}
 	}
 	return "";
