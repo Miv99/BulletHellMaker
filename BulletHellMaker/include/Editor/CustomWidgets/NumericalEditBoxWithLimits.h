@@ -8,7 +8,7 @@ Signals:
 	ValueChanged - emitted when the edit box value is changed, either when the enter
 		key is pressed or the widget is unfocused.
 		Optional parameter: the value in the edit box as a float. If this edit box is
-		in integer mode, the value can just be cast to an int.
+		in integer mode, the value should be rounded with std::lrint() to avoid float rounding errors.
 */
 class NumericalEditBoxWithLimits : public tgui::EditBox {
 public:

@@ -40,6 +40,8 @@ public:
 		return std::make_shared<AttackPatternEditorPanel>(mainEditorWindow, levelPack, spriteLoader, clipboard, attackPattern, undoStackSize);
 	}
 
+	bool handleEvent(sf::Event event) override;
+
 	tgui::Signal& getSignal(std::string signalName) override;
 
 protected:
@@ -66,6 +68,12 @@ private:
 	// The properties tab
 	std::shared_ptr<AttackPatternEditorPropertiesPanel> propertiesPanel;
 
+	// Symbol table editor child window.
+	// The window is added to the GUI directly and will be removed in this widget's destructor.
+	std::shared_ptr<tgui::ChildWindow> symbolTableEditorWindow;
+	// Symbol table editor
+	std::shared_ptr<ValueSymbolTableEditor> symbolTableEditor;
+
 	// The ID of the EditorEnemyPhase (or USED_BY_ID_MAP_PLAYER_RESERVED_ID) in usedBy that was just right clicked
 	int usedByRightClickedID;
 	// Maps an index in usedBy to the ID of the EditorEnemyPhase being shown in that index.
@@ -86,6 +94,11 @@ private:
 	Optional parameter: a shared_ptr to the newly modified EditorAttackPattern
 	*/
 	tgui::SignalEditorAttackPattern onAttackPatternModify = { "AttackPatternModified" };
+
+	/*
+	Does the save command on this widget.
+	*/
+	void manualSave();
 
 	/*
 	Called whenever onChange from levelPack is emitted.

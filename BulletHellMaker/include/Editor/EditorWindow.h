@@ -248,6 +248,9 @@ public:
 	std::shared_ptr<LevelPackObjectsListView> getAttacksListView();
 	std::shared_ptr<LevelPackObjectsListPanel> getAttacksListPanel();
 
+	std::shared_ptr<LevelPackObjectsListView> getAttackPatternsListView();
+	std::shared_ptr<LevelPackObjectsListPanel> getAttackPatternsListPanel();
+
 	std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedAttacks();
 	std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedAttackPatterns();
 	std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedEnemies();

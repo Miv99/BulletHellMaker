@@ -188,6 +188,23 @@ void EditorAttackPattern::setActions(std::vector<std::shared_ptr<EMPAction>> act
 	onActionsModified();
 }
 
+void EditorAttackPattern::setAttacks(std::vector<std::tuple<std::string, int, ExprSymbolTable>> attacks) {
+	// Can clear attackIDCount here because it's affected by only attackIDs
+	this->attackIDCount.clear();
+	this->attackIDs.clear();
+
+	for (auto t : attacks) {
+		this->attackIDs.push_back(t);
+
+		int id = std::get<1>(t);
+		if (this->attackIDCount.count(id) == 0) {
+			this->attackIDCount[id] = 1;
+		} else {
+			this->attackIDCount[id]++;
+		}
+	}
+}
+
 void EditorAttackPattern::addAttack(std::string time, int id, ExprSymbolTable attackSymbolsDefiner) {
 	attackIDs.push_back(std::make_tuple(time, id, attackSymbolsDefiner));
 

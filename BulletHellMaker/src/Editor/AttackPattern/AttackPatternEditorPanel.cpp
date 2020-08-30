@@ -9,6 +9,19 @@ const int AttackPatternEditorPanel::USED_BY_ID_MAP_PLAYER_RESERVED_ID = -1;
 
 AttackPatternEditorPanel::AttackPatternEditorPanel(MainEditorWindow& mainEditorWindow, std::shared_ptr<LevelPack> levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorAttackPattern> attackPattern, int undoStackSize) 
 	: mainEditorWindow(mainEditorWindow), levelPack(levelPack), spriteLoader(spriteLoader), clipboard(clipboard), undoStack(UndoStack(undoStackSize)), attackPattern(attackPattern) {
+	// ValueSymbolTable editor
+	symbolTableEditorWindow = tgui::ChildWindow::create();
+	symbolTableEditor = ValueSymbolTableEditor::create(false, true);
+	symbolTableEditorWindow->setKeepInParent(false);
+	symbolTableEditorWindow->add(symbolTableEditor);
+	symbolTableEditorWindow->setSize("50%", "50%");
+	symbolTableEditorWindow->setTitle("Attack pattern ID " + std::to_string(attackPattern->getID()) + " Variables");
+	symbolTableEditor->connect("ValueChanged", [this](ValueSymbolTable table) {
+		this->attackPattern->setSymbolTable(table);
+		onChange(table);
+		onAttackPatternModify.emit(this, this->attackPattern);
+	});
+
 	// Tabs
 	tabs = TabsWithPanel::create(mainEditorWindow);
 	tabs->setPosition(0, 0);
@@ -23,7 +36,6 @@ AttackPatternEditorPanel::AttackPatternEditorPanel(MainEditorWindow& mainEditorW
 	propertiesPanel->setSize("100%", "100%");
 	tabs->addTab(PROPERTIES_TAB_NAME, propertiesPanel, true, false);
 
-	// Populate the usedBy list when the level pack is changed
 	levelPack->getOnChange()->sink().connect<AttackPatternEditorPanel, &AttackPatternEditorPanel::onLevelPackChange>(this);
 	// Initial population
 	populatePropertiesUsedByList();
@@ -68,12 +80,34 @@ AttackPatternEditorPanel::AttackPatternEditorPanel(MainEditorWindow& mainEditorW
 	});
 	movementEditorPanel->setActions(this->attackPattern->getActions());
 	tabs->addTab(MOVEMENT_TAB_NAME, movementEditorPanel, false, false);
+
+	updateSymbolTables({ });
 }
 
 AttackPatternEditorPanel::~AttackPatternEditorPanel() {
 	// TODO
 	//levelPack->getOnChange()->sink().disconnect<AttackEditorPanel, &AttackEditorPanel::populatePropertiesUsedByList>(this);
-	//mainEditorWindow.getGui()->remove(symbolTableEditorWindow);
+	mainEditorWindow.getGui()->remove(symbolTableEditorWindow);
+}
+
+bool AttackPatternEditorPanel::handleEvent(sf::Event event) {
+	if (symbolTableEditorWindow->isFocused()) {
+		return symbolTableEditor->handleEvent(event);
+	} else if (tabs->handleEvent(event)) {
+		return true;
+	}
+	if (event.type == sf::Event::KeyPressed) {
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
+			if (event.key.code == sf::Keyboard::S) {
+				manualSave();
+				return true;
+			}
+		} else if (event.key.code == sf::Keyboard::V) {
+			mainEditorWindow.getGui()->add(symbolTableEditorWindow);
+			return true;
+		}
+	}
+	return false;
 }
 
 tgui::Signal& AttackPatternEditorPanel::getSignal(std::string signalName) {
@@ -88,11 +122,30 @@ tgui::Signal& AttackPatternEditorPanel::getSignal(std::string signalName) {
 }
 
 void AttackPatternEditorPanel::propagateChangesToChildren() {
-	// TODO
+	symbolTableEditor->setSymbolTablesHierarchy(symbolTables);
+
+	// TODO: update symbol tables for movement tab?
+	//auto tabNames = tabs->getTabNames();
+	//for (int i = 2; i < tabNames.size(); i++) {
+	//	std::dynamic_pointer_cast<EditorMovablePointPanel>(tabs->getTab(tabNames[i]))->updateSymbolTables(symbolTables);
+	//}
 }
 
 ValueSymbolTable AttackPatternEditorPanel::getLevelPackObjectSymbolTable() {
 	return attackPattern->getSymbolTable();
+}
+
+void AttackPatternEditorPanel::manualSave() {
+	auto& unsavedAttackPatterns = mainEditorWindow.getUnsavedAttackPatterns();
+	int id = attackPattern->getID();
+
+	if (unsavedAttackPatterns.count(id) > 0) {
+		levelPack->updateAttackPattern(unsavedAttackPatterns[id]);
+		unsavedAttackPatterns.erase(id);
+	}
+	// Do nothing if the attack pattern doesn't have any unsaved changes
+
+	mainEditorWindow.getAttackPatternsListView()->reload();
 }
 
 void AttackPatternEditorPanel::onLevelPackChange(LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE type, int id) {

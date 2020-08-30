@@ -5,6 +5,7 @@
 #include <Editor/CopyPaste.h>
 #include <Editor/CustomWidgets/ListViewScrollablePanel.h>
 #include <Editor/CustomWidgets/EditBox.h>
+#include <Editor/LevelPackObjectUseRelationship/AttackPatternToAttackUseRelationshipEditor.h>
 #include <DataStructs/UndoStack.h>
 
 class MainEditorWindow;
@@ -50,6 +51,7 @@ private:
 	// The AttackPattern being edited
 	std::shared_ptr<EditorAttackPattern> attackPattern;
 
+	std::shared_ptr<AttackPatternToAttackUseRelationshipEditor> relationshipEditor;
 	// Lists the EditorEnemyPhases (and possibly EditorPlayer) that use the EditorAttackPattern being edited
 	std::shared_ptr<ListViewScrollablePanel> usedBy;
 

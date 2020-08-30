@@ -21,7 +21,6 @@ spriteLoader(spriteLoader), clipboard(clipboard), undoStack(UndoStack(undoStackS
 	});
 	tabs->addTab(PROPERTIES_TAB_NAME, propertiesPanel);
 
-	// Populate the usedBy list when the level pack is changed
 	levelPack->getOnChange()->sink().connect<AttackEditorPanel, &AttackEditorPanel::onLevelPackChange>(this);
 	// Initial population
 	populatePropertiesUsedByList();

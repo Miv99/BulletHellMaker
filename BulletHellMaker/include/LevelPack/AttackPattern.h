@@ -51,6 +51,7 @@ public:
 	void setShadowTrailInterval(std::string shadowTrailInterval);
 	void setShadowTrailLifespan(std::string shadowTrailLifespan);
 	void setActions(std::vector<std::shared_ptr<EMPAction>> actions);
+	void setAttacks(std::vector<std::tuple<std::string, int, ExprSymbolTable>> attacks);
 
 	/*
 	Add an EditorAttack to this attack pattern.

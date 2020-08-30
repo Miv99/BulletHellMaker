@@ -929,6 +929,14 @@ std::shared_ptr<LevelPackObjectsListPanel> MainEditorWindow::getAttacksListPanel
 	return attacksListPanel;
 }
 
+std::shared_ptr<LevelPackObjectsListView> MainEditorWindow::getAttackPatternsListView() {
+	return attackPatternsListView;
+}
+
+std::shared_ptr<LevelPackObjectsListPanel> MainEditorWindow::getAttackPatternsListPanel() {
+	return attackPatternsListPanel;
+}
+
 std::map<int, std::shared_ptr<LevelPackObject>>& MainEditorWindow::getUnsavedAttacks() {
 	return unsavedAttacks;
 }
