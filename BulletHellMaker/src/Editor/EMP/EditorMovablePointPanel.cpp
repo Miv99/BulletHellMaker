@@ -241,7 +241,6 @@ point will update only the values it wants to inherit to match the model."));
 			empiBulletModel->addItem(it->second->getName(), std::to_string(it->second->getID()));
 		}
 
-		// Bullet model should be loaded whenever a change is made to the level pack
 		levelPack->getOnChange()->sink().connect<EditorMovablePointPanel, &EditorMovablePointPanel::onLevelPackChange>(this);
 		emp->loadBulletModel(*levelPack);
 		
@@ -1407,7 +1406,7 @@ void EditorMovablePointPanel::updateAllWidgetValues() {
 }
 
 void EditorMovablePointPanel::onLevelPackChange(LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE type, int id) {
-	// EMPs can be used only by attacks, so reload only if the modified attack uses this EMP
+	// EMPs can be used only by attacks, so reload this EMP's bullet model only if the modified attack uses this EMP
 	if (type == LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ATTACK && levelPack->getAttack(id)->searchEMP(emp->getID()) != nullptr) {
 		emp->loadBulletModel(*levelPack);
 

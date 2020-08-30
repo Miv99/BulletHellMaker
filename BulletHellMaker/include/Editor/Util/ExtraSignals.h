@@ -81,6 +81,8 @@ namespace tgui {
 		 ************************************************************************************************************************/ \
 		unsigned int validateTypes(std::initializer_list<std::type_index> unboundParameters) const override; \
 };
+	// Workaround for commas not being allowed in macros
+	#define COMMA ,
 
 	EXTRA_SIGNAL_VALUE_DECLARATION(EditorAttack, std::shared_ptr<EditorAttack>)
 	EXTRA_SIGNAL_VALUE_DECLARATION(EditorMovablePoint, std::shared_ptr<EditorMovablePoint>)
@@ -90,6 +92,7 @@ namespace tgui {
 	EXTRA_SIGNAL_VALUE_DECLARATION(EMPA, std::shared_ptr<EMPAction>)
 	EXTRA_SIGNAL_VALUE_DECLARATION(ValueSymbolTable, ValueSymbolTable)
 	EXTRA_SIGNAL_VALUE_DECLARATION(ExprSymbolTable, ExprSymbolTable)
+	EXTRA_SIGNAL_VALUE_DECLARATION(AttackPatternToAttackUseRelationship, std::vector<std::tuple<std::string COMMA int COMMA ExprSymbolTable>>)
 
 	class SignalTFVPair : public Signal { 
     public: 

@@ -24,3 +24,8 @@ const static float WIDGET_OPACITY_DISABLED = 0.6f;
 const static float DIALOGUE_BOX_PADDING = 5;
 // Height of dialogue box if there is no portrait
 const static float DIALOGUE_BOX_HEIGHT = 200;
+
+/*
+CopyPaste IDs
+*/
+const static std::string ATTACK_PATTERN_TO_ATTACK_USE_RELATIONSHIP_COPY_PASTE_ID = "AttackPatternToAttackUseRelationship";

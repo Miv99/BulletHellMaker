@@ -162,3 +162,18 @@ public:
 private:
 	sf::CircleShape marker;
 };
+
+class CopiedAttackPatternToAttackUseRelationship : public CopiedObject {
+public:
+	CopiedAttackPatternToAttackUseRelationship(std::string copiedFromID, std::vector<std::tuple<std::string, int, ExprSymbolTable>> relationships);
+
+	std::vector<std::tuple<std::string, int, ExprSymbolTable>> getRelationships();
+
+	/*
+	Returns the number of copied relationships.
+	*/
+	int getRelationshipsCount();
+
+private:
+	std::vector<std::tuple<std::string, int, ExprSymbolTable>> relationships;
+};

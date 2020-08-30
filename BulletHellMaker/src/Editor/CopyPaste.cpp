@@ -132,3 +132,16 @@ CopiedMarker::CopiedMarker(std::string copiedFromID, sf::CircleShape marker) : C
 sf::CircleShape CopiedMarker::getMarker() {
 	return marker;
 }
+
+CopiedAttackPatternToAttackUseRelationship::CopiedAttackPatternToAttackUseRelationship(std::string copiedFromID, 
+	std::vector<std::tuple<std::string, int, ExprSymbolTable>> relationships) 
+	: CopiedObject(copiedFromID), relationships(relationships) {
+}
+
+std::vector<std::tuple<std::string, int, ExprSymbolTable>> CopiedAttackPatternToAttackUseRelationship::getRelationships() {
+	return relationships;
+}
+
+int CopiedAttackPatternToAttackUseRelationship::getRelationshipsCount() {
+	return relationships.size();
+}
