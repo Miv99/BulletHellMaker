@@ -61,7 +61,7 @@ void LevelPackObjectUseRelationshipEditor::deleteSelectedListItems() {
 			oldRelationships.push_back(relationships[index]);
 		}
 
-		this->getCurrentlySelectedRelationshipUndoStack()->execute(UndoableCommand([this, curSelectedIndices]() {
+		relationshipsListView->getUndoStack().execute(UndoableCommand([this, curSelectedIndices]() {
 			for (auto it = curSelectedIndices.rbegin(); it != curSelectedIndices.rend(); it++) {
 				int index = *it;
 				// curSelectedIndices is a set so we can remove elements using erase() if done in decreasing index order
