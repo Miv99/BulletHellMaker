@@ -304,6 +304,10 @@ tgui::Signal& AttackPatternToAttackUseRelationshipEditor::getSignal(std::string 
 	return LevelPackObjectUseRelationshipEditor::getSignal(signalName);
 }
 
+void AttackPatternToAttackUseRelationshipEditor::setSymbolTablesHierarchy(std::vector<ValueSymbolTable> symbolTablesHierarchy) {
+	symbolTableEditor->setSymbolTablesHierarchy(symbolTablesHierarchy);
+}
+
 void AttackPatternToAttackUseRelationshipEditor::initializeRelationshipEditorPanelWidgetsData(std::shared_ptr<LevelPackObjectUseRelationship> relationship, int relationshipIndex) {
 	std::shared_ptr<AttackPatternToAttackUseRelationship> derived = std::static_pointer_cast<AttackPatternToAttackUseRelationship>(relationship);
 	std::tuple<std::string, int, ExprSymbolTable> data = derived->getData();

@@ -43,6 +43,8 @@ public:
 
 	std::shared_ptr<ListViewScrollablePanel> getUsedByPanel();
 
+	void setSymbolTablesHierarchy(std::vector<ValueSymbolTable> symbolTablesHierarchy);
+
 private:
 	MainEditorWindow& mainEditorWindow;
 	Clipboard& clipboard;

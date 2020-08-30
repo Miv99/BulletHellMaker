@@ -121,3 +121,7 @@ void AttackPatternEditorPropertiesPanel::manualRedo() {
 std::shared_ptr<ListViewScrollablePanel> AttackPatternEditorPropertiesPanel::getUsedByPanel() {
 	return usedBy;
 }
+
+void AttackPatternEditorPropertiesPanel::setSymbolTablesHierarchy(std::vector<ValueSymbolTable> symbolTablesHierarchy) {
+	relationshipEditor->setSymbolTablesHierarchy(symbolTablesHierarchy);
+}

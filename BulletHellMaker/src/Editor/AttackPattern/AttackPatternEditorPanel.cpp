@@ -123,12 +123,7 @@ tgui::Signal& AttackPatternEditorPanel::getSignal(std::string signalName) {
 
 void AttackPatternEditorPanel::propagateChangesToChildren() {
 	symbolTableEditor->setSymbolTablesHierarchy(symbolTables);
-
-	// TODO: update symbol tables for movement tab?
-	//auto tabNames = tabs->getTabNames();
-	//for (int i = 2; i < tabNames.size(); i++) {
-	//	std::dynamic_pointer_cast<EditorMovablePointPanel>(tabs->getTab(tabNames[i]))->updateSymbolTables(symbolTables);
-	//}
+	propertiesPanel->setSymbolTablesHierarchy(symbolTables);
 }
 
 ValueSymbolTable AttackPatternEditorPanel::getLevelPackObjectSymbolTable() {

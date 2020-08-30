@@ -61,6 +61,8 @@ public:
 
 	tgui::Signal& getSignal(std::string signalName) override;
 
+	void setSymbolTablesHierarchy(std::vector<ValueSymbolTable> symbolTablesHierarchy);
+
 private:
 	std::shared_ptr<tgui::Label> timeLabel;
 	std::shared_ptr<EditBox> timeEditBox;
