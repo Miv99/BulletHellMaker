@@ -20,7 +20,7 @@ LevelPackObjectUseRelationshipEditor::~LevelPackObjectUseRelationshipEditor() {
 }
 
 bool LevelPackObjectUseRelationshipEditor::handleEvent(sf::Event event) {
-	if (relationshipsListView && relationshipsListView->isFocused() && relationshipsListView->handleEvent(event)) {
+	if (relationshipsListView && relationshipsListViewPanel->isFocused() && relationshipsListView->handleEvent(event)) {
 		return true;
 	} else if (event.type == sf::Event::KeyPressed) {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
@@ -95,6 +95,10 @@ void LevelPackObjectUseRelationshipEditor::insertRelationships(int insertAt, std
 	}
 }
 
+std::shared_ptr<LevelPackObjectUseRelationship> LevelPackObjectUseRelationshipEditor::instantiateDefaultRelationship() {
+	return nullptr;
+}
+
 void LevelPackObjectUseRelationshipEditor::onRelationshipEditorPanelRelationshipModify(std::shared_ptr<LevelPackObjectUseRelationship> newRelationship) {
 	if (relationshipEditorPanelCurrentRelationshipIndex == -1) {
 		return;
@@ -118,7 +122,7 @@ void LevelPackObjectUseRelationshipEditor::setupRelationshipListView() {
 	addButton->setPosition(0, 0);
 	addButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
 	addButton->connect("Pressed", [this]() {
-		// TODO
+		addNewRelationship();
 	});
 	relationshipsListViewPanel->add(addButton);
 
@@ -265,6 +269,34 @@ void LevelPackObjectUseRelationshipEditor::openRelationshipEditorPanelIndex(int 
 	this->relationshipEditorPanelCurrentRelationshipIndex = index;
 	relationshipEditorPanel->setVisible(true);
 	initializeRelationshipEditorPanelWidgetsData(relationships[index].first, index);
+}
+
+void LevelPackObjectUseRelationshipEditor::addNewRelationship() {
+	std::set<size_t> curSelectedIndices = relationshipsListView->getListView()->getSelectedItemIndices();
+	int pasteAtIndex;
+	if (curSelectedIndices.size() == 0) {
+		pasteAtIndex = getRelationshipsCount();
+	} else {
+		pasteAtIndex = *curSelectedIndices.begin();
+	}
+
+	relationshipsListView->getUndoStack().execute(UndoableCommand([this, pasteAtIndex]() {
+		std::shared_ptr<LevelPackObjectUseRelationship> newRelationship = instantiateDefaultRelationship();
+
+		std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> relationshipVector;
+		relationshipVector.push_back(newRelationship);
+		insertRelationships(pasteAtIndex, relationshipVector);
+		relationshipsListView->repopulateRelationships(getRelationships());
+
+		onRelationshipsChangeHelper();
+	}, [this, pasteAtIndex]() {
+		std::set<size_t> pastedIndexSet;
+		pastedIndexSet.insert(pasteAtIndex);
+		deleteRelationships(pastedIndexSet);
+		relationshipsListView->repopulateRelationships(getRelationships());
+
+		onRelationshipsChangeHelper();
+	}));
 }
 
 void LevelPackObjectUseRelationshipEditor::manualRelationshipEditorPanelUndo() {

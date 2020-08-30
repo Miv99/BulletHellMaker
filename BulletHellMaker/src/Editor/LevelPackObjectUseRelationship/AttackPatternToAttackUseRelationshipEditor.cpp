@@ -58,8 +58,8 @@ std::string AttackPatternToAttackUseRelationshipListView::pasteInto(std::shared_
 				pastedIndices.insert(i);
 			}
 
-			// This call takes care of list view repopulation
 			parentRelationshipEditor.insertRelationships(pasteAtIndex, newRelationships);
+			// manualPaste() already takes care of list view repopulation
 
 			onListModify.emit(this);
 		}, [this, pasteAtIndex, numPasted]() {
@@ -68,8 +68,8 @@ std::string AttackPatternToAttackUseRelationshipListView::pasteInto(std::shared_
 				pastedIndices.insert(i);
 			}
 
-			// This call takes care of list view repopulation
 			parentRelationshipEditor.deleteRelationships(pastedIndices);
+			// manualPaste() already takes care of list view repopulation
 
 			onListModify.emit(this);
 		}));
@@ -324,6 +324,10 @@ void AttackPatternToAttackUseRelationshipEditor::onRelationshipsChange(std::vect
 
 void AttackPatternToAttackUseRelationshipEditor::instantiateRelationshipListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard) {
 	relationshipsListView = AttackPatternToAttackUseRelationshipListView::create(mainEditorWindow, clipboard, *this);
+}
+
+std::shared_ptr<LevelPackObjectUseRelationship> AttackPatternToAttackUseRelationshipEditor::instantiateDefaultRelationship() {
+	return std::make_shared<AttackPatternToAttackUseRelationship>(std::make_tuple("", 0, ExprSymbolTable()));
 }
 
 void AttackPatternToAttackUseRelationshipEditor::onPasteIntoConfirmation(bool confirmed, std::vector<std::tuple<std::string, int, ExprSymbolTable>> newRelationshipData) {

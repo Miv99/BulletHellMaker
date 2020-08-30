@@ -74,6 +74,7 @@ private:
 	void initializeRelationshipEditorPanelWidgetsData(std::shared_ptr<LevelPackObjectUseRelationship> relationship, int relationshipIndex) override;
 	void onRelationshipsChange(std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> newRelationships) override;
 	void instantiateRelationshipListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard) override;
+	std::shared_ptr<LevelPackObjectUseRelationship> instantiateDefaultRelationship() override;
 
 	void onPasteIntoConfirmation(bool confirmed, std::vector<std::tuple<std::string, int, ExprSymbolTable>> newRelationshipData);
 };

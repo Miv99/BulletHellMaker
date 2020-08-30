@@ -179,6 +179,12 @@ protected:
 	virtual void instantiateRelationshipListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard) = 0;
 
 	/*
+	Called to instantiate a new default relationship.
+	Doesn't have to be overriden if multiple relationships aren't allowed.
+	*/
+	virtual std::shared_ptr<LevelPackObjectUseRelationship> instantiateDefaultRelationship();
+
+	/*
 	Should be called by widgets inheriting this class whenever the relationship being edited by
 	relationshipEditorPanel is modified.
 	*/
@@ -221,6 +227,11 @@ private:
 	Opens the relationship editor panel associated with some index in the list of relationships.
 	*/
 	void openRelationshipEditorPanelIndex(int index);
+
+	/*
+	Adds a new relationship based on the currently selected index in the list view.
+	*/
+	void addNewRelationship();
 
 	/*
 	Does the undo operation on relationshipEditorPanel.
