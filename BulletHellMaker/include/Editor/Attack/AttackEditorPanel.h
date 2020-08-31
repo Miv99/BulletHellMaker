@@ -31,12 +31,12 @@ public:
 	levelPack - the LevelPack that attack belongs to
 	clipboard - the parent Clipboard
 	attack - the EditorAttack that is being edited
-	undoStackSize - the maximum number of undos stored
 	*/
-	AttackEditorPanel(MainEditorWindow& mainEditorWindow, std::shared_ptr<LevelPack> levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50);
+	AttackEditorPanel(MainEditorWindow& mainEditorWindow, std::shared_ptr<LevelPack> levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack);
 	~AttackEditorPanel();
-	static std::shared_ptr<AttackEditorPanel> create(MainEditorWindow& mainEditorWindow, std::shared_ptr<LevelPack> levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize = 50) {
-		return std::make_shared<AttackEditorPanel>(mainEditorWindow, levelPack, spriteLoader, clipboard, attack, undoStackSize);
+	static std::shared_ptr<AttackEditorPanel> create(MainEditorWindow& mainEditorWindow, std::shared_ptr<LevelPack> levelPack, SpriteLoader& spriteLoader,
+		Clipboard& clipboard, std::shared_ptr<EditorAttack> attack) {
+		return std::make_shared<AttackEditorPanel>(mainEditorWindow, levelPack, spriteLoader, clipboard, attack);
 	}
 
 	/*
@@ -63,7 +63,6 @@ private:
 	std::shared_ptr<LevelPack> levelPack;
 	SpriteLoader& spriteLoader;
 	Clipboard& clipboard;
-	UndoStack undoStack;
 
 	/*
 	Signal emitted when an EditorAttackPattern in the list of attack users is to be edited.

@@ -7,8 +7,10 @@
 const std::string AttackEditorPanel::PROPERTIES_TAB_NAME = "Atk. Properties";
 const std::string AttackEditorPanel::EMP_TAB_NAME_FORMAT = "MP %d";
 
-AttackEditorPanel::AttackEditorPanel(MainEditorWindow& mainEditorWindow, std::shared_ptr<LevelPack> levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize) : mainEditorWindow(mainEditorWindow), levelPack(levelPack),
-spriteLoader(spriteLoader), clipboard(clipboard), undoStack(UndoStack(undoStackSize)), attack(attack) {
+AttackEditorPanel::AttackEditorPanel(MainEditorWindow& mainEditorWindow, std::shared_ptr<LevelPack> levelPack, SpriteLoader& spriteLoader, 
+	Clipboard& clipboard, std::shared_ptr<EditorAttack> attack) 
+	: mainEditorWindow(mainEditorWindow), levelPack(levelPack),
+	spriteLoader(spriteLoader), clipboard(clipboard), attack(attack) {
 	tabs = TabsWithPanel::create(mainEditorWindow);
 	tabs->setPosition(0, 0);
 	tabs->setSize("100%", "100%");
@@ -133,13 +135,7 @@ bool AttackEditorPanel::handleEvent(sf::Event event) {
 	}
 	if (event.type == sf::Event::KeyPressed) {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
-			if (event.key.code == sf::Keyboard::Z) {
-				undoStack.undo();
-				return true;
-			} else if (event.key.code == sf::Keyboard::Y) {
-				undoStack.redo();
-				return true;
-			} else if (event.key.code == sf::Keyboard::S) {
+			if (event.key.code == sf::Keyboard::S) {
 				manualSave();
 				return true;
 			}
