@@ -307,15 +307,15 @@ a start time of t=0."));
 
 		if (dynamic_cast<DampenedStartTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<DampenedStartTFV*>(selectedSegment.get());
-			ptr->setDampeningFactor(std::round(value));
+			ptr->setDampeningFactor(std::lrint(value));
 			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
 		} else if (dynamic_cast<DampenedEndTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<DampenedEndTFV*>(selectedSegment.get());
-			ptr->setDampeningFactor(std::round(value));
+			ptr->setDampeningFactor(std::lrint(value));
 			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
 		} else if (dynamic_cast<DoubleDampenedTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<DoubleDampenedTFV*>(selectedSegment.get());
-			ptr->setDampeningFactor(std::round(value));
+			ptr->setDampeningFactor(std::lrint(value));
 			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
 		}
 	});

@@ -54,7 +54,7 @@ void compileExpressions(exprtk::symbol_table<float> symbolTable) {
 }
 */
 #define COMPILE_EXPRESSION_FOR_INT(Name) parser.compile(##Name, expr); \
-Name##ExprCompiledValue = (int)std::round(expr.value()); \
+Name##ExprCompiledValue = (int)std::lrint(expr.value()); \
 
 #define DEFINE_PARSER_AND_EXPR_FOR_LEGAL_CHECK exprtk::parser<float> parser; \
 parser.enable_unknown_symbol_resolver(); \

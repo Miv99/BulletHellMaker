@@ -308,9 +308,9 @@ bool MarkerPlacer::handleEvent(sf::Event event) {
 
 			sf::Vector2f newPos = parentWindow.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
 			if (snapToGrid) {
-				int interval = (int)std::round(gridLinesInterval->getValue());
-				int xGridLine = roundToNearestMultiple((int)(std::round(newPos.x)), interval);
-				int yGridLine = roundToNearestMultiple((int)(std::round(newPos.y)), interval);
+				int interval = std::lrint(gridLinesInterval->getValue());
+				int xGridLine = roundToNearestMultiple(std::lrint(newPos.x), interval);
+				int yGridLine = roundToNearestMultiple(std::lrint(newPos.y), interval);
 
 				sf::Vector2i intersectionPosScreenCoords = parentWindow.mapCoordsToPixel(sf::Vector2f(xGridLine, yGridLine));
 				float squaredScreenDistToNearestXGridLine = (intersectionPosScreenCoords.x - event.mouseMove.x) * (intersectionPosScreenCoords.x - event.mouseMove.x);
@@ -544,7 +544,7 @@ void MarkerPlacer::calculateGridLines() {
 	sf::Vector2f topLeftWorldCoords = viewFromViewController.getCenter() - viewFromViewController.getSize() / 2.0f;
 	sf::Vector2f bottomRightWorldCoords = viewFromViewController.getCenter() + viewFromViewController.getSize() / 2.0f;
 
-	int interval = (int)std::round(gridLinesInterval->getValue());
+	int interval = std::lrint(gridLinesInterval->getValue());
 	int xStart = roundToNearestMultiple((int)topLeftWorldCoords.x, interval);
 	int xEnd = roundToNearestMultiple((int)bottomRightWorldCoords.x, interval);
 	int yStart = roundToNearestMultiple((int)topLeftWorldCoords.y, interval);

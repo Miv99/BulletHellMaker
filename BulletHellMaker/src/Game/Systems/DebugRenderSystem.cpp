@@ -71,8 +71,8 @@ void DebugRenderSystem::update(float deltaTime) {
 void DebugRenderSystem::setResolution(SpriteLoader& spriteLoader, float resolutionMultiplier) {
 	spriteLoader.setGlobalSpriteScale(resolutionMultiplier);
 
-	int newPlayAreaWidth = (int)std::round(MAP_WIDTH * resolutionMultiplier);
-	int newPlayAreaHeight = (int)std::round(MAP_HEIGHT * resolutionMultiplier);
+	int newPlayAreaWidth = std::lrint(MAP_WIDTH * resolutionMultiplier);
+	int newPlayAreaHeight = std::lrint(MAP_HEIGHT * resolutionMultiplier);
 
 	sf::View view(sf::FloatRect(0, -newPlayAreaHeight, newPlayAreaWidth, newPlayAreaHeight));
 	backgroundTempLayerTexture.create(newPlayAreaWidth, newPlayAreaHeight);

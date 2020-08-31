@@ -7,10 +7,6 @@ Slider::Slider() {
 }
 
 void Slider::setValue(float value) {
-	// Round to nearest allowed value
-	//if (m_step != 0)
-	//	value = m_minimum + (std::round((value - m_minimum) / m_step) * m_step);
-
 	// When the value is below the minimum or above the maximum then adjust it
 	if (value < m_minimum)
 		value = m_minimum;

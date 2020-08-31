@@ -16,7 +16,7 @@ ClickableTimeline::ClickableTimeline() {
 		}
 
 		buttonScalarScalar = 1 / ((upper - lower) / maxTimeValue);
-		panel->setHorizontalScrollbarValue((unsigned int)std::round(lower * buttonScalar * buttonScalarScalar));
+		panel->setHorizontalScrollbarValue(std::lrint(lower * buttonScalar * buttonScalarScalar));
 
 		updateButtonsPositionsAndSizes();
 	});

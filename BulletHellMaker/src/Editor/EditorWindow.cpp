@@ -569,9 +569,9 @@ bool MainEditorWindow::handleEvent(sf::Event event) {
 		return true;
 	}
 
-	if (leftPanel->mouseOnWidget(lastMousePressPos)) {
+	if (leftPanel->isFocused()) {
 		return leftPanel->handleEvent(event);
-	} else if (mainPanel->mouseOnWidget(lastMousePressPos)) {
+	} else if (mainPanel->isFocused()) {
 		return mainPanel->handleEvent(event);
 	}
 	return false;

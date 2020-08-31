@@ -71,7 +71,7 @@ void NumericalEditBoxWithLimits::setValue(int value) {
 void NumericalEditBoxWithLimits::setValue(float value) {
 	lastKnownValue = value;
 	if (mustBeInt) {
-		setText(formatNum(std::round(value)));
+		setText(formatNum(std::lrint(value)));
 	} else {
 		setText(formatNum(value));
 	}
