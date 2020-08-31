@@ -744,7 +744,7 @@ void MainEditorWindow::openLeftPanelAttackPattern(int id) {
 
 	// Get the object
 	std::shared_ptr<EditorAttackPattern> openedObject;
-	if (unsavedAttacks.count(id) > 0) {
+	if (unsavedAttackPatterns.count(id) > 0) {
 		// There are unsaved changes for this object, so open the one with unsaved changes
 		openedObject = std::dynamic_pointer_cast<EditorAttackPattern>(unsavedAttackPatterns[id]);
 	} else {

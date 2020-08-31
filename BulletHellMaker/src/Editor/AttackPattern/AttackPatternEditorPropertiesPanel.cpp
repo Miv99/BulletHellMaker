@@ -108,9 +108,6 @@ bool AttackPatternEditorPropertiesPanel::handleEvent(sf::Event event) {
 				undoStack.redo();
 				return true;
 			}
-		} else if (event.key.code == sf::Keyboard::V) {
-			// TODO
-			return true;
 		}
 	}
 	return false;
