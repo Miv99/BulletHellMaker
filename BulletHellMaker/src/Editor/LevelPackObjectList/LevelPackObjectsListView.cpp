@@ -484,7 +484,7 @@ std::map<int, std::shared_ptr<LevelPackObject>>& AttackPatternsListView::getUnsa
 }
 
 void AttackPatternsListView::updateLevelPackObjectInLevelPack(std::shared_ptr<LevelPackObject> obj) {
-	levelPack->updateAttack(std::dynamic_pointer_cast<EditorAttackPattern>(obj));
+	levelPack->updateAttackPattern(std::dynamic_pointer_cast<EditorAttackPattern>(obj));
 }
 
 void AttackPatternsListView::deleteLevelPackObjectInLevelPack(int id) {
