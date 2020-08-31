@@ -1,10 +1,15 @@
 #include <Editor/CustomWidgets/EMPAAngleOffsetGroup.h>
 
+#include <Mutex.h>
 #include <GuiConfig.h>
 #include <Editor/EditorWindow.h>
 #include <Editor/Util/EditorUtils.h>
 
-EMPAAngleOffsetGroup::EMPAAngleOffsetGroup(EditorWindow& parentWindow) : parentWindow(parentWindow) {
+EMPAAngleOffsetGroup::EMPAAngleOffsetGroup(EditorWindow& parentWindow) 
+	: parentWindow(parentWindow) {
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	changeType = tgui::Button::create();
 	changeType->setText("Change type");
 	changeType->setToolTip(createToolTip("Changes the type of this angle evaluator."));

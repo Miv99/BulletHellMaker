@@ -1,5 +1,6 @@
 #include <Editor/EMPA/EMPABasedMovementEditorPanel.h>
 
+#include <Mutex.h>
 #include <GuiConfig.h>
 #include <Util/StringUtils.h>
 #include <Editor/Util/EditorUtils.h>
@@ -70,8 +71,11 @@ void EditorMovablePointActionsListView::manualPaste2() {
 	clipboard.paste2(this);
 }
 
-EditorMovablePointActionsListPanel::EditorMovablePointActionsListPanel(EditorWindow& parentWindow, EMPABasedMovementEditorPanel& empaBasedMovementEditorPanel, Clipboard& clipboard) : 
-	parentWindow(parentWindow), empaBasedMovementEditorPanel(empaBasedMovementEditorPanel), clipboard(clipboard) {
+EditorMovablePointActionsListPanel::EditorMovablePointActionsListPanel(EditorWindow& parentWindow, EMPABasedMovementEditorPanel& empaBasedMovementEditorPanel, Clipboard& clipboard) 
+	: parentWindow(parentWindow), empaBasedMovementEditorPanel(empaBasedMovementEditorPanel), clipboard(clipboard) {
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	empasListView = EditorMovablePointActionsListView::create(empaBasedMovementEditorPanel, clipboard);
 	add(empasListView);
 
@@ -171,7 +175,11 @@ std::shared_ptr<tgui::Button> EditorMovablePointActionsListPanel::getEMPADeleteB
 	return empaDeleteButton;
 }
 
-EMPABasedMovementEditorPanel::EMPABasedMovementEditorPanel(EditorWindow& parentWindow, Clipboard& clipboard) : parentWindow(parentWindow), clipboard(clipboard) {
+EMPABasedMovementEditorPanel::EMPABasedMovementEditorPanel(EditorWindow& parentWindow, Clipboard& clipboard) 
+	: parentWindow(parentWindow), clipboard(clipboard) {
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	tabs = TabsWithPanel::create(parentWindow);
 	tabs->setSize("100%", "100%");
 
@@ -604,6 +612,8 @@ ValueSymbolTable EMPABasedMovementEditorPanel::getLevelPackObjectSymbolTable() {
 }
 
 std::shared_ptr<tgui::Panel> EMPABasedMovementEditorPanel::createEMPAPanel(std::shared_ptr<EMPAction> empa, int index, std::shared_ptr<ListViewScrollablePanel> empiActions) {
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	std::shared_ptr<EditorMovablePointActionPanel> empaPanel = EditorMovablePointActionPanel::create(parentWindow, clipboard, std::dynamic_pointer_cast<EMPAction>(empa->clone()));
 	empaPanel->updateSymbolTables(symbolTables);
 	empaPanel->connect("EMPAModified", [this, index, empiActions, empaPanel](std::shared_ptr<EMPAction> value) {
@@ -720,6 +730,8 @@ void EMPABasedMovementEditorPanel::onPasteIntoConfirmation(bool confirmed, std::
 }
 
 EMPAsVisualizerPanel::EMPAsVisualizerPanel(EditorWindow& parentWindow, EMPABasedMovementEditorPanel& empaBasedMovementEditorPanel, Clipboard& clipboard) {
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	empasListPanel = EditorMovablePointActionsListPanel::create(parentWindow, empaBasedMovementEditorPanel, clipboard);
 	mainPanel = tgui::Panel::create();
 

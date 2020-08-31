@@ -1,5 +1,6 @@
 #include <Editor/Util/EditorUtils.h>
 
+#include <Mutex.h>
 #include <GuiConfig.h>
 
 void sendToForeground(sf::RenderWindow& window) {
@@ -11,6 +12,8 @@ void sendToForeground(sf::RenderWindow& window) {
 }
 
 std::shared_ptr<tgui::Label> createToolTip(std::string text) {
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	auto tooltip = tgui::Label::create();
 	tooltip->setMaximumTextWidth(300);
 	tooltip->setText(text);

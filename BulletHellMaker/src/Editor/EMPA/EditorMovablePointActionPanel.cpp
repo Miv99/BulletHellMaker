@@ -1,12 +1,17 @@
 #include <Editor/EMPA/EditorMovablePointActionPanel.h>
 
+#include <Mutex.h>
 #include <GuiConfig.h>
 #include <Util/StringUtils.h>
 #include <Editor/Util/EditorUtils.h>
 
 const std::string EditorMovablePointActionPanel::BEZIER_CONTROL_POINT_FORMAT = "%d (%.2f, %.2f)";
 
-EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& parentWindow, Clipboard& clipboard, std::shared_ptr<EMPAction> empa, int undoStackSize) : parentWindow(parentWindow), empa(empa), clipboard(clipboard), undoStack(UndoStack(undoStackSize)) {
+EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& parentWindow, Clipboard& clipboard, std::shared_ptr<EMPAction> empa, int undoStackSize) 
+	: parentWindow(parentWindow), empa(empa), clipboard(clipboard), undoStack(UndoStack(undoStackSize)) {
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	setVerticalScrollAmount(SCROLL_AMOUNT);
 	setVerticalScrollAmount(SCROLL_AMOUNT);
 

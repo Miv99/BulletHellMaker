@@ -6,6 +6,7 @@
 #include <set>
 
 #include <GuiConfig.h>
+#include <Mutex.h>
 #include <LevelPack/Enemy.h>
 #include <LevelPack/EnemyPhase.h>
 #include <LevelPack/Level.h>
@@ -15,9 +16,11 @@
 #include <Editor/LevelPackObjectList/LevelPackObjectsListPanel.h>
 #include <Game/EntityCreationQueue.h>
 
-EditorWindow::EditorWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval) :
-	tguiMutex(tguiMutex), windowTitle(windowTitle), windowWidth(width), windowHeight(height), scaleWidgetsOnResize(scaleWidgetsOnResize), letterboxingEnabled(letterboxingEnabled), renderInterval(renderInterval) {
-	std::lock_guard<std::recursive_mutex> lock(*tguiMutex);
+EditorWindow::EditorWindow(std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval) :
+	windowTitle(windowTitle), windowWidth(width), windowHeight(height), scaleWidgetsOnResize(scaleWidgetsOnResize), letterboxingEnabled(letterboxingEnabled), renderInterval(renderInterval) {
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	gui = std::make_shared<tgui::Gui>();
 	closeSignal = std::make_shared<entt::SigH<void()>>();
 
@@ -43,7 +46,7 @@ void EditorWindow::start() {
 	if (!window || !window->isOpen()) {
 		// SFML requires the RenderWindow to be created in the thread
 
-		std::lock_guard<std::recursive_mutex> lock(*tguiMutex);
+		std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 		window = std::make_shared<sf::RenderWindow>(sf::VideoMode(windowWidth, windowHeight), windowTitle, sf::Style::Default);
 		window->setKeyRepeatEnabled(false);
 		window->setActive(true);
@@ -112,7 +115,7 @@ void EditorWindow::startAndHide() {
 	if (!window || !window->isOpen()) {
 		// SFML requires the RenderWindow to be created in the thread
 
-		std::lock_guard<std::recursive_mutex> lock(*tguiMutex);
+		std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 		window = std::make_shared<sf::RenderWindow>(sf::VideoMode(windowWidth, windowHeight), windowTitle, sf::Style::Default);
 		window->setKeyRepeatEnabled(false);
 		window->setActive(true);
@@ -365,7 +368,7 @@ void EditorWindow::physicsUpdate(float deltaTime) {
 }
 
 void EditorWindow::render(float deltaTime) {
-	std::lock_guard<std::recursive_mutex> lock(*tguiMutex);
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 	gui->draw();
 
 	for (auto it = vertexArrays.begin(); it != vertexArrays.end(); it++) {
@@ -374,7 +377,7 @@ void EditorWindow::render(float deltaTime) {
 }
 
 bool EditorWindow::handleEvent(sf::Event event) {
-	std::lock_guard<std::recursive_mutex> lock(*tguiMutex);
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 
 	if (event.type == sf::Event::MouseMoved) {
 		mousePos.x = event.mouseMove.x;
@@ -409,9 +412,10 @@ void EditorWindow::closeConfirmationPanel() {
 	widgetsToBeEnabledAfterConfirmationPrompt.clear();
 }
 
-MainEditorWindow::MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval)
-	: EditorWindow(tguiMutex, windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval) {
-	std::lock_guard<std::recursive_mutex> lock(*tguiMutex);
+MainEditorWindow::MainEditorWindow(std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval)
+	: EditorWindow(windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval) {
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 
 	leftPanel = TabsWithPanel::create(*this);
 	leftPanel->setPosition(0, 0);
@@ -487,7 +491,7 @@ void MainEditorWindow::loadLevelPack(std::string levelPackName) {
 	// TODO: add more left panel panels to here
 
 	// TODO: window size from settings
-	previewWindow = std::make_shared<LevelPackObjectPreviewWindow>(tguiMutex, "Preview", 1024, 768, levelPackName);
+	previewWindow = std::make_shared<LevelPackObjectPreviewWindow>("Preview", 1024, 768, levelPackName);
 	std::thread previewWindowThread = std::thread(&LevelPackObjectPreviewWindow::start, &(*previewWindow));
 	previewWindowThread.detach();
 }
@@ -579,6 +583,8 @@ void MainEditorWindow::showClipboardResult(std::string notification) {
 
 void MainEditorWindow::populateLeftPanelLevelPackObjectListPanel(std::shared_ptr<LevelPackObjectsListView> listView, 
 		std::shared_ptr<LevelPackObjectsListPanel> listPanel, std::function<void()> createLevelPackObject, std::function<void(int)> openLevelPackObjectTab) {
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	// Add button
 	auto addButton = tgui::Button::create();
 	addButton->setText("+");
@@ -706,6 +712,7 @@ void MainEditorWindow::openLeftPanelAttack(int attackID) {
 		mainPanel->selectTab(format(MAIN_PANEL_ATTACK_TAB_NAME_FORMAT, attackID));
 	} else {
 		// Create the tab
+		std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 		std::shared_ptr<AttackEditorPanel> attackEditorPanel = AttackEditorPanel::create(*this, levelPack, *spriteLoader, clipboard, openedAttack);
 		attackEditorPanel->connect("AttackPatternBeginEdit", [this](int attackPatternID) {
 			openLeftPanelAttackPattern(attackPatternID);
@@ -752,6 +759,7 @@ void MainEditorWindow::openLeftPanelAttackPattern(int id) {
 		mainPanel->selectTab(format(MAIN_PANEL_ATTACK_PATTERN_TAB_NAME_FORMAT, id));
 	} else {
 		// Create the tab
+		std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 		std::shared_ptr<AttackPatternEditorPanel> attackPatternEditorPanel = AttackPatternEditorPanel::create(*this, levelPack, *spriteLoader, clipboard, openedObject);
 		attackPatternEditorPanel->connect("EnemyPhaseBeginEdit", [this](int enemyPhaseID) {
 			openLeftPanelEnemyPhase(enemyPhaseID);
@@ -860,6 +868,7 @@ void MainEditorWindow::reloadAttackTab(int attackID) {
 		}
 
 		// Create the tab
+		std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 		std::shared_ptr<AttackEditorPanel> attackEditorPanel = AttackEditorPanel::create(*this, levelPack, *spriteLoader, clipboard, openedAttack);
 		attackEditorPanel->connect("AttackPatternBeginEdit", [this](int attackPatternID) {
 			openLeftPanelAttackPattern(attackPatternID);
@@ -900,6 +909,7 @@ void MainEditorWindow::reloadAttackPatternTab(int id) {
 		}
 
 		// Create the tab
+		std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 		std::shared_ptr<AttackPatternEditorPanel> attackPatternEditorPanel = AttackPatternEditorPanel::create(*this, levelPack, *spriteLoader, clipboard, openedObject);
 		attackPatternEditorPanel->connect("EnemyPhaseBeginEdit", [this](int enemyPhaseID) {
 			openLeftPanelEnemyPhase(enemyPhaseID);
@@ -993,8 +1003,8 @@ void MainEditorWindow::createAttackPattern() {
 	}));
 }
 
-LevelPackObjectPreviewWindow::LevelPackObjectPreviewWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, std::string levelPackName, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval)
-	: EditorWindow(tguiMutex, windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval), levelPackName(levelPackName) {
+LevelPackObjectPreviewWindow::LevelPackObjectPreviewWindow(std::string windowTitle, int width, int height, std::string levelPackName, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval)
+	: EditorWindow(windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval), levelPackName(levelPackName) {
 }
 
 void LevelPackObjectPreviewWindow::previewNothing() {
@@ -1100,6 +1110,8 @@ bool LevelPackObjectPreviewWindow::handleEvent(sf::Event event) {
 }
 
 void LevelPackObjectPreviewWindow::onRenderWindowInitialization() {
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	previewPanel = LevelPackObjectPreviewPanel::create(*this, levelPackName);
 	previewPanel->setSize("100%", "100%");
 	gui->add(previewPanel);

@@ -1,5 +1,6 @@
 #include <Editor/AttackPattern/AttackPatternEditorPanel.h>
 
+#include <Mutex.h>
 #include <Editor/EditorWindow.h>
 #include <Editor/Util/EditorUtils.h>
 
@@ -9,6 +10,9 @@ const int AttackPatternEditorPanel::USED_BY_ID_MAP_PLAYER_RESERVED_ID = -1;
 
 AttackPatternEditorPanel::AttackPatternEditorPanel(MainEditorWindow& mainEditorWindow, std::shared_ptr<LevelPack> levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorAttackPattern> attackPattern, int undoStackSize) 
 	: mainEditorWindow(mainEditorWindow), levelPack(levelPack), spriteLoader(spriteLoader), clipboard(clipboard), undoStack(UndoStack(undoStackSize)), attackPattern(attackPattern) {
+	
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+	
 	// ValueSymbolTable editor
 	symbolTableEditorWindow = tgui::ChildWindow::create();
 	symbolTableEditor = ValueSymbolTableEditor::create(false, true);

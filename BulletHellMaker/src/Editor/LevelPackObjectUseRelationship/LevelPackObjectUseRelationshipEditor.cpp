@@ -1,9 +1,13 @@
 #include <Editor/LevelPackObjectUseRelationship/LevelPackObjectUseRelationshipEditor.h>
 
+#include <Mutex.h>
 
 LevelPackObjectUseRelationshipEditor::LevelPackObjectUseRelationshipEditor(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, 
 	UndoStack& undoStack, std::string copyPasteableID, bool enableMultipleRelationships)
-		: CopyPasteable(copyPasteableID), mainEditorWindow(mainEditorWindow), clipboard(clipboard), undoStack(undoStack) {
+	: CopyPasteable(copyPasteableID), mainEditorWindow(mainEditorWindow), clipboard(clipboard), undoStack(undoStack) {
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	relationshipEditorPanel = tgui::Panel::create();
 	relationshipEditorPanel->setVisible(false);
 	add(relationshipEditorPanel);
@@ -97,6 +101,8 @@ void LevelPackObjectUseRelationshipEditor::onRelationshipEditorPanelRelationship
 }
 
 void LevelPackObjectUseRelationshipEditor::setupRelationshipListView() {
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	relationshipsListViewPanel = tgui::Panel::create();
 	relationshipsListViewPanel->setSize("30%", "100%");
 	add(relationshipsListViewPanel);

@@ -1,11 +1,14 @@
 #include <Editor/CustomWidgets/SymbolTableEditor.h>
 
+#include <Mutex.h>
 #include <GuiConfig.h>
 #include <Util/StringUtils.h>
 #include <Editor/Util/EditorUtils.h>
 #include <Editor/CustomWidgets/EditBox.h>
 
 ValueSymbolTableEditor::ValueSymbolTableEditor(bool isTableForTopLevelObject, bool isTableForObjectInTopOfLayer, int undoStackSize) : undoStack(UndoStack(undoStackSize)) {
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	canShowParentSymbols = !isTableForTopLevelObject && !isTableForObjectInTopOfLayer;
 	bool canRedelegate = !isTableForTopLevelObject && isTableForObjectInTopOfLayer;
 

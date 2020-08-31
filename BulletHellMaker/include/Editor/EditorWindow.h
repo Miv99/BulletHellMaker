@@ -44,11 +44,10 @@ If the underlying RenderWindow is closed, one only needs to call start() or star
 class EditorWindow : public std::enable_shared_from_this<EditorWindow> {
 public:
 	/*
-	tguiMutex - mutex for when creating TGUI objects
 	renderInterval - time between each render call. If the gui has a ListBox, renderInterval should be some relatively large number (~0.1) because tgui gets
 		messed up with multithreading.
 	*/
-	EditorWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL);
+	EditorWindow(std::string windowTitle, int width, int height, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL);
 
 	/*
 	Starts the main loop.
@@ -136,11 +135,6 @@ protected:
 	std::shared_ptr<sf::RenderWindow> window;
 	std::shared_ptr<tgui::Gui> gui;
 
-	// Mutex used to make sure multiple tgui widgets aren't being instantiated at the same time in different threads.
-	// tgui::Gui draw() calls also can't be done at the same time.
-	// Apparently tgui gets super messed up with multithreading.
-	std::shared_ptr<std::recursive_mutex> tguiMutex;
-
 	// The last known position of the mouse
 	sf::Vector2f mousePos = sf::Vector2f(0, 0);
 	// The position of the mouse at the last mouse press
@@ -206,10 +200,10 @@ private:
 
 class MainEditorWindow : public EditorWindow {
 public:
-	MainEditorWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL);
+	MainEditorWindow(std::string windowTitle, int width, int height, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL);
 	~MainEditorWindow();
-	inline static std::shared_ptr<MainEditorWindow> create(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL) {
-		return std::make_shared<MainEditorWindow>(tguiMutex, windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval);
+	static std::shared_ptr<MainEditorWindow> create(std::string windowTitle, int width, int height, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL) {
+		return std::make_shared<MainEditorWindow>(windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval);
 	}
 
 	void loadLevelPack(std::string levelPackName);
@@ -373,7 +367,8 @@ limiting resource-intensive actions when the window is closed.
 */
 class LevelPackObjectPreviewWindow : public EditorWindow {
 public:
-	LevelPackObjectPreviewWindow(std::shared_ptr<std::recursive_mutex> tguiMutex, std::string windowTitle, int width, int height, std::string levelPackName, bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL);
+	LevelPackObjectPreviewWindow(std::string windowTitle, int width, int height, std::string levelPackName, bool scaleWidgetsOnResize = false, 
+		bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL);
 
 	void previewNothing();
 	void previewAttack(const std::shared_ptr<EditorAttack> attack);

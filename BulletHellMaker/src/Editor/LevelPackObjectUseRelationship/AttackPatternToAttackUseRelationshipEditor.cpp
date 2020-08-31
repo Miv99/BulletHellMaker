@@ -1,5 +1,6 @@
 #include <Editor/LevelPackObjectUseRelationship/AttackPatternToAttackUseRelationshipEditor.h>
 
+#include <Mutex.h>
 #include <GuiConfig.h>
 #include <Editor/Util/EditorUtils.h>
 
@@ -142,6 +143,9 @@ void AttackPatternToAttackUseRelationshipListView::onPasteIntoConfirmation(bool 
 AttackPatternToAttackUseRelationshipEditor::AttackPatternToAttackUseRelationshipEditor(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, UndoStack& undoStack,
 	std::vector<std::tuple<std::string, int, ExprSymbolTable>> initialRelationshipsData)
 	: LevelPackObjectUseRelationshipEditor(mainEditorWindow, clipboard, undoStack, ATTACK_PATTERN_TO_ATTACK_USE_RELATIONSHIP_COPY_PASTE_ID, true) {
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	timeLabel = tgui::Label::create();
 	timeLabel->setTextSize(TEXT_SIZE);
 	timeLabel->setText("Execution begin time");
@@ -324,6 +328,8 @@ void AttackPatternToAttackUseRelationshipEditor::onRelationshipsChange(std::vect
 }
 
 void AttackPatternToAttackUseRelationshipEditor::instantiateRelationshipListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard) {
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	relationshipsListView = AttackPatternToAttackUseRelationshipListView::create(mainEditorWindow, clipboard, undoStack, *this);
 }
 

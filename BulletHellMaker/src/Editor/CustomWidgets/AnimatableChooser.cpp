@@ -1,9 +1,14 @@
 #include <Editor/CustomWidgets/AnimatableChooser.h>
 
+#include <Mutex.h>
 #include <GuiConfig.h>
 #include <Editor/Util/EditorUtils.h>
 
-AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprite) : spriteLoader(spriteLoader), forceSprite(forceSprite) {
+AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprite) 
+	: spriteLoader(spriteLoader), forceSprite(forceSprite) {
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	animatablePicture = AnimatablePicture::create();
 	animatable = tgui::ComboBox::create();
 	rotationType = tgui::ComboBox::create();

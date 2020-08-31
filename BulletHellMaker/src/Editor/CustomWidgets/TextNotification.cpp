@@ -1,8 +1,13 @@
 #include <Editor/CustomWidgets/TextNotification.h>
 
+#include <Mutex.h>
 #include <GuiConfig.h>
 
-TextNotification::TextNotification(float notificationLifespan) : notificationLifespan(notificationLifespan) {
+TextNotification::TextNotification(float notificationLifespan)
+	: notificationLifespan(notificationLifespan) {
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	label = tgui::Label::create();
 	label->setTextSize(TEXT_SIZE);
 	label->setPosition(GUI_PADDING_X, GUI_LABEL_PADDING_Y);

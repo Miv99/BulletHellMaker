@@ -1,10 +1,14 @@
 #include <Editor/AttackPattern/AttackPatternEditorPropertiesPanel.h>
 
+#include <Mutex.h>
 #include <GuiConfig.h>
 #include <Editor/EditorWindow.h>
 
 AttackPatternEditorPropertiesPanel::AttackPatternEditorPropertiesPanel(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, std::shared_ptr<EditorAttackPattern> attackPattern, int undoStackSize)
 	: CopyPasteable("EditorAttackPattern"), mainEditorWindow(mainEditorWindow), clipboard(clipboard), attackPattern(attackPattern), undoStack(UndoStack(undoStackSize)) {
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	std::shared_ptr<tgui::Label> id = tgui::Label::create();
 	id->setTextSize(TEXT_SIZE);
 	id->setText("Attack pattern ID " + std::to_string(attackPattern->getID()));

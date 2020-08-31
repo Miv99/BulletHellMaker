@@ -1,9 +1,12 @@
 #include <Editor/CustomWidgets/SoundSettingsGroup.h>
 
-#include <Editor/Util/EditorUtils.h>
+#include <Mutex.h>
 #include <GuiConfig.h>
+#include <Editor/Util/EditorUtils.h>
 
 SoundSettingsGroup::SoundSettingsGroup(std::string pathToSoundsFolder) {
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	enableAudio = tgui::CheckBox::create();
 	fileName = tgui::ComboBox::create();
 	volume = SliderWithEditBox::create();

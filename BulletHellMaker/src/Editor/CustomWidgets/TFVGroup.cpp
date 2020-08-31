@@ -1,14 +1,19 @@
 #include <Editor/CustomWidgets/TFVGroup.h>
 
+#include <Mutex.h>
+#include <GuiConfig.h>
+#include <matplotlibcpp.h>
 #include <Util/StringUtils.h>
 #include <Editor/EditorWindow.h>
 #include <Editor/Util/EditorUtils.h>
-#include <matplotlibcpp.h>
-#include <GuiConfig.h>
 
 const float TFVGroup::TFV_TIME_RESOLUTION = MAX_PHYSICS_DELTA_TIME;
 
-TFVGroup::TFVGroup(EditorWindow& parentWindow, Clipboard& clipboard) : CopyPasteable("PiecewiseTFVSegment"), parentWindow(parentWindow), clipboard(clipboard) {
+TFVGroup::TFVGroup(EditorWindow& parentWindow, Clipboard& clipboard) 
+	: CopyPasteable("PiecewiseTFVSegment"), parentWindow(parentWindow), clipboard(clipboard) {
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	showGraph = tgui::Button::create();
 	showGraph->setText("Show graph");
 	showGraph->setToolTip(createToolTip("Plots the graph of this value with the x-axis representing time in seconds and the y-axis representing the result of this value's evaluation. \

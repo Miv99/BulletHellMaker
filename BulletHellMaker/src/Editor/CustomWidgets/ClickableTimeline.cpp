@@ -1,8 +1,11 @@
 #include <Editor/CustomWidgets/ClickableTimeline.h>
 
+#include <Mutex.h>
 #include <GuiConfig.h>
 
 ClickableTimeline::ClickableTimeline() {
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	cameraController = tgui::RangeSlider::create();
 	cameraController->setPosition(6, 6);
 	cameraController->connect("RangeChanged", [&](float lower, float upper) {

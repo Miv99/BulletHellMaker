@@ -1,9 +1,13 @@
 #include <Editor/Attack/EditorMovablePointTreePanel.h>
 
+#include <Mutex.h>
 #include <GuiConfig.h>
 
 EditorMovablePointTreePanel::EditorMovablePointTreePanel(AttackEditorPanel& parentAttackEditorPanel, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize) : CopyPasteable("EditorMovablePoint"), parentAttackEditorPanel(parentAttackEditorPanel), clipboard(clipboard),
 attack(attack), undoStack(UndoStack(undoStackSize)) {
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	empsTreeView = tgui::TreeView::create();
 	std::shared_ptr<tgui::Label> empsTreeViewLabel = tgui::Label::create();
 

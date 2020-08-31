@@ -1,6 +1,10 @@
 #include <Editor/CustomWidgets/ListViewScrollablePanel.h>
 
+#include <Mutex.h>
+
 ListViewScrollablePanel::ListViewScrollablePanel() {
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	listView = tgui::ListView::create();
 	add(listView);
 	listView->setSize("100%", "100%");

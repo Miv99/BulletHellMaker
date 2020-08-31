@@ -1,11 +1,16 @@
 #include <Editor/CustomWidgets/BezierControlPointsPlacer.h>
 
-#include <Editor/Util/EditorUtils.h>
+#include <Mutex.h>
 #include <GuiConfig.h>
+#include <Editor/Util/EditorUtils.h>
 
 const float BezierControlPointsPlacer::EVALUATOR_CIRCLE_RADIUS = 3.0f;
 
-BezierControlPointsPlacer::BezierControlPointsPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard, sf::Vector2u resolution, int undoStackSize) : MarkerPlacer(parentWindow, clipboard, resolution, undoStackSize) {
+BezierControlPointsPlacer::BezierControlPointsPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard, sf::Vector2u resolution, int undoStackSize) 
+	: MarkerPlacer(parentWindow, clipboard, resolution, undoStackSize) {
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	evaluatorCircle = sf::CircleShape(EVALUATOR_CIRCLE_RADIUS);
 	evaluatorCircle.setFillColor(sf::Color::Transparent);
 	evaluatorCircle.setOutlineColor(sf::Color::Magenta);

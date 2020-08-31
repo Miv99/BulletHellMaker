@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 
+#include <Mutex.h>
 #include <GuiConfig.h>
 #include <Constants.h>
 #include <Util/TextFileParser.h>
@@ -133,6 +134,8 @@ void GameInstance::calculateDialogueBoxWidgetsSizes() {
 }
 
 GameInstance::GameInstance(std::string levelPackName) {
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	audioPlayer = std::make_unique<AudioPlayer>();
 	levelPack = std::make_unique<LevelPack>(*audioPlayer, levelPackName);
 	playerInfo = levelPack->getGameplayPlayer();
@@ -413,6 +416,7 @@ void GameInstance::render(float deltaTime) {
 		}
 	}
 
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 	gui->draw();
 }
 

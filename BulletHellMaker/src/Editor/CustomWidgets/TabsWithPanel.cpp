@@ -1,9 +1,14 @@
 #include <Editor/CustomWidgets/TabsWithPanel.h>
 
-#include <Editor/EditorWindow.h>
+#include <Mutex.h>
 #include <GuiConfig.h>
+#include <Editor/EditorWindow.h>
 
-TabsWithPanel::TabsWithPanel(EditorWindow& parentWindow) : parentWindow(parentWindow) {
+TabsWithPanel::TabsWithPanel(EditorWindow& parentWindow) 
+	: parentWindow(parentWindow) {
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	tabs = tgui::Tabs::create();
 
 	tabsContainer = tgui::ScrollablePanel::create();

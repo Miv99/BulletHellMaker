@@ -47,8 +47,7 @@ int main() {
 
 
 	
-	auto mutex = std::make_shared<std::recursive_mutex>();
-	auto p = MainEditorWindow::create(mutex, "title", 1024, 768);
+	auto p = MainEditorWindow::create("title", 1024, 768);
 	p->loadLevelPack("test pack");
 	p->start();
 

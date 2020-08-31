@@ -1,5 +1,6 @@
 #include <Editor/CustomWidgets/EMPAListVisualizer.h>
 
+#include <Mutex.h>
 #include <GuiConfig.h>
 #include <Editor/Util/EditorUtils.h>
 
@@ -7,6 +8,9 @@ const float EMPAListVisualizer::EVALUATOR_CIRCLE_RADIUS = 3.0f;
 
 EMPAListVisualizer::EMPAListVisualizer(sf::RenderWindow& parentWindow, Clipboard& clipboard, sf::Vector2u resolution, int undoStackSize)
 	: MarkerPlacer(parentWindow, clipboard, resolution, undoStackSize) {
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	leftPanel->setVisible(false);
 	leftPanel->setSize(0, 0);
 

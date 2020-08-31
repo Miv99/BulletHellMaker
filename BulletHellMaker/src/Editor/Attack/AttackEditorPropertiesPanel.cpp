@@ -1,10 +1,15 @@
 #include <Editor/Attack/AttackEditorPropertiesPanel.h>
 
+#include <Mutex.h>
 #include <GuiConfig.h>
 #include <Editor/EditorWindow.h>
 
-AttackEditorPropertiesPanel::AttackEditorPropertiesPanel(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize) : CopyPasteable("EditorAttack"), mainEditorWindow(mainEditorWindow), clipboard(clipboard),
-attack(attack), undoStack(UndoStack(undoStackSize)) {
+AttackEditorPropertiesPanel::AttackEditorPropertiesPanel(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize) 
+	: CopyPasteable("EditorAttack"), mainEditorWindow(mainEditorWindow), clipboard(clipboard),
+	attack(attack), undoStack(UndoStack(undoStackSize)) {
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	std::shared_ptr<tgui::Label> id = tgui::Label::create();
 	std::shared_ptr<tgui::Label> nameLabel = tgui::Label::create();
 	name = EditBox::create();

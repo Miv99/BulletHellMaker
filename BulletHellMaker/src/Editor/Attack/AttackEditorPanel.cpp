@@ -1,5 +1,6 @@
 #include <Editor/Attack/AttackEditorPanel.h>
 
+#include <Mutex.h>
 #include <Editor/EditorWindow.h>
 #include <Editor/Util/EditorUtils.h>
 #include <Editor/Attack/EditorMovablePointTreePanel.h>
@@ -11,6 +12,9 @@ AttackEditorPanel::AttackEditorPanel(MainEditorWindow& mainEditorWindow, std::sh
 	Clipboard& clipboard, std::shared_ptr<EditorAttack> attack) 
 	: mainEditorWindow(mainEditorWindow), levelPack(levelPack),
 	spriteLoader(spriteLoader), clipboard(clipboard), attack(attack) {
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	tabs = TabsWithPanel::create(mainEditorWindow);
 	tabs->setPosition(0, 0);
 	tabs->setSize("100%", "100%");

@@ -1,10 +1,12 @@
 #include <Editor/Previewer/LevelPackObjectPreviewPanel.h>
 
+#include <Mutex.h>
 #include <LevelPack/LevelPackObject.h>
 #include <Editor/EditorWindow.h>
 
 LevelPackObjectPreviewPanel::LevelPackObjectPreviewPanel(EditorWindow& parentWindow, std::string levelPackName)
 	: SimpleEngineRenderer(*parentWindow.getWindow(), true, true), gui(parentWindow.getGui()) {
+
 	loadLevelPack(levelPackName);
 	levelPack->getOnChange()->sink().connect<LevelPackObjectPreviewPanel, &LevelPackObjectPreviewPanel::onLevelPackChange>(this);
 
@@ -115,6 +117,8 @@ LevelPackObjectPreviewPanel::LevelPackObjectPreviewPanel(EditorWindow& parentWin
 		enemyPhaseForAttackPattern->compileExpressions({});
 		levelPack->updateEnemyPhase(enemyPhaseForAttackPattern);
 	}
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 
 	symbolTableEditorWindow = tgui::ChildWindow::create();
 	symbolTableEditor = ValueSymbolTableEditor::create(true, true);

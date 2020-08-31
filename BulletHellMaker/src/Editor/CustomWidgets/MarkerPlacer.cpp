@@ -1,5 +1,6 @@
 #include <Editor/CustomWidgets/MarkerPlacer.h>
 
+#include <Mutex.h>
 #include <GuiConfig.h>
 
 // Index, x, and y in that order
@@ -10,8 +11,11 @@ const sf::Color MarkerPlacer::MAP_LINE_COLOR = sf::Color(143, 0, 0);
 const float MarkerPlacer::MAX_GRID_SNAP_DISTANCE = 15.0f;
 const float MarkerPlacer::MAX_GRID_SNAP_DISTANCE_SQUARED = MAX_GRID_SNAP_DISTANCE * MAX_GRID_SNAP_DISTANCE;
 
-MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard, sf::Vector2u resolution, int undoStackSize) :
-	CopyPasteable("Marker"), parentWindow(parentWindow), clipboard(clipboard), resolution(resolution), undoStack(UndoStack(undoStackSize)) {
+MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard, sf::Vector2u resolution, int undoStackSize) 
+	: CopyPasteable("Marker"), parentWindow(parentWindow), clipboard(clipboard), resolution(resolution), undoStack(UndoStack(undoStackSize)) {
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 	gridLines.setPrimitiveType(sf::PrimitiveType::Lines);
 
 	currentCursor = sf::CircleShape(-1);
