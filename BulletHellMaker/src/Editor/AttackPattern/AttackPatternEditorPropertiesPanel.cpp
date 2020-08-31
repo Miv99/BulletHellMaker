@@ -25,7 +25,7 @@ AttackPatternEditorPropertiesPanel::AttackPatternEditorPropertiesPanel(MainEdito
 	relationshipEditorLabel->setText("Attacks");
 	add(relationshipEditorLabel);
 
-	relationshipEditor = AttackPatternToAttackUseRelationshipEditor::create(mainEditorWindow, clipboard, attackPattern->getAttacks());
+	relationshipEditor = AttackPatternToAttackUseRelationshipEditor::create(mainEditorWindow, clipboard, undoStack, attackPattern->getAttacks());
 	relationshipEditor->connect("RelationshipsModified", [this](std::vector<std::tuple<std::string, int, ExprSymbolTable>> newRelationships) {
 		this->attackPattern->setAttacks(newRelationships);
 		onAttackPatternModify.emit(this);
@@ -95,6 +95,19 @@ bool AttackPatternEditorPropertiesPanel::handleEvent(sf::Event event) {
 	//TODO
 	if (relationshipEditor->isFocused() && relationshipEditor->handleEvent(event)) {
 		return true;
+	} else if (event.type == sf::Event::KeyPressed) {
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
+			if (event.key.code == sf::Keyboard::Z) {
+				undoStack.undo();
+				return true;
+			} else if (event.key.code == sf::Keyboard::Y) {
+				undoStack.redo();
+				return true;
+			}
+		} else if (event.key.code == sf::Keyboard::V) {
+			// TODO
+			return true;
+		}
 	}
 	return false;
 }

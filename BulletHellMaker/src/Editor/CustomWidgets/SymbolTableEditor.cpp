@@ -347,7 +347,8 @@ void ValueSymbolTablesChangePropagator::onChange(ValueSymbolTable symbolTable) {
 	propagateChangesToChildren();
 }
 
-ExprSymbolTableEditor::ExprSymbolTableEditor() {
+ExprSymbolTableEditor::ExprSymbolTableEditor(UndoStack& undoStack)
+	: undoStack(undoStack) {
 	std::shared_ptr<tgui::Button> addSymbol = tgui::Button::create();
 	std::shared_ptr<tgui::Button> deleteSymbol = tgui::Button::create();
 	std::shared_ptr<EditBox> symbolNameChooser = EditBox::create();
@@ -417,7 +418,7 @@ by its children objects."));
 		if (oldValue == value) {
 			return;
 		}
-		undoStack->execute(UndoableCommand(
+		this->undoStack.execute(UndoableCommand(
 			[this, symbol, id, value]() {
 			ExprSymbolDefinition definition = exprSymbolTable
 				.getSymbolDefinition(getSymbolFromSymbolsListItemID(symbolsList->getListBox()->getSelectedItemId()));
@@ -479,19 +480,6 @@ by its children objects."));
 	valueEditBox->setPosition(tgui::bindLeft(valueEditBoxLabel), tgui::bindBottom(valueEditBoxLabel) + GUI_LABEL_PADDING_Y);
 }
 
-bool ExprSymbolTableEditor::handleEvent(sf::Event event) {
-	if (event.type == sf::Event::KeyPressed) {
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
-			if (event.key.code == sf::Keyboard::Z) {
-				return undoStack->undo();
-			} else if (event.key.code == sf::Keyboard::Y) {
-				return undoStack->redo();
-			}
-		}
-	}
-	return false;
-}
-
 tgui::Signal& ExprSymbolTableEditor::getSignal(std::string signalName) {
 	if (signalName == tgui::toLower(onValueChange.getName())) {
 		return onValueChange;
@@ -533,10 +521,6 @@ void ExprSymbolTableEditor::setExprSymbolTable(ExprSymbolTable symbolTable) {
 	ignoreSignals = false;
 }
 
-void ExprSymbolTableEditor::setUndoStack(UndoStack* undoStack) {
-	this->undoStack = undoStack;
-}
-
 void ExprSymbolTableEditor::repopulateListView() {
 	auto listBox = symbolsList->getListBox();
 	listBox->removeAllItems();
@@ -565,7 +549,7 @@ bool ExprSymbolTableEditor::manualAdd(std::string symbol) {
 		return false;
 	}
 	std::string id = "-1|" + symbol;
-	undoStack->execute(UndoableCommand(
+	undoStack.execute(UndoableCommand(
 		[this, symbol, id]() {
 		exprSymbolTable.setSymbol(symbol, "0");
 
@@ -594,7 +578,7 @@ void ExprSymbolTableEditor::manualDelete() {
 	if (id != "") {
 		std::string symbol = getSymbolFromSymbolsListItemID(symbolsList->getListBox()->getSelectedItemId());
 		ExprSymbolDefinition oldValue = exprSymbolTable.getSymbolDefinition(symbol);
-		undoStack->execute(UndoableCommand(
+		undoStack.execute(UndoableCommand(
 			[this, id, symbol]() {
 			exprSymbolTable.removeSymbol(symbol);
 			if (getSymbolFromSymbolsListItemID(symbolsList->getListBox()->getSelectedItemId()) == symbol) {

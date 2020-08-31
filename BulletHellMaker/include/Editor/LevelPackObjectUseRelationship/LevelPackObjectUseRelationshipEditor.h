@@ -28,7 +28,7 @@ public:
 	mainEditorWindow - the parent MainEditorWindow using this widget
 	clipboard - the parent Clipboard
 	*/
-	LevelPackObjectUseRelationshipListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, 
+	LevelPackObjectUseRelationshipListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, UndoStack& undoStack,
 		LevelPackObjectUseRelationshipEditor& parentRelationshipEditor, std::string copyPasteableID, int undoStackSize = 50);
 	virtual ~LevelPackObjectUseRelationshipListView();
 
@@ -63,12 +63,10 @@ public:
 
 	tgui::Signal& getSignal(std::string signalName) override;
 
-	UndoStack& getUndoStack();
-
 protected:
 	MainEditorWindow& mainEditorWindow;
 	LevelPackObjectUseRelationshipEditor& parentRelationshipEditor;
-	UndoStack undoStack;
+	UndoStack& undoStack;
 	Clipboard& clipboard;
 
 	tgui::Signal onListModify = { "ListModified" };
@@ -91,8 +89,8 @@ public:
 	/*
 	enableMultipleRelationships - whether to allow the user to edit multiple relationships using relationshipsListView
 	*/
-	LevelPackObjectUseRelationshipEditor(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, std::string copyPasteableID, 
-		bool enableMultipleRelationships, int undoStackSize = 50);
+	LevelPackObjectUseRelationshipEditor(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, UndoStack& undoStack,
+		std::string copyPasteableID, bool enableMultipleRelationships);
 	virtual ~LevelPackObjectUseRelationshipEditor();
 
 	virtual bool handleEvent(sf::Event event) override;
@@ -146,11 +144,15 @@ public:
 protected:
 	MainEditorWindow& mainEditorWindow;
 	Clipboard& clipboard;
+	UndoStack& undoStack;
 
 	// These two widgets are instantiated only if enableMultipleRelationships was true in this widget's constructor.
 	// Panel to hold relationshipsListView
 	std::shared_ptr<tgui::Panel> relationshipsListViewPanel;
 	std::shared_ptr<LevelPackObjectUseRelationshipListView> relationshipsListView;
+
+	// The index in relationships that is currently being edited by relationshipEditorPanel
+	int relationshipEditorPanelCurrentRelationshipIndex = -1;
 
 	// Main panel containing widgets necessary to edit a single relationship
 	std::shared_ptr<tgui::Panel> relationshipEditorPanel;
@@ -199,9 +201,9 @@ protected:
 	void setupRelationshipListView();
 
 	/*
-	Returns the UndoStack of the relationship that is currently being edited by relationshipEditorPanel.
+	Opens the relationship editor panel associated with some index in the list of relationships.
 	*/
-	UndoStack* getCurrentlySelectedRelationshipUndoStack();
+	void openRelationshipEditorPanelIndex(int index);
 
 	/*
 	Returns the relationship that is currently being edited by relationshipEditorPanel.
@@ -214,19 +216,7 @@ protected:
 	void onRelationshipsChangeHelper();
 
 private:
-	// Undo stack size for each relationship edited by relationship editor panel
-	int undoStackSize;
-
-	// Separate UndoStack for each relationship
-	std::vector<std::pair<std::shared_ptr<LevelPackObjectUseRelationship>, UndoStack>> relationships;
-
-	// The index in relationships that is currently being edited by relationshipEditorPanel
-	int relationshipEditorPanelCurrentRelationshipIndex = -1;
-
-	/*
-	Opens the relationship editor panel associated with some index in the list of relationships.
-	*/
-	void openRelationshipEditorPanelIndex(int index);
+	std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> relationships;
 
 	/*
 	Adds a new relationship based on the currently selected index in the list view.
@@ -234,11 +224,12 @@ private:
 	void addNewRelationship();
 
 	/*
-	Does the undo operation on relationshipEditorPanel.
+	Helper function to safely insert to relationships.
 	*/
-	void manualRelationshipEditorPanelUndo();
+	void relationshipsInsert(int index, std::shared_ptr<LevelPackObjectUseRelationship> item);
+
 	/*
-	Does the redo operation on relationshipEditorPanel.
+	Helper function to safely erase from relationships.
 	*/
-	void manualRelationshipEditorPanelRedo();
+	void relationshipsErase(int index);
 };

@@ -2,8 +2,8 @@
 
 
 LevelPackObjectUseRelationshipEditor::LevelPackObjectUseRelationshipEditor(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, 
-	std::string copyPasteableID, bool enableMultipleRelationships, int undoStackSize)
-		: CopyPasteable(copyPasteableID), mainEditorWindow(mainEditorWindow), clipboard(clipboard), undoStackSize(undoStackSize) {
+	UndoStack& undoStack, std::string copyPasteableID, bool enableMultipleRelationships)
+		: CopyPasteable(copyPasteableID), mainEditorWindow(mainEditorWindow), clipboard(clipboard), undoStack(undoStack) {
 	relationshipEditorPanel = tgui::Panel::create();
 	relationshipEditorPanel->setVisible(false);
 	add(relationshipEditorPanel);
@@ -24,13 +24,7 @@ bool LevelPackObjectUseRelationshipEditor::handleEvent(sf::Event event) {
 		return true;
 	} else if (event.type == sf::Event::KeyPressed) {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
-			if (event.key.code == sf::Keyboard::Z) {
-				manualRelationshipEditorPanelUndo();
-				return true;
-			} else if (event.key.code == sf::Keyboard::Y) {
-				manualRelationshipEditorPanelRedo();
-				return true;
-			} else if (event.key.code == sf::Keyboard::V) {
+			if (event.key.code == sf::Keyboard::V) {
 				clipboard.paste2(this);
 				return true;
 			}
@@ -56,30 +50,24 @@ void LevelPackObjectUseRelationshipEditor::deleteSelectedListItems() {
 			return;
 		}
 
-		std::vector<std::pair<std::shared_ptr<LevelPackObjectUseRelationship>, UndoStack>> oldRelationships;
+		std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> oldRelationships;
 		for (int index : curSelectedIndices) {
 			oldRelationships.push_back(relationships[index]);
 		}
 
-		relationshipsListView->getUndoStack().execute(UndoableCommand([this, curSelectedIndices]() {
+		undoStack.execute(UndoableCommand([this, curSelectedIndices]() {
 			for (auto it = curSelectedIndices.rbegin(); it != curSelectedIndices.rend(); it++) {
 				int index = *it;
 				// curSelectedIndices is a set so we can remove elements using erase() if done in decreasing index order
-				relationships.erase(relationships.begin() + index);
+				relationshipsErase(index);
 			}
 
 			relationshipsListView->repopulateRelationships(getRelationships());
-
-			if (curSelectedIndices.find(relationshipEditorPanelCurrentRelationshipIndex) != curSelectedIndices.end()) {
-				// If the relationship being edited by relationshipEditorPanel is currently selected, hide relationshipEditorPanel first
-				relationshipEditorPanel->setVisible(false);
-			}
 		}, [this, curSelectedIndices, oldRelationships]() {
 			// Re-insert deleted relationships
 			int i = 0;
 			for (auto it = curSelectedIndices.begin(); it != curSelectedIndices.end(); it++) {
-				int index = *it;
-				relationships.insert(relationships.begin() + index, oldRelationships[i]);
+				relationshipsInsert(*it, oldRelationships[i]);
 				i++;
 			}
 
@@ -91,7 +79,7 @@ void LevelPackObjectUseRelationshipEditor::deleteSelectedListItems() {
 void LevelPackObjectUseRelationshipEditor::insertRelationships(int insertAt, std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> insertedRelationships) {
 	int numInserted = insertedRelationships.size();
 	for (int i = insertAt; i < insertAt + numInserted; i++) {
-		relationships.insert(relationships.begin() + i, std::make_pair(insertedRelationships[i - insertAt], UndoStack(undoStackSize)));
+		relationshipsInsert(i, insertedRelationships[i - insertAt]);
 	}
 }
 
@@ -104,7 +92,7 @@ void LevelPackObjectUseRelationshipEditor::onRelationshipEditorPanelRelationship
 		return;
 	}
 
-	relationships[relationshipEditorPanelCurrentRelationshipIndex].first = newRelationship;
+	relationships[relationshipEditorPanelCurrentRelationshipIndex] = newRelationship;
 	onRelationshipsChangeHelper();
 }
 
@@ -206,16 +194,9 @@ void LevelPackObjectUseRelationshipEditor::setupRelationshipListView() {
 	relationshipsListViewPanel->add(relationshipsListView);
 }
 
-UndoStack* LevelPackObjectUseRelationshipEditor::getCurrentlySelectedRelationshipUndoStack() {
-	if (relationshipEditorPanelCurrentRelationshipIndex != -1) {
-		return &relationships[relationshipEditorPanelCurrentRelationshipIndex].second;
-	}
-	return nullptr;
-}
-
 std::shared_ptr<LevelPackObjectUseRelationship> LevelPackObjectUseRelationshipEditor::getCurrentlySelectedRelationship() {
 	if (relationshipEditorPanelCurrentRelationshipIndex != -1) {
-		return relationships[relationshipEditorPanelCurrentRelationshipIndex].first;
+		return relationships[relationshipEditorPanelCurrentRelationshipIndex];
 	}
 	return nullptr;
 }
@@ -224,19 +205,14 @@ void LevelPackObjectUseRelationshipEditor::deleteRelationships(std::set<size_t> 
 	for (auto it = indices.rbegin(); it != indices.rend(); it++) {
 		int index = *it;
 		// We can use erase() if done in decreasing index order
-		relationships.erase(relationships.begin() + index);
-
-		// Hide relationshipEditorPanel if it's currently editing a removed relationship
-		if (relationshipEditorPanelCurrentRelationshipIndex == index) {
-			relationshipEditorPanel->setVisible(false);
-		}
+		relationshipsErase(index);
 	}
 }
 
 void LevelPackObjectUseRelationshipEditor::replaceRelationships(std::set<size_t> indices, std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> replacements) {
 	int i = 0;
 	for (auto it = indices.begin(); it != indices.end(); it++) {
-		relationships[*it] = std::make_pair(replacements[i], UndoStack(undoStackSize));
+		relationships[*it] = replacements[i];
 		i++;
 
 		if (relationshipEditorPanelCurrentRelationshipIndex == *it) {
@@ -248,15 +224,15 @@ void LevelPackObjectUseRelationshipEditor::replaceRelationships(std::set<size_t>
 std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> LevelPackObjectUseRelationshipEditor::getRelationshipsSubset(std::set<size_t> indices) {
 	std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> subset;
 	for (size_t i : indices) {
-		subset.push_back(relationships[i].first);
+		subset.push_back(relationships[i]);
 	}
 	return subset;
 }
 
 std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> LevelPackObjectUseRelationshipEditor::getRelationships() {
 	std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> ret;
-	for (auto p : relationships) {
-		ret.push_back(p.first);
+	for (auto relationship : relationships) {
+		ret.push_back(relationship);
 	}
 	return ret;
 }
@@ -267,8 +243,9 @@ int LevelPackObjectUseRelationshipEditor::getRelationshipsCount() {
 
 void LevelPackObjectUseRelationshipEditor::openRelationshipEditorPanelIndex(int index) {
 	this->relationshipEditorPanelCurrentRelationshipIndex = index;
+	this->relationshipsListView->getListView()->setSelectedItem(index);
 	relationshipEditorPanel->setVisible(true);
-	initializeRelationshipEditorPanelWidgetsData(relationships[index].first, index);
+	initializeRelationshipEditorPanelWidgetsData(relationships[index], index);
 }
 
 void LevelPackObjectUseRelationshipEditor::addNewRelationship() {
@@ -280,7 +257,7 @@ void LevelPackObjectUseRelationshipEditor::addNewRelationship() {
 		pasteAtIndex = *curSelectedIndices.begin();
 	}
 
-	relationshipsListView->getUndoStack().execute(UndoableCommand([this, pasteAtIndex]() {
+	undoStack.execute(UndoableCommand([this, pasteAtIndex]() {
 		std::shared_ptr<LevelPackObjectUseRelationship> newRelationship = instantiateDefaultRelationship();
 
 		std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> relationshipVector;
@@ -299,30 +276,37 @@ void LevelPackObjectUseRelationshipEditor::addNewRelationship() {
 	}));
 }
 
-void LevelPackObjectUseRelationshipEditor::manualRelationshipEditorPanelUndo() {
-	if (relationshipEditorPanelCurrentRelationshipIndex != -1) {
-		relationships[relationshipEditorPanelCurrentRelationshipIndex].second.undo();
+void LevelPackObjectUseRelationshipEditor::relationshipsInsert(int index, std::shared_ptr<LevelPackObjectUseRelationship> item) {
+	if (relationshipEditorPanelCurrentRelationshipIndex >= index) {
+		relationshipEditorPanelCurrentRelationshipIndex++;
 	}
+	relationships.insert(relationships.begin() + index, item);
 }
 
-void LevelPackObjectUseRelationshipEditor::manualRelationshipEditorPanelRedo() {
-	if (relationshipEditorPanelCurrentRelationshipIndex != -1) {
-		relationships[relationshipEditorPanelCurrentRelationshipIndex].second.redo();
+void LevelPackObjectUseRelationshipEditor::relationshipsErase(int index) {
+	// Hide relationshipEditorPanel if it's currently editing a removed relationship
+	if (relationshipEditorPanelCurrentRelationshipIndex == index) {
+		relationshipEditorPanelCurrentRelationshipIndex = -1;
+		relationshipEditorPanel->setVisible(false);
+	} else if (relationshipEditorPanelCurrentRelationshipIndex != -1 && relationshipEditorPanelCurrentRelationshipIndex > index) {
+		relationshipEditorPanelCurrentRelationshipIndex--;
 	}
+
+	relationships.erase(relationships.begin() + index);
 }
 
 void LevelPackObjectUseRelationshipEditor::onRelationshipsChangeHelper() {
 	std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> prunedRelationships;
-	for (std::pair<std::shared_ptr<LevelPackObjectUseRelationship>, UndoStack> p : relationships) {
-		prunedRelationships.push_back(p.first);
+	for (auto relationship : relationships) {
+		prunedRelationships.push_back(relationship);
 	}
 	onRelationshipsChange(prunedRelationships);
 }
 
-LevelPackObjectUseRelationshipListView::LevelPackObjectUseRelationshipListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard,
+LevelPackObjectUseRelationshipListView::LevelPackObjectUseRelationshipListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, UndoStack& undoStack,
 	LevelPackObjectUseRelationshipEditor& parentRelationshipEditor, std::string copyPasteableID, int undoStackSize)
 	: ListViewScrollablePanel(), CopyPasteable(copyPasteableID), mainEditorWindow(mainEditorWindow), clipboard(clipboard),
-	parentRelationshipEditor(parentRelationshipEditor), undoStack(UndoStack(undoStackSize)) {
+	undoStack(undoStack), parentRelationshipEditor(parentRelationshipEditor) {
 }
 
 LevelPackObjectUseRelationshipListView::~LevelPackObjectUseRelationshipListView() {
@@ -331,13 +315,7 @@ LevelPackObjectUseRelationshipListView::~LevelPackObjectUseRelationshipListView(
 bool LevelPackObjectUseRelationshipListView::handleEvent(sf::Event event) {
 	if (event.type == sf::Event::KeyPressed) {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
-			if (event.key.code == sf::Keyboard::Z) {
-				undoStack.undo();
-				return true;
-			} else if (event.key.code == sf::Keyboard::Y) {
-				undoStack.redo();
-				return true;
-			} else if (event.key.code == sf::Keyboard::C) {
+			if (event.key.code == sf::Keyboard::C) {
 				manualCopy();
 				return true;
 			} else if (event.key.code == sf::Keyboard::V) {
@@ -419,8 +397,4 @@ tgui::Signal& LevelPackObjectUseRelationshipListView::getSignal(std::string sign
 		return onListModify;
 	}
 	return ListViewScrollablePanel::getSignal(signalName);
-}
-
-UndoStack& LevelPackObjectUseRelationshipListView::getUndoStack() {
-	return undoStack;
 }

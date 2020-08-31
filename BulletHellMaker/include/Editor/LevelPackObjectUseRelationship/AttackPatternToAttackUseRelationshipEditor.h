@@ -22,11 +22,11 @@ private:
 
 class AttackPatternToAttackUseRelationshipListView : public LevelPackObjectUseRelationshipListView {
 public:
-	AttackPatternToAttackUseRelationshipListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard,
-		LevelPackObjectUseRelationshipEditor& parentRelationshipEditor, int undoStackSize = 50);
-	static std::shared_ptr<AttackPatternToAttackUseRelationshipListView> create(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, 
-		LevelPackObjectUseRelationshipEditor& parentRelationshipEditor, int undoStackSize = 50) {
-		return std::make_shared<AttackPatternToAttackUseRelationshipListView>(mainEditorWindow, clipboard, parentRelationshipEditor, undoStackSize);
+	AttackPatternToAttackUseRelationshipListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, UndoStack& undoStack,
+		LevelPackObjectUseRelationshipEditor& parentRelationshipEditor);
+	static std::shared_ptr<AttackPatternToAttackUseRelationshipListView> create(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, UndoStack& undoStack,
+		LevelPackObjectUseRelationshipEditor& parentRelationshipEditor) {
+		return std::make_shared<AttackPatternToAttackUseRelationshipListView>(mainEditorWindow, clipboard, undoStack, parentRelationshipEditor);
 	}
 
 	std::pair<std::shared_ptr<CopiedObject>, std::string> copyFrom() override;
@@ -48,16 +48,14 @@ Signals:
 */
 class AttackPatternToAttackUseRelationshipEditor : public LevelPackObjectUseRelationshipEditor {
 public:
-	AttackPatternToAttackUseRelationshipEditor(MainEditorWindow& mainEditorWindow, Clipboard& clipboard,
-		std::vector<std::tuple<std::string, int, ExprSymbolTable>> initialRelationshipsData, int undoStackSize = 50);
-	static std::shared_ptr<AttackPatternToAttackUseRelationshipEditor> create(MainEditorWindow& mainEditorWindow, Clipboard& clipboard,
-		std::vector<std::tuple<std::string, int, ExprSymbolTable>> initialRelationshipsData, int undoStackSize = 50) {
-		return std::make_shared<AttackPatternToAttackUseRelationshipEditor>(mainEditorWindow, clipboard, initialRelationshipsData, undoStackSize);
+	AttackPatternToAttackUseRelationshipEditor(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, UndoStack& undoStack,
+		std::vector<std::tuple<std::string, int, ExprSymbolTable>> initialRelationshipsData);
+	static std::shared_ptr<AttackPatternToAttackUseRelationshipEditor> create(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, UndoStack& undoStack,
+		std::vector<std::tuple<std::string, int, ExprSymbolTable>> initialRelationshipsData) {
+		return std::make_shared<AttackPatternToAttackUseRelationshipEditor>(mainEditorWindow, clipboard, undoStack, initialRelationshipsData);
 	}
 
 	std::string paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
-
-	bool handleEvent(sf::Event event) override;
 
 	tgui::Signal& getSignal(std::string signalName) override;
 

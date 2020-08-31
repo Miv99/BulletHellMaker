@@ -123,14 +123,12 @@ Signals:
 	ValueChanged - emitted when the ExprSymbolTable being edited is modified.
 		Optional parameter - the ExprSymbolTable
 */
-class ExprSymbolTableEditor : public tgui::Panel, public EventCapturable {
+class ExprSymbolTableEditor : public tgui::Panel {
 public:
-	ExprSymbolTableEditor();
-	static std::shared_ptr<ExprSymbolTableEditor> create() {
-		return std::make_shared<ExprSymbolTableEditor>();
+	ExprSymbolTableEditor(UndoStack& undoStack);
+	static std::shared_ptr<ExprSymbolTableEditor> create(UndoStack& undoStack) {
+		return std::make_shared<ExprSymbolTableEditor>(undoStack);
 	}
-
-	bool handleEvent(sf::Event event) override;
 
 	tgui::Signal& getSignal(std::string signalName) override;
 
@@ -150,15 +148,10 @@ public:
 	*/
 	void setExprSymbolTable(ExprSymbolTable symbolTable);
 
-	/*
-	Sets the UndoStack to be used for all future operations.
-	*/
-	void setUndoStack(UndoStack* undoStack);
-
 private:
 	tgui::SignalExprSymbolTable onValueChange = { "ValueChanged" };
 
-	UndoStack* undoStack;
+	UndoStack& undoStack;
 
 	std::vector<ValueSymbolTable> symbolTablesHierarchy;
 	ExprSymbolTable exprSymbolTable;

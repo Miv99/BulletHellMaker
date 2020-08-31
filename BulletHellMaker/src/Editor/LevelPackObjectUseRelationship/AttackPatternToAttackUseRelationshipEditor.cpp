@@ -24,8 +24,8 @@ std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> AttackPatternToAtta
 }
 
 AttackPatternToAttackUseRelationshipListView::AttackPatternToAttackUseRelationshipListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, 
-	LevelPackObjectUseRelationshipEditor& parentRelationshipEditor, int undoStackSize) 
-	: LevelPackObjectUseRelationshipListView(mainEditorWindow, clipboard, parentRelationshipEditor, ATTACK_PATTERN_TO_ATTACK_USE_RELATIONSHIP_COPY_PASTE_ID, undoStackSize) {
+	UndoStack& undoStack, LevelPackObjectUseRelationshipEditor& parentRelationshipEditor) 
+	: LevelPackObjectUseRelationshipListView(mainEditorWindow, clipboard, undoStack, parentRelationshipEditor, ATTACK_PATTERN_TO_ATTACK_USE_RELATIONSHIP_COPY_PASTE_ID) {
 }
 
 std::pair<std::shared_ptr<CopiedObject>, std::string> AttackPatternToAttackUseRelationshipListView::copyFrom() {
@@ -139,9 +139,9 @@ void AttackPatternToAttackUseRelationshipListView::onPasteIntoConfirmation(bool 
 	}
 }
 
-AttackPatternToAttackUseRelationshipEditor::AttackPatternToAttackUseRelationshipEditor(MainEditorWindow& mainEditorWindow, Clipboard& clipboard,
-	std::vector<std::tuple<std::string, int, ExprSymbolTable>> initialRelationshipsData, int undoStackSize)
-	: LevelPackObjectUseRelationshipEditor(mainEditorWindow, clipboard, ATTACK_PATTERN_TO_ATTACK_USE_RELATIONSHIP_COPY_PASTE_ID, undoStackSize) {
+AttackPatternToAttackUseRelationshipEditor::AttackPatternToAttackUseRelationshipEditor(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, UndoStack& undoStack,
+	std::vector<std::tuple<std::string, int, ExprSymbolTable>> initialRelationshipsData)
+	: LevelPackObjectUseRelationshipEditor(mainEditorWindow, clipboard, undoStack, ATTACK_PATTERN_TO_ATTACK_USE_RELATIONSHIP_COPY_PASTE_ID, true) {
 	timeLabel = tgui::Label::create();
 	timeLabel->setTextSize(TEXT_SIZE);
 	timeLabel->setText("Execution begin time");
@@ -161,24 +161,27 @@ Any variables used in here must be defined by the attack pattern, not in the var
 		if (value == oldValue) {
 			return;
 		}
-		getCurrentlySelectedRelationshipUndoStack()->execute(UndoableCommand(
-			[this, currentRelationship, value]() {
+		int currentlyOpenIndex = this->relationshipEditorPanelCurrentRelationshipIndex;
+		this->undoStack.execute(UndoableCommand(
+			[this, currentRelationship, value, currentlyOpenIndex]() {
 			currentRelationship->setData(std::make_tuple(value, std::get<1>(currentRelationship->getData()), std::get<2>(currentRelationship->getData())));
 
+			bool prevIgnoreSignals = ignoreSignals;
 			ignoreSignals = true;
-			timeEditBox->setText(value);
+			openRelationshipEditorPanelIndex(currentlyOpenIndex);
 			relationshipsListView->repopulateRelationships(getRelationships());
-			ignoreSignals = false;
+			ignoreSignals = prevIgnoreSignals;
 
 			onRelationshipEditorPanelRelationshipModify(currentRelationship);
 		}, 
-			[this, currentRelationship, oldValue]() {
+			[this, currentRelationship, oldValue, currentlyOpenIndex]() {
 			currentRelationship->setData(std::make_tuple(oldValue, std::get<1>(currentRelationship->getData()), std::get<2>(currentRelationship->getData())));
 
+			bool prevIgnoreSignals = ignoreSignals;
 			ignoreSignals = true;
-			timeEditBox->setText(oldValue);
+			openRelationshipEditorPanelIndex(currentlyOpenIndex);
 			relationshipsListView->repopulateRelationships(getRelationships());
-			ignoreSignals = false;
+			ignoreSignals = prevIgnoreSignals;
 
 			onRelationshipEditorPanelRelationshipModify(currentRelationship);
 		}));
@@ -210,24 +213,27 @@ if it is modified with the intention of changing only one attack pattern's behav
 		if (value == oldValue) {
 			return;
 		}
-		getCurrentlySelectedRelationshipUndoStack()->execute(UndoableCommand(
-			[this, currentRelationship, value]() {
+		int currentlyOpenIndex = this->relationshipEditorPanelCurrentRelationshipIndex;
+		this->undoStack.execute(UndoableCommand(
+			[this, currentRelationship, value, currentlyOpenIndex]() {
 			currentRelationship->setData(std::make_tuple(std::get<0>(currentRelationship->getData()), value, std::get<2>(currentRelationship->getData())));
 
+			bool prevIgnoreSignals = ignoreSignals;
 			ignoreSignals = true;
-			idEditBox->setValue(value);
+			openRelationshipEditorPanelIndex(currentlyOpenIndex);
 			relationshipsListView->repopulateRelationships(getRelationships());
-			ignoreSignals = false;
+			ignoreSignals = prevIgnoreSignals;
 
 			onRelationshipEditorPanelRelationshipModify(currentRelationship);
 		},
-			[this, currentRelationship, oldValue]() {
+			[this, currentRelationship, oldValue, currentlyOpenIndex]() {
 			currentRelationship->setData(std::make_tuple(std::get<0>(currentRelationship->getData()), oldValue, std::get<2>(currentRelationship->getData())));
 
+			bool prevIgnoreSignals = ignoreSignals;
 			ignoreSignals = true;
-			idEditBox->setValue(oldValue);
+			openRelationshipEditorPanelIndex(currentlyOpenIndex);
 			relationshipsListView->repopulateRelationships(getRelationships());
-			ignoreSignals = false;
+			ignoreSignals = prevIgnoreSignals;
 
 			onRelationshipEditorPanelRelationshipModify(currentRelationship);
 		}));
@@ -239,7 +245,7 @@ if it is modified with the intention of changing only one attack pattern's behav
 	symbolTableEditorLabel->setText("Variables to pass to referenced object");
 	relationshipEditorPanel->add(symbolTableEditorLabel);
 
-	symbolTableEditor = ExprSymbolTableEditor::create();
+	symbolTableEditor = ExprSymbolTableEditor::create(undoStack);
 	symbolTableEditor->connect("ValueChanged", [this](ExprSymbolTable value) {
 		if (ignoreSignals) {
 			return;
@@ -288,15 +294,6 @@ std::string AttackPatternToAttackUseRelationshipEditor::paste2Into(std::shared_p
 	return "";
 }
 
-bool AttackPatternToAttackUseRelationshipEditor::handleEvent(sf::Event event) {
-	if (symbolTableEditor->isFocused() && symbolTableEditor->handleEvent(event)) {
-		return true;
-	} else if (LevelPackObjectUseRelationshipEditor::handleEvent(event)) {
-		return true;
-	}
-	return false;
-}
-
 tgui::Signal& AttackPatternToAttackUseRelationshipEditor::getSignal(std::string signalName) {
 	if (signalName == tgui::toLower(onRelationshipsModify.getName())) {
 		return onRelationshipsModify;
@@ -312,13 +309,13 @@ void AttackPatternToAttackUseRelationshipEditor::initializeRelationshipEditorPan
 	std::shared_ptr<AttackPatternToAttackUseRelationship> derived = std::static_pointer_cast<AttackPatternToAttackUseRelationship>(relationship);
 	std::tuple<std::string, int, ExprSymbolTable> data = derived->getData();
 
+	bool prevIgnoreSignals = ignoreSignals;
 	ignoreSignals = true;
 	timeEditBox->setText(std::get<0>(data));
 	idEditBox->setValue(std::get<1>(data));
 	symbolTableEditor->setExprSymbolTable(std::get<2>(data));
-	symbolTableEditor->setUndoStack(getCurrentlySelectedRelationshipUndoStack());
 	// No need to set symbolTableEditor's ValueSymbolTable hierarchy here because the same hierarchy will be used for all relationships
-	ignoreSignals = false;
+	ignoreSignals = prevIgnoreSignals;
 }
 
 void AttackPatternToAttackUseRelationshipEditor::onRelationshipsChange(std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> newRelationships) {
@@ -327,7 +324,7 @@ void AttackPatternToAttackUseRelationshipEditor::onRelationshipsChange(std::vect
 }
 
 void AttackPatternToAttackUseRelationshipEditor::instantiateRelationshipListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard) {
-	relationshipsListView = AttackPatternToAttackUseRelationshipListView::create(mainEditorWindow, clipboard, *this);
+	relationshipsListView = AttackPatternToAttackUseRelationshipListView::create(mainEditorWindow, clipboard, undoStack, *this);
 }
 
 std::shared_ptr<LevelPackObjectUseRelationship> AttackPatternToAttackUseRelationshipEditor::instantiateDefaultRelationship() {
@@ -338,28 +335,30 @@ void AttackPatternToAttackUseRelationshipEditor::onPasteIntoConfirmation(bool co
 	if (confirmed || newRelationshipData.size() != 1) {
 		std::shared_ptr<AttackPatternToAttackUseRelationship> currentRelationship = std::static_pointer_cast<AttackPatternToAttackUseRelationship>(getCurrentlySelectedRelationship());
 		std::tuple<std::string, int, ExprSymbolTable> oldRelationshipData = currentRelationship->getData();
-		getCurrentlySelectedRelationshipUndoStack()->execute(UndoableCommand(
+		undoStack.execute(UndoableCommand(
 			[this, currentRelationship, newRelationshipData]() {
 			currentRelationship->setData(newRelationshipData[0]);
 
+			bool prevIgnoreSignals = ignoreSignals;
 			ignoreSignals = true;
 			timeEditBox->setText(std::get<0>(newRelationshipData[0]));
 			idEditBox->setValue(std::get<1>(newRelationshipData[0]));
 			symbolTableEditor->setExprSymbolTable(std::get<2>(newRelationshipData[0]));
 			relationshipsListView->repopulateRelationships(getRelationships());
-			ignoreSignals = false;
+			ignoreSignals = prevIgnoreSignals;
 
 			onRelationshipEditorPanelRelationshipModify(currentRelationship);
 		},
 			[this, currentRelationship, oldRelationshipData]() {
 			currentRelationship->setData(oldRelationshipData);
 
+			bool prevIgnoreSignals = ignoreSignals;
 			ignoreSignals = true;
 			timeEditBox->setText(std::get<0>(oldRelationshipData));
 			idEditBox->setValue(std::get<1>(oldRelationshipData));
 			symbolTableEditor->setExprSymbolTable(std::get<2>(oldRelationshipData));
 			relationshipsListView->repopulateRelationships(getRelationships());
-			ignoreSignals = false;
+			ignoreSignals = prevIgnoreSignals;
 
 			onRelationshipEditorPanelRelationshipModify(currentRelationship);
 		}));
