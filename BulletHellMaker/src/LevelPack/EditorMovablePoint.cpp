@@ -442,7 +442,7 @@ void EditorMovablePoint::addChild(std::shared_ptr<EditorMovablePoint> child) {
 void EditorMovablePoint::onNewParentEditorAttack(std::shared_ptr<EditorAttack> newAttack) {
 	// Update the references to this EMP's parent EditorAttack values
 	idGen = newAttack->getNextEMPID();
-	bulletModelsCount = newAttack->getBulletModelsCount();
+	bulletModelsCount = newAttack->getBulletModelIDsCount();
 
 	// Update bulletModelsCount; no need to recurse because onNewParentEditorAttack() is recursive already
 	updateBulletModelToBulletModelsCount(false);

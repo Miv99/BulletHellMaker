@@ -182,6 +182,9 @@ void LevelPackObjectPreviewPanel::previewAttack(const std::shared_ptr<EditorAtta
 		return;
 	}
 
+	clearAllConnectedLevelPackObjects();
+	addConnectedAttack(attack->getID());
+
 	std::shared_ptr<EditorAttack> currentPreviewObject = std::dynamic_pointer_cast<EditorAttack>(attack->clone());
 	currentPreviewObjectID = currentPreviewObject->getID();
 	currentPreviewObjectType = PREVIEW_OBJECT::ATTACK;
@@ -212,6 +215,9 @@ void LevelPackObjectPreviewPanel::previewAttackPattern(const std::shared_ptr<Edi
 		onPreview.emit(this, legal.first, legal.second);
 		return;
 	}
+
+	clearAllConnectedLevelPackObjects();
+	addConnectedAttackPattern(attackPattern->getID());
 
 	std::shared_ptr<EditorAttackPattern> currentPreviewObject = std::dynamic_pointer_cast<EditorAttackPattern>(attackPattern->clone());
 	currentPreviewObjectID = currentPreviewObject->getID();
@@ -347,6 +353,56 @@ void LevelPackObjectPreviewPanel::resetPreview() {
 		previewNothing();
 	} else if (currentPreviewObjectType == PREVIEW_OBJECT::ATTACK) {
 		previewAttack(levelPack->getAttack(currentPreviewObjectID));
+	} else if (currentPreviewObjectType == PREVIEW_OBJECT::ATTACK_PATTERN) {
+		previewAttackPattern(levelPack->getAttackPattern(currentPreviewObjectID));
+	}
+}
+
+void LevelPackObjectPreviewPanel::clearAllConnectedLevelPackObjects() {
+	bulletModelsConnectedToCurrentPreview.clear();
+	attacksConnectedToCurrentPreview.clear();
+	attackPatternsConnectedToCurrentPreview.clear();
+	enemiesConnectedToCurrentPreview.clear();
+	enemyPhasesConnectedToCurrentPreview.clear();
+}
+
+void LevelPackObjectPreviewPanel::addConnectedBulletModel(int id) {
+	bulletModelsConnectedToCurrentPreview.insert(id);
+}
+
+void LevelPackObjectPreviewPanel::addConnectedAttack(int id) {
+	attacksConnectedToCurrentPreview.insert(id);
+
+	const std::map<int, int>* connectedBulletModels = levelPack->getAttack(id)->getBulletModelIDsCount();
+	for (auto it = connectedBulletModels->begin(); it != connectedBulletModels->end(); it++) {
+		addConnectedBulletModel(it->first);
+	}
+}
+
+void LevelPackObjectPreviewPanel::addConnectedAttackPattern(int id) {
+	attackPatternsConnectedToCurrentPreview.insert(id);
+
+	const std::map<int, int>* connectedAttacks = levelPack->getAttackPattern(id)->getAttackIDsCount();
+	for (auto it = connectedAttacks->begin(); it != connectedAttacks->end(); it++) {
+		addConnectedAttack(it->first);
+	}
+}
+
+void LevelPackObjectPreviewPanel::addConnectedEnemyPhase(int id) {
+	enemyPhasesConnectedToCurrentPreview.insert(id);
+
+	const std::map<int, int>* connectedAttackPatterns = levelPack->getEnemyPhase(id)->getAttackPatternsIDCount();
+	for (auto it = connectedAttackPatterns->begin(); it != connectedAttackPatterns->end(); it++) {
+		addConnectedAttackPattern(it->first);
+	}
+}
+
+void LevelPackObjectPreviewPanel::addConnectedEnemy(int id) {
+	attackPatternsConnectedToCurrentPreview.insert(id);
+
+	const std::map<int, int>* connectedEnemyPhases = levelPack->getEnemy(id)->getEnemyPhaseIDsCount();
+	for (auto it = connectedEnemyPhases->begin(); it != connectedEnemyPhases->end(); it++) {
+		addConnectedEnemyPhase(it->first);
 	}
 }
 
@@ -362,12 +418,14 @@ std::shared_ptr<EditorPlayer> LevelPackObjectPreviewPanel::getPlayer() {
 }
 
 void LevelPackObjectPreviewPanel::onLevelPackChange(LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE type, int id) {
-	// TODO
-	if (currentPreviewObjectType == PREVIEW_OBJECT::NONE) {
-		resetPreview();
-	} else if (currentPreviewObjectType == PREVIEW_OBJECT::ATTACK && type == LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ATTACK && currentPreviewObjectID == id) {
+	if ((type == LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::BULLET_MODEL && bulletModelsConnectedToCurrentPreview.find(id) != bulletModelsConnectedToCurrentPreview.end())
+		|| (type == LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ATTACK && attacksConnectedToCurrentPreview.find(id) != attacksConnectedToCurrentPreview.end())
+		|| (type == LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ATTACK_PATTERN && attackPatternsConnectedToCurrentPreview.find(id) != attackPatternsConnectedToCurrentPreview.end())
+		|| (type == LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ENEMY_PHASE && enemyPhasesConnectedToCurrentPreview.find(id) != enemyPhasesConnectedToCurrentPreview.end())
+		|| (type == LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ENEMY && enemiesConnectedToCurrentPreview.find(id) != enemiesConnectedToCurrentPreview.end())
+		|| type == LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::LEVEL
+		|| type == LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::PLAYER
+		|| currentPreviewObjectType == PREVIEW_OBJECT::NONE) {
 		resetPreview();
 	}
-	// make sure for when previewing attack pattern, reset preview if type is attack pattern and ID matches OR type is attack and attack
-	// pattern being previewed uses the attack id
 }

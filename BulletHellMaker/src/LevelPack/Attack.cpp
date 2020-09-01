@@ -92,7 +92,7 @@ IDGenerator* EditorAttack::getNextEMPID() {
 	return &empIDGen;
 }
 
-std::map<int, int>* EditorAttack::getBulletModelsCount() {
+std::map<int, int>* EditorAttack::getBulletModelIDsCount() {
 	return &bulletModelsCount;
 }
 

@@ -112,6 +112,21 @@ private:
 	std::shared_ptr<Level> levelForAttackPattern;
 	std::shared_ptr<EditorEnemyPhase> enemyPhaseForAttackPattern;
 
+	// If a LevelPackObject's ID is in its set (ie an EditorAttack is in attacksConnectedToCurrentPreview), 
+	// any changes to those LevelPackObjects should reset the preview when modified
+	std::set<int> bulletModelsConnectedToCurrentPreview;
+	std::set<int> attacksConnectedToCurrentPreview;
+	std::set<int> attackPatternsConnectedToCurrentPreview;
+	std::set<int> enemyPhasesConnectedToCurrentPreview;
+	std::set<int> enemiesConnectedToCurrentPreview;
+
+	void clearAllConnectedLevelPackObjects();
+	void addConnectedBulletModel(int id);
+	void addConnectedAttack(int id);
+	void addConnectedAttackPattern(int id);
+	void addConnectedEnemyPhase(int id);
+	void addConnectedEnemy(int id);
+
 	std::shared_ptr<EditorPlayer> getPlayer() override;
 
 	void onLevelPackChange(LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE type, int id);

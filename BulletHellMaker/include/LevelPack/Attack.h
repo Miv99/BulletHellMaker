@@ -64,7 +64,7 @@ public:
 	bool getPlayAttackAnimation() const;
 	std::shared_ptr<EditorMovablePoint> getMainEMP() const;
 	IDGenerator* getNextEMPID();
-	std::map<int, int>* getBulletModelsCount();
+	std::map<int, int>* getBulletModelIDsCount();
 	void setPlayAttackAnimation(bool playAttackAnimation);
 	
 	float searchLargestHitbox() const;

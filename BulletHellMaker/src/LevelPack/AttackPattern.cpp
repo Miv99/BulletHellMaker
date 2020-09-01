@@ -175,6 +175,10 @@ bool EditorAttackPattern::usesAttack(int attackID) const {
 	return attackIDCount.count(attackID) > 0 && attackIDCount.at(attackID) > 0;
 }
 
+const std::map<int, int>* EditorAttackPattern::getAttackIDsCount() const {
+	return &attackIDCount;
+}
+
 void EditorAttackPattern::setShadowTrailInterval(std::string shadowTrailInterval) {
 	this->shadowTrailInterval = shadowTrailInterval;
 }

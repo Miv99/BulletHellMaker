@@ -96,7 +96,6 @@ std::string AttackPatternEditorPropertiesPanel::paste2Into(std::shared_ptr<Copie
 }
 
 bool AttackPatternEditorPropertiesPanel::handleEvent(sf::Event event) {
-	//TODO
 	if (relationshipEditor->isFocused() && relationshipEditor->handleEvent(event)) {
 		return true;
 	} else if (event.type == sf::Event::KeyPressed) {

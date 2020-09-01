@@ -47,6 +47,7 @@ public:
 	float getShadowTrailLifespan() const;
 	float getActionsTotalTime() const;
 	bool usesAttack(int attackID) const;
+	const std::map<int, int>* getAttackIDsCount() const;
 
 	void setShadowTrailInterval(std::string shadowTrailInterval);
 	void setShadowTrailLifespan(std::string shadowTrailLifespan);

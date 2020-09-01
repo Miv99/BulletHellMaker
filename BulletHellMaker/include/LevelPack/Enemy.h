@@ -55,6 +55,7 @@ public:
 	bool getIsBoss() const;
 	SoundSettings getHurtSound();
 	SoundSettings getDeathSound();
+	const std::map<int, int>* getEnemyPhaseIDsCount() const;
 	bool usesEnemyPhase(int enemyPhaseID) const;
 
 	void setHurtSound(SoundSettings hurtSound);

@@ -198,6 +198,10 @@ SoundSettings EditorEnemy::getDeathSound() {
 	return deathSound;
 }
 
+const std::map<int, int>* EditorEnemy::getEnemyPhaseIDsCount() const {
+	return &enemyPhaseCount;
+}
+
 bool EditorEnemy::usesEnemyPhase(int enemyPhaseID) const {
 	return enemyPhaseCount.count(enemyPhaseID) > 0 && enemyPhaseCount.at(enemyPhaseID) > 0;
 }

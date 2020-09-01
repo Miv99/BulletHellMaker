@@ -65,6 +65,7 @@ public:
 	inline float getAttackPatternLoopDelay() const { return attackPatternLoopDelayExprCompiledValue; }
 	inline bool getPlayMusic() const { return playMusic; }
 	inline MusicSettings getMusicSettings() const { return musicSettings; }
+	const std::map<int, int>* getAttackPatternsIDCount() const;
 	bool usesAttackPattern(int attackPatternID) const;
 
 	inline void setAttackPatternLoopDelay(std::string attackPatternLoopDelay) { this->attackPatternLoopDelay = attackPatternLoopDelay; }

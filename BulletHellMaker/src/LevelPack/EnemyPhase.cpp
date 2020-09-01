@@ -114,6 +114,10 @@ std::tuple<float, int, exprtk::symbol_table<float>> EditorEnemyPhase::getAttackP
 	return item;
 }
 
+const std::map<int, int>* EditorEnemyPhase::getAttackPatternsIDCount() const {
+	return &attackPatternIDCount;
+}
+
 bool EditorEnemyPhase::usesAttackPattern(int attackPatternID) const {
 	return attackPatternIDCount.count(attackPatternID) > 0 && attackPatternIDCount.at(attackPatternID) > 0;
 }
