@@ -98,7 +98,7 @@ std::string AttackPatternEditorPropertiesPanel::paste2Into(std::shared_ptr<Copie
 			std::shared_ptr<EditorAttackPattern> attackPattern = std::dynamic_pointer_cast<EditorAttackPattern>(derived->getLevelPackObjects()[0]);
 			std::string newName = attackPattern->getName();
 			std::vector<std::tuple<std::string, int, ExprSymbolTable>> newAttacks = attackPattern->getAttacks();
-			CopiedAttackPatternProperties newProperties = {newName, newAttacks};
+			CopiedAttackPatternProperties newProperties(newName, newAttacks);
 			mainEditorWindow.promptConfirmation("Overwrite this attack pattern's properties with the copied attack's properties?", newProperties)->sink()
 				.connect<AttackPatternEditorPropertiesPanel, &AttackPatternEditorPropertiesPanel::onPasteIntoConfirmation>(this);
 		} else {
@@ -149,7 +149,7 @@ void AttackPatternEditorPropertiesPanel::manualRedo() {
 
 void AttackPatternEditorPropertiesPanel::onPasteIntoConfirmation(bool confirmed, CopiedAttackPatternProperties newProperties) {
 	if (confirmed) {
-		CopiedAttackPatternProperties oldProperties = { attackPattern->getName(), attackPattern->getAttacks() };
+		CopiedAttackPatternProperties oldProperties(attackPattern->getName(), attackPattern->getAttacks());
 		undoStack.execute(UndoableCommand([this, newProperties]() {
 			attackPattern->setName(newProperties.name);
 			attackPattern->setAttacks(newProperties.attacks);

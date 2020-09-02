@@ -11,6 +11,11 @@
 class MainEditorWindow;
 
 struct CopiedAttackPatternProperties {
+	CopiedAttackPatternProperties(std::string name, std::vector<std::tuple<std::string, int, ExprSymbolTable>> attacks) {
+		this->name = name;
+		this->attacks = attacks;
+	}
+
 	std::string name;
 	std::vector<std::tuple<std::string, int, ExprSymbolTable>> attacks;
 };
