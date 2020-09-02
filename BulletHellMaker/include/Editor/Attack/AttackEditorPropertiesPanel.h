@@ -61,5 +61,5 @@ private:
 	/*
 	Called when the user responds to a prompt confirming an EditorAttack being pasted to overwrite the properties of the current EditorAttack being edited.
 	*/
-	void onPasteIntoConfirmation(bool confirmed, std::shared_ptr<EditorAttack> newAttack);
+	void onPasteIntoConfirmation(bool confirmed, std::string newName);
 };

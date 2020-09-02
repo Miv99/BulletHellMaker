@@ -142,6 +142,11 @@ Notes for me:
 -Known big bugs:
     -Player death -> death sound plays every time player gets hit again
         -This is only because player death hasn't been implemented yet in CollisionSystem
+    -when focused on main editor window, inputs still go to preview window
+    -TGUI edit box eats all inputs, including control+z/control+y to undo/redo
+    -copy an attack pattern -> try to paste into AttackPatternToAttackUseRelationshipEditor 
+        -> AttackPatternToAttackUseRelationshipEditor eats the paste attempt so it never reaches the
+        attack pattern properties panel
 
 current todo:
 -PlayerPowerTier->AttackPattern                  int id, ExprSymbolTable

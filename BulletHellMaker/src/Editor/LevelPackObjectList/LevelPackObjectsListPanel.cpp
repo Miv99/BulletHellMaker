@@ -1,12 +1,13 @@
 #include <Editor/LevelPackObjectList/LevelPackObjectsListPanel.h>
 
 
-LevelPackObjectsListPanel::LevelPackObjectsListPanel(MainEditorWindow& mainEditorWindow, Clipboard& clipboard) : mainEditorWindow(mainEditorWindow), clipboard(clipboard) {
+LevelPackObjectsListPanel::LevelPackObjectsListPanel(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, LevelPackObjectsListView& childListView)
+	: mainEditorWindow(mainEditorWindow), clipboard(clipboard), childListView(childListView) {
 	
 }
 
 bool LevelPackObjectsListPanel::handleEvent(sf::Event event) {
-	if (mainEditorWindow.getAttacksListView()->handleEvent(event)) {
+	if (childListView.handleEvent(event)) {
 		return true;
 	}
 	return false;

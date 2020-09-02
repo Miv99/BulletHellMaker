@@ -10,6 +10,11 @@
 
 class MainEditorWindow;
 
+struct CopiedAttackPatternProperties {
+	std::string name;
+	std::vector<std::tuple<std::string, int, ExprSymbolTable>> attacks;
+};
+
 /*
 Empty panel that captures undo/redo/copy/paste commands and whose purpose is for
 AttackPatternEditorPanel to show the properties of an EditorAttackPattern.
@@ -69,5 +74,5 @@ private:
 	/*
 	Called when the user responds to a prompt confirming an EditorAttackPattern being pasted to overwrite the properties of the current EditorAttackPattern being edited.
 	*/
-	void onPasteIntoConfirmation(bool confirmed, std::shared_ptr<EditorAttackPattern> newAttackPattern);
+	void onPasteIntoConfirmation(bool confirmed, CopiedAttackPatternProperties newProperties);
 };

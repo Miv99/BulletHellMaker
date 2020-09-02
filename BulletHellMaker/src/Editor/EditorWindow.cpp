@@ -427,7 +427,7 @@ MainEditorWindow::MainEditorWindow(std::string windowTitle, int width, int heigh
 	{
 		// Attacks tab in left panel
 		attacksListView = AttacksListView::create(*this, clipboard);
-		attacksListPanel = LevelPackObjectsListPanel::create(*this, clipboard);
+		attacksListPanel = LevelPackObjectsListPanel::create(*this, clipboard, *attacksListView);
 		populateLeftPanelLevelPackObjectListPanel(attacksListView, attacksListPanel,
 			[this]() { 
 				this->createAttack();
@@ -441,10 +441,10 @@ MainEditorWindow::MainEditorWindow(std::string windowTitle, int width, int heigh
 	{
 		// Attack patterns tab in left panel
 		attackPatternsListView = AttackPatternsListView::create(*this, clipboard);
-		attackPatternsListPanel = LevelPackObjectsListPanel::create(*this, clipboard);
+		attackPatternsListPanel = LevelPackObjectsListPanel::create(*this, clipboard, *attackPatternsListView);
 		populateLeftPanelLevelPackObjectListPanel(attackPatternsListView, attackPatternsListPanel,
 			[this]() {
-			this->createAttackPattern();
+				this->createAttackPattern();
 			},
 			[this](int id) {
 				this->openLeftPanelAttackPattern(id);

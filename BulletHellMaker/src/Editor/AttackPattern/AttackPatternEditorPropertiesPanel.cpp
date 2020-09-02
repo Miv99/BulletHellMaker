@@ -81,18 +81,31 @@ AttackPatternEditorPropertiesPanel::AttackPatternEditorPropertiesPanel(MainEdito
 }
 
 std::pair<std::shared_ptr<CopiedObject>, std::string> AttackPatternEditorPropertiesPanel::copyFrom() {
-	//TODO
-	return std::pair<std::shared_ptr<CopiedObject>, std::string>();
+	// Can't copy from this widget
+	return std::make_pair(nullptr, "");
 }
 
 std::string AttackPatternEditorPropertiesPanel::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
-	//TODO
-	return std::string();
+	// Same thing as paste2Into
+	return paste2Into(pastedObject);
 }
 
 std::string AttackPatternEditorPropertiesPanel::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
-	//TODO
-	return std::string();
+	// Paste the first copied EditorAttack to override attack's properties
+	auto derived = std::static_pointer_cast<CopiedLevelPackObject>(pastedObject);
+	if (derived) {
+		if (derived->getLevelPackObjectsCount() == 1) {
+			std::shared_ptr<EditorAttackPattern> attackPattern = std::dynamic_pointer_cast<EditorAttackPattern>(derived->getLevelPackObjects()[0]);
+			std::string newName = attackPattern->getName();
+			std::vector<std::tuple<std::string, int, ExprSymbolTable>> newAttacks = attackPattern->getAttacks();
+			CopiedAttackPatternProperties newProperties = {newName, newAttacks};
+			mainEditorWindow.promptConfirmation("Overwrite this attack pattern's properties with the copied attack's properties?", newProperties)->sink()
+				.connect<AttackPatternEditorPropertiesPanel, &AttackPatternEditorPropertiesPanel::onPasteIntoConfirmation>(this);
+		} else {
+			return "Cannot overwrite this attack pattern's properties when copying more than one attack pattern.";
+		}
+	}
+	return "";
 }
 
 bool AttackPatternEditorPropertiesPanel::handleEvent(sf::Event event) {
@@ -105,6 +118,9 @@ bool AttackPatternEditorPropertiesPanel::handleEvent(sf::Event event) {
 				return true;
 			} else if (event.key.code == sf::Keyboard::Y) {
 				undoStack.redo();
+				return true;
+			} else if (event.key.code == sf::Keyboard::V) {
+				clipboard.paste2(this);
 				return true;
 			}
 		}
@@ -129,6 +145,33 @@ void AttackPatternEditorPropertiesPanel::manualUndo() {
 
 void AttackPatternEditorPropertiesPanel::manualRedo() {
 	undoStack.redo();
+}
+
+void AttackPatternEditorPropertiesPanel::onPasteIntoConfirmation(bool confirmed, CopiedAttackPatternProperties newProperties) {
+	if (confirmed) {
+		CopiedAttackPatternProperties oldProperties = { attackPattern->getName(), attackPattern->getAttacks() };
+		undoStack.execute(UndoableCommand([this, newProperties]() {
+			attackPattern->setName(newProperties.name);
+			attackPattern->setAttacks(newProperties.attacks);
+			
+			ignoreSignals = true;
+			this->name->setText(newProperties.name);
+			this->relationshipEditor->setRelationships(AttackPatternToAttackUseRelationship::convertDataVectorToRelationshipVector(newProperties.attacks));
+			ignoreSignals = false;
+
+			onAttackPatternModify.emit(this);
+		}, [this, oldProperties]() {
+			attackPattern->setName(oldProperties.name);
+			attackPattern->setAttacks(oldProperties.attacks);
+
+			ignoreSignals = true;
+			this->name->setText(oldProperties.name);
+			this->relationshipEditor->setRelationships(AttackPatternToAttackUseRelationship::convertDataVectorToRelationshipVector(oldProperties.attacks));
+			ignoreSignals = false;
+
+			onAttackPatternModify.emit(this);
+		}));
+	}
 }
 
 std::shared_ptr<ListViewScrollablePanel> AttackPatternEditorPropertiesPanel::getUsedByPanel() {

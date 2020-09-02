@@ -219,12 +219,14 @@ void LevelPackObjectUseRelationshipEditor::replaceRelationships(std::set<size_t>
 	int i = 0;
 	for (auto it = indices.begin(); it != indices.end(); it++) {
 		relationships[*it] = replacements[i];
-		i++;
 
 		if (relationshipEditorPanelCurrentRelationshipIndex == *it) {
 			initializeRelationshipEditorPanelWidgetsData(replacements[i], *it);
 		}
+
+		i++;
 	}
+	relationshipsListView->repopulateRelationships(getRelationships());
 }
 
 std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> LevelPackObjectUseRelationshipEditor::getRelationshipsSubset(std::set<size_t> indices) {
@@ -245,6 +247,14 @@ std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> LevelPackObjectUseR
 
 int LevelPackObjectUseRelationshipEditor::getRelationshipsCount() {
 	return relationships.size();
+}
+
+void LevelPackObjectUseRelationshipEditor::setRelationships(std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> replacements) {
+	relationshipEditorPanelCurrentRelationshipIndex = -1;
+	relationshipEditorPanel->setVisible(false);
+
+	this->relationships = replacements;
+	relationshipsListView->repopulateRelationships(getRelationships());
 }
 
 void LevelPackObjectUseRelationshipEditor::openRelationshipEditorPanelIndex(int index) {

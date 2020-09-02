@@ -79,15 +79,9 @@ std::string AttackEditorPropertiesPanel::paste2Into(std::shared_ptr<CopiedObject
 	// Paste the first copied EditorAttack to override attack's properties
 	auto derived = std::static_pointer_cast<CopiedLevelPackObject>(pastedObject);
 	if (derived) {
-		std::vector<std::shared_ptr<EditorAttack>> copiedAttacks;
-		for (auto obj : derived->getLevelPackObjects()) {
-			copiedAttacks.push_back(std::dynamic_pointer_cast<EditorAttack>(obj));
-		}
-		if (copiedAttacks.size() == 1) {
-			std::shared_ptr<EditorAttack> newAttack = std::make_shared<EditorAttack>(attack);
-			newAttack->setName(copiedAttacks[0]->getName());
-
-			mainEditorWindow.promptConfirmation("Overwrite this attack's properties with the copied attack's properties?", newAttack)->sink()
+		if (derived->getLevelPackObjectsCount() == 1) {
+			std::string newName = derived->getLevelPackObjects()[0]->getName();
+			mainEditorWindow.promptConfirmation("Overwrite this attack's properties with the copied attack's properties?", newName)->sink()
 				.connect<AttackEditorPropertiesPanel, &AttackEditorPropertiesPanel::onPasteIntoConfirmation>(this);
 		} else {
 			return "Cannot overwrite this attack's properties when copying more than one attack.";
@@ -137,20 +131,24 @@ void AttackEditorPropertiesPanel::manualRedo() {
 	undoStack.redo();
 }
 
-void AttackEditorPropertiesPanel::onPasteIntoConfirmation(bool confirmed, std::shared_ptr<EditorAttack> newAttack) {
+void AttackEditorPropertiesPanel::onPasteIntoConfirmation(bool confirmed, std::string newName) {
 	if (confirmed) {
 		std::string oldName = attack->getName();
-		std::string newName = newAttack->getName();
 		undoStack.execute(UndoableCommand([this, newName]() {
+			this->attack->setName(newName);
+
 			ignoreSignals = true;
-			attack->setName(newName);
 			this->name->setText(newName);
 			ignoreSignals = false;
 
 			onAttackModify.emit(this);
 		}, [this, oldName]() {
-			attack->setName(oldName);
+			this->attack->setName(oldName);
+
+			ignoreSignals = true;
 			this->name->setText(oldName);
+			ignoreSignals = false;
+
 			onAttackModify.emit(this);
 		}));
 	}

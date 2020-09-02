@@ -141,6 +141,12 @@ public:
 	*/
 	int getRelationshipsCount();
 
+	/*
+	Sets relationships.
+	Does not call onRelationshipsChange().
+	*/
+	void setRelationships(std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> replacements);
+
 protected:
 	MainEditorWindow& mainEditorWindow;
 	Clipboard& clipboard;
