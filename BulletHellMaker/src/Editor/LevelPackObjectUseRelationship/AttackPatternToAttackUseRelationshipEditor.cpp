@@ -92,7 +92,7 @@ PasteOperationResult AttackPatternToAttackUseRelationshipListView::paste2Into(st
 		if (copiedRelationships.size() == selectedIndices.size()) {
 			// See "Why paste2 in LevelPackObjectsListView can't be undoable" in personal notes for explanation on why this can't be undoable (not the same thing but similar logic)
 			mainEditorWindow.promptConfirmation("Overwrite the selected relationship(s) with the copied relationship(s)? This will reload the relationship editor if it is editing a selected relationship.", 
-				copiedRelationships)->sink().connect<AttackPatternToAttackUseRelationshipListView, &AttackPatternToAttackUseRelationshipListView::onPasteIntoConfirmation>(this);
+				copiedRelationships, this)->sink().connect<AttackPatternToAttackUseRelationshipListView, &AttackPatternToAttackUseRelationshipListView::onPasteIntoConfirmation>(this);
 			return PasteOperationResult(true, "");
 		} else {
 			std::string s1;
@@ -291,7 +291,7 @@ PasteOperationResult AttackPatternToAttackUseRelationshipEditor::paste2Into(std:
 		if (copiedRelationships.size() == 1) {
 			// See "Why paste2 in LevelPackObjectsListView can't be undoable" in personal notes for explanation on why this can't be undoable (not the same thing but similar logic)
 			mainEditorWindow.promptConfirmation("Overwrite the currently open relationship with the copied relationship?",
-				copiedRelationships)->sink().connect<AttackPatternToAttackUseRelationshipEditor, &AttackPatternToAttackUseRelationshipEditor::onPasteIntoConfirmation>(this);
+				copiedRelationships, this)->sink().connect<AttackPatternToAttackUseRelationshipEditor, &AttackPatternToAttackUseRelationshipEditor::onPasteIntoConfirmation>(this);
 			return PasteOperationResult(true, "");
 		} else {
 			return PasteOperationResult(false, "Cannot overwrite this relationship's properties when copying more than one attack pattern to attack relationship.");

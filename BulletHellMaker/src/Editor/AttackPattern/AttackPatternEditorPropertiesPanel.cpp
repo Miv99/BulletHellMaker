@@ -99,7 +99,7 @@ PasteOperationResult AttackPatternEditorPropertiesPanel::paste2Into(std::shared_
 			std::string newName = attackPattern->getName();
 			std::vector<std::tuple<std::string, int, ExprSymbolTable>> newAttacks = attackPattern->getAttacks();
 			CopiedAttackPatternProperties newProperties(newName, newAttacks);
-			mainEditorWindow.promptConfirmation("Overwrite this attack pattern's properties with the copied attack's properties?", newProperties)->sink()
+			mainEditorWindow.promptConfirmation("Overwrite this attack pattern's properties with the copied attack's properties?", newProperties, this)->sink()
 				.connect<AttackPatternEditorPropertiesPanel, &AttackPatternEditorPropertiesPanel::onPasteIntoConfirmation>(this);
 			return PasteOperationResult(true, "");
 		} else {

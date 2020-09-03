@@ -1294,7 +1294,7 @@ PasteOperationResult EditorMovablePointPanel::paste2Into(std::shared_ptr<CopiedO
 	if (derived) {
 		std::shared_ptr<EditorMovablePoint> copiedEMP = derived->getEMP();
 
-		mainEditorWindow.promptConfirmation("Overwrite this movable point's properties with the copied movable point's properties? This will not change this movable point's children.", copiedEMP)->sink()
+		mainEditorWindow.promptConfirmation("Overwrite this movable point's properties with the copied movable point's properties? This will not change this movable point's children.", copiedEMP, this)->sink()
 			.connect<EditorMovablePointPanel, &EditorMovablePointPanel::onPasteIntoConfirmation>(this);
 		return PasteOperationResult(true, "");
 	}

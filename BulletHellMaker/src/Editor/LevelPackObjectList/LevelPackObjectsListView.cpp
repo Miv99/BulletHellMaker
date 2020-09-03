@@ -107,7 +107,7 @@ PasteOperationResult LevelPackObjectsListView::paste2Into(std::shared_ptr<Copied
 			}
 
 			// See "Why paste2 in LevelPackObjectsListView can't be undoable" in personal notes for explanation on why this can't be undoable
-			mainEditorWindow.promptConfirmation(getPasteIntoConfirmationPrompt(), newObjects)->sink()
+			mainEditorWindow.promptConfirmation(getPasteIntoConfirmationPrompt(), newObjects, this)->sink()
 				.connect<LevelPackObjectsListView, &LevelPackObjectsListView::onPasteIntoConfirmation>(this);
 			return PasteOperationResult(true, "");
 		} else {
@@ -254,7 +254,7 @@ void LevelPackObjectsListView::manualDelete() {
 		}
 
 		if (atLeastOneObjectInUse) {
-			mainEditorWindow.promptConfirmation(getDeleteLevelPackObjectsInUseConfirmationPrompt(), deletedObjs)->sink()
+			mainEditorWindow.promptConfirmation(getDeleteLevelPackObjectsInUseConfirmationPrompt(), deletedObjs, this)->sink()
 				.connect<LevelPackObjectsListView, &LevelPackObjectsListView::onDeleteConfirmation>(this);
 		} else {
 			deleteObjects(selectedIndices, deletedObjs);

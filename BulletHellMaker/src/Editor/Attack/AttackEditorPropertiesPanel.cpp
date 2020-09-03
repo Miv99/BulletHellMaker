@@ -81,7 +81,7 @@ PasteOperationResult AttackEditorPropertiesPanel::paste2Into(std::shared_ptr<Cop
 	if (derived) {
 		if (derived->getLevelPackObjectsCount() == 1) {
 			std::string newName = derived->getLevelPackObjects()[0]->getName();
-			mainEditorWindow.promptConfirmation("Overwrite this attack's properties with the copied attack's properties?", newName)->sink()
+			mainEditorWindow.promptConfirmation("Overwrite this attack's properties with the copied attack's properties?", newName, this)->sink()
 				.connect<AttackEditorPropertiesPanel, &AttackEditorPropertiesPanel::onPasteIntoConfirmation>(this);
 			return PasteOperationResult(true, "");
 		} else {

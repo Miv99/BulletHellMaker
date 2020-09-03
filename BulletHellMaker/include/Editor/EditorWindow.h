@@ -78,17 +78,21 @@ public:
 	will be true if the user responds with yes, false if no. After the user response, all widgets' enabled/disabled statuses are
 	set back to what they were before this function call.
 	Each call to promptConfirmation() returns a new signal.
+
+	widgetToFocusAfter - the widget that should be focused after the user answers. Set to nullptr to not focus anything afterwards.
 	*/
-	std::shared_ptr<entt::SigH<void(bool)>> promptConfirmation(std::string message);
+	std::shared_ptr<entt::SigH<void(bool)>> promptConfirmation(std::string message, tgui::Widget* widgetToFocusAfter);
 	/*
 	Disables all widgets and then prompts the user with a custom message to which the user can respond with either a yes or a no.
 	A signal with two parameters is returned. The signal will be published only once, when the user responds. The bool parameter
 	will be true if the user responds with yes, false if no. The user object parameter will contain a copy of the userObject parameter.
 	After the user response, all widgets' enabled/disabled statuses are set back to what they were before this function call.
 	Each call to promptConfirmation() returns a new signal.
+
+	widgetToFocusAfter - the widget that should be focused after the user answers. Set to nullptr to not focus anything afterwards.
 	*/
 	template<class T>
-	std::shared_ptr<entt::SigH<void(bool, T)>> promptConfirmation(std::string message, T userObject);
+	std::shared_ptr<entt::SigH<void(bool, T)>> promptConfirmation(std::string message, T userObject, tgui::Widget* widgetToFocusAfter);
 
 	/*
 	Add a popup as a top-level widget in the Gui. If part of the popup 
@@ -331,7 +335,7 @@ private:
 };
 
 template<class T>
-inline std::shared_ptr<entt::SigH<void(bool, T)>> EditorWindow::promptConfirmation(std::string message, T userObject) {
+inline std::shared_ptr<entt::SigH<void(bool, T)>> EditorWindow::promptConfirmation(std::string message, T userObject, tgui::Widget* widgetToFocusAfter) {
 	// Don't allow 2 confirmation prompts at the same time
 	if (confirmationPanelOpen) {
 		return nullptr;
@@ -348,15 +352,23 @@ inline std::shared_ptr<entt::SigH<void(bool, T)>> EditorWindow::promptConfirmati
 		ptr->setEnabled(false);
 	}
 	
-	confirmationYes->connect("Pressed", [this, confirmationSignal, userObject]() {
+	confirmationYes->connect("Pressed", [this, confirmationSignal, userObject, widgetToFocusAfter]() {
 		confirmationSignal->publish(true, userObject);
 		confirmationSignal->sink().disconnect();
 		closeConfirmationPanel();
+
+		if (widgetToFocusAfter) {
+			widgetToFocusAfter->setFocused(true);
+		}
 	});
-	confirmationNo->connect("Pressed", [this, confirmationSignal, userObject]() {
+	confirmationNo->connect("Pressed", [this, confirmationSignal, userObject, widgetToFocusAfter]() {
 		confirmationSignal->publish(false, userObject);
 		confirmationSignal->sink().disconnect();
 		closeConfirmationPanel();
+
+		if (widgetToFocusAfter) {
+			widgetToFocusAfter->setFocused(true);
+		}
 	});
 
 	confirmationText->setText(message);

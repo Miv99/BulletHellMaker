@@ -382,7 +382,8 @@ void TabsWithPanel::createCloseButton(int index) {
 		std::string fullTabName = tabs->getText(pos); // Includes the spaces, so remove them
 		std::string closeButtonConfirmationPromptTargetTabShortenedName = fullTabName.substr(0, fullTabName.length() - tabNameAppendedSpaces.length());
 		if (closeButtons[pos].second != "") {
-			parentWindow.promptConfirmation(closeButtons[pos].second, closeButtonConfirmationPromptTargetTabShortenedName)->sink().connect<TabsWithPanel, &TabsWithPanel::onCloseButtonConfirmationPromptAnswer>(this);
+			parentWindow.promptConfirmation(closeButtons[pos].second, closeButtonConfirmationPromptTargetTabShortenedName, this)->sink()
+				.connect<TabsWithPanel, &TabsWithPanel::onCloseButtonConfirmationPromptAnswer>(this);
 		} else {
 			removeTab(closeButtonConfirmationPromptTargetTabShortenedName);
 		}

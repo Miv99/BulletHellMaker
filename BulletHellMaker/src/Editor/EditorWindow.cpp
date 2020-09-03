@@ -195,7 +195,7 @@ void EditorWindow::show() {
 	}
 }
 
-std::shared_ptr<entt::SigH<void(bool)>> EditorWindow::promptConfirmation(std::string message) {
+std::shared_ptr<entt::SigH<void(bool)>> EditorWindow::promptConfirmation(std::string message, tgui::Widget* widgetToFocusAfter) {
 	// Don't allow 2 confirmation prompts at the same time
 	if (confirmationPanelOpen) {
 		return nullptr;
@@ -212,15 +212,23 @@ std::shared_ptr<entt::SigH<void(bool)>> EditorWindow::promptConfirmation(std::st
 		ptr->setEnabled(false);
 	}
 
-	confirmationYes->connect("Pressed", [this, confirmationSignal]() {
+	confirmationYes->connect("Pressed", [this, confirmationSignal, widgetToFocusAfter]() {
 		confirmationSignal->publish(true);
 		confirmationSignal->sink().disconnect();
 		closeConfirmationPanel();
+
+		if (widgetToFocusAfter) {
+			widgetToFocusAfter->setFocused(true);
+		}
 	});
-	confirmationNo->connect("Pressed", [this, confirmationSignal]() {
+	confirmationNo->connect("Pressed", [this, confirmationSignal, widgetToFocusAfter]() {
 		confirmationSignal->publish(false);
 		confirmationSignal->sink().disconnect();
 		closeConfirmationPanel();
+
+		if (widgetToFocusAfter) {
+			widgetToFocusAfter->setFocused(true);
+		}
 	});
 
 	confirmationText->setText(message);

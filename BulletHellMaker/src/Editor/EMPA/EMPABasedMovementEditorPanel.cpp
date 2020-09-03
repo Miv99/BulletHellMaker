@@ -566,7 +566,7 @@ PasteOperationResult EMPABasedMovementEditorPanel::manualPaste2(std::shared_ptr<
 		std::vector<std::shared_ptr<EMPAction>> copiedEMPAs = derived->getActions();
 		if (copiedEMPAs.size() == selectedIndices.size()) {
 			// See "Why paste2 in LevelPackObjectsListView can't be undoable" in personal notes for explanation on why this can't be undoable
-			parentWindow.promptConfirmation("Overwrite the selected action(s) with the copied action(s)? This will reload their tabs if they are currently open.", copiedEMPAs)->sink()
+			parentWindow.promptConfirmation("Overwrite the selected action(s) with the copied action(s)? This will reload their tabs if they are currently open.", copiedEMPAs, this)->sink()
 				.connect<EMPABasedMovementEditorPanel, &EMPABasedMovementEditorPanel::onPasteIntoConfirmation>(this);
 			return PasteOperationResult(true, "");
 		} else {
