@@ -29,8 +29,7 @@ bool LevelPackObjectUseRelationshipEditor::handleEvent(sf::Event event) {
 	} else if (event.type == sf::Event::KeyPressed) {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
 			if (event.key.code == sf::Keyboard::V) {
-				clipboard.paste2(this);
-				return true;
+				return clipboard.paste2(this).success;
 			}
 		}
 	}
@@ -332,15 +331,13 @@ bool LevelPackObjectUseRelationshipListView::handleEvent(sf::Event event) {
 	if (event.type == sf::Event::KeyPressed) {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
 			if (event.key.code == sf::Keyboard::C) {
-				manualCopy();
-				return true;
+				return manualCopy().copiedObject != nullptr;
 			} else if (event.key.code == sf::Keyboard::V) {
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) {
-					manualPaste2();
+					return manualPaste2().success;
 				} else {
-					manualPaste();
+					return manualPaste().success;
 				}
-				return true;
 			}
 		}
 		if (event.key.code == sf::Keyboard::Delete) {
@@ -351,18 +348,20 @@ bool LevelPackObjectUseRelationshipListView::handleEvent(sf::Event event) {
 	return false;
 }
 
-void LevelPackObjectUseRelationshipListView::manualCopy() {
-	clipboard.copy(this);
+CopyOperationResult LevelPackObjectUseRelationshipListView::manualCopy() {
+	return clipboard.copy(this);
 }
 
-void LevelPackObjectUseRelationshipListView::manualPaste() {
-	clipboard.paste(this);
+PasteOperationResult LevelPackObjectUseRelationshipListView::manualPaste() {
+	PasteOperationResult result = clipboard.paste(this);
 	repopulateRelationships(parentRelationshipEditor.getRelationships());
+	return result;
 }
 
-void LevelPackObjectUseRelationshipListView::manualPaste2() {
-	clipboard.paste2(this);
+PasteOperationResult LevelPackObjectUseRelationshipListView::manualPaste2() {
+	PasteOperationResult result = clipboard.paste2(this);
 	repopulateRelationships(parentRelationshipEditor.getRelationships());
+	return result;
 }
 
 void LevelPackObjectUseRelationshipListView::manualDelete() {

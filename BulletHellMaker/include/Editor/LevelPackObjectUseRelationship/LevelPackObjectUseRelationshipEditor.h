@@ -37,15 +37,15 @@ public:
 	/*
 	Does the copy command on this widget.
 	*/
-	void manualCopy();
+	CopyOperationResult manualCopy();
 	/*
 	Does the paste command on this widget.
 	*/
-	void manualPaste();
+	PasteOperationResult manualPaste();
 	/*
 	Does the paste2 command on this widget.
 	*/
-	void manualPaste2();
+	PasteOperationResult manualPaste2();
 	/*
 	Does the delete command on this widget.
 	*/

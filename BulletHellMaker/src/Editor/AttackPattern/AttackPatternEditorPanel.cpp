@@ -89,8 +89,7 @@ AttackPatternEditorPanel::AttackPatternEditorPanel(MainEditorWindow& mainEditorW
 }
 
 AttackPatternEditorPanel::~AttackPatternEditorPanel() {
-	// TODO
-	//levelPack->getOnChange()->sink().disconnect<AttackEditorPanel, &AttackEditorPanel::populatePropertiesUsedByList>(this);
+	levelPack->getOnChange()->sink().disconnect<AttackPatternEditorPanel, &AttackPatternEditorPanel::onLevelPackChange>(this);
 	mainEditorWindow.getGui()->remove(symbolTableEditorWindow);
 }
 
