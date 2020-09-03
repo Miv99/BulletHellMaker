@@ -171,6 +171,8 @@ void EMPAListVisualizer::updateEvaluatorResult() {
 	auto it = std::lower_bound(empaActiveTime.begin(), empaActiveTime.end(), time);
 	if (it == empaActiveTime.begin()) {
 		evaluatorResult->setText(format("Result: (%.3f, %.3f)", startX, startY));
+		evaluatorCircle.setPosition(sf::Vector2f(startX, -startY));
+		evaluatorCircle.setRadius(EVALUATOR_CIRCLE_RADIUS);
 	} else {
 		it--;
 		int index = it - empaActiveTime.begin();
