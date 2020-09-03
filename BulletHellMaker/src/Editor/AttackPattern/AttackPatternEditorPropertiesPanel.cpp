@@ -80,17 +80,17 @@ AttackPatternEditorPropertiesPanel::AttackPatternEditorPropertiesPanel(MainEdito
 	});
 }
 
-std::pair<std::shared_ptr<CopiedObject>, std::string> AttackPatternEditorPropertiesPanel::copyFrom() {
+CopyOperationResult AttackPatternEditorPropertiesPanel::copyFrom() {
 	// Can't copy from this widget
-	return std::make_pair(nullptr, "");
+	return CopyOperationResult(nullptr, "");
 }
 
-std::string AttackPatternEditorPropertiesPanel::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult AttackPatternEditorPropertiesPanel::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
 	// Same thing as paste2Into
 	return paste2Into(pastedObject);
 }
 
-std::string AttackPatternEditorPropertiesPanel::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult AttackPatternEditorPropertiesPanel::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 	// Paste the first copied EditorAttack to override attack's properties
 	auto derived = std::static_pointer_cast<CopiedLevelPackObject>(pastedObject);
 	if (derived) {
@@ -101,11 +101,12 @@ std::string AttackPatternEditorPropertiesPanel::paste2Into(std::shared_ptr<Copie
 			CopiedAttackPatternProperties newProperties(newName, newAttacks);
 			mainEditorWindow.promptConfirmation("Overwrite this attack pattern's properties with the copied attack's properties?", newProperties)->sink()
 				.connect<AttackPatternEditorPropertiesPanel, &AttackPatternEditorPropertiesPanel::onPasteIntoConfirmation>(this);
+			return PasteOperationResult(true, "");
 		} else {
-			return "Cannot overwrite this attack pattern's properties when copying more than one attack pattern.";
+			return PasteOperationResult(false, "Cannot overwrite this attack pattern's properties when copying more than one attack pattern.");
 		}
 	}
-	return "";
+	return PasteOperationResult(false, "Type mismatch");
 }
 
 bool AttackPatternEditorPropertiesPanel::handleEvent(sf::Event event) {

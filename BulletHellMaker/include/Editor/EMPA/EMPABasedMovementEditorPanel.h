@@ -22,17 +22,17 @@ public:
 		return std::make_shared<EditorMovablePointActionsListView>(empaBasedMovementEditorPanel, clipboard, undoStackSize);
 	}
 
-	std::pair<std::shared_ptr<CopiedObject>, std::string> copyFrom() override;
-	std::string pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
-	std::string paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
+	CopyOperationResult copyFrom() override;
+	PasteOperationResult pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
+	PasteOperationResult paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
 
 	bool handleEvent(sf::Event event) override;
 
 	UndoStack& getUndoStack();
 
-	void manualCopy();
-	void manualPaste();
-	void manualPaste2();
+	CopyOperationResult manualCopy();
+	PasteOperationResult manualPaste();
+	PasteOperationResult manualPaste2();
 
 private:
 	EMPABasedMovementEditorPanel& empaBasedMovementEditorPanel;
@@ -153,15 +153,15 @@ public:
 	/*
 	Does the copy command depending on what is selected in the EditorMovablePointActionsListView.
 	*/
-	std::pair<std::shared_ptr<CopiedObject>, std::string> manualCopy();
+	CopyOperationResult manualCopy();
 	/*
 	Does the paste command depending on what is selected in the EditorMovablePointActionsListView.
 	*/
-	std::string manualPaste(std::shared_ptr<CopiedObject> pastedObject);
+	PasteOperationResult manualPaste(std::shared_ptr<CopiedObject> pastedObject);
 	/*
 	Does the paste2 command depending on what is selected in the EditorMovablePointActionsListView.
 	*/
-	std::string manualPaste2(std::shared_ptr<CopiedObject> pastedObject);
+	PasteOperationResult manualPaste2(std::shared_ptr<CopiedObject> pastedObject);
 	/*
 	Opens a new EMPA tab for the EMPA at some index in actions.
 	*/

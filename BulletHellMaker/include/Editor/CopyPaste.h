@@ -22,6 +22,26 @@ private:
 	std::string copiedFromID;
 };
 
+struct CopyOperationResult {
+	CopyOperationResult(std::shared_ptr<CopiedObject> copiedObject, std::string description) {
+		this->copiedObject = copiedObject;
+		this->description = description;
+	}
+
+	std::shared_ptr<CopiedObject> copiedObject;
+	std::string description;
+};
+
+struct PasteOperationResult {
+	PasteOperationResult(bool success, std::string description) {
+		this->success = success;
+		this->description = description;
+	}
+
+	bool success;
+	std::string description;
+};
+
 class CopyPasteable {
 public:
 	/*
@@ -31,18 +51,18 @@ public:
 	CopyPasteable(std::string id);
 
 	/*
-	Returns the copied object and a string describing the operationr result.
+	Returns the operation result.
 	*/
-	virtual std::pair<std::shared_ptr<CopiedObject>, std::string> copyFrom() = 0;
+	virtual CopyOperationResult copyFrom() = 0;
 	/*
-	Returns a string describing the operation result.
+	Returns the operation result.
 	*/
-	virtual std::string pasteInto(std::shared_ptr<CopiedObject> pastedObject) = 0;
+	virtual PasteOperationResult pasteInto(std::shared_ptr<CopiedObject> pastedObject) = 0;
 	/*
 	Same thing as pasteInto(), but for if there needs to be some alternate
 	paste functionality.
 	*/
-	virtual std::string paste2Into(std::shared_ptr<CopiedObject> pastedObject) = 0;
+	virtual PasteOperationResult paste2Into(std::shared_ptr<CopiedObject> pastedObject) = 0;
 
 	std::string getID();
 
@@ -54,16 +74,16 @@ class Clipboard {
 public:
 	Clipboard();
 
-	void copy(std::shared_ptr<CopyPasteable> source);
-	void paste(std::shared_ptr<CopyPasteable> target);
+	CopyOperationResult copy(std::shared_ptr<CopyPasteable> source);
+	PasteOperationResult paste(std::shared_ptr<CopyPasteable> target);
 	/*
 	Alternate paste functionality.
 	*/
-	void paste2(std::shared_ptr<CopyPasteable> target);
+	PasteOperationResult paste2(std::shared_ptr<CopyPasteable> target);
 
-	void copy(CopyPasteable* source);
-	void paste(CopyPasteable* target);
-	void paste2(CopyPasteable* target);
+	CopyOperationResult copy(CopyPasteable* source);
+	PasteOperationResult paste(CopyPasteable* target);
+	PasteOperationResult paste2(CopyPasteable* target);
 
 	void clear();
 

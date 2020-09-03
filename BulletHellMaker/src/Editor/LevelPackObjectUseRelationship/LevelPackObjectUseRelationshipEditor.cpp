@@ -37,12 +37,12 @@ bool LevelPackObjectUseRelationshipEditor::handleEvent(sf::Event event) {
 	return false;
 }
 
-std::pair<std::shared_ptr<CopiedObject>, std::string> LevelPackObjectUseRelationshipEditor::copyFrom() {
+CopyOperationResult LevelPackObjectUseRelationshipEditor::copyFrom() {
 	// Can't copy from this widget
-	return std::make_pair(nullptr, "");
+	return CopyOperationResult(nullptr, "");
 }
 
-std::string LevelPackObjectUseRelationshipEditor::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult LevelPackObjectUseRelationshipEditor::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
 	// Default to paste2
 	return paste2Into(pastedObject);
 }

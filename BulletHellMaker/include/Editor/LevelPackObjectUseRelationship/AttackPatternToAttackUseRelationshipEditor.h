@@ -29,9 +29,9 @@ public:
 		return std::make_shared<AttackPatternToAttackUseRelationshipListView>(mainEditorWindow, clipboard, undoStack, parentRelationshipEditor);
 	}
 
-	std::pair<std::shared_ptr<CopiedObject>, std::string> copyFrom() override;
-	std::string pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
-	std::string paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
+	CopyOperationResult copyFrom() override;
+	PasteOperationResult pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
+	PasteOperationResult paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
 
 private:
 	std::string getRelationshipListViewText(std::shared_ptr<LevelPackObjectUseRelationship> relationship) override;
@@ -55,7 +55,7 @@ public:
 		return std::make_shared<AttackPatternToAttackUseRelationshipEditor>(mainEditorWindow, clipboard, undoStack, initialRelationshipsData);
 	}
 
-	std::string paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
+	PasteOperationResult paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
 
 	tgui::Signal& getSignal(std::string signalName) override;
 

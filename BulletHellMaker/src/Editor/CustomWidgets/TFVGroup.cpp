@@ -400,37 +400,41 @@ a start time of t=0."));
 	deselectSegment();
 }
 
-std::pair<std::shared_ptr<CopiedObject>, std::string> TFVGroup::copyFrom() {
+CopyOperationResult TFVGroup::copyFrom() {
 	if (selectedSegment) {
 		float startTime = tfv->getSegment(selectedSegmentIndex).first;
-		return std::make_pair(std::make_shared<CopiedPiecewiseTFVSegment>(getID(), std::make_pair(startTime, selectedSegment)), "Copied 1 time-function variable segment");
+		return CopyOperationResult(std::make_shared<CopiedPiecewiseTFVSegment>(getID(), std::make_pair(startTime, selectedSegment)), "Copied 1 time-function variable segment");
 	}
-	return std::make_pair(nullptr, "");
+	return CopyOperationResult(nullptr, "");
 }
 
-std::string TFVGroup::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult TFVGroup::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
 	auto derived = std::static_pointer_cast<CopiedPiecewiseTFVSegment>(pastedObject);
 	if (derived) {
 		selectSegment(tfv->insertSegment(derived->getSegment(), tfvLifespan));
 		onValueChange.emit(this, std::make_pair(oldTFV, tfv));
 
-		return "Pasted 1 time-function variable segment";
+		return PasteOperationResult(true, "Pasted 1 time-function variable segment");
 	}
-	return "";
+	return PasteOperationResult(false, "Type mismatch");
 }
 
-std::string TFVGroup::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult TFVGroup::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 	auto derived = std::static_pointer_cast<CopiedPiecewiseTFVSegment>(pastedObject);
-	if (derived && selectedSegment) {
+	if (derived) {
+		if (!selectedSegment) {
+			return PasteOperationResult(false, "No item selected");
+		}
+
 		auto pasted = derived->getSegment();
 		tfv->changeSegment(selectedSegmentIndex, pasted.second, tfvLifespan);
 		// Change segment start time second because it may change the segment's index
 		selectSegment(tfv->changeSegmentStartTime(selectedSegmentIndex, pasted.first, tfvLifespan));
 		onValueChange.emit(this, std::make_pair(oldTFV, tfv));
 
-		return "Replaced 1 time-function variable segment";
+		return PasteOperationResult(true, "Replaced 1 time-function variable segment");
 	}
-	return "";
+	return PasteOperationResult(false, "Type mismatch");
 }
 
 bool TFVGroup::handleEvent(sf::Event event) {

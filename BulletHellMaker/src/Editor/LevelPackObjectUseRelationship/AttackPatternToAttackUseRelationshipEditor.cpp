@@ -29,17 +29,17 @@ AttackPatternToAttackUseRelationshipListView::AttackPatternToAttackUseRelationsh
 	: LevelPackObjectUseRelationshipListView(mainEditorWindow, clipboard, undoStack, parentRelationshipEditor, ATTACK_PATTERN_TO_ATTACK_USE_RELATIONSHIP_COPY_PASTE_ID) {
 }
 
-std::pair<std::shared_ptr<CopiedObject>, std::string> AttackPatternToAttackUseRelationshipListView::copyFrom() {
+CopyOperationResult AttackPatternToAttackUseRelationshipListView::copyFrom() {
 	auto selectedIndices = getListView()->getSelectedItemIndices();
 	if (selectedIndices.size() > 0) {
-		return std::make_pair(std::make_shared<CopiedAttackPatternToAttackUseRelationship>(getID(), 
+		return CopyOperationResult(std::make_shared<CopiedAttackPatternToAttackUseRelationship>(getID(),
 			AttackPatternToAttackUseRelationship::convertRelationshipVectorToDataVector(parentRelationshipEditor.getRelationshipsSubset(selectedIndices))),
 			"Copied " + std::to_string(selectedIndices.size()) + " attack pattern to attack relationships");
 	}
-	return std::make_pair(nullptr, "");
+	return CopyOperationResult(nullptr, "");
 }
 
-std::string AttackPatternToAttackUseRelationshipListView::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult AttackPatternToAttackUseRelationshipListView::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
 	auto derived = std::static_pointer_cast<CopiedAttackPatternToAttackUseRelationship>(pastedObject);
 	if (derived) {
 		std::set<size_t> curSelectedIndices = getListView()->getSelectedItemIndices();
@@ -76,15 +76,15 @@ std::string AttackPatternToAttackUseRelationshipListView::pasteInto(std::shared_
 		}));
 
 		if (numPasted == 1) {
-			return "Pasted 1 attack pattern to attack relationship";
+			return PasteOperationResult(true, "Pasted 1 attack pattern to attack relationship");
 		} else {
-			return "Pasted " + std::to_string(numPasted) + " attack pattern to attack relationships";
+			return PasteOperationResult(true, "Pasted " + std::to_string(numPasted) + " attack pattern to attack relationships");
 		}
 	}
-	return "";
+	return PasteOperationResult(false, "Type mismatch");
 }
 
-std::string AttackPatternToAttackUseRelationshipListView::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult AttackPatternToAttackUseRelationshipListView::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 	std::set<size_t> selectedIndices = getListView()->getSelectedItemIndices();
 	auto derived = std::static_pointer_cast<CopiedAttackPatternToAttackUseRelationship>(pastedObject);
 	if (selectedIndices.size() > 0 && derived) {
@@ -93,6 +93,7 @@ std::string AttackPatternToAttackUseRelationshipListView::paste2Into(std::shared
 			// See "Why paste2 in LevelPackObjectsListView can't be undoable" in personal notes for explanation on why this can't be undoable (not the same thing but similar logic)
 			mainEditorWindow.promptConfirmation("Overwrite the selected relationship(s) with the copied relationship(s)? This will reload the relationship editor if it is editing a selected relationship.", 
 				copiedRelationships)->sink().connect<AttackPatternToAttackUseRelationshipListView, &AttackPatternToAttackUseRelationshipListView::onPasteIntoConfirmation>(this);
+			return PasteOperationResult(true, "");
 		} else {
 			std::string s1;
 			if (copiedRelationships.size() == 1) {
@@ -106,10 +107,10 @@ std::string AttackPatternToAttackUseRelationshipListView::paste2Into(std::shared
 			} else {
 				s2 = std::to_string(selectedIndices.size()) + " are";
 			}
-			return "Size mismatch. " + s1 + " copied but " + s2 + " selected";
+			return PasteOperationResult(false, "Size mismatch. " + s1 + " copied but " + s2 + " selected");
 		}
 	}
-	return "";
+	return PasteOperationResult(false, "Type mismatch");
 }
 
 std::string AttackPatternToAttackUseRelationshipListView::getRelationshipListViewText(std::shared_ptr<LevelPackObjectUseRelationship> relationship) {
@@ -283,7 +284,7 @@ if it is modified with the intention of changing only one attack pattern's behav
 	insertRelationships(0, AttackPatternToAttackUseRelationship::convertDataVectorToRelationshipVector(initialRelationshipsData));
 }
 
-std::string AttackPatternToAttackUseRelationshipEditor::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult AttackPatternToAttackUseRelationshipEditor::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 	auto derived = std::static_pointer_cast<CopiedAttackPatternToAttackUseRelationship>(pastedObject);
 	if (derived) {
 		std::vector<std::tuple<std::string, int, ExprSymbolTable>> copiedRelationships = derived->getRelationships();
@@ -291,11 +292,12 @@ std::string AttackPatternToAttackUseRelationshipEditor::paste2Into(std::shared_p
 			// See "Why paste2 in LevelPackObjectsListView can't be undoable" in personal notes for explanation on why this can't be undoable (not the same thing but similar logic)
 			mainEditorWindow.promptConfirmation("Overwrite the currently open relationship with the copied relationship?",
 				copiedRelationships)->sink().connect<AttackPatternToAttackUseRelationshipEditor, &AttackPatternToAttackUseRelationshipEditor::onPasteIntoConfirmation>(this);
+			return PasteOperationResult(true, "");
 		} else {
-			return "Cannot overwrite this relationship's properties when copying more than one attack pattern to attack relationship.";
+			return PasteOperationResult(false, "Cannot overwrite this relationship's properties when copying more than one attack pattern to attack relationship.");
 		}
 	}
-	return "";
+	return PasteOperationResult(false, "Type mismatch");
 }
 
 tgui::Signal& AttackPatternToAttackUseRelationshipEditor::getSignal(std::string signalName) {

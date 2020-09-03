@@ -26,15 +26,15 @@ attack(attack), undoStack(UndoStack(undoStackSize)) {
 	add(empsTreeView);
 }
 
-std::pair<std::shared_ptr<CopiedObject>, std::string> EditorMovablePointTreePanel::copyFrom() {
+CopyOperationResult EditorMovablePointTreePanel::copyFrom() {
 	auto selected = empsTreeView->getSelectedItem();
 	if (selected.size() > 0) {
-		return std::make_pair(std::make_shared<CopiedEditorMovablePoint>(getID(), attack->searchEMP(parentAttackEditorPanel.getEMPIDFromTreeViewText(selected[selected.size() - 1]))), "Copied 1 movable point");
+		return CopyOperationResult(std::make_shared<CopiedEditorMovablePoint>(getID(), attack->searchEMP(parentAttackEditorPanel.getEMPIDFromTreeViewText(selected[selected.size() - 1]))), "Copied 1 movable point");
 	}
-	return std::make_pair(nullptr, "");
+	return CopyOperationResult(nullptr, "");
 }
 
-std::string EditorMovablePointTreePanel::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult EditorMovablePointTreePanel::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
 	auto derived = std::static_pointer_cast<CopiedEditorMovablePoint>(pastedObject);
 	if (derived) {
 		auto selected = empsTreeView->getSelectedItem();
@@ -61,13 +61,13 @@ std::string EditorMovablePointTreePanel::pasteInto(std::shared_ptr<CopiedObject>
 				}
 			}));
 
-			return "Pasted 1 movable point";
+			return PasteOperationResult(true, "Pasted 1 movable point");
 		}
 	}
-	return "";
+	return PasteOperationResult(false, "Type mismatch");
 }
 
-std::string EditorMovablePointTreePanel::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult EditorMovablePointTreePanel::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 	auto derived = std::static_pointer_cast<CopiedEditorMovablePoint>(pastedObject);
 	if (derived) {
 		auto selected = empsTreeView->getSelectedItem();
@@ -108,10 +108,10 @@ std::string EditorMovablePointTreePanel::paste2Into(std::shared_ptr<CopiedObject
 				}
 			}));
 
-			return "Replaced 1 movable point";
+			return PasteOperationResult(true, "Replaced 1 movable point");
 		}
 	}
-	return "";
+	return PasteOperationResult(false, "Type mismatch");
 }
 
 bool EditorMovablePointTreePanel::handleEvent(sf::Event event) {

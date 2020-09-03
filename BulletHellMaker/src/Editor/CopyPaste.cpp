@@ -19,42 +19,47 @@ Clipboard::Clipboard() {
 	onPaste = std::make_shared<entt::SigH<void(std::string)>>();
 }
 
-void Clipboard::copy(std::shared_ptr<CopyPasteable> source) {
-	copy(source.get());
+CopyOperationResult Clipboard::copy(std::shared_ptr<CopyPasteable> source) {
+	return copy(source.get());
 }
 
-void Clipboard::paste(std::shared_ptr<CopyPasteable> target) {
-	paste(target.get());
+PasteOperationResult Clipboard::paste(std::shared_ptr<CopyPasteable> target) {
+	return paste(target.get());
 }
 
-void Clipboard::paste2(std::shared_ptr<CopyPasteable> target) {
-	paste2(target.get());
+PasteOperationResult Clipboard::paste2(std::shared_ptr<CopyPasteable> target) {
+	return paste2(target.get());
 }
 
-void Clipboard::copy(CopyPasteable * source) {
-	auto result = source->copyFrom();
-	copied = result.first;
-	if (result.second != "") {
-		onCopy->publish(result.second);
+CopyOperationResult Clipboard::copy(CopyPasteable * source) {
+	CopyOperationResult result = source->copyFrom();
+	copied = result.copiedObject;
+	if (result.description != "") {
+		onCopy->publish(result.description);
 	}
+	return result;
 }
 
-void Clipboard::paste(CopyPasteable * target) {
+PasteOperationResult Clipboard::paste(CopyPasteable * target) {
 	if (copied && copied->getCopiedFromID() == target->getID()) {
-		std::string result = target->pasteInto(copied);
-		if (result != "") {
-			onPaste->publish(result);
+		PasteOperationResult result = target->pasteInto(copied);
+		if (result.description != "") {
+			onPaste->publish(result.description);
 		}
+		return result;
 	}
+	return PasteOperationResult(false, "");
 }
 
-void Clipboard::paste2(CopyPasteable * target) {
+PasteOperationResult Clipboard::paste2(CopyPasteable * target) {
 	if (copied && copied->getCopiedFromID() == target->getID()) {
-		std::string result = target->paste2Into(copied);
-		if (result != "") {
-			onPaste->publish(result);
+		PasteOperationResult result = target->paste2Into(copied);
+		if (result.description != "") {
+			onPaste->publish(result.description);
 		}
+		return result;
 	}
+	return PasteOperationResult(false, "");
 }
 
 void Clipboard::clear() {

@@ -65,17 +65,17 @@ AttackEditorPropertiesPanel::AttackEditorPropertiesPanel(MainEditorWindow& mainE
 	add(usedBy);
 }
 
-std::pair<std::shared_ptr<CopiedObject>, std::string> AttackEditorPropertiesPanel::copyFrom() {
+CopyOperationResult AttackEditorPropertiesPanel::copyFrom() {
 	// Can't copy this widget
-	return std::make_pair(nullptr, "");
+	return CopyOperationResult(nullptr, "");
 }
 
-std::string AttackEditorPropertiesPanel::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult AttackEditorPropertiesPanel::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
 	// Same functionality as paste2Into()
 	return paste2Into(pastedObject);
 }
 
-std::string AttackEditorPropertiesPanel::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult AttackEditorPropertiesPanel::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 	// Paste the first copied EditorAttack to override attack's properties
 	auto derived = std::static_pointer_cast<CopiedLevelPackObject>(pastedObject);
 	if (derived) {
@@ -83,11 +83,12 @@ std::string AttackEditorPropertiesPanel::paste2Into(std::shared_ptr<CopiedObject
 			std::string newName = derived->getLevelPackObjects()[0]->getName();
 			mainEditorWindow.promptConfirmation("Overwrite this attack's properties with the copied attack's properties?", newName)->sink()
 				.connect<AttackEditorPropertiesPanel, &AttackEditorPropertiesPanel::onPasteIntoConfirmation>(this);
+			return PasteOperationResult(true, "");
 		} else {
-			return "Cannot overwrite this attack's properties when copying more than one attack.";
+			return PasteOperationResult(false, "Cannot overwrite this attack's properties when copying more than one attack.");
 		}
 	}
-	return "";
+	return PasteOperationResult(false, "Type mismatch");
 }
 
 bool AttackEditorPropertiesPanel::handleEvent(sf::Event event) {

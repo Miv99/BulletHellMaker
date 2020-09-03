@@ -20,9 +20,9 @@ public:
 	*/
 	LevelPackObjectsListView(std::string copyPasteableID, MainEditorWindow& mainEditorWindow, Clipboard& clipboard, int undoStackSize = 50);
 
-	std::pair<std::shared_ptr<CopiedObject>, std::string> copyFrom() override;
-	std::string pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
-	std::string paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
+	CopyOperationResult copyFrom() override;
+	PasteOperationResult pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
+	PasteOperationResult paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
 
 	bool handleEvent(sf::Event event) override;
 

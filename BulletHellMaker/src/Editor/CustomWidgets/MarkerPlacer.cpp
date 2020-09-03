@@ -723,39 +723,43 @@ void MarkerPlacer::addExtraColumnWidget(std::shared_ptr<tgui::Widget> widget, fl
 	bottomRightMostExtraWidget = widget;
 }
 
-std::pair<std::shared_ptr<CopiedObject>, std::string> MarkerPlacer::copyFrom() {
+CopyOperationResult MarkerPlacer::copyFrom() {
 	if (selectedMarkerIndex > 0) {
-		return std::make_pair(std::make_shared<CopiedMarker>(getID(), markers[selectedMarkerIndex]), "Copied 1 marker");
+		return CopyOperationResult(std::make_shared<CopiedMarker>(getID(), markers[selectedMarkerIndex]), "Copied 1 marker");
 	}
-	return std::make_pair(nullptr, "");
+	return CopyOperationResult(nullptr, "");
 }
 
-std::string MarkerPlacer::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult MarkerPlacer::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
 	std::shared_ptr<CopiedMarker> derived = std::static_pointer_cast<CopiedMarker>(pastedObject);
 	if (derived) {
 		sf::CircleShape marker = derived->getMarker();
 		int index = this->selectedMarkerIndex;
 		undoStack.execute(UndoableCommand(
 			[this, marker, index]() {
-			// Negate y because insertMarker() negates y already
-			if (index == -1) {
-				insertMarker(markers.size(), sf::Vector2f(marker.getPosition().x, -marker.getPosition().y), addButtonMarkerColor);
-			} else {
-				insertMarker(index, sf::Vector2f(marker.getPosition().x, -marker.getPosition().y), addButtonMarkerColor);
-			}
-		},
+				// Negate y because insertMarker() negates y already
+				if (index == -1) {
+					insertMarker(markers.size(), sf::Vector2f(marker.getPosition().x, -marker.getPosition().y), addButtonMarkerColor);
+				} else {
+					insertMarker(index, sf::Vector2f(marker.getPosition().x, -marker.getPosition().y), addButtonMarkerColor);
+				}
+			},
 			[this, marker, index]() {
-			removeMarker(index);
+				removeMarker(index);
 		}));
 
-		return "Pasted 1 marker";
+		return PasteOperationResult(true, "Pasted 1 marker");
 	}
-	return "";
+	return PasteOperationResult(false, "Type mismatch");
 }
 
-std::string MarkerPlacer::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult MarkerPlacer::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 	std::shared_ptr<CopiedMarker> derived = std::static_pointer_cast<CopiedMarker>(pastedObject);
-	if (derived && selectedMarkerIndex != -1) {
+	if (derived) {
+		if (selectedMarkerIndex == -1) {
+			return PasteOperationResult(false, "No item selected");
+		}
+
 		sf::CircleShape marker = derived->getMarker();
 		sf::CircleShape oldMarker = markers[selectedMarkerIndex];
 		int index = this->selectedMarkerIndex;
@@ -769,9 +773,9 @@ std::string MarkerPlacer::paste2Into(std::shared_ptr<CopiedObject> pastedObject)
 			updateMarkersListView();
 		}));
 
-		return "Replaced 1 marker";
+		return PasteOperationResult(true, "Replaced 1 marker");
 	}
-	return "";
+	return PasteOperationResult(false, "Type mismatch");
 }
 
 void MarkerPlacer::draw(sf::RenderTarget& target, sf::RenderStates states) const {

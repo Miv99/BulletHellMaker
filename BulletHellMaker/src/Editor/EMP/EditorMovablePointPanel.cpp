@@ -1278,17 +1278,17 @@ EditorMovablePointPanel::~EditorMovablePointPanel() {
 	mainEditorWindow.getGui()->remove(symbolTableEditorWindow);
 }
 
-std::pair<std::shared_ptr<CopiedObject>, std::string> EditorMovablePointPanel::copyFrom() {
+CopyOperationResult EditorMovablePointPanel::copyFrom() {
 	// Can't copy this widget
-	return std::make_pair(nullptr, "");
+	return CopyOperationResult(nullptr, "");
 }
 
-std::string EditorMovablePointPanel::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult EditorMovablePointPanel::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
 	// Same functionality as paste2Into()
 	return paste2Into(pastedObject);
 }
 
-std::string EditorMovablePointPanel::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult EditorMovablePointPanel::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 	// Paste the first copied EditorMovablePoint to override emp's properties
 	auto derived = std::static_pointer_cast<CopiedEditorMovablePoint>(pastedObject);
 	if (derived) {
@@ -1296,8 +1296,9 @@ std::string EditorMovablePointPanel::paste2Into(std::shared_ptr<CopiedObject> pa
 
 		mainEditorWindow.promptConfirmation("Overwrite this movable point's properties with the copied movable point's properties? This will not change this movable point's children.", copiedEMP)->sink()
 			.connect<EditorMovablePointPanel, &EditorMovablePointPanel::onPasteIntoConfirmation>(this);
+		return PasteOperationResult(true, "");
 	}
-	return "";
+	return PasteOperationResult(false, "Type mismatch");
 }
 
 bool EditorMovablePointPanel::handleEvent(sf::Event event) {

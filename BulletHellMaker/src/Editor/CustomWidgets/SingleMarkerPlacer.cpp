@@ -7,9 +7,9 @@ SingleMarkerPlacer::SingleMarkerPlacer(sf::RenderWindow& parentWindow, Clipboard
 	setMarkers({ std::make_pair(sf::Vector2f(0, 0), sf::Color::Red) });
 }
 
-std::string SingleMarkerPlacer::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult SingleMarkerPlacer::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
 	// Disable marker paste
-	return "";
+	return PasteOperationResult(false, "");
 }
 
 void SingleMarkerPlacer::manualDelete() {

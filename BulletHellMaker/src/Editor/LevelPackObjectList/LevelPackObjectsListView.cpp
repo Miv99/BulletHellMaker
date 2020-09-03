@@ -11,7 +11,7 @@ CopyPasteable(copyPasteableID), levelPack(nullptr), mainEditorWindow(mainEditorW
 	getListView()->setMultiSelect(true);
 }
 
-std::pair<std::shared_ptr<CopiedObject>, std::string> LevelPackObjectsListView::copyFrom() {
+CopyOperationResult LevelPackObjectsListView::copyFrom() {
 	// Copy every selected object
 	std::set<size_t> selectedIndices = listView->getSelectedItemIndices();
 	if (selectedIndices.size() > 0) {
@@ -33,13 +33,13 @@ std::pair<std::shared_ptr<CopiedObject>, std::string> LevelPackObjectsListView::
 		} else {
 			copyMessage = "Copied " + std::to_string(selectedIndices.size()) + " " + getLevelPackObjectDisplayName() + "s";
 		}
-		return std::make_pair(std::make_shared<CopiedLevelPackObject>(getID(), objs), "Copied " + std::to_string(selectedIndices.size()) + " " + getLevelPackObjectDisplayName() + "(s)");
+		return CopyOperationResult(std::make_shared<CopiedLevelPackObject>(getID(), objs), "Copied " + std::to_string(selectedIndices.size()) + " " + getLevelPackObjectDisplayName() + "(s)");
 	}
-	return std::make_pair(nullptr, "");
+	return CopyOperationResult(nullptr, "");
 }
 
 
-std::string LevelPackObjectsListView::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult LevelPackObjectsListView::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
 	// Create some new LevelPackObjects as clones of the copied LevelPackObjects
 
 	auto derived = std::static_pointer_cast<CopiedLevelPackObject>(pastedObject);
@@ -76,15 +76,15 @@ std::string LevelPackObjectsListView::pasteInto(std::shared_ptr<CopiedObject> pa
 		}
 
 		if (derived->getLevelPackObjectsCount() == 1) {
-			return "Pasted 1 " + getLevelPackObjectDisplayName();
+			return PasteOperationResult(true, "Pasted 1 " + getLevelPackObjectDisplayName());
 		} else {
-			return "Pasted " + std::to_string(derived->getLevelPackObjectsCount()) + " " + getLevelPackObjectDisplayName() + "s";
+			return PasteOperationResult(true, "Pasted " + std::to_string(derived->getLevelPackObjectsCount()) + " " + getLevelPackObjectDisplayName() + "s");
 		}
 	}
-	return "";
+	return PasteOperationResult(false, "Type mismatch");
 }
 
-std::string LevelPackObjectsListView::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult LevelPackObjectsListView::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 	// Paste the new LevelPackObjects such that they overwrite the selected LevelPackObjects
 
 	std::set<size_t> selectedIndices = listView->getSelectedItemIndices();
@@ -109,6 +109,7 @@ std::string LevelPackObjectsListView::paste2Into(std::shared_ptr<CopiedObject> p
 			// See "Why paste2 in LevelPackObjectsListView can't be undoable" in personal notes for explanation on why this can't be undoable
 			mainEditorWindow.promptConfirmation(getPasteIntoConfirmationPrompt(), newObjects)->sink()
 				.connect<LevelPackObjectsListView, &LevelPackObjectsListView::onPasteIntoConfirmation>(this);
+			return PasteOperationResult(true, "");
 		} else {
 			std::string s1;
 			if (copiedObjs.size() == 1) {
@@ -122,10 +123,10 @@ std::string LevelPackObjectsListView::paste2Into(std::shared_ptr<CopiedObject> p
 			} else {
 				s2 = std::to_string(selectedIndices.size()) + " are";
 			}
-			return "Size mismatch. " + s1 + " copied but " + s2 + " selected";
+			return PasteOperationResult(false, "Size mismatch. " + s1 + " copied but " + s2 + " selected");
 		}
 	}
-	return "";
+	return PasteOperationResult(false, "Type mismatch");
 }
 
 bool LevelPackObjectsListView::handleEvent(sf::Event event) {
@@ -336,11 +337,11 @@ std::map<int, std::shared_ptr<LevelPackObject>>& AttacksListView::getUnsavedLeve
 }
 
 void AttacksListView::updateLevelPackObjectInLevelPack(std::shared_ptr<LevelPackObject> obj) {
-	levelPack->updateAttack(std::dynamic_pointer_cast<EditorAttack>(obj));
+	mainEditorWindow.updateAttack(std::dynamic_pointer_cast<EditorAttack>(obj));
 }
 
 void AttacksListView::deleteLevelPackObjectInLevelPack(int id) {
-	levelPack->deleteAttack(id);
+	mainEditorWindow.deleteAttack(id);
 	reloadLevelPackObjectTabInMainEditorWindow(id);
 }
 
@@ -484,11 +485,11 @@ std::map<int, std::shared_ptr<LevelPackObject>>& AttackPatternsListView::getUnsa
 }
 
 void AttackPatternsListView::updateLevelPackObjectInLevelPack(std::shared_ptr<LevelPackObject> obj) {
-	levelPack->updateAttackPattern(std::dynamic_pointer_cast<EditorAttackPattern>(obj));
+	mainEditorWindow.updateAttackPattern(std::dynamic_pointer_cast<EditorAttackPattern>(obj));
 }
 
 void AttackPatternsListView::deleteLevelPackObjectInLevelPack(int id) {
-	levelPack->deleteAttackPattern(id);
+	mainEditorWindow.deleteAttackPattern(id);
 	reloadLevelPackObjectTabInMainEditorWindow(id);
 }
 

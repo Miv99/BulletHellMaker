@@ -65,14 +65,14 @@ BezierControlPointsPlacer::BezierControlPointsPlacer(sf::RenderWindow& parentWin
 	addExtraRowWidget(cycleMovementPathPrimitiveTypeButton, GUI_LABEL_PADDING_Y);
 }
 
-std::string BezierControlPointsPlacer::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
-	std::string result = MarkerPlacer::pasteInto(pastedObject);
+PasteOperationResult BezierControlPointsPlacer::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+	PasteOperationResult result = MarkerPlacer::pasteInto(pastedObject);
 	updatePath();
 	return result;
 }
 
-std::string BezierControlPointsPlacer::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
-	std::string result = MarkerPlacer::paste2Into(pastedObject);
+PasteOperationResult BezierControlPointsPlacer::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+	PasteOperationResult result = MarkerPlacer::paste2Into(pastedObject);
 	updatePath();
 	return result;
 }

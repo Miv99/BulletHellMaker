@@ -24,9 +24,9 @@ public:
 		return std::make_shared<MarkerPlacer>(parentWindow, clipboard, resolution, undoStackSize);
 	}
 
-	virtual std::pair<std::shared_ptr<CopiedObject>, std::string> copyFrom() override;
-	virtual std::string pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
-	virtual std::string paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
+	virtual CopyOperationResult copyFrom() override;
+	virtual PasteOperationResult pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
+	virtual PasteOperationResult paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
 
 	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 	bool update(sf::Time elapsedTime) override;

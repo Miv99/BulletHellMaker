@@ -11,7 +11,7 @@ public:
 		return std::make_shared<SingleMarkerPlacer>(parentWindow, clipboard, resolution, undoStackSize);
 	}
 
-	std::string pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
+	PasteOperationResult pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
 
 protected:
 	void manualDelete() override;

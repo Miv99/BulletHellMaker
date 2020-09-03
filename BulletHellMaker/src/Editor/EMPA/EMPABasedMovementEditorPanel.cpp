@@ -14,15 +14,15 @@ EditorMovablePointActionsListView::EditorMovablePointActionsListView(EMPABasedMo
 	getListView()->setMultiSelect(true);
 }
 
-std::pair<std::shared_ptr<CopiedObject>, std::string> EditorMovablePointActionsListView::copyFrom() {
+CopyOperationResult EditorMovablePointActionsListView::copyFrom() {
 	return empaBasedMovementEditorPanel.manualCopy();
 }
 
-std::string EditorMovablePointActionsListView::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult EditorMovablePointActionsListView::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
 	return empaBasedMovementEditorPanel.manualPaste(pastedObject);
 }
 
-std::string EditorMovablePointActionsListView::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult EditorMovablePointActionsListView::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 	return empaBasedMovementEditorPanel.manualPaste2(pastedObject);
 }
 
@@ -59,16 +59,16 @@ UndoStack& EditorMovablePointActionsListView::getUndoStack() {
 	return undoStack;
 }
 
-void EditorMovablePointActionsListView::manualCopy() {
-	clipboard.copy(this);
+CopyOperationResult EditorMovablePointActionsListView::manualCopy() {
+	return clipboard.copy(this);
 }
 
-void EditorMovablePointActionsListView::manualPaste() {
-	clipboard.paste(this);
+PasteOperationResult EditorMovablePointActionsListView::manualPaste() {
+	return clipboard.paste(this);
 }
 
-void EditorMovablePointActionsListView::manualPaste2() {
-	clipboard.paste2(this);
+PasteOperationResult EditorMovablePointActionsListView::manualPaste2() {
+	return clipboard.paste2(this);
 }
 
 EditorMovablePointActionsListPanel::EditorMovablePointActionsListPanel(EditorWindow& parentWindow, EMPABasedMovementEditorPanel& empaBasedMovementEditorPanel, Clipboard& clipboard) 
@@ -430,7 +430,7 @@ void EMPABasedMovementEditorPanel::manualDelete() {
 	}));
 }
 
-std::pair<std::shared_ptr<CopiedObject>, std::string> EMPABasedMovementEditorPanel::manualCopy() {
+CopyOperationResult EMPABasedMovementEditorPanel::manualCopy() {
 	auto selected = visualizer->getEmpasListView()->getListView()->getSelectedItemIndices();
 	if (selected.size() > 0) {
 		std::vector<std::shared_ptr<EMPAction>> copied;
@@ -444,12 +444,12 @@ std::pair<std::shared_ptr<CopiedObject>, std::string> EMPABasedMovementEditorPan
 		} else {
 			copyMessage = "Copied " + std::to_string(selected.size()) + " movable point actions";
 		}
-		return std::make_pair(std::make_shared<CopiedEMPActions>(visualizer->getEmpasListView()->getID(), copied), copyMessage);
+		return CopyOperationResult(std::make_shared<CopiedEMPActions>(visualizer->getEmpasListView()->getID(), copied), copyMessage);
 	}
-	return std::make_pair(nullptr, "");
+	return CopyOperationResult(nullptr, "");
 }
 
-std::string EMPABasedMovementEditorPanel::manualPaste(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult EMPABasedMovementEditorPanel::manualPaste(std::shared_ptr<CopiedObject> pastedObject) {
 	// Can just modify the code for manualDelete() a bit
 
 	auto derived = std::static_pointer_cast<CopiedEMPActions>(pastedObject);
@@ -551,15 +551,15 @@ std::string EMPABasedMovementEditorPanel::manualPaste(std::shared_ptr<CopiedObje
 		}));
 
 		if (numPasted == 1) {
-			return "Pasted 1 movable point action";
+			return PasteOperationResult(true, "Pasted 1 movable point action");
 		} else {
-			return "Pasted " + std::to_string(numPasted) + " movable point actions";
+			return PasteOperationResult(true, "Pasted " + std::to_string(numPasted) + " movable point actions");
 		}
 	}
-	return "";
+	return PasteOperationResult(false, "Type mismatch");
 }
 
-std::string EMPABasedMovementEditorPanel::manualPaste2(std::shared_ptr<CopiedObject> pastedObject) {
+PasteOperationResult EMPABasedMovementEditorPanel::manualPaste2(std::shared_ptr<CopiedObject> pastedObject) {
 	std::set<size_t> selectedIndices = visualizer->getEmpasListView()->getListView()->getSelectedItemIndices();
 	auto derived = std::static_pointer_cast<CopiedEMPActions>(pastedObject);
 	if (selectedIndices.size() > 0 && derived) {
@@ -568,6 +568,7 @@ std::string EMPABasedMovementEditorPanel::manualPaste2(std::shared_ptr<CopiedObj
 			// See "Why paste2 in LevelPackObjectsListView can't be undoable" in personal notes for explanation on why this can't be undoable
 			parentWindow.promptConfirmation("Overwrite the selected action(s) with the copied action(s)? This will reload their tabs if they are currently open.", copiedEMPAs)->sink()
 				.connect<EMPABasedMovementEditorPanel, &EMPABasedMovementEditorPanel::onPasteIntoConfirmation>(this);
+			return PasteOperationResult(true, "");
 		} else {
 			std::string s1;
 			if (copiedEMPAs.size() == 1) {
@@ -581,10 +582,10 @@ std::string EMPABasedMovementEditorPanel::manualPaste2(std::shared_ptr<CopiedObj
 			} else {
 				s2 = std::to_string(selectedIndices.size()) + " are";
 			}
-			return "Size mismatch. " + s1 + " copied but " + s2 + " selected";
+			return PasteOperationResult(false, "Size mismatch. " + s1 + " copied but " + s2 + " selected");
 		}
 	}
-	return "";
+	return PasteOperationResult(false, "Type mismatch");
 }
 
 void EMPABasedMovementEditorPanel::manualOpenEMPA(int index) {

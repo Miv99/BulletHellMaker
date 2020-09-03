@@ -95,8 +95,8 @@ public:
 
 	virtual bool handleEvent(sf::Event event) override;
 
-	std::pair<std::shared_ptr<CopiedObject>, std::string> copyFrom() override;
-	std::string pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
+	CopyOperationResult copyFrom() override;
+	PasteOperationResult pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
 
 	/*
 	Deletes the selected items in relationshipsListView.

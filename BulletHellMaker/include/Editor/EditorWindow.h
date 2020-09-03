@@ -209,13 +209,13 @@ public:
 	void loadLevelPack(std::string levelPackName);
 
 	/*
-	Create an attack in the LevelPack as an undoable/redoable action.
+	Create an attack in the LevelPack.
 	*/
-	void createAttack();
+	void createAttack(bool undoable);
 	/*
-	Create an attack pattern in the LevelPack as an undoable/redoable action.
+	Create an attack pattern in the LevelPack.
 	*/
-	void createAttackPattern();
+	void createAttackPattern(bool undoable);
 	/*
 	Overwrite existing EditorAttacks with deep copies of new ones as an undoable/redoable action.
 	attacks - the list of only the new EditorAttacks
@@ -270,6 +270,15 @@ public:
 	Open the player so that its corresponding tab appears in the main panel.
 	*/
 	void openLeftPanelPlayer();
+
+
+	// ---------- Operations that affect both the level pack and the preview window's level pack --------------
+
+	void updateAttack(std::shared_ptr<EditorAttack> attack);
+	void updateAttackPattern(std::shared_ptr<EditorAttackPattern> attackPattern);
+
+	void deleteAttack(int id);
+	void deleteAttackPattern(int id);
 
 protected:
 	bool handleEvent(sf::Event event) override;
@@ -382,6 +391,9 @@ public:
 	Should be called whenever an EditorAttackPattern in the LevelPack being edited is modified.
 	*/
 	void onOriginalLevelPackAttackPatternModified(const std::shared_ptr<EditorAttackPattern> attackPattern);
+
+	void deleteAttack(int id);
+	void deleteAttackPattern(int id);
 
 private:
 	std::shared_ptr<LevelPackObjectPreviewPanel> previewPanel;
