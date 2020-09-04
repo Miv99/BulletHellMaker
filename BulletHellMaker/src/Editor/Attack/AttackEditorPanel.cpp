@@ -1,9 +1,10 @@
 #include <Editor/Attack/AttackEditorPanel.h>
 
 #include <Mutex.h>
-#include <Editor/EditorWindow.h>
+#include <Editor/Windows/MainEditorWindow.h>
 #include <Editor/Util/EditorUtils.h>
 #include <Editor/Attack/EditorMovablePointTreePanel.h>
+#include <Editor/LevelPackObjectList/LevelPackObjectsListView.h>
 
 const std::string AttackEditorPanel::PROPERTIES_TAB_NAME = "Atk. Properties";
 const std::string AttackEditorPanel::EMP_TAB_NAME_FORMAT = "MP %d";

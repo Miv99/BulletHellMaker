@@ -2,7 +2,7 @@
 
 #include <Mutex.h>
 #include <GuiConfig.h>
-#include <Editor/EditorWindow.h>
+#include <Editor/Windows/MainEditorWindow.h>
 
 AttackPatternEditorPropertiesPanel::AttackPatternEditorPropertiesPanel(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, std::shared_ptr<EditorAttackPattern> attackPattern, int undoStackSize)
 	: CopyPasteable("EditorAttackPattern"), mainEditorWindow(mainEditorWindow), clipboard(clipboard), attackPattern(attackPattern), undoStack(UndoStack(undoStackSize)) {
@@ -134,10 +134,6 @@ tgui::Signal& AttackPatternEditorPropertiesPanel::getSignal(std::string signalNa
 		return onAttackPatternModify;
 	}
 	return tgui::Panel::getSignal(signalName);
-}
-
-void AttackPatternEditorPropertiesPanel::manualPaste() {
-	//TODO
 }
 
 void AttackPatternEditorPropertiesPanel::manualUndo() {

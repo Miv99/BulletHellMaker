@@ -6,7 +6,7 @@
 #include <LevelPack/EditorMovablePointAction.h>
 #include <LevelPack/EditorMovablePointSpawnType.h>
 #include <Editor/EventCapturable.h>
-#include <Editor/EditorWindow.h>
+#include <Editor/Windows/MainEditorWindow.h>
 #include <DataStructs/UndoStack.h>
 #include <Editor/Util/ExtraSignals.h>
 #include <Editor/CustomWidgets/SymbolTableEditor.h>

@@ -4,7 +4,7 @@
 #include <GuiConfig.h>
 #include <matplotlibcpp.h>
 #include <Util/StringUtils.h>
-#include <Editor/EditorWindow.h>
+#include <Editor/Windows/MainEditorWindow.h>
 #include <Editor/Util/EditorUtils.h>
 
 const float TFVGroup::TFV_TIME_RESOLUTION = MAX_PHYSICS_DELTA_TIME;

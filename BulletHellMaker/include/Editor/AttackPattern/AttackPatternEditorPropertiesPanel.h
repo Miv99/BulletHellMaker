@@ -49,8 +49,6 @@ public:
 
 	tgui::Signal& getSignal(std::string signalName) override;
 
-	void manualPaste();
-
 	std::shared_ptr<ListViewScrollablePanel> getUsedByPanel();
 
 	void setSymbolTablesHierarchy(std::vector<ValueSymbolTable> symbolTablesHierarchy);

@@ -1,8 +1,10 @@
 #pragma once
 #include <Editor/EventCapturable.h>
-#include <Editor/EditorWindow.h>
+#include <Editor/Windows/MainEditorWindow.h>
 #include <Editor/CopyPaste.h>
 #include <LevelPack/LevelPack.h>
+
+class LevelPackObjectsListView;
 
 /*
 An EventCapturable basic tgui::Panel to be used by MainEditorWindow for viewing a LevelPackObjectsListView.

@@ -4,7 +4,7 @@
 #include <SFML/Graphics.hpp>
 
 #include <Game/GameInstance.h>
-#include <Editor/EditorWindow.h>
+#include <Editor/Windows/MainEditorWindow.h>
 #include <exprtk.hpp>
 
 int main() {

@@ -2,7 +2,7 @@
 
 #include <Mutex.h>
 #include <GuiConfig.h>
-#include <Editor/EditorWindow.h>
+#include <Editor/Windows/MainEditorWindow.h>
 
 AttackEditorPropertiesPanel::AttackEditorPropertiesPanel(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize) 
 	: CopyPasteable("EditorAttack"), mainEditorWindow(mainEditorWindow), clipboard(clipboard),

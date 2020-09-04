@@ -1,7 +1,8 @@
 #include <Editor/AttackPattern/AttackPatternEditorPanel.h>
 
 #include <Mutex.h>
-#include <Editor/EditorWindow.h>
+#include <Editor/Windows/MainEditorWindow.h>
+#include <Editor/LevelPackObjectList/LevelPackObjectsListView.h>
 #include <Editor/Util/EditorUtils.h>
 
 const std::string AttackPatternEditorPanel::PROPERTIES_TAB_NAME = "Properties";

@@ -1,6 +1,6 @@
 #include <Editor/LevelPackObjectList/LevelPackObjectsListView.h>
 
-#include <Editor/EditorWindow.h>
+#include <Editor/Windows/MainEditorWindow.h>
 
 // Parameters: ID and name
 const std::string LevelPackObjectsListView::SAVED_LEVEL_PACK_OBJECT_ITEM_FORMAT = "[%d] %s";

@@ -4,9 +4,10 @@
 #include <Editor/CustomWidgets/EMPAListVisualizer.h>
 #include <Editor/CopyPaste.h>
 #include <DataStructs/UndoStack.h>
-#include <Editor/EditorWindow.h>
+#include <Editor/Windows/MainEditorWindow.h>
 #include <LevelPack/EditorMovablePointAction.h>
 #include <Editor/CustomWidgets/SymbolTableEditor.h>
+#include <Editor/CustomWidgets/TabsWithPanel.h>
 
 class EMPABasedMovementEditorPanel;
 

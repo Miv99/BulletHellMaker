@@ -2,7 +2,7 @@
 
 #include <Mutex.h>
 #include <GuiConfig.h>
-#include <Editor/EditorWindow.h>
+#include <Editor/Windows/MainEditorWindow.h>
 #include <Editor/Util/EditorUtils.h>
 
 EMPAAngleOffsetGroup::EMPAAngleOffsetGroup(EditorWindow& parentWindow) 

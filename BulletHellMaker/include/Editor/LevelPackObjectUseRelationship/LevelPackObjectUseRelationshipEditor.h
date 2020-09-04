@@ -2,8 +2,9 @@
 #include <TGUI/TGUI.hpp>
 
 #include <GuiConfig.h>
+#include <Editor/CopyPaste.h>
 #include <Editor/CustomWidgets/ListViewScrollablePanel.h>
-#include <Editor/EditorWindow.h>
+#include <Editor/Windows/MainEditorWindow.h>
 #include <Editor/Util/EditorUtils.h>
 #include <LevelPack/LevelPack.h>
 

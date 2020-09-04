@@ -1,5 +1,6 @@
 #include <Editor/LevelPackObjectList/LevelPackObjectsListPanel.h>
 
+#include <Editor/LevelPackObjectList/LevelPackObjectsListView.h>
 
 LevelPackObjectsListPanel::LevelPackObjectsListPanel(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, LevelPackObjectsListView& childListView)
 	: mainEditorWindow(mainEditorWindow), clipboard(clipboard), childListView(childListView) {
