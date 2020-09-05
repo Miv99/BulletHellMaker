@@ -59,10 +59,15 @@ or (270, 360)) or 180 (when it is moving at angle in range (90, 270))."));
 		// ID is in format "spriteSheetName\animatableName"
 		std::string spriteSheetName = id.substr(0, id.find_first_of('\\'));
 
-		// If id is "Sheet", a sheet was selected, so reselect the previous selection
+		// If id is "Sheet", a sheet was selected, so reselect the previous selection if possible since
+		// the user shouldn't be able to select a sheet
 		if (id == "Sheet" && !ignoreSignals) {
 			ignoreSignals = true;
-			animatable->setSelectedItemById(previousAnimatableSelection);
+			if (previousAnimatableSelection.empty()) {
+				animatable->deselectItem();
+			} else {
+				animatable->setSelectedItemById(previousAnimatableSelection);
+			}
 			ignoreSignals = false;
 			return;
 		}
