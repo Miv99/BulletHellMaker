@@ -32,6 +32,12 @@ public:
 
 	bool handleEvent(sf::Event event) override;
 
+	/*
+	Creates a new EMP as a child of another EMP.
+
+	parent - the node hierarchy in empsTreeView to the desired parent
+	*/
+	void createEMP(std::vector<sf::String> parentHierarchy);
 	void manualCopy();
 	void manualPaste();
 	void manualPaste2();

@@ -195,6 +195,32 @@ void EditorMovablePointTreePanel::manualRedo() {
 	undoStack.redo();
 }
 
+void EditorMovablePointTreePanel::createEMP(std::vector<sf::String> parentHierarchy) {
+	if (parentHierarchy.size() < 1) {
+		return;
+	}
+
+	std::shared_ptr<EditorMovablePoint> parentEMP = attack->searchEMP(parentAttackEditorPanel.getEMPIDFromTreeViewText(parentHierarchy[parentHierarchy.size() - 1]));
+	int nextEmpID = attack->getNextEMPID()->getNextID();
+
+	undoStack.execute(UndoableCommand([this, parentEMP]() {
+		std::shared_ptr<EditorMovablePoint> newEMP = parentEMP->createChild();
+
+		onEMPModify.emit(this, newEMP);
+	}, [this, nextEmpID, parentEMP]() {
+		std::shared_ptr<EditorMovablePoint> deletedEMP = parentEMP->searchID(nextEmpID);
+		parentEMP->removeChild(nextEmpID);
+
+		onEMPModify.emit(this, deletedEMP);
+		// Emit onMainEMPChildDeletion for the deleted EMP and all its children
+		onMainEMPChildDeletion.emit(this, deletedEMP->getID());
+		std::vector<int> deletedEmpIDs = deletedEMP->getChildrenIDs();
+		for (int deletedID : deletedEmpIDs) {
+			onMainEMPChildDeletion.emit(this, deletedID);
+		}
+	}));
+}
+
 void EditorMovablePointTreePanel::manualCopy() {
 	clipboard.copy(this);
 }

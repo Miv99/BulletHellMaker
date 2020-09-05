@@ -88,6 +88,9 @@ AttackEditorPanel::AttackEditorPanel(MainEditorWindow& mainEditorWindow, std::sh
 		std::make_pair("Open", [this]() {
 			this->openEMPTab(empsTreeView->getSelectedItem());
 		}),
+		std::make_pair("Create child", [this, emps]() {
+			emps->createEMP(empsTreeView->getSelectedItem());
+		}),
 		std::make_pair("Copy", [this, emps]() {
 			emps->manualCopy();
 		}),
