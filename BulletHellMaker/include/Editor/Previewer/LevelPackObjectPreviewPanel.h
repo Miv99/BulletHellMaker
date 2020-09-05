@@ -1,5 +1,5 @@
 #pragma once
-#include <Editor/CustomWidgets/SimpleEngineRenderer.h>
+#include <Constants.h>
 #include <LevelPack/LevelPack.h>
 #include <LevelPack/Attack.h>
 #include <LevelPack/AttackPattern.h>
@@ -9,8 +9,9 @@
 #include <LevelPack/Level.h>
 #include <LevelPack/Player.h>
 #include <DataStructs/SpriteLoader.h>
-#include <Constants.h>
 #include <Editor/CustomWidgets/SymbolTableEditor.h>
+#include <Editor/CustomWidgets/ChildWindow.h>
+#include <Editor/CustomWidgets/SimpleEngineRenderer.h>
 
 class EditorWindow;
 
@@ -72,6 +73,8 @@ private:
 		ENEMY_PHASE
 	};
 
+	EditorWindow& parentEditorWindow;
+
 	tgui::SignalLevelPackObjectLegalResult onPreview = { "PreviewAttempted" };
 
 	// Type of object currently being previewed
@@ -83,7 +86,7 @@ private:
 
 	// Symbol table editor child window.
 	// The window is added to the GUI directly and will be removed in this widget's destructor.
-	std::shared_ptr<tgui::ChildWindow> symbolTableEditorWindow;
+	std::shared_ptr<ChildWindow> symbolTableEditorWindow;
 	// Symbol table editor
 	std::shared_ptr<ValueSymbolTableEditor> symbolTableEditor;
 	// Table containing variables for testing

@@ -639,12 +639,15 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 	add(empaiY);
 	add(empaiXYManualSet);
 
-	symbolTableEditorWindow = tgui::ChildWindow::create();
+	symbolTableEditorWindow = ChildWindow::create();
 	symbolTableEditor = ValueSymbolTableEditor::create(false, false);
 	symbolTableEditorWindow->setKeepInParent(false);
 	symbolTableEditorWindow->add(symbolTableEditor);
 	symbolTableEditorWindow->setSize("50%", "50%");
 	symbolTableEditorWindow->setTitle("Movable Point Action Variables");
+	symbolTableEditorWindow->setFallbackEventHandler([this](sf::Event event) {
+		return symbolTableEditor->handleEvent(event);
+	});
 	symbolTableEditor->connect("ValueChanged", [this](ValueSymbolTable table) {
 		this->empa->setSymbolTable(table);
 		onChange(table);
@@ -655,13 +658,10 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 }
 
 EditorMovablePointActionPanel::~EditorMovablePointActionPanel() {
-	parentWindow.getGui()->remove(symbolTableEditorWindow);
+	parentWindow.removeChildWindow(symbolTableEditorWindow);
 }
 
 bool EditorMovablePointActionPanel::handleEvent(sf::Event event) {
-	if (symbolTableEditorWindow->isFocused()) {
-		return symbolTableEditor->handleEvent(event);
-	}
 	if (editingBezierControlPoints) {
 		if (bezierControlPointsMarkerPlacer->handleEvent(event)) {
 			return true;
@@ -698,7 +698,7 @@ bool EditorMovablePointActionPanel::handleEvent(sf::Event event) {
 				return true;
 			}
 		} else if (event.key.code == sf::Keyboard::V) {
-			parentWindow.getGui()->add(symbolTableEditorWindow);
+			parentWindow.addChildWindow(symbolTableEditorWindow);
 			return true;
 		}
 	}

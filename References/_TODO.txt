@@ -128,7 +128,12 @@ Notes for me:
     -When creating the symbol table that will define all redelegated symbols in a child object, 
         definer.toLowerLevelSymbolTable(symbolTables) should be called, where definer is the ExprSymbolTable that 
         defines all redelegated symbols in the child object in terms of symbolTables.
-        
+-Some widgets use ChildWindows and need to call handleEvent() of widgets in those ChildWindows. However, ChildWindows need to
+    be added to the GUI directly to avoid layering issues. But handleEvent() propagation occurs in the widget (let this be 
+    called widget A) that instantiated the ChildWindow. A::handleEvent() is usually called only when A is focused. But when A 
+    is focused, the ChildWindow cannot be focused, but A should only propagate events when the ChildWindow is focused. So then 
+    the ChildWindow's handleEvent() is never called. To avoid this problem, EditorWindow uses addChildWindow() to maintain a 
+    list of ChildWindows whose handleEvent() will be called directly from the EditorWindow.
   
 -Known minor bugs:
     -Change sum of durations of actions in EMPABasedMovementEditorPanel 
@@ -183,6 +188,7 @@ Code cleanup TODO:
 -Export all the CopyPasteable object constructions' strings to const static ones stored in some file
 
 TODO:
+-attack EMP tree doesn't have an add button; should be in right click menu as "add as child"
 -MoveCustomFunctionEMPA: an EMPA where x and y are expressions that can use a special symbol "t" defined in CustomFunctionMP to be
     the "time" parameter in CustomFunctionMP::evaluate(float time)
 -Dialogue boxes

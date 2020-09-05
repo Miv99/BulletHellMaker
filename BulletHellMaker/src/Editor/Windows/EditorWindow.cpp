@@ -298,6 +298,16 @@ void EditorWindow::removeAllVertexArrays() {
 	vertexArrays.clear();
 }
 
+void EditorWindow::addChildWindow(std::shared_ptr<ChildWindow> childWindow) {
+	childWindows.insert(childWindow);
+	gui->add(childWindow);
+}
+
+void EditorWindow::removeChildWindow(std::shared_ptr<ChildWindow> childWindow) {
+	childWindows.erase(childWindow);
+	gui->remove(childWindow);
+}
+
 void EditorWindow::updateWindowView(int windowWidth, int windowHeight) {
 	this->windowWidth = windowWidth;
 	this->windowHeight = windowHeight;
@@ -389,6 +399,16 @@ bool EditorWindow::handleEvent(sf::Event event) {
 
 	// Disable keyboard events when confirmation panel is open
 	if (!(confirmationPanelOpen && (event.type == sf::Event::TextEntered || event.type == sf::Event::KeyPressed || event.type == sf::Event::KeyReleased))) {
+		// Check if any child window is focused first and call its event handler
+		for (std::shared_ptr<ChildWindow> childWindow : childWindows) {
+			if (childWindow->isFocused()) {
+				if (childWindow->handleEvent(event)) {
+					return true;
+				}
+				break;
+			}
+		}
+
 		if (event.type == sf::Event::KeyPressed) {
 			return gui->handleEvent(event);
 		} else {

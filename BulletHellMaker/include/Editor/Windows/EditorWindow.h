@@ -4,6 +4,7 @@
 #include <entt/entt.hpp>
 
 #include <Constants.h>
+#include <Editor/CustomWidgets/ChildWindow.h>
 
 /*
 If the underlying RenderWindow is closed, one only needs to call start() or startAndHide() again to reopen the RenderWindow.
@@ -88,6 +89,15 @@ public:
 	void removeAllVertexArrays();
 
 	/*
+	Adds a ChildWindow as a top-level widget to the gui directly.
+	*/
+	void addChildWindow(std::shared_ptr<ChildWindow> childWindow);
+	/*
+	Removes a ChildWindow added from addChildWindow().
+	*/
+	void removeChildWindow(std::shared_ptr<ChildWindow> childWindow);
+
+	/*
 	Called every time window size changes.
 	*/
 	virtual void updateWindowView(int windowWidth, int windowHeight);
@@ -150,6 +160,9 @@ private:
 
 	// A list of all Widgets in gui whose value of isEnabled() was true right before promptConfirmation() was called
 	std::list<std::shared_ptr<tgui::Widget>> widgetsToBeEnabledAfterConfirmationPrompt;
+
+	// A set of all ChildWindows currently in the gui
+	std::set<std::shared_ptr<ChildWindow>> childWindows;
 
 	bool letterboxingEnabled;
 	bool scaleWidgetsOnResize;

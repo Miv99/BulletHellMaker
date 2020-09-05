@@ -13,6 +13,7 @@
 #include <Editor/CustomWidgets/AnimatableChooser.h>
 #include <Editor/CustomWidgets/SoundSettingsGroup.h>
 #include <Editor/CustomWidgets/SingleMarkerPlacer.h>
+#include <Editor/CustomWidgets/ChildWindow.h>
 #include <Editor/CopyPaste.h>
 #include <Editor/EMPA/EMPABasedMovementEditorPanel.h>
 #include <Editor/CustomWidgets/SymbolTableEditor.h>
@@ -60,7 +61,7 @@ private:
 
 	// Symbol table editor child window.
 	// The window is added to the GUI directly and will be removed in this widget's destructor.
-	std::shared_ptr<tgui::ChildWindow> symbolTableEditorWindow;
+	std::shared_ptr<ChildWindow> symbolTableEditorWindow;
 	// Symbol table editor
 	std::shared_ptr<ValueSymbolTableEditor> symbolTableEditor;
 

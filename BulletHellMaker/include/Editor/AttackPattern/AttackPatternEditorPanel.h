@@ -11,6 +11,7 @@
 #include <Editor/EventCapturable.h>
 #include <Editor/CustomWidgets/SymbolTableEditor.h>
 #include <Editor/CustomWidgets/TabsWithPanel.h>
+#include <Editor/CustomWidgets/ChildWindow.h>
 #include <Editor/AttackPattern/AttackPatternEditorPropertiesPanel.h>
 
 class MainEditorWindow;
@@ -70,7 +71,7 @@ private:
 
 	// Symbol table editor child window.
 	// The window is added to the GUI directly and will be removed in this widget's destructor.
-	std::shared_ptr<tgui::ChildWindow> symbolTableEditorWindow;
+	std::shared_ptr<ChildWindow> symbolTableEditorWindow;
 	// Symbol table editor
 	std::shared_ptr<ValueSymbolTableEditor> symbolTableEditor;
 

@@ -5,7 +5,7 @@
 #include <Editor/Windows/MainEditorWindow.h>
 
 LevelPackObjectPreviewPanel::LevelPackObjectPreviewPanel(EditorWindow& parentWindow, std::string levelPackName)
-	: SimpleEngineRenderer(*parentWindow.getWindow(), true, true), gui(parentWindow.getGui()) {
+	: SimpleEngineRenderer(*parentWindow.getWindow(), true, true), gui(parentWindow.getGui()), parentEditorWindow(parentWindow) {
 
 	loadLevelPack(levelPackName);
 	levelPack->getOnChange()->sink().connect<LevelPackObjectPreviewPanel, &LevelPackObjectPreviewPanel::onLevelPackChange>(this);
@@ -120,13 +120,15 @@ LevelPackObjectPreviewPanel::LevelPackObjectPreviewPanel(EditorWindow& parentWin
 
 	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 
-	symbolTableEditorWindow = tgui::ChildWindow::create();
+	symbolTableEditorWindow = ChildWindow::create();
 	symbolTableEditor = ValueSymbolTableEditor::create(true, true);
 	symbolTableEditorWindow->setKeepInParent(false);
 	symbolTableEditorWindow->add(symbolTableEditor);
 	symbolTableEditorWindow->setSize("50%", "50%");
 	symbolTableEditorWindow->setTitle("Test Variables");
-
+	symbolTableEditorWindow->setFallbackEventHandler([this](sf::Event event) {
+		return symbolTableEditor->handleEvent(event);
+	});
 	symbolTableEditor->connect("ValueChanged", [this](ValueSymbolTable table) {
 		this->testTable = table;
 		resetPreview();
@@ -137,7 +139,7 @@ LevelPackObjectPreviewPanel::LevelPackObjectPreviewPanel(EditorWindow& parentWin
 
 LevelPackObjectPreviewPanel::~LevelPackObjectPreviewPanel() {
 	levelPack->getOnChange()->sink().disconnect<LevelPackObjectPreviewPanel, &LevelPackObjectPreviewPanel::onLevelPackChange>(this);
-	gui->remove(symbolTableEditorWindow);
+	parentEditorWindow.removeChildWindow(symbolTableEditorWindow);
 }
 
 void LevelPackObjectPreviewPanel::draw(sf::RenderTarget& target, sf::RenderStates states) const {
@@ -235,13 +237,11 @@ void LevelPackObjectPreviewPanel::previewAttackPattern(const std::shared_ptr<Edi
 }
 
 bool LevelPackObjectPreviewPanel::handleEvent(sf::Event event) {
-	if (symbolTableEditorWindow->isFocused()) {
-		return symbolTableEditor->handleEvent(event);
-	} else if (SimpleEngineRenderer::handleEvent(event)) {
+	if (SimpleEngineRenderer::handleEvent(event)) {
 		return true;
 	} else if (event.type == sf::Event::KeyPressed) {
 		if (event.key.code == sf::Keyboard::V) {
-			gui->add(symbolTableEditorWindow);
+			parentEditorWindow.addChildWindow(symbolTableEditorWindow);
 			return true;
 		}
 	} else if ((settingPlayerSpawn || settingSource) && event.type == sf::Event::MouseButtonPressed) {

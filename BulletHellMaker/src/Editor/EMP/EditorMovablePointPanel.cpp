@@ -1260,12 +1260,15 @@ point will update only the values it wants to inherit to match the model."));
 		tabs->addTab(MOVEMENT_TAB_NAME, movementEditorPanel, false, false);
 	}
 
-	symbolTableEditorWindow = tgui::ChildWindow::create();
+	symbolTableEditorWindow = ChildWindow::create();
 	symbolTableEditor = ValueSymbolTableEditor::create(false, false);
 	symbolTableEditorWindow->setKeepInParent(false);
 	symbolTableEditorWindow->add(symbolTableEditor);
 	symbolTableEditorWindow->setSize("50%", "50%");
 	symbolTableEditorWindow->setTitle("Movable Point ID " + std::to_string(emp->getID()) + " Variables");
+	symbolTableEditorWindow->setFallbackEventHandler([this](sf::Event event) {
+		return symbolTableEditor->handleEvent(event);
+	});
 	symbolTableEditor->connect("ValueChanged", [this](ValueSymbolTable table) {
 		this->emp->setSymbolTable(table);
 		onChange(table);
@@ -1275,7 +1278,7 @@ point will update only the values it wants to inherit to match the model."));
 
 EditorMovablePointPanel::~EditorMovablePointPanel() {
 	levelPack->getOnChange()->sink().disconnect<EditorMovablePointPanel, &EditorMovablePointPanel::onLevelPackChange>(this);
-	mainEditorWindow.getGui()->remove(symbolTableEditorWindow);
+	mainEditorWindow.removeChildWindow(symbolTableEditorWindow);
 }
 
 CopyOperationResult EditorMovablePointPanel::copyFrom() {
@@ -1302,9 +1305,7 @@ PasteOperationResult EditorMovablePointPanel::paste2Into(std::shared_ptr<CopiedO
 }
 
 bool EditorMovablePointPanel::handleEvent(sf::Event event) {
-	if (symbolTableEditorWindow->isFocused()) {
-		return symbolTableEditor->handleEvent(event);
-	} else if (tabs->handleEvent(event)) {
+	if (tabs->handleEvent(event)) {
 		return true;
 	} else if (placingSpawnLocation) {
 		if (spawnTypePositionMarkerPlacer->handleEvent(event)) {
@@ -1328,7 +1329,7 @@ bool EditorMovablePointPanel::handleEvent(sf::Event event) {
 				return true;
 			}
 		} else if (event.key.code == sf::Keyboard::V) {
-			mainEditorWindow.getGui()->add(symbolTableEditorWindow);
+			mainEditorWindow.addChildWindow(symbolTableEditorWindow);
 			return true;
 		}
 	}

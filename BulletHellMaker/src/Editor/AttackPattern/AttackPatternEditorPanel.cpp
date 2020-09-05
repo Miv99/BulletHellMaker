@@ -15,12 +15,15 @@ AttackPatternEditorPanel::AttackPatternEditorPanel(MainEditorWindow& mainEditorW
 	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 	
 	// ValueSymbolTable editor
-	symbolTableEditorWindow = tgui::ChildWindow::create();
+	symbolTableEditorWindow = ChildWindow::create();
 	symbolTableEditor = ValueSymbolTableEditor::create(false, true);
 	symbolTableEditorWindow->setKeepInParent(false);
 	symbolTableEditorWindow->add(symbolTableEditor);
 	symbolTableEditorWindow->setSize("50%", "50%");
 	symbolTableEditorWindow->setTitle("Attack pattern ID " + std::to_string(attackPattern->getID()) + " Variables");
+	symbolTableEditorWindow->setFallbackEventHandler([this](sf::Event event) {
+		return symbolTableEditor->handleEvent(event);
+	});
 	symbolTableEditor->connect("ValueChanged", [this](ValueSymbolTable table) {
 		this->attackPattern->setSymbolTable(table);
 		onChange(table);
@@ -91,13 +94,11 @@ AttackPatternEditorPanel::AttackPatternEditorPanel(MainEditorWindow& mainEditorW
 
 AttackPatternEditorPanel::~AttackPatternEditorPanel() {
 	levelPack->getOnChange()->sink().disconnect<AttackPatternEditorPanel, &AttackPatternEditorPanel::onLevelPackChange>(this);
-	mainEditorWindow.getGui()->remove(symbolTableEditorWindow);
+	mainEditorWindow.removeChildWindow(symbolTableEditorWindow);
 }
 
 bool AttackPatternEditorPanel::handleEvent(sf::Event event) {
-	if (symbolTableEditorWindow->isFocused()) {
-		return symbolTableEditor->handleEvent(event);
-	} else if (tabs->handleEvent(event)) {
+	if (tabs->handleEvent(event)) {
 		return true;
 	}
 	if (event.type == sf::Event::KeyPressed) {
@@ -107,7 +108,7 @@ bool AttackPatternEditorPanel::handleEvent(sf::Event event) {
 				return true;
 			}
 		} else if (event.key.code == sf::Keyboard::V) {
-			mainEditorWindow.getGui()->add(symbolTableEditorWindow);
+			mainEditorWindow.addChildWindow(symbolTableEditorWindow);
 			return true;
 		}
 	}

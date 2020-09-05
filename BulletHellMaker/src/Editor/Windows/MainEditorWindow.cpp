@@ -15,7 +15,7 @@ MainEditorWindow::MainEditorWindow(std::string windowTitle, int width, int heigh
 	: EditorWindow(windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval) {
 
 	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
-
+	
 	leftPanel = TabsWithPanel::create(*this);
 	leftPanel->setPosition(0, 0);
 	leftPanel->setSize("20%", "100%");

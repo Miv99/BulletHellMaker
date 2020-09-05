@@ -15,6 +15,7 @@
 #include <Editor/CustomWidgets/EMPAAngleOffsetGroup.h>
 #include <Editor/CustomWidgets/BezierControlPointsPlacer.h>
 #include <Editor/CustomWidgets/SingleMarkerPlacer.h>
+#include <Editor/CustomWidgets/ChildWindow.h>
 
 /*
 Panel used to edit an EMPAction.
@@ -77,7 +78,7 @@ private:
 
 	// Symbol table editor child window.
 	// The window is added to the GUI directly and will be removed in this widget's destructor.
-	std::shared_ptr<tgui::ChildWindow> symbolTableEditorWindow;
+	std::shared_ptr<ChildWindow> symbolTableEditorWindow;
 	// Symbol table editor
 	std::shared_ptr<ValueSymbolTableEditor> symbolTableEditor;
 
