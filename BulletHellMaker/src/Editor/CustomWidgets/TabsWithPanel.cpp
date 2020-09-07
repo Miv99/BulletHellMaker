@@ -167,7 +167,7 @@ void TabsWithPanel::removeAllTabs() {
 	onSelectFunctionMap.clear();
 	tabsOrdering.clear();
 	for (std::pair<std::shared_ptr<tgui::Button>, std::string> closeButtonAndPrompt : closeButtons) {
-		currentPanel->remove(closeButtonAndPrompt.first);
+		tabsContainer->remove(closeButtonAndPrompt.first);
 	}
 	closeButtons.clear();
 	currentPanel = nullptr;
