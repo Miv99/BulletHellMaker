@@ -8,6 +8,10 @@ ChildWindow::ChildWindow() : tgui::ChildWindow() {
     setResizable(true);
 }
 
+ChildWindow::~ChildWindow() {
+    SetCursor(DEFAULT_CURSOR);
+}
+
 bool ChildWindow::handleEvent(sf::Event event) {
     // Check if the cursor should be changed to look like a resizing one
     if (isResizable() && event.type == sf::Event::MouseMoved) {

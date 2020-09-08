@@ -12,6 +12,7 @@ This ChildWindow is resizable be default.
 class ChildWindow : public tgui::ChildWindow, public EventCapturable {
 public:
 	ChildWindow();
+	~ChildWindow();
 	static std::shared_ptr<ChildWindow> create() {
 		return std::make_shared<ChildWindow>();
 	}
