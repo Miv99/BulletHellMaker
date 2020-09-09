@@ -10,7 +10,7 @@
 const float TFVGroup::TFV_TIME_RESOLUTION = MAX_PHYSICS_DELTA_TIME;
 
 TFVGroup::TFVGroup(EditorWindow& parentWindow, Clipboard& clipboard) 
-	: CopyPasteable("PiecewiseTFVSegment"), parentWindow(parentWindow), clipboard(clipboard) {
+	: CopyPasteable(PIECEWISE_TFV_SEGMENT_COPY_PASTE_ID), parentWindow(parentWindow), clipboard(clipboard) {
 
 	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 

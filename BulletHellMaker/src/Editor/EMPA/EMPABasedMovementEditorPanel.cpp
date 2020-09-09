@@ -10,7 +10,7 @@ const std::string EMPABasedMovementEditorPanel::EMPA_TAB_NAME_FORMAT = "Action %
 const int EMPABasedMovementEditorPanel::EMPA_TAB_NAME_FORMAT_NUMBER_INDEX = 7;
 
 EditorMovablePointActionsListView::EditorMovablePointActionsListView(EMPABasedMovementEditorPanel& empaBasedMovementEditorPanel, Clipboard& clipboard, int undoStackSize) : 
-	CopyPasteable("EMPAction"), empaBasedMovementEditorPanel(empaBasedMovementEditorPanel), clipboard(clipboard), undoStack(UndoStack(undoStackSize)) {
+	CopyPasteable(EMPA_COPY_PASTE_ID), empaBasedMovementEditorPanel(empaBasedMovementEditorPanel), clipboard(clipboard), undoStack(UndoStack(undoStackSize)) {
 	getListView()->setMultiSelect(true);
 }
 

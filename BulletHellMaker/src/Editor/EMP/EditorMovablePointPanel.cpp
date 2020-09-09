@@ -29,7 +29,7 @@ std::string EditorMovablePointPanel::getID(std::shared_ptr<EMPSpawnType> spawnTy
 }
 
 EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow& mainEditorWindow, std::shared_ptr<LevelPack> levelPack, SpriteLoader& spriteLoader, Clipboard& clipboard, std::shared_ptr<EditorMovablePoint> emp, int undoStackSize)
-	: CopyPasteable("EditorMovablePoint"), mainEditorWindow(mainEditorWindow), levelPack(levelPack), emp(emp), clipboard(clipboard), undoStack(UndoStack(undoStackSize)) {
+	: CopyPasteable(EMP_COPY_PASTE_ID), mainEditorWindow(mainEditorWindow), levelPack(levelPack), emp(emp), clipboard(clipboard), undoStack(UndoStack(undoStackSize)) {
 
 	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 

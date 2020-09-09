@@ -191,7 +191,6 @@ TODO:
 -replace all in menu bar
     -replace all instances of an attack pattern ID with some other ID (same for all other relationships)
     -replace all instances of an animatable with another
--attack EMP tree doesn't have an add button; should be in right click menu as "add as child"
 -MoveCustomFunctionEMPA: an EMPA where x and y are expressions that can use a special symbol "t" defined in CustomFunctionMP to be
     the "time" parameter in CustomFunctionMP::evaluate(float time)
 -Dialogue boxes

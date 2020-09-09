@@ -3,8 +3,9 @@
 #include <Mutex.h>
 #include <GuiConfig.h>
 
-EditorMovablePointTreePanel::EditorMovablePointTreePanel(AttackEditorPanel& parentAttackEditorPanel, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize) : CopyPasteable("EditorMovablePoint"), parentAttackEditorPanel(parentAttackEditorPanel), clipboard(clipboard),
-attack(attack), undoStack(UndoStack(undoStackSize)) {
+EditorMovablePointTreePanel::EditorMovablePointTreePanel(AttackEditorPanel& parentAttackEditorPanel, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize) 
+	: CopyPasteable(EMP_COPY_PASTE_ID), parentAttackEditorPanel(parentAttackEditorPanel), clipboard(clipboard),
+	attack(attack), undoStack(UndoStack(undoStackSize)) {
 
 	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 

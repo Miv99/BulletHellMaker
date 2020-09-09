@@ -29,3 +29,10 @@ const static float DIALOGUE_BOX_HEIGHT = 200;
 CopyPaste IDs
 */
 const static std::string ATTACK_PATTERN_TO_ATTACK_USE_RELATIONSHIP_COPY_PASTE_ID = "AttackPatternToAttackUseRelationship";
+const static std::string ATTACK_COPY_PASTE_ID = "EditorAttack";
+const static std::string EMP_COPY_PASTE_ID = "EditorMovablePoint";
+const static std::string ATTACK_PATTERN_COPY_PASTE_ID = "EditorAttackPattern";
+const static std::string PIECEWISE_TFV_SEGMENT_COPY_PASTE_ID = "PiecewiseTFVSegment";
+const static std::string EMPA_COPY_PASTE_ID = "EMPAction";
+
+const static std::string MARKER_PLACER_MARKER_COPY_PASTE_ID = "Marker";

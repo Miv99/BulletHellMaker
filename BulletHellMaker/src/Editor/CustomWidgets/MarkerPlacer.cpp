@@ -12,7 +12,7 @@ const float MarkerPlacer::MAX_GRID_SNAP_DISTANCE = 15.0f;
 const float MarkerPlacer::MAX_GRID_SNAP_DISTANCE_SQUARED = MAX_GRID_SNAP_DISTANCE * MAX_GRID_SNAP_DISTANCE;
 
 MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard, sf::Vector2u resolution, int undoStackSize) 
-	: CopyPasteable("Marker"), parentWindow(parentWindow), clipboard(clipboard), resolution(resolution), undoStack(UndoStack(undoStackSize)) {
+	: CopyPasteable(MARKER_PLACER_MARKER_COPY_PASTE_ID), parentWindow(parentWindow), clipboard(clipboard), resolution(resolution), undoStack(UndoStack(undoStackSize)) {
 
 	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 

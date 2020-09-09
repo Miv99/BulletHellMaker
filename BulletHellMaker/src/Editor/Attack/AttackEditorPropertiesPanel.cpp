@@ -5,7 +5,7 @@
 #include <Editor/Windows/MainEditorWindow.h>
 
 AttackEditorPropertiesPanel::AttackEditorPropertiesPanel(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, std::shared_ptr<EditorAttack> attack, int undoStackSize) 
-	: CopyPasteable("EditorAttack"), mainEditorWindow(mainEditorWindow), clipboard(clipboard),
+	: CopyPasteable(ATTACK_COPY_PASTE_ID), mainEditorWindow(mainEditorWindow), clipboard(clipboard),
 	attack(attack), undoStack(UndoStack(undoStackSize)) {
 
 	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
