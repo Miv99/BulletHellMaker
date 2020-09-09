@@ -5,7 +5,6 @@
 #include <memory>
 
 #include <exprtk.hpp>
-#include <Util/IOUtils.h>
 #include <LevelPack/LevelPack.h>
 #include <DataStructs/SpriteLoader.h>
 #include <LevelPack/TextMarshallable.h>

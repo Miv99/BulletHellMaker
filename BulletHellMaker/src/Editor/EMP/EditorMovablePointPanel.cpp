@@ -100,7 +100,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow& mainEditorWin
 		empiPierceResetTime = EditBox::create();
 
 		empiSoundSettingsLabel = tgui::Label::create();
-		empiSoundSettings = SoundSettingsGroup::create(format(LEVEL_PACK_SOUND_FOLDER_PATH, levelPack->getName().c_str()));
+		empiSoundSettings = SoundSettingsGroup::create(format(RELATIVE_LEVEL_PACK_SOUND_FOLDER_PATH, levelPack->getName().c_str()));
 
 		empiBulletModelLabel = tgui::Label::create();
 		// Entry ID is bullet model ID
@@ -1416,7 +1416,7 @@ void EditorMovablePointPanel::onLevelPackChange(LevelPack::LEVEL_PACK_OBJECT_HIE
 	if (type == LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ATTACK && levelPack->getAttack(id)->searchEMP(emp->getID()) != nullptr) {
 		emp->loadBulletModel(*levelPack);
 
-		empiSoundSettings->populateFileNames(format(LEVEL_PACK_SOUND_FOLDER_PATH, levelPack->getName().c_str()));
+		empiSoundSettings->populateFileNames(format(RELATIVE_LEVEL_PACK_SOUND_FOLDER_PATH, levelPack->getName().c_str()));
 
 		empiBulletModel->removeAllItems();
 		empiBulletModel->addItem("None", "-1");

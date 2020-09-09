@@ -88,6 +88,7 @@ bool SimpleEngineRenderer::handleEvent(sf::Event event) {
 }
 
 void SimpleEngineRenderer::loadLevelPack(std::string name) {
+	std::lock_guard<std::mutex> lock(registryMutex);
 	registry.reset();
 
 	levelPack = std::make_shared<LevelPack>(*audioPlayer, name);

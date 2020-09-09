@@ -33,6 +33,8 @@ public:
 	LevelPackObjectPreviewWindow(std::string windowTitle, int width, int height, std::string levelPackName, bool scaleWidgetsOnResize = false,
 		bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL);
 
+	void loadLevelPack(std::string levelPackName);
+
 	void previewNothing();
 	void previewAttack(const std::shared_ptr<EditorAttack> attack);
 	void previewAttackPattern(const std::shared_ptr<EditorAttackPattern> attackPattern);

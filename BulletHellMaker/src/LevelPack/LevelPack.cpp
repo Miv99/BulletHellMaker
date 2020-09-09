@@ -282,8 +282,6 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(a
 	metadata.addSpriteSheet("sheet1.txt", "sheet1.png");
 	metadata.addSpriteSheet("Default.txt", "Default.png");
 	
-	save();
-	//
 	//TODO: uncomment
 	//load();
 }

@@ -169,6 +169,11 @@ bool LevelPackObjectsListView::handleEvent(sf::Event event) {
 
 void LevelPackObjectsListView::setLevelPack(LevelPack * levelPack) {
 	this->levelPack = levelPack;
+
+	listView->deselectItems();
+	listView->removeAllItems();
+
+	addLevelPackObjectsToListView();
 }
 
 void LevelPackObjectsListView::reload() {

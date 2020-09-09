@@ -2,9 +2,8 @@
 
 #include <Editor/LevelPackObjectList/LevelPackObjectsListView.h>
 
-LevelPackObjectsListPanel::LevelPackObjectsListPanel(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, LevelPackObjectsListView& childListView)
-	: mainEditorWindow(mainEditorWindow), clipboard(clipboard), childListView(childListView) {
-	
+LevelPackObjectsListPanel::LevelPackObjectsListPanel(LevelPackObjectsListView& childListView)
+	: childListView(childListView) {
 }
 
 bool LevelPackObjectsListPanel::handleEvent(sf::Event event) {
@@ -12,8 +11,4 @@ bool LevelPackObjectsListPanel::handleEvent(sf::Event event) {
 		return true;
 	}
 	return false;
-}
-
-void LevelPackObjectsListPanel::setLevelPack(LevelPack* levelPack) {
-	this->levelPack = levelPack;
 }

@@ -31,7 +31,7 @@ public:
 
 	virtual bool handleEvent(sf::Event event) override;
 
-	void loadLevelPack(std::string name);
+	virtual void loadLevelPack(std::string name);
 
 	void loadLevel(int levelIndex);
 	void loadLevel(std::shared_ptr<Level> level);

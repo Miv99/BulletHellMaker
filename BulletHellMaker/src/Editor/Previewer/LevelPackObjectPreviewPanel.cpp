@@ -8,13 +8,63 @@ LevelPackObjectPreviewPanel::LevelPackObjectPreviewPanel(EditorWindow& parentWin
 	: SimpleEngineRenderer(*parentWindow.getWindow(), true, true), gui(parentWindow.getGui()), parentEditorWindow(parentWindow) {
 
 	loadLevelPack(levelPackName);
-	levelPack->getOnChange()->sink().connect<LevelPackObjectPreviewPanel, &LevelPackObjectPreviewPanel::onLevelPackChange>(this);
 
 	currentCursor = sf::CircleShape(-1);
 	currentCursor.setOutlineColor(sf::Color::Green);
 	currentCursor.setOutlineThickness(2.0f);
 	currentCursor.setFillColor(sf::Color::Transparent);
 	currentCursor.setOrigin(CURSOR_RADIUS, CURSOR_RADIUS);
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
+	symbolTableEditorWindow = ChildWindow::create();
+	symbolTableEditor = ValueSymbolTableEditor::create(true, true);
+	symbolTableEditorWindow->setKeepInParent(false);
+	symbolTableEditorWindow->add(symbolTableEditor);
+	symbolTableEditorWindow->setSize("50%", "50%");
+	symbolTableEditorWindow->setTitle("Test Variables");
+	symbolTableEditorWindow->setFallbackEventHandler([this](sf::Event event) {
+		return symbolTableEditor->handleEvent(event);
+	});
+	symbolTableEditor->connect("ValueChanged", [this](ValueSymbolTable table) {
+		this->testTable = table;
+		resetPreview();
+	});
+
+	symbolTableEditor->setSymbolTablesHierarchy({ testTable });
+}
+
+LevelPackObjectPreviewPanel::~LevelPackObjectPreviewPanel() {
+	levelPack->getOnChange()->sink().disconnect<LevelPackObjectPreviewPanel, &LevelPackObjectPreviewPanel::onLevelPackChange>(this);
+	parentEditorWindow.removeChildWindow(symbolTableEditorWindow);
+}
+
+void LevelPackObjectPreviewPanel::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+	// Viewport is set here because tgui::Gui's draw function changes it right before renderSystem is updated or something
+	sf::View originalView = parentWindow.getView();
+	parentWindow.setView(viewFromViewController);
+	if (currentCursor.getRadius() > 0) {
+		auto pos = sf::Mouse::getPosition(parentWindow);
+		auto worldPos = parentWindow.mapPixelToCoords(pos);
+		sf::CircleShape currentCursor = sf::CircleShape(this->currentCursor);
+		// Show red cursor if setting player spawn in some invalid area
+		if (settingPlayerSpawn && ((worldPos.x < 0 || worldPos.x > MAP_WIDTH) || (worldPos.y < 0 || worldPos.y > MAP_HEIGHT))) {
+			currentCursor.setOutlineColor(sf::Color::Red);
+		}
+
+		currentCursor.setPosition(worldPos + sf::Vector2f(CURSOR_RADIUS/2.0f, CURSOR_RADIUS/2.0f));
+		parentWindow.draw(currentCursor);
+	}
+	parentWindow.setView(originalView);
+}
+
+void LevelPackObjectPreviewPanel::loadLevelPack(std::string levelPackName) {
+	if (levelPack) {
+		previewNothing();
+		levelPack->getOnChange()->sink().disconnect<LevelPackObjectPreviewPanel, &LevelPackObjectPreviewPanel::onLevelPackChange>(this);
+	}
+	SimpleEngineRenderer::loadLevelPack(levelPackName);
+	levelPack->getOnChange()->sink().connect<LevelPackObjectPreviewPanel, &LevelPackObjectPreviewPanel::onLevelPackChange>(this);
 
 	Animatable defaultEnemyAnimatable = Animatable("Enemy Placeholder", "Default", true, ROTATION_TYPE::LOCK_ROTATION);
 	EntityAnimatableSet defaultEnemyAnimatableSet(defaultEnemyAnimatable, defaultEnemyAnimatable, defaultEnemyAnimatable);
@@ -117,48 +167,6 @@ LevelPackObjectPreviewPanel::LevelPackObjectPreviewPanel(EditorWindow& parentWin
 		enemyPhaseForAttackPattern->compileExpressions({});
 		levelPack->updateEnemyPhase(enemyPhaseForAttackPattern);
 	}
-
-	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
-
-	symbolTableEditorWindow = ChildWindow::create();
-	symbolTableEditor = ValueSymbolTableEditor::create(true, true);
-	symbolTableEditorWindow->setKeepInParent(false);
-	symbolTableEditorWindow->add(symbolTableEditor);
-	symbolTableEditorWindow->setSize("50%", "50%");
-	symbolTableEditorWindow->setTitle("Test Variables");
-	symbolTableEditorWindow->setFallbackEventHandler([this](sf::Event event) {
-		return symbolTableEditor->handleEvent(event);
-	});
-	symbolTableEditor->connect("ValueChanged", [this](ValueSymbolTable table) {
-		this->testTable = table;
-		resetPreview();
-	});
-
-	symbolTableEditor->setSymbolTablesHierarchy({ testTable });
-}
-
-LevelPackObjectPreviewPanel::~LevelPackObjectPreviewPanel() {
-	levelPack->getOnChange()->sink().disconnect<LevelPackObjectPreviewPanel, &LevelPackObjectPreviewPanel::onLevelPackChange>(this);
-	parentEditorWindow.removeChildWindow(symbolTableEditorWindow);
-}
-
-void LevelPackObjectPreviewPanel::draw(sf::RenderTarget& target, sf::RenderStates states) const {
-	// Viewport is set here because tgui::Gui's draw function changes it right before renderSystem is updated or something
-	sf::View originalView = parentWindow.getView();
-	parentWindow.setView(viewFromViewController);
-	if (currentCursor.getRadius() > 0) {
-		auto pos = sf::Mouse::getPosition(parentWindow);
-		auto worldPos = parentWindow.mapPixelToCoords(pos);
-		sf::CircleShape currentCursor = sf::CircleShape(this->currentCursor);
-		// Show red cursor if setting player spawn in some invalid area
-		if (settingPlayerSpawn && ((worldPos.x < 0 || worldPos.x > MAP_WIDTH) || (worldPos.y < 0 || worldPos.y > MAP_HEIGHT))) {
-			currentCursor.setOutlineColor(sf::Color::Red);
-		}
-
-		currentCursor.setPosition(worldPos + sf::Vector2f(CURSOR_RADIUS/2.0f, CURSOR_RADIUS/2.0f));
-		parentWindow.draw(currentCursor);
-	}
-	parentWindow.setView(originalView);
 }
 
 void LevelPackObjectPreviewPanel::previewNothing() {

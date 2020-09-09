@@ -188,6 +188,9 @@ Code cleanup TODO:
 -Export all the CopyPasteable object constructions' strings to const static ones stored in some file
 
 TODO:
+-replace all in menu bar
+    -replace all instances of an attack pattern ID with some other ID (same for all other relationships)
+    -replace all instances of an animatable with another
 -attack EMP tree doesn't have an add button; should be in right click menu as "add as child"
 -MoveCustomFunctionEMPA: an EMPA where x and y are expressions that can use a special symbol "t" defined in CustomFunctionMP to be
     the "time" parameter in CustomFunctionMP::evaluate(float time)
@@ -210,6 +213,7 @@ TODO:
 	-Due to the user-unfriendliness of text-marshalled files, this should only be done if an image viewer can be implemented in the editor
 	 that can zoom in and make rectangles so that the user has full control of 
 	  setting origin/rectangle_coords/everything_field_in_sprite_sheet_metadata in the editor
+-Default level pack is broken
 -Editor features
 	-"Rotate bullet path": user can select multiple EMPActions (even across different bullets) and rotate them
 		-for MoveCustomPolarEMPA, this just wraps the angle TFV in a TranslationWrapperTFV (remember to combine the TFVs if the angle TFV is already a TranslationWrapperTFV)

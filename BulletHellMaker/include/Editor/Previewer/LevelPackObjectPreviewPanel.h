@@ -35,6 +35,8 @@ public:
 
 	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
+	void loadLevelPack(std::string levelPackName) override;
+
 	void previewNothing();
 	/*
 	The preview will use a clone of the attack.

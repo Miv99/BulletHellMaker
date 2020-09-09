@@ -11,6 +11,10 @@ LevelPackObjectPreviewWindow::LevelPackObjectPreviewWindow(std::string windowTit
 	: EditorWindow(windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval), levelPackName(levelPackName) {
 }
 
+void LevelPackObjectPreviewWindow::loadLevelPack(std::string levelPackName) {
+	previewPanel->loadLevelPack(levelPackName);
+}
+
 void LevelPackObjectPreviewWindow::previewNothing() {
 	if (window->isOpen()) {
 		previewObjectLabel->setText("Nothing being previewed");

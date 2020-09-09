@@ -9,15 +9,20 @@
 #include <Editor/LevelPackObjectList/LevelPackObjectsListView.h>
 #include <Editor/LevelPackObjectList/LevelPackObjectsListPanel.h>
 #include <Editor/Windows/LevelPackObjectPreviewWindow.h>
+#include <Editor/Windows/MainEditorWindowMenuBar.h>
 #include <Game/EntityCreationQueue.h>
 
 MainEditorWindow::MainEditorWindow(std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval)
 	: EditorWindow(windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval) {
 
 	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
+	std::shared_ptr<MainEditorWindowMenuBar> menuBar = MainEditorWindowMenuBar::create(*this);
+	menuBar->setTextSize(TEXT_SIZE);
+	menuBar->setSize("100%", TEXT_BUTTON_HEIGHT);
 	
 	leftPanel = TabsWithPanel::create(*this);
-	leftPanel->setPosition(0, 0);
+	leftPanel->setPosition(0, tgui::bindBottom(menuBar));
 	leftPanel->setSize("20%", "100%");
 	leftPanel->setVisible(true);
 	leftPanel->setMoreTabsListAlignment(TabsWithPanel::MoreTabsListAlignment::Right);
@@ -26,7 +31,7 @@ MainEditorWindow::MainEditorWindow(std::string windowTitle, int width, int heigh
 	{
 		// Attacks tab in left panel
 		attacksListView = AttacksListView::create(*this, clipboard);
-		attacksListPanel = LevelPackObjectsListPanel::create(*this, clipboard, *attacksListView);
+		attacksListPanel = LevelPackObjectsListPanel::create(*attacksListView);
 		populateLeftPanelLevelPackObjectListPanel(attacksListView, attacksListPanel,
 			[this]() {
 			this->createAttack(true);
@@ -40,7 +45,7 @@ MainEditorWindow::MainEditorWindow(std::string windowTitle, int width, int heigh
 	{
 		// Attack patterns tab in left panel
 		attackPatternsListView = AttackPatternsListView::create(*this, clipboard);
-		attackPatternsListPanel = LevelPackObjectsListPanel::create(*this, clipboard, *attackPatternsListView);
+		attackPatternsListPanel = LevelPackObjectsListPanel::create(*attackPatternsListView);
 		populateLeftPanelLevelPackObjectListPanel(attackPatternsListView, attackPatternsListPanel,
 			[this]() {
 			this->createAttackPattern(true);
@@ -63,6 +68,8 @@ MainEditorWindow::MainEditorWindow(std::string windowTitle, int width, int heigh
 	clipboardNotification->setPosition(0, tgui::bindBottom(leftPanel) - tgui::bindHeight(clipboardNotification));
 	gui->add(clipboardNotification);
 
+	gui->add(menuBar);
+
 	clipboard.getOnCopy()->sink().connect<MainEditorWindow, &MainEditorWindow::showClipboardResult>(this);
 	clipboard.getOnPaste()->sink().connect<MainEditorWindow, &MainEditorWindow::showClipboardResult>(this);
 }
@@ -75,24 +82,31 @@ MainEditorWindow::~MainEditorWindow() {
 
 void MainEditorWindow::loadLevelPack(std::string levelPackName) {
 	audioPlayer = std::make_shared<AudioPlayer>();
-	levelPack = std::make_shared<LevelPack>(*audioPlayer, levelPackName);
-	spriteLoader = levelPack->createSpriteLoader();
-	spriteLoader->preloadTextures();
+	try {
+		levelPack = std::make_shared<LevelPack>(*audioPlayer, levelPackName);
+		spriteLoader = levelPack->createSpriteLoader();
+		spriteLoader->preloadTextures();
+	} catch (const char* str) {
+		// TODO: log error and display to user
+		return;
+	}
 
-	attacksListPanel->setLevelPack(levelPack.get());
+	mainPanel->removeAllTabs();
+
 	attacksListView->setLevelPack(levelPack.get());
-	attacksListView->reload();
 
-	attackPatternsListPanel->setLevelPack(levelPack.get());
 	attackPatternsListView->setLevelPack(levelPack.get());
-	attackPatternsListView->reload();
 
 	// TODO: add more left panel panels to here
 
-	// TODO: window size from settings
-	previewWindow = std::make_shared<LevelPackObjectPreviewWindow>("Preview", 1024, 768, levelPackName);
-	std::thread previewWindowThread = std::thread(&LevelPackObjectPreviewWindow::start, &(*previewWindow));
-	previewWindowThread.detach();
+	if (previewWindow) {
+		previewWindow->loadLevelPack(levelPackName);
+	} else {
+		// TODO: window size from settings
+		previewWindow = std::make_shared<LevelPackObjectPreviewWindow>("Preview", 1024, 768, levelPackName);
+		std::thread previewWindowThread = std::thread(&LevelPackObjectPreviewWindow::start, &(*previewWindow));
+		previewWindowThread.detach();
+	}
 }
 
 void MainEditorWindow::overwriteAttacks(std::vector<std::shared_ptr<EditorAttack>> attacks, UndoStack* undoStack) {

@@ -14,22 +14,15 @@ utility buttons that can't be scrolled past.
 class LevelPackObjectsListPanel : public tgui::Panel, public EventCapturable {
 public:
 	/*
-	mainEditorWindow - the parent MainEditorWindow
 	childListView - the LevelPackObjectsListView that this widget will pass events to
 	*/
-	LevelPackObjectsListPanel(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, LevelPackObjectsListView& childListView);
-	static std::shared_ptr<LevelPackObjectsListPanel> create(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, 
-		LevelPackObjectsListView& childListView) {
-		return std::make_shared<LevelPackObjectsListPanel>(mainEditorWindow, clipboard, childListView);
+	LevelPackObjectsListPanel(LevelPackObjectsListView& childListView);
+	static std::shared_ptr<LevelPackObjectsListPanel> create(LevelPackObjectsListView& childListView) {
+		return std::make_shared<LevelPackObjectsListPanel>(childListView);
 	}
 
 	bool handleEvent(sf::Event event) override;
 
-	void setLevelPack(LevelPack* levelPack);
-
 private:
-	MainEditorWindow& mainEditorWindow;
-	Clipboard& clipboard;
-	LevelPack* levelPack;
 	LevelPackObjectsListView& childListView;
 };
