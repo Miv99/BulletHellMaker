@@ -40,8 +40,7 @@ SpriteSheet::SpriteSheet(std::string name)
 std::shared_ptr<sf::Sprite> SpriteSheet::getSprite(const std::string& spriteName) {
 	if (spriteData.count(spriteName) == 0) {
 		// Missing sprite
-		//TODO: handle it by returning a missing texture sprite
-		return std::shared_ptr<sf::Sprite>();
+		return nullptr;
 	}
 	std::shared_ptr<SpriteData> data = spriteData.at(spriteName);
 	ComparableIntRect area = data->getArea();
@@ -66,6 +65,10 @@ std::shared_ptr<sf::Sprite> SpriteSheet::getSprite(const std::string& spriteName
 }
 
 std::unique_ptr<Animation> SpriteSheet::getAnimation(const std::string& animationName, bool loop) {
+	if (animationData.count(animationName) == 0) {
+		// Missing animation
+		return nullptr;
+	}
 	std::shared_ptr<AnimationData> data = animationData.at(animationName);
 
 	// Animation has not been loaded yet
@@ -125,20 +128,52 @@ SpriteLoader::SpriteLoader(const std::string& levelPackRelativePath, const std::
 	backgroundsCache = std::make_unique<Cache<std::string, std::pair<std::shared_ptr<sf::Texture>, std::filesystem::file_time_type>>>(BACKGROUNDS_CACHE_MAX_SIZE);
 	for (std::pair<std::string, std::string> namesPair : spriteSheetNamePairs) {
 		if (!loadSpriteSheet(namesPair.first, namesPair.second)) {
-			throw "Unable to load sprite sheet meta file \"" + namesPair.first + "\" and/or sprite sheet \"" + namesPair.second + "\"";
+			// TODO: log that sprite sheet meta file or sprite sheet couldn't be loaded
 		}
 	}
+
+	// Create default missing sprite
+	sf::Image missingSpriteImage;
+	sf::Uint8 pixels[16];
+	pixels[0] = 255;
+	pixels[1] = 0;
+	pixels[2] = 255;
+	pixels[3] = 255;
+	pixels[4] = 0;
+	pixels[5] = 0;
+	pixels[6] = 0;
+	pixels[7] = 255;
+	pixels[8] = 0;
+	pixels[9] = 0;
+	pixels[10] = 0;
+	pixels[11] = 255;
+	pixels[12] = 255;
+	pixels[13] = 0;
+	pixels[14] = 255;
+	pixels[15] = 255;
+	missingSpriteImage.create(2, 2, pixels);
+	missingSpriteTexture.loadFromImage(missingSpriteImage);
+	missingSprite = std::make_shared<sf::Sprite>(missingSpriteTexture);
 }
 
 std::shared_ptr<sf::Sprite> SpriteLoader::getSprite(const std::string& spriteName, const std::string& spriteSheetName) {
 	if (spriteSheets.count(spriteSheetName) == 0) {
-		//TODO: return default sprite
-		return std::make_shared<sf::Sprite>();
+		// Missing sprite sheet
+		return getMissingSprite();
 	}
-	return spriteSheets[spriteSheetName]->getSprite(spriteName);
+	std::shared_ptr<sf::Sprite> sprite = spriteSheets[spriteSheetName]->getSprite(spriteName);
+	if (sprite) {
+		return sprite;
+	} else {
+		return getMissingSprite();
+	}
 }
 
 std::unique_ptr<Animation> SpriteLoader::getAnimation(const std::string & animationName, const std::string & spriteSheetName, bool loop) {
+	if (spriteSheets.count(spriteSheetName) == 0) {
+		// Missing sprite sheet
+		return nullptr;
+	}
 	return spriteSheets[spriteSheetName]->getAnimation(animationName, loop);
 }
 
@@ -169,6 +204,14 @@ std::shared_ptr<sf::Texture> SpriteLoader::getBackground(const std::string& back
 	return background;
 }
 
+const std::shared_ptr<sf::Sprite> SpriteLoader::getMissingSprite() {
+	std::shared_ptr<sf::Sprite> sprite = std::make_shared<sf::Sprite>(*missingSprite);
+	// Default 100x100
+	sprite->setScale(50.0f * globalSpriteScale, 50.0f * globalSpriteScale);
+	sprite->setOrigin(1, 1);
+	return sprite;
+}
+
 void SpriteLoader::preloadTextures() {
 	for (auto it = spriteSheets.begin(); it != spriteSheets.end(); it++) {
 		it->second->preloadTextures();
@@ -180,6 +223,7 @@ void SpriteLoader::clearSpriteSheets() {
 }
 
 void SpriteLoader::setGlobalSpriteScale(float scale) {
+	this->globalSpriteScale = scale;
 	for (auto it = spriteSheets.begin(); it != spriteSheets.end(); it++) {
 		it->second->setGlobalSpriteScale(scale);
 	}

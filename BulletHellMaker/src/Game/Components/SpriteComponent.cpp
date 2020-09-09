@@ -93,7 +93,14 @@ void SpriteComponent::setAnimatable(SpriteLoader& spriteLoader, Animatable anima
 		setAnimation(nullptr);
 		updateSprite(spriteLoader.getSprite(animatable.getAnimatableName(), animatable.getSpriteSheetName()));
 	} else {
-		setAnimation(spriteLoader.getAnimation(animatable.getAnimatableName(), animatable.getSpriteSheetName(), loopAnimatable));
+		std::unique_ptr<Animation> animation = spriteLoader.getAnimation(animatable.getAnimatableName(), animatable.getSpriteSheetName(), loopAnimatable);
+		if (animation) {
+			setAnimation(std::move(animation));
+		} else {
+			// Default to missing sprite
+			setAnimation(nullptr);
+			updateSprite(spriteLoader.getMissingSprite());
+		}
 	}
 }
 

@@ -68,7 +68,13 @@ class SpriteSheet {
 public:
 	SpriteSheet(std::string name);
 
+	/*
+	Returns nullptr if the requested sprite does not exist.
+	*/
 	std::shared_ptr<sf::Sprite> getSprite(const std::string& spriteName);
+	/*
+	Returns nullptr if the requested animation does not exist.
+	*/
 	std::unique_ptr<Animation> getAnimation(const std::string& animationName, bool loop);
 	void insertSprite(const std::string&, std::shared_ptr<SpriteData>);
 	void insertAnimation(const std::string&, std::shared_ptr<AnimationData>);
@@ -108,12 +114,19 @@ public:
 	Returns an entirely new sf::Sprite.
 	*/
 	std::shared_ptr<sf::Sprite> getSprite(const std::string& spriteName, const std::string& spriteSheetName);
+	/*
+	Returns nullptr if the requested animation does not exist.
+	*/
 	std::unique_ptr<Animation> getAnimation(const std::string& animationName, const std::string& spriteSheetName, bool loop);
 	/*
 	Returns nullptr if the background could not be loaded.
 	*/
 	std::shared_ptr<sf::Texture> getBackground(const std::string& backgroundFileName);
 	inline const std::map<std::string, std::shared_ptr<SpriteSheet>> getSpriteSheets() { return spriteSheets; }
+	/*
+	Returns a copy of the default missing sprite.
+	*/
+	const std::shared_ptr<sf::Sprite> getMissingSprite();
 	/*
 	Preloads all textures except backgrounds.
 	*/
@@ -131,6 +144,12 @@ private:
 	std::map<std::string, std::shared_ptr<SpriteSheet>> spriteSheets;
 	// Cache of backgrounds; key is a pair of the background file name and value is a pair of the texture and the file's last modified time
 	std::unique_ptr<Cache<std::string, std::pair<std::shared_ptr<sf::Texture>, std::filesystem::file_time_type>>> backgroundsCache;
+
+	sf::Texture missingSpriteTexture;
+	std::shared_ptr<sf::Sprite> missingSprite;
+
+	float globalSpriteScale = 1.0f;
+
 	// Returns true if the meta file and image file were successfully loaded
 	bool loadSpriteSheet(const std::string& spriteSheetMetaFileName, const std::string& spriteSheetImageFileName);
 };

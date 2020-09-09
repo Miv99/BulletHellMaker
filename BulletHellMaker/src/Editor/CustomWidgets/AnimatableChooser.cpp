@@ -55,7 +55,7 @@ AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprit
 \tFace horizontal movement - The entity's angle of rotation will be either 0 (when it is moving at an angle in range (0, 90) \
 or (270, 360)) or 180 (when it is moving at angle in range (90, 270))."));
 
-	animatable->connect("ItemSelected", [&](std::string itemText, std::string id) {
+	animatable->connect("ItemSelected", [this](std::string itemText, std::string id) {
 		// ID is in format "spriteSheetName\animatableName"
 		std::string spriteSheetName = id.substr(0, id.find_first_of('\\'));
 
@@ -79,18 +79,18 @@ or (270, 360)) or 180 (when it is moving at angle in range (90, 270))."));
 			previousAnimatableSelection = id;
 			// Item text is in format "[S]spriteName" or "[A]animationName"
 			if (itemText[1] == 'S') {
-				animatablePicture->setSprite(spriteLoader, itemText.substr(3), spriteSheetName);
+				animatablePicture->setSprite(this->spriteLoader, itemText.substr(3), spriteSheetName);
 			} else {
-				animatablePicture->setAnimation(spriteLoader, itemText.substr(3), spriteSheetName);
+				animatablePicture->setAnimation(this->spriteLoader, itemText.substr(3), spriteSheetName);
 			}
 
 			onValueChange.emit(this, Animatable(itemText.substr(3), spriteSheetName, itemText[1] == 'S', static_cast<ROTATION_TYPE>(std::stoi(std::string(rotationType->getSelectedItemId())))));
 		} else {
 			// Item text is in format "[S]spriteName" or "[A]animationName"
 			if (itemText[1] == 'S') {
-				animatablePicture->setSprite(spriteLoader, itemText.substr(3), spriteSheetName);
+				animatablePicture->setSprite(this->spriteLoader, itemText.substr(3), spriteSheetName);
 			} else {
-				animatablePicture->setAnimation(spriteLoader, itemText.substr(3), spriteSheetName);
+				animatablePicture->setAnimation(this->spriteLoader, itemText.substr(3), spriteSheetName);
 			}
 		}
 
@@ -169,7 +169,12 @@ void AnimatableChooser::setValue(Animatable animatable) {
 	if (animatable.getAnimatableName() == "") {
 		this->animatable->deselectItem();
 	} else if (animatable.getSpriteSheetName() + "\\" + animatable.getAnimatableName() != this->animatable->getSelectedItemId()) {
-		this->animatable->setSelectedItemById(animatable.getSpriteSheetName() + "\\" + animatable.getAnimatableName());
+		bool itemExists = this->animatable->setSelectedItemById(animatable.getSpriteSheetName() + "\\" + animatable.getAnimatableName());
+		if (!itemExists) {
+			// Trying to select an animatable that doesn't exist in the SpriteLoader
+			this->animatable->deselectItem();
+			animatablePicture->setSpriteToMissingSprite(this->spriteLoader);
+		}
 	}
 	rotationType->setSelectedItemById(std::to_string(static_cast<int>(animatable.getRotationType())));
 	ignoreSignals = false;

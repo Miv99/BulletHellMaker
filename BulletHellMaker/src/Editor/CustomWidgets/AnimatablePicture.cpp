@@ -47,13 +47,25 @@ bool AnimatablePicture::mouseOnWidget(tgui::Vector2f pos) const {
 }
 
 void AnimatablePicture::setAnimation(SpriteLoader& spriteLoader, const std::string& animationName, const std::string& spriteSheetName) {
-	this->animation = spriteLoader.getAnimation(animationName, spriteSheetName, true);
+	std::unique_ptr<Animation> animation = spriteLoader.getAnimation(animationName, spriteSheetName, true);
+	if (animation) {
+		this->animation = std::move(animation);
+	} else {
+		setSpriteToMissingSprite(spriteLoader);
+	}
 }
 
 void AnimatablePicture::setSprite(SpriteLoader& spriteLoader, const std::string& spriteName, const std::string& spriteSheetName) {
 	curSprite = spriteLoader.getSprite(spriteName, spriteSheetName);
 	animation = nullptr;
 	resizeCurSpriteToFitWidget();
+}
+
+void AnimatablePicture::setSpriteToMissingSprite(SpriteLoader& spriteLoader) {
+	curSprite = spriteLoader.getMissingSprite();
+	animation = nullptr;
+	resizeCurSpriteToFitWidget();
+
 }
 
 void AnimatablePicture::resizeCurSpriteToFitWidget() {

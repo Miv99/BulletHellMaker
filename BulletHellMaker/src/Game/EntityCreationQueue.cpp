@@ -423,7 +423,12 @@ void PlayDeathAnimatableCommand::execute(EntityCreationQueue & queue) {
 	if (animatable.isSprite()) {
 		registry.assign<DespawnComponent>(newEntity, duration);
 	} else {
-		registry.assign<DespawnComponent>(newEntity, spriteLoader.getAnimation(animatable.getAnimatableName(), animatable.getSpriteSheetName(), false)->getTotalDuration());
+		std::unique_ptr<Animation> animation = spriteLoader.getAnimation(animatable.getAnimatableName(), animatable.getSpriteSheetName(), false);
+		if (animation) {
+			registry.assign<DespawnComponent>(newEntity, animation->getTotalDuration());
+		} else {
+			registry.assign<DespawnComponent>(newEntity, duration);
+		}
 	}
 	spriteComponent.rotate(inheritedSpriteComponent.getInheritedRotationAngle());
 	if (effect == PlayAnimatableDeathAction::DEATH_ANIMATION_EFFECT::NONE) {

@@ -22,6 +22,7 @@ public:
 
 	void setAnimation(SpriteLoader& spriteLoader, const std::string& animationName, const std::string& spriteSheetName);
 	void setSprite(SpriteLoader& spriteLoader, const std::string& spriteName, const std::string& spriteSheetName);
+	void setSpriteToMissingSprite(SpriteLoader& spriteLoader);
 
 private:
 	std::unique_ptr<Animation> animation;
