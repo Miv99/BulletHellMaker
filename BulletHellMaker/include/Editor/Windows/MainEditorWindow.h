@@ -35,6 +35,7 @@ public:
 	Create an attack pattern in the LevelPack.
 	*/
 	void createAttackPattern(bool undoable);
+
 	/*
 	Overwrite existing EditorAttacks with deep copies of new ones as an undoable/redoable action.
 	attacks - the list of only the new EditorAttacks
@@ -47,6 +48,7 @@ public:
 	undoStack - the UndoStack to add the action to; set to nullptr if the action should not be able to be undone
 	*/
 	void overwriteAttackPatterns(std::vector<std::shared_ptr<EditorAttackPattern>> objects, UndoStack* undoStack);
+	
 	/*
 	Reloads an attack tab to reflect new changes to the associated EditorAttack that didn't come from
 	the tab itself. If the EditorAttack no longer exists, the tab will be removed.
@@ -57,6 +59,19 @@ public:
 	the tab itself. If the EditorAttackPattern no longer exists, the tab will be removed.
 	*/
 	void reloadAttackPatternTab(int id);
+
+	/*
+	Saves an attack if it has unsaved changes.
+	*/
+	void saveAttackChanges(int id);
+	/*
+	Saves an attack pattern if it has unsaved changes.
+	*/
+	void saveAttackPatternChanges(int id);
+	/*
+	Saves all unsaved changes.
+	*/
+	void saveAllChanges();
 
 	std::shared_ptr<LevelPackObjectsListView> getAttacksListView();
 	std::shared_ptr<LevelPackObjectsListPanel> getAttacksListPanel();
@@ -69,6 +84,11 @@ public:
 	std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedEnemies();
 	std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedEnemyPhases();
 	std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedBulletModels();
+
+	/*
+	Returns whether there are any unsaved changes.
+	*/
+	bool hasUnsavedChanges();
 
 	/*
 	Open a single attack in the left panel's attack list so that

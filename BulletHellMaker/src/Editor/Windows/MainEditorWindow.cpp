@@ -564,6 +564,48 @@ void MainEditorWindow::reloadAttackPatternTab(int id) {
 	}
 }
 
+void MainEditorWindow::saveAttackChanges(int id) {
+	// Do nothing if the attack doesn't have any unsaved changes
+
+	if (unsavedAttacks.count(id) > 0) {
+		levelPack->updateAttack(unsavedAttacks[id]);
+		unsavedAttacks.erase(id);
+
+		attacksListView->reload();
+	}
+}
+
+void MainEditorWindow::saveAttackPatternChanges(int id) {
+	// Do nothing if the attack pattern doesn't have any unsaved changes
+
+	if (unsavedAttackPatterns.count(id) > 0) {
+		levelPack->updateAttackPattern(unsavedAttackPatterns[id]);
+		unsavedAttackPatterns.erase(id);
+
+		attackPatternsListView->reload();
+	}
+}
+
+void MainEditorWindow::saveAllChanges() {
+	if (unsavedAttacks.size() > 0) {
+		for (std::pair<int, std::shared_ptr<LevelPackObject>> changes : unsavedAttacks) {
+			levelPack->updateAttack(changes.second);
+		}
+		unsavedAttacks.clear();
+		attacksListView->reload();
+	}
+
+	if (unsavedAttackPatterns.size() > 0) {
+		for (std::pair<int, std::shared_ptr<LevelPackObject>> changes : unsavedAttackPatterns) {
+			levelPack->updateAttackPattern(changes.second);
+		}
+		unsavedAttackPatterns.clear();
+		attackPatternsListView->reload();
+	}
+
+	// TODO: add to this
+}
+
 std::shared_ptr<LevelPackObjectsListView> MainEditorWindow::getAttacksListView() {
 	return attacksListView;
 }
@@ -598,6 +640,13 @@ std::map<int, std::shared_ptr<LevelPackObject>>& MainEditorWindow::getUnsavedEne
 
 std::map<int, std::shared_ptr<LevelPackObject>>& MainEditorWindow::getUnsavedBulletModels() {
 	return unsavedBulletModels;
+}
+
+bool MainEditorWindow::hasUnsavedChanges() {
+	// TODO: add to this
+	return unsavedAttacks.size() > 0 || unsavedAttackPatterns.size() > 0
+		|| unsavedBulletModels.size() > 0 || unsavedEnemies.size() > 0
+		|| unsavedEnemyPhases.size() > 0;
 }
 
 void MainEditorWindow::createAttack(bool undoable) {

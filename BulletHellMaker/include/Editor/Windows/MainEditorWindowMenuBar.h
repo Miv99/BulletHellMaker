@@ -1,6 +1,8 @@
 #pragma once
 #include <TGUI/TGUI.hpp>
 
+#include <Editor/Windows/EditorWindowConfirmationPromptChoice.h>
+
 class MainEditorWindow;
 
 class MainEditorWindowMenuBar : public tgui::MenuBar {
@@ -12,4 +14,8 @@ public:
 
 private:
 	MainEditorWindow& mainEditorWindow;
+
+	void promptOpenLevelPack();
+
+	void onOpenLevelPackWhileUnsavedChangesExistConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice);
 };
