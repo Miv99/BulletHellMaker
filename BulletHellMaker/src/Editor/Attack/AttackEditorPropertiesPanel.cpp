@@ -132,8 +132,8 @@ void AttackEditorPropertiesPanel::manualRedo() {
 	undoStack.redo();
 }
 
-void AttackEditorPropertiesPanel::onPasteIntoConfirmation(bool confirmed, std::string newName) {
-	if (confirmed) {
+void AttackEditorPropertiesPanel::onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::string newName) {
+	if (choice == EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES) {
 		std::string oldName = attack->getName();
 		undoStack.execute(UndoableCommand([this, newName]() {
 			this->attack->setName(newName);

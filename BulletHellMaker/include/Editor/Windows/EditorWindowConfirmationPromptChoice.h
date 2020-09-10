@@ -1,0 +1,7 @@
+#pragma once
+
+enum class EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE {
+	YES,
+	NO,
+	CANCEL
+};

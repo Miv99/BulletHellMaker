@@ -2,6 +2,7 @@
 #include <Editor/CustomWidgets/ListViewScrollablePanel.h>
 #include <Editor/CustomWidgets/EditBox.h>
 #include <Editor/CopyPaste.h>
+#include <Editor/Windows/EditorWindowConfirmationPromptChoice.h>
 #include <Editor/EventCapturable.h>
 #include <DataStructs/UndoStack.h>
 
@@ -61,5 +62,5 @@ private:
 	/*
 	Called when the user responds to a prompt confirming an EditorAttack being pasted to overwrite the properties of the current EditorAttack being edited.
 	*/
-	void onPasteIntoConfirmation(bool confirmed, std::string newName);
+	void onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::string newName);
 };

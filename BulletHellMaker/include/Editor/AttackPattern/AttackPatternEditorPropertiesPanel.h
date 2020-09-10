@@ -6,6 +6,7 @@
 #include <Editor/CustomWidgets/ListViewScrollablePanel.h>
 #include <Editor/CustomWidgets/EditBox.h>
 #include <Editor/LevelPackObjectUseRelationship/AttackPatternToAttackUseRelationshipEditor.h>
+#include <Editor/Windows/EditorWindowConfirmationPromptChoice.h>
 #include <DataStructs/UndoStack.h>
 
 class MainEditorWindow;
@@ -77,5 +78,5 @@ private:
 	/*
 	Called when the user responds to a prompt confirming an EditorAttackPattern being pasted to overwrite the properties of the current EditorAttackPattern being edited.
 	*/
-	void onPasteIntoConfirmation(bool confirmed, CopiedAttackPatternProperties newProperties);
+	void onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, CopiedAttackPatternProperties newProperties);
 };

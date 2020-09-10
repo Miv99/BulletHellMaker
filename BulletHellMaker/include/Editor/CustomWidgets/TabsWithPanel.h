@@ -4,6 +4,7 @@
 #include <DataStructs/LRUCache.h>
 #include <Editor/EventCapturable.h>
 #include <Editor/CustomWidgets/ListBoxScrollablePanel.h>
+#include <Editor/Windows/EditorWindowConfirmationPromptChoice.h>
 
 class EditorWindow;
 
@@ -211,7 +212,7 @@ private:
 
 	closeButtonConfirmationPromptTargetTabShortenedName - the shortened name (no appended spaces) of the tab being closed
 	*/
-	void onCloseButtonConfirmationPromptAnswer(bool confirmed, std::string closeButtonConfirmationPromptTargetTabShortenedName);
+	void onCloseButtonConfirmationPromptAnswer(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::string closeButtonConfirmationPromptTargetTabShortenedName);
 	/*
 	Mark/Unmark a specific tab as requiring pressing "Yes" to a confirmation prompt before
 	the tab is actually closed. This function does nothing if hasCloseButtons is false.

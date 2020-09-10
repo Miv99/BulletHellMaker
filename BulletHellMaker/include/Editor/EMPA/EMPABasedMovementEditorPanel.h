@@ -224,5 +224,5 @@ private:
 	/*
 	Called when the confirmation popup from doing paste2 is answered.
 	*/
-	void onPasteIntoConfirmation(bool confirmed, std::vector<std::shared_ptr<EMPAction>> newEMPAs);
+	void onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::vector<std::shared_ptr<EMPAction>> newEMPAs);
 };

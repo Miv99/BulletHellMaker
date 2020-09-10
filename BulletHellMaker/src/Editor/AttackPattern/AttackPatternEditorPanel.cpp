@@ -136,16 +136,7 @@ ValueSymbolTable AttackPatternEditorPanel::getLevelPackObjectSymbolTable() {
 }
 
 void AttackPatternEditorPanel::manualSave() {
-	auto& unsavedAttackPatterns = mainEditorWindow.getUnsavedAttackPatterns();
-	int id = attackPattern->getID();
-
-	if (unsavedAttackPatterns.count(id) > 0) {
-		levelPack->updateAttackPattern(unsavedAttackPatterns[id]);
-		unsavedAttackPatterns.erase(id);
-	}
-	// Do nothing if the attack pattern doesn't have any unsaved changes
-
-	mainEditorWindow.getAttackPatternsListView()->reload();
+	mainEditorWindow.saveAttackPatternChanges(attackPattern->getID());
 }
 
 void AttackPatternEditorPanel::onLevelPackChange(LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE type, int id) {

@@ -1463,8 +1463,8 @@ void EditorMovablePointPanel::finishEditingSpawnTypePosition() {
 	placingSpawnLocation = false;
 }
 
-void EditorMovablePointPanel::onPasteIntoConfirmation(bool confirmed, std::shared_ptr<EditorMovablePoint> newEMP) {
-	if (confirmed) {
+void EditorMovablePointPanel::onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::shared_ptr<EditorMovablePoint> newEMP) {
+	if (choice == EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES) {
 		auto oldAnimatable = emp->getAnimatable();
 		auto oldLoopAnimation = emp->getLoopAnimation();
 		auto oldBaseSprite = emp->getBaseSprite();

@@ -692,8 +692,8 @@ void EMPABasedMovementEditorPanel::reloadEMPATab(int empaIndex) {
 	}
 }
 
-void EMPABasedMovementEditorPanel::onPasteIntoConfirmation(bool confirmed, std::vector<std::shared_ptr<EMPAction>> newEMPAs) {
-	if (confirmed) {
+void EMPABasedMovementEditorPanel::onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::vector<std::shared_ptr<EMPAction>> newEMPAs) {
+	if (choice == EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES) {
 		std::set<size_t> curSelectedIndices = visualizer->getEmpasListView()->getListView()->getSelectedItemIndices();
 		assert(curSelectedIndices.size() == newEMPAs.size());
 

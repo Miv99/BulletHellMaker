@@ -228,16 +228,7 @@ void AttackEditorPanel::populateEMPsTreeView() {
 }
 
 void AttackEditorPanel::manualSave() {
-	auto& unsavedAttacks = mainEditorWindow.getUnsavedAttacks();
-	int id = attack->getID();
-
-	if (unsavedAttacks.count(id) > 0) {
-		levelPack->updateAttack(unsavedAttacks[id]);
-		unsavedAttacks.erase(id);
-	}
-	// Do nothing if the attack doesn't have any unsaved changes
-
-	mainEditorWindow.getAttacksListView()->reload();
+	mainEditorWindow.saveAttackChanges(attack->getID());
 }
 
 void AttackEditorPanel::reloadEMPTab(int empID) {

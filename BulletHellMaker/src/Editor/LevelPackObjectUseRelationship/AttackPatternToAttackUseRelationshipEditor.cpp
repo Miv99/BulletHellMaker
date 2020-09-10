@@ -119,8 +119,10 @@ std::string AttackPatternToAttackUseRelationshipListView::getRelationshipListVie
 	return format("[time=\"%s\"] [Attack ID=%d]", std::get<0>(data).c_str(), std::get<1>(data));
 }
 
-void AttackPatternToAttackUseRelationshipListView::onPasteIntoConfirmation(bool confirmed, std::vector<std::tuple<std::string, int, ExprSymbolTable>> newRelationshipsData) {
-	if (confirmed) {
+void AttackPatternToAttackUseRelationshipListView::onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, 
+	std::vector<std::tuple<std::string, int, ExprSymbolTable>> newRelationshipsData) {
+
+	if (choice == EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES) {
 		std::set<size_t> curSelectedIndices = getListView()->getSelectedItemIndices();
 		std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> oldRelationships = parentRelationshipEditor.getRelationshipsSubset(curSelectedIndices);
 
@@ -339,8 +341,10 @@ std::shared_ptr<LevelPackObjectUseRelationship> AttackPatternToAttackUseRelation
 	return std::make_shared<AttackPatternToAttackUseRelationship>(std::make_tuple("", 0, ExprSymbolTable()));
 }
 
-void AttackPatternToAttackUseRelationshipEditor::onPasteIntoConfirmation(bool confirmed, std::vector<std::tuple<std::string, int, ExprSymbolTable>> newRelationshipData) {
-	if (confirmed || newRelationshipData.size() != 1) {
+void AttackPatternToAttackUseRelationshipEditor::onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, 
+	std::vector<std::tuple<std::string, int, ExprSymbolTable>> newRelationshipData) {
+
+	if (choice == EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES && newRelationshipData.size() == 1) {
 		std::shared_ptr<AttackPatternToAttackUseRelationship> currentRelationship = std::static_pointer_cast<AttackPatternToAttackUseRelationship>(getCurrentlySelectedRelationship());
 		std::tuple<std::string, int, ExprSymbolTable> oldRelationshipData = currentRelationship->getData();
 		undoStack.execute(UndoableCommand(

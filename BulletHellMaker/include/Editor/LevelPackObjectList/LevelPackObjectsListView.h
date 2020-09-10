@@ -4,6 +4,7 @@
 #include <LevelPack/LevelPack.h>
 #include <Editor/EventCapturable.h>
 #include <DataStructs/UndoStack.h>
+#include <Editor/Windows/EditorWindowConfirmationPromptChoice.h>
 
 class MainEditorWindow;
 
@@ -113,7 +114,8 @@ protected:
 	/*
 	Called when the confirmation popup from doing paste2 is answered.
 	*/
-	virtual void onPasteIntoConfirmation(bool confirmed, std::vector<std::shared_ptr<LevelPackObject>> newObjects) = 0;
+	virtual void onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, 
+		std::vector<std::shared_ptr<LevelPackObject>> newObjects) = 0;
 
 	/*
 	Helper function for addLevelPackObjectsToListView().
@@ -127,7 +129,8 @@ protected:
 	/*
 	Called when the confirmation popup from doing delete is answered.
 	*/
-	void onDeleteConfirmation(bool confirmed, std::vector<std::pair<std::shared_ptr<LevelPackObject>, bool>> deletedObjects);
+	void onDeleteConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, 
+		std::vector<std::pair<std::shared_ptr<LevelPackObject>, bool>> deletedObjects);
 };
 
 class AttacksListView : public LevelPackObjectsListView {
@@ -152,7 +155,7 @@ protected:
 	bool getLevelPackObjectIsInUse(int id) override;
 	std::string getLevelPackObjectDisplayName() override;
 
-	void onPasteIntoConfirmation(bool confirmed, std::vector<std::shared_ptr<LevelPackObject>> newObjects) override;
+	void onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::vector<std::shared_ptr<LevelPackObject>> newObjects) override;
 };
 
 class AttackPatternsListView : public LevelPackObjectsListView {
@@ -177,5 +180,5 @@ protected:
 	bool getLevelPackObjectIsInUse(int id) override;
 	std::string getLevelPackObjectDisplayName() override;
 
-	void onPasteIntoConfirmation(bool confirmed, std::vector<std::shared_ptr<LevelPackObject>> newObjects) override;
+	void onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::vector<std::shared_ptr<LevelPackObject>> newObjects) override;
 };

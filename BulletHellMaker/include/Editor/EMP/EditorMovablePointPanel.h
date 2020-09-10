@@ -143,7 +143,7 @@ private:
 	/*
 	Called when the user responds to a prompt confirming an EMP being pasted to overwrite the properties of the current EMP being edited.
 	*/
-	void onPasteIntoConfirmation(bool confirmed, std::shared_ptr<EditorMovablePoint> newEMP);
+	void onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::shared_ptr<EditorMovablePoint> newEMP);
 
 	/*
 	Returns the unique ID of a BULLET_ON_COLLISION_ACTION.

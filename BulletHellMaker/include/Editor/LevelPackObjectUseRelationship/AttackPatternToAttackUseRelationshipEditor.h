@@ -4,6 +4,7 @@
 #include <Editor/CustomWidgets/EditBox.h>
 #include <Editor/CustomWidgets/NumericalEditBoxWithLimits.h>
 #include <Editor/CustomWidgets/SymbolTableEditor.h>
+#include <Editor/Windows/EditorWindowConfirmationPromptChoice.h>
 #include <DataStructs/SymbolTable.h>
 
 class AttackPatternToAttackUseRelationship : public LevelPackObjectUseRelationship {
@@ -37,7 +38,8 @@ public:
 private:
 	std::string getRelationshipListViewText(std::shared_ptr<LevelPackObjectUseRelationship> relationship) override;
 
-	void onPasteIntoConfirmation(bool confirmed, std::vector<std::tuple<std::string, int, ExprSymbolTable>> newRelationshipsData);
+	void onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, 
+		std::vector<std::tuple<std::string, int, ExprSymbolTable>> newRelationshipsData);
 };
 
 /*
@@ -77,5 +79,6 @@ private:
 	void instantiateRelationshipListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard) override;
 	std::shared_ptr<LevelPackObjectUseRelationship> instantiateDefaultRelationship() override;
 
-	void onPasteIntoConfirmation(bool confirmed, std::vector<std::tuple<std::string, int, ExprSymbolTable>> newRelationshipData);
+	void onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, 
+		std::vector<std::tuple<std::string, int, ExprSymbolTable>> newRelationshipData);
 };

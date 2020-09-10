@@ -176,16 +176,11 @@ current todo:
         the one in additionalTable if it exists; additionalTable can't be redelegated; every redelegated symbol in
         symbolTable must be defined by additionalTable or else the preview won't start
     -surround SimpleEngineRenderer in some try catch that prints exceptions to the user
--visualizer thing in EMPABasedMovementEditorPanel
--LevelPackObjectPreviewPanel::previewAttackPattern()
     
 Random things for TODOs that are noted here so I don't forget:
 -legal check for EMP should make sure there aren't illegal detach actions
 -don't allow DetachFromParentEMPAs to exist in attack patterns' actions
 -legal checks for everything should make sure all IDs used (ie attack IDs in attack patterns) are valid
-
-Code cleanup TODO:
--Export all the CopyPasteable object constructions' strings to const static ones stored in some file
 
 TODO:
 -replace all in menu bar
@@ -205,9 +200,6 @@ TODO:
 -all default stuff (font, spritesheet, sounds, etc) are copied into every new level pack that is created so that no special code is needed to load
  from a default resource 
 -bosses can only be spawned if the condition is that there are 0 enemies so that there can only be 1 boss at a time
--Settings class; textmarshallable
--Make a global bloom settings thing where the user can disable bloom for a certain layer (or all layers) across all LevelPacks they play
- if there's too much lag or something
 -Change sprite sheet meta files to use TextMarshallable
 	-Due to the user-unfriendliness of text-marshalled files, this should only be done if an image viewer can be implemented in the editor
 	 that can zoom in and make rectangles so that the user has full control of 
@@ -219,6 +211,7 @@ TODO:
 		-for MoveCustomBezierEMPA, this rotates all control points about (0, 0)
 		-for all other EMPAs, do nothing
     -import bezier control points from text into BezierControlPointsPlacer
+-GuiConfig singleton class; editable only from outside of editor
 	  
 // ------------------------------------------------------------------------------------------------------------------------------------------------
 editable = attack/attack pattern/emp/enemy/enemyphase/player

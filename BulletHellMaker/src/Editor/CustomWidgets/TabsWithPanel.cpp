@@ -353,8 +353,8 @@ void TabsWithPanel::onTabsChange() {
 	}
 }
 
-void TabsWithPanel::onCloseButtonConfirmationPromptAnswer(bool confirmed, std::string closeButtonConfirmationPromptTargetTabShortenedName) {
-	if (confirmed) {
+void TabsWithPanel::onCloseButtonConfirmationPromptAnswer(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::string closeButtonConfirmationPromptTargetTabShortenedName) {
+	if (choice == EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES) {
 		removeTab(closeButtonConfirmationPromptTargetTabShortenedName);
 		onTabClose.emit(this, closeButtonConfirmationPromptTargetTabShortenedName);
 	}

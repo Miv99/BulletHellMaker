@@ -9,6 +9,8 @@
 #include <Mutex.h>
 #include <Editor/Util/EditorUtils.h>
 
+const float EditorWindow::PROMPT_BUTTON_WIDTH = 100.0f;
+
 EditorWindow::EditorWindow(std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval) :
 	windowTitle(windowTitle), windowWidth(width), windowHeight(height), scaleWidgetsOnResize(scaleWidgetsOnResize), letterboxingEnabled(letterboxingEnabled), renderInterval(renderInterval) {
 
@@ -21,18 +23,37 @@ EditorWindow::EditorWindow(std::string windowTitle, int width, int height, bool 
 	confirmationText = tgui::Label::create();
 	confirmationYes = tgui::Button::create();
 	confirmationNo = tgui::Button::create();
+	confirmationCancel = tgui::Button::create();
 	confirmationText->setTextSize(TEXT_SIZE);
 	confirmationYes->setTextSize(TEXT_SIZE);
 	confirmationNo->setTextSize(TEXT_SIZE);
 	confirmationText->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
 	confirmationYes->setText("Yes");
 	confirmationNo->setText("No");
-	confirmationYes->setSize(100.0f, TEXT_BUTTON_HEIGHT);
-	confirmationNo->setSize(100.0f, TEXT_BUTTON_HEIGHT);
+	confirmationCancel->setText("Cancel");
+	confirmationYes->setSize(PROMPT_BUTTON_WIDTH, TEXT_BUTTON_HEIGHT);
+	confirmationNo->setSize(PROMPT_BUTTON_WIDTH, TEXT_BUTTON_HEIGHT);
+	confirmationCancel->setSize(PROMPT_BUTTON_WIDTH, TEXT_BUTTON_HEIGHT);
+
+	confirmationPanel->connect("SizeChanged", [this](sf::Vector2f newSize) {
+		confirmationPanel->setPosition(windowWidth / 2.0f - confirmationPanel->getSize().x / 2.0f, windowHeight / 2.0f - confirmationPanel->getSize().y / 2.0f);
+		confirmationText->setMaximumTextWidth(confirmationPanel->getSize().x - GUI_PADDING_X * 2);
+		if (confirmationCancel->isVisible()) {
+			// All 3 buttons are visible
+			confirmationCancel->setPosition(newSize.x - tgui::bindWidth(confirmationNo) - GUI_PADDING_X, newSize.y - tgui::bindHeight(confirmationNo) - GUI_PADDING_Y);
+			confirmationNo->setPosition(tgui::bindLeft(confirmationCancel) - tgui::bindWidth(confirmationNo) - GUI_PADDING_X, tgui::bindTop(confirmationCancel));
+			confirmationYes->setPosition(tgui::bindLeft(confirmationNo) - tgui::bindWidth(confirmationYes) - GUI_PADDING_X, tgui::bindTop(confirmationNo));
+		} else {
+			// Only confirmationYes and confirmationNo are visible
+			confirmationNo->setPosition(newSize.x - tgui::bindWidth(confirmationNo) - GUI_PADDING_X, newSize.y - tgui::bindHeight(confirmationNo) - GUI_PADDING_Y);
+			confirmationYes->setPosition(tgui::bindLeft(confirmationNo) - tgui::bindWidth(confirmationYes) - GUI_PADDING_X, tgui::bindTop(confirmationNo));
+		}
+	});
 
 	confirmationPanel->add(confirmationText);
 	confirmationPanel->add(confirmationYes);
 	confirmationPanel->add(confirmationNo);
+	confirmationPanel->add(confirmationCancel);
 }
 
 void EditorWindow::start() {
@@ -188,13 +209,15 @@ void EditorWindow::show() {
 	}
 }
 
-std::shared_ptr<entt::SigH<void(bool)>> EditorWindow::promptConfirmation(std::string message, tgui::Widget* widgetToFocusAfter) {
+std::shared_ptr<entt::SigH<void(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE)>> EditorWindow::promptConfirmation(std::string message, 
+	tgui::Widget* widgetToFocusAfter, bool includeCancelButton) {
+
 	// Don't allow 2 confirmation prompts at the same time
 	if (confirmationPanelOpen) {
 		return nullptr;
 	}
 
-	std::shared_ptr<entt::SigH<void(bool)>> confirmationSignal = std::make_shared<entt::SigH<void(bool)>>();
+	std::shared_ptr<entt::SigH<void(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE)>> confirmationSignal = std::make_shared<entt::SigH<void(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE)>>();
 
 	// Disable all widgets
 	widgetsToBeEnabledAfterConfirmationPrompt.clear();
@@ -206,7 +229,7 @@ std::shared_ptr<entt::SigH<void(bool)>> EditorWindow::promptConfirmation(std::st
 	}
 
 	confirmationYes->connect("Pressed", [this, confirmationSignal, widgetToFocusAfter]() {
-		confirmationSignal->publish(true);
+		confirmationSignal->publish(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES);
 		confirmationSignal->sink().disconnect();
 		closeConfirmationPanel();
 
@@ -215,7 +238,7 @@ std::shared_ptr<entt::SigH<void(bool)>> EditorWindow::promptConfirmation(std::st
 		}
 	});
 	confirmationNo->connect("Pressed", [this, confirmationSignal, widgetToFocusAfter]() {
-		confirmationSignal->publish(false);
+		confirmationSignal->publish(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::NO);
 		confirmationSignal->sink().disconnect();
 		closeConfirmationPanel();
 
@@ -223,6 +246,23 @@ std::shared_ptr<entt::SigH<void(bool)>> EditorWindow::promptConfirmation(std::st
 			widgetToFocusAfter->setFocused(true);
 		}
 	});
+
+	confirmationCancel->setVisible(includeCancelButton);
+	if (includeCancelButton) {
+		confirmationCancel->connect("Pressed", [this, confirmationSignal, widgetToFocusAfter]() {
+			confirmationSignal->publish(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::CANCEL);
+			confirmationSignal->sink().disconnect();
+			closeConfirmationPanel();
+
+			if (widgetToFocusAfter) {
+				widgetToFocusAfter->setFocused(true);
+			}
+		});
+
+		confirmationPanel->setSize(std::max(calculateMinPromptPanelWidth(3), getWindow()->getSize().x * 0.5f), std::max(350.0f, getWindow()->getSize().y * 0.5f));
+	} else {
+		confirmationPanel->setSize(std::max(calculateMinPromptPanelWidth(2), getWindow()->getSize().x * 0.5f), std::max(350.0f, getWindow()->getSize().y * 0.5f));
+	}
 
 	confirmationText->setText(message);
 	gui->add(confirmationPanel);
@@ -346,12 +386,6 @@ void EditorWindow::updateWindowView(int windowWidth, int windowHeight) {
 		gui->setView(sf::View(sf::Vector2f(windowWidth / 2.0f, windowHeight / 2.0f), sf::Vector2f(windowWidth, windowHeight)));
 	}
 
-	confirmationPanel->setSize(std::max(300.0f, windowWidth * 0.35f), std::max(200.0f, windowHeight * 0.25f));
-	confirmationPanel->setPosition(windowWidth / 2.0f - confirmationPanel->getSize().x / 2.0f, windowHeight / 2.0f - confirmationPanel->getSize().y / 2.0f);
-	confirmationText->setMaximumTextWidth(confirmationPanel->getSize().x - GUI_PADDING_X * 2);
-	confirmationYes->setPosition(confirmationPanel->getSize().x/2.0f - confirmationYes->getSize().x - GUI_PADDING_X/2.0f, confirmationPanel->getSize().y - confirmationYes->getSize().y - GUI_PADDING_Y);
-	confirmationNo->setPosition(tgui::bindRight(confirmationYes) + GUI_PADDING_X, tgui::bindTop(confirmationYes));
-
 	if (resizeSignal) {
 		resizeSignal->publish(windowWidth, windowHeight);
 	}
@@ -421,6 +455,10 @@ bool EditorWindow::handleEvent(sf::Event event) {
 }
 
 void EditorWindow::onRenderWindowInitialization() {
+}
+
+float EditorWindow::calculateMinPromptPanelWidth(int numButtons) {
+	return GUI_PADDING_X * (numButtons + 1) + PROMPT_BUTTON_WIDTH * numButtons;
 }
 
 void EditorWindow::closeConfirmationPanel() {

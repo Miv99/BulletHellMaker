@@ -382,8 +382,8 @@ std::string AttacksListView::getLevelPackObjectDisplayName() {
 	return "attack";
 }
 
-void AttacksListView::onPasteIntoConfirmation(bool confirmed, std::vector<std::shared_ptr<LevelPackObject>> newObjects) {
-	if (confirmed) {
+void AttacksListView::onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::vector<std::shared_ptr<LevelPackObject>> newObjects) {
+	if (choice == EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES) {
 		std::vector<std::shared_ptr<EditorAttack>> derivedObjects;
 		for (auto obj : newObjects) {
 			derivedObjects.push_back(std::dynamic_pointer_cast<EditorAttack>(obj));
@@ -393,8 +393,10 @@ void AttacksListView::onPasteIntoConfirmation(bool confirmed, std::vector<std::s
 	}
 }
 
-void LevelPackObjectsListView::onDeleteConfirmation(bool confirmed, std::vector<std::pair<std::shared_ptr<LevelPackObject>, bool>> deletedObjects) {
-	if (confirmed) {
+void LevelPackObjectsListView::onDeleteConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, 
+	std::vector<std::pair<std::shared_ptr<LevelPackObject>, bool>> deletedObjects) {
+
+	if (choice == EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES) {
 		deleteObjects(getListView()->getSelectedItemIndices(), deletedObjects);
 	}
 }
@@ -530,8 +532,8 @@ std::string AttackPatternsListView::getLevelPackObjectDisplayName() {
 	return "attack pattern";
 }
 
-void AttackPatternsListView::onPasteIntoConfirmation(bool confirmed, std::vector<std::shared_ptr<LevelPackObject>> newObjects) {
-	if (confirmed) {
+void AttackPatternsListView::onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::vector<std::shared_ptr<LevelPackObject>> newObjects) {
+	if (choice == EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES) {
 		std::vector<std::shared_ptr<EditorAttackPattern>> derivedObjects;
 		for (auto obj : newObjects) {
 			derivedObjects.push_back(std::dynamic_pointer_cast<EditorAttackPattern>(obj));

@@ -144,8 +144,8 @@ void AttackPatternEditorPropertiesPanel::manualRedo() {
 	undoStack.redo();
 }
 
-void AttackPatternEditorPropertiesPanel::onPasteIntoConfirmation(bool confirmed, CopiedAttackPatternProperties newProperties) {
-	if (confirmed) {
+void AttackPatternEditorPropertiesPanel::onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, CopiedAttackPatternProperties newProperties) {
+	if (choice == EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES) {
 		CopiedAttackPatternProperties oldProperties(attackPattern->getName(), attackPattern->getAttacks());
 		undoStack.execute(UndoableCommand([this, newProperties]() {
 			attackPattern->setName(newProperties.name);
