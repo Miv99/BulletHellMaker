@@ -360,9 +360,17 @@ void LevelPackObjectPreviewPanel::resetPreview() {
 	if (currentPreviewObjectType == PREVIEW_OBJECT::NONE) {
 		previewNothing();
 	} else if (currentPreviewObjectType == PREVIEW_OBJECT::ATTACK) {
-		previewAttack(levelPack->getAttack(currentPreviewObjectID));
+		if (levelPack->hasAttack(currentPreviewObjectID)) {
+			previewAttack(levelPack->getAttack(currentPreviewObjectID));
+		} else {
+			previewNothing();
+		}
 	} else if (currentPreviewObjectType == PREVIEW_OBJECT::ATTACK_PATTERN) {
-		previewAttackPattern(levelPack->getAttackPattern(currentPreviewObjectID));
+		if (levelPack->hasAttackPattern(currentPreviewObjectID)) {
+			previewAttackPattern(levelPack->getAttackPattern(currentPreviewObjectID));
+		} else {
+			previewNothing();
+		}
 	}
 }
 
