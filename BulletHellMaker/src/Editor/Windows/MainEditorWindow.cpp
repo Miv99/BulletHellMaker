@@ -190,11 +190,19 @@ void MainEditorWindow::updateAttackPattern(std::shared_ptr<EditorAttackPattern> 
 void MainEditorWindow::deleteAttack(int id) {
 	levelPack->deleteAttack(id);
 	previewWindow->deleteAttack(id);
+
+	if (unsavedAttacks.find(id) != unsavedAttacks.end()) {
+		unsavedAttacks.erase(id);
+	}
 }
 
 void MainEditorWindow::deleteAttackPattern(int id) {
 	levelPack->deleteAttackPattern(id);
 	previewWindow->deleteAttackPattern(id);
+
+	if (unsavedAttackPatterns.find(id) != unsavedAttackPatterns.end()) {
+		unsavedAttackPatterns.erase(id);
+	}
 }
 
 bool MainEditorWindow::handleEvent(sf::Event event) {
@@ -575,6 +583,18 @@ void MainEditorWindow::saveAttackChanges(int id) {
 	}
 }
 
+void MainEditorWindow::saveAttackChanges(std::set<size_t> ids) {
+	if (ids.size() > 0) {
+		for (int id : ids) {
+			if (unsavedAttacks.count(id) > 0) {
+				levelPack->updateAttack(unsavedAttacks[id]);
+				unsavedAttacks.erase(id);
+			}
+		}
+		attacksListView->reload();
+	}
+}
+
 void MainEditorWindow::saveAttackPatternChanges(int id) {
 	// Do nothing if the attack pattern doesn't have any unsaved changes
 
@@ -582,6 +602,18 @@ void MainEditorWindow::saveAttackPatternChanges(int id) {
 		levelPack->updateAttackPattern(unsavedAttackPatterns[id]);
 		unsavedAttackPatterns.erase(id);
 
+		attackPatternsListView->reload();
+	}
+}
+
+void MainEditorWindow::saveAttackPatternChanges(std::set<size_t> ids) {
+	if (ids.size() > 0) {
+		for (int id : ids) {
+			if (unsavedAttackPatterns.count(id) > 0) {
+				levelPack->updateAttackPattern(unsavedAttackPatterns[id]);
+				unsavedAttackPatterns.erase(id);
+			}
+		}
 		attackPatternsListView->reload();
 	}
 }

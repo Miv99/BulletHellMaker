@@ -268,21 +268,11 @@ void LevelPackObjectsListView::manualDelete() {
 }
 
 void LevelPackObjectsListView::manualSave() {
-	auto selectedIndices = getListView()->getSelectedItemIndices();
+	std::set<size_t> selectedIndices = getListView()->getSelectedItemIndices();
 	if (selectedIndices.size() > 0) {
-		auto& unsavedAttacks = mainEditorWindow.getUnsavedAttacks();
-		for (int index : selectedIndices) {
-			int id = getLevelPackObjectIDFromIndex(index);
-
-			if (unsavedAttacks.count(id) > 0) {
-				updateLevelPackObjectInLevelPack(unsavedAttacks[id]);
-				
-				unsavedAttacks.erase(id);
-			}
-			// Do nothing if the attack doesn't have any unsaved changes
-		}
+		saveLevelPackObjects(selectedIndices);
+		reload();
 	}
-	reload();
 }
 
 void LevelPackObjectsListView::manualSaveAll() {
@@ -366,6 +356,10 @@ void AttacksListView::reloadLevelPackObjectTabInMainEditorWindow(int id) {
 	mainEditorWindow.reloadAttackTab(id);
 }
 
+void AttacksListView::saveLevelPackObjects(std::set<size_t> ids) {
+	mainEditorWindow.saveAttackChanges(ids);
+}
+
 std::string AttacksListView::getPasteIntoConfirmationPrompt() {
 	return "Overwrite the selected attack(s) with the copied attack(s)? This will reload their tabs if they are currently open.";
 }
@@ -415,17 +409,9 @@ void LevelPackObjectsListView::addLevelPackObjectToListView(int objID, std::stri
 
 void LevelPackObjectsListView::deleteObjects(std::set<size_t> selectedIndices, std::vector<std::pair<std::shared_ptr<LevelPackObject>, bool>> deletedObjs) {
 	undoStack.execute(UndoableCommand([this, selectedIndices]() {
-		auto& unsavedObjs = getUnsavedLevelPackObjects();
-
 		for (int index : selectedIndices) {
 			int id = getLevelPackObjectIDFromIndex(index);
-
-			if (unsavedObjs.count(id) > 0) {
-				unsavedObjs.erase(id);
-			}
 			deleteLevelPackObjectInLevelPack(id);
-
-			reloadLevelPackObjectTabInMainEditorWindow(id);
 		}
 
 		reload();
@@ -514,6 +500,10 @@ void AttackPatternsListView::openLevelPackObjectInMainEditorWindow(int id) {
 
 void AttackPatternsListView::reloadLevelPackObjectTabInMainEditorWindow(int id) {
 	mainEditorWindow.reloadAttackPatternTab(id);
+}
+
+void AttackPatternsListView::saveLevelPackObjects(std::set<size_t> ids) {
+	mainEditorWindow.saveAttackPatternChanges(ids);
 }
 
 std::string AttackPatternsListView::getPasteIntoConfirmationPrompt() {

@@ -65,9 +65,17 @@ public:
 	*/
 	void saveAttackChanges(int id);
 	/*
+	Saves attacks if they have unsaved changes.
+	*/
+	void saveAttackChanges(std::set<size_t> ids);
+	/*
 	Saves an attack pattern if it has unsaved changes.
 	*/
 	void saveAttackPatternChanges(int id);
+	/*
+	Saves attack patterns if they have unsaved changes.
+	*/
+	void saveAttackPatternChanges(std::set<size_t> ids);
 	/*
 	Saves all unsaved changes.
 	*/

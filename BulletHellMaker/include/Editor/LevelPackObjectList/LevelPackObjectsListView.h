@@ -104,6 +104,8 @@ protected:
 	virtual std::set<int> getNextLevelPackObjectIDs(int count) = 0;
 	virtual void openLevelPackObjectInMainEditorWindow(int id) = 0;
 	virtual void reloadLevelPackObjectTabInMainEditorWindow(int id) = 0;
+	virtual void saveLevelPackObjects(std::set<size_t> ids) = 0;
+
 	virtual bool getLevelPackObjectIsInUse(int id) = 0;
 	// Should be in lowercase
 	virtual std::string getLevelPackObjectDisplayName() = 0;
@@ -150,6 +152,8 @@ protected:
 	std::set<int> getNextLevelPackObjectIDs(int count) override;
 	void openLevelPackObjectInMainEditorWindow(int id) override;
 	void reloadLevelPackObjectTabInMainEditorWindow(int id) override;
+	void saveLevelPackObjects(std::set<size_t> ids) override;
+
 	std::string getPasteIntoConfirmationPrompt() override;
 	std::string getDeleteLevelPackObjectsInUseConfirmationPrompt() override;
 	bool getLevelPackObjectIsInUse(int id) override;
@@ -175,6 +179,8 @@ protected:
 	std::set<int> getNextLevelPackObjectIDs(int count) override;
 	void openLevelPackObjectInMainEditorWindow(int id) override;
 	void reloadLevelPackObjectTabInMainEditorWindow(int id) override;
+	void saveLevelPackObjects(std::set<size_t> ids) override;
+
 	std::string getPasteIntoConfirmationPrompt() override;
 	std::string getDeleteLevelPackObjectsInUseConfirmationPrompt() override;
 	bool getLevelPackObjectIsInUse(int id) override;
