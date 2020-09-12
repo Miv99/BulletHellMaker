@@ -93,7 +93,6 @@ void SimpleEngineRenderer::loadLevelPack(std::string name) {
 
 	levelPack = std::make_shared<LevelPack>(*audioPlayer, name);
 	spriteLoader = levelPack->createSpriteLoader();
-	spriteLoader->preloadTextures();
 
 	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
 	debugRenderSystem = std::make_unique<DebugRenderSystem>(registry, parentWindow, *spriteLoader, 1.0f);

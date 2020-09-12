@@ -47,19 +47,10 @@ std::shared_ptr<sf::Sprite> SpriteSheet::getSprite(const std::string& spriteName
 	std::shared_ptr<SpriteData> data = spriteData.at(spriteName);
 	ComparableIntRect area = data->getArea();
 
-	// Texture has not been loaded yet
-	if (textures.find(area) == textures.end()) {
-		// Load texture
-		std::shared_ptr<sf::Texture> texture = std::make_shared<sf::Texture>();
-		texture->loadFromImage(*image, area);
-
-		// Insert texture into map
-		textures[area] = texture;
-	}
-
 	// Create sprite
 	std::shared_ptr<sf::Sprite> sprite = std::make_shared<sf::Sprite>();
-	sprite->setTexture(*textures[area]);
+	sprite->setTexture(texture);
+	sprite->setTextureRect(area);
 	sprite->setColor(data->getColor());
 	sprite->setScale((float)data->getSpriteWidth() / area.width * globalSpriteScale, (float)data->getSpriteHeight() / area.height * globalSpriteScale);
 	sprite->setOrigin(data->getSpriteOriginX(), data->getSpriteOriginY());
@@ -93,19 +84,11 @@ void SpriteSheet::insertAnimation(const std::string & animationName, std::shared
 	animationData[animationName] = animation;
 }
 
-bool SpriteSheet::loadImage(const std::string & imageFileName) {
-	std::shared_ptr<sf::Image> image = std::make_shared<sf::Image>();
-	if (!(image->loadFromFile(imageFileName))) {
+bool SpriteSheet::loadTexture(const std::string& spriteSheetFilePath) {
+	if (!(texture.loadFromFile(spriteSheetFilePath))) {
 		return false;
 	}
-	this->image = image;
 	return true;
-}
-
-void SpriteSheet::preloadTextures() {
-	for (auto it = spriteData.begin(); it != spriteData.end(); it++) {
-		getSprite(it->first);
-	}
 }
 
 void SpriteSheet::setGlobalSpriteScale(float scale) {
@@ -244,12 +227,6 @@ const std::shared_ptr<sf::Sprite> SpriteLoader::getMissingSprite() {
 	return sprite;
 }
 
-void SpriteLoader::preloadTextures() {
-	for (auto it = spriteSheets.begin(); it != spriteSheets.end(); it++) {
-		it->second->preloadTextures();
-	}
-}
-
 void SpriteLoader::clearSpriteSheets() {
 	spriteSheets.clear();
 }
@@ -381,7 +358,7 @@ bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, c
 		}
 
 		// Load image file
-		if (!sheet->loadImage(format(RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH + "\\%s", levelPackName.c_str(), spriteSheetImageFileName.c_str()))) {
+		if (!sheet->loadTexture(format(RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH + "\\%s", levelPackName.c_str(), spriteSheetImageFileName.c_str()))) {
 			// TODO: log that image couldn't be loaded
 		}
 

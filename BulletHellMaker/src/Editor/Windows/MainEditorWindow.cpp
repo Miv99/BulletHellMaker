@@ -85,7 +85,6 @@ void MainEditorWindow::loadLevelPack(std::string levelPackName) {
 	try {
 		levelPack = std::make_shared<LevelPack>(*audioPlayer, levelPackName);
 		spriteLoader = levelPack->createSpriteLoader();
-		spriteLoader->preloadTextures();
 	} catch (const char* str) {
 		// TODO: log error and display to user
 		return;

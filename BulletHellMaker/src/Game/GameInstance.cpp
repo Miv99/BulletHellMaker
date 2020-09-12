@@ -142,7 +142,6 @@ GameInstance::GameInstance(std::string levelPackName) {
 	playerInfo = levelPack->getGameplayPlayer();
 
 	spriteLoader = levelPack->createSpriteLoader();
-	spriteLoader->preloadTextures();
 
 	//TODO: these numbers should come from settings
 	window = std::make_unique<sf::RenderWindow>(sf::VideoMode(1600, 900), "Bullet Hell Maker");

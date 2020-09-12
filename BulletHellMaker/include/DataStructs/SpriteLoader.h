@@ -78,8 +78,7 @@ public:
 	std::unique_ptr<Animation> getAnimation(const std::string& animationName, bool loop);
 	void insertSprite(const std::string&, std::shared_ptr<SpriteData>);
 	void insertAnimation(const std::string&, std::shared_ptr<AnimationData>);
-	bool loadImage(const std::string& imageFileName);
-	void preloadTextures();
+	bool loadTexture(const std::string& spriteSheetFilePath);
 	// Scale all sprites by the same amount
 	void setGlobalSpriteScale(float scale);
 
@@ -89,9 +88,8 @@ public:
 private:
 	// Name of the sprite sheet
 	std::string name;
-	std::shared_ptr<sf::Image> image;
-	// Maps an area on the image to a Texture
-	std::map<ComparableIntRect, std::shared_ptr<sf::Texture>> textures;
+	// The entire sprite sheet's texture
+	sf::Texture texture;
 	// Maps a sprite name to SpriteData
 	std::map<std::string, std::shared_ptr<SpriteData>> spriteData;
 	// Maps an animation name to AnimationData
@@ -131,10 +129,6 @@ public:
 	Returns a copy of the default missing sprite.
 	*/
 	const std::shared_ptr<sf::Sprite> getMissingSprite();
-	/*
-	Preloads all textures except backgrounds.
-	*/
-	void preloadTextures();
 	void clearSpriteSheets();
 	// Scale all sprites by the same amount
 	void setGlobalSpriteScale(float scale);
