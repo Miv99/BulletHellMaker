@@ -12,10 +12,10 @@ DebugGenerateLib
 DebugTests
 BulletHellMaker/Level Packs
 BulletHellMaker/Shaders
-BulletHellMaker\Debug
-BulletHellMaker\Release
-BulletHellMaker\ReleaseTest
-BulletHellMaker\*.dll
+BulletHellMaker/Debug
+BulletHellMaker/Release
+BulletHellMaker/ReleaseTest
+BulletHellMaker/*.dll
 .vs
 *.pdb
 *.vcxproj.filters
