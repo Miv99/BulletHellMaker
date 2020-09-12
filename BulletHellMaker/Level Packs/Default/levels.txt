@@ -1,1 +1,0 @@
-test level 1|1|(TimeBasedEnemySpawnCondition|(0.000000))|1|(300.000000|350.000000|0|(PowerPackItem|((Power)|(Default)|1|1)|33.000000)|120)|(HealthPackItem|((Health)|(Default)|1|1)|40.000000)|(PointsPackItem|((Points)|(Default)|1|1)|25.000000)|(PowerPackItem|((Power)|(Default)|1|1)|40.000000)|((seashore.wav)|1|0|0|10.000000|1.000000)
