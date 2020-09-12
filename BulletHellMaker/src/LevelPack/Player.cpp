@@ -16,8 +16,8 @@ std::string EditorPlayer::format() const {
 		ret += formatTMObject(*tier);
 	}
 	ret += formatTMObject(hurtSound) + formatTMObject(deathSound) + formatBool(smoothPlayerHPBar) + tos(playerHPBarColor.r) + tos(playerHPBarColor.g)
-		+ tos(playerHPBarColor.b) + tos(playerHPBarColor.a) + formatTMObject(discretePlayerHPSprite) + formatString(initialBombs) + formatString(maxBombs)
-		+ formatString(bombInvincibilityTime) + formatTMObject(bombSprite) + formatTMObject(bombReadySound) + formatTMObject(symbolTable);
+		+ tos(playerHPBarColor.b) + tos(playerHPBarColor.a) + formatString(discretePlayerHPGuiElementFileName) + formatString(initialBombs) + formatString(maxBombs)
+		+ formatString(bombInvincibilityTime) + formatString(bombGuiElementFileName) + formatTMObject(bombReadySound) + formatTMObject(symbolTable);
 	return ret;
 }
 
@@ -52,11 +52,11 @@ void EditorPlayer::load(std::string formattedString) {
 	deathSound.load(items[i++]);
 	smoothPlayerHPBar = unformatBool(items[i++]);
 	playerHPBarColor = sf::Color(std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]));
-	discretePlayerHPSprite.load(items[i++]);
+	discretePlayerHPGuiElementFileName = items[i++];
 	initialBombs = items[i++];
 	maxBombs = items[i++];
 	bombInvincibilityTime = items[i++];
-	bombSprite.load(items[i++]);
+	bombGuiElementFileName = items[i++];
 	bombReadySound.load(items[i++]);
 	symbolTable.load(items[i++]);
 }

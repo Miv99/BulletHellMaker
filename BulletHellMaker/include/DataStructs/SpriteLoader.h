@@ -108,8 +108,12 @@ Note that if the SpriteLoader object goes out of scope, all Sprites loaded from 
 class SpriteLoader {
 public:
 	// spriteSheetNames - vector of pairs of SpriteSheet meta file names and SpriteSheet image file names
-	SpriteLoader(const std::string& levelPackRelativePath, const std::vector<std::pair<std::string, std::string>>& spriteSheetNamePairs);
+	SpriteLoader(const std::string& levelPackName, const std::vector<std::pair<std::string, std::string>>& spriteSheetNamePairs);
 
+	/*
+	Returns default missing texture if the GUI element could not be loaded.
+	*/
+	std::shared_ptr<sf::Texture> getGuiElementTexture(const std::string& guiElementFileName);
 	/*
 	Returns an entirely new sf::Sprite.
 	*/
@@ -119,7 +123,7 @@ public:
 	*/
 	std::unique_ptr<Animation> getAnimation(const std::string& animationName, const std::string& spriteSheetName, bool loop);
 	/*
-	Returns nullptr if the background could not be loaded.
+	Returns default missing texture if the background could not be loaded.
 	*/
 	std::shared_ptr<sf::Texture> getBackground(const std::string& backgroundFileName);
 	inline const std::map<std::string, std::shared_ptr<SpriteSheet>> getSpriteSheets() { return spriteSheets; }
@@ -137,15 +141,17 @@ public:
 
 private:
 	const static std::size_t BACKGROUNDS_CACHE_MAX_SIZE;
+	const static std::size_t GUI_ELEMENTS_CACHE_MAX_SIZE;
 
-	// Relative path to the level path containing the files
-	std::string levelPackRelativePath;
+	std::string levelPackName;
 	// Maps SpriteSheet name (as specified in the meta file) to SpriteSheet
 	std::map<std::string, std::shared_ptr<SpriteSheet>> spriteSheets;
 	// Cache of backgrounds; key is a pair of the background file name and value is a pair of the texture and the file's last modified time
 	std::unique_ptr<Cache<std::string, std::pair<std::shared_ptr<sf::Texture>, std::filesystem::file_time_type>>> backgroundsCache;
+	// Cache of GUI elements; key is a pair of the GUI element file name and value is a pair of the texture and the file's last modified time
+	std::unique_ptr<Cache<std::string, std::pair<std::shared_ptr<sf::Texture>, std::filesystem::file_time_type>>> guiElementsCache;
 
-	sf::Texture missingSpriteTexture;
+	std::shared_ptr<sf::Texture> missingSpriteTexture;
 	std::shared_ptr<sf::Sprite> missingSprite;
 
 	float globalSpriteScale = 1.0f;

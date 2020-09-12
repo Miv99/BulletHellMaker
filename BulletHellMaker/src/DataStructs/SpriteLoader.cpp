@@ -5,6 +5,7 @@
 #include <sstream>
 #include <limits>
 
+#include <Config.h>
 #include <Util/TextFileParser.h>
 #include <LevelPack/TextMarshallable.h>
 #include <Util/IOUtils.h>
@@ -16,6 +17,7 @@ static const std::string SPRITE_COLOR_TAG = "Color";
 static const std::string SPRITE_SIZE_TAG = "SpriteSize";
 static const std::string SPRITE_ORIGIN_TAG = "Origin";
 const std::size_t SpriteLoader::BACKGROUNDS_CACHE_MAX_SIZE = 10;
+const std::size_t SpriteLoader::GUI_ELEMENTS_CACHE_MAX_SIZE = 10;
 
 std::vector<int> extractInts(const std::string& str) {
 	std::vector<int> vect;
@@ -123,9 +125,11 @@ bool SpriteData::operator==(const SpriteData & other) const {
 	return this->area == other.area && this->color == other.color;
 }
 
-SpriteLoader::SpriteLoader(const std::string& levelPackRelativePath, const std::vector<std::pair<std::string, std::string>>& spriteSheetNamePairs) 
-	: levelPackRelativePath(levelPackRelativePath) {
+SpriteLoader::SpriteLoader(const std::string& levelPackName, const std::vector<std::pair<std::string, std::string>>& spriteSheetNamePairs) 
+	: levelPackName(levelPackName) {
+
 	backgroundsCache = std::make_unique<Cache<std::string, std::pair<std::shared_ptr<sf::Texture>, std::filesystem::file_time_type>>>(BACKGROUNDS_CACHE_MAX_SIZE);
+	guiElementsCache = std::make_unique<Cache<std::string, std::pair<std::shared_ptr<sf::Texture>, std::filesystem::file_time_type>>>(GUI_ELEMENTS_CACHE_MAX_SIZE);
 	for (std::pair<std::string, std::string> namesPair : spriteSheetNamePairs) {
 		if (!loadSpriteSheet(namesPair.first, namesPair.second)) {
 			// TODO: log that sprite sheet meta file or sprite sheet couldn't be loaded
@@ -152,8 +156,36 @@ SpriteLoader::SpriteLoader(const std::string& levelPackRelativePath, const std::
 	pixels[14] = 255;
 	pixels[15] = 255;
 	missingSpriteImage.create(2, 2, pixels);
-	missingSpriteTexture.loadFromImage(missingSpriteImage);
-	missingSprite = std::make_shared<sf::Sprite>(missingSpriteTexture);
+	missingSpriteTexture = std::make_shared<sf::Texture>();
+	missingSpriteTexture->loadFromImage(missingSpriteImage);
+	missingSprite = std::make_shared<sf::Sprite>(*missingSpriteTexture);
+}
+
+std::shared_ptr<sf::Texture> SpriteLoader::getGuiElementTexture(const std::string& guiElementFileName) {
+	std::string filePath = format(RELATIVE_LEVEL_PACK_GUI_FOLDER_PATH + "\\%s", levelPackName.c_str(), guiElementFileName.c_str());
+	if (!fileExists(filePath)) {
+		return missingSpriteTexture;
+	}
+	std::filesystem::file_time_type fileLastModified = std::filesystem::last_write_time(filePath);
+	if (guiElementsCache->contains(guiElementFileName)) {
+		std::pair<std::shared_ptr<sf::Texture>, std::filesystem::file_time_type> guiElementData = guiElementsCache->get(guiElementFileName);
+		if (guiElementData.second == fileLastModified) {
+			// File has not been modified, so return the cached texture
+			return guiElementData.first;
+		} else {
+			// File has been modified, so remove the old texture from the cache
+			guiElementsCache->remove(guiElementFileName);
+		}
+	}
+	// Load the GUI element from file and insert into cache
+	std::shared_ptr<sf::Texture> guiElement = std::make_shared<sf::Texture>();
+	if (!guiElement->loadFromFile(filePath)) {
+		return nullptr;
+	}
+	guiElement->setRepeated(true);
+	guiElement->setSmooth(true);
+	guiElementsCache->insert(guiElementFileName, std::make_pair(guiElement, fileLastModified));
+	return guiElement;
 }
 
 std::shared_ptr<sf::Sprite> SpriteLoader::getSprite(const std::string& spriteName, const std::string& spriteSheetName) {
@@ -178,9 +210,9 @@ std::unique_ptr<Animation> SpriteLoader::getAnimation(const std::string & animat
 }
 
 std::shared_ptr<sf::Texture> SpriteLoader::getBackground(const std::string& backgroundFileName) {
-	std::string filePath = levelPackRelativePath + "\\Backgrounds\\" + backgroundFileName;
+	std::string filePath = format(RELATIVE_LEVEL_PACK_BACKGROUNDS_FOLDER_PATH + "\\%s", levelPackName.c_str(), backgroundFileName.c_str());
 	if (!fileExists(filePath)) {
-		return nullptr;
+		return missingSpriteTexture;
 	}
 	std::filesystem::file_time_type fileLastModified = std::filesystem::last_write_time(filePath);
 	if (backgroundsCache->contains(backgroundFileName)) {
@@ -230,14 +262,14 @@ void SpriteLoader::setGlobalSpriteScale(float scale) {
 }
 
 bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, const std::string& spriteSheetImageFileName) {
-	std::ifstream metafile(levelPackRelativePath + "\\" + spriteSheetMetaFileName);
+	std::ifstream metafile(format(RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH + "\\%s", levelPackName.c_str(), spriteSheetMetaFileName.c_str()));
 	if (!metafile) {
 		return false;
 	}
 
 	// Make sure image file exists
 	struct stat buffer;
-	if (!stat((levelPackRelativePath + "\\" + spriteSheetImageFileName).c_str(), &buffer) == 0) {
+	if (!stat((format(RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH + "\\%s", levelPackName.c_str(), spriteSheetImageFileName.c_str())).c_str(), &buffer) == 0) {
 		metafile.close();
 		return false;
 	}
@@ -349,8 +381,8 @@ bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, c
 		}
 
 		// Load image file
-		if (!sheet->loadImage(levelPackRelativePath + "\\" + spriteSheetImageFileName)) {
-			throw "Image file \"" + levelPackRelativePath + "\\" + spriteSheetImageFileName + "\" could not be loaded";
+		if (!sheet->loadImage(format(RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH + "\\%s", levelPackName.c_str(), spriteSheetImageFileName.c_str()))) {
+			// TODO: log that image couldn't be loaded
 		}
 
 		spriteSheets[spriteSheetName] = sheet;

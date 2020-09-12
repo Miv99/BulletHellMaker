@@ -183,6 +183,12 @@ Random things for TODOs that are noted here so I don't forget:
 -legal checks for everything should make sure all IDs used (ie attack IDs in attack patterns) are valid
 
 TODO:
+-SpriteLoader should minimize usage of Texture; sprites should use an area of the texture; one texture
+ for each sprite sheet
+-SpriteSheetsEditor
+    -(Create new)/(Add existing)/(Delete) sprite sheet 
+
+-illegal level pack objects have [!] in maineditorwindow's left panel's list view
 -replace all in menu bar
     -replace all instances of an attack pattern ID with some other ID (same for all other relationships)
     -replace all instances of an animatable with another
@@ -204,7 +210,7 @@ TODO:
 	-Due to the user-unfriendliness of text-marshalled files, this should only be done if an image viewer can be implemented in the editor
 	 that can zoom in and make rectangles so that the user has full control of 
 	  setting origin/rectangle_coords/everything_field_in_sprite_sheet_metadata in the editor
--Default level pack is broken
+-Default level pack in setup-assets is broken
 -Editor features
 	-"Rotate bullet path": user can select multiple EMPActions (even across different bullets) and rotate them
 		-for MoveCustomPolarEMPA, this just wraps the angle TFV in a TranslationWrapperTFV (remember to combine the TFVs if the angle TFV is already a TranslationWrapperTFV)
@@ -216,7 +222,6 @@ TODO:
 // ------------------------------------------------------------------------------------------------------------------------------------------------
 editable = attack/attack pattern/emp/enemy/enemyphase/player
 id-editable = attack/attack pattern/enemy/enemyphase
-one big editor instead of multiple things for each editable
 
 when simulating (testing) in the editor, 
 give all entites an Editor(EnemyBullet/Enemy/Player)Component that has the ids of the Editor______ objects so that
@@ -234,13 +239,6 @@ every editable is local only to the level pack
 user can load a different level pack and choose which id-editables to import
 // ------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-Move custom = player chooses the MP to use and manually defines the relevant TFVs
-TODO: find some way of loading and saving TFVs and MPs such that no duplicate ones are created
-eg if there are 500 sub-MPs with 1 MP as reference, make sure there won't be 500*500 MPs created
-
-MP = movable point
-global position = position ignoring all references
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------
 Sprite sheet editor:
@@ -273,60 +271,9 @@ Enemy phase editor:
 // ------------------------------------------------------------------------------------------------------------------------------------------------
 
 // ------------------------------------------------------------------------------------------------------------------------------------------------
-Attack pattern editor:
-1. User populates a list of attacks and when they will occur
-2. User populates a list of MPActions (only MPActions for main MP (see Attack editor) allowed)
-3. User populates a list of sound effects to be played and when
-4. User gives attack pattern a name --> it is saved
-
-Internally, all "Move" and "Stay still" MPActions are combined into a single AggregatorMP
-// ------------------------------------------------------------------------------------------------------------------------------------------------
-
-// ------------------------------------------------------------------------------------------------------------------------------------------------
 Attack editor:
-1. The main MP is created
-2. User specifies main MP spawn location
-3. User can create sub-MPs (MPs whose reference is the main MP or another sub-MP)
-4. User can attach any MP to a sprite and hitbox
-5. User can give any MP a list of MPActions; the main MP must have at least 1 "Move" or "Stay still at specified location" MPAction so that its lifespan is known
-6. User populates a list of sound effects to be played and when
-7. User gives the attack a name --> it is saved
 
-Main MP spawn locations:
-Specified global position
-Specified position relative to the attack's parent (some enemy) (a StationaryMP is dropped from parent at time of attack with lifespan equal to main MP's lifespan)
-Specified position relative to the attack's parent's MP (some enemy's MP) (main MP will be moving relative to parent's motion; uses EntityMP)
-
-MPActions only if is sub-MP:
-Detach from parent (user must add at least 1 "Stay still" or "Move" MPAction after a detach)
-				   (in-game, after detachment, the sub-MP will be attached to an AggregatorMP containing all MPActions after the detach)
-				   (there cannot be more detach actions on a sub-MP than the depth of the reference tree (number of references deep until the main MP is encountered))
-
-MPActions for all MPs: (code for main and sub-MP are the same)
-Move to a position (basically a macro for linear movement at constant speed) (exists in the GUI only)
-//TODO: maybe EPA for hovering (double dampened movement along some user-defined axis) (only in GUI)
-Move custom
-Stay still at last position for [x] seconds (there must be at least 1 "Move" or "Stay still at specified position" action before this one)
-Stay still at specified position for [x] seconds (StationaryMP)
+EMPAs to add:
+//TODO: maybe EMPA for hovering (double dampened movement along some user-defined axis) (only in GUI)
 Loop a group of actions [x] times (user specifies odd or even expansion)
-
-MPActions for main MP or if there is a detach action before these ones:
-Move to player + offset
-// these 3 are GUI only
-Move to specific global position
-Move in direction of player + offset (user must specify a speed)
-Move in direction of specific global position (user must specify a speed)
-
-For any "Move to" action, the user can specify the TFV used for distance
-OR user can choose basic options: 
-	-can specify a speed (will use LinearTFV with autocalculated time to expire when MP is out of bounds)
-	-can specify a time
-// ------------------------------------------------------------------------------------------------------------------------------------------------
-	
-
-// ------------------------------------------------------------------------------------------------------------------------------------------------
-TFV editor:
-1. User chooses a concrete TFV
-2. User modifies parameters
-3. Show the some value vs time graph at all times
 // ------------------------------------------------------------------------------------------------------------------------------------------------

@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include <Mutex.h>
+#include <Config.h>
 #include <GuiConfig.h>
 #include <Constants.h>
 #include <Util/TextFileParser.h>
@@ -140,6 +141,9 @@ GameInstance::GameInstance(std::string levelPackName) {
 	levelPack = std::make_unique<LevelPack>(*audioPlayer, levelPackName);
 	playerInfo = levelPack->getGameplayPlayer();
 
+	spriteLoader = levelPack->createSpriteLoader();
+	spriteLoader->preloadTextures();
+
 	//TODO: these numbers should come from settings
 	window = std::make_unique<sf::RenderWindow>(sf::VideoMode(1600, 900), "Bullet Hell Maker");
 	window->setKeyRepeatEnabled(false);
@@ -156,25 +160,19 @@ GameInstance::GameInstance(std::string levelPackName) {
 	bombPictureGrid = tgui::Grid::create();
 	bombLabel = tgui::Label::create();
 	bossLabel = tgui::Label::create();
-	sf::Texture bombTexture;
-	if (!bombTexture.loadFromFile("Level Packs\\" + levelPack->getName() + "\\" + playerInfo->getBombSprite().getAnimatableName())) {
-		//TODO: error handling
-	}
+	std::shared_ptr<sf::Texture> bombTexture = spriteLoader->getGuiElementTexture(playerInfo->getBombGuiElementFileName());
 	for (int i = 0; i < playerInfo->getMaxBombs(); i++) {
-		auto bombPicture = tgui::Picture::create(bombTexture);
+		auto bombPicture = tgui::Picture::create(*bombTexture);
 		bombPicture->setSize(bombPictureSize, bombPictureSize);
 		bombPictures.push_back(bombPicture);
 	}
 	if (!smoothPlayerHPBar) {
 		playerHPPictureGrid = tgui::Grid::create();
 
-		sf::Texture playerHPTexture;
-		if (!playerHPTexture.loadFromFile("Level Packs\\" + levelPack->getName() + "\\" + playerInfo->getDiscretePlayerHPSprite().getAnimatableName())) {
-			//TODO: error handling
-		}
+		std::shared_ptr<sf::Texture> playerHPTexture = spriteLoader->getGuiElementTexture(playerInfo->getDiscretePlayerHPGuiElementFileName());
 
 		for (int i = 0; i < playerInfo->getMaxHealth(); i++) {
-			auto playerHPPicture = tgui::Picture::create(playerHPTexture);
+			auto playerHPPicture = tgui::Picture::create(*playerHPTexture);
 			playerHPPicture->setSize(playerHPPictureSize, playerHPPictureSize);
 			playerHPPictures.push_back(playerHPPicture);
 		}
@@ -187,9 +185,6 @@ GameInstance::GameInstance(std::string levelPackName) {
 	windowHeight = window->getSize().y;
 
 	queue = std::make_unique<EntityCreationQueue>(registry);
-
-	spriteLoader = levelPack->createSpriteLoader();
-	spriteLoader->preloadTextures();
 
 	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
 	//TODO: these numbers should come from settings
@@ -207,7 +202,7 @@ GameInstance::GameInstance(std::string levelPackName) {
 	// Note: "GUI region" refers to the right side of the window that doesn't contain the stuff from RenderSystem
 	smoothPlayerHPBar = playerInfo->getSmoothPlayerHPBar();
 
-	gui->setFont(tgui::Font("Level Packs\\" + levelPack->getName() + "\\" + levelPack->getFontFileName()));
+	gui->setFont(tgui::Font(format(RELATIVE_LEVEL_PACK_GUI_FOLDER_PATH + "\\%s", levelPack->getName().c_str(), levelPack->getFontFileName().c_str())));
 
 	// Level name label
 	levelNameLabel->setTextSize(26);

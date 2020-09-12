@@ -91,10 +91,10 @@ public:
 	inline SoundSettings getDeathSound() const { return deathSound; }
 	inline bool getSmoothPlayerHPBar() const { return smoothPlayerHPBar; }
 	inline sf::Color getPlayerHPBarColor() const { return playerHPBarColor; }
-	inline Animatable getDiscretePlayerHPSprite() const { return discretePlayerHPSprite; }
+	inline std::string getDiscretePlayerHPGuiElementFileName() const { return discretePlayerHPGuiElementFileName; }
 	inline int getInitialBombs() const { return initialBombsExprCompiledValue; }
 	inline int getMaxBombs() const { return maxBombsExprCompiledValue; }
-	inline Animatable getBombSprite() const { return bombSprite; }
+	inline std::string getBombGuiElementFileName() const { return bombGuiElementFileName; }
 	inline SoundSettings getBombReadySound() const { return bombReadySound; }
 	inline float getBombInvincibilityTime() const { return bombInvincibilityTimeExprCompiledValue; }
 	bool usesAttackPattern(int attackPatternID) const;
@@ -138,10 +138,10 @@ public:
 	}
 	inline void setSmoothPlayerHPBar(bool smoothPlayerHPBar) { this->smoothPlayerHPBar = smoothPlayerHPBar; }
 	inline void setPlayerHPBarColor(sf::Color playerHPBarColor) { this->playerHPBarColor = playerHPBarColor; }
-	inline void setDiscretePlayerHPSprite(Animatable discretePlayerHPSprite) { this->discretePlayerHPSprite = discretePlayerHPSprite; }
+	inline void setDiscretePlayerHPGuiElementFileName(std::string discretePlayerHPGuiElementFileName) { this->discretePlayerHPGuiElementFileName = discretePlayerHPGuiElementFileName; }
 	inline void setInitialBombs(std::string initialBombs) { this->initialBombs = initialBombs; }
 	inline void setMaxBombs(std::string initialBombs) { this->initialBombs = maxBombs; }
-	inline void setBombSprite(Animatable bombSprite) { this->bombSprite = bombSprite; }
+	inline void setBombGuiElementFileName(std::string bombGuiElementFileName) { this->bombGuiElementFileName = bombGuiElementFileName; }
 	inline void setBombInvincibilityTime(std::string bombInvincibilityTime) {	this->bombInvincibilityTime = bombInvincibilityTime; }
 
 private:
@@ -172,11 +172,11 @@ private:
 	// If this is true, the HP bar will be a progress bar. If false, there will be a discretePlayerHPSprite displayed for each health the player has. 
 	bool smoothPlayerHPBar = false;
 	sf::Color playerHPBarColor = sf::Color::Red;
-	// Must be a sprite. Only used if smoothPlayerHPBar is false.
-	Animatable discretePlayerHPSprite;
+	// The file name of the GUI element to denote 1 health. Only used if smoothPlayerHPBar is false.
+	std::string discretePlayerHPGuiElementFileName;
 
-	// The sprite shown on the GUI to denote a bomb. Must be a sprite.
-	Animatable bombSprite;
+	// The file name of the GUI element to denote a bomb
+	std::string bombGuiElementFileName;
 
 	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(initialBombs, int, 2)
 	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(maxBombs, int, 6)
