@@ -21,12 +21,10 @@ MainEditorWindowMenuBar::MainEditorWindowMenuBar(MainEditorWindow& mainEditorWin
 }
 
 void MainEditorWindowMenuBar::promptOpenLevelPack() {
-	char curDirectory[MAX_PATH + 1];
-	GetCurrentDirectory(MAX_PATH + 1, curDirectory);
-	strcat(curDirectory, ("\\" + RELATIVE_LEVEL_PACKS_FOLDER_PATH).c_str());
-	int levelPackNameOffset = strlen(curDirectory) + 1;
+	std::string curDirectory = getPathToFolderContainingExe() + "\\" + RELATIVE_LEVEL_PACKS_FOLDER_PATH;
+	int levelPackNameOffset = curDirectory.size() + 1;
 	LPSTR result = new char[MAX_PATH + 1];
-	strcpy(result, curDirectory);
+	strcpy(result, curDirectory.c_str());
 
 	LPSTR title("Choose level pack folder");
 	BrowseFolder(this->mainEditorWindow.getWindow()->getSystemHandle(), result, title);
@@ -36,6 +34,8 @@ void MainEditorWindowMenuBar::promptOpenLevelPack() {
 		std::string levelPackName = resultStr.substr(levelPackNameOffset);
 		mainEditorWindow.loadLevelPack(levelPackName);
 	}
+
+	delete[] result;
 }
 
 void MainEditorWindowMenuBar::onOpenLevelPackWhileUnsavedChangesExistConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice) {
