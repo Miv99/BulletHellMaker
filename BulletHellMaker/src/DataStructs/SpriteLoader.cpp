@@ -4,6 +4,8 @@
 #include <regex>
 #include <sstream>
 #include <limits>
+#include <filesystem>
+#include <set>
 
 #include <Config.h>
 #include <Util/TextFileParser.h>
@@ -108,14 +110,43 @@ bool SpriteData::operator==(const SpriteData & other) const {
 	return this->area == other.area && this->color == other.color;
 }
 
-SpriteLoader::SpriteLoader(const std::string& levelPackName, const std::vector<std::pair<std::string, std::string>>& spriteSheetNamePairs) 
+SpriteLoader::SpriteLoader(const std::string& levelPackName) 
 	: levelPackName(levelPackName) {
 
 	backgroundsCache = std::make_unique<Cache<std::string, std::pair<std::shared_ptr<sf::Texture>, std::filesystem::file_time_type>>>(BACKGROUNDS_CACHE_MAX_SIZE);
 	guiElementsCache = std::make_unique<Cache<std::string, std::pair<std::shared_ptr<sf::Texture>, std::filesystem::file_time_type>>>(GUI_ELEMENTS_CACHE_MAX_SIZE);
-	for (std::pair<std::string, std::string> namesPair : spriteSheetNamePairs) {
-		if (!loadSpriteSheet(namesPair.first, namesPair.second)) {
-			// TODO: log that sprite sheet meta file or sprite sheet couldn't be loaded
+	
+	std::string spriteSheetsFolder = format(getPathToFolderContainingExe() + "\\" + RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH, levelPackName.c_str());
+	std::set<std::pair<std::string, std::string>> fileNamesAndExtensions;
+
+	char fileName[MAX_PATH + 1];
+	char fileExtension[MAX_PATH + 1];
+	// Insert all files in the sprite sheets folder into fileNamesWithExtension
+	for (const auto& entry : std::filesystem::directory_iterator(spriteSheetsFolder)) {
+		_splitpath(entry.path().string().c_str(), NULL, NULL, fileName, fileExtension);
+		fileNamesAndExtensions.insert(std::make_pair(std::string(fileName), std::string(fileExtension)));
+	}
+	// Load sprite sheets for all image files that have a corresponding metafile
+	for (std::pair<std::string, std::string> fileNameAndExtension : fileNamesAndExtensions) {
+		std::string fileName = fileNameAndExtension.first;
+		std::string extension = fileNameAndExtension.second;
+
+		if (imageExtensionIsSupportedBySFML(extension.c_str())) {
+			char imageNameAndExtension[MAX_PATH + 1];
+			strcpy(imageNameAndExtension, fileName.c_str());
+			strcat(imageNameAndExtension, extension.c_str());
+			if (fileNamesAndExtensions.find(std::make_pair(std::string(imageNameAndExtension), ".txt")) != fileNamesAndExtensions.end()) {
+				// TODO: log that image and metafile was found
+
+				char metafileNameAndExtension[MAX_PATH + 1];
+				strcpy(metafileNameAndExtension, imageNameAndExtension);
+				strcat(metafileNameAndExtension, ".txt");
+
+				bool loadIsSuccessful = loadSpriteSheet(metafileNameAndExtension, imageNameAndExtension);
+				if (!loadIsSuccessful) {
+					// TODO: log that sprite sheet meta file or sprite sheet couldn't be loaded
+				}
+			}
 		}
 	}
 

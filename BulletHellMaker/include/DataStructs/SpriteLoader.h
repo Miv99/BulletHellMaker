@@ -105,8 +105,7 @@ Note that if the SpriteLoader object goes out of scope, all Sprites loaded from 
 */
 class SpriteLoader {
 public:
-	// spriteSheetNames - vector of pairs of SpriteSheet meta file names and SpriteSheet image file names
-	SpriteLoader(const std::string& levelPackName, const std::vector<std::pair<std::string, std::string>>& spriteSheetNamePairs);
+	SpriteLoader(const std::string& levelPackName);
 
 	/*
 	Returns default missing texture if the GUI element could not be loaded.

@@ -66,7 +66,7 @@ void LevelPackObjectPreviewPanel::loadLevelPack(std::string levelPackName) {
 	SimpleEngineRenderer::loadLevelPack(levelPackName);
 	levelPack->getOnChange()->sink().connect<LevelPackObjectPreviewPanel, &LevelPackObjectPreviewPanel::onLevelPackChange>(this);
 
-	Animatable defaultEnemyAnimatable = Animatable("Enemy Placeholder", "Default", true, ROTATION_TYPE::LOCK_ROTATION);
+	Animatable defaultEnemyAnimatable = Animatable("Enemy Placeholder", "Default.png", true, ROTATION_TYPE::LOCK_ROTATION);
 	EntityAnimatableSet defaultEnemyAnimatableSet(defaultEnemyAnimatable, defaultEnemyAnimatable, defaultEnemyAnimatable);
 
 	{
@@ -87,7 +87,7 @@ void LevelPackObjectPreviewPanel::loadLevelPack(std::string levelPackName) {
 		defaultPlayer->setMaxBombs("0");
 		defaultPlayer->setInitialBombs("0");
 
-		Animatable defaultPlayerAnimatable = Animatable("Player Placeholder", "Default", true, ROTATION_TYPE::LOCK_ROTATION);
+		Animatable defaultPlayerAnimatable = Animatable("Player Placeholder", "Default.png", true, ROTATION_TYPE::LOCK_ROTATION);
 		EntityAnimatableSet defaultPlayerAnimatableSet(defaultPlayerAnimatable, defaultPlayerAnimatable, defaultPlayerAnimatable);
 		std::shared_ptr<PlayerPowerTier> powerTier = std::make_shared<PlayerPowerTier>(defaultPlayerAnimatableSet, -2, "2", -2, "0.5", -2, "5", "2000000000");
 		defaultPlayer->insertPowerTier(0, powerTier);

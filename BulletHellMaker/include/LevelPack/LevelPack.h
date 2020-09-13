@@ -31,21 +31,11 @@ public:
 	void load(std::string formattedString) override;
 
 	std::shared_ptr<EditorPlayer> getPlayer() const;
-	const std::vector<std::pair<std::string, std::string>>& getSpriteSheets() { return spriteSheets; }
 
 	void setPlayer(std::shared_ptr<EditorPlayer> player);
 
-	void addSpriteSheet(std::string spriteSheetMetadataFileName, std::string spriteSheetImageFileName) {
-		spriteSheets.push_back(std::make_pair(spriteSheetMetadataFileName, spriteSheetImageFileName));
-	}
-	void removeSpriteSheet(int index) {
-		spriteSheets.erase(spriteSheets.begin() + index);
-	}
-
 private:
 	std::shared_ptr<EditorPlayer> player;
-	// Pairs of sheet metadata file name and sprite sheet image file name, in that order
-	std::vector<std::pair<std::string, std::string>> spriteSheets;
 };
 
 class LevelPack {
