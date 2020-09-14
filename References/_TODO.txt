@@ -185,7 +185,9 @@ Random things for TODOs that are noted here so I don't forget:
 TODO:
 -SpriteSheetsEditor
     -(Create new)/(Add existing)/(Delete) sprite sheet 
-
+    -double click sprite sheet -> if metafile doesn't exist, create it; no need to load it in the level pack's sprite loader
+        because it will be empty anyway
+-move player out of level pack metadata and into its own file
 -illegal level pack objects have [!] in maineditorwindow's left panel's list view
 -replace all in menu bar
     -replace all instances of an attack pattern ID with some other ID (same for all other relationships)

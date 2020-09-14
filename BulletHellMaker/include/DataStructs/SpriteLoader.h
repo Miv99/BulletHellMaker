@@ -108,6 +108,17 @@ public:
 	SpriteLoader(const std::string& levelPackName);
 
 	/*
+	Loads all sprite sheets that have a corresponding metafile from the sprite sheets
+	folder of the level pack with the name passed in from SpriteLoader's constructor.
+	*/
+	void loadFromSpriteSheetsFolder();
+
+	/*
+	Returns whether both the image and its metafile were successfully loaded.
+	*/
+	bool loadSpriteSheet(const std::string& spriteSheetMetaFileName, const std::string& spriteSheetImageFileName);
+
+	/*
 	Returns default missing texture if the GUI element could not be loaded.
 	*/
 	std::shared_ptr<sf::Texture> getGuiElementTexture(const std::string& guiElementFileName);
@@ -131,6 +142,7 @@ public:
 	void clearSpriteSheets();
 	// Scale all sprites by the same amount
 	void setGlobalSpriteScale(float scale);
+	std::vector<std::string> getLoadedSpriteSheetNames();
 
 private:
 	const static std::size_t BACKGROUNDS_CACHE_MAX_SIZE;
@@ -148,7 +160,4 @@ private:
 	std::shared_ptr<sf::Sprite> missingSprite;
 
 	float globalSpriteScale = 1.0f;
-
-	// Returns true if the meta file and image file were successfully loaded
-	bool loadSpriteSheet(const std::string& spriteSheetMetaFileName, const std::string& spriteSheetImageFileName);
 };

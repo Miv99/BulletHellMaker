@@ -15,8 +15,7 @@ public:
 	static std::shared_ptr<SpriteSheetMetafileSpritesEditor> create(MainEditorWindow& mainEditorWindow) {
 		return std::make_shared<SpriteSheetMetafileSpritesEditor>(mainEditorWindow);
 	}
-	/*
-	bool update(sf::Time elapsedTime) override;
+	
 	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 	bool handleEvent(sf::Event event) override;
@@ -24,10 +23,7 @@ public:
 	void loadImage(std::string fileName);
 
 	void resetCamera();
-
-	void physicsUpdate(float deltaTime);
-	void renderUpdate(float deltaTime);
-	*/
+	
 private:
 	MainEditorWindow& mainEditorWindow;
 

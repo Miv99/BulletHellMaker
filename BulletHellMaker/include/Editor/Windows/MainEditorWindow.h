@@ -5,6 +5,7 @@
 #include <Editor/Windows/EditorWindow.h>
 #include <Editor/CustomWidgets/TextNotification.h>
 #include <Editor/CustomWidgets/TabsWithPanel.h>
+#include <Editor/SpriteSheets/SpriteSheetsListPanel.h>
 #include <LevelPack/LevelPackObject.h>
 #include <LevelPack/Attack.h>
 #include <LevelPack/AttackPattern.h>
@@ -131,16 +132,15 @@ protected:
 	bool handleEvent(sf::Event event) override;
 
 private:
-	const std::string LEFT_PANEL_ATTACK_LIST_TAB_NAME = "Attacks";
-	// The string format used as the tab set identifier for caching the mainPanel
-	// tabs when closing an opened attack.
-	// %d = the attack's ID
-	const std::string LEFT_PANEL_ATTACK_TABS_SET_IDENTIFIER_FORMAT = "Attack %d";
-	const std::string LEFT_PANEL_ATTACK_PATTERN_LIST_TAB_NAME = "Attack patterns";
-	const std::string LEFT_PANEL_ATTACK_PATTERN_TABS_SET_IDENTIFIER_FORMAT = "Atk. Pattern %d";
+	const static std::string LEFT_PANEL_SPRITE_SHEETS_TAB_NAME;
+	const static std::string LEFT_PANEL_ATTACK_LIST_TAB_NAME;
+	// The string format used as the tab set identifier for caching the mainPanel tabs when closing an opened attack.
+	const static std::string LEFT_PANEL_ATTACK_TABS_SET_IDENTIFIER_FORMAT;
+	const static std::string LEFT_PANEL_ATTACK_PATTERN_LIST_TAB_NAME;
+	const static std::string LEFT_PANEL_ATTACK_PATTERN_TABS_SET_IDENTIFIER_FORMAT;
 
-	const std::string MAIN_PANEL_ATTACK_TAB_NAME_FORMAT = "Attack %d";
-	const std::string MAIN_PANEL_ATTACK_PATTERN_TAB_NAME_FORMAT = "Atk. Pattern %d";
+	const static std::string MAIN_PANEL_ATTACK_TAB_NAME_FORMAT;
+	const static std::string MAIN_PANEL_ATTACK_PATTERN_TAB_NAME_FORMAT;
 
 	std::shared_ptr<AudioPlayer> audioPlayer;
 	std::shared_ptr<LevelPack> levelPack;
@@ -155,6 +155,7 @@ private:
 	Clipboard clipboard;
 
 	// -------------------- Part of leftPanel --------------------
+	std::shared_ptr<SpriteSheetsListPanel> spriteSheetsTreeViewPanel;
 	std::shared_ptr<LevelPackObjectsListPanel> attacksListPanel; // Container for attacksListView
 	std::shared_ptr<LevelPackObjectsListView> attacksListView; // Child of attacksListPanel
 	std::shared_ptr<LevelPackObjectsListPanel> attackPatternsListPanel; // Container for attackPatternsListView

@@ -141,7 +141,7 @@ GameInstance::GameInstance(std::string levelPackName) {
 	levelPack = std::make_unique<LevelPack>(*audioPlayer, levelPackName);
 	playerInfo = levelPack->getGameplayPlayer();
 
-	spriteLoader = levelPack->createSpriteLoader();
+	spriteLoader = levelPack->getSpriteLoader();
 
 	//TODO: these numbers should come from settings
 	window = std::make_unique<sf::RenderWindow>(sf::VideoMode(1600, 900), "Bullet Hell Maker");

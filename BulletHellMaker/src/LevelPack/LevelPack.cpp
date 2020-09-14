@@ -31,7 +31,7 @@
 
 LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(audioPlayer), name(name) {
 	onChange = std::make_shared<entt::SigH<void(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE, int)>>();
-
+	spriteLoader = std::make_shared<SpriteLoader>(name);
 
 	/*
 	testing
@@ -290,7 +290,7 @@ void LevelPack::load() {
 
 	// Read metafile
 	{
-		std::ifstream metafile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\meta.txt", name.c_str()));
+		std::ifstream metafile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\meta.txt", name.c_str()));
 		std::string line;
 		std::getline(metafile, line);
 		metadata.load(line);
@@ -301,7 +301,7 @@ void LevelPack::load() {
 	// Read levels
 	levelsMap.clear();
 	levels.clear();
-	std::ifstream levelsFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\levels.txt", name.c_str()));
+	std::ifstream levelsFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\levels.txt", name.c_str()));
 	std::string line;
 	// First line is number of levels
 	std::getline(levelsFile, line);
@@ -324,7 +324,7 @@ void LevelPack::load() {
 
 	// Read bullet models
 	bulletModels.clear();
-	std::ifstream bulletModelsFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\bullet_models.txt", name.c_str()));
+	std::ifstream bulletModelsFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\bullet_models.txt", name.c_str()));
 	while (std::getline(bulletModelsFile, line)) {
 		std::shared_ptr<BulletModel> bulletModel = std::make_shared<BulletModel>();
 		bulletModel->load(line);
@@ -337,7 +337,7 @@ void LevelPack::load() {
 
 	// Read attacks
 	attacks.clear();
-	std::ifstream attacksFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\attacks.txt", name.c_str()));
+	std::ifstream attacksFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\attacks.txt", name.c_str()));
 	while (std::getline(attacksFile, line)) {
 		std::shared_ptr<EditorAttack> attack = std::make_shared<EditorAttack>();
 		attack->load(line);
@@ -352,7 +352,7 @@ void LevelPack::load() {
 
 	// Read attack patterns
 	attackPatterns.clear();
-	std::ifstream attackPatternsFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\attack_patterns.txt", name.c_str()));
+	std::ifstream attackPatternsFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\attack_patterns.txt", name.c_str()));
 	while (std::getline(attackPatternsFile, line)) {
 		std::shared_ptr<EditorAttackPattern> attackPattern = std::make_shared<EditorAttackPattern>();
 		attackPattern->load(line);
@@ -365,7 +365,7 @@ void LevelPack::load() {
 
 	// Read enemies
 	enemies.clear();
-	std::ifstream enemiesFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\enemies.txt", name.c_str()));
+	std::ifstream enemiesFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\enemies.txt", name.c_str()));
 	while (std::getline(enemiesFile, line)) {
 		std::shared_ptr<EditorEnemy> enemy = std::make_shared<EditorEnemy>();
 		enemy->load(line);
@@ -378,7 +378,7 @@ void LevelPack::load() {
 
 	// Read enemy phases
 	enemyPhases.clear();
-	std::ifstream enemyPhasesFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\enemy_phases.txt", name.c_str()));
+	std::ifstream enemyPhasesFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\enemy_phases.txt", name.c_str()));
 	while (std::getline(enemyPhasesFile, line)) {
 		std::shared_ptr<EditorEnemyPhase> enemyPhase = std::make_shared<EditorEnemyPhase>();
 		enemyPhase->load(line);
@@ -392,12 +392,12 @@ void LevelPack::load() {
 
 void LevelPack::save() {
 	// Save metafile
-	std::ofstream metafile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\meta.txt", name.c_str()));
+	std::ofstream metafile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\meta.txt", name.c_str()));
 	metafile << metadata.format() << std::endl;
 	metafile << fontFileName << std::endl;
 
 	// Save levels
-	std::ofstream levelsFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\levels.txt", name.c_str()));
+	std::ofstream levelsFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\levels.txt", name.c_str()));
 	levelsFile << levelsMap.size() << std::endl;
 	for (auto p : levelsMap) {
 		// Skip if ID < 0, because that signifies that it's a temporary object
@@ -410,7 +410,7 @@ void LevelPack::save() {
 	levelsFile.close();
 
 	// Save bullet models
-	std::ofstream bulletModelsFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\bullet_models.txt", name.c_str()));
+	std::ofstream bulletModelsFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\bullet_models.txt", name.c_str()));
 	for (auto p : bulletModels) {
 		// Skip if ID < 0, because that signifies that it's a temporary object
 		if (p.first < 0) continue;
@@ -419,7 +419,7 @@ void LevelPack::save() {
 	bulletModelsFile.close();
 
 	// Save attacks
-	std::ofstream attacksFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\attacks.txt", name.c_str()));
+	std::ofstream attacksFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\attacks.txt", name.c_str()));
 	for (auto p : attacks) {
 		if (p.first < 0) continue;
 		attacksFile << p.second->format() << std::endl;
@@ -427,7 +427,7 @@ void LevelPack::save() {
 	attacksFile.close();
 
 	// Save attack patterns
-	std::ofstream attackPatternsFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\attack_patterns.txt", name.c_str()));
+	std::ofstream attackPatternsFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\attack_patterns.txt", name.c_str()));
 	for (auto p : attackPatterns) {
 		// Skip if ID < 0, because that signifies that it's a temporary object
 		if (p.first < 0) continue;
@@ -436,7 +436,7 @@ void LevelPack::save() {
 	attackPatternsFile.close();
 
 	// Save enemies
-	std::ofstream enemiesFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\enemies.txt", name.c_str()));
+	std::ofstream enemiesFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\enemies.txt", name.c_str()));
 	for (auto p : enemies) {
 		// Skip if ID < 0, because that signifies that it's a temporary object
 		if (p.first < 0) continue;
@@ -445,7 +445,7 @@ void LevelPack::save() {
 	enemiesFile.close();
 
 	// Save enemy phases
-	std::ofstream enemyPhasesFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\enemy_phases.txt", name.c_str()));
+	std::ofstream enemyPhasesFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\enemy_phases.txt", name.c_str()));
 	for (auto p : enemyPhases) {
 		// Skip if ID < 0, because that signifies that it's a temporary object
 		if (p.first < 0) continue;
@@ -454,9 +454,8 @@ void LevelPack::save() {
 	enemyPhasesFile.close();
 }
 
-std::unique_ptr<SpriteLoader> LevelPack::createSpriteLoader() {
-	std::unique_ptr<SpriteLoader> spriteLoader = std::make_unique<SpriteLoader>(name);
-	return std::move(spriteLoader);
+std::shared_ptr<SpriteLoader> LevelPack::getSpriteLoader() {
+	return spriteLoader;
 }
 
 void LevelPack::insertLevel(int index, int levelID) {

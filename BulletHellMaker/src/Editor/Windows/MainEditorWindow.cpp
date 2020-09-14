@@ -12,6 +12,18 @@
 #include <Editor/Windows/MainEditorWindowMenuBar.h>
 #include <Game/EntityCreationQueue.h>
 
+const std::string MainEditorWindow::LEFT_PANEL_SPRITE_SHEETS_TAB_NAME = "Sprite Sheets";
+const std::string MainEditorWindow::LEFT_PANEL_ATTACK_LIST_TAB_NAME = "Attacks";
+// %d = the attack's ID
+const std::string MainEditorWindow::LEFT_PANEL_ATTACK_TABS_SET_IDENTIFIER_FORMAT = "Attack %d";
+const std::string MainEditorWindow::LEFT_PANEL_ATTACK_PATTERN_LIST_TAB_NAME = "Attack patterns";
+// %d = the attack pattern's ID
+const std::string MainEditorWindow::LEFT_PANEL_ATTACK_PATTERN_TABS_SET_IDENTIFIER_FORMAT = "Atk. Pattern %d";
+
+// %d = the level pack object's ID
+const std::string MainEditorWindow::MAIN_PANEL_ATTACK_TAB_NAME_FORMAT = "Attack %d";
+const std::string MainEditorWindow::MAIN_PANEL_ATTACK_PATTERN_TAB_NAME_FORMAT = "Atk. Pattern %d";
+
 MainEditorWindow::MainEditorWindow(std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval)
 	: EditorWindow(windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval) {
 
@@ -28,6 +40,12 @@ MainEditorWindow::MainEditorWindow(std::string windowTitle, int width, int heigh
 	leftPanel->setMoreTabsListAlignment(TabsWithPanel::MoreTabsListAlignment::Right);
 	gui->add(leftPanel);
 
+	{
+		// Sprite sheets tree view panel in left panel
+		spriteSheetsTreeViewPanel = SpriteSheetsListPanel::create(*this);
+		//spriteSheetsTreeViewPanel->connect("ItemSelected")
+		leftPanel->addTab(LEFT_PANEL_SPRITE_SHEETS_TAB_NAME, spriteSheetsTreeViewPanel, true);
+	}
 	{
 		// Attacks tab in left panel
 		attacksListView = AttacksListView::create(*this, clipboard);
@@ -84,7 +102,7 @@ void MainEditorWindow::loadLevelPack(std::string levelPackName) {
 	audioPlayer = std::make_shared<AudioPlayer>();
 	try {
 		levelPack = std::make_shared<LevelPack>(*audioPlayer, levelPackName);
-		spriteLoader = levelPack->createSpriteLoader();
+		spriteLoader = levelPack->getSpriteLoader();
 	} catch (const char* str) {
 		// TODO: log error and display to user
 		return;
@@ -92,8 +110,8 @@ void MainEditorWindow::loadLevelPack(std::string levelPackName) {
 
 	mainPanel->removeAllTabs();
 
+	spriteSheetsTreeViewPanel->setLevelPack(levelPack.get());
 	attacksListView->setLevelPack(levelPack.get());
-
 	attackPatternsListView->setLevelPack(levelPack.get());
 
 	// TODO: add more left panel panels to here

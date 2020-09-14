@@ -1,33 +1,48 @@
 #pragma once
 #include <string>
+#include <vector>
+#include <utility>
 #include <sys/stat.h>
 #include <Windows.h>
 #include <ShlObj_core.h>
 
-static bool fileExists(char* name) {
-	struct stat buffer;
-	return (stat(name, &buffer) == 0);
-}
+/*
+Returns whether a file exists.
 
-static bool fileExists(const std::string& name) {
-	struct stat buffer;
-	return (stat(name.c_str(), &buffer) == 0);
-}
+name - the path to the file
+*/
+bool fileExists(char* name);
+/*
+Returns whether a file exists.
 
-static std::string getPathToFolderContainingExe() {
-	char curDirectory[MAX_PATH + 1];
-	GetModuleFileNameA(GetModuleHandle(0), curDirectory, sizeof(curDirectory));
-	std::string asCppStr(curDirectory);
-	return asCppStr.substr(0, asCppStr.find_last_of('\\'));
-}
+name - the path to the file
+*/
+bool fileExists(const std::string& name);
 
+/*
+Returns the absolute path to the folder containing this program.
+*/
+std::string getPathToFolderContainingExe();
+
+/*
+Opens a prompt for the user to select a folder limited to a subdirectory.
+
+hwnd - the window handler
+lpszFolder - the subdirectory from which the user can choose a folder
+lpszTitle - the prompt to show to the user
+*/
 BOOL BrowseFolder(HWND hwnd, LPSTR lpszFolder, LPSTR lpszTitle);
 
-static bool imageExtensionIsSupportedBySFML(const char* extension) {
-	if (strcmp(extension, ".bmp") == 0 || strcmp(extension, ".png") == 0 || strcmp(extension, ".tga") == 0
-		|| strcmp(extension, ".jpg") == 0 || strcmp(extension, ".gif") == 0 || strcmp(extension, ".psd") == 0
-		|| strcmp(extension, ".hdr") == 0 || strcmp(extension, ".pic") == 0) {
-		return true;
-	}
-	return false;
-}
+/*
+Returns whether a file extension (such as ".txt") can be read as an
+image by SFML.
+*/
+bool imageExtensionIsSupportedBySFML(const char* extension);
+
+/*
+Returns a list of sprite sheets that have a corresponding metafile.
+Each pair in the list is, respectively, the metafile name with extension and the image file name with extension.
+
+spriteSheetsFolderPath - path to the folder containing the sprite sheets and metafiles
+*/
+std::vector<std::pair<std::string, std::string>> findAllSpriteSheetsWithMetafiles(std::string spriteSheetsFolderPath);

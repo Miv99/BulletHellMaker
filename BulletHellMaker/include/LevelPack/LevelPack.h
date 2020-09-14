@@ -67,11 +67,6 @@ public:
 	void save();
 
 	/*
-	Creates the sprite loader that contains info for all animatables that are used in this level pack.
-	*/
-	std::unique_ptr<SpriteLoader> createSpriteLoader();
-
-	/*
 	Insert a Level's ID into this LevelPack at the specified index.
 	*/
 	void insertLevel(int index, int levelID);
@@ -206,6 +201,11 @@ public:
 	void deleteEnemy(int id);
 	void deleteEnemyPhase(int id);
 	void deleteBulletModel(int id);
+
+	/*
+	Returns the sprite loader that contains info for all animatables that are used in this level pack.
+	*/
+	std::shared_ptr<SpriteLoader> getSpriteLoader();
 
 	/*
 	Returns a list of IDs of Levels that use the EditorEnemy
@@ -393,6 +393,7 @@ public:
 private:
 	std::string name;
 
+	std::shared_ptr<SpriteLoader> spriteLoader;
 	AudioPlayer& audioPlayer;
 
 	LevelPackMetadata metadata;

@@ -77,7 +77,7 @@ private:
 	bool gameInstanceCloseQueued = false;
 
 	std::unique_ptr<LevelPack> levelPack;
-	std::unique_ptr<SpriteLoader> spriteLoader;
+	std::shared_ptr<SpriteLoader> spriteLoader;
 	std::unique_ptr<EntityCreationQueue> queue;
 
 	entt::DefaultRegistry registry;
