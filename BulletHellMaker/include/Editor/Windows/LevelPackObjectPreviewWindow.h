@@ -30,14 +30,22 @@ limiting resource-intensive actions when the window is closed.
 */
 class LevelPackObjectPreviewWindow : public EditorWindow {
 public:
-	LevelPackObjectPreviewWindow(std::string windowTitle, int width, int height, std::string levelPackName, bool scaleWidgetsOnResize = false,
-		bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL);
+	LevelPackObjectPreviewWindow(std::string windowTitle, int width, int height, std::string levelPackName, std::shared_ptr<SpriteLoader> spriteLoader,
+		bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL);
 
-	void loadLevelPack(std::string levelPackName);
+	/*
+	Loads a level pack by name.
+
+	spriteLoader - if not nullptr, this sprite loader will be used in the newly loaded level pack
+		so that textures don't have to be loaded twice
+	*/
+	void loadLevelPack(std::string levelPackName, std::shared_ptr<SpriteLoader> spriteLoader);
 
 	void previewNothing();
 	void previewAttack(const std::shared_ptr<EditorAttack> attack);
 	void previewAttackPattern(const std::shared_ptr<EditorAttackPattern> attackPattern);
+
+	void resetPreview();
 
 	/*
 	Should be called whenever an EditorAttack in the LevelPack being edited is modified.
@@ -54,16 +62,19 @@ public:
 private:
 	std::shared_ptr<LevelPackObjectPreviewPanel> previewPanel;
 
+	// previewPanel's level pack's overriden sprite loader
+	std::shared_ptr<SpriteLoader> spriteLoader;
+
 	std::shared_ptr<tgui::Panel> infoPanel;
 	std::shared_ptr<tgui::Label> previewObjectLabel;
 	std::shared_ptr<tgui::Label> delayLabel;
 	std::shared_ptr<NumericalEditBoxWithLimits> delay;
 	std::shared_ptr<tgui::Label> timeMultiplierLabel;
 	std::shared_ptr<SliderWithEditBox> timeMultiplier;
-	std::shared_ptr<tgui::Button> resetPreview;
-	std::shared_ptr<tgui::Button> resetCamera;
-	std::shared_ptr<tgui::Button> setPlayerSpawn;
-	std::shared_ptr<tgui::Button> setSource;
+	std::shared_ptr<tgui::Button> resetPreviewButton;
+	std::shared_ptr<tgui::Button> resetCameraButton;
+	std::shared_ptr<tgui::Button> setPlayerSpawnButton;
+	std::shared_ptr<tgui::Button> setSourceButton;
 	std::shared_ptr<tgui::CheckBox> useDebugRenderSystem;
 	std::shared_ptr<tgui::CheckBox> lockCurrentPreviewCheckBox;
 	std::shared_ptr<tgui::CheckBox> invinciblePlayer;

@@ -29,9 +29,15 @@
 #include <LevelPack/EditorMovablePointAction.h>
 #include <Game/EntityCreationQueue.h>
 
-LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name) : audioPlayer(audioPlayer), name(name) {
+LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name, std::shared_ptr<SpriteLoader> spriteLoader) 
+	: audioPlayer(audioPlayer), name(name) {
+
 	onChange = std::make_shared<entt::SigH<void(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE, int)>>();
-	spriteLoader = std::make_shared<SpriteLoader>(name);
+	if (spriteLoader) {
+		this->spriteLoader = spriteLoader;
+	} else {
+		this->spriteLoader = std::make_shared<SpriteLoader>(name);
+	}
 
 	/*
 	testing

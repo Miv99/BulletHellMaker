@@ -27,15 +27,19 @@ Signals:
 */
 class LevelPackObjectPreviewPanel : public SimpleEngineRenderer {
 public:
-	LevelPackObjectPreviewPanel(EditorWindow& parentWindow, std::string levelPackName);
+	/*
+	spriteLoader - if not nullptr, spriteLoader will be used instead of creating a new SpriteLoader just for the level pack
+		that will be loaded from levelPackName
+	*/
+	LevelPackObjectPreviewPanel(EditorWindow& parentWindow, std::string levelPackName, std::shared_ptr<SpriteLoader> spriteLoader);
 	~LevelPackObjectPreviewPanel();
-	static std::shared_ptr<LevelPackObjectPreviewPanel> create(EditorWindow& parentWindow, std::string levelPackName) {
-		return std::make_shared<LevelPackObjectPreviewPanel>(parentWindow, levelPackName);
+	static std::shared_ptr<LevelPackObjectPreviewPanel> create(EditorWindow& parentWindow, std::string levelPackName, std::shared_ptr<SpriteLoader> spriteLoader) {
+		return std::make_shared<LevelPackObjectPreviewPanel>(parentWindow, levelPackName, spriteLoader);
 	}
 
 	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
-	void loadLevelPack(std::string levelPackName) override;
+	void loadLevelPack(std::string levelPackName, std::shared_ptr<SpriteLoader> spriteLoader) override;
 
 	void previewNothing();
 	/*

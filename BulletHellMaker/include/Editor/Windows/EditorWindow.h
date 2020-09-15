@@ -66,9 +66,16 @@ public:
 	template<class T>
 	std::shared_ptr<entt::SigH<void(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE, T)>> promptConfirmation(std::string message, T userObject,
 		tgui::Widget* widgetToFocusAfter, bool includeCancelButton = false);
+	/*
+	Disables all widgets and then prompts the user with a custom message to which the user can close.
+
+	widgetToFocusAfter - the widget that should be focused after the user answers. Set to nullptr to not focus anything afterwards.
+	*/
+	std::shared_ptr<entt::SigH<void(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE)>> showPopupMessageWindow(std::string message,
+		tgui::Widget* widgetToFocusAfter);
 
 	/*
-	Add a popup as a top-level widget in the Gui. If part of the popup 
+	Add a popup as a top-level widget in the Gui.
 
 	preferredX, preferredY - the preferred position of the popup; cannot be less than 0
 	preferredWidth, preferredHeight - the preferred size of the popup; cannot be less than 0
@@ -231,6 +238,7 @@ inline std::shared_ptr<entt::SigH<void(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE,
 
 	confirmationCancel->setVisible(includeCancelButton);
 	if (includeCancelButton) {
+		confirmationCancel->setText("Cancel");
 		confirmationCancel->connect("Pressed", [this, confirmationSignal, userObject, widgetToFocusAfter]() {
 			confirmationSignal->publish(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::CANCEL, userObject);
 			confirmationSignal->sink().disconnect();

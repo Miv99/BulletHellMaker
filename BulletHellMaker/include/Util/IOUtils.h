@@ -46,3 +46,9 @@ Each pair in the list is, respectively, the metafile name with extension and the
 spriteSheetsFolderPath - path to the folder containing the sprite sheets and metafiles
 */
 std::vector<std::pair<std::string, std::string>> findAllSpriteSheetsWithMetafiles(std::string spriteSheetsFolderPath);
+
+/*
+Shows an error dialog box explaining an error code from
+https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes.
+*/
+void showWindowsErrorDialog(DWORD errorCode, LPCWSTR dialogTitle);

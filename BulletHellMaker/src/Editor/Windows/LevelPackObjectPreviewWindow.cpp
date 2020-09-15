@@ -7,12 +7,15 @@
 #include <Editor/Previewer/LevelPackObjectPreviewPanel.h>
 #include <Editor/CustomWidgets/SliderWithEditBox.h>
 
-LevelPackObjectPreviewWindow::LevelPackObjectPreviewWindow(std::string windowTitle, int width, int height, std::string levelPackName, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval)
-	: EditorWindow(windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval), levelPackName(levelPackName) {
+LevelPackObjectPreviewWindow::LevelPackObjectPreviewWindow(std::string windowTitle, int width, int height, std::string levelPackName, std::shared_ptr<SpriteLoader> spriteLoader,
+	bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval)
+	: EditorWindow(windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval), levelPackName(levelPackName), spriteLoader(spriteLoader) {
 }
 
-void LevelPackObjectPreviewWindow::loadLevelPack(std::string levelPackName) {
-	previewPanel->loadLevelPack(levelPackName);
+void LevelPackObjectPreviewWindow::loadLevelPack(std::string levelPackName, std::shared_ptr<SpriteLoader> spriteLoader) {
+	this->levelPackName = levelPackName;
+	this->spriteLoader = spriteLoader;
+	previewPanel->loadLevelPack(levelPackName, spriteLoader);
 }
 
 void LevelPackObjectPreviewWindow::previewNothing() {
@@ -48,6 +51,12 @@ void LevelPackObjectPreviewWindow::previewAttackPattern(const std::shared_ptr<Ed
 		}
 		previewThread = std::thread(&LevelPackObjectPreviewPanel::previewAttackPattern, &(*previewPanel), attackPattern);
 		previewThread.detach();
+	}
+}
+
+void LevelPackObjectPreviewWindow::resetPreview() {
+	if (window->isOpen()) {
+		previewPanel->resetPreview();
 	}
 }
 
@@ -132,7 +141,7 @@ bool LevelPackObjectPreviewWindow::handleEvent(sf::Event event) {
 void LevelPackObjectPreviewWindow::onRenderWindowInitialization() {
 	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 
-	previewPanel = LevelPackObjectPreviewPanel::create(*this, levelPackName);
+	previewPanel = LevelPackObjectPreviewPanel::create(*this, levelPackName, spriteLoader);
 	previewPanel->setSize("100%", "100%");
 	gui->add(previewPanel);
 
@@ -145,10 +154,10 @@ void LevelPackObjectPreviewWindow::onRenderWindowInitialization() {
 	delay = NumericalEditBoxWithLimits::create();
 	timeMultiplierLabel = tgui::Label::create();
 	timeMultiplier = SliderWithEditBox::create(false);
-	resetPreview = tgui::Button::create();
-	resetCamera = tgui::Button::create();
-	setPlayerSpawn = tgui::Button::create();
-	setSource = tgui::Button::create();
+	resetPreviewButton = tgui::Button::create();
+	resetCameraButton = tgui::Button::create();
+	setPlayerSpawnButton = tgui::Button::create();
+	setSourceButton = tgui::Button::create();
 	useDebugRenderSystem = tgui::CheckBox::create();
 	lockCurrentPreviewCheckBox = tgui::CheckBox::create();
 	invinciblePlayer = tgui::CheckBox::create();
@@ -176,16 +185,16 @@ void LevelPackObjectPreviewWindow::onRenderWindowInitialization() {
 
 		previewPanel->setTimeMultiplier(value);
 	});
-	resetPreview->connect("Pressed", [this]() {
+	resetPreviewButton->connect("Pressed", [this]() {
 		previewPanel->resetPreview();
 	});
-	resetCamera->connect("Pressed", [this]() {
+	resetCameraButton->connect("Pressed", [this]() {
 		previewPanel->resetCamera();
 	});
-	setPlayerSpawn->connect("Pressed", [this]() {
+	setPlayerSpawnButton->connect("Pressed", [this]() {
 		previewPanel->setSettingPlayerSpawn(true);
 	});
-	setSource->connect("Pressed", [this]() {
+	setSourceButton->connect("Pressed", [this]() {
 		previewPanel->setSettingSource(true);
 	});
 	useDebugRenderSystem->connect("Changed", [this](bool checked) {
@@ -219,20 +228,20 @@ void LevelPackObjectPreviewWindow::onRenderWindowInitialization() {
 	delay->setTextSize(TEXT_SIZE);
 	timeMultiplierLabel->setTextSize(TEXT_SIZE);
 	timeMultiplier->setTextSize(TEXT_SIZE);
-	resetPreview->setTextSize(TEXT_SIZE);
-	resetCamera->setTextSize(TEXT_SIZE);
-	setPlayerSpawn->setTextSize(TEXT_SIZE);
-	setSource->setTextSize(TEXT_SIZE);
+	resetPreviewButton->setTextSize(TEXT_SIZE);
+	resetCameraButton->setTextSize(TEXT_SIZE);
+	setPlayerSpawnButton->setTextSize(TEXT_SIZE);
+	setSourceButton->setTextSize(TEXT_SIZE);
 	useDebugRenderSystem->setTextSize(TEXT_SIZE);
 	lockCurrentPreviewCheckBox->setTextSize(TEXT_SIZE);
 	invinciblePlayer->setTextSize(TEXT_SIZE);
 
 	delayLabel->setText("Attack/Attack pattern repeat interval");
 	timeMultiplierLabel->setText("Time multiplier");
-	resetPreview->setText("Reset preview");
-	resetCamera->setText("Reset camera");
-	setPlayerSpawn->setText("Set player spawn");
-	setSource->setText("Set preview source");
+	resetPreviewButton->setText("Reset preview");
+	resetCameraButton->setText("Reset camera");
+	setPlayerSpawnButton->setText("Set player spawn");
+	setSourceButton->setText("Set preview source");
 	useDebugRenderSystem->setText("Hitboxes visible");
 	lockCurrentPreviewCheckBox->setText("Lock current preview");
 	invinciblePlayer->setText("Invincible player");
@@ -242,8 +251,8 @@ void LevelPackObjectPreviewWindow::onRenderWindowInitialization() {
 but shader effects (such as piercing bullets flashing after hitting a player) will be unavailable due to technical limitations. Note that bullets with collision action \
 \"Destroy self only\" only become invisible after hitting a player, so their hitboxes will still be visible even though they cannot interact with the player again."));
 	lockCurrentPreviewCheckBox->setToolTip(createToolTip("While this is checked, new objects will not be previewed."));
-	setPlayerSpawn->setToolTip(createToolTip("Sets the player's spawn position for future previews to be the next clicked position. The spawn position must be within the map boundaries."));
-	setSource->setToolTip(createToolTip("Sets the preview source position for future previews to be the next clicked position. The spawn position can be outside the map boundaries."));
+	setPlayerSpawnButton->setToolTip(createToolTip("Sets the player's spawn position for future previews to be the next clicked position. The spawn position must be within the map boundaries."));
+	setSourceButton->setToolTip(createToolTip("Sets the preview source position for future previews to be the next clicked position. The spawn position can be outside the map boundaries."));
 	invinciblePlayer->setToolTip(createToolTip("While this is checked, the player cannot take damage."));
 
 	previewObjectLabel->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
@@ -251,21 +260,21 @@ but shader effects (such as piercing bullets flashing after hitting a player) wi
 	delay->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(delayLabel) + GUI_LABEL_PADDING_Y);
 	timeMultiplierLabel->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(delay) + GUI_PADDING_Y);
 	timeMultiplier->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(timeMultiplierLabel) + GUI_LABEL_PADDING_Y);
-	resetPreview->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(timeMultiplier) + GUI_PADDING_Y);
-	resetCamera->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(resetPreview) + GUI_PADDING_Y);
-	setPlayerSpawn->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(resetCamera) + GUI_PADDING_Y);
-	setSource->setPosition(tgui::bindRight(setPlayerSpawn) + GUI_PADDING_X, tgui::bindTop(setPlayerSpawn));
-	useDebugRenderSystem->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(setSource) + GUI_PADDING_Y);
+	resetPreviewButton->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(timeMultiplier) + GUI_PADDING_Y);
+	resetCameraButton->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(resetPreviewButton) + GUI_PADDING_Y);
+	setPlayerSpawnButton->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(resetCameraButton) + GUI_PADDING_Y);
+	setSourceButton->setPosition(tgui::bindRight(setPlayerSpawnButton) + GUI_PADDING_X, tgui::bindTop(setPlayerSpawnButton));
+	useDebugRenderSystem->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(setSourceButton) + GUI_PADDING_Y);
 	lockCurrentPreviewCheckBox->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(useDebugRenderSystem) + GUI_PADDING_Y);
 	invinciblePlayer->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(lockCurrentPreviewCheckBox) + GUI_PADDING_Y);
 
 	infoPanel->connect("SizeChanged", [this](sf::Vector2f newSize) {
 		delay->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 		timeMultiplier->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
-		resetPreview->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BUTTON_HEIGHT);
-		resetCamera->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BUTTON_HEIGHT);
-		setPlayerSpawn->setSize((newSize.x - GUI_PADDING_X * 3) / 2.0f, TEXT_BUTTON_HEIGHT);
-		setSource->setSize((newSize.x - GUI_PADDING_X * 3) / 2.0f, TEXT_BUTTON_HEIGHT);
+		resetPreviewButton->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BUTTON_HEIGHT);
+		resetCameraButton->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BUTTON_HEIGHT);
+		setPlayerSpawnButton->setSize((newSize.x - GUI_PADDING_X * 3) / 2.0f, TEXT_BUTTON_HEIGHT);
+		setSourceButton->setSize((newSize.x - GUI_PADDING_X * 3) / 2.0f, TEXT_BUTTON_HEIGHT);
 	});
 	infoPanel->setSize("30%", "100%");
 
@@ -274,10 +283,10 @@ but shader effects (such as piercing bullets flashing after hitting a player) wi
 	infoPanel->add(delay);
 	infoPanel->add(timeMultiplierLabel);
 	infoPanel->add(timeMultiplier);
-	infoPanel->add(resetPreview);
-	infoPanel->add(resetCamera);
-	infoPanel->add(setPlayerSpawn);
-	infoPanel->add(setSource);
+	infoPanel->add(resetPreviewButton);
+	infoPanel->add(resetCameraButton);
+	infoPanel->add(setPlayerSpawnButton);
+	infoPanel->add(setSourceButton);
 	infoPanel->add(useDebugRenderSystem);
 	infoPanel->add(lockCurrentPreviewCheckBox);
 	infoPanel->add(invinciblePlayer);

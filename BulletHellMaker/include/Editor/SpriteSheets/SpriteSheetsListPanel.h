@@ -14,18 +14,31 @@ A tgui::Panel containing a ListViewScrollablePanel that lists all sprite sheets 
 
 Doesn't support CopyPaste operations.
 */
-class SpriteSheetsListPanel : public tgui::Panel, public EventCapturable {
+class SpriteSheetsListPanel : public tgui::Panel {
 public:
 	SpriteSheetsListPanel(MainEditorWindow& mainEditorWindow);
 	static std::shared_ptr<SpriteSheetsListPanel> create(MainEditorWindow& mainEditorWindow) {
 		return std::make_shared<SpriteSheetsListPanel>(mainEditorWindow);
 	}
 
-	bool handleEvent(sf::Event event) override;
-
+	/*
+	Opens a prompt for the user to import an external sprite sheet.
+	*/
 	void promptImportExternalSpriteSheet();
 
-	void reload();
+	/*
+	Reloads the current level pack's SpriteLoader's sprite sheets and
+	then this widget's list of sprite sheets to match the SpriteLoader.
+	*/
+	void reloadSpriteLoaderAndList();
+
+	/*
+	Reloads the list of sprite sheets to match the loaded ones in
+	the current level pack's SpriteLoader.
+	*/
+	void reloadListOnly();
+
+	std::shared_ptr<ListViewScrollablePanel> getListView();
 
 	void setLevelPack(LevelPack* levelPack);
 

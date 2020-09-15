@@ -42,9 +42,9 @@ MainEditorWindow::MainEditorWindow(std::string windowTitle, int width, int heigh
 
 	{
 		// Sprite sheets tree view panel in left panel
-		spriteSheetsTreeViewPanel = SpriteSheetsListPanel::create(*this);
-		//spriteSheetsTreeViewPanel->connect("ItemSelected")
-		leftPanel->addTab(LEFT_PANEL_SPRITE_SHEETS_TAB_NAME, spriteSheetsTreeViewPanel, true);
+		spriteSheetsListPanel = SpriteSheetsListPanel::create(*this);
+		//spriteSheetsListPanel->connect("ItemSelected")
+		leftPanel->addTab(LEFT_PANEL_SPRITE_SHEETS_TAB_NAME, spriteSheetsListPanel, true);
 	}
 	{
 		// Attacks tab in left panel
@@ -110,17 +110,17 @@ void MainEditorWindow::loadLevelPack(std::string levelPackName) {
 
 	mainPanel->removeAllTabs();
 
-	spriteSheetsTreeViewPanel->setLevelPack(levelPack.get());
+	spriteSheetsListPanel->setLevelPack(levelPack.get());
 	attacksListView->setLevelPack(levelPack.get());
 	attackPatternsListView->setLevelPack(levelPack.get());
 
 	// TODO: add more left panel panels to here
 
 	if (previewWindow) {
-		previewWindow->loadLevelPack(levelPackName);
+		previewWindow->loadLevelPack(levelPackName, spriteLoader);
 	} else {
 		// TODO: window size from settings
-		previewWindow = std::make_shared<LevelPackObjectPreviewWindow>("Preview", 1024, 768, levelPackName);
+		previewWindow = std::make_shared<LevelPackObjectPreviewWindow>("Preview", 1024, 768, levelPackName, spriteLoader);
 		std::thread previewWindowThread = std::thread(&LevelPackObjectPreviewWindow::start, &(*previewWindow));
 		previewWindowThread.detach();
 	}
@@ -220,6 +220,15 @@ void MainEditorWindow::deleteAttackPattern(int id) {
 	if (unsavedAttackPatterns.find(id) != unsavedAttackPatterns.end()) {
 		unsavedAttackPatterns.erase(id);
 	}
+}
+
+void MainEditorWindow::reloadSpriteLoader() {
+	spriteSheetsListPanel->reloadSpriteLoaderAndList();
+	// The level pack being edited by this MainEditorWindow is the same SpriteLoader as the one
+	// being used in previewWindow's level pack, so don't reload the one in previewWindow.
+
+	// Reset preview because existing sprites will continue to use the old textures
+	previewWindow->resetPreview();
 }
 
 bool MainEditorWindow::handleEvent(sf::Event event) {

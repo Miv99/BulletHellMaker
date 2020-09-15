@@ -249,6 +249,7 @@ std::shared_ptr<entt::SigH<void(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE)>> Edit
 
 	confirmationCancel->setVisible(includeCancelButton);
 	if (includeCancelButton) {
+		confirmationCancel->setText("Cancel");
 		confirmationCancel->connect("Pressed", [this, confirmationSignal, widgetToFocusAfter]() {
 			confirmationSignal->publish(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::CANCEL);
 			confirmationSignal->sink().disconnect();
@@ -269,6 +270,38 @@ std::shared_ptr<entt::SigH<void(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE)>> Edit
 	confirmationPanelOpen = true;
 
 	return confirmationSignal;
+}
+
+std::shared_ptr<entt::SigH<void(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE)>> EditorWindow::showPopupMessageWindow(std::string message, tgui::Widget* widgetToFocusAfter) {
+	// Don't allow 2 confirmation prompts at the same time
+	if (confirmationPanelOpen) {
+		return nullptr;
+	}
+
+	// Disable all widgets
+	widgetsToBeEnabledAfterConfirmationPrompt.clear();
+	for (std::shared_ptr<tgui::Widget> ptr : gui->getWidgets()) {
+		if (ptr->isEnabled()) {
+			widgetsToBeEnabledAfterConfirmationPrompt.push_back(ptr);
+		}
+		ptr->setEnabled(false);
+	}
+
+	confirmationCancel->setText("Ok");
+	confirmationCancel->setVisible(true);
+	confirmationCancel->connect("Pressed", [this, widgetToFocusAfter]() {
+		closeConfirmationPanel();
+
+		if (widgetToFocusAfter) {
+			widgetToFocusAfter->setFocused(true);
+		}
+	});
+
+	confirmationPanel->setSize(std::max(calculateMinPromptPanelWidth(1), getWindow()->getSize().x * 0.5f), std::max(350.0f, getWindow()->getSize().y * 0.5f));
+
+	confirmationText->setText(message);
+	gui->add(confirmationPanel);
+	confirmationPanelOpen = true;
 }
 
 void EditorWindow::addPopupWidget(std::shared_ptr<tgui::Widget> popup, float preferredX, float preferredY, float preferredWidth, float preferredHeight, float maxWidthFraction, float maxHeightFraction) {

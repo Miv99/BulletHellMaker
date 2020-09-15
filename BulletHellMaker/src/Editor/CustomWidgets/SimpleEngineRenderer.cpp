@@ -87,22 +87,22 @@ bool SimpleEngineRenderer::handleEvent(sf::Event event) {
 	return false;
 }
 
-void SimpleEngineRenderer::loadLevelPack(std::string name) {
+void SimpleEngineRenderer::loadLevelPack(std::string name, std::shared_ptr<SpriteLoader> spriteLoader) {
 	std::lock_guard<std::mutex> lock(registryMutex);
 	registry.reset();
 
-	levelPack = std::make_shared<LevelPack>(*audioPlayer, name);
-	spriteLoader = levelPack->getSpriteLoader();
+	levelPack = std::make_shared<LevelPack>(*audioPlayer, name, spriteLoader);
+	this->spriteLoader = levelPack->getSpriteLoader();
 
-	movementSystem = std::make_unique<MovementSystem>(*queue, *spriteLoader, registry);
-	debugRenderSystem = std::make_unique<DebugRenderSystem>(registry, parentWindow, *spriteLoader, 1.0f);
-	renderSystem = std::make_unique<RenderSystem>(registry, parentWindow, *spriteLoader, 1.0f);
-	collisionSystem = std::make_unique<CollisionSystem>(*levelPack, *queue, *spriteLoader, registry, MAP_WIDTH, MAP_HEIGHT);
+	movementSystem = std::make_unique<MovementSystem>(*queue, *this->spriteLoader, registry);
+	debugRenderSystem = std::make_unique<DebugRenderSystem>(registry, parentWindow, *this->spriteLoader, 1.0f);
+	renderSystem = std::make_unique<RenderSystem>(registry, parentWindow, *this->spriteLoader, 1.0f);
+	collisionSystem = std::make_unique<CollisionSystem>(*levelPack, *queue, *this->spriteLoader, registry, MAP_WIDTH, MAP_HEIGHT);
 	despawnSystem = std::make_unique<DespawnSystem>(registry);
-	enemySystem = std::make_unique<EnemySystem>(*queue, *spriteLoader, *levelPack, registry);
-	spriteAnimationSystem = std::make_unique<SpriteAnimationSystem>(*spriteLoader, registry);
+	enemySystem = std::make_unique<EnemySystem>(*queue, *this->spriteLoader, *levelPack, registry);
+	spriteAnimationSystem = std::make_unique<SpriteAnimationSystem>(*this->spriteLoader, registry);
 	shadowTrailSystem = std::make_unique<ShadowTrailSystem>(*queue, registry);
-	playerSystem = std::make_unique<PlayerSystem>(*levelPack, *queue, *spriteLoader, registry);
+	playerSystem = std::make_unique<PlayerSystem>(*levelPack, *queue, *this->spriteLoader, registry);
 	collectibleSystem = std::make_unique<CollectibleSystem>(*queue, registry, *levelPack, MAP_WIDTH, MAP_HEIGHT);
 
 	debugRenderSystem->getOnResolutionChange()->sink().connect<SimpleEngineRenderer, &SimpleEngineRenderer::updateWindowView>(this);

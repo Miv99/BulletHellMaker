@@ -128,6 +128,11 @@ public:
 	void deleteAttack(int id);
 	void deleteAttackPattern(int id);
 
+	/*
+	Reloads the level pack's SpriteLoader to match changes in the sprite sheets folder.
+	*/
+	void reloadSpriteLoader();
+
 protected:
 	bool handleEvent(sf::Event event) override;
 
@@ -155,7 +160,7 @@ private:
 	Clipboard clipboard;
 
 	// -------------------- Part of leftPanel --------------------
-	std::shared_ptr<SpriteSheetsListPanel> spriteSheetsTreeViewPanel;
+	std::shared_ptr<SpriteSheetsListPanel> spriteSheetsListPanel;
 	std::shared_ptr<LevelPackObjectsListPanel> attacksListPanel; // Container for attacksListView
 	std::shared_ptr<LevelPackObjectsListView> attacksListView; // Child of attacksListPanel
 	std::shared_ptr<LevelPackObjectsListPanel> attackPatternsListPanel; // Container for attackPatternsListView

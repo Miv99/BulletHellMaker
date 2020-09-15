@@ -18,6 +18,11 @@ MainEditorWindowMenuBar::MainEditorWindowMenuBar(MainEditorWindow& mainEditorWin
 			promptOpenLevelPack();
 		}
 	});
+
+	addMenuItem("File", "Reload sprites/animations");
+	connectMenuItem("File", "Reload sprites/animations", [this]() {
+		this->mainEditorWindow.reloadSpriteLoader();
+	});
 }
 
 void MainEditorWindowMenuBar::promptOpenLevelPack() {

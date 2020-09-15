@@ -11,16 +11,16 @@
 SpriteSheetsListPanel::SpriteSheetsListPanel(MainEditorWindow& mainEditorWindow) 
 	: mainEditorWindow(mainEditorWindow), levelPack(nullptr) {
 	
-	// TODO
-
 	std::shared_ptr<tgui::Button> importSpriteSheetButton = tgui::Button::create();
+	importSpriteSheetButton->setTextSize(TEXT_SIZE);
+	importSpriteSheetButton->setText("+");
 	importSpriteSheetButton->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
 	importSpriteSheetButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
 	importSpriteSheetButton->connect("Pressed", [this]() {
 		promptImportExternalSpriteSheet();
 	});
 	importSpriteSheetButton->setToolTip(createToolTip("Imports a sprite sheet image from outside the level pack. \
-If there is a corresponding BulletHellMaker sprite sheet metafile (it should be named \
+If there is a corresponding BulletHellMaker sprite sheet metafile (named \
 \"[SpriteSheetImageFileNameAndExtension].txt\"), it should be in the same folder as the image."));
 	add(importSpriteSheetButton);
 
@@ -31,11 +31,6 @@ If there is a corresponding BulletHellMaker sprite sheet metafile (it should be 
 	connect("SizeChanged", [this, importSpriteSheetButton](sf::Vector2f newSize) {
 		spriteSheetsList->setSize(newSize.x - GUI_PADDING_X * 2, newSize.y - GUI_PADDING_Y - tgui::bindBottom(importSpriteSheetButton));
 	});
-}
-
-bool SpriteSheetsListPanel::handleEvent(sf::Event event) {
-	// TODO
-	return false;
 }
 
 void SpriteSheetsListPanel::promptImportExternalSpriteSheet() {
@@ -50,7 +45,7 @@ void SpriteSheetsListPanel::promptImportExternalSpriteSheet() {
 	// Set lpstrFile[0] to '\0' so that GetOpenFileName does not use the contents of szFile to initialize itself.
 	ofn.lpstrFile[0] = '\0';
 	ofn.nMaxFile = sizeof(sourceImageFullPath);
-	ofn.lpstrFilter = "Image\0*.bmp;*.png;*.tga;*.jpg;*.gif;*.psd;*.hdr;*.pic\0\0";
+	ofn.lpstrFilter = "Image (*.bmp; *.png; *.tga; *.jpg; *.gif; *.psd; *.hdr; *.pic)\0*.bmp;*.png;*.tga;*.jpg;*.gif;*.psd;*.hdr;*.pic\0\0";
 	ofn.nFilterIndex = 1;
 	ofn.lpstrFileTitle = NULL;
 	ofn.nMaxFileTitle = 0;
@@ -87,7 +82,12 @@ void SpriteSheetsListPanel::promptImportExternalSpriteSheet() {
 	}
 }
 
-void SpriteSheetsListPanel::reload() {
+void SpriteSheetsListPanel::reloadSpriteLoaderAndList() {
+	levelPack->getSpriteLoader()->loadFromSpriteSheetsFolder();
+	reloadListOnly();
+}
+
+void SpriteSheetsListPanel::reloadListOnly() {
 	std::shared_ptr<tgui::ListView> listView = spriteSheetsList->getListView();
 
 	listView->removeAllItems();
@@ -96,9 +96,13 @@ void SpriteSheetsListPanel::reload() {
 	}
 }
 
+std::shared_ptr<ListViewScrollablePanel> SpriteSheetsListPanel::getListView() {
+	return spriteSheetsList;
+}
+
 void SpriteSheetsListPanel::setLevelPack(LevelPack* levelPack) {
 	this->levelPack = levelPack;
-	reload();
+	reloadListOnly();
 }
 
 void SpriteSheetsListPanel::importExternalSpriteSheet(SpriteSheetsTreeViewPanelReplaceFileData data) {
@@ -110,19 +114,22 @@ void SpriteSheetsListPanel::importExternalSpriteSheet(SpriteSheetsTreeViewPanelR
 	BOOL copyIsSuccessful = CopyFile(data.sourceImageFullPath.c_str(), data.destImageFullPath.c_str(), FALSE);
 	if (!copyIsSuccessful) {
 		// TODO: log error code
-		// TODO: show error code to user through MainEditorWindow prompt
+
 		DWORD errorCode = GetLastError();
-		assert(false);
+		showWindowsErrorDialog(errorCode, (LPCWSTR)L"Error copying image file");
+
 		return;
 	}
 
 	if (data.sourceMetafileExists) {
 		BOOL metafileCopyIsSuccessful = CopyFile(data.sourceMetafileFullPath.c_str(), data.destMetafileFullPath.c_str(), FALSE);
+
 		if (!metafileCopyIsSuccessful) {
 			// TODO: log error code
-			// TODO: show error code to user through MainEditorWindow prompt
+
 			DWORD errorCode = GetLastError();
-			assert(false);
+			showWindowsErrorDialog(errorCode, (LPCWSTR)L"Error copying image metafile");
+
 			return;
 		}
 

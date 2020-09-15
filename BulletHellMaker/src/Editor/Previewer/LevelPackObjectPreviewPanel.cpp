@@ -4,10 +4,10 @@
 #include <LevelPack/LevelPackObject.h>
 #include <Editor/Windows/MainEditorWindow.h>
 
-LevelPackObjectPreviewPanel::LevelPackObjectPreviewPanel(EditorWindow& parentWindow, std::string levelPackName)
+LevelPackObjectPreviewPanel::LevelPackObjectPreviewPanel(EditorWindow& parentWindow, std::string levelPackName, std::shared_ptr<SpriteLoader> spriteLoader)
 	: SimpleEngineRenderer(*parentWindow.getWindow(), true, true), gui(parentWindow.getGui()), parentEditorWindow(parentWindow) {
 
-	loadLevelPack(levelPackName);
+	loadLevelPack(levelPackName, spriteLoader);
 
 	currentCursor = sf::CircleShape(-1);
 	currentCursor.setOutlineColor(sf::Color::Green);
@@ -35,7 +35,9 @@ LevelPackObjectPreviewPanel::LevelPackObjectPreviewPanel(EditorWindow& parentWin
 }
 
 LevelPackObjectPreviewPanel::~LevelPackObjectPreviewPanel() {
-	levelPack->getOnChange()->sink().disconnect<LevelPackObjectPreviewPanel, &LevelPackObjectPreviewPanel::onLevelPackChange>(this);
+	if (levelPack) {
+		levelPack->getOnChange()->sink().disconnect<LevelPackObjectPreviewPanel, &LevelPackObjectPreviewPanel::onLevelPackChange>(this);
+	}
 	parentEditorWindow.removeChildWindow(symbolTableEditorWindow);
 }
 
@@ -58,12 +60,12 @@ void LevelPackObjectPreviewPanel::draw(sf::RenderTarget& target, sf::RenderState
 	parentWindow.setView(originalView);
 }
 
-void LevelPackObjectPreviewPanel::loadLevelPack(std::string levelPackName) {
+void LevelPackObjectPreviewPanel::loadLevelPack(std::string levelPackName, std::shared_ptr<SpriteLoader> spriteLoader) {
 	if (levelPack) {
 		previewNothing();
 		levelPack->getOnChange()->sink().disconnect<LevelPackObjectPreviewPanel, &LevelPackObjectPreviewPanel::onLevelPackChange>(this);
 	}
-	SimpleEngineRenderer::loadLevelPack(levelPackName);
+	SimpleEngineRenderer::loadLevelPack(levelPackName, spriteLoader);
 	levelPack->getOnChange()->sink().connect<LevelPackObjectPreviewPanel, &LevelPackObjectPreviewPanel::onLevelPackChange>(this);
 
 	Animatable defaultEnemyAnimatable = Animatable("Enemy Placeholder", "Default.png", true, ROTATION_TYPE::LOCK_ROTATION);

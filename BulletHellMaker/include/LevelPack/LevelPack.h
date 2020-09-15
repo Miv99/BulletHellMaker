@@ -55,7 +55,11 @@ public:
 		BULLET_MODEL
 	};
 
-	LevelPack(AudioPlayer& audioPlayer, std::string name);
+	/*
+	spriteLoader - if not nullptr, this sprite loader will be used in the newly loaded level pack
+		so that textures don't have to be loaded twice
+	*/
+	LevelPack(AudioPlayer& audioPlayer, std::string name, std::shared_ptr<SpriteLoader> spriteLoader = nullptr);
 
 	/*
 	Load the LevelPack from its folder.

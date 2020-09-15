@@ -134,7 +134,10 @@ Notes for me:
     is focused, the ChildWindow cannot be focused, but A should only propagate events when the ChildWindow is focused. So then 
     the ChildWindow's handleEvent() is never called. To avoid this problem, EditorWindow uses addChildWindow() to maintain a 
     list of ChildWindows whose handleEvent() will be called directly from the EditorWindow.
-  
+-getPathToFolderContainingExe() when debugging from Visual Studio returns the path to the .exe in the Debug build artifacts
+    folder while a local path uses the BulletHellMaker folder, so there can be mismatch issues unless the .exe is moved
+    to the BulletHellMaker folder. This problem won't happen in release, since the local path will be the same as the path
+    to the .exe.
 -Known minor bugs:
     -Change sum of durations of actions in EMPABasedMovementEditorPanel 
         -> empiDespawnTime in EditorMovablePointPanel max changes, causing its value to change if value > new max 
@@ -183,6 +186,7 @@ Random things for TODOs that are noted here so I don't forget:
 -legal checks for everything should make sure all IDs used (ie attack IDs in attack patterns) are valid
 
 TODO:
+-When opening preview window from maineditorwindow, call previewWindow->resetPreview() right after
 -SpriteSheetsEditor
     -(Create new)/(Add existing)/(Delete) sprite sheet 
     -double click sprite sheet -> if metafile doesn't exist, create it; no need to load it in the level pack's sprite loader
@@ -218,6 +222,10 @@ TODO:
 		-for all other EMPAs, do nothing
     -import bezier control points from text into BezierControlPointsPlacer
 -GuiConfig singleton class; editable only from outside of editor
+
+Low priority TODO:
+-Async ReadDirectoryChangesW for SpriteLoader watching changes to its level pack's sprite sheets folder
+    and keeping the list of loaded sprite sheets consistent with the folder
 	  
 // ------------------------------------------------------------------------------------------------------------------------------------------------
 editable = attack/attack pattern/emp/enemy/enemyphase/player

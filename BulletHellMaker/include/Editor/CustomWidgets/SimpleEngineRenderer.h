@@ -31,7 +31,13 @@ public:
 
 	virtual bool handleEvent(sf::Event event) override;
 
-	virtual void loadLevelPack(std::string name);
+	/*
+	Loads a level pack by name.
+
+	spriteLoader - if not nullptr, this sprite loader will be used in the newly loaded level pack
+		so that textures don't have to be loaded twice
+	*/
+	virtual void loadLevelPack(std::string name, std::shared_ptr<SpriteLoader> spriteLoader);
 
 	void loadLevel(int levelIndex);
 	void loadLevel(std::shared_ptr<Level> level);

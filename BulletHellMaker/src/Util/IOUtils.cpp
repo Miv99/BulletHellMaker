@@ -121,7 +121,6 @@ std::vector<std::pair<std::string, std::string>> findAllSpriteSheetsWithMetafile
 			strcpy(imageNameAndExtension, fileName.c_str());
 			strcat(imageNameAndExtension, extension.c_str());
 			if (fileNamesAndExtensions.find(std::make_pair(std::string(imageNameAndExtension), ".txt")) != fileNamesAndExtensions.end()) {
-				// TODO: log that image and metafile was found
 
 				char metafileNameAndExtension[MAX_PATH + 1];
 				strcpy(metafileNameAndExtension, imageNameAndExtension);
@@ -133,4 +132,12 @@ std::vector<std::pair<std::string, std::string>> findAllSpriteSheetsWithMetafile
 	}
 
 	return results;
+}
+
+void showWindowsErrorDialog(DWORD errorCode, LPCWSTR dialogTitle) {
+	wchar_t err[256];
+	memset(err, 0, 256);
+	FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode,
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), err, 255, NULL);
+	MessageBoxW(NULL, err, dialogTitle, MB_OK);
 }
