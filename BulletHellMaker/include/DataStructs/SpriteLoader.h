@@ -8,6 +8,7 @@
 #include <SFML\Graphics.hpp>
 
 #include <LevelPack/Animation.h>
+#include <LevelPack/TextMarshallable.h>
 #include <DataStructs/LRUCache.h>
 
 /*
@@ -21,11 +22,16 @@ public:
 	}
 };
 
-class SpriteData {
+class SpriteData : public TextMarshallable {
 public:
+	SpriteData();
 	SpriteData(std::string spriteName, ComparableIntRect area, int spriteWidth, int spriteHeight, int spriteOriginX, int spriteOriginY, sf::Color color = sf::Color(255, 255, 255, 255));
 
+	std::string format() const override;
+	void load(std::string formattedString) override;
+
 	bool operator==(const SpriteData& other) const;
+	inline std::string getSpriteName() const { return spriteName; }
 	inline ComparableIntRect getArea() const { return area; }
 	inline sf::Color getColor() const { return color; }
 	inline int getSpriteWidth() const { return spriteWidth; }
@@ -45,11 +51,16 @@ private:
 	int spriteOriginY;
 };
 
-class AnimationData {
+class AnimationData : public TextMarshallable {
 public:
+	AnimationData();
 	AnimationData(std::string animationName, std::vector<std::pair<float, std::string>> spriteNames);
 
+	std::string format() const override;
+	void load(std::string formattedString) override;
+
 	bool operator==(const AnimationData& other) const;
+	inline std::string getAnimationName() const { return animationName; }
 	inline const std::vector<std::pair<float, std::string>> getSpriteNames() const { return spriteNames; }
 	inline float getTotalTime() {
 		float total = 0;
@@ -64,9 +75,13 @@ private:
 	std::vector<std::pair<float, std::string>> spriteNames;
 };
 
-class SpriteSheet {
+class SpriteSheet : public TextMarshallable {
 public:
+	SpriteSheet();
 	SpriteSheet(std::string name);
+
+	std::string format() const override;
+	void load(std::string formattedString) override;
 
 	/*
 	Returns nullptr if the requested sprite does not exist.
@@ -88,12 +103,15 @@ public:
 private:
 	// Name of the sprite sheet
 	std::string name;
-	// The entire sprite sheet's texture
-	sf::Texture texture;
 	// Maps a sprite name to SpriteData
 	std::map<std::string, std::shared_ptr<SpriteData>> spriteData;
 	// Maps an animation name to AnimationData
 	std::map<std::string, std::shared_ptr<AnimationData>> animationData;
+
+	// ----------- Attributes below this line are not saved in TextMarshallable format() or loaded in load() -----------------------
+
+	// The entire sprite sheet's texture
+	sf::Texture texture;
 	// Maps an animation name to a list of pairs of sprites and for how long each sprite appears for
 	std::map<std::string, std::vector<std::pair<float, std::shared_ptr<sf::Sprite>>>> animationSprites;
 
@@ -106,6 +124,15 @@ Note that if the SpriteLoader object goes out of scope, all Sprites loaded from 
 class SpriteLoader {
 public:
 	SpriteLoader(const std::string& levelPackName);
+
+	/*
+	Saves all currently loaded sprite sheets' metadata into the sprite sheets folder
+	of the level pack with the name passed in from SpriteLoader's constructor.
+
+	Since only successfully loaded sprite sheets will be saved, there is no danger
+	of saving a corrupted sprite sheet as a result of an unsuccessful load.
+	*/
+	void saveMetadataFiles();
 
 	/*
 	Loads all sprite sheets that have a corresponding metafile from the sprite sheets

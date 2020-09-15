@@ -210,10 +210,6 @@ TODO:
 -all default stuff (font, spritesheet, sounds, etc) are copied into every new level pack that is created so that no special code is needed to load
  from a default resource 
 -bosses can only be spawned if the condition is that there are 0 enemies so that there can only be 1 boss at a time
--Change sprite sheet meta files to use TextMarshallable
-	-Due to the user-unfriendliness of text-marshalled files, this should only be done if an image viewer can be implemented in the editor
-	 that can zoom in and make rectangles so that the user has full control of 
-	  setting origin/rectangle_coords/everything_field_in_sprite_sheet_metadata in the editor
 -Default level pack in setup-assets is broken
 -Editor features
 	-"Rotate bullet path": user can select multiple EMPActions (even across different bullets) and rotate them

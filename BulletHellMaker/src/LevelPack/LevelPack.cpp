@@ -404,6 +404,9 @@ void LevelPack::save() {
 	metafile << fontFileName << std::endl;
 	metafile.close();
 
+	// Save sprite sheets' metadata
+	spriteLoader->saveMetadataFiles();
+
 	// Save levels
 	std::ofstream levelsFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\levels.txt", name.c_str()));
 	levelsFile << levelsMap.size() << std::endl;

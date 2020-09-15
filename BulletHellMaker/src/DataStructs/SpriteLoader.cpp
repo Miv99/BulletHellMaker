@@ -37,8 +37,44 @@ std::vector<int> extractInts(const std::string& str) {
 	return vect;
 }
 
-SpriteSheet::SpriteSheet(std::string name) 
+SpriteSheet::SpriteSheet() {
+}
+
+SpriteSheet::SpriteSheet(std::string name)
 	: name(name) {
+}
+
+std::string SpriteSheet::format() const {
+	std::string result = formatString(name) + tos(spriteData.size());
+	for (std::pair<std::string, std::shared_ptr<SpriteData>> entry : spriteData) {
+		result += formatTMObject(*entry.second);
+	}
+	result += tos(animationData.size());
+	for (std::pair<std::string, std::shared_ptr<AnimationData>> entry : animationData) {
+		result += formatTMObject(*entry.second);
+	}
+	return result;
+}
+
+void SpriteSheet::load(std::string formattedString) {
+	auto items = split(formattedString, DELIMITER);
+	name = items[0];
+
+	spriteData.clear();
+	int i = 1;
+	for (i = 2; i < std::stoi(items[1]) + 2; i++) {
+		std::shared_ptr<SpriteData> entry = std::make_shared<SpriteData>();
+		entry->load(items[i]);
+		spriteData[entry->getSpriteName()] = entry;
+	}
+
+	animationData.clear();
+	int animationDataStartIndex = i;
+	for (; i < std::stoi(items[animationDataStartIndex]) + animationDataStartIndex + 1; i++) {
+		std::shared_ptr<AnimationData> entry = std::make_shared<AnimationData>();
+		entry->load(items[i]);
+		animationData[entry->getAnimationName()] = entry;
+	}
 }
 
 std::shared_ptr<sf::Sprite> SpriteSheet::getSprite(const std::string& spriteName) {
@@ -102,8 +138,34 @@ void SpriteSheet::setGlobalSpriteScale(float scale) {
 	}
 }
 
-SpriteData::SpriteData(std::string spriteName, ComparableIntRect area, int spriteWidth, int spriteHeight, int spriteOriginX, int spriteOriginY, sf::Color color) 
+SpriteData::SpriteData() {
+}
+
+SpriteData::SpriteData(std::string spriteName, ComparableIntRect area, int spriteWidth, int spriteHeight, int spriteOriginX, int spriteOriginY, sf::Color color)
 	: spriteName(spriteName), area(area), color(color), spriteWidth(spriteWidth), spriteHeight(spriteHeight), spriteOriginX(spriteOriginX), spriteOriginY(spriteOriginY) {
+}
+
+std::string SpriteData::format() const {
+	return formatString(spriteName) + tos(area.left) + tos(area.top) + tos(area.width) + tos(area.height)
+		+ tos(color.r) + tos(color.g) + tos(color.b) + tos(color.a)
+		+ tos(spriteWidth) + tos(spriteHeight) + tos(spriteOriginX) + tos(spriteOriginY);
+}
+
+void SpriteData::load(std::string formattedString) {
+	auto items = split(formattedString, DELIMITER);
+	spriteName = items[0];
+	area.left = std::stoi(items[1]);
+	area.top = std::stoi(items[2]);
+	area.width = std::stoi(items[3]);
+	area.height = std::stoi(items[4]);
+	color.r = std::stoi(items[5]);
+	color.g = std::stoi(items[6]);
+	color.b = std::stoi(items[7]);
+	color.a = std::stoi(items[8]);
+	spriteWidth = std::stoi(items[9]);
+	spriteHeight = std::stoi(items[10]);
+	spriteOriginX = std::stoi(items[11]);
+	spriteOriginY = std::stoi(items[12]);
 }
 
 bool SpriteData::operator==(const SpriteData & other) const {
@@ -143,10 +205,20 @@ SpriteLoader::SpriteLoader(const std::string& levelPackName)
 	missingSprite = std::make_shared<sf::Sprite>(*missingSpriteTexture);
 }
 
+void SpriteLoader::saveMetadataFiles() {
+	std::string spriteSheetsFolderPath = format(RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH, levelPackName.c_str());
+
+	for (std::pair<std::string, std::shared_ptr<SpriteSheet>> spriteSheet : spriteSheets) {
+		std::ofstream metafile(format(spriteSheetsFolderPath + "\\%s.txt", spriteSheet.first.c_str()));
+		metafile << spriteSheet.second->format() << std::endl;
+		metafile.close();
+	}
+}
+
 void SpriteLoader::loadFromSpriteSheetsFolder() {
 	spriteSheets.clear();
 
-	std::string spriteSheetsFolderPath = format(getPathToFolderContainingExe() + "\\" + RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH, levelPackName.c_str());
+	std::string spriteSheetsFolderPath = format(RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH, levelPackName.c_str());
 	std::vector<std::pair<std::string, std::string>> spriteSheetPairs = findAllSpriteSheetsWithMetafiles(spriteSheetsFolderPath);
 	for (std::pair<std::string, std::string> pairs : spriteSheetPairs) {
 		// TODO: log that this sprite sheet is being loaded
@@ -278,107 +350,9 @@ bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, c
 	try {
 		// Sprite sheet name is the name of the image file
 		std::shared_ptr<SpriteSheet> sheet = std::make_shared<SpriteSheet>(spriteSheetImageFileName);
-
-		std::unique_ptr<std::map<std::string, std::unique_ptr<std::map<std::string, std::string>>>> metadata = TextFileParser(metafile).read('=');
-		for (auto animationIterator = metadata->begin(); animationIterator != metadata->end(); animationIterator++) {
-			std::string name = animationIterator->first;
-			std::string type = animationIterator->second->at("Type");
-
-			if (type == "Sprite") {
-				// Extract sprite data
-				ComparableIntRect area;
-				// area's top-left coordinates
-				if (animationIterator->second->find(SPRITE_TOPLEFT_COORDS_TAG) != animationIterator->second->end()) {
-					auto temp = extractInts(animationIterator->second->at(SPRITE_TOPLEFT_COORDS_TAG));
-					if (temp.size() != 2) {
-						throw "Sprite \"" + name + "\"'s " + SPRITE_TOPLEFT_COORDS_TAG + " property has an invalid format";
-					}
-					else {
-						area.left = temp[0];
-						area.top = temp[1];
-					}
-				}
-				else {
-					throw "Sprite \"" + name + "\" is missing property " + SPRITE_TOPLEFT_COORDS_TAG;
-				}
-				// area's width and height
-				if (animationIterator->second->find(SPRITE_TEXTURE_BOUNDS_TAG) != animationIterator->second->end()) {
-					auto temp = extractInts(animationIterator->second->at(SPRITE_TEXTURE_BOUNDS_TAG));
-					if (temp.size() != 2) {
-						throw "Sprite \"" + name + "\"'s " + SPRITE_TEXTURE_BOUNDS_TAG + " property has an invalid format";
-					}
-					else {
-						area.width = temp[0];
-						area.height = temp[1];
-					}
-				}
-				else {
-					throw "Sprite \"" + name + "\" is missing property " + SPRITE_TEXTURE_BOUNDS_TAG;
-				}
-				// color
-				sf::Color color = sf::Color(255, 255, 255, 255);
-				if (animationIterator->second->find(SPRITE_COLOR_TAG) != animationIterator->second->end()) {
-					auto temp = extractInts(animationIterator->second->at(SPRITE_COLOR_TAG));
-					if (temp.size() != 4) {
-						throw "Sprite \"" + name + "\"'s " + SPRITE_COLOR_TAG + " property has an invalid format";
-					}
-					else {
-						color.r = temp[0];
-						color.g = temp[1];
-						color.b = temp[2];
-						color.a = temp[3];
-					}
-				}
-				// sprite size
-				float spriteWidth, spriteHeight;
-				if (animationIterator->second->find(SPRITE_SIZE_TAG) != animationIterator->second->end()) {
-					auto temp = extractInts(animationIterator->second->at(SPRITE_SIZE_TAG));
-					if (temp.size() != 2) {
-						throw "Sprite \"" + name + "\"'s " + SPRITE_SIZE_TAG + " property has an invalid format";
-					}
-					else {
-						spriteWidth = temp[0];
-						spriteHeight = temp[1];
-					}
-				}
-				else {
-					throw "Sprite \"" + name + "\" is missing property " + SPRITE_SIZE_TAG;
-				}
-				// sprite origin
-				float originX = area.width / 2.0f, originY = area.height / 2.0f;
-				if (animationIterator->second->find(SPRITE_ORIGIN_TAG) != animationIterator->second->end()) {
-					auto temp = extractInts(animationIterator->second->at(SPRITE_ORIGIN_TAG));
-					if (temp.size() != 2) {
-						throw "Sprite \"" + name + "\"'s " + SPRITE_ORIGIN_TAG + " property has an invalid format";
-					}
-					else {
-						originX = temp[0];
-						originY = temp[1];
-					}
-				}
-
-				// Insert SpriteSheetData into SpriteSheet
-				std::shared_ptr<SpriteData> dataItem = std::make_shared<SpriteData>(name, area, spriteWidth, spriteHeight, originX, originY, color);
-				sheet->insertSprite(name, dataItem);
-
-				// Also create a looping animation that consists of only that sprite with the same name
-				/*
-				std::vector<std::pair<float, std::string>> spriteNames = { std::make_pair(std::numeric_limits<float>::max(), name) };
-				std::shared_ptr<AnimationData> animation = std::make_shared<AnimationData>(name, ANIMATION_TYPE_LOOPING, spriteNames);
-				sheet->insertAnimation(name, animation);
-				*/
-			}
-			// Type is animation
-			else {
-				std::vector<std::pair<float, std::string>> spriteNames;
-				auto strs = split(animationIterator->second->at("FrameData"), '|');
-				for (int i = 0; i < strs.size(); i += 2) {
-					spriteNames.push_back(std::make_pair(std::stof(strs[i]), strs[i + 1]));
-				}
-				std::shared_ptr<AnimationData> animation = std::make_shared<AnimationData>(name, spriteNames);
-				sheet->insertAnimation(name, animation);
-			}
-		}
+		std::string line;
+		std::getline(metafile, line);
+		sheet->load(line);
 
 		// Load image file
 		if (!sheet->loadTexture(format(RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH + "\\%s", levelPackName.c_str(), spriteSheetImageFileName.c_str()))) {
@@ -388,7 +362,7 @@ bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, c
 		spriteSheets[spriteSheetImageFileName] = sheet;
 	}
 	catch (std::exception e) {
-		// TODO: log this
+		// TODO: log exception
 		// BOOST_LOG_TRIVIAL(error) << "Invalid format in \"" + spriteSheetMetaFileName + "\"; " + e.what();
 		metafile.close();
 		return false;
@@ -398,8 +372,29 @@ bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, c
 	return true;
 }
 
-AnimationData::AnimationData(std::string animationName, std::vector<std::pair<float, std::string>> spriteNames) 
+AnimationData::AnimationData() {
+}
+
+AnimationData::AnimationData(std::string animationName, std::vector<std::pair<float, std::string>> spriteNames)
 	: animationName(animationName), spriteNames(spriteNames) {
+}
+
+std::string AnimationData::format() const {
+	std::string result = formatString(animationName);
+	for (std::pair<float, std::string> spriteName : spriteNames) {
+		result += tos(spriteName.first) + formatString(spriteName.second);
+	}
+	return result;
+}
+
+void AnimationData::load(std::string formattedString) {
+	auto items = split(formattedString, DELIMITER);
+	animationName = items[0];
+
+	spriteNames.clear();
+	for (int i = 1; i < items.size(); i += 2) {
+		spriteNames.push_back(std::make_pair(std::stof(items[i]), items[i + 1]));
+	}
 }
 
 bool AnimationData::operator==(const AnimationData & other) const {
