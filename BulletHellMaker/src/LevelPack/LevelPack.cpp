@@ -302,6 +302,7 @@ void LevelPack::load() {
 		metadata.load(line);
 		std::getline(metafile, line);
 		fontFileName = line;
+		metafile.close();
 	}
 
 	// Read levels
@@ -401,6 +402,7 @@ void LevelPack::save() {
 	std::ofstream metafile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\meta.txt", name.c_str()));
 	metafile << metadata.format() << std::endl;
 	metafile << fontFileName << std::endl;
+	metafile.close();
 
 	// Save levels
 	std::ofstream levelsFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\levels.txt", name.c_str()));
