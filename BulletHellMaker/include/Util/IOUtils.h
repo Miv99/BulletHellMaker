@@ -11,13 +11,21 @@ Returns whether a file exists.
 
 name - the path to the file
 */
-bool fileExists(char* name);
+bool fileExists(const char* name);
 /*
 Returns whether a file exists.
 
 name - the path to the file
 */
 bool fileExists(const std::string& name);
+
+/*
+Returns the number of files in a directory.
+If the directory doesn't exist, this returns -1.
+
+extension - if nonempty, only counts the files that have this extension
+*/
+int countFiles(const char* directory, const char* extension);
 
 /*
 Returns the absolute path to the folder containing this program.
@@ -52,3 +60,9 @@ Shows an error dialog box explaining an error code from
 https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes.
 */
 void showWindowsErrorDialog(DWORD errorCode, LPCWSTR dialogTitle);
+
+/*
+Returns the current date and time in a format that allows it to be put into
+a Windows file name.
+*/
+std::string getCurDateTimeInWindowsFileNameCompliantFormat();

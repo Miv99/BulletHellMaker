@@ -41,14 +41,39 @@ int CALLBACK BrowseForFolderCallback(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM pDa
 	return 0;
 }
 
-bool fileExists(char* name) {
-	struct stat buffer;
-	return (stat(name, &buffer) == 0);
+bool fileExists(const char* name) {
+	return std::filesystem::exists(name);
 }
 
 bool fileExists(const std::string& name) {
-	struct stat buffer;
-	return (stat(name.c_str(), &buffer) == 0);
+	return std::filesystem::exists(name);
+}
+
+int countFiles(const char* directory, const char* extension) {
+	if (!std::filesystem::exists(directory)) {
+		return -1;
+	}
+
+	int count = 0;
+	char buffer[MAX_PATH + 1];
+	if (strlen(extension) > 0) {
+		for (const auto& entry : std::filesystem::directory_iterator(directory)) {
+			if (entry.is_regular_file()) {
+				_splitpath(entry.path().string().c_str(), NULL, NULL, NULL, buffer);
+				if (strcmp(extension, buffer) == 0) {
+					count++;
+				}
+			}
+		}
+	} else {
+		for (const auto& entry : std::filesystem::directory_iterator(directory)) {
+			if (entry.is_regular_file()) {
+				count++;
+			}
+		}
+	}
+	
+	return count;
 }
 
 std::string getPathToFolderContainingExe() {
@@ -140,4 +165,14 @@ void showWindowsErrorDialog(DWORD errorCode, LPCWSTR dialogTitle) {
 	FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode,
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), err, 255, NULL);
 	MessageBoxW(NULL, err, dialogTitle, MB_OK);
+}
+
+std::string getCurDateTimeInWindowsFileNameCompliantFormat() {
+	time_t t = time(0);
+	struct tm* now = localtime(&t);
+	char buffer[MAX_PATH + 1];
+	strftime(buffer, MAX_PATH + 1, "%Y-%m-%d-%T", now);
+	std::string curTime(buffer);
+	std::replace(curTime.begin(), curTime.end(), ':', '.');
+	return curTime;
 }

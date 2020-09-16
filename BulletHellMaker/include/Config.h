@@ -5,7 +5,12 @@ Project/Non-gameplay related configurations.
 */
 
 // Location of python relative to the .exe
-static const char* RELATIVE_PYTHON_PATH = "\\packages\\Python27";
+const static char* RELATIVE_PYTHON_PATH = "\\packages\\Python27";
+
+// Location of log files
+const static char* RELATIVE_LOGS_FOLDER_PATH = "Logs";
+// Max number of log files kept in logs folder
+const static int MAX_LOG_FILES = 30;
 
 // ----------------- Level pack ----------------
 const static std::string RELATIVE_LEVEL_PACKS_FOLDER_PATH = "Level Packs";
