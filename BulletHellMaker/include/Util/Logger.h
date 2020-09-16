@@ -192,7 +192,13 @@ inline void initLogger(TLogLevel level) {
         // Every log file's name is "log-[creation datetime]", so delete files starting from the lexicographic lowest
         std::sort(logFiles.begin(), logFiles.end());
         while (logFiles.size() > MAX_LOG_FILES) {
-            logFiles.erase(logFiles.begin());
+            try {
+                auto it = logFiles.begin();
+                std::filesystem::remove(string_format("%s\\%s", RELATIVE_LOGS_FOLDER_PATH, *it));
+                logFiles.erase(logFiles.begin());
+            } catch (const std::exception& e) {
+                // Log file is probably open or something; just ignore the exception
+            }
         }
     }
 
