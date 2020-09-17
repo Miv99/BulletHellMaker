@@ -294,22 +294,17 @@ void LevelPack::load() {
 	// First line is always the next ID
 	// Every other line is the data for the object
 
-	// Read metafile
-	{
-		std::ifstream metafile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\meta.txt", name.c_str()));
-		std::string line;
-		std::getline(metafile, line);
-		metadata.load(line);
-		std::getline(metafile, line);
-		fontFileName = line;
-		metafile.close();
-	}
+	// Read player
+	std::ifstream playerFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\player.txt", name.c_str()));
+	std::string line;
+	std::getline(playerFile, line);
+	player = std::make_shared<EditorPlayer>();
+	player->load(line);
 
 	// Read levels
 	levelsMap.clear();
 	levels.clear();
 	std::ifstream levelsFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\levels.txt", name.c_str()));
-	std::string line;
 	// First line is number of levels
 	std::getline(levelsFile, line);
 	int numLevels = std::stoi(line);
@@ -393,14 +388,13 @@ void LevelPack::load() {
 }
 
 void LevelPack::save() {
-	// Save metafile
-	std::ofstream metafile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\meta.txt", name.c_str()));
-	metafile << metadata.format() << std::endl;
-	metafile << fontFileName << std::endl;
-	metafile.close();
-
 	// Save sprite sheets' metadata
 	spriteLoader->saveMetadataFiles();
+
+	// Save player
+	std::ofstream playerFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\player.txt", name.c_str()));
+	playerFile << player->format() << std::endl;
+	playerFile.close();
 
 	// Save levels
 	std::ofstream levelsFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\levels.txt", name.c_str()));
@@ -703,7 +697,7 @@ std::vector<int> LevelPack::getAttackPatternEnemyUsers(int attackPatternID) {
 }
 
 bool LevelPack::getAttackPatternIsUsedByPlayer(int attackPatternID) {
-	return metadata.getPlayer()->usesAttackPattern(attackPatternID);
+	return player->usesAttackPattern(attackPatternID);
 }
 
 std::vector<int> LevelPack::getAttackUsers(int attackID) {
@@ -816,14 +810,14 @@ std::shared_ptr<BulletModel> LevelPack::getBulletModel(int id) const {
 }
 
 std::shared_ptr<EditorPlayer> LevelPack::getPlayer() const {
-	return metadata.getPlayer();
+	return player;
 }
 
 std::shared_ptr<EditorPlayer> LevelPack::getGameplayPlayer() const {
-	auto player = metadata.getPlayer()->clone();
+	auto clonedPlayer = player->clone();
 	// EditorPlayer is a top-level object so every expression it uses should be in terms of only its own
 	// unredelegated, well-defined symbols
-	auto derived = std::dynamic_pointer_cast<EditorPlayer>(player);
+	auto derived = std::dynamic_pointer_cast<EditorPlayer>(clonedPlayer);
 	derived->compileExpressions({});
 	return derived;
 }
@@ -924,7 +918,7 @@ bool LevelPack::hasBulletModel(int id) const {
 }
 
 void LevelPack::setPlayer(std::shared_ptr<EditorPlayer> player) {
-	metadata.setPlayer(player);
+	this->player = player;
 	onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::PLAYER, player->getID());
 }
 
@@ -979,23 +973,4 @@ void LevelPack::playMusic(std::shared_ptr<sf::Music> music, const MusicSettings&
 	MusicSettings alteredPath = MusicSettings(musicSettings);
 	alteredPath.setFileName("Level Packs/" + name + "/Music/" + alteredPath.getFileName());
 	audioPlayer.playMusic(music, alteredPath);
-}
-
-std::string LevelPackMetadata::format() const {
-	std::string ret = formatTMObject(*player);
-	return ret;
-}
-
-void LevelPackMetadata::load(std::string formattedString) {
-	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	player = std::make_shared<EditorPlayer>();
-	player->load(items.at(0));
-}
-
-std::shared_ptr<EditorPlayer> LevelPackMetadata::getPlayer() const {
-	return player;
-}
-
-void LevelPackMetadata::setPlayer(std::shared_ptr<EditorPlayer> player) {
-	this->player = player;
 }

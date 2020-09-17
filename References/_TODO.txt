@@ -186,8 +186,14 @@ Random things for TODOs that are noted here so I don't forget:
 -legal checks for everything should make sure all IDs used (ie attack IDs in attack patterns) are valid
 
 TODO:
--replace all vector[] with vector.at
--replace all ".count() > 0" with ".find() != .end"
+-layer root level pack objects:
+    -setFailedLoadAttempt(std::string formattedString)
+    -bool isFailedLoad()
+    -when loading level pack objects in LevelPack, try/catch for each separate load; fail -> create an empty
+        level pack object and call setFailedLoadAttempt(line); when opening level pack objects in
+        MainEditorWindow, fail with popup message window if the object isFailedLoad()
+-sprite sheets and level pack objects with failed load should be indicated with something in list ([X]);
+    set a tooltip for these lists saying that "*" = unsaved, "[X]" = corrupted/failed load, "[!]" = illegal
 -When opening preview window from maineditorwindow, call previewWindow->resetPreview() right after
 -SpriteSheetsEditor
     -(Create new)/(Add existing)/(Delete) sprite sheet 

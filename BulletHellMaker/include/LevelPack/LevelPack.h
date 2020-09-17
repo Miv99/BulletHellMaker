@@ -25,19 +25,6 @@ class EditorEnemyPhase;
 class EditorPlayer;
 class BulletModel;
 
-class LevelPackMetadata : public TextMarshallable {
-public:
-	std::string format() const override;
-	void load(std::string formattedString) override;
-
-	std::shared_ptr<EditorPlayer> getPlayer() const;
-
-	void setPlayer(std::shared_ptr<EditorPlayer> player);
-
-private:
-	std::shared_ptr<EditorPlayer> player;
-};
-
 class LevelPack {
 public:
 	/*
@@ -407,8 +394,6 @@ private:
 	std::shared_ptr<SpriteLoader> spriteLoader;
 	AudioPlayer& audioPlayer;
 
-	LevelPackMetadata metadata;
-
 	IDGenerator levelIDGen;
 	IDGenerator attackIDGen;
 	IDGenerator attackPatternIDGen;
@@ -416,6 +401,7 @@ private:
 	IDGenerator enemyPhaseIDGen;
 	IDGenerator bulletModelIDGen;
 
+	std::shared_ptr<EditorPlayer> player;
 	// Ordered level IDs
 	std::vector<int> levels;
 	// The IDs of Level/EditorAttack/EditorAttackPattern/EditorEnemy/EditorEnemyPhase are always positive
