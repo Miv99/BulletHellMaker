@@ -36,3 +36,5 @@ const static std::string PIECEWISE_TFV_SEGMENT_COPY_PASTE_ID = "PiecewiseTFVSegm
 const static std::string EMPA_COPY_PASTE_ID = "EMPAction";
 
 const static std::string MARKER_PLACER_MARKER_COPY_PASTE_ID = "Marker";
+
+const static std::string SPRITE_SHEET_METAFILE_SPRITE_COPY_PASTE_ID = "SpriteSheetMetafileSprite";

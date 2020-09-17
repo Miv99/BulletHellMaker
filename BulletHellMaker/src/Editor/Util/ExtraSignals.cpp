@@ -151,6 +151,13 @@ namespace tgui {
 			return Signal::validateTypes(unboundParameters);
 	}
 
+	unsigned int SignalSpriteSheet::validateTypes(std::initializer_list<std::type_index> unboundParameters) const {
+		if ((unboundParameters.size() == 1) && checkParamType<std::shared_ptr<SpriteSheet>>(unboundParameters.begin()))
+			return 1;
+		else
+			return Signal::validateTypes(unboundParameters);
+	}
+
 	unsigned int SignalTwoInts::connect(const DelegateRange& handler) {
 		const auto id = generateUniqueId();
 		m_handlers[id] = [handler]() { handler(internal_signal::dereference<int>(internal_signal::parameters[1]), internal_signal::dereference<int>(internal_signal::parameters[2])); };

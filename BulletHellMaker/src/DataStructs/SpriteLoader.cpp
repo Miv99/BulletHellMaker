@@ -8,6 +8,7 @@
 #include <set>
 
 #include <Config.h>
+#include <Util/Logger.h>
 #include <Util/TextFileParser.h>
 #include <LevelPack/TextMarshallable.h>
 #include <Util/IOUtils.h>
@@ -44,6 +45,12 @@ SpriteSheet::SpriteSheet(std::string name)
 	: name(name) {
 }
 
+SpriteSheet::SpriteSheet(const std::shared_ptr<SpriteSheet> other) {
+	load(other->format());
+	this->failedImageLoad = other->failedImageLoad;
+	this->failedMetafileLoad = other->failedMetafileLoad;
+}
+
 std::string SpriteSheet::format() const {
 	std::string result = formatString(name) + tos(spriteData.size());
 	for (std::pair<std::string, std::shared_ptr<SpriteData>> entry : spriteData) {
@@ -58,21 +65,21 @@ std::string SpriteSheet::format() const {
 
 void SpriteSheet::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
-	name = items[0];
+	name = items.at(0);
 
 	spriteData.clear();
 	int i = 1;
-	for (i = 2; i < std::stoi(items[1]) + 2; i++) {
+	for (i = 2; i < std::stoi(items.at(1)) + 2; i++) {
 		std::shared_ptr<SpriteData> entry = std::make_shared<SpriteData>();
-		entry->load(items[i]);
+		entry->load(items.at(i));
 		spriteData[entry->getSpriteName()] = entry;
 	}
 
 	animationData.clear();
 	int animationDataStartIndex = i;
-	for (; i < std::stoi(items[animationDataStartIndex]) + animationDataStartIndex + 1; i++) {
+	for (; i < std::stoi(items.at(animationDataStartIndex)) + animationDataStartIndex + 1; i++) {
 		std::shared_ptr<AnimationData> entry = std::make_shared<AnimationData>();
-		entry->load(items[i]);
+		entry->load(items.at(i));
 		animationData[entry->getAnimationName()] = entry;
 	}
 }
@@ -138,6 +145,14 @@ void SpriteSheet::setGlobalSpriteScale(float scale) {
 	}
 }
 
+void SpriteSheet::markFailedImageLoad() {
+	failedImageLoad = true;
+}
+
+void SpriteSheet::markFailedMetafileLoad() {
+	failedMetafileLoad = true;
+}
+
 SpriteData::SpriteData() {
 }
 
@@ -153,19 +168,19 @@ std::string SpriteData::format() const {
 
 void SpriteData::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
-	spriteName = items[0];
-	area.left = std::stoi(items[1]);
-	area.top = std::stoi(items[2]);
-	area.width = std::stoi(items[3]);
-	area.height = std::stoi(items[4]);
-	color.r = std::stoi(items[5]);
-	color.g = std::stoi(items[6]);
-	color.b = std::stoi(items[7]);
-	color.a = std::stoi(items[8]);
-	spriteWidth = std::stoi(items[9]);
-	spriteHeight = std::stoi(items[10]);
-	spriteOriginX = std::stoi(items[11]);
-	spriteOriginY = std::stoi(items[12]);
+	spriteName = items.at(0);
+	area.left = std::stoi(items.at(1));
+	area.top = std::stoi(items.at(2));
+	area.width = std::stoi(items.at(3));
+	area.height = std::stoi(items.at(4));
+	color.r = std::stoi(items.at(5));
+	color.g = std::stoi(items.at(6));
+	color.b = std::stoi(items.at(7));
+	color.a = std::stoi(items.at(8));
+	spriteWidth = std::stoi(items.at(9));
+	spriteHeight = std::stoi(items.at(10));
+	spriteOriginX = std::stoi(items.at(11));
+	spriteOriginY = std::stoi(items.at(12));
 }
 
 bool SpriteData::operator==(const SpriteData & other) const {
@@ -209,9 +224,12 @@ void SpriteLoader::saveMetadataFiles() {
 	std::string spriteSheetsFolderPath = format(RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH, levelPackName.c_str());
 
 	for (std::pair<std::string, std::shared_ptr<SpriteSheet>> spriteSheet : spriteSheets) {
-		std::ofstream metafile(format(spriteSheetsFolderPath + "\\%s.txt", spriteSheet.first.c_str()));
-		metafile << spriteSheet.second->format() << std::endl;
-		metafile.close();
+		// Only save SpriteSheets that were initially loaded successfully
+		if (!spriteSheet.second->isFailedMetafileLoad()) {
+			std::ofstream metafile(format(spriteSheetsFolderPath + "\\%s.txt", spriteSheet.first.c_str()));
+			metafile << spriteSheet.second->format();
+			metafile.close();
+		}
 	}
 }
 
@@ -219,13 +237,17 @@ void SpriteLoader::loadFromSpriteSheetsFolder() {
 	spriteSheets.clear();
 
 	std::string spriteSheetsFolderPath = format(RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH, levelPackName.c_str());
-	std::vector<std::pair<std::string, std::string>> spriteSheetPairs = findAllSpriteSheetsWithMetafiles(spriteSheetsFolderPath);
-	for (std::pair<std::string, std::string> pairs : spriteSheetPairs) {
-		// TODO: log that this sprite sheet is being loaded
+	std::vector<std::pair<std::string, std::string>> spriteSheetPairs = findAllSpriteSheets(spriteSheetsFolderPath);
+	for (std::pair<std::string, std::string> pair : spriteSheetPairs) {
+		if (pair.first.size() == 0) {
+			L_(linfo) << "Loading sprite sheet image file \"" << pair.second << "\" with no metafile";
+		} else {
+			L_(linfo) << "Loading sprite sheet image file \"" << pair.second << "\" with metafile \"" << pair.first << "\"";
+		}
 
-		bool loadIsSuccessful = loadSpriteSheet(pairs.first, pairs.second);
+		bool loadIsSuccessful = loadSpriteSheet(pair.first, pair.second);
 		if (!loadIsSuccessful) {
-			// TODO: log that sprite sheet meta file or sprite sheet couldn't be loaded
+			L_(lwarning) << "Failed to load sprite sheet";
 		}
 	}
 }
@@ -305,6 +327,14 @@ std::shared_ptr<sf::Texture> SpriteLoader::getBackground(const std::string& back
 	return background;
 }
 
+bool SpriteLoader::spriteSheetFailedImageLoad(std::string spriteSheetName) {
+	return spriteSheets[spriteSheetName]->isFailedImageLoad();
+}
+
+bool SpriteLoader::spriteSheetFailedMetafileLoad(std::string spriteSheetName) {
+	return spriteSheets[spriteSheetName]->isFailedMetafileLoad();
+}
+
 const std::shared_ptr<sf::Sprite> SpriteLoader::getMissingSprite() {
 	std::shared_ptr<sf::Sprite> sprite = std::make_shared<sf::Sprite>(*missingSprite);
 	// Default 100x100
@@ -315,6 +345,10 @@ const std::shared_ptr<sf::Sprite> SpriteLoader::getMissingSprite() {
 
 void SpriteLoader::clearSpriteSheets() {
 	spriteSheets.clear();
+}
+
+void SpriteLoader::updateSpriteSheet(std::shared_ptr<SpriteSheet> spriteSheet) {
+	spriteSheets[spriteSheet->getName()] = spriteSheet;
 }
 
 void SpriteLoader::setGlobalSpriteScale(float scale) {
@@ -334,36 +368,65 @@ std::vector<std::string> SpriteLoader::getLoadedSpriteSheetNames() {
 	return results;
 }
 
+std::set<std::string> SpriteLoader::getLoadedSpriteSheetNamesAsSet() {
+	std::set<std::string> results;
+
+	for (std::pair<std::string, std::shared_ptr<SpriteSheet>> spriteSheet : spriteSheets) {
+		results.insert(spriteSheet.first);
+	}
+
+	return results;
+}
+
+std::shared_ptr<SpriteSheet> SpriteLoader::getSpriteSheet(std::string spriteSheetName) const {
+	return spriteSheets.at(spriteSheetName);
+}
+
+std::string SpriteLoader::formatPathToSpriteSheetImage(std::string imageFileNameWithExtension) {
+	return format(RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH + "\\%s", levelPackName.c_str(), imageFileNameWithExtension.c_str());
+}
+
+std::string SpriteLoader::formatPathToSpriteSheetMetafile(std::string imageFileNameWithExtension) {
+	return format(RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH + "\\%s.txt", levelPackName.c_str(), imageFileNameWithExtension.c_str());
+}
+
 bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, const std::string& spriteSheetImageFileName) {
-	std::ifstream metafile(format(RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH + "\\%s", levelPackName.c_str(), spriteSheetMetaFileName.c_str()));
-	if (!metafile) {
-		return false;
-	}
-
+	// Sprite sheet name is the name of the image file
+	std::shared_ptr<SpriteSheet> sheet = std::make_shared<SpriteSheet>(spriteSheetImageFileName);
+	
 	// Make sure image file exists
-	struct stat buffer;
-	if (!stat((format(RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH + "\\%s", levelPackName.c_str(), spriteSheetImageFileName.c_str())).c_str(), &buffer) == 0) {
-		metafile.close();
+	if (!fileExists(formatPathToSpriteSheetImage(spriteSheetImageFileName))) {
+		L_(lwarning) << "Image file \"" << spriteSheetImageFileName << "\" does not exist.";
+
 		return false;
 	}
 
+	std::ifstream metafile(format(RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH + "\\%s", levelPackName.c_str(), spriteSheetMetaFileName.c_str()));
 	try {
-		// Sprite sheet name is the name of the image file
-		std::shared_ptr<SpriteSheet> sheet = std::make_shared<SpriteSheet>(spriteSheetImageFileName);
-		std::string line;
-		std::getline(metafile, line);
-		sheet->load(line);
+		if (metafile) {
+			// If metafile can be opened, load the SpriteSheet using it
+
+			std::string line;
+			std::getline(metafile, line);
+			sheet->load(line);
+		}
 
 		// Load image file
-		if (!sheet->loadTexture(format(RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH + "\\%s", levelPackName.c_str(), spriteSheetImageFileName.c_str()))) {
-			// TODO: log that image couldn't be loaded
+		if (!sheet->loadTexture(formatPathToSpriteSheetImage(spriteSheetImageFileName))) {
+			L_(lwarning) << "Image file \"" << spriteSheetImageFileName << "\" failed to load.";
+
+			// If image couldn't be loaded, mark the SpriteSheet as having a failed image load
+			sheet->markFailedImageLoad();
 		}
 
 		spriteSheets[spriteSheetImageFileName] = sheet;
-	}
-	catch (std::exception e) {
-		// TODO: log exception
-		// BOOST_LOG_TRIVIAL(error) << "Invalid format in \"" + spriteSheetMetaFileName + "\"; " + e.what();
+	} catch (const std::exception& ex) {
+		L_(lerror) << "Exception when loading image file \"" << spriteSheetImageFileName << "\": " << ex.what();
+
+		// If some exception occurred, mark the SpriteSheet as having a failed metafile load
+		sheet->markFailedMetafileLoad();
+		spriteSheets[spriteSheetImageFileName] = sheet;
+
 		metafile.close();
 		return false;
 	}
@@ -389,11 +452,11 @@ std::string AnimationData::format() const {
 
 void AnimationData::load(std::string formattedString) {
 	auto items = split(formattedString, DELIMITER);
-	animationName = items[0];
+	animationName = items.at(0);
 
 	spriteNames.clear();
 	for (int i = 1; i < items.size(); i += 2) {
-		spriteNames.push_back(std::make_pair(std::stof(items[i]), items[i + 1]));
+		spriteNames.push_back(std::make_pair(std::stof(items.at(i)), items.at(i + 1)));
 	}
 }
 

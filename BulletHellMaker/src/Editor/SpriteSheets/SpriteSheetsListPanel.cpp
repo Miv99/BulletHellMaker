@@ -2,14 +2,21 @@
 
 #include <tchar.h>
 
+#include <Mutex.h>
 #include <Config.h>
 #include <GuiConfig.h>
 #include <Editor/Util/EditorUtils.h>
 #include <Editor/Windows/MainEditorWindow.h>
 #include <LevelPack/LevelPack.h>
 
+// %s = the sprite sheet's name
+const std::string SpriteSheetsListPanel::SAVED_SPRITE_SHEET_ITEM_FORMAT = "%s";
+const std::string SpriteSheetsListPanel::UNSAVED_SPRITE_SHEET_ITEM_FORMAT = "*%s";
+
 SpriteSheetsListPanel::SpriteSheetsListPanel(MainEditorWindow& mainEditorWindow) 
 	: mainEditorWindow(mainEditorWindow), levelPack(nullptr) {
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 	
 	std::shared_ptr<tgui::Button> importSpriteSheetButton = tgui::Button::create();
 	importSpriteSheetButton->setTextSize(TEXT_SIZE);
@@ -82,22 +89,44 @@ void SpriteSheetsListPanel::promptImportExternalSpriteSheet() {
 	}
 }
 
+void SpriteSheetsListPanel::selectSpriteSheetByName(std::string spriteSheetName) {
+	spriteSheetsList->getListView()->setSelectedItem(spriteSheetIndexByName[spriteSheetName]);
+}
+
 void SpriteSheetsListPanel::reloadSpriteLoaderAndList() {
 	levelPack->getSpriteLoader()->loadFromSpriteSheetsFolder();
 	reloadListOnly();
 }
 
 void SpriteSheetsListPanel::reloadListOnly() {
+	spriteSheetIndexByName.clear();
+	spriteSheetNameByIndex.clear();
 	std::shared_ptr<tgui::ListView> listView = spriteSheetsList->getListView();
 
 	listView->removeAllItems();
+
+	const std::map<std::string, std::shared_ptr<SpriteSheet>>& unsavedSpriteSheets = mainEditorWindow.getUnsavedSpriteSheets();
+	int i = 0;
 	for (std::string spriteSheetName : levelPack->getSpriteLoader()->getLoadedSpriteSheetNames()) {
-		listView->addItem(spriteSheetName);
+		if (unsavedSpriteSheets.find(spriteSheetName) == unsavedSpriteSheets.end()) {
+			listView->addItem(format(SAVED_SPRITE_SHEET_ITEM_FORMAT, spriteSheetName.c_str()));
+		} else {
+			listView->addItem(format(UNSAVED_SPRITE_SHEET_ITEM_FORMAT, spriteSheetName.c_str()));
+		}
+		spriteSheetIndexByName[spriteSheetName] = i;
+		spriteSheetNameByIndex[i] = spriteSheetName;
+		i++;
 	}
 }
 
-std::shared_ptr<ListViewScrollablePanel> SpriteSheetsListPanel::getListView() {
+std::shared_ptr<ListViewScrollablePanel> SpriteSheetsListPanel::getListViewScrollablePanel() {
 	return spriteSheetsList;
+}
+
+std::string SpriteSheetsListPanel::getSpriteSheetNameByIndex(int index) {
+	// Each item in the list view is the file name with extension, and
+	// the name of a sprite sheet is the same as the image file name (see SpriteLoader)
+	return spriteSheetNameByIndex.at(index);
 }
 
 void SpriteSheetsListPanel::setLevelPack(LevelPack* levelPack) {

@@ -15,6 +15,7 @@
 #include <TGUI/Signal.hpp>
 #include <SFML/System/String.hpp>
 
+#include <DataStructs/SpriteLoader.h>
 #include <LevelPack/Attack.h>
 #include <Game/AudioPlayer.h>
 #include <DataStructs/TimeFunctionVariable.h>
@@ -93,7 +94,8 @@ namespace tgui {
 	EXTRA_SIGNAL_VALUE_DECLARATION(ValueSymbolTable, ValueSymbolTable)
 	EXTRA_SIGNAL_VALUE_DECLARATION(ExprSymbolTable, ExprSymbolTable)
 	EXTRA_SIGNAL_VALUE_DECLARATION(AttackPatternToAttackUseRelationship, std::vector<std::tuple<std::string COMMA int COMMA ExprSymbolTable>>)
-
+	EXTRA_SIGNAL_VALUE_DECLARATION(SpriteSheet, std::shared_ptr<SpriteSheet>)
+		
 	class SignalTFVPair : public Signal { 
     public: 
         using DelegateTFVPair = std::function<void(std::pair<std::shared_ptr<TFV>, std::shared_ptr<TFV>>)>;

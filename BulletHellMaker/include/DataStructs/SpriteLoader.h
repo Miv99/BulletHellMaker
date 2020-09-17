@@ -4,6 +4,7 @@
 #include <map>
 #include <memory>
 #include <filesystem>
+#include <set>
 
 #include <SFML\Graphics.hpp>
 
@@ -79,9 +80,27 @@ class SpriteSheet : public TextMarshallable {
 public:
 	SpriteSheet();
 	SpriteSheet(std::string name);
+	/*
+	Copy constructor.
+	Does not copy or reload the texture.
+	*/
+	SpriteSheet(const std::shared_ptr<SpriteSheet> other);
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	void insertSprite(const std::string&, std::shared_ptr<SpriteData>);
+	void insertAnimation(const std::string&, std::shared_ptr<AnimationData>);
+
+	bool loadTexture(const std::string& spriteSheetFilePath);
+
+	/*
+	Scale all sprites by the same amount
+	*/
+	void setGlobalSpriteScale(float scale);
+
+	void markFailedImageLoad();
+	void markFailedMetafileLoad();
 
 	/*
 	Returns nullptr if the requested sprite does not exist.
@@ -91,14 +110,11 @@ public:
 	Returns nullptr if the requested animation does not exist.
 	*/
 	std::unique_ptr<Animation> getAnimation(const std::string& animationName, bool loop);
-	void insertSprite(const std::string&, std::shared_ptr<SpriteData>);
-	void insertAnimation(const std::string&, std::shared_ptr<AnimationData>);
-	bool loadTexture(const std::string& spriteSheetFilePath);
-	// Scale all sprites by the same amount
-	void setGlobalSpriteScale(float scale);
-
+	inline std::string getName() const { return name; }
 	inline const std::map<std::string, std::shared_ptr<SpriteData>> getSpriteData() { return spriteData; }
 	inline const std::map<std::string, std::shared_ptr<AnimationData>> getAnimationData() { return animationData; }
+	inline bool isFailedImageLoad() const { return failedImageLoad; }
+	inline bool isFailedMetafileLoad() const { return failedMetafileLoad; }
 
 private:
 	// Name of the sprite sheet
@@ -116,6 +132,12 @@ private:
 	std::map<std::string, std::vector<std::pair<float, std::shared_ptr<sf::Sprite>>>> animationSprites;
 
 	float globalSpriteScale = 1.0f;
+
+	// failedImageLoad and failedMetafileLoad indicate whether this SpriteSheet's image/metafile was loaded successfully by SpriteLoader.
+	// These cannot be set back to false; SpriteLoader::loadFromSpriteSheetsFolder() must be called again to create
+	// a new SpriteSheet and attempt to load it again.
+	bool failedImageLoad = false;
+	bool failedMetafileLoad = false;
 };
 
 /*
@@ -135,8 +157,9 @@ public:
 	void saveMetadataFiles();
 
 	/*
-	Loads all sprite sheets that have a corresponding metafile from the sprite sheets
-	folder of the level pack with the name passed in from SpriteLoader's constructor.
+	Loads all sprite sheets from the sprite sheets folder of the level pack with the name 
+	passed in from SpriteLoader's constructor. Sprite sheets without a corresponding
+	metafile are still loaded but will not contain any usable sprites or animations.
 	*/
 	void loadFromSpriteSheetsFolder();
 
@@ -144,6 +167,20 @@ public:
 	Returns whether both the image and its metafile were successfully loaded.
 	*/
 	bool loadSpriteSheet(const std::string& spriteSheetMetaFileName, const std::string& spriteSheetImageFileName);
+
+	void clearSpriteSheets();
+
+	/*
+	Updates an sprite sheet.
+	If the sprite sheet name is already in the SpriteLoader, overwrite the sprite sheet.
+	If the sprite sheet name is not in the SpriteLoader, add in the sprite sheet.
+	*/
+	void updateSpriteSheet(std::shared_ptr<SpriteSheet> spriteSheet);
+
+	/*
+	Scale all sprites by the same amount
+	*/
+	void setGlobalSpriteScale(float scale);
 
 	/*
 	Returns default missing texture if the GUI element could not be loaded.
@@ -162,14 +199,18 @@ public:
 	*/
 	std::shared_ptr<sf::Texture> getBackground(const std::string& backgroundFileName);
 	inline const std::map<std::string, std::shared_ptr<SpriteSheet>> getSpriteSheets() { return spriteSheets; }
+	bool spriteSheetFailedImageLoad(std::string spriteSheetName);
+	bool spriteSheetFailedMetafileLoad(std::string spriteSheetName);
 	/*
 	Returns a copy of the default missing sprite.
 	*/
 	const std::shared_ptr<sf::Sprite> getMissingSprite();
-	void clearSpriteSheets();
-	// Scale all sprites by the same amount
-	void setGlobalSpriteScale(float scale);
 	std::vector<std::string> getLoadedSpriteSheetNames();
+	std::set<std::string> getLoadedSpriteSheetNamesAsSet();
+	std::shared_ptr<SpriteSheet> getSpriteSheet(std::string spriteSheetName) const;
+
+	std::string formatPathToSpriteSheetImage(std::string imageFileNameWithExtension);
+	std::string formatPathToSpriteSheetMetafile(std::string imageFileNameWithExtension);
 
 private:
 	const static std::size_t BACKGROUNDS_CACHE_MAX_SIZE;

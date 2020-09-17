@@ -46,6 +46,7 @@ public:
 	only by ID.
 	*/
 	enum class LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE {
+		SPRITE_SHEET,
 		PLAYER,
 		LEVEL,
 		ENEMY,
@@ -130,6 +131,12 @@ public:
 	*/
 	std::shared_ptr<BulletModel> createBulletModel();
 
+	/*
+	Updates an sprite sheet.
+	If the sprite sheet name is already in the LevelPack's SpriteLoader, overwrite the sprite sheet.
+	If the sprite sheet name is not in the LevelPack's SpriteLoader, add in the sprite sheet.
+	*/
+	void updateSpriteSheet(std::shared_ptr<SpriteSheet> spriteSheet, bool emitOnChange = true);
 	/*
 	Updates an attack.
 	If the attack ID is already in the LevelPack, overwrite the attack.

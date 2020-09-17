@@ -6,6 +6,7 @@
 #include <Editor/CustomWidgets/TextNotification.h>
 #include <Editor/CustomWidgets/TabsWithPanel.h>
 #include <Editor/SpriteSheets/SpriteSheetsListPanel.h>
+#include <Editor/SpriteSheets/SpriteSheetMetafileEditor.h>
 #include <LevelPack/LevelPackObject.h>
 #include <LevelPack/Attack.h>
 #include <LevelPack/AttackPattern.h>
@@ -78,6 +79,14 @@ public:
 	*/
 	void saveAttackPatternChanges(std::set<size_t> ids);
 	/*
+	Saves a sprite sheet if it has unsaved changes.
+	*/
+	void saveSpriteSheetChanges(std::string spriteSheetName);
+	/*
+	Saves a sprite sheet if it has unsaved changes.
+	*/
+	void saveSpriteSheetChanges(std::set<std::string> spriteSheetNames);
+	/*
 	Saves all unsaved changes.
 	*/
 	void saveAllChanges();
@@ -93,6 +102,7 @@ public:
 	std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedEnemies();
 	std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedEnemyPhases();
 	std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedBulletModels();
+	std::map<std::string, std::shared_ptr<SpriteSheet>>& getUnsavedSpriteSheets();
 
 	/*
 	Returns whether there are any unsaved changes.
@@ -100,22 +110,29 @@ public:
 	bool hasUnsavedChanges();
 
 	/*
-	Open a single attack in the left panel's attack list so that
+	Opens a sprite sheet in the left panel's sprite sheets list so that
+	its corresponding tab appears in the main panel.
+
+	spriteSheetName - the name of the sprite sheet in SpriteLoader
+	*/
+	void openLeftPanelSpriteSheet(std::string spriteSheetName);
+	/*
+	Opens a single attack in the left panel's attack list so that
 	its corresponding tab appears in the main panel.
 	*/
 	void openLeftPanelAttack(int attackID);
 	/*
-	Open a single attack pattern in the left panel's attack pattern list
+	Opens a single attack pattern in the left panel's attack pattern list
 	so that its corresponding tab appears in the main panel.
 	*/
 	void openLeftPanelAttackPattern(int attackPatternID);
 	/*
-	Open a single enemy phase in the left panel's enemy phase list
+	Opens a single enemy phase in the left panel's enemy phase list
 	so that its corresponding tab appears in the main panel.
 	*/
 	void openLeftPanelEnemyPhase(int enemyPhaseID);
 	/*
-	Open the player so that its corresponding tab appears in the main panel.
+	Opens the player so that its corresponding tab appears in the main panel.
 	*/
 	void openLeftPanelPlayer();
 
@@ -147,6 +164,8 @@ private:
 	const static std::string MAIN_PANEL_ATTACK_TAB_NAME_FORMAT;
 	const static std::string MAIN_PANEL_ATTACK_PATTERN_TAB_NAME_FORMAT;
 
+	const static std::string MAIN_PANEL_SPRITE_SHEET_TAB_NAME_FORMAT;
+
 	std::shared_ptr<AudioPlayer> audioPlayer;
 	std::shared_ptr<LevelPack> levelPack;
 	std::shared_ptr<SpriteLoader> spriteLoader;
@@ -175,6 +194,11 @@ private:
 	std::map<int, std::shared_ptr<LevelPackObject>> unsavedEnemies;
 	std::map<int, std::shared_ptr<LevelPackObject>> unsavedEnemyPhases;
 	std::map<int, std::shared_ptr<LevelPackObject>> unsavedBulletModels;
+
+	// Maps a SpriteSheet name to the SpriteSheet object that has unsaved changes.
+	// If the name doesn't exist in this map, then there are no unsaved changes
+	// for that name.
+	std::map<std::string, std::shared_ptr<SpriteSheet>> unsavedSpriteSheets;
 	// ------------------------------------------------------------
 
 	std::shared_ptr<LevelPackObjectPreviewWindow> previewWindow;

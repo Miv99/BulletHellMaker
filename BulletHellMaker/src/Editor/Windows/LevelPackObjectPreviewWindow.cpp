@@ -72,6 +72,12 @@ void LevelPackObjectPreviewWindow::onOriginalLevelPackAttackPatternModified(cons
 	}
 }
 
+void LevelPackObjectPreviewWindow::onOriginalLevelPackSpriteSheetModified(const std::shared_ptr<SpriteSheet> spriteSheet) {
+	if (window->isOpen()) {
+		previewPanel->getLevelPack()->updateSpriteSheet(spriteSheet);
+	}
+}
+
 void LevelPackObjectPreviewWindow::deleteAttack(int id) {
 	if (window->isOpen()) {
 		previewPanel->getLevelPack()->deleteAttack(id);

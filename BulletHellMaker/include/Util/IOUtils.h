@@ -48,12 +48,21 @@ image by SFML.
 bool imageExtensionIsSupportedBySFML(const char* extension);
 
 /*
-Returns a list of sprite sheets that have a corresponding metafile.
+Returns a list of sprite sheets in a folder that have a corresponding metafile.
 Each pair in the list is, respectively, the metafile name with extension and the image file name with extension.
 
 spriteSheetsFolderPath - path to the folder containing the sprite sheets and metafiles
 */
 std::vector<std::pair<std::string, std::string>> findAllSpriteSheetsWithMetafiles(std::string spriteSheetsFolderPath);
+
+/*
+Returns a list of sprite sheets in a folder.
+Each pair in the list is, respectively, the metafile name with extension and the image file name with extension.
+If a sprite sheet has no corresponding metafile, the first item in each pair will be an empty string.
+
+spriteSheetsFolderPath - path to the folder containing the sprite sheets
+*/
+std::vector<std::pair<std::string, std::string>> findAllSpriteSheets(std::string spriteSheetsFolderPath);
 
 /*
 Shows an error dialog box explaining an error code from

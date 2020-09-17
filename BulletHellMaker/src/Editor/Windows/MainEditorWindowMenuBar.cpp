@@ -1,12 +1,14 @@
 #include <Editor/Windows/MainEditorWindowMenuBar.h>
 
+#include <Mutex.h>
 #include <Config.h>
-
 #include <Util/IOUtils.h>
 #include <Editor/Windows/MainEditorWindow.h>
 
 MainEditorWindowMenuBar::MainEditorWindowMenuBar(MainEditorWindow& mainEditorWindow) 
 	: mainEditorWindow(mainEditorWindow) {
+
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 
 	addMenu("File");
 	addMenuItem("File", "Open");

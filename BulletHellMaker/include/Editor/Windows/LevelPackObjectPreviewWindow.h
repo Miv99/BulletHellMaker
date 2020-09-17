@@ -55,6 +55,10 @@ public:
 	Should be called whenever an EditorAttackPattern in the LevelPack being edited is modified.
 	*/
 	void onOriginalLevelPackAttackPatternModified(const std::shared_ptr<EditorAttackPattern> attackPattern);
+	/*
+	Should be called whenever a SpriteSheet in the LevelPack being edited is modified.
+	*/
+	void onOriginalLevelPackSpriteSheetModified(const std::shared_ptr<SpriteSheet> spriteSheet);
 
 	void deleteAttack(int id);
 	void deleteAttackPattern(int id);

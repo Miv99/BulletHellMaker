@@ -443,6 +443,7 @@ void LevelPackObjectPreviewPanel::onLevelPackChange(LevelPack::LEVEL_PACK_OBJECT
 		|| (type == LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ENEMY && enemiesConnectedToCurrentPreview.find(id) != enemiesConnectedToCurrentPreview.end())
 		|| type == LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::LEVEL
 		|| type == LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::PLAYER
+		|| type == LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::SPRITE_SHEET
 		|| currentPreviewObjectType == PREVIEW_OBJECT::NONE) {
 		resetPreview();
 	}

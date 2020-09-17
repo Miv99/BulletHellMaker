@@ -540,6 +540,13 @@ std::shared_ptr<BulletModel> LevelPack::createBulletModel() {
 	return bulletModel;
 }
 
+void LevelPack::updateSpriteSheet(std::shared_ptr<SpriteSheet> spriteSheet, bool emitOnChange) {
+	spriteLoader->updateSpriteSheet(spriteSheet);
+	if (emitOnChange) {
+		onChange->publish(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::SPRITE_SHEET, -1);
+	}
+}
+
 void LevelPack::updateAttack(std::shared_ptr<EditorAttack> attack, bool emitOnChange) {
 	attackIDGen.markIDAsUsed(attack->getID());
 	attacks[attack->getID()] = attack;

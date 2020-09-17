@@ -24,6 +24,9 @@ const std::string MainEditorWindow::LEFT_PANEL_ATTACK_PATTERN_TABS_SET_IDENTIFIE
 const std::string MainEditorWindow::MAIN_PANEL_ATTACK_TAB_NAME_FORMAT = "Attack %d";
 const std::string MainEditorWindow::MAIN_PANEL_ATTACK_PATTERN_TAB_NAME_FORMAT = "Atk. Pattern %d";
 
+// %s = the sprite sheet name
+const std::string MainEditorWindow::MAIN_PANEL_SPRITE_SHEET_TAB_NAME_FORMAT = "%s";
+
 MainEditorWindow::MainEditorWindow(std::string windowTitle, int width, int height, bool scaleWidgetsOnResize, bool letterboxingEnabled, float renderInterval)
 	: EditorWindow(windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval) {
 
@@ -43,7 +46,9 @@ MainEditorWindow::MainEditorWindow(std::string windowTitle, int width, int heigh
 	{
 		// Sprite sheets tree view panel in left panel
 		spriteSheetsListPanel = SpriteSheetsListPanel::create(*this);
-		//spriteSheetsListPanel->connect("ItemSelected")
+		spriteSheetsListPanel->getListViewScrollablePanel()->getListView()->connect("DoubleClicked", [this](int index) {
+			this->openLeftPanelSpriteSheet(spriteSheetsListPanel->getSpriteSheetNameByIndex(index));
+		});
 		leftPanel->addTab(LEFT_PANEL_SPRITE_SHEETS_TAB_NAME, spriteSheetsListPanel, true);
 	}
 	{
@@ -223,10 +228,28 @@ void MainEditorWindow::deleteAttackPattern(int id) {
 }
 
 void MainEditorWindow::reloadSpriteLoader() {
+	std::set<std::string> oldLoadedSpriteSheets = spriteLoader->getLoadedSpriteSheetNamesAsSet();
+
 	spriteSheetsListPanel->reloadSpriteLoaderAndList();
 	// The level pack being edited by this MainEditorWindow is the same SpriteLoader as the one
 	// being used in previewWindow's level pack, so don't reload the one in previewWindow.
 
+	std::set<std::string> newLoadedSpriteSheets = spriteLoader->getLoadedSpriteSheetNamesAsSet();
+	for (std::string spriteSheetName : oldLoadedSpriteSheets) {
+		std::string tabName = format(MAIN_PANEL_SPRITE_SHEET_TAB_NAME_FORMAT, spriteSheetName.c_str());
+		if (mainPanel->hasTab(tabName)) {
+			if (newLoadedSpriteSheets.find(spriteSheetName) == newLoadedSpriteSheets.end()
+				|| (newLoadedSpriteSheets.find(spriteSheetName) != newLoadedSpriteSheets.end()
+					&& (spriteLoader->spriteSheetFailedImageLoad(spriteSheetName) || spriteLoader->spriteSheetFailedMetafileLoad(spriteSheetName)))) {
+				// Close all sprite sheet tabs that failed to load or no longer exist
+				mainPanel->removeTab(tabName);
+			} else {
+				// Reload image of existing sprite sheet tabs
+				std::dynamic_pointer_cast<SpriteSheetMetafileEditor>(mainPanel->getTab(tabName))->loadImage(spriteSheetName);
+			}
+		}
+	}
+	
 	// Reset preview because existing sprites will continue to use the old textures
 	previewWindow->resetPreview();
 }
@@ -352,6 +375,59 @@ void MainEditorWindow::populateLeftPanelLevelPackObjectListPanel(std::shared_ptr
 		openLevelPackObjectTab(listView->getLevelPackObjectIDFromIndex(index));
 	});
 	listPanel->add(listView);
+}
+
+void MainEditorWindow::openLeftPanelSpriteSheet(std::string spriteSheetName) {
+	// Open sprite sheets tab in left panel if not already open
+	if (leftPanel->getSelectedTab() != LEFT_PANEL_SPRITE_SHEETS_TAB_NAME) {
+		leftPanel->selectTab(LEFT_PANEL_SPRITE_SHEETS_TAB_NAME);
+	}
+	// Select the sprite sheet in spriteSheetsListPanel's list view
+	spriteSheetsListPanel->selectSpriteSheetByName(spriteSheetName);
+
+	if (spriteLoader->spriteSheetFailedImageLoad(spriteSheetName)) {
+		// Focus leftPanel afterwards because user interaction with it is the only caller of this function
+		showPopupMessageWindow(format("Could not open sprite sheet because its image file failed to load. \
+Go to \"File > Reload sprites/animations\" to reload sprite sheets.", spriteLoader->formatPathToSpriteSheetImage(spriteSheetName)), leftPanel.get());
+		return;
+	}
+
+	if (spriteLoader->spriteSheetFailedMetafileLoad(spriteSheetName)) {
+		// Focus leftPanel afterwards because user interaction with it is the only caller of this function
+		showPopupMessageWindow(format("Could not open sprite sheet because its metafile failed to load. \
+The metafile (\"%s\") might be corrupted due to manual editing outside of BulletHellMaker and would require manual deletion or editing to fix it. \
+Go to \"File > Reload sprites/animations\" to reload sprite sheets afterwards.", spriteLoader->formatPathToSpriteSheetMetafile(spriteSheetName).c_str()), leftPanel.get());
+		return;
+	}
+
+	// Get the attack
+	std::shared_ptr<SpriteSheet> openedSpriteSheet;
+	if (unsavedSpriteSheets.find(spriteSheetName) != unsavedSpriteSheets.end()) {
+		// There are unsaved changes for this attack, so open the one with unsaved changes
+		openedSpriteSheet = unsavedSpriteSheets.at(spriteSheetName);
+	} else {
+		// Make a copy of the attack in the LevelPack so that changes can be applied/discarded
+		// whenever the user wants instead of modifying the LevelPack directly.
+		openedSpriteSheet = std::make_shared<SpriteSheet>(levelPack->getSpriteLoader()->getSpriteSheet(spriteSheetName));
+	}
+
+	// Open the tab in mainPanel
+	std::string tabName = format(MAIN_PANEL_SPRITE_SHEET_TAB_NAME_FORMAT, spriteSheetName.c_str());
+	if (mainPanel->hasTab(tabName)) {
+		// Tab already exists, so just select it
+		mainPanel->selectTab(tabName);
+	} else {
+		// Create the tab
+		std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+		std::shared_ptr<SpriteSheetMetafileEditor> spriteSheetsMetafileSpritesEditor = SpriteSheetMetafileEditor::create(*this, clipboard, openedSpriteSheet);
+		spriteSheetsMetafileSpritesEditor->connect("MetafileModified", [this](std::shared_ptr<SpriteSheet> spriteSheet) {
+			unsavedSpriteSheets[spriteSheet->getName()] = spriteSheet;
+			spriteSheetsListPanel->reloadListOnly();
+
+			previewWindow->onOriginalLevelPackSpriteSheetModified(spriteSheet);
+		});
+		mainPanel->addTab(tabName, spriteSheetsMetafileSpritesEditor, true, true);
+	}
 }
 
 void MainEditorWindow::openLeftPanelAttack(int attackID) {
@@ -606,6 +682,8 @@ void MainEditorWindow::saveAttackChanges(int id) {
 		unsavedAttacks.erase(id);
 
 		attacksListView->reload();
+
+		// TODO: levelPack->saveAttacks() to write to file
 	}
 }
 
@@ -618,6 +696,8 @@ void MainEditorWindow::saveAttackChanges(std::set<size_t> ids) {
 			}
 		}
 		attacksListView->reload();
+
+		// TODO: levelPack->saveAttacks() to write to file
 	}
 }
 
@@ -629,6 +709,8 @@ void MainEditorWindow::saveAttackPatternChanges(int id) {
 		unsavedAttackPatterns.erase(id);
 
 		attackPatternsListView->reload();
+
+		// TODO: levelPack->saveAttackPatterns() to write to file
 	}
 }
 
@@ -641,6 +723,37 @@ void MainEditorWindow::saveAttackPatternChanges(std::set<size_t> ids) {
 			}
 		}
 		attackPatternsListView->reload();
+
+		// TODO: levelPack->saveAttackPatterns() to write to file
+	}
+}
+
+void MainEditorWindow::saveSpriteSheetChanges(std::string spriteSheetName) {
+	// Do nothing if the sprite sheet doesn't have any unsaved changes
+
+	if (unsavedSpriteSheets.find(spriteSheetName) != unsavedSpriteSheets.end()) {
+		levelPack->updateSpriteSheet(unsavedSpriteSheets.at(spriteSheetName));
+		unsavedSpriteSheets.erase(spriteSheetName);
+
+		spriteSheetsListPanel->reloadListOnly();
+
+		// TODO: levelPack->saveSpriteSheets() to write to file
+	}
+}
+
+void MainEditorWindow::saveSpriteSheetChanges(std::set<std::string> spriteSheetNames) {
+	// Do nothing if the sprite sheet doesn't have any unsaved changes
+
+	if (spriteSheetNames.size() > 0) {
+		for (std::string spriteSheetName : spriteSheetNames) {
+			if (unsavedSpriteSheets.find(spriteSheetName) != unsavedSpriteSheets.end()) {
+				levelPack->getSpriteLoader()->updateSpriteSheet(unsavedSpriteSheets.at(spriteSheetName));
+				unsavedSpriteSheets.erase(spriteSheetName);
+			}
+		}
+
+		spriteSheetsListPanel->reloadListOnly();
+		// TODO: levelPack->saveSpriteSheets() to write to file
 	}
 }
 
@@ -651,6 +764,8 @@ void MainEditorWindow::saveAllChanges() {
 		}
 		unsavedAttacks.clear();
 		attacksListView->reload();
+
+		// TODO: levelPack->saveAttacks() to write to file
 	}
 
 	if (unsavedAttackPatterns.size() > 0) {
@@ -659,6 +774,17 @@ void MainEditorWindow::saveAllChanges() {
 		}
 		unsavedAttackPatterns.clear();
 		attackPatternsListView->reload();
+
+		// TODO: levelPack->saveAttackPatterns() to write to file
+	}
+
+	if (unsavedSpriteSheets.size() > 0) {
+		for (std::pair<std::string, std::shared_ptr<SpriteSheet>> changes : unsavedSpriteSheets) {
+			levelPack->getSpriteLoader()->updateSpriteSheet(changes.second);
+		}
+		unsavedSpriteSheets.clear();
+		spriteSheetsListPanel->reloadListOnly();
+		// TODO: levelPack->saveSpriteSheets() to write to file
 	}
 
 	// TODO: add to this
@@ -698,6 +824,10 @@ std::map<int, std::shared_ptr<LevelPackObject>>& MainEditorWindow::getUnsavedEne
 
 std::map<int, std::shared_ptr<LevelPackObject>>& MainEditorWindow::getUnsavedBulletModels() {
 	return unsavedBulletModels;
+}
+
+std::map<std::string, std::shared_ptr<SpriteSheet>>& MainEditorWindow::getUnsavedSpriteSheets() {
+	return unsavedSpriteSheets;
 }
 
 bool MainEditorWindow::hasUnsavedChanges() {

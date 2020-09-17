@@ -136,7 +136,7 @@ std::vector<std::pair<std::string, std::string>> findAllSpriteSheetsWithMetafile
 		_splitpath(entry.path().string().c_str(), NULL, NULL, fileName, fileExtension);
 		fileNamesAndExtensions.insert(std::make_pair(std::string(fileName), std::string(fileExtension)));
 	}
-	// Load sprite sheets for all image files that have a corresponding metafile
+
 	for (std::pair<std::string, std::string> fileNameAndExtension : fileNamesAndExtensions) {
 		std::string fileName = fileNameAndExtension.first;
 		std::string extension = fileNameAndExtension.second;
@@ -145,13 +145,57 @@ std::vector<std::pair<std::string, std::string>> findAllSpriteSheetsWithMetafile
 			char imageNameAndExtension[MAX_PATH + 1];
 			strcpy(imageNameAndExtension, fileName.c_str());
 			strcat(imageNameAndExtension, extension.c_str());
+
 			if (fileNamesAndExtensions.find(std::make_pair(std::string(imageNameAndExtension), ".txt")) != fileNamesAndExtensions.end()) {
+				// Sprite sheet image has a corresponding metafile
 
 				char metafileNameAndExtension[MAX_PATH + 1];
 				strcpy(metafileNameAndExtension, imageNameAndExtension);
 				strcat(metafileNameAndExtension, ".txt");
 
 				results.push_back(std::make_pair(std::string(metafileNameAndExtension), std::string(imageNameAndExtension)));
+			} else {
+				// Sprite sheet image doesn't have a corresponding metafile
+			}
+		}
+	}
+
+	return results;
+}
+
+std::vector<std::pair<std::string, std::string>> findAllSpriteSheets(std::string spriteSheetsFolderPath) {
+	std::vector<std::pair<std::string, std::string>> results;
+
+	std::set<std::pair<std::string, std::string>> fileNamesAndExtensions;
+	char fileName[MAX_PATH + 1];
+	char fileExtension[MAX_PATH + 1];
+	// Insert all files in the sprite sheets folder into fileNamesWithExtension
+	for (const auto& entry : std::filesystem::directory_iterator(spriteSheetsFolderPath)) {
+		_splitpath(entry.path().string().c_str(), NULL, NULL, fileName, fileExtension);
+		fileNamesAndExtensions.insert(std::make_pair(std::string(fileName), std::string(fileExtension)));
+	}
+
+	for (std::pair<std::string, std::string> fileNameAndExtension : fileNamesAndExtensions) {
+		std::string fileName = fileNameAndExtension.first;
+		std::string extension = fileNameAndExtension.second;
+
+		if (imageExtensionIsSupportedBySFML(extension.c_str())) {
+			char imageNameAndExtension[MAX_PATH + 1];
+			strcpy(imageNameAndExtension, fileName.c_str());
+			strcat(imageNameAndExtension, extension.c_str());
+
+			if (fileNamesAndExtensions.find(std::make_pair(std::string(imageNameAndExtension), ".txt")) != fileNamesAndExtensions.end()) {
+				// Sprite sheet image has a corresponding metafile
+
+				char metafileNameAndExtension[MAX_PATH + 1];
+				strcpy(metafileNameAndExtension, imageNameAndExtension);
+				strcat(metafileNameAndExtension, ".txt");
+
+				results.push_back(std::make_pair(std::string(metafileNameAndExtension), std::string(imageNameAndExtension)));
+			} else {
+				// Sprite sheet image doesn't have a corresponding metafile
+
+				results.push_back(std::make_pair("", std::string(imageNameAndExtension)));
 			}
 		}
 	}

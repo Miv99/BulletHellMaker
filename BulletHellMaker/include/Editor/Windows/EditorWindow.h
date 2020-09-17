@@ -71,8 +71,7 @@ public:
 
 	widgetToFocusAfter - the widget that should be focused after the user answers. Set to nullptr to not focus anything afterwards.
 	*/
-	std::shared_ptr<entt::SigH<void(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE)>> showPopupMessageWindow(std::string message,
-		tgui::Widget* widgetToFocusAfter);
+	void showPopupMessageWindow(std::string message, tgui::Widget* widgetToFocusAfter);
 
 	/*
 	Add a popup as a top-level widget in the Gui.
@@ -217,6 +216,7 @@ inline std::shared_ptr<entt::SigH<void(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE,
 		ptr->setEnabled(false);
 	}
 	
+	confirmationYes->setVisible(true);
 	confirmationYes->connect("Pressed", [this, confirmationSignal, userObject, widgetToFocusAfter]() {
 		confirmationSignal->publish(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES, userObject);
 		confirmationSignal->sink().disconnect();
@@ -226,6 +226,7 @@ inline std::shared_ptr<entt::SigH<void(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE,
 			widgetToFocusAfter->setFocused(true);
 		}
 	});
+	confirmationNo->setVisible(true);
 	confirmationNo->connect("Pressed", [this, confirmationSignal, userObject, widgetToFocusAfter]() {
 		confirmationSignal->publish(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::NO, userObject);
 		confirmationSignal->sink().disconnect();
