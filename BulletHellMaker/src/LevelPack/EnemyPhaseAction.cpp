@@ -42,7 +42,7 @@ void DestroyEnemyBulletsEPA::execute(entt::DefaultRegistry & registry, uint32_t 
 
 
 std::shared_ptr<EnemyPhaseAction> EPAFactory::create(std::string formattedString) {
-	auto name = split(formattedString, DELIMITER)[0];
+	auto name = split(formattedString, TextMarshallable::DELIMITER)[0];
 	std::shared_ptr<EnemyPhaseAction> ptr;
 	if (name == "DestroyEnemyBulletsEPA") {
 		ptr = std::make_shared<DestroyEnemyBulletsEPA>();

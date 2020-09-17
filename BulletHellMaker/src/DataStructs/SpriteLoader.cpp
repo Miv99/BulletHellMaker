@@ -64,7 +64,7 @@ std::string SpriteSheet::format() const {
 }
 
 void SpriteSheet::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	name = items.at(0);
 
 	spriteData.clear();
@@ -167,7 +167,7 @@ std::string SpriteData::format() const {
 }
 
 void SpriteData::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	spriteName = items.at(0);
 	area.left = std::stoi(items.at(1));
 	area.top = std::stoi(items.at(2));
@@ -451,7 +451,7 @@ std::string AnimationData::format() const {
 }
 
 void AnimationData::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	animationName = items.at(0);
 
 	spriteNames.clear();

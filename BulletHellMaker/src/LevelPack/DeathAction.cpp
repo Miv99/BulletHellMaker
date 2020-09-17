@@ -25,7 +25,7 @@ std::string PlayAnimatableDeathAction::format() const {
 }
 
 void PlayAnimatableDeathAction::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	animatable.load(items[1]);
 	duration = items[2];
 	effect = static_cast<DEATH_ANIMATION_EFFECT>(std::stoi(items[3]));
@@ -94,7 +94,7 @@ std::string PlaySoundDeathAction::format() const {
 }
 
 void PlaySoundDeathAction::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	soundSettings.load(items[1]);
 }
 
@@ -144,7 +144,7 @@ std::string ExecuteAttacksDeathAction::format() const {
 }
 
 void ExecuteAttacksDeathAction::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	attackIDs.clear();
 	for (int i = 2; i < std::stoi(items[1]) + 2; i += 2) {
 		ExprSymbolTable definer;
@@ -233,7 +233,7 @@ std::string ParticleExplosionDeathAction::format() const {
 }
 
 void ParticleExplosionDeathAction::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	effect = static_cast<PARTICLE_EFFECT>(std::stoi(items[1]));
 	animatable.load(items[2]);
 	loopAnimatable = unformatBool(items[3]);
@@ -352,7 +352,7 @@ void ParticleExplosionDeathAction::setMaxLifespan(std::string maxLifespan) {
 }
 
 std::shared_ptr<DeathAction> DeathActionFactory::create(std::string formattedString) {
-	auto name = split(formattedString, DELIMITER)[0];
+	auto name = split(formattedString, TextMarshallable::DELIMITER)[0];
 	std::shared_ptr<DeathAction> ptr;
 	if (name == "PlayAnimatableDeathAction") {
 		ptr = std::make_shared<PlayAnimatableDeathAction>();

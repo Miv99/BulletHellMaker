@@ -36,7 +36,7 @@ std::string SpecificGlobalEMPSpawn::format() const {
 }
 
 void SpecificGlobalEMPSpawn::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	x = items[1];
 	y = items[2];
 	time = items[3];
@@ -72,7 +72,7 @@ std::string EntityRelativeEMPSpawn::format() const {
 }
 
 void EntityRelativeEMPSpawn::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	x = items[1];
 	y = items[2];
 	time = items[3];
@@ -121,7 +121,7 @@ std::string EntityAttachedEMPSpawn::format() const {
 }
 
 void EntityAttachedEMPSpawn::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	x = items[1];
 	y = items[2];
 	time = items[3];
@@ -143,7 +143,7 @@ MPSpawnInformation EntityAttachedEMPSpawn::getForcedDetachmentSpawnInfo(entt::De
 }
 
 std::shared_ptr<EMPSpawnType> EMPSpawnTypeFactory::create(std::string formattedString) {
-	auto name = split(formattedString, DELIMITER)[0];
+	auto name = split(formattedString, TextMarshallable::DELIMITER)[0];
 	std::shared_ptr<EMPSpawnType> ptr;
 	if (name == "SpecificGlobalEMPSpawn") {
 		ptr = std::make_shared<SpecificGlobalEMPSpawn>();

@@ -62,7 +62,7 @@ std::string EditorMovablePoint::format() const {
 }
 
 void EditorMovablePoint::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 
 	// Delete IDs from idGen for if load() is overwriting some existing data
 	recursiveDeleteID();
@@ -543,7 +543,7 @@ bool EditorMovablePoint::operator==(const EditorMovablePoint& other) const {
 }
 
 void EditorMovablePoint::copyConstructorLoad(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 
 	// Use some dummy object for now; idGen shouldn't need to be used until a real idGen is set by onNewParentEditorAttack()
 	IDGenerator dummyID;
@@ -708,7 +708,7 @@ std::string BulletModel::format() const {
 }
 
 void BulletModel::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 
 	id = std::stoi(items[0]);
 	name = items[1];

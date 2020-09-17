@@ -26,7 +26,7 @@ std::string ConstantTFV::format() const {
 }
 
 void ConstantTFV::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	value = std::stof(items[1]);
 }
 
@@ -51,7 +51,7 @@ std::string LinearTFV::format() const {
 }
 
 void LinearTFV::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	startValue = std::stof(items[1]);
 	endValue = std::stof(items[2]);
 	maxTime = std::stof(items[3]);
@@ -78,7 +78,7 @@ std::string SineWaveTFV::format() const {
 }
 
 void SineWaveTFV::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	period = std::stof(items[1]);
 	amplitude = std::stof(items[2]);
 	valueShift = std::stof(items[3]);
@@ -106,7 +106,7 @@ std::string ConstantAccelerationDistanceTFV::format() const {
 }
 
 void ConstantAccelerationDistanceTFV::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	initialDistance = std::stof(items[1]);
 	initialVelocity = std::stof(items[2]);
 	acceleration = std::stof(items[3]);
@@ -137,7 +137,7 @@ std::string DampenedStartTFV::format() const {
 }
 
 void DampenedStartTFV::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	a = std::stof(items[1]);
 	startValue = std::stof(items[2]);
 	endValue = std::stof(items[3]);
@@ -168,7 +168,7 @@ std::string DampenedEndTFV::format() const {
 }
 
 void DampenedEndTFV::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	a = std::stof(items[1]);
 	startValue = std::stof(items[2]);
 	endValue = std::stof(items[3]);
@@ -218,7 +218,7 @@ std::string DoubleDampenedTFV::format() const {
 }
 
 void DoubleDampenedTFV::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	a = std::stof(items[1]);
 	startValue = std::stof(items[2]);
 	endValue = std::stof(items[3]);
@@ -277,7 +277,7 @@ std::string TranslationWrapperTFV::format() const {
 }
 
 void TranslationWrapperTFV::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	valueTranslation = std::stof(items[1]);
 	wrappedTFV = TFVFactory::create(items[2]);
 }
@@ -306,7 +306,7 @@ std::string PiecewiseTFV::format() const {
 }
 
 void PiecewiseTFV::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	for (int i = 1; i < items.size(); i += 2) {
 		segments.push_back(std::make_pair(std::stof(items[i]), TFVFactory::create(items[i + 1])));
 	}
@@ -488,7 +488,7 @@ void PiecewiseTFV::recalculateMaxTimes(float totalLifespan) {
 
 
 std::shared_ptr<TFV> TFVFactory::create(std::string formattedString) {
-	auto name = split(formattedString, DELIMITER)[0];
+	auto name = split(formattedString, TextMarshallable::DELIMITER)[0];
 	std::shared_ptr<TFV> ptr;
 	if (name == "ConstantTFV") {
 		ptr = std::make_shared<ConstantTFV>();

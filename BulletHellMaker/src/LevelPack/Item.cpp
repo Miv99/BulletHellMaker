@@ -6,7 +6,7 @@
 #include <Game/Components/HealthComponent.h>
 
 std::shared_ptr<Item> ItemFactory::create(std::string formattedString) {
-	auto name = split(formattedString, DELIMITER)[0];
+	auto name = split(formattedString, TextMarshallable::DELIMITER)[0];
 	std::shared_ptr<Item> ptr;
 	if (name == "HealthPackItem") {
 		ptr = std::make_shared<HealthPackItem>();
@@ -56,7 +56,7 @@ std::string HealthPackItem::format() const {
 }
 
 void HealthPackItem::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	animatable.load(items[1]);
 	hitboxRadius = std::stof(items[2]);
 	activationRadius = std::stof(items[3]);
@@ -109,7 +109,7 @@ std::string PowerPackItem::format() const {
 }
 
 void PowerPackItem::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	animatable.load(items[1]);
 	hitboxRadius = std::stof(items[2]);
 	activationRadius = std::stof(items[3]);
@@ -165,7 +165,7 @@ std::string PointsPackItem::format() const {
 }
 
 void PointsPackItem::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	animatable.load(items[1]);
 	hitboxRadius = std::stof(items[2]);
 	activationRadius = std::stof(items[3]);
@@ -218,7 +218,7 @@ std::string BombItem::format() const {
 }
 
 void BombItem::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	animatable.load(items[1]);
 	hitboxRadius = std::stof(items[2]);
 	activationRadius = std::stof(items[3]);

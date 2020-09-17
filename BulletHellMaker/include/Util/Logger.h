@@ -194,7 +194,7 @@ inline void initLogger(TLogLevel level) {
         while (logFiles.size() > MAX_LOG_FILES) {
             try {
                 auto it = logFiles.begin();
-                std::filesystem::remove(string_format("%s\\%s", RELATIVE_LOGS_FOLDER_PATH, *it));
+                std::filesystem::remove(format("%s\\%s", RELATIVE_LOGS_FOLDER_PATH, *it));
                 logFiles.erase(logFiles.begin());
             } catch (const std::exception& e) {
                 // Log file is probably open or something; just ignore the exception
@@ -204,7 +204,7 @@ inline void initLogger(TLogLevel level) {
 
     FILELog::ReportingLevel() = level;
     // File name is current date time
-    FILE* log_fd = fopen(string_format("%s\\BHM-%s.log", RELATIVE_LOGS_FOLDER_PATH, getCurDateTimeInWindowsFileNameCompliantFormat().c_str()).c_str(), "w");
+    FILE* log_fd = fopen(format("%s\\BHM-%s.log", RELATIVE_LOGS_FOLDER_PATH, getCurDateTimeInWindowsFileNameCompliantFormat().c_str()).c_str(), "w");
     Output2FILE::Stream() = log_fd;
 }
 

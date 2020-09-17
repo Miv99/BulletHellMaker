@@ -21,7 +21,7 @@ std::string TimeBasedEnemyPhaseStartCondition::format() const {
 }
 
 void TimeBasedEnemyPhaseStartCondition::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	time = items[1];
 	symbolTable.load(items[2]);
 }
@@ -70,7 +70,7 @@ std::string HPBasedEnemyPhaseStartCondition::format() const {
 }
 
 void HPBasedEnemyPhaseStartCondition::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	ratio = items[1];
 	symbolTable.load(items[2]);
 }
@@ -121,7 +121,7 @@ std::string EnemyCountBasedEnemyPhaseStartCondition::format() const {
 }
 
 void EnemyCountBasedEnemyPhaseStartCondition::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	enemyCount = items[1];
 	symbolTable.load(items[2]);
 }
@@ -154,7 +154,7 @@ void EnemyCountBasedEnemyPhaseStartCondition::setEnemyCount(std::string enemyCou
 }
 
 std::shared_ptr<EnemyPhaseStartCondition> EnemyPhaseStartConditionFactory::create(std::string formattedString) {
-	auto name = split(formattedString, DELIMITER)[0];
+	auto name = split(formattedString, TextMarshallable::DELIMITER)[0];
 	std::shared_ptr<EnemyPhaseStartCondition> ptr;
 	if (name == "TimeBasedEnemyPhaseStartCondition") {
 		ptr = std::make_shared<TimeBasedEnemyPhaseStartCondition>();

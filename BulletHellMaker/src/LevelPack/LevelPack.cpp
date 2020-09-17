@@ -1002,7 +1002,7 @@ std::string LevelPackMetadata::format() const {
 }
 
 void LevelPackMetadata::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	player = std::make_shared<EditorPlayer>();
 	player->load(items[0]);
 }

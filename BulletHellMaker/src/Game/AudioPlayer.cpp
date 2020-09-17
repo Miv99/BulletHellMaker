@@ -38,7 +38,7 @@ std::string SoundSettings::format() const {
 }
 
 void SoundSettings::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	fileName = items[0];
 	volume = std::stof(items[1]);
 	pitch = std::stof(items[2]);
@@ -73,7 +73,7 @@ std::string MusicSettings::format() const {
 }
 
 void MusicSettings::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	fileName = items[0];
 	loops = unformatBool(items[1]);
 	loopStartMilliseconds = std::stoi(items[2]);

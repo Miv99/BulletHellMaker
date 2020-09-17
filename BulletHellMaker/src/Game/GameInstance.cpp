@@ -179,7 +179,7 @@ GameInstance::GameInstance(std::string levelPackName) {
 	scoreLabel = tgui::Label::create();
 	scoreLabel->setTextSize(24);
 	scoreLabel->setMaximumTextWidth(0);
-	scoreLabel->setText(string_format("Score\n%010d", 0));
+	scoreLabel->setText(format("Score\n%010d", 0));
 
 	windowHeight = window->getSize().y;
 
@@ -393,7 +393,7 @@ void GameInstance::render(float deltaTime) {
 		bossPhaseHealthBar->setValue(registry.get<HealthComponent>(currentBoss).getHealth());
 	}
 	if (bossPhaseTimeLeft->isVisible()) {
-		bossPhaseTimeLeft->setText(string_format("%.2f", (bossNextPhaseStartTime - registry.get<EnemyComponent>(currentBoss).getTimeSinceLastPhase())));
+		bossPhaseTimeLeft->setText(format("%.2f", (bossNextPhaseStartTime - registry.get<EnemyComponent>(currentBoss).getTimeSinceLastPhase())));
 
 		// Move timer based on player position so that the user's vision isn't obstructed
 		uint32_t player = registry.attachee<PlayerTag>();
@@ -556,7 +556,7 @@ void GameInstance::onPlayerHPChange(int newHP, int maxHP) {
 }
 
 void GameInstance::onPointsChange(int levelPoints) {
-	scoreLabel->setText(string_format("Score\n%010d", points + levelPoints));
+	scoreLabel->setText(format("Score\n%010d", points + levelPoints));
 }
 
 void GameInstance::onPlayerPowerLevelChange(int powerLevelIndex, int powerLevelMaxTierCount, int powerLevel) {
@@ -628,7 +628,7 @@ void GameInstance::onBossPhaseChange(uint32_t boss, std::shared_ptr<EditorEnemyP
 		// Show timer
 		bossPhaseTimeLeft->setVisible(true);
 		bossPhaseHealthBar->setVisible(false);
-		bossPhaseTimeLeft->setText(string_format("%.2f", bossNextPhaseStartTime - registry.get<EnemyComponent>(boss).getTimeSinceLastPhase()));
+		bossPhaseTimeLeft->setText(format("%.2f", bossNextPhaseStartTime - registry.get<EnemyComponent>(boss).getTimeSinceLastPhase()));
 
 		bossNextPhaseStartTime = std::dynamic_pointer_cast<TimeBasedEnemyPhaseStartCondition>(nextPhaseStartCondition)->getTime();
 

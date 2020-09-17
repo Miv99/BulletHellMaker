@@ -24,7 +24,7 @@ std::string Level::format() const {
 }
 
 void Level::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	id = std::stoi(items[0]);
 	name = items[1];
 

@@ -12,7 +12,7 @@ std::string Animatable::format() const {
 }
 
 void Animatable::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	animatableName = items[0];
 	spriteSheetName = items[1];
 	animatableIsSprite = unformatBool(items[2]);

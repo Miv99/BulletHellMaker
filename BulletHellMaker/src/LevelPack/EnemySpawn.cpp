@@ -26,7 +26,7 @@ std::string EnemySpawnInfo::format() const {
 }
 
 void EnemySpawnInfo::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	x = items[0];
 	y = items[1];
 	enemyID = std::stoi(items[2]);

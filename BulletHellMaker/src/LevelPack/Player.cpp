@@ -22,7 +22,7 @@ std::string EditorPlayer::format() const {
 }
 
 void EditorPlayer::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	initialHealth = items[0];
 	maxHealth = items[1];
 	speed = items[2];
@@ -140,7 +140,7 @@ std::string PlayerPowerTier::format() const {
 }
 
 void PlayerPowerTier::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	animatableSet.load(items[0]);
 	attackPatternID = std::stoi(items[1]);
 	attackPatternLoopDelay = items[2];

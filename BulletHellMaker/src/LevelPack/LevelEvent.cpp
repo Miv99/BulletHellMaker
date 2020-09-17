@@ -16,7 +16,7 @@ std::string SpawnEnemiesLevelEvent::format() const {
 }
 
 void SpawnEnemiesLevelEvent::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	int numInfo = std::stoi(items[1]);
 	symbolTable.load(items[2]);
 	spawnInfo.clear();
@@ -90,7 +90,7 @@ std::string ShowDialogueLevelEvent::format() const {
 }
 
 void ShowDialogueLevelEvent::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	dialogueBoxPosition = static_cast<PositionOnScreen>(std::stoi(items[1]));
 	dialogueBoxShowAnimationType = static_cast<tgui::ShowAnimationType>(std::stoi(items[2]));
 	dialogueBoxShowAnimationTime = std::stof(items[3]);
@@ -124,7 +124,7 @@ void ShowDialogueLevelEvent::execute(SpriteLoader& spriteLoader, LevelPack& leve
 }
 
 std::shared_ptr<LevelEvent> LevelEventFactory::create(std::string formattedString) {
-	auto name = split(formattedString, DELIMITER)[0];
+	auto name = split(formattedString, TextMarshallable::DELIMITER)[0];
 	std::shared_ptr<LevelEvent> ptr;
 	if (name == "SpawnEnemiesLevelEvent") {
 		ptr = std::make_shared<SpawnEnemiesLevelEvent>();

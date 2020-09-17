@@ -1,5 +1,7 @@
 #include <LevelPack/TextMarshallable.h>
 
+const char TextMarshallable::DELIMITER = '|';
+
 std::vector<std::string> split(std::string str, char delimiter) {
 	std::string segment;
 	std::vector<std::string> seglist;
@@ -18,7 +20,7 @@ std::vector<std::string> split(std::string str, char delimiter) {
 			continue;
 		}
 
-		if (str[i] == DELIMITER && cur == 0) {
+		if (str[i] == TextMarshallable::DELIMITER && cur == 0) {
 			seglist.push_back(str.substr(prev + 1, i - prev - 1));
 			prev = i;
 		}
@@ -54,9 +56,9 @@ bool contains(std::string str, char c)
 
 std::string formatBool(bool b) {
 	if (b) {
-		return "(1)" + tm_delim;
+		return "(1)" + std::string(1, TextMarshallable::DELIMITER);
 	} else {
-		return "(0)" + tm_delim;
+		return "(0)" + std::string(1, TextMarshallable::DELIMITER);
 	}
 }
 
@@ -65,7 +67,7 @@ bool unformatBool(std::string str) {
 }
 
 std::string formatString(std::string str) {
-	return "@" + std::to_string(str.length()) + ":(" + str + ")" + tm_delim;
+	return "@" + std::to_string(str.length()) + ":(" + str + ")" + std::string(1, TextMarshallable::DELIMITER);
 }
 
 std::string formatTMObject(const TextMarshallable & tm) {

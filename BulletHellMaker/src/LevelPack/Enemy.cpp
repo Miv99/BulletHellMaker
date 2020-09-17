@@ -33,7 +33,7 @@ std::string EditorEnemy::format() const {
 }
 
 void EditorEnemy::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	id = std::stoi(items[0]);
 	name = items[1];
 	hitboxRadius = items[2];

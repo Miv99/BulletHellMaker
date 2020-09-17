@@ -33,7 +33,7 @@ std::string EditorAttack::format() const {
 }
 
 void EditorAttack::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	id = std::stoi(items[0]);
 	name = items[1];
 	bulletModelsCount.clear();

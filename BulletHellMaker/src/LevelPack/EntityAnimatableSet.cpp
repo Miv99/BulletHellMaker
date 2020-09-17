@@ -16,7 +16,7 @@ std::string EntityAnimatableSet::format() const {
 }
 
 void EntityAnimatableSet::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	idleAnimatable.load(items[0]);
 	movementAnimatable.load(items[1]);
 	attackAnimatable.load(items[2]);

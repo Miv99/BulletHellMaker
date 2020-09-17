@@ -20,7 +20,7 @@ std::string EMPAAngleOffsetToPlayer::format() const {
 }
 
 void EMPAAngleOffsetToPlayer::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	xOffset = items[1];
 	yOffset = items[2];
 	symbolTable.load(items[3]);
@@ -74,7 +74,7 @@ std::string EMPAAngleOffsetToGlobalPosition::format() const {
 }
 
 void EMPAAngleOffsetToGlobalPosition::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	x = items[1];
 	y = items[2];
 	symbolTable.load(items[3]);
@@ -122,7 +122,7 @@ std::string EMPAAngleOffsetZero::format() const {
 }
 
 void EMPAAngleOffsetZero::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	symbolTable.load(items[1]);
 }
 
@@ -155,7 +155,7 @@ std::string EMPAAngleOffsetConstant::format() const {
 }
 
 void EMPAAngleOffsetConstant::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	value = items[1];
 	symbolTable.load(items[2]);
 }
@@ -192,7 +192,7 @@ std::string EMPAngleOffsetPlayerSpriteAngle::format() const {
 }
 
 void EMPAngleOffsetPlayerSpriteAngle::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	symbolTable.load(items[1]);
 }
 
@@ -232,7 +232,7 @@ std::string DetachFromParentEMPA::format() const {
 }
 
 void DetachFromParentEMPA::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	symbolTable.load(items[1]);
 }
 
@@ -288,7 +288,7 @@ std::string StayStillAtLastPositionEMPA::format() const {
 }
 
 void StayStillAtLastPositionEMPA::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	duration = std::stof(items[1]);
 	symbolTable.load(items[2]);
 }
@@ -353,7 +353,7 @@ std::string MoveCustomPolarEMPA::format() const {
 }
 
 void MoveCustomPolarEMPA::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	distance = TFVFactory::create(items[1]);
 	angle = TFVFactory::create(items[2]);
 	time = std::stof(items[3]);
@@ -457,7 +457,7 @@ std::string MoveCustomBezierEMPA::format() const {
 }
 
 void MoveCustomBezierEMPA::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	time = std::stof(items[1]);
 	rotationAngle = EMPAngleOffsetFactory::create(items[2]);
 	symbolTable.load(items[3]);
@@ -573,7 +573,7 @@ std::string MovePlayerHomingEMPA::format() const {
 }
 
 void MovePlayerHomingEMPA::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	homingStrength = TFVFactory::create(items[1]);
 	speed = TFVFactory::create(items[2]);
 	time = std::stof(items[3]);
@@ -636,7 +636,7 @@ std::string MoveGlobalHomingEMPA::format() const {
 }
 
 void MoveGlobalHomingEMPA::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	targetX = items[1];
 	targetY = items[2];
 	homingStrength = TFVFactory::create(items[3]);
@@ -684,7 +684,7 @@ bool MoveGlobalHomingEMPA::operator==(const EMPAction& other) const {
 }
 
 std::shared_ptr<EMPAction> EMPActionFactory::create(std::string formattedString) {
-	auto name = split(formattedString, DELIMITER)[0];
+	auto name = split(formattedString, TextMarshallable::DELIMITER)[0];
 	std::shared_ptr<EMPAction> ptr;
 	if (name == "DetachFromParentEMPA") {
 		ptr = std::make_shared<DetachFromParentEMPA>();
@@ -704,7 +704,7 @@ std::shared_ptr<EMPAction> EMPActionFactory::create(std::string formattedString)
 }
 
 std::shared_ptr<EMPAAngleOffset> EMPAngleOffsetFactory::create(std::string formattedString) {
-	auto name = split(formattedString, DELIMITER)[0];
+	auto name = split(formattedString, TextMarshallable::DELIMITER)[0];
 	std::shared_ptr<EMPAAngleOffset> ptr;
 	if (name == "EMPAAngleOffsetToPlayer") {
 		ptr = std::make_shared<EMPAAngleOffsetToPlayer>();

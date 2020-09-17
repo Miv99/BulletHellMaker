@@ -20,7 +20,7 @@ std::string GlobalTimeBasedEnemySpawnCondition::format() const {
 }
 
 void GlobalTimeBasedEnemySpawnCondition::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	time = items[1];
 	symbolTable.load(items[2]);
 }
@@ -62,7 +62,7 @@ std::string EnemyCountBasedEnemySpawnCondition::format() const {
 }
 
 void EnemyCountBasedEnemySpawnCondition::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	enemyCount = items[1];
 	symbolTable.load(items[2]);
 }
@@ -104,7 +104,7 @@ std::string TimeBasedEnemySpawnCondition::format() const {
 }
 
 void TimeBasedEnemySpawnCondition::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	time = items[1];
 	symbolTable.load(items[2]);
 }
@@ -129,7 +129,7 @@ bool TimeBasedEnemySpawnCondition::satisfied(entt::DefaultRegistry & registry) {
 }
 
 std::shared_ptr<LevelEventStartCondition> LevelEventStartConditionFactory::create(std::string formattedString) {
-	auto name = split(formattedString, DELIMITER)[0];
+	auto name = split(formattedString, TextMarshallable::DELIMITER)[0];
 	std::shared_ptr<LevelEventStartCondition> ptr;
 	if (name == "GlobalTimeBasedEnemySpawnCondition") {
 		ptr = std::make_shared<GlobalTimeBasedEnemySpawnCondition>();

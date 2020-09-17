@@ -31,7 +31,7 @@ std::string EditorEnemyPhase::format() const {
 }
 
 void EditorEnemyPhase::load(std::string formattedString) {
-	auto items = split(formattedString, DELIMITER);
+	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	id = stoi(items[0]);
 	name = items[1];
 	phaseBeginAction = EPAFactory::create(items[2]);

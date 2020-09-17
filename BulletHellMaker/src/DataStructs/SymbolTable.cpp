@@ -9,7 +9,7 @@ std::string ExprSymbolTable::format() const {
 }
 
 void ExprSymbolTable::load(std::string formattedString) {
-    auto items = split(formattedString, DELIMITER);
+    auto items = split(formattedString, TextMarshallable::DELIMITER);
     map.clear();
     for (int i = 0; i < items.size(); i += 2) {
         map[items[i]] = { items[i + 1] };
@@ -80,7 +80,7 @@ std::string ValueSymbolTable::format() const {
 }
 
 void ValueSymbolTable::load(std::string formattedString) {
-    auto items = split(formattedString, DELIMITER);
+    auto items = split(formattedString, TextMarshallable::DELIMITER);
     map.clear();
     for (int i = 0; i < items.size(); i += 3) {
         map[items[i]] = { std::stof(items[i + 1]), unformatBool(items[i + 2]) };
