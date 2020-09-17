@@ -34,13 +34,13 @@ std::string EditorAttack::format() const {
 
 void EditorAttack::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	id = std::stoi(items[0]);
-	name = items[1];
+	id = std::stoi(items.at(0));
+	name = items.at(1);
 	bulletModelsCount.clear();
 	empIDGen = IDGenerator();
 	mainEMP = std::make_shared<EditorMovablePoint>(&empIDGen, false, &bulletModelsCount);
-	mainEMP->load(items[2]);
-	playAttackAnimation = unformatBool(items[3]);
+	mainEMP->load(items.at(2));
+	playAttackAnimation = unformatBool(items.at(3));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorAttack::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -77,7 +77,7 @@ void EditorAttack::executeAsPlayer(EntityCreationQueue & queue, SpriteLoader & s
 }
 
 const bool EditorAttack::usesBulletModel(int bulletModelID) const {
-	return bulletModelsCount.count(bulletModelID) > 0 && bulletModelsCount.at(bulletModelID) > 0;
+	return bulletModelsCount.find(bulletModelID) != bulletModelsCount.end() && bulletModelsCount.at(bulletModelID) > 0;
 }
 
 bool EditorAttack::getPlayAttackAnimation() const {

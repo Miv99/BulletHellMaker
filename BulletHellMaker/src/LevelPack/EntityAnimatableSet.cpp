@@ -17,10 +17,10 @@ std::string EntityAnimatableSet::format() const {
 
 void EntityAnimatableSet::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	idleAnimatable.load(items[0]);
-	movementAnimatable.load(items[1]);
-	attackAnimatable.load(items[2]);
-	deathAction = DeathActionFactory::create(items[3]);
+	idleAnimatable.load(items.at(0));
+	movementAnimatable.load(items.at(1));
+	attackAnimatable.load(items.at(2));
+	deathAction = DeathActionFactory::create(items.at(3));
 }
 
 std::shared_ptr<DeathAction> EntityAnimatableSet::getDeathAction() {

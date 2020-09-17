@@ -25,15 +25,15 @@ std::string Level::format() const {
 
 void Level::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	id = std::stoi(items[0]);
-	name = items[1];
+	id = std::stoi(items.at(0));
+	name = items.at(1);
 
 	events.clear();
 	enemyIDCount.clear();
 	int i;
-	for (i = 3; i < std::stoi(items[2]) + 3;) {
-		std::shared_ptr<LevelEventStartCondition> condition = LevelEventStartConditionFactory::create(items[i++]);
-		std::shared_ptr<LevelEvent> event = LevelEventFactory::create(items[i++]);
+	for (i = 3; i < std::stoi(items.at(2)) + 3;) {
+		std::shared_ptr<LevelEventStartCondition> condition = LevelEventStartConditionFactory::create(items.at(i++));
+		std::shared_ptr<LevelEvent> event = LevelEventFactory::create(items.at(i++));
 		events.push_back(std::make_pair(condition, event));
 
 		// Update enemyIDCount if possible
@@ -41,7 +41,7 @@ void Level::load(std::string formattedString) {
 		if (ptr) {
 			for (auto& enemy : ptr->getSpawnInfo()) {
 				int enemyID = enemy->getEnemyID();
-				if (enemyIDCount.count(enemyID) == 0) {
+				if (enemyIDCount.find(enemyID) == enemyIDCount.end()) {
 					enemyIDCount[enemyID] = 1;
 				} else {
 					enemyIDCount[enemyID]++;
@@ -50,22 +50,22 @@ void Level::load(std::string formattedString) {
 		}
 	}
 	if (!healthPack) healthPack = std::make_shared<HealthPackItem>();
-	healthPack->load(items[i++]);
+	healthPack->load(items.at(i++));
 	if (!pointPack) pointPack = std::make_shared<PointsPackItem>();
-	pointPack->load(items[i++]);
+	pointPack->load(items.at(i++));
 	if (!powerPack) powerPack = std::make_shared<PowerPackItem>();
-	powerPack->load(items[i++]);
+	powerPack->load(items.at(i++));
 	if (!bombItem) bombItem = std::make_shared<BombItem>();
-	bombItem->load(items[i++]);
-	musicSettings.load(items[i++]);
-	backgroundFileName = items[i++];
-	backgroundScrollSpeedX = std::stof(items[i++]);
-	backgroundScrollSpeedY = std::stof(items[i++]);
-	backgroundTextureWidth = std::stof(items[i++]);
-	backgroundTextureHeight = std::stof(items[i++]);
-	bossNameColor = sf::Color(std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]));
-	bossHPBarColor = sf::Color(std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]));
-	symbolTable.load(items[i++]);
+	bombItem->load(items.at(i++));
+	musicSettings.load(items.at(i++));
+	backgroundFileName = items.at(i++);
+	backgroundScrollSpeedX = std::stof(items.at(i++));
+	backgroundScrollSpeedY = std::stof(items.at(i++));
+	backgroundTextureWidth = std::stof(items.at(i++));
+	backgroundTextureHeight = std::stof(items.at(i++));
+	bossNameColor = sf::Color(std::stof(items.at(i++)), std::stof(items.at(i++)), std::stof(items.at(i++)), std::stof(items.at(i++)));
+	bossHPBarColor = sf::Color(std::stof(items.at(i++)), std::stof(items.at(i++)), std::stof(items.at(i++)), std::stof(items.at(i++)));
+	symbolTable.load(items.at(i++));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> Level::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -141,7 +141,7 @@ void Level::insertEvent(int eventIndex, std::shared_ptr<LevelEventStartCondition
 	if (ptr) {
 		for (auto& enemy : ptr->getSpawnInfo()) {
 			int enemyID = enemy->getEnemyID();
-			if (enemyIDCount.count(enemyID) == 0) {
+			if (enemyIDCount.find(enemyID) == enemyIDCount.end()) {
 				enemyIDCount[enemyID] = 1;
 			} else {
 				enemyIDCount[enemyID]++;

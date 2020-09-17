@@ -22,8 +22,8 @@ std::string TimeBasedEnemyPhaseStartCondition::format() const {
 
 void TimeBasedEnemyPhaseStartCondition::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	time = items[1];
-	symbolTable.load(items[2]);
+	time = items.at(1);
+	symbolTable.load(items.at(2));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> TimeBasedEnemyPhaseStartCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -71,8 +71,8 @@ std::string HPBasedEnemyPhaseStartCondition::format() const {
 
 void HPBasedEnemyPhaseStartCondition::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	ratio = items[1];
-	symbolTable.load(items[2]);
+	ratio = items.at(1);
+	symbolTable.load(items.at(2));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> HPBasedEnemyPhaseStartCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -122,8 +122,8 @@ std::string EnemyCountBasedEnemyPhaseStartCondition::format() const {
 
 void EnemyCountBasedEnemyPhaseStartCondition::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	enemyCount = items[1];
-	symbolTable.load(items[2]);
+	enemyCount = items.at(1);
+	symbolTable.load(items.at(2));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EnemyCountBasedEnemyPhaseStartCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {

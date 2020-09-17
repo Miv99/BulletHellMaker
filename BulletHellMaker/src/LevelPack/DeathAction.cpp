@@ -26,10 +26,10 @@ std::string PlayAnimatableDeathAction::format() const {
 
 void PlayAnimatableDeathAction::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	animatable.load(items[1]);
-	duration = items[2];
-	effect = static_cast<DEATH_ANIMATION_EFFECT>(std::stoi(items[3]));
-	symbolTable.load(items[4]);
+	animatable.load(items.at(1));
+	duration = items.at(2);
+	effect = static_cast<DEATH_ANIMATION_EFFECT>(std::stoi(items.at(3)));
+	symbolTable.load(items.at(4));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> PlayAnimatableDeathAction::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -95,7 +95,7 @@ std::string PlaySoundDeathAction::format() const {
 
 void PlaySoundDeathAction::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	soundSettings.load(items[1]);
+	soundSettings.load(items.at(1));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> PlaySoundDeathAction::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -146,10 +146,10 @@ std::string ExecuteAttacksDeathAction::format() const {
 void ExecuteAttacksDeathAction::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	attackIDs.clear();
-	for (int i = 2; i < std::stoi(items[1]) + 2; i += 2) {
+	for (int i = 2; i < std::stoi(items.at(1)) + 2; i += 2) {
 		ExprSymbolTable definer;
-		definer.load(items[i + 1]);
-		attackIDs.push_back(std::make_pair(std::stoi(items[i]), definer));
+		definer.load(items.at(i + 1));
+		attackIDs.push_back(std::make_pair(std::stoi(items.at(i)), definer));
 	}
 }
 
@@ -234,20 +234,20 @@ std::string ParticleExplosionDeathAction::format() const {
 
 void ParticleExplosionDeathAction::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	effect = static_cast<PARTICLE_EFFECT>(std::stoi(items[1]));
-	animatable.load(items[2]);
-	loopAnimatable = unformatBool(items[3]);
-	color.r = std::stoi(items[4]);
-	color.g = std::stoi(items[5]);
-	color.b = std::stoi(items[6]);
-	color.a = std::stoi(items[7]);
-	minParticles = items[8];
-	maxParticles = items[9];
-	minDistance = items[10];
-	maxDistance = items[11];
-	minLifespan = items[12];
-	minLifespan = items[13];
-	symbolTable.load(items[14]);
+	effect = static_cast<PARTICLE_EFFECT>(std::stoi(items.at(1)));
+	animatable.load(items.at(2));
+	loopAnimatable = unformatBool(items.at(3));
+	color.r = std::stoi(items.at(4));
+	color.g = std::stoi(items.at(5));
+	color.b = std::stoi(items.at(6));
+	color.a = std::stoi(items.at(7));
+	minParticles = items.at(8);
+	maxParticles = items.at(9);
+	minDistance = items.at(10);
+	maxDistance = items.at(11);
+	minLifespan = items.at(12);
+	minLifespan = items.at(13);
+	symbolTable.load(items.at(14));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> ParticleExplosionDeathAction::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {

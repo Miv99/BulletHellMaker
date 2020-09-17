@@ -21,8 +21,8 @@ std::string GlobalTimeBasedEnemySpawnCondition::format() const {
 
 void GlobalTimeBasedEnemySpawnCondition::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	time = items[1];
-	symbolTable.load(items[2]);
+	time = items.at(1);
+	symbolTable.load(items.at(2));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> GlobalTimeBasedEnemySpawnCondition::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -63,8 +63,8 @@ std::string EnemyCountBasedEnemySpawnCondition::format() const {
 
 void EnemyCountBasedEnemySpawnCondition::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	enemyCount = items[1];
-	symbolTable.load(items[2]);
+	enemyCount = items.at(1);
+	symbolTable.load(items.at(2));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EnemyCountBasedEnemySpawnCondition::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -105,8 +105,8 @@ std::string TimeBasedEnemySpawnCondition::format() const {
 
 void TimeBasedEnemySpawnCondition::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	time = items[1];
-	symbolTable.load(items[2]);
+	time = items.at(1);
+	symbolTable.load(items.at(2));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> TimeBasedEnemySpawnCondition::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {

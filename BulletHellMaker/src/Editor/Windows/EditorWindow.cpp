@@ -361,13 +361,13 @@ int EditorWindow::addVertexArray(sf::VertexArray vertexArray) {
 }
 
 void EditorWindow::removeVertexArray(int id) {
-	if (vertexArrays.count(id) > 0) {
+	if (vertexArrays.find(id) != vertexArrays.end()) {
 		vertexArrays.erase(id);
 	}
 }
 
 void EditorWindow::modifyVertexArray(int id, sf::VertexArray newVertexArray) {
-	if (vertexArrays.count(id) > 0) {
+	if (vertexArrays.find(id) != vertexArrays.end()) {
 		vertexArrays[id] = newVertexArray;
 	}
 }

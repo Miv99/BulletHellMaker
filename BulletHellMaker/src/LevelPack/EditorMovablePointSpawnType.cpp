@@ -37,9 +37,9 @@ std::string SpecificGlobalEMPSpawn::format() const {
 
 void SpecificGlobalEMPSpawn::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	x = items[1];
-	y = items[2];
-	time = items[3];
+	x = items.at(1);
+	y = items.at(2);
+	time = items.at(3);
 }
 
 MPSpawnInformation SpecificGlobalEMPSpawn::getSpawnInfo(entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
@@ -73,9 +73,9 @@ std::string EntityRelativeEMPSpawn::format() const {
 
 void EntityRelativeEMPSpawn::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	x = items[1];
-	y = items[2];
-	time = items[3];
+	x = items.at(1);
+	y = items.at(2);
+	time = items.at(3);
 }
 
 MPSpawnInformation EntityRelativeEMPSpawn::getSpawnInfo(entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
@@ -122,9 +122,9 @@ std::string EntityAttachedEMPSpawn::format() const {
 
 void EntityAttachedEMPSpawn::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	x = items[1];
-	y = items[2];
-	time = items[3];
+	x = items.at(1);
+	y = items.at(2);
+	time = items.at(3);
 }
 
 MPSpawnInformation EntityAttachedEMPSpawn::getSpawnInfo(entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {

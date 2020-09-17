@@ -390,12 +390,12 @@ void EMPABasedMovementEditorPanel::manualDelete() {
 			int t = tValues[tPtr];
 			int d = deletedAsVector[dPtr];
 			if (t + numSeen < d) {
-				if (numSeen != 0 && actionIndicesToBeRenamed.count(t) == 0) {
+				if (numSeen != 0 && actionIndicesToBeRenamed.find(t) == actionIndicesToBeRenamed.end()) {
 					actionIndicesToBeRenamed[t] = numSeen;
 				}
 				tPtr++;
 			} else {
-				if (actionIndicesToBeRenamed.count(t) == 0) {
+				if (actionIndicesToBeRenamed.find(t) == actionIndicesToBeRenamed.end()) {
 					numSeen++;
 					actionIndicesToBeRenamed[t] = numSeen;
 				}

@@ -20,7 +20,7 @@ CopyOperationResult LevelPackObjectsListView::copyFrom() {
 		for (int selectedIndex : selectedIndices) {
 			int id = getLevelPackObjectIDFromIndex(selectedIndex);
 
-			if (unsavedObjs.count(id) > 0) {
+			if (unsavedObjs.find(id) != unsavedObjs.end()) {
 				objs.push_back(unsavedObjs[id]);
 			} else {
 				objs.push_back(getLevelPackObjectFromLevelPack(id));
@@ -193,7 +193,7 @@ void LevelPackObjectsListView::reload() {
 	// Select the old IDs if they still exist
 	std::set<size_t> newSelectedIndices;
 	for (auto it = selectedIDs.begin(); it != selectedIDs.end(); it++) {
-		if (levelPackObjectIDToListViewIndexMap.count(*it) > 0) {
+		if (levelPackObjectIDToListViewIndexMap.find(*it) != levelPackObjectIDToListViewIndexMap.end()) {
 			newSelectedIndices.insert(levelPackObjectIDToListViewIndexMap[*it]);
 		}
 	}
@@ -247,7 +247,7 @@ void LevelPackObjectsListView::manualDelete() {
 		for (int index : selectedIndices) {
 			int id = getLevelPackObjectIDFromIndex(index);
 
-			if (unsavedObjs.count(id) > 0) {
+			if (unsavedObjs.find(id) != unsavedObjs.end()) {
 				deletedObjs.push_back(std::make_pair(unsavedObjs[id]->clone(), true));
 			} else {
 				deletedObjs.push_back(std::make_pair(getLevelPackObjectFromLevelPack(id)->clone(), false));
@@ -302,7 +302,7 @@ void AttacksListView::addLevelPackObjectsToListView() {
 				continue;
 			}
 
-			bool objIsUnsaved = unsavedObjs.count(it->first) > 0;
+			bool objIsUnsaved = unsavedObjs.find(it->first) != unsavedObjs.end();
 			addLevelPackObjectToListView(it->first, it->second->getName(), objIsUnsaved, objIsUnsaved ? unsavedObjs[it->first]->getName() : "");
 		}
 	} else {
@@ -312,7 +312,7 @@ void AttacksListView::addLevelPackObjectsToListView() {
 				continue;
 			}
 
-			if (unsavedObjs.count(it->first) > 0) {
+			if (unsavedObjs.find(it->first) != unsavedObjs.end()) {
 				objsOrdering.push_back(std::make_pair(unsavedObjs[it->first]->getName(), it->first));
 			} else {
 				objsOrdering.push_back(std::make_pair(it->second->getName(), it->first));
@@ -321,7 +321,7 @@ void AttacksListView::addLevelPackObjectsToListView() {
 		std::sort(objsOrdering.begin(), objsOrdering.end());
 
 		for (auto p : objsOrdering) {
-			bool objIsUnsaved = unsavedObjs.count(p.second) > 0;
+			bool objIsUnsaved = unsavedObjs.find(p.second) != unsavedObjs.end();
 			addLevelPackObjectToListView(p.second, p.first, objIsUnsaved, objIsUnsaved ? unsavedObjs[p.second]->getName() : "");
 		}
 	}
@@ -448,7 +448,7 @@ void AttackPatternsListView::addLevelPackObjectsToListView() {
 				continue;
 			}
 
-			bool objIsUnsaved = unsavedObjs.count(it->first) > 0;
+			bool objIsUnsaved = unsavedObjs.find(it->first) != unsavedObjs.end();
 			addLevelPackObjectToListView(it->first, it->second->getName(), objIsUnsaved, objIsUnsaved ? unsavedObjs[it->first]->getName() : "");
 		}
 	} else {
@@ -458,7 +458,7 @@ void AttackPatternsListView::addLevelPackObjectsToListView() {
 				continue;
 			}
 
-			if (unsavedObjs.count(it->first) > 0) {
+			if (unsavedObjs.find(it->first) != unsavedObjs.end()) {
 				objsOrdering.push_back(std::make_pair(unsavedObjs[it->first]->getName(), it->first));
 			} else {
 				objsOrdering.push_back(std::make_pair(it->second->getName(), it->first));
@@ -467,7 +467,7 @@ void AttackPatternsListView::addLevelPackObjectsToListView() {
 		std::sort(objsOrdering.begin(), objsOrdering.end());
 
 		for (auto p : objsOrdering) {
-			bool objIsUnsaved = unsavedObjs.count(p.second) > 0;
+			bool objIsUnsaved = unsavedObjs.find(p.second) != unsavedObjs.end();
 			addLevelPackObjectToListView(p.second, p.first, objIsUnsaved, objIsUnsaved ? unsavedObjs[p.second]->getName() : "");
 		}
 	}

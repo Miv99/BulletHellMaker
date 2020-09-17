@@ -41,19 +41,19 @@ std::string EditorAttackPattern::format() const {
 
 void EditorAttackPattern::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	id = std::stoi(items[0]);
-	name = items[1];
+	id = std::stoi(items.at(0));
+	name = items.at(1);
 
 	int i = 3;
 	attackIDs.clear();
 	attackIDCount.clear();
-	for (int a = 0; a < std::stoi(items[2]); a++) {
-		int attackID = std::stoi(items[i + 1]);
+	for (int a = 0; a < std::stoi(items.at(2)); a++) {
+		int attackID = std::stoi(items.at(i + 1));
 		ExprSymbolTable definer;
-		definer.load(items[i + 2]);
-		attackIDs.push_back(std::make_tuple(items[i], attackID, definer));
+		definer.load(items.at(i + 2));
+		attackIDs.push_back(std::make_tuple(items.at(i), attackID, definer));
 
-		if (attackIDCount.count(attackID) == 0) {
+		if (attackIDCount.find(attackID) == attackIDCount.end()) {
 			attackIDCount[attackID] = 1;
 		} else {
 			attackIDCount[attackID]++;
@@ -61,16 +61,16 @@ void EditorAttackPattern::load(std::string formattedString) {
 		i += 3;
 	}
 
-	int actionsSize = std::stoi(items[i]);
+	int actionsSize = std::stoi(items.at(i));
 	int last = i + 1;
 	actions.clear();
 	for (i = last; i < actionsSize + last; i++) {
-		actions.push_back(EMPActionFactory::create(items[i]));
+		actions.push_back(EMPActionFactory::create(items.at(i)));
 	}
 
-	shadowTrailInterval = items[i++];
-	shadowTrailLifespan = items[i++];
-	symbolTable.load(items[i++]);
+	shadowTrailInterval = items.at(i++);
+	shadowTrailLifespan = items.at(i++);
+	symbolTable.load(items.at(i++));
 
 	onActionsModified();
 }
@@ -172,7 +172,7 @@ float EditorAttackPattern::getActionsTotalTime() const {
 }
 
 bool EditorAttackPattern::usesAttack(int attackID) const {
-	return attackIDCount.count(attackID) > 0 && attackIDCount.at(attackID) > 0;
+	return attackIDCount.find(attackID) != attackIDCount.end() && attackIDCount.at(attackID) > 0;
 }
 
 const std::map<int, int>* EditorAttackPattern::getAttackIDsCount() const {
@@ -201,7 +201,7 @@ void EditorAttackPattern::setAttacks(std::vector<std::tuple<std::string, int, Ex
 		this->attackIDs.push_back(t);
 
 		int id = std::get<1>(t);
-		if (this->attackIDCount.count(id) == 0) {
+		if (this->attackIDCount.find(id) == this->attackIDCount.end()) {
 			this->attackIDCount[id] = 1;
 		} else {
 			this->attackIDCount[id]++;
@@ -212,7 +212,7 @@ void EditorAttackPattern::setAttacks(std::vector<std::tuple<std::string, int, Ex
 void EditorAttackPattern::addAttack(std::string time, int id, ExprSymbolTable attackSymbolsDefiner) {
 	attackIDs.push_back(std::make_tuple(time, id, attackSymbolsDefiner));
 
-	if (attackIDCount.count(id) == 0) {
+	if (attackIDCount.find(id) == attackIDCount.end()) {
 		attackIDCount[id] = 1;
 	} else {
 		attackIDCount[id]++;

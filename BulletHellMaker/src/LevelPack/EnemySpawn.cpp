@@ -27,14 +27,14 @@ std::string EnemySpawnInfo::format() const {
 
 void EnemySpawnInfo::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	x = items[0];
-	y = items[1];
-	enemyID = std::stoi(items[2]);
-	symbolTable.load(items[3]);
-	enemySymbolsDefiner.load(items[4]);
+	x = items.at(0);
+	y = items.at(1);
+	enemyID = std::stoi(items.at(2));
+	symbolTable.load(items.at(3));
+	enemySymbolsDefiner.load(items.at(4));
 	itemsDroppedOnDeath.clear();
 	for (int i = 5; i < items.size(); i += 2) {
-		itemsDroppedOnDeath.push_back(std::make_pair(ItemFactory::create(items[i]), items[i + 1]));
+		itemsDroppedOnDeath.push_back(std::make_pair(ItemFactory::create(items.at(i)), items.at(i + 1)));
 	}
 }
 

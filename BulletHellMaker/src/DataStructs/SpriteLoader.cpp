@@ -85,7 +85,7 @@ void SpriteSheet::load(std::string formattedString) {
 }
 
 std::shared_ptr<sf::Sprite> SpriteSheet::getSprite(const std::string& spriteName) {
-	if (spriteData.count(spriteName) == 0) {
+	if (spriteData.find(spriteName) == spriteData.end()) {
 		// Missing sprite
 		return nullptr;
 	}
@@ -103,7 +103,7 @@ std::shared_ptr<sf::Sprite> SpriteSheet::getSprite(const std::string& spriteName
 }
 
 std::unique_ptr<Animation> SpriteSheet::getAnimation(const std::string& animationName, bool loop) {
-	if (animationData.count(animationName) == 0) {
+	if (animationData.find(animationName) == animationData.end()) {
 		// Missing animation
 		return nullptr;
 	}
@@ -280,7 +280,7 @@ std::shared_ptr<sf::Texture> SpriteLoader::getGuiElementTexture(const std::strin
 }
 
 std::shared_ptr<sf::Sprite> SpriteLoader::getSprite(const std::string& spriteName, const std::string& spriteSheetName) {
-	if (spriteSheets.count(spriteSheetName) == 0) {
+	if (spriteSheets.find(spriteSheetName) == spriteSheets.end()) {
 		// Missing sprite sheet
 		return getMissingSprite();
 	}
@@ -293,7 +293,7 @@ std::shared_ptr<sf::Sprite> SpriteLoader::getSprite(const std::string& spriteNam
 }
 
 std::unique_ptr<Animation> SpriteLoader::getAnimation(const std::string & animationName, const std::string & spriteSheetName, bool loop) {
-	if (spriteSheets.count(spriteSheetName) == 0) {
+	if (spriteSheets.find(spriteSheetName) == spriteSheets.end()) {
 		// Missing sprite sheet
 		return nullptr;
 	}

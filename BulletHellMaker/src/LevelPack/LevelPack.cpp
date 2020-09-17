@@ -337,7 +337,6 @@ void LevelPack::load() {
 		bulletModel->load(line);
 		bulletModelIDGen.markIDAsUsed(bulletModel->getID());
 
-		assert(bulletModels.count(bulletModel->getID()) == 0 && "Bullet model ID conflict");
 		bulletModels[bulletModel->getID()] = bulletModel;
 	}
 	bulletModelsFile.close();
@@ -352,7 +351,6 @@ void LevelPack::load() {
 
 		// Load bullet models for every EMP
 		attack->loadEMPBulletModels(*this);
-		assert(attacks.count(attack->getID()) == 0 && "Attack ID conflict");
 		attacks[attack->getID()] = attack;
 	}
 	attacksFile.close();
@@ -365,7 +363,6 @@ void LevelPack::load() {
 		attackPattern->load(line);
 		attackPatternIDGen.markIDAsUsed(attackPattern->getID());
 
-		assert(attackPatterns.count(attackPattern->getID()) == 0 && "Attack pattern ID conflict");
 		attackPatterns[attackPattern->getID()] = attackPattern;
 	}
 	attackPatternsFile.close();
@@ -378,7 +375,6 @@ void LevelPack::load() {
 		enemy->load(line);
 		enemyIDGen.markIDAsUsed(enemy->getID());
 
-		assert(enemies.count(enemy->getID()) == 0 && "Enemy ID conflict");
 		enemies[enemy->getID()] = enemy;
 	}
 	enemiesFile.close();
@@ -391,7 +387,6 @@ void LevelPack::load() {
 		enemyPhase->load(line);
 		enemyPhaseIDGen.markIDAsUsed(enemyPhase->getID());
 
-		assert(enemyPhases.count(enemyPhase->getID()) == 0 && "Enemy phase ID conflict");
 		enemyPhases[enemyPhase->getID()] = enemyPhase;
 	}
 	enemyPhasesFile.close();
@@ -556,8 +551,6 @@ void LevelPack::updateAttack(std::shared_ptr<EditorAttack> attack, bool emitOnCh
 }
 
 void LevelPack::updateAttack(std::shared_ptr<LevelPackObject> attack, bool emitOnChange) {
-	assert(std::dynamic_pointer_cast<EditorAttack>(attack));
-
 	attackIDGen.markIDAsUsed(attack->getID());
 	attacks[attack->getID()] = std::dynamic_pointer_cast<EditorAttack>(attack);
 	if (emitOnChange) {
@@ -574,8 +567,6 @@ void LevelPack::updateAttackPattern(std::shared_ptr<EditorAttackPattern> attackP
 }
 
 void LevelPack::updateAttackPattern(std::shared_ptr<LevelPackObject> attackPattern, bool emitOnChange) {
-	assert(std::dynamic_pointer_cast<EditorAttackPattern>(attackPattern));
-
 	attackPatternIDGen.markIDAsUsed(attackPattern->getID());
 	attackPatterns[attackPattern->getID()] = std::dynamic_pointer_cast<EditorAttackPattern>(attackPattern);
 	if (emitOnChange) {
@@ -592,8 +583,6 @@ void LevelPack::updateEnemy(std::shared_ptr<EditorEnemy> enemy, bool emitOnChang
 }
 
 void LevelPack::updateEnemy(std::shared_ptr<LevelPackObject> enemy, bool emitOnChange) {
-	assert(std::dynamic_pointer_cast<EditorEnemy>(enemy));
-
 	enemyIDGen.markIDAsUsed(enemy->getID());
 	enemies[enemy->getID()] = std::dynamic_pointer_cast<EditorEnemy>(enemy);
 	if (emitOnChange) {
@@ -610,8 +599,6 @@ void LevelPack::updateEnemyPhase(std::shared_ptr<EditorEnemyPhase> enemyPhase, b
 }
 
 void LevelPack::updateEnemyPhase(std::shared_ptr<LevelPackObject> enemyPhase, bool emitOnChange) {
-	assert(std::dynamic_pointer_cast<EditorEnemyPhase>(enemyPhase));
-
 	enemyPhaseIDGen.markIDAsUsed(enemyPhase->getID());
 	enemyPhases[enemyPhase->getID()] = std::dynamic_pointer_cast<EditorEnemyPhase>(enemyPhase);
 	if (emitOnChange) {
@@ -628,8 +615,6 @@ void LevelPack::updateBulletModel(std::shared_ptr<BulletModel> bulletModel, bool
 }
 
 void LevelPack::updateBulletModel(std::shared_ptr<LevelPackObject> bulletModel, bool emitOnChange) {
-	assert(std::dynamic_pointer_cast<BulletModel>(bulletModel));
-
 	bulletModelIDGen.markIDAsUsed(bulletModel->getID());
 	bulletModels[bulletModel->getID()] = std::dynamic_pointer_cast<BulletModel>(bulletModel);
 	if (emitOnChange) {
@@ -742,23 +727,23 @@ std::vector<int> LevelPack::getBulletModelUsers(int bulletModelID) {
 }
 
 bool LevelPack::hasEnemy(int id) {
-	return enemies.count(id) != 0;
+	return enemies.find(id) != enemies.end();
 }
 
 bool LevelPack::hasEnemyPhase(int id) {
-	return enemyPhases.count(id) != 0;
+	return enemyPhases.find(id) != enemyPhases.end();
 }
 
 bool LevelPack::hasAttackPattern(int id) {
-	return attackPatterns.count(id) != 0;
+	return attackPatterns.find(id) != attackPatterns.end();
 }
 
 bool LevelPack::hasAttack(int id) {
-	return attacks.count(id) != 0;
+	return attacks.find(id) != attacks.end();
 }
 
 bool LevelPack::hasBulletModel(int id) {
-	return bulletModels.count(id) != 0;
+	return bulletModels.find(id) != bulletModels.end();
 }
 
 bool LevelPack::hasLevel(int levelIndex) {
@@ -935,7 +920,7 @@ std::shared_ptr<entt::SigH<void(LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROO
 }
 
 bool LevelPack::hasBulletModel(int id) const {
-	return bulletModels.count(id) > 0;
+	return bulletModels.find(id) != bulletModels.end();
 }
 
 void LevelPack::setPlayer(std::shared_ptr<EditorPlayer> player) {
@@ -1004,7 +989,7 @@ std::string LevelPackMetadata::format() const {
 void LevelPackMetadata::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	player = std::make_shared<EditorPlayer>();
-	player->load(items[0]);
+	player->load(items.at(0));
 }
 
 std::shared_ptr<EditorPlayer> LevelPackMetadata::getPlayer() const {

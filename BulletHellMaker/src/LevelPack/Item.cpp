@@ -57,12 +57,12 @@ std::string HealthPackItem::format() const {
 
 void HealthPackItem::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	animatable.load(items[1]);
-	hitboxRadius = std::stof(items[2]);
-	activationRadius = std::stof(items[3]);
-	onCollectSound.load(items[4]);
-	healthRestoreAmount = items[5];
-	symbolTable.load(items[6]);
+	animatable.load(items.at(1));
+	hitboxRadius = std::stof(items.at(2));
+	activationRadius = std::stof(items.at(3));
+	onCollectSound.load(items.at(4));
+	healthRestoreAmount = items.at(5);
+	symbolTable.load(items.at(6));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> HealthPackItem::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -110,13 +110,13 @@ std::string PowerPackItem::format() const {
 
 void PowerPackItem::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	animatable.load(items[1]);
-	hitboxRadius = std::stof(items[2]);
-	activationRadius = std::stof(items[3]);
-	onCollectSound.load(items[4]);
-	powerAmount = items[5];
-	pointsPerExtraPower = items[6];
-	symbolTable.load(items[7]);
+	animatable.load(items.at(1));
+	hitboxRadius = std::stof(items.at(2));
+	activationRadius = std::stof(items.at(3));
+	onCollectSound.load(items.at(4));
+	powerAmount = items.at(5);
+	pointsPerExtraPower = items.at(6);
+	symbolTable.load(items.at(7));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> PowerPackItem::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -166,12 +166,12 @@ std::string PointsPackItem::format() const {
 
 void PointsPackItem::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	animatable.load(items[1]);
-	hitboxRadius = std::stof(items[2]);
-	activationRadius = std::stof(items[3]);
-	onCollectSound.load(items[4]);
-	pointsAmount = items[5];
-	symbolTable.load(items[6]);
+	animatable.load(items.at(1));
+	hitboxRadius = std::stof(items.at(2));
+	activationRadius = std::stof(items.at(3));
+	onCollectSound.load(items.at(4));
+	pointsAmount = items.at(5);
+	symbolTable.load(items.at(6));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> PointsPackItem::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -219,13 +219,13 @@ std::string BombItem::format() const {
 
 void BombItem::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	animatable.load(items[1]);
-	hitboxRadius = std::stof(items[2]);
-	activationRadius = std::stof(items[3]);
-	onCollectSound.load(items[4]);
-	bombsAmount = items[5];
-	pointsPerExtraBomb = items[6];
-	symbolTable.load(items[7]);
+	animatable.load(items.at(1));
+	hitboxRadius = std::stof(items.at(2));
+	activationRadius = std::stof(items.at(3));
+	onCollectSound.load(items.at(4));
+	bombsAmount = items.at(5);
+	pointsPerExtraBomb = items.at(6);
+	symbolTable.load(items.at(7));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> BombItem::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {

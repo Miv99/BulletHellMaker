@@ -12,7 +12,7 @@ void ExprSymbolTable::load(std::string formattedString) {
     auto items = split(formattedString, TextMarshallable::DELIMITER);
     map.clear();
     for (int i = 0; i < items.size(); i += 2) {
-        map[items[i]] = { items[i + 1] };
+        map[items.at(i)] = { items.at(i + 1) };
     }
 }
 
@@ -64,7 +64,7 @@ ExprSymbolDefinition ExprSymbolTable::getSymbolDefinition(std::string symbol) co
 }
 
 bool ExprSymbolTable::hasSymbol(std::string symbol) const {
-    return map.count(symbol) > 0;
+    return map.find(symbol) != map.end();
 }
 
 bool ExprSymbolTable::isEmpty() const {
@@ -83,7 +83,7 @@ void ValueSymbolTable::load(std::string formattedString) {
     auto items = split(formattedString, TextMarshallable::DELIMITER);
     map.clear();
     for (int i = 0; i < items.size(); i += 3) {
-        map[items[i]] = { std::stof(items[i + 1]), unformatBool(items[i + 2]) };
+        map[items.at(i)] = { std::stof(items.at(i + 1)), unformatBool(items.at(i + 2)) };
     }
 }
 
@@ -135,7 +135,7 @@ ValueSymbolDefinition ValueSymbolTable::getSymbolDefinition(std::string symbol) 
 }
 
 bool ValueSymbolTable::hasSymbol(std::string symbol) const {
-    return map.count(symbol) > 0;
+    return map.find(symbol) != map.end();
 }
 
 bool ValueSymbolTable::isEmpty() const {

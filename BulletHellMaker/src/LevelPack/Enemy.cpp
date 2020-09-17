@@ -34,24 +34,24 @@ std::string EditorEnemy::format() const {
 
 void EditorEnemy::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	id = std::stoi(items[0]);
-	name = items[1];
-	hitboxRadius = items[2];
-	health = items[3];
-	despawnTime = items[4];
+	id = std::stoi(items.at(0));
+	name = items.at(1);
+	hitboxRadius = items.at(2);
+	health = items.at(3);
+	despawnTime = items.at(4);
 
 	phaseIDs.clear();
 	enemyPhaseCount.clear();
 	int i = 6;
-	for (int a = 0; a < std::stoi(items[5]); a++) {
+	for (int a = 0; a < std::stoi(items.at(5)); a++) {
 		EntityAnimatableSet animatableSet;
-		animatableSet.load(items[i + 2]);
-		int phaseID = std::stoi(items[i + 1]);
+		animatableSet.load(items.at(i + 2));
+		int phaseID = std::stoi(items.at(i + 1));
 		ExprSymbolTable definer;
-		definer.load(items[i + 3]);
-		phaseIDs.push_back(std::make_tuple(EnemyPhaseStartConditionFactory::create(items[i]), phaseID, animatableSet, definer, exprtk::symbol_table<float>()));
+		definer.load(items.at(i + 3));
+		phaseIDs.push_back(std::make_tuple(EnemyPhaseStartConditionFactory::create(items.at(i)), phaseID, animatableSet, definer, exprtk::symbol_table<float>()));
 
-		if (enemyPhaseCount.count(phaseID) == 0) {
+		if (enemyPhaseCount.find(phaseID) == enemyPhaseCount.end()) {
 			enemyPhaseCount[phaseID] = 1;
 		} else {
 			enemyPhaseCount[phaseID]++;
@@ -60,12 +60,12 @@ void EditorEnemy::load(std::string formattedString) {
 	}
 	int next = i;
 	deathActions.clear();
-	for (i = next + 1; i < std::stoi(items[next]) + next + 1; i++) {
-		deathActions.push_back(DeathActionFactory::create(items[i]));
+	for (i = next + 1; i < std::stoi(items.at(next)) + next + 1; i++) {
+		deathActions.push_back(DeathActionFactory::create(items.at(i)));
 	}
-	isBoss = unformatBool(items[i++]);
-	hurtSound.load(items[i++]);
-	deathSound.load(items[i++]);
+	isBoss = unformatBool(items.at(i++));
+	hurtSound.load(items.at(i++));
+	deathSound.load(items.at(i++));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorEnemy::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -203,7 +203,7 @@ const std::map<int, int>* EditorEnemy::getEnemyPhaseIDsCount() const {
 }
 
 bool EditorEnemy::usesEnemyPhase(int enemyPhaseID) const {
-	return enemyPhaseCount.count(enemyPhaseID) > 0 && enemyPhaseCount.at(enemyPhaseID) > 0;
+	return enemyPhaseCount.find(enemyPhaseID) != enemyPhaseCount.end() && enemyPhaseCount.at(enemyPhaseID) > 0;
 }
 
 void EditorEnemy::setHurtSound(SoundSettings hurtSound) {
@@ -225,7 +225,7 @@ void EditorEnemy::removeDeathAction(int index) {
 void EditorEnemy::addPhaseID(int index, std::shared_ptr<EnemyPhaseStartCondition> startCondition, int phaseID, EntityAnimatableSet animatableSet, ExprSymbolTable phaseSymbolsDefiner) {
 	phaseIDs.insert(phaseIDs.begin() + index, std::make_tuple(startCondition, phaseID, animatableSet, phaseSymbolsDefiner, exprtk::symbol_table<float>()));
 
-	if (enemyPhaseCount.count(phaseID) == 0) {
+	if (enemyPhaseCount.find(phaseID) == enemyPhaseCount.end()) {
 		enemyPhaseCount[phaseID] = 1;
 	} else {
 		enemyPhaseCount[phaseID]++;
@@ -236,7 +236,7 @@ void EditorEnemy::removePhaseID(int index) {
 	int phaseID = std::get<1>(phaseIDs[index]);
 	phaseIDs.erase(phaseIDs.begin() + index);
 
-	if (enemyPhaseCount.count(phaseID) == 0) {
+	if (enemyPhaseCount.find(phaseID) == enemyPhaseCount.end()) {
 		enemyPhaseCount[phaseID] = 1;
 	} else {
 		enemyPhaseCount[phaseID]++;

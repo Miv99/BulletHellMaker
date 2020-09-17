@@ -135,7 +135,7 @@ void MainEditorWindow::overwriteAttacks(std::vector<std::shared_ptr<EditorAttack
 	std::vector<std::shared_ptr<EditorAttack>> oldAttacks;
 	for (std::shared_ptr<EditorAttack> attack : attacks) {
 		int id = attack->getID();
-		if (unsavedAttacks.count(id) > 0) {
+		if (unsavedAttacks.find(id) != unsavedAttacks.end()) {
 			oldAttacks.push_back(std::dynamic_pointer_cast<EditorAttack>(unsavedAttacks[id]->clone()));
 		} else {
 			oldAttacks.push_back(std::make_shared<EditorAttack>(levelPack->getAttack(id)));
@@ -148,7 +148,7 @@ void MainEditorWindow::overwriteAttacks(std::vector<std::shared_ptr<EditorAttack
 				int id = attack->getID();
 
 				// Overwrite existing EditorAttack
-				if (unsavedAttacks.count(id) > 0) {
+				if (unsavedAttacks.find(id) != unsavedAttacks.end()) {
 					std::dynamic_pointer_cast<EditorAttack>(unsavedAttacks[id])->load(attack->format());
 				} else {
 					unsavedAttacks[id] = std::dynamic_pointer_cast<LevelPackObject>(std::make_shared<EditorAttack>(attack));
@@ -162,7 +162,7 @@ void MainEditorWindow::overwriteAttacks(std::vector<std::shared_ptr<EditorAttack
 				int id = attack->getID();
 
 				// Overwrite existing EditorAttack
-				if (unsavedAttacks.count(id) > 0) {
+				if (unsavedAttacks.find(id) != unsavedAttacks.end()) {
 					std::dynamic_pointer_cast<EditorAttack>(unsavedAttacks[id])->load(attack->format());
 				} else {
 					unsavedAttacks[id] = std::dynamic_pointer_cast<LevelPackObject>(std::make_shared<EditorAttack>(attack));
@@ -179,7 +179,7 @@ void MainEditorWindow::overwriteAttacks(std::vector<std::shared_ptr<EditorAttack
 			int id = attack->getID();
 
 			// Overwrite existing EditorAttack
-			if (unsavedAttacks.count(id) > 0) {
+			if (unsavedAttacks.find(id) != unsavedAttacks.end()) {
 				std::dynamic_pointer_cast<EditorAttack>(unsavedAttacks[id])->load(attack->format());
 			} else {
 				unsavedAttacks[id] = std::dynamic_pointer_cast<LevelPackObject>(std::make_shared<EditorAttack>(attack));
@@ -440,7 +440,7 @@ void MainEditorWindow::openLeftPanelAttack(int attackID) {
 
 	// Get the attack
 	std::shared_ptr<EditorAttack> openedAttack;
-	if (unsavedAttacks.count(attackID) > 0) {
+	if (unsavedAttacks.find(attackID) != unsavedAttacks.end()) {
 		// There are unsaved changes for this attack, so open the one with unsaved changes
 		openedAttack = std::dynamic_pointer_cast<EditorAttack>(unsavedAttacks[attackID]);
 	} else {
@@ -487,7 +487,7 @@ void MainEditorWindow::openLeftPanelAttackPattern(int id) {
 
 	// Get the object
 	std::shared_ptr<EditorAttackPattern> openedObject;
-	if (unsavedAttackPatterns.count(id) > 0) {
+	if (unsavedAttackPatterns.find(id) != unsavedAttackPatterns.end()) {
 		// There are unsaved changes for this object, so open the one with unsaved changes
 		openedObject = std::dynamic_pointer_cast<EditorAttackPattern>(unsavedAttackPatterns[id]);
 	} else {
@@ -531,7 +531,7 @@ void MainEditorWindow::overwriteAttackPatterns(std::vector<std::shared_ptr<Edito
 	std::vector<std::shared_ptr<EditorAttackPattern>> oldObjects;
 	for (std::shared_ptr<EditorAttackPattern> obj : objects) {
 		int id = obj->getID();
-		if (unsavedAttackPatterns.count(id) > 0) {
+		if (unsavedAttackPatterns.find(id) != unsavedAttackPatterns.end()) {
 			oldObjects.push_back(std::dynamic_pointer_cast<EditorAttackPattern>(unsavedAttackPatterns[id]->clone()));
 		} else {
 			oldObjects.push_back(std::make_shared<EditorAttackPattern>(levelPack->getAttackPattern(id)));
@@ -544,7 +544,7 @@ void MainEditorWindow::overwriteAttackPatterns(std::vector<std::shared_ptr<Edito
 				int id = obj->getID();
 
 				// Overwrite existing object
-				if (unsavedAttackPatterns.count(id) > 0) {
+				if (unsavedAttackPatterns.find(id) != unsavedAttackPatterns.end()) {
 					std::dynamic_pointer_cast<EditorAttackPattern>(unsavedAttackPatterns[id])->load(obj->format());
 				} else {
 					unsavedAttackPatterns[id] = std::dynamic_pointer_cast<LevelPackObject>(std::make_shared<EditorAttackPattern>(obj));
@@ -558,7 +558,7 @@ void MainEditorWindow::overwriteAttackPatterns(std::vector<std::shared_ptr<Edito
 				int id = obj->getID();
 
 				// Overwrite existing object
-				if (unsavedAttackPatterns.count(id) > 0) {
+				if (unsavedAttackPatterns.find(id) != unsavedAttackPatterns.end()) {
 					std::dynamic_pointer_cast<EditorAttackPattern>(unsavedAttackPatterns[id])->load(obj->format());
 				} else {
 					unsavedAttackPatterns[id] = std::dynamic_pointer_cast<LevelPackObject>(std::make_shared<EditorAttackPattern>(obj));
@@ -575,7 +575,7 @@ void MainEditorWindow::overwriteAttackPatterns(std::vector<std::shared_ptr<Edito
 			int id = obj->getID();
 
 			// Overwrite existing object
-			if (unsavedAttackPatterns.count(id) > 0) {
+			if (unsavedAttackPatterns.find(id) != unsavedAttackPatterns.end()) {
 				std::dynamic_pointer_cast<EditorAttackPattern>(unsavedAttackPatterns[id])->load(obj->format());
 			} else {
 				unsavedAttackPatterns[id] = std::dynamic_pointer_cast<LevelPackObject>(std::make_shared<EditorAttackPattern>(obj));
@@ -598,7 +598,7 @@ void MainEditorWindow::reloadAttackTab(int attackID) {
 
 		// Get the attack
 		std::shared_ptr<EditorAttack> openedAttack;
-		if (unsavedAttacks.count(attackID) > 0) {
+		if (unsavedAttacks.find(attackID) != unsavedAttacks.end()) {
 			// There are unsaved changes for this attack, so open the one with unsaved changes
 			openedAttack = std::dynamic_pointer_cast<EditorAttack>(unsavedAttacks[attackID]);
 		} else if (levelPack->hasAttack(attackID)) {
@@ -639,7 +639,7 @@ void MainEditorWindow::reloadAttackPatternTab(int id) {
 
 		// Get the object
 		std::shared_ptr<EditorAttackPattern> openedObject;
-		if (unsavedAttackPatterns.count(id) > 0) {
+		if (unsavedAttackPatterns.find(id) != unsavedAttackPatterns.end()) {
 			// There are unsaved changes for this attack, so open the one with unsaved changes
 			openedObject = std::dynamic_pointer_cast<EditorAttackPattern>(unsavedAttackPatterns[id]);
 		} else if (levelPack->hasAttackPattern(id)) {
@@ -677,7 +677,7 @@ void MainEditorWindow::reloadAttackPatternTab(int id) {
 void MainEditorWindow::saveAttackChanges(int id) {
 	// Do nothing if the attack doesn't have any unsaved changes
 
-	if (unsavedAttacks.count(id) > 0) {
+	if (unsavedAttacks.find(id) != unsavedAttacks.end()) {
 		levelPack->updateAttack(unsavedAttacks[id]);
 		unsavedAttacks.erase(id);
 
@@ -690,7 +690,7 @@ void MainEditorWindow::saveAttackChanges(int id) {
 void MainEditorWindow::saveAttackChanges(std::set<size_t> ids) {
 	if (ids.size() > 0) {
 		for (int id : ids) {
-			if (unsavedAttacks.count(id) > 0) {
+			if (unsavedAttacks.find(id) != unsavedAttacks.end()) {
 				levelPack->updateAttack(unsavedAttacks[id]);
 				unsavedAttacks.erase(id);
 			}
@@ -704,7 +704,7 @@ void MainEditorWindow::saveAttackChanges(std::set<size_t> ids) {
 void MainEditorWindow::saveAttackPatternChanges(int id) {
 	// Do nothing if the attack pattern doesn't have any unsaved changes
 
-	if (unsavedAttackPatterns.count(id) > 0) {
+	if (unsavedAttackPatterns.find(id) != unsavedAttackPatterns.end()) {
 		levelPack->updateAttackPattern(unsavedAttackPatterns[id]);
 		unsavedAttackPatterns.erase(id);
 
@@ -717,7 +717,7 @@ void MainEditorWindow::saveAttackPatternChanges(int id) {
 void MainEditorWindow::saveAttackPatternChanges(std::set<size_t> ids) {
 	if (ids.size() > 0) {
 		for (int id : ids) {
-			if (unsavedAttackPatterns.count(id) > 0) {
+			if (unsavedAttackPatterns.find(id) != unsavedAttackPatterns.end()) {
 				levelPack->updateAttackPattern(unsavedAttackPatterns[id]);
 				unsavedAttackPatterns.erase(id);
 			}

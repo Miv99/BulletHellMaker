@@ -117,7 +117,7 @@ public:
 
 		// Update attackPatternIDCount
 		int attackPatternID = powerTier->getAttackPatternID();
-		if (attackPatternIDCount.count(attackPatternID) == 0) {
+		if (attackPatternIDCount.find(attackPatternID) == attackPatternIDCount.end()) {
 			attackPatternIDCount[attackPatternID] = 1;
 		} else {
 			attackPatternIDCount[attackPatternID]++;
@@ -129,7 +129,7 @@ public:
 		attackPatternIDCount[attackPatternID]--;
 
 		// Update attackPatternIDCount
-		if (attackPatternID >= 0 && attackPatternIDCount.count(attackPatternID) > 0) {
+		if (attackPatternID >= 0 && attackPatternIDCount.find(attackPatternID) != attackPatternIDCount.end()) {
 			attackPatternIDCount.at(attackPatternID)--;
 			if (attackPatternIDCount.at(attackPatternID) == 0) {
 				attackPatternIDCount.erase(attackPatternID);

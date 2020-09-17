@@ -13,10 +13,10 @@ std::string Animatable::format() const {
 
 void Animatable::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	animatableName = items[0];
-	spriteSheetName = items[1];
-	animatableIsSprite = unformatBool(items[2]);
-	rotationType = static_cast<ROTATION_TYPE>(std::stoi(items[3]));
+	animatableName = items.at(0);
+	spriteSheetName = items.at(1);
+	animatableIsSprite = unformatBool(items.at(2));
+	rotationType = static_cast<ROTATION_TYPE>(std::stoi(items.at(3)));
 }
 
 bool Animatable::operator==(const Animatable& other) const {

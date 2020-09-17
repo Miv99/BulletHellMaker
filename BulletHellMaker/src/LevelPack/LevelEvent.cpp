@@ -17,12 +17,12 @@ std::string SpawnEnemiesLevelEvent::format() const {
 
 void SpawnEnemiesLevelEvent::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	int numInfo = std::stoi(items[1]);
-	symbolTable.load(items[2]);
+	int numInfo = std::stoi(items.at(1));
+	symbolTable.load(items.at(2));
 	spawnInfo.clear();
 	for (int i = 3; i < numInfo + 3; i++) {
 		std::shared_ptr<EnemySpawnInfo> info = std::make_shared<EnemySpawnInfo>();
-		info->load(items[i]);
+		info->load(items.at(i));
 		spawnInfo.push_back(info);
 	}
 }
@@ -91,16 +91,16 @@ std::string ShowDialogueLevelEvent::format() const {
 
 void ShowDialogueLevelEvent::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	dialogueBoxPosition = static_cast<PositionOnScreen>(std::stoi(items[1]));
-	dialogueBoxShowAnimationType = static_cast<tgui::ShowAnimationType>(std::stoi(items[2]));
-	dialogueBoxShowAnimationTime = std::stof(items[3]);
-	dialogueBoxTextureFileName = items[4];
-	textureMiddlePart = sf::IntRect(std::stoi(items[5]), std::stoi(items[6]), std::stoi(items[7]), std::stoi(items[8]));
-	dialogueBoxPortraitFileName = items[9];
-	symbolTable.load(items[10]);
+	dialogueBoxPosition = static_cast<PositionOnScreen>(std::stoi(items.at(1)));
+	dialogueBoxShowAnimationType = static_cast<tgui::ShowAnimationType>(std::stoi(items.at(2)));
+	dialogueBoxShowAnimationTime = std::stof(items.at(3));
+	dialogueBoxTextureFileName = items.at(4);
+	textureMiddlePart = sf::IntRect(std::stoi(items.at(5)), std::stoi(items.at(6)), std::stoi(items.at(7)), std::stoi(items.at(8)));
+	dialogueBoxPortraitFileName = items.at(9);
+	symbolTable.load(items.at(10));
 	text.clear();
 	for (int i = 11; i < items.size() + 11; i++) {
-		text.push_back(items[i]);
+		text.push_back(items.at(i));
 	}
 }
 

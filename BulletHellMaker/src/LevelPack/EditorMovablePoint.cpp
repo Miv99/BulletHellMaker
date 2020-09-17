@@ -66,7 +66,7 @@ void EditorMovablePoint::load(std::string formattedString) {
 
 	// Delete IDs from idGen for if load() is overwriting some existing data
 	recursiveDeleteID();
-	id = std::stoi(items[0]);
+	id = std::stoi(items.at(0));
 	idResolved = false;
 	// Resolve any possible conflicts from loading this ID
 	resolveIDConflicts(false);
@@ -74,54 +74,54 @@ void EditorMovablePoint::load(std::string formattedString) {
 	// Update bulletModelsCount
 	updateBulletModelToBulletModelsCount(false);
 
-	hitboxRadius = items[1];
-	despawnTime = std::stof(items[2]);
+	hitboxRadius = items.at(1);
+	despawnTime = std::stof(items.at(2));
 
 	int i;
 	children.clear();
-	for (i = 4; i < stoi(items[3]) + 4; i++) {
+	for (i = 4; i < stoi(items.at(3)) + 4; i++) {
 		std::shared_ptr<EditorMovablePoint> emp = std::make_shared<EditorMovablePoint>(idGen, weak_from_this(), bulletModelsCount, false);
-		emp->load(items[i]);
+		emp->load(items.at(i));
 		children.push_back(emp);
 	}
 
 	int last = i;
-	int actionsSize = stoi(items[i++]);
+	int actionsSize = stoi(items.at(i++));
 	actions.clear();
 	for (i = last + 1; i < actionsSize + last + 1; i++) {
-		actions.push_back(EMPActionFactory::create(items[i]));
+		actions.push_back(EMPActionFactory::create(items.at(i)));
 	}
 
-	spawnType = EMPSpawnTypeFactory::create(items[i++]);
+	spawnType = EMPSpawnTypeFactory::create(items.at(i++));
 
-	shadowTrailInterval = items[i++];
-	shadowTrailLifespan = items[i++];
+	shadowTrailInterval = items.at(i++);
+	shadowTrailLifespan = items.at(i++);
 
-	animatable.load(items[i++]);
-	if (std::stoi(items[i++]) == 0) {
+	animatable.load(items.at(i++));
+	if (std::stoi(items.at(i++)) == 0) {
 		loopAnimation = false;
 	} else {
 		loopAnimation = true;
 	}
-	baseSprite.load(items[i++]);
+	baseSprite.load(items.at(i++));
 
-	damage = items[i++];
+	damage = items.at(i++);
 
-	onCollisionAction = static_cast<BULLET_ON_COLLISION_ACTION>(std::stoi(items[i++]));
-	pierceResetTime = items[i++];
+	onCollisionAction = static_cast<BULLET_ON_COLLISION_ACTION>(std::stoi(items.at(i++)));
+	pierceResetTime = items.at(i++);
 
-	soundSettings.load(items[i++]);
+	soundSettings.load(items.at(i++));
 
-	setBulletModelID(std::stoi(items[i++]));
-	inheritRadius = unformatBool(items[i++]);
-	inheritDespawnTime = unformatBool(items[i++]);
-	inheritShadowTrailInterval = unformatBool(items[i++]);
-	inheritShadowTrailLifespan = unformatBool(items[i++]);
-	inheritAnimatables = unformatBool(items[i++]);
-	inheritDamage = unformatBool(items[i++]);
-	inheritPierceResetTime = unformatBool(items[i++]);
-	inheritSoundSettings = unformatBool(items[i++]);
-	isBullet = unformatBool(items[i++]);
+	setBulletModelID(std::stoi(items.at(i++)));
+	inheritRadius = unformatBool(items.at(i++));
+	inheritDespawnTime = unformatBool(items.at(i++));
+	inheritShadowTrailInterval = unformatBool(items.at(i++));
+	inheritShadowTrailLifespan = unformatBool(items.at(i++));
+	inheritAnimatables = unformatBool(items.at(i++));
+	inheritDamage = unformatBool(items.at(i++));
+	inheritPierceResetTime = unformatBool(items.at(i++));
+	inheritSoundSettings = unformatBool(items.at(i++));
+	isBullet = unformatBool(items.at(i++));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorMovablePoint::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -554,54 +554,54 @@ void EditorMovablePoint::copyConstructorLoad(std::string formattedString) {
 
 	id = -1;
 	idResolved = false;
-	hitboxRadius = items[1];
-	despawnTime = std::stof(items[2]);
+	hitboxRadius = items.at(1);
+	despawnTime = std::stof(items.at(2));
 
 	int i;
 	children.clear();
-	for (i = 4; i < stoi(items[3]) + 4; i++) {
+	for (i = 4; i < stoi(items.at(3)) + 4; i++) {
 		std::shared_ptr<EditorMovablePoint> emp = std::make_shared<EditorMovablePoint>(idGen, weak_from_this(), bulletModelsCount, false);
-		emp->copyConstructorLoad(items[i]);
+		emp->copyConstructorLoad(items.at(i));
 		children.push_back(emp);
 	}
 
 	int last = i;
-	int actionsSize = stoi(items[i++]);
+	int actionsSize = stoi(items.at(i++));
 	actions.clear();
 	for (i = last + 1; i < actionsSize + last + 1; i++) {
-		actions.push_back(EMPActionFactory::create(items[i]));
+		actions.push_back(EMPActionFactory::create(items.at(i)));
 	}
 
-	spawnType = EMPSpawnTypeFactory::create(items[i++]);
+	spawnType = EMPSpawnTypeFactory::create(items.at(i++));
 
-	shadowTrailInterval = items[i++];
-	shadowTrailLifespan = items[i++];
+	shadowTrailInterval = items.at(i++);
+	shadowTrailLifespan = items.at(i++);
 
-	animatable.load(items[i++]);
-	if (std::stoi(items[i++]) == 0) {
+	animatable.load(items.at(i++));
+	if (std::stoi(items.at(i++)) == 0) {
 		loopAnimation = false;
 	} else {
 		loopAnimation = true;
 	}
-	baseSprite.load(items[i++]);
+	baseSprite.load(items.at(i++));
 
-	damage = items[i++];
+	damage = items.at(i++);
 
-	onCollisionAction = static_cast<BULLET_ON_COLLISION_ACTION>(std::stoi(items[i++]));
-	pierceResetTime = items[i++];
+	onCollisionAction = static_cast<BULLET_ON_COLLISION_ACTION>(std::stoi(items.at(i++)));
+	pierceResetTime = items.at(i++);
 
-	soundSettings.load(items[i++]);
+	soundSettings.load(items.at(i++));
 
-	bulletModelID = std::stoi(items[i++]);
-	inheritRadius = unformatBool(items[i++]);
-	inheritDespawnTime = unformatBool(items[i++]);
-	inheritShadowTrailInterval = unformatBool(items[i++]);
-	inheritShadowTrailLifespan = unformatBool(items[i++]);
-	inheritAnimatables = unformatBool(items[i++]);
-	inheritDamage = unformatBool(items[i++]);
-	inheritPierceResetTime = unformatBool(items[i++]);
-	inheritSoundSettings = unformatBool(items[i++]);
-	isBullet = unformatBool(items[i++]);
+	bulletModelID = std::stoi(items.at(i++));
+	inheritRadius = unformatBool(items.at(i++));
+	inheritDespawnTime = unformatBool(items.at(i++));
+	inheritShadowTrailInterval = unformatBool(items.at(i++));
+	inheritShadowTrailLifespan = unformatBool(items.at(i++));
+	inheritAnimatables = unformatBool(items.at(i++));
+	inheritDamage = unformatBool(items.at(i++));
+	inheritPierceResetTime = unformatBool(items.at(i++));
+	inheritSoundSettings = unformatBool(items.at(i++));
+	isBullet = unformatBool(items.at(i++));
 }
 
 void EditorMovablePoint::getChildrenIDsHelper(std::vector<int>& arr) const {
@@ -710,23 +710,23 @@ std::string BulletModel::format() const {
 void BulletModel::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
 
-	id = std::stoi(items[0]);
-	name = items[1];
-	hitboxRadius = std::stof(items[2]);
-	despawnTime = std::stof(items[3]);
+	id = std::stoi(items.at(0));
+	name = items.at(1);
+	hitboxRadius = std::stof(items.at(2));
+	despawnTime = std::stof(items.at(3));
 
-	shadowTrailInterval = std::stof(items[4]);
-	shadowTrailLifespan = std::stof(items[5]);
+	shadowTrailInterval = std::stof(items.at(4));
+	shadowTrailLifespan = std::stof(items.at(5));
 
-	animatable.load(items[6]);
-	loopAnimation = unformatBool(items[7]);
-	baseSprite.load(items[8]);
+	animatable.load(items.at(6));
+	loopAnimation = unformatBool(items.at(7));
+	baseSprite.load(items.at(8));
 
-	damage = std::stoi(items[9]);
-	pierceResetTime = std::stof(items[10]);
+	damage = std::stoi(items.at(9));
+	pierceResetTime = std::stof(items.at(10));
 
-	playSoundOnSpawn = unformatBool(items[11]);
-	soundSettings.load(items[12]);
+	playSoundOnSpawn = unformatBool(items.at(11));
+	soundSettings.load(items.at(12));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> BulletModel::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {

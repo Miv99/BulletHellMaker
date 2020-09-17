@@ -33,7 +33,7 @@ AttackEditorPanel::AttackEditorPanel(MainEditorWindow& mainEditorWindow, std::sh
 	populatePropertiesUsedByList();
 
 	propertiesPanel->getUsedByPanel()->getListView()->connect("DoubleClicked", [&](int index) {
-		if (usedByIDMap.count(index) > 0) {
+		if (usedByIDMap.find(index) != usedByIDMap.end()) {
 			onAttackPatternBeginEdit.emit(this, usedByIDMap[index]);
 		}
 	});
@@ -46,7 +46,7 @@ AttackEditorPanel::AttackEditorPanel(MainEditorWindow& mainEditorWindow, std::sh
 			})
 		});
 		propertiesPanel->getUsedByPanel()->getListView()->connect("RightClicked", [this, rightClickMenuPopup](int index) {
-			if (this->usedByIDMap.count(index) > 0) {
+			if (this->usedByIDMap.find(index) != this->usedByIDMap.end()) {
 				this->usedByRightClickedAttackPatternID = usedByIDMap[index];
 				// Open right click menu
 				this->mainEditorWindow.addPopupWidget(rightClickMenuPopup, this->mainEditorWindow.getMousePos().x, this->mainEditorWindow.getMousePos().y, 150, rightClickMenuPopup->getSize().y);

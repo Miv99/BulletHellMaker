@@ -58,7 +58,7 @@ public:
 	inline sf::Color getBossHPBarColor() const { return bossHPBarColor; }
 	inline float getBackgroundTextureWidth() const { return backgroundTextureWidth; }
 	inline float getBackgroundTextureHeight() const { return backgroundTextureHeight; }
-	inline bool usesEnemy(int enemyID) const { return enemyIDCount.count(enemyID) > 0 && enemyIDCount.at(enemyID) > 0; }
+	inline bool usesEnemy(int enemyID) const { return enemyIDCount.find(enemyID) != enemyIDCount.end() && enemyIDCount.at(enemyID) > 0; }
 
 	inline void setMusicSettings(MusicSettings musicSettings) { this->musicSettings = musicSettings; }
 	inline void setName(std::string name) { this->name = name; }

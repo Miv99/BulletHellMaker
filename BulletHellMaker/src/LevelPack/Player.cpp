@@ -23,42 +23,42 @@ std::string EditorPlayer::format() const {
 
 void EditorPlayer::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	initialHealth = items[0];
-	maxHealth = items[1];
-	speed = items[2];
-	focusedSpeed = items[3];
-	hitboxRadius = items[4];
-	hitboxPosX = items[5];
-	hitboxPosY = items[6];
-	invulnerabilityTime = items[7];
+	initialHealth = items.at(0);
+	maxHealth = items.at(1);
+	speed = items.at(2);
+	focusedSpeed = items.at(3);
+	hitboxRadius = items.at(4);
+	hitboxPosX = items.at(5);
+	hitboxPosY = items.at(6);
+	invulnerabilityTime = items.at(7);
 
 	powerTiers.clear();
 	attackPatternIDCount.clear();
 	int i;
-	for (i = 9; i < std::stoi(items[8]) + 9; i++) {
+	for (i = 9; i < std::stoi(items.at(8)) + 9; i++) {
 		std::shared_ptr<PlayerPowerTier> tier = std::make_shared<PlayerPowerTier>();
-		tier->load(items[i]);
+		tier->load(items.at(i));
 		powerTiers.push_back(tier);
 
 		// Update attackPatternIDCount
 		int attackPatternID = tier->getAttackPatternID();
-		if (attackPatternIDCount.count(attackPatternID) == 0) {
+		if (attackPatternIDCount.find(attackPatternID) == attackPatternIDCount.end()) {
 			attackPatternIDCount[attackPatternID] = 1;
 		} else {
 			attackPatternIDCount[attackPatternID]++;
 		}
 	}
-	hurtSound.load(items[i++]);
-	deathSound.load(items[i++]);
-	smoothPlayerHPBar = unformatBool(items[i++]);
-	playerHPBarColor = sf::Color(std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]), std::stof(items[i++]));
-	discretePlayerHPGuiElementFileName = items[i++];
-	initialBombs = items[i++];
-	maxBombs = items[i++];
-	bombInvincibilityTime = items[i++];
-	bombGuiElementFileName = items[i++];
-	bombReadySound.load(items[i++]);
-	symbolTable.load(items[i++]);
+	hurtSound.load(items.at(i++));
+	deathSound.load(items.at(i++));
+	smoothPlayerHPBar = unformatBool(items.at(i++));
+	playerHPBarColor = sf::Color(std::stof(items.at(i++)), std::stof(items.at(i++)), std::stof(items.at(i++)), std::stof(items.at(i++)));
+	discretePlayerHPGuiElementFileName = items.at(i++);
+	initialBombs = items.at(i++);
+	maxBombs = items.at(i++);
+	bombInvincibilityTime = items.at(i++);
+	bombGuiElementFileName = items.at(i++);
+	bombReadySound.load(items.at(i++));
+	symbolTable.load(items.at(i++));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorPlayer::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -115,7 +115,7 @@ void EditorPlayer::compileExpressions(std::vector<exprtk::symbol_table<float>> s
 }
 
 bool EditorPlayer::usesAttackPattern(int attackPatternID) const {
-	return attackPatternIDCount.count(attackPatternID) > 0 && attackPatternIDCount.at(attackPatternID) > 0;
+	return attackPatternIDCount.find(attackPatternID) != attackPatternIDCount.end() && attackPatternIDCount.at(attackPatternID) > 0;
 }
 
 PlayerPowerTier::PlayerPowerTier() {
@@ -141,15 +141,15 @@ std::string PlayerPowerTier::format() const {
 
 void PlayerPowerTier::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	animatableSet.load(items[0]);
-	attackPatternID = std::stoi(items[1]);
-	attackPatternLoopDelay = items[2];
-	focusedAttackPatternID = std::stoi(items[3]);
-	focusedAttackPatternLoopDelay = items[4];
-	bombAttackPatternID = std::stoi(items[5]);
-	bombCooldown = items[6];
-	symbolTable.load(items[7]);
-	powerToNextTier = items[8];
+	animatableSet.load(items.at(0));
+	attackPatternID = std::stoi(items.at(1));
+	attackPatternLoopDelay = items.at(2);
+	focusedAttackPatternID = std::stoi(items.at(3));
+	focusedAttackPatternLoopDelay = items.at(4);
+	bombAttackPatternID = std::stoi(items.at(5));
+	bombCooldown = items.at(6);
+	symbolTable.load(items.at(7));
+	powerToNextTier = items.at(8);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> PlayerPowerTier::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {

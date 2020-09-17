@@ -39,10 +39,10 @@ std::string SoundSettings::format() const {
 
 void SoundSettings::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	fileName = items[0];
-	volume = std::stof(items[1]);
-	pitch = std::stof(items[2]);
-	disabled = unformatBool(items[3]);
+	fileName = items.at(0);
+	volume = std::stof(items.at(1));
+	pitch = std::stof(items.at(2));
+	disabled = unformatBool(items.at(3));
 }
 
 MusicSettings::MusicSettings() {
@@ -74,14 +74,14 @@ std::string MusicSettings::format() const {
 
 void MusicSettings::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	fileName = items[0];
-	loops = unformatBool(items[1]);
-	loopStartMilliseconds = std::stoi(items[2]);
-	loopLengthMilliseconds = std::stoi(items[3]);
-	volume = std::stof(items[4]);
-	pitch = std::stof(items[5]);
-	disabled = unformatBool(items[6]);
-	transitionTime = std::stof(items[7]);
+	fileName = items.at(0);
+	loops = unformatBool(items.at(1));
+	loopStartMilliseconds = std::stoi(items.at(2));
+	loopLengthMilliseconds = std::stoi(items.at(3));
+	volume = std::stof(items.at(4));
+	pitch = std::stof(items.at(5));
+	disabled = unformatBool(items.at(6));
+	transitionTime = std::stof(items.at(7));
 }
 
 bool MusicSettings::operator==(const AudioSettings& other) const {
@@ -124,7 +124,7 @@ void AudioPlayer::playSound(const SoundSettings& soundSettings) {
 	if (soundSettings.isDisabled() || soundSettings.getFileName() == "") return;
 
 	// Check if the sound's SoundBuffer already exists
-	if (soundBuffers.count(soundSettings.getFileName()) == 0) {
+	if (soundBuffers.find(soundSettings.getFileName()) == soundBuffers.end()) {
 		sf::SoundBuffer buffer;
 		if (!buffer.loadFromFile(soundSettings.getFileName())) {
 			//TODO: handle audio not being able to be loaded

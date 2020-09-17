@@ -21,9 +21,9 @@ std::string EMPAAngleOffsetToPlayer::format() const {
 
 void EMPAAngleOffsetToPlayer::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	xOffset = items[1];
-	yOffset = items[2];
-	symbolTable.load(items[3]);
+	xOffset = items.at(1);
+	yOffset = items.at(2);
+	symbolTable.load(items.at(3));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EMPAAngleOffsetToPlayer::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -75,9 +75,9 @@ std::string EMPAAngleOffsetToGlobalPosition::format() const {
 
 void EMPAAngleOffsetToGlobalPosition::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	x = items[1];
-	y = items[2];
-	symbolTable.load(items[3]);
+	x = items.at(1);
+	y = items.at(2);
+	symbolTable.load(items.at(3));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EMPAAngleOffsetToGlobalPosition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -123,7 +123,7 @@ std::string EMPAAngleOffsetZero::format() const {
 
 void EMPAAngleOffsetZero::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	symbolTable.load(items[1]);
+	symbolTable.load(items.at(1));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EMPAAngleOffsetZero::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -156,8 +156,8 @@ std::string EMPAAngleOffsetConstant::format() const {
 
 void EMPAAngleOffsetConstant::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	value = items[1];
-	symbolTable.load(items[2]);
+	value = items.at(1);
+	symbolTable.load(items.at(2));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EMPAAngleOffsetConstant::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -193,7 +193,7 @@ std::string EMPAngleOffsetPlayerSpriteAngle::format() const {
 
 void EMPAngleOffsetPlayerSpriteAngle::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	symbolTable.load(items[1]);
+	symbolTable.load(items.at(1));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EMPAngleOffsetPlayerSpriteAngle::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -233,7 +233,7 @@ std::string DetachFromParentEMPA::format() const {
 
 void DetachFromParentEMPA::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	symbolTable.load(items[1]);
+	symbolTable.load(items.at(1));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> DetachFromParentEMPA::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -289,8 +289,8 @@ std::string StayStillAtLastPositionEMPA::format() const {
 
 void StayStillAtLastPositionEMPA::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	duration = std::stof(items[1]);
-	symbolTable.load(items[2]);
+	duration = std::stof(items.at(1));
+	symbolTable.load(items.at(2));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> StayStillAtLastPositionEMPA::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -354,11 +354,11 @@ std::string MoveCustomPolarEMPA::format() const {
 
 void MoveCustomPolarEMPA::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	distance = TFVFactory::create(items[1]);
-	angle = TFVFactory::create(items[2]);
-	time = std::stof(items[3]);
-	angleOffset = EMPAngleOffsetFactory::create(items[4]);
-	symbolTable.load(items[5]);
+	distance = TFVFactory::create(items.at(1));
+	angle = TFVFactory::create(items.at(2));
+	time = std::stof(items.at(3));
+	angleOffset = EMPAngleOffsetFactory::create(items.at(4));
+	symbolTable.load(items.at(5));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> MoveCustomPolarEMPA::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -458,13 +458,13 @@ std::string MoveCustomBezierEMPA::format() const {
 
 void MoveCustomBezierEMPA::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	time = std::stof(items[1]);
-	rotationAngle = EMPAngleOffsetFactory::create(items[2]);
-	symbolTable.load(items[3]);
+	time = std::stof(items.at(1));
+	rotationAngle = EMPAngleOffsetFactory::create(items.at(2));
+	symbolTable.load(items.at(3));
 	unrotatedControlPoints.clear();
 	int i;
 	for (i = 4; i < items.size(); i += 2) {
-		unrotatedControlPoints.push_back(sf::Vector2f(std::stof(items[i]), std::stof(items[i + 1])));
+		unrotatedControlPoints.push_back(sf::Vector2f(std::stof(items.at(i)), std::stof(items.at(i + 1))));
 	}
 }
 
@@ -574,10 +574,10 @@ std::string MovePlayerHomingEMPA::format() const {
 
 void MovePlayerHomingEMPA::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	homingStrength = TFVFactory::create(items[1]);
-	speed = TFVFactory::create(items[2]);
-	time = std::stof(items[3]);
-	symbolTable.load(items[4]);
+	homingStrength = TFVFactory::create(items.at(1));
+	speed = TFVFactory::create(items.at(2));
+	time = std::stof(items.at(3));
+	symbolTable.load(items.at(4));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> MovePlayerHomingEMPA::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -637,12 +637,12 @@ std::string MoveGlobalHomingEMPA::format() const {
 
 void MoveGlobalHomingEMPA::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	targetX = items[1];
-	targetY = items[2];
-	homingStrength = TFVFactory::create(items[3]);
-	speed = TFVFactory::create(items[4]);
-	time = std::stof(items[5]);
-	symbolTable.load(items[6]);
+	targetX = items.at(1);
+	targetY = items.at(2);
+	homingStrength = TFVFactory::create(items.at(3));
+	speed = TFVFactory::create(items.at(4));
+	time = std::stof(items.at(5));
+	symbolTable.load(items.at(6));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> MoveGlobalHomingEMPA::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {

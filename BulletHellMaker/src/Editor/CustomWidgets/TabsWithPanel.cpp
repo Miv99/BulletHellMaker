@@ -74,7 +74,7 @@ TabsWithPanel::TabsWithPanel(EditorWindow& parentWindow)
 
 void TabsWithPanel::addTab(std::string tabName, std::shared_ptr<tgui::Panel> associatedPanel, bool autoSelect, bool closeable) {
 	tabName += tabNameAppendedSpaces;
-	if (panelsMap.count(tabName) > 0) {
+	if (panelsMap.find(tabName) != panelsMap.end()) {
 		return;
 	}
 
@@ -96,7 +96,7 @@ void TabsWithPanel::addTab(std::string tabName, std::shared_ptr<tgui::Panel> ass
 
 void TabsWithPanel::insertTab(std::string tabName, std::shared_ptr<tgui::Panel> associatedPanel, int index, bool autoSelect, bool closeable) {
 	tabName += tabNameAppendedSpaces;
-	if (panelsMap.count(tabName) > 0) {
+	if (panelsMap.find(tabName) != panelsMap.end()) {
 		return;
 	}
 
@@ -131,14 +131,13 @@ void TabsWithPanel::selectTab(std::string tabName) {
 
 void TabsWithPanel::removeTab(std::string tabName) {
 	tabName += tabNameAppendedSpaces;
-	assert(panelsMap.count(tabName) != 0);
 
 	remove(panelsMap[tabName]);
 	if (currentPanel == panelsMap[tabName]) {
 		currentPanel = nullptr;
 	}
 	panelsMap.erase(tabName);
-	if (onSelectFunctionMap.count(tabName) > 0) {
+	if (onSelectFunctionMap.find(tabName) != onSelectFunctionMap.end()) {
 		onSelectFunctionMap.erase(tabName);
 	}
 	tabs->remove(tabName);
@@ -213,7 +212,7 @@ void TabsWithPanel::setTabOnSelectFunction(std::string tabName, std::function<vo
 }
 
 bool TabsWithPanel::hasTab(std::string tabName) {
-	return panelsMap.count(tabName + tabNameAppendedSpaces) > 0;
+	return panelsMap.find(tabName + tabNameAppendedSpaces) != panelsMap.end();
 }
 
 int TabsWithPanel::getTabIndex(std::string tabName) {
@@ -312,8 +311,6 @@ bool TabsWithPanel::handleEvent(sf::Event event) {
 }
 
 void TabsWithPanel::onTabSelected(std::string tabName) {
-	assert(panelsMap.count(tabName) != 0);
-
 	// Hide currently open panel
 	if (currentPanel) {
 		currentPanel->setVisible(false);
@@ -326,7 +323,7 @@ void TabsWithPanel::onTabSelected(std::string tabName) {
 	moreTabsList->getListBox()->setSelectedItem(tabName);
 
 	// Call the associated onSelect function, if any
-	if (onSelectFunctionMap.count(tabName) > 0) {
+	if (onSelectFunctionMap.find(tabName) != onSelectFunctionMap.end()) {
 		onSelectFunctionMap[tabName]();
 	}
 }

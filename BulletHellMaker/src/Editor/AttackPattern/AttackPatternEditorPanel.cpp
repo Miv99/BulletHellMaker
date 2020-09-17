@@ -49,7 +49,7 @@ AttackPatternEditorPanel::AttackPatternEditorPanel(MainEditorWindow& mainEditorW
 	populatePropertiesUsedByList();
 
 	propertiesPanel->getUsedByPanel()->getListView()->connect("DoubleClicked", [&](int index) {
-		if (usedByIDMap.count(index) > 0) {
+		if (usedByIDMap.find(index) != usedByIDMap.end()) {
 			if (usedByIDMap[index] == USED_BY_ID_MAP_PLAYER_RESERVED_ID) {
 				onPlayerBeginEdit.emit(this);
 			} else {
@@ -69,7 +69,7 @@ AttackPatternEditorPanel::AttackPatternEditorPanel(MainEditorWindow& mainEditorW
 		})
 	});
 	propertiesPanel->getUsedByPanel()->getListView()->connect("RightClicked", [this, rightClickMenuPopup](int index) {
-		if (this->usedByIDMap.count(index) > 0) {
+		if (this->usedByIDMap.find(index) != this->usedByIDMap.end()) {
 			this->usedByRightClickedID = usedByIDMap[index];
 			// Open right click menu
 			this->mainEditorWindow.addPopupWidget(rightClickMenuPopup, this->mainEditorWindow.getMousePos().x, this->mainEditorWindow.getMousePos().y, 150, rightClickMenuPopup->getSize().y);

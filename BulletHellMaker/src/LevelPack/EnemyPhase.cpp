@@ -32,21 +32,21 @@ std::string EditorEnemyPhase::format() const {
 
 void EditorEnemyPhase::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	id = stoi(items[0]);
-	name = items[1];
-	phaseBeginAction = EPAFactory::create(items[2]);
-	phaseEndAction = EPAFactory::create(items[3]);
-	attackPatternLoopDelay = items[4];
+	id = stoi(items.at(0));
+	name = items.at(1);
+	phaseBeginAction = EPAFactory::create(items.at(2));
+	phaseEndAction = EPAFactory::create(items.at(3));
+	attackPatternLoopDelay = items.at(4);
 
 	attackPatternIDCount.clear();
 	int i = 6;
-	for (int a = 0; a < std::stoi(items[5]); a++) {
-		int attackPatternID = std::stoi(items[i + 1]);
+	for (int a = 0; a < std::stoi(items.at(5)); a++) {
+		int attackPatternID = std::stoi(items.at(i + 1));
 		ExprSymbolTable definer;
-		definer.load(items[i + 2]);
-		attackPatternIDs.push_back(std::make_tuple(items[i], attackPatternID, definer));
+		definer.load(items.at(i + 2));
+		attackPatternIDs.push_back(std::make_tuple(items.at(i), attackPatternID, definer));
 
-		if (attackPatternIDCount.count(attackPatternID) == 0) {
+		if (attackPatternIDCount.find(attackPatternID) == attackPatternIDCount.end()) {
 			attackPatternIDCount[attackPatternID] = 1;
 		} else {
 			attackPatternIDCount[attackPatternID]++;
@@ -54,9 +54,9 @@ void EditorEnemyPhase::load(std::string formattedString) {
 		}
 		i += 3;
 	}
-	playMusic = unformatBool(items[i++]);
-	musicSettings.load(items[i++]);
-	symbolTable.load(items[i++]);
+	playMusic = unformatBool(items.at(i++));
+	musicSettings.load(items.at(i++));
+	symbolTable.load(items.at(i++));
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorEnemyPhase::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -119,14 +119,14 @@ const std::map<int, int>* EditorEnemyPhase::getAttackPatternsIDCount() const {
 }
 
 bool EditorEnemyPhase::usesAttackPattern(int attackPatternID) const {
-	return attackPatternIDCount.count(attackPatternID) > 0 && attackPatternIDCount.at(attackPatternID) > 0;
+	return attackPatternIDCount.find(attackPatternID) != attackPatternIDCount.end() && attackPatternIDCount.at(attackPatternID) > 0;
 }
 
 void EditorEnemyPhase::addAttackPatternID(std::string time, int id, ExprSymbolTable attackPatternSymbolsDefiner) {
 	auto item = std::make_tuple(time, id, attackPatternSymbolsDefiner);
 	attackPatternIDs.push_back(item);
 
-	if (attackPatternIDCount.count(id) == 0) {
+	if (attackPatternIDCount.find(id) == attackPatternIDCount.end()) {
 		attackPatternIDCount[id] = 1;
 	} else {
 		attackPatternIDCount[id]++;
