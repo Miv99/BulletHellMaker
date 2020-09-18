@@ -62,6 +62,7 @@ private:
 
 	const static std::string SAVED_SPRITE_SHEET_ITEM_FORMAT;
 	const static std::string UNSAVED_SPRITE_SHEET_ITEM_FORMAT;
+	const static std::string FAILED_LOAD_SPRITE_SHEET_ITEM_FORMAT;
 
 	MainEditorWindow& mainEditorWindow;
 	LevelPack* levelPack;

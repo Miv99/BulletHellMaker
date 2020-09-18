@@ -12,6 +12,7 @@
 // %s = the sprite sheet's name
 const std::string SpriteSheetsListPanel::SAVED_SPRITE_SHEET_ITEM_FORMAT = "%s";
 const std::string SpriteSheetsListPanel::UNSAVED_SPRITE_SHEET_ITEM_FORMAT = "*%s";
+const std::string SpriteSheetsListPanel::FAILED_LOAD_SPRITE_SHEET_ITEM_FORMAT = "[X] %s";
 
 SpriteSheetsListPanel::SpriteSheetsListPanel(MainEditorWindow& mainEditorWindow) 
 	: mainEditorWindow(mainEditorWindow), levelPack(nullptr) {
@@ -108,9 +109,14 @@ void SpriteSheetsListPanel::reloadListOnly() {
 
 	const std::map<std::string, std::shared_ptr<SpriteSheet>>& unsavedSpriteSheets = mainEditorWindow.getUnsavedSpriteSheets();
 	int i = 0;
-	for (std::string spriteSheetName : levelPack->getSpriteLoader()->getLoadedSpriteSheetNames()) {
+	std::shared_ptr<SpriteLoader> spriteLoader = levelPack->getSpriteLoader();
+	for (std::string spriteSheetName : spriteLoader->getLoadedSpriteSheetNames()) {
 		if (unsavedSpriteSheets.find(spriteSheetName) == unsavedSpriteSheets.end()) {
-			listView->addItem(format(SAVED_SPRITE_SHEET_ITEM_FORMAT, spriteSheetName.c_str()));
+			if (spriteLoader->spriteSheetFailedImageLoad(spriteSheetName) || spriteLoader->spriteSheetFailedMetafileLoad(spriteSheetName)) {
+				listView->addItem(format(FAILED_LOAD_SPRITE_SHEET_ITEM_FORMAT, spriteSheetName.c_str()));
+			} else {
+				listView->addItem(format(SAVED_SPRITE_SHEET_ITEM_FORMAT, spriteSheetName.c_str()));
+			}
 		} else {
 			listView->addItem(format(UNSAVED_SPRITE_SHEET_ITEM_FORMAT, spriteSheetName.c_str()));
 		}
