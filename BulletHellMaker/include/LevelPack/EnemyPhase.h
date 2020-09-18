@@ -9,7 +9,7 @@
 #include <LevelPack/TextMarshallable.h>
 #include <LevelPack/EnemyPhaseAction.h>
 #include <LevelPack/AttackPattern.h>
-#include <LevelPack/LevelPackObject.h>
+#include <LevelPack/LayerRootLevelPackObject.h>
 #include <Game/AudioPlayer.h>
 
 class LevelPack;
@@ -17,7 +17,7 @@ class LevelPack;
 /*
 An enemy phase consists of a list of attack patterns and at what time each begins.
 */
-class EditorEnemyPhase : public LevelPackObject {
+class EditorEnemyPhase : public LayerRootLevelPackObject {
 public:
 	EditorEnemyPhase();
 	EditorEnemyPhase(int id);

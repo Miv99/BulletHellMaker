@@ -97,11 +97,11 @@ public:
 	std::shared_ptr<LevelPackObjectsListView> getAttackPatternsListView();
 	std::shared_ptr<LevelPackObjectsListPanel> getAttackPatternsListPanel();
 
-	std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedAttacks();
-	std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedAttackPatterns();
-	std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedEnemies();
-	std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedEnemyPhases();
-	std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedBulletModels();
+	std::map<int, std::shared_ptr<LayerRootLevelPackObject>>& getUnsavedAttacks();
+	std::map<int, std::shared_ptr<LayerRootLevelPackObject>>& getUnsavedAttackPatterns();
+	std::map<int, std::shared_ptr<LayerRootLevelPackObject>>& getUnsavedEnemies();
+	std::map<int, std::shared_ptr<LayerRootLevelPackObject>>& getUnsavedEnemyPhases();
+	std::map<int, std::shared_ptr<LayerRootLevelPackObject>>& getUnsavedBulletModels();
 	std::map<std::string, std::shared_ptr<SpriteSheet>>& getUnsavedSpriteSheets();
 
 	/*
@@ -189,11 +189,11 @@ private:
 	// Maps an EditorAttack ID to the EditorAttack object that has unsaved changes.
 	// If the ID doesn't exist in this map, then there are no unsaved changes
 	// for that ID.
-	std::map<int, std::shared_ptr<LevelPackObject>> unsavedAttacks;
-	std::map<int, std::shared_ptr<LevelPackObject>> unsavedAttackPatterns;
-	std::map<int, std::shared_ptr<LevelPackObject>> unsavedEnemies;
-	std::map<int, std::shared_ptr<LevelPackObject>> unsavedEnemyPhases;
-	std::map<int, std::shared_ptr<LevelPackObject>> unsavedBulletModels;
+	std::map<int, std::shared_ptr<LayerRootLevelPackObject>> unsavedAttacks;
+	std::map<int, std::shared_ptr<LayerRootLevelPackObject>> unsavedAttackPatterns;
+	std::map<int, std::shared_ptr<LayerRootLevelPackObject>> unsavedEnemies;
+	std::map<int, std::shared_ptr<LayerRootLevelPackObject>> unsavedEnemyPhases;
+	std::map<int, std::shared_ptr<LayerRootLevelPackObject>> unsavedBulletModels;
 
 	// Maps a SpriteSheet name to the SpriteSheet object that has unsaved changes.
 	// If the name doesn't exist in this map, then there are no unsaved changes

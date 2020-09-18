@@ -10,7 +10,7 @@
 #include <DataStructs/SpriteLoader.h>
 #include <Game/AudioPlayer.h>
 #include <LevelPack/ExpressionCompilable.h>
-#include <LevelPack/LevelPackObject.h>
+#include <LevelPack/LayerRootLevelPackObject.h>
 
 class PlayerPowerTier : public LevelPackObject {
 public:
@@ -66,7 +66,7 @@ private:
 	DEFINE_EXPRESSION_VARIABLE_WITH_INITIAL_VALUE(powerToNextTier, int, 20)
 };
 
-class EditorPlayer : public LevelPackObject {
+class EditorPlayer : public LayerRootLevelPackObject {
 public:
 	EditorPlayer();
 

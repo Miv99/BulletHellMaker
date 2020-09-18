@@ -77,7 +77,7 @@ PasteOperationResult AttackEditorPropertiesPanel::pasteInto(std::shared_ptr<Copi
 
 PasteOperationResult AttackEditorPropertiesPanel::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 	// Paste the first copied EditorAttack to override attack's properties
-	auto derived = std::static_pointer_cast<CopiedLevelPackObject>(pastedObject);
+	auto derived = std::static_pointer_cast<CopiedLayerRootLevelPackObject>(pastedObject);
 	if (derived) {
 		if (derived->getLevelPackObjectsCount() == 1) {
 			std::string newName = derived->getLevelPackObjects()[0]->getName();

@@ -15,8 +15,8 @@ CopyOperationResult LevelPackObjectsListView::copyFrom() {
 	// Copy every selected object
 	std::set<size_t> selectedIndices = listView->getSelectedItemIndices();
 	if (selectedIndices.size() > 0) {
-		std::vector<std::shared_ptr<LevelPackObject>> objs;
-		std::map<int, std::shared_ptr<LevelPackObject>>& unsavedObjs = getUnsavedLevelPackObjects();
+		std::vector<std::shared_ptr<LayerRootLevelPackObject>> objs;
+		std::map<int, std::shared_ptr<LayerRootLevelPackObject>>& unsavedObjs = getUnsavedLevelPackObjects();
 		for (int selectedIndex : selectedIndices) {
 			int id = getLevelPackObjectIDFromIndex(selectedIndex);
 
@@ -33,7 +33,7 @@ CopyOperationResult LevelPackObjectsListView::copyFrom() {
 		} else {
 			copyMessage = "Copied " + std::to_string(selectedIndices.size()) + " " + getLevelPackObjectDisplayName() + "s";
 		}
-		return CopyOperationResult(std::make_shared<CopiedLevelPackObject>(getID(), objs), "Copied " + std::to_string(selectedIndices.size()) + " " + getLevelPackObjectDisplayName() + "(s)");
+		return CopyOperationResult(std::make_shared<CopiedLayerRootLevelPackObject>(getID(), objs), "Copied " + std::to_string(selectedIndices.size()) + " " + getLevelPackObjectDisplayName() + "(s)");
 	}
 	return CopyOperationResult(nullptr, "");
 }
@@ -42,7 +42,7 @@ CopyOperationResult LevelPackObjectsListView::copyFrom() {
 PasteOperationResult LevelPackObjectsListView::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
 	// Create some new LevelPackObjects as clones of the copied LevelPackObjects
 
-	auto derived = std::static_pointer_cast<CopiedLevelPackObject>(pastedObject);
+	auto derived = std::static_pointer_cast<CopiedLayerRootLevelPackObject>(pastedObject);
 	if (derived) {
 		std::set<int> newObjIDs = getNextLevelPackObjectIDs(derived->getLevelPackObjectsCount());
 		undoStack.execute(UndoableCommand([this, derived]() {
@@ -52,7 +52,7 @@ PasteOperationResult LevelPackObjectsListView::pasteInto(std::shared_ptr<CopiedO
 				obj->setID(id);
 
 				// Create the object
-				updateLevelPackObjectInLevelPack(obj->clone());
+				updateLevelPackObjectInLevelPack(std::dynamic_pointer_cast<LayerRootLevelPackObject>(obj->clone()));
 			}
 			reload();
 
@@ -88,17 +88,17 @@ PasteOperationResult LevelPackObjectsListView::paste2Into(std::shared_ptr<Copied
 	// Paste the new LevelPackObjects such that they overwrite the selected LevelPackObjects
 
 	std::set<size_t> selectedIndices = listView->getSelectedItemIndices();
-	auto derived = std::static_pointer_cast<CopiedLevelPackObject>(pastedObject);
+	auto derived = std::static_pointer_cast<CopiedLayerRootLevelPackObject>(pastedObject);
 	if (selectedIndices.size() > 0 && derived) {
-		std::vector<std::shared_ptr<LevelPackObject>> copiedObjs = derived->getLevelPackObjects();
+		std::vector<std::shared_ptr<LayerRootLevelPackObject>> copiedObjs = derived->getLevelPackObjects();
 		if (copiedObjs.size() == selectedIndices.size()) {
-			std::vector<std::shared_ptr<LevelPackObject>> newObjects;
+			std::vector<std::shared_ptr<LayerRootLevelPackObject>> newObjects;
 
 			int i = 0;
 			for (int selectedIndex : selectedIndices) {
 				int id = getLevelPackObjectIDFromIndex(selectedIndex);
 
-				std::shared_ptr<LevelPackObject> newObject = copiedObjs[i % copiedObjs.size()]->clone();
+				std::shared_ptr<LayerRootLevelPackObject> newObject = std::dynamic_pointer_cast<LayerRootLevelPackObject>(copiedObjs[i % copiedObjs.size()]->clone());
 				// Set the ID of the LevelPackObject that's overwriting the old to be the old one's ID
 				newObject->setID(id);
 				newObjects.push_back(newObject);
@@ -242,15 +242,15 @@ void LevelPackObjectsListView::manualDelete() {
 	if (selectedIndices.size() > 0) {
 		auto& unsavedObjs = getUnsavedLevelPackObjects();
 		// Each pair is the LevelPackObject and whether it was in unsavedObjs
-		std::vector<std::pair<std::shared_ptr<LevelPackObject>, bool>> deletedObjs;
+		std::vector<std::pair<std::shared_ptr<LayerRootLevelPackObject>, bool>> deletedObjs;
 		bool atLeastOneObjectInUse = false;
 		for (int index : selectedIndices) {
 			int id = getLevelPackObjectIDFromIndex(index);
 
 			if (unsavedObjs.find(id) != unsavedObjs.end()) {
-				deletedObjs.push_back(std::make_pair(unsavedObjs[id]->clone(), true));
+				deletedObjs.push_back(std::make_pair(std::dynamic_pointer_cast<LayerRootLevelPackObject>(unsavedObjs[id]->clone()), true));
 			} else {
-				deletedObjs.push_back(std::make_pair(getLevelPackObjectFromLevelPack(id)->clone(), false));
+				deletedObjs.push_back(std::make_pair(std::dynamic_pointer_cast<LayerRootLevelPackObject>(getLevelPackObjectFromLevelPack(id)->clone()), false));
 			}
 
 			if (getLevelPackObjectIsInUse(id)) {
@@ -327,11 +327,11 @@ void AttacksListView::addLevelPackObjectsToListView() {
 	}
 }
 
-std::map<int, std::shared_ptr<LevelPackObject>>& AttacksListView::getUnsavedLevelPackObjects() {
+std::map<int, std::shared_ptr<LayerRootLevelPackObject>>& AttacksListView::getUnsavedLevelPackObjects() {
 	return mainEditorWindow.getUnsavedAttacks();
 }
 
-void AttacksListView::updateLevelPackObjectInLevelPack(std::shared_ptr<LevelPackObject> obj) {
+void AttacksListView::updateLevelPackObjectInLevelPack(std::shared_ptr<LayerRootLevelPackObject> obj) {
 	mainEditorWindow.updateAttack(std::dynamic_pointer_cast<EditorAttack>(obj));
 }
 
@@ -340,7 +340,7 @@ void AttacksListView::deleteLevelPackObjectInLevelPack(int id) {
 	reloadLevelPackObjectTabInMainEditorWindow(id);
 }
 
-std::shared_ptr<LevelPackObject> AttacksListView::getLevelPackObjectFromLevelPack(int id) {
+std::shared_ptr<LayerRootLevelPackObject> AttacksListView::getLevelPackObjectFromLevelPack(int id) {
 	return levelPack->getAttack(id);
 }
 
@@ -376,7 +376,7 @@ std::string AttacksListView::getLevelPackObjectDisplayName() {
 	return "attack";
 }
 
-void AttacksListView::onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::vector<std::shared_ptr<LevelPackObject>> newObjects) {
+void AttacksListView::onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::vector<std::shared_ptr<LayerRootLevelPackObject>> newObjects) {
 	if (choice == EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES) {
 		std::vector<std::shared_ptr<EditorAttack>> derivedObjects;
 		for (auto obj : newObjects) {
@@ -388,7 +388,7 @@ void AttacksListView::onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_
 }
 
 void LevelPackObjectsListView::onDeleteConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, 
-	std::vector<std::pair<std::shared_ptr<LevelPackObject>, bool>> deletedObjects) {
+	std::vector<std::pair<std::shared_ptr<LayerRootLevelPackObject>, bool>> deletedObjects) {
 
 	if (choice == EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES) {
 		deleteObjects(getListView()->getSelectedItemIndices(), deletedObjects);
@@ -407,7 +407,7 @@ void LevelPackObjectsListView::addLevelPackObjectToListView(int objID, std::stri
 	listViewIndexToLevelPackObjectIDMap[index] = objID;
 }
 
-void LevelPackObjectsListView::deleteObjects(std::set<size_t> selectedIndices, std::vector<std::pair<std::shared_ptr<LevelPackObject>, bool>> deletedObjs) {
+void LevelPackObjectsListView::deleteObjects(std::set<size_t> selectedIndices, std::vector<std::pair<std::shared_ptr<LayerRootLevelPackObject>, bool>> deletedObjs) {
 	undoStack.execute(UndoableCommand([this, selectedIndices]() {
 		for (int index : selectedIndices) {
 			int id = getLevelPackObjectIDFromIndex(index);
@@ -418,7 +418,7 @@ void LevelPackObjectsListView::deleteObjects(std::set<size_t> selectedIndices, s
 	}, [this, deletedObjs]() {
 		auto& unsavedObjs = getUnsavedLevelPackObjects();
 
-		for (std::pair<std::shared_ptr<LevelPackObject>, bool> pair : deletedObjs) {
+		for (std::pair<std::shared_ptr<LayerRootLevelPackObject>, bool> pair : deletedObjs) {
 			updateLevelPackObjectInLevelPack(pair.first);
 			// The object was originally unsaved, so add it back to unsavedObjs
 			if (pair.second) {
@@ -430,7 +430,7 @@ void LevelPackObjectsListView::deleteObjects(std::set<size_t> selectedIndices, s
 
 		// Select the objects added back in
 		std::set<size_t> newSelectedIndices;
-		for (std::pair<std::shared_ptr<LevelPackObject>, bool> pair : deletedObjs) {
+		for (std::pair<std::shared_ptr<LayerRootLevelPackObject>, bool> pair : deletedObjs) {
 			newSelectedIndices.insert(getIndexFromLevelPackObjectID(pair.first->getID()));
 		}
 		getListView()->setSelectedItems(newSelectedIndices);
@@ -473,11 +473,11 @@ void AttackPatternsListView::addLevelPackObjectsToListView() {
 	}
 }
 
-std::map<int, std::shared_ptr<LevelPackObject>>& AttackPatternsListView::getUnsavedLevelPackObjects() {
+std::map<int, std::shared_ptr<LayerRootLevelPackObject>>& AttackPatternsListView::getUnsavedLevelPackObjects() {
 	return mainEditorWindow.getUnsavedAttackPatterns();
 }
 
-void AttackPatternsListView::updateLevelPackObjectInLevelPack(std::shared_ptr<LevelPackObject> obj) {
+void AttackPatternsListView::updateLevelPackObjectInLevelPack(std::shared_ptr<LayerRootLevelPackObject> obj) {
 	mainEditorWindow.updateAttackPattern(std::dynamic_pointer_cast<EditorAttackPattern>(obj));
 }
 
@@ -486,7 +486,7 @@ void AttackPatternsListView::deleteLevelPackObjectInLevelPack(int id) {
 	reloadLevelPackObjectTabInMainEditorWindow(id);
 }
 
-std::shared_ptr<LevelPackObject> AttackPatternsListView::getLevelPackObjectFromLevelPack(int id) {
+std::shared_ptr<LayerRootLevelPackObject> AttackPatternsListView::getLevelPackObjectFromLevelPack(int id) {
 	return levelPack->getAttackPattern(id);
 }
 
@@ -522,7 +522,7 @@ std::string AttackPatternsListView::getLevelPackObjectDisplayName() {
 	return "attack pattern";
 }
 
-void AttackPatternsListView::onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::vector<std::shared_ptr<LevelPackObject>> newObjects) {
+void AttackPatternsListView::onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::vector<std::shared_ptr<LayerRootLevelPackObject>> newObjects) {
 	if (choice == EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES) {
 		std::vector<std::shared_ptr<EditorAttackPattern>> derivedObjects;
 		for (auto obj : newObjects) {

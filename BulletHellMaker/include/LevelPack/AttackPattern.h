@@ -7,14 +7,14 @@
 #include <LevelPack/TextMarshallable.h>
 #include <LevelPack/EditorMovablePoint.h>
 #include <LevelPack/EditorMovablePointAction.h>
-#include <LevelPack/LevelPackObject.h>
+#include <LevelPack/LayerRootLevelPackObject.h>
 
 /*
 An attack pattern consists of a list of attacks and a list of actions executed by the enemy with the attack pattern.
 An attack pattern stops when the next one begins.
 If an EditorAttackPattern is being used by a player, EMPActions are unused.
 */
-class EditorAttackPattern : public LevelPackObject {
+class EditorAttackPattern : public LayerRootLevelPackObject {
 public:
 	EditorAttackPattern();
 	EditorAttackPattern(int id);

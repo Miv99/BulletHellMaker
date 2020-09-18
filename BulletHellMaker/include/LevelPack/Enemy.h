@@ -11,7 +11,7 @@
 #include <LevelPack/EntityAnimatableSet.h>
 #include <LevelPack/Animatable.h>
 #include <LevelPack/DeathAction.h>
-#include <LevelPack/LevelPackObject.h>
+#include <LevelPack/LayerRootLevelPackObject.h>
 #include <LevelPack/ExpressionCompilable.h>
 
 /*
@@ -20,7 +20,7 @@ Spawned by EnemySpawn.
 
 The first PhaseStartCondition must be set such that the enemy is always in a phase.
 */
-class EditorEnemy : public LevelPackObject {
+class EditorEnemy : public LayerRootLevelPackObject {
 public:
 	EditorEnemy();
 	EditorEnemy(int id);

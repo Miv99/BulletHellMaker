@@ -93,14 +93,14 @@ protected:
 	// The current attack sort option
 	SORT_OPTION sortOption;
 
-	void deleteObjects(std::set<size_t> selectedIndices, std::vector<std::pair<std::shared_ptr<LevelPackObject>, bool>> deletedObjs);
+	void deleteObjects(std::set<size_t> selectedIndices, std::vector<std::pair<std::shared_ptr<LayerRootLevelPackObject>, bool>> deletedObjs);
 
 	virtual void addLevelPackObjectsToListView() = 0;
 
-	virtual std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedLevelPackObjects() = 0;
-	virtual void updateLevelPackObjectInLevelPack(std::shared_ptr<LevelPackObject> obj) = 0;
+	virtual std::map<int, std::shared_ptr<LayerRootLevelPackObject>>& getUnsavedLevelPackObjects() = 0;
+	virtual void updateLevelPackObjectInLevelPack(std::shared_ptr<LayerRootLevelPackObject> obj) = 0;
 	virtual void deleteLevelPackObjectInLevelPack(int id) = 0;
-	virtual std::shared_ptr<LevelPackObject> getLevelPackObjectFromLevelPack(int id) = 0;
+	virtual std::shared_ptr<LayerRootLevelPackObject> getLevelPackObjectFromLevelPack(int id) = 0;
 	virtual std::set<int> getNextLevelPackObjectIDs(int count) = 0;
 	virtual void openLevelPackObjectInMainEditorWindow(int id) = 0;
 	virtual void reloadLevelPackObjectTabInMainEditorWindow(int id) = 0;
@@ -117,7 +117,7 @@ protected:
 	Called when the confirmation popup from doing paste2 is answered.
 	*/
 	virtual void onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, 
-		std::vector<std::shared_ptr<LevelPackObject>> newObjects) = 0;
+		std::vector<std::shared_ptr<LayerRootLevelPackObject>> newObjects) = 0;
 
 	/*
 	Helper function for addLevelPackObjectsToListView().
@@ -132,7 +132,7 @@ protected:
 	Called when the confirmation popup from doing delete is answered.
 	*/
 	void onDeleteConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, 
-		std::vector<std::pair<std::shared_ptr<LevelPackObject>, bool>> deletedObjects);
+		std::vector<std::pair<std::shared_ptr<LayerRootLevelPackObject>, bool>> deletedObjects);
 };
 
 class AttacksListView : public LevelPackObjectsListView {
@@ -145,10 +145,10 @@ public:
 protected:
 	void addLevelPackObjectsToListView() override;
 
-	std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedLevelPackObjects() override;
-	void updateLevelPackObjectInLevelPack(std::shared_ptr<LevelPackObject> obj) override;
+	std::map<int, std::shared_ptr<LayerRootLevelPackObject>>& getUnsavedLevelPackObjects() override;
+	void updateLevelPackObjectInLevelPack(std::shared_ptr<LayerRootLevelPackObject> obj) override;
 	void deleteLevelPackObjectInLevelPack(int id) override;
-	std::shared_ptr<LevelPackObject> getLevelPackObjectFromLevelPack(int id) override;
+	std::shared_ptr<LayerRootLevelPackObject> getLevelPackObjectFromLevelPack(int id) override;
 	std::set<int> getNextLevelPackObjectIDs(int count) override;
 	void openLevelPackObjectInMainEditorWindow(int id) override;
 	void reloadLevelPackObjectTabInMainEditorWindow(int id) override;
@@ -159,7 +159,7 @@ protected:
 	bool getLevelPackObjectIsInUse(int id) override;
 	std::string getLevelPackObjectDisplayName() override;
 
-	void onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::vector<std::shared_ptr<LevelPackObject>> newObjects) override;
+	void onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::vector<std::shared_ptr<LayerRootLevelPackObject>> newObjects) override;
 };
 
 class AttackPatternsListView : public LevelPackObjectsListView {
@@ -172,10 +172,10 @@ public:
 protected:
 	void addLevelPackObjectsToListView() override;
 
-	std::map<int, std::shared_ptr<LevelPackObject>>& getUnsavedLevelPackObjects() override;
-	void updateLevelPackObjectInLevelPack(std::shared_ptr<LevelPackObject> obj) override;
+	std::map<int, std::shared_ptr<LayerRootLevelPackObject>>& getUnsavedLevelPackObjects() override;
+	void updateLevelPackObjectInLevelPack(std::shared_ptr<LayerRootLevelPackObject> obj) override;
 	void deleteLevelPackObjectInLevelPack(int id) override;
-	std::shared_ptr<LevelPackObject> getLevelPackObjectFromLevelPack(int id) override;
+	std::shared_ptr<LayerRootLevelPackObject> getLevelPackObjectFromLevelPack(int id) override;
 	std::set<int> getNextLevelPackObjectIDs(int count) override;
 	void openLevelPackObjectInMainEditorWindow(int id) override;
 	void reloadLevelPackObjectTabInMainEditorWindow(int id) override;
@@ -186,5 +186,5 @@ protected:
 	bool getLevelPackObjectIsInUse(int id) override;
 	std::string getLevelPackObjectDisplayName() override;
 
-	void onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::vector<std::shared_ptr<LevelPackObject>> newObjects) override;
+	void onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::vector<std::shared_ptr<LayerRootLevelPackObject>> newObjects) override;
 };

@@ -13,7 +13,7 @@
 #include <LevelPack/EnemyPhase.h>
 #include <LevelPack/Player.h>
 #include <LevelPack/Level.h>
-#include <LevelPack/LevelPackObject.h>
+#include <LevelPack/LayerRootLevelPackObject.h>
 #include <DataStructs/MovablePoint.h>
 #include <DataStructs/SymbolTable.h>
 
@@ -544,7 +544,7 @@ void LevelPack::updateAttack(std::shared_ptr<EditorAttack> attack, bool emitOnCh
 	}
 }
 
-void LevelPack::updateAttack(std::shared_ptr<LevelPackObject> attack, bool emitOnChange) {
+void LevelPack::updateAttack(std::shared_ptr<LayerRootLevelPackObject> attack, bool emitOnChange) {
 	attackIDGen.markIDAsUsed(attack->getID());
 	attacks[attack->getID()] = std::dynamic_pointer_cast<EditorAttack>(attack);
 	if (emitOnChange) {
@@ -560,7 +560,7 @@ void LevelPack::updateAttackPattern(std::shared_ptr<EditorAttackPattern> attackP
 	}
 }
 
-void LevelPack::updateAttackPattern(std::shared_ptr<LevelPackObject> attackPattern, bool emitOnChange) {
+void LevelPack::updateAttackPattern(std::shared_ptr<LayerRootLevelPackObject> attackPattern, bool emitOnChange) {
 	attackPatternIDGen.markIDAsUsed(attackPattern->getID());
 	attackPatterns[attackPattern->getID()] = std::dynamic_pointer_cast<EditorAttackPattern>(attackPattern);
 	if (emitOnChange) {
@@ -576,7 +576,7 @@ void LevelPack::updateEnemy(std::shared_ptr<EditorEnemy> enemy, bool emitOnChang
 	}
 }
 
-void LevelPack::updateEnemy(std::shared_ptr<LevelPackObject> enemy, bool emitOnChange) {
+void LevelPack::updateEnemy(std::shared_ptr<LayerRootLevelPackObject> enemy, bool emitOnChange) {
 	enemyIDGen.markIDAsUsed(enemy->getID());
 	enemies[enemy->getID()] = std::dynamic_pointer_cast<EditorEnemy>(enemy);
 	if (emitOnChange) {
@@ -592,7 +592,7 @@ void LevelPack::updateEnemyPhase(std::shared_ptr<EditorEnemyPhase> enemyPhase, b
 	}
 }
 
-void LevelPack::updateEnemyPhase(std::shared_ptr<LevelPackObject> enemyPhase, bool emitOnChange) {
+void LevelPack::updateEnemyPhase(std::shared_ptr<LayerRootLevelPackObject> enemyPhase, bool emitOnChange) {
 	enemyPhaseIDGen.markIDAsUsed(enemyPhase->getID());
 	enemyPhases[enemyPhase->getID()] = std::dynamic_pointer_cast<EditorEnemyPhase>(enemyPhase);
 	if (emitOnChange) {
@@ -608,7 +608,7 @@ void LevelPack::updateBulletModel(std::shared_ptr<BulletModel> bulletModel, bool
 	}
 }
 
-void LevelPack::updateBulletModel(std::shared_ptr<LevelPackObject> bulletModel, bool emitOnChange) {
+void LevelPack::updateBulletModel(std::shared_ptr<LayerRootLevelPackObject> bulletModel, bool emitOnChange) {
 	bulletModelIDGen.markIDAsUsed(bulletModel->getID());
 	bulletModels[bulletModel->getID()] = std::dynamic_pointer_cast<BulletModel>(bulletModel);
 	if (emitOnChange) {

@@ -151,7 +151,7 @@ void MainEditorWindow::overwriteAttacks(std::vector<std::shared_ptr<EditorAttack
 				if (unsavedAttacks.find(id) != unsavedAttacks.end()) {
 					std::dynamic_pointer_cast<EditorAttack>(unsavedAttacks[id])->load(attack->format());
 				} else {
-					unsavedAttacks[id] = std::dynamic_pointer_cast<LevelPackObject>(std::make_shared<EditorAttack>(attack));
+					unsavedAttacks[id] = std::dynamic_pointer_cast<LayerRootLevelPackObject>(std::make_shared<EditorAttack>(attack));
 				}
 
 				reloadAttackTab(id);
@@ -165,7 +165,7 @@ void MainEditorWindow::overwriteAttacks(std::vector<std::shared_ptr<EditorAttack
 				if (unsavedAttacks.find(id) != unsavedAttacks.end()) {
 					std::dynamic_pointer_cast<EditorAttack>(unsavedAttacks[id])->load(attack->format());
 				} else {
-					unsavedAttacks[id] = std::dynamic_pointer_cast<LevelPackObject>(std::make_shared<EditorAttack>(attack));
+					unsavedAttacks[id] = std::dynamic_pointer_cast<LayerRootLevelPackObject>(std::make_shared<EditorAttack>(attack));
 				}
 
 				reloadAttackTab(id);
@@ -182,7 +182,7 @@ void MainEditorWindow::overwriteAttacks(std::vector<std::shared_ptr<EditorAttack
 			if (unsavedAttacks.find(id) != unsavedAttacks.end()) {
 				std::dynamic_pointer_cast<EditorAttack>(unsavedAttacks[id])->load(attack->format());
 			} else {
-				unsavedAttacks[id] = std::dynamic_pointer_cast<LevelPackObject>(std::make_shared<EditorAttack>(attack));
+				unsavedAttacks[id] = std::dynamic_pointer_cast<LayerRootLevelPackObject>(std::make_shared<EditorAttack>(attack));
 			}
 
 			reloadAttackTab(id);
@@ -461,7 +461,7 @@ void MainEditorWindow::openLeftPanelAttack(int attackID) {
 			openLeftPanelAttackPattern(attackPatternID);
 		});
 		attackEditorPanel->connect("AttackModified", [this](std::shared_ptr<EditorAttack> attack) {
-			unsavedAttacks[attack->getID()] = std::dynamic_pointer_cast<LevelPackObject>(attack);
+			unsavedAttacks[attack->getID()] = std::dynamic_pointer_cast<LayerRootLevelPackObject>(attack);
 			attacksListView->reload();
 
 			previewWindow->onOriginalLevelPackAttackModified(attack);
@@ -511,7 +511,7 @@ void MainEditorWindow::openLeftPanelAttackPattern(int id) {
 			openLeftPanelPlayer();
 		});
 		attackPatternEditorPanel->connect("AttackPatternModified", [this](std::shared_ptr<EditorAttackPattern> attackPattern) {
-			unsavedAttackPatterns[attackPattern->getID()] = std::dynamic_pointer_cast<LevelPackObject>(attackPattern);
+			unsavedAttackPatterns[attackPattern->getID()] = std::dynamic_pointer_cast<LayerRootLevelPackObject>(attackPattern);
 			attackPatternsListView->reload();
 
 			previewWindow->onOriginalLevelPackAttackPatternModified(attackPattern);
@@ -547,7 +547,7 @@ void MainEditorWindow::overwriteAttackPatterns(std::vector<std::shared_ptr<Edito
 				if (unsavedAttackPatterns.find(id) != unsavedAttackPatterns.end()) {
 					std::dynamic_pointer_cast<EditorAttackPattern>(unsavedAttackPatterns[id])->load(obj->format());
 				} else {
-					unsavedAttackPatterns[id] = std::dynamic_pointer_cast<LevelPackObject>(std::make_shared<EditorAttackPattern>(obj));
+					unsavedAttackPatterns[id] = std::dynamic_pointer_cast<LayerRootLevelPackObject>(std::make_shared<EditorAttackPattern>(obj));
 				}
 
 				reloadAttackPatternTab(id);
@@ -561,7 +561,7 @@ void MainEditorWindow::overwriteAttackPatterns(std::vector<std::shared_ptr<Edito
 				if (unsavedAttackPatterns.find(id) != unsavedAttackPatterns.end()) {
 					std::dynamic_pointer_cast<EditorAttackPattern>(unsavedAttackPatterns[id])->load(obj->format());
 				} else {
-					unsavedAttackPatterns[id] = std::dynamic_pointer_cast<LevelPackObject>(std::make_shared<EditorAttackPattern>(obj));
+					unsavedAttackPatterns[id] = std::dynamic_pointer_cast<LayerRootLevelPackObject>(std::make_shared<EditorAttackPattern>(obj));
 				}
 
 				reloadAttackPatternTab(id);
@@ -578,7 +578,7 @@ void MainEditorWindow::overwriteAttackPatterns(std::vector<std::shared_ptr<Edito
 			if (unsavedAttackPatterns.find(id) != unsavedAttackPatterns.end()) {
 				std::dynamic_pointer_cast<EditorAttackPattern>(unsavedAttackPatterns[id])->load(obj->format());
 			} else {
-				unsavedAttackPatterns[id] = std::dynamic_pointer_cast<LevelPackObject>(std::make_shared<EditorAttackPattern>(obj));
+				unsavedAttackPatterns[id] = std::dynamic_pointer_cast<LayerRootLevelPackObject>(std::make_shared<EditorAttackPattern>(obj));
 			}
 
 			reloadAttackPatternTab(id);
@@ -617,7 +617,7 @@ void MainEditorWindow::reloadAttackTab(int attackID) {
 			openLeftPanelAttackPattern(attackPatternID);
 		});
 		attackEditorPanel->connect("AttackModified", [this](std::shared_ptr<EditorAttack> attack) {
-			unsavedAttacks[attack->getID()] = std::dynamic_pointer_cast<LevelPackObject>(attack);
+			unsavedAttacks[attack->getID()] = std::dynamic_pointer_cast<LayerRootLevelPackObject>(attack);
 			attacksListView->reload();
 		});
 		std::string tabName = format(MAIN_PANEL_ATTACK_TAB_NAME_FORMAT, attackID);
@@ -661,7 +661,7 @@ void MainEditorWindow::reloadAttackPatternTab(int id) {
 			openLeftPanelPlayer();
 		});
 		attackPatternEditorPanel->connect("AttackPatternModified", [this](std::shared_ptr<EditorAttackPattern> attackPattern) {
-			unsavedAttackPatterns[attackPattern->getID()] = std::dynamic_pointer_cast<LevelPackObject>(attackPattern);
+			unsavedAttackPatterns[attackPattern->getID()] = std::dynamic_pointer_cast<LayerRootLevelPackObject>(attackPattern);
 			attackPatternsListView->reload();
 
 			previewWindow->onOriginalLevelPackAttackPatternModified(attackPattern);
@@ -759,7 +759,7 @@ void MainEditorWindow::saveSpriteSheetChanges(std::set<std::string> spriteSheetN
 
 void MainEditorWindow::saveAllChanges() {
 	if (unsavedAttacks.size() > 0) {
-		for (std::pair<int, std::shared_ptr<LevelPackObject>> changes : unsavedAttacks) {
+		for (std::pair<int, std::shared_ptr<LayerRootLevelPackObject>> changes : unsavedAttacks) {
 			levelPack->updateAttack(changes.second);
 		}
 		unsavedAttacks.clear();
@@ -769,7 +769,7 @@ void MainEditorWindow::saveAllChanges() {
 	}
 
 	if (unsavedAttackPatterns.size() > 0) {
-		for (std::pair<int, std::shared_ptr<LevelPackObject>> changes : unsavedAttackPatterns) {
+		for (std::pair<int, std::shared_ptr<LayerRootLevelPackObject>> changes : unsavedAttackPatterns) {
 			levelPack->updateAttackPattern(changes.second);
 		}
 		unsavedAttackPatterns.clear();
@@ -806,23 +806,23 @@ std::shared_ptr<LevelPackObjectsListPanel> MainEditorWindow::getAttackPatternsLi
 	return attackPatternsListPanel;
 }
 
-std::map<int, std::shared_ptr<LevelPackObject>>& MainEditorWindow::getUnsavedAttacks() {
+std::map<int, std::shared_ptr<LayerRootLevelPackObject>>& MainEditorWindow::getUnsavedAttacks() {
 	return unsavedAttacks;
 }
 
-std::map<int, std::shared_ptr<LevelPackObject>>& MainEditorWindow::getUnsavedAttackPatterns() {
+std::map<int, std::shared_ptr<LayerRootLevelPackObject>>& MainEditorWindow::getUnsavedAttackPatterns() {
 	return unsavedAttackPatterns;
 }
 
-std::map<int, std::shared_ptr<LevelPackObject>>& MainEditorWindow::getUnsavedEnemies() {
+std::map<int, std::shared_ptr<LayerRootLevelPackObject>>& MainEditorWindow::getUnsavedEnemies() {
 	return unsavedEnemies;
 }
 
-std::map<int, std::shared_ptr<LevelPackObject>>& MainEditorWindow::getUnsavedEnemyPhases() {
+std::map<int, std::shared_ptr<LayerRootLevelPackObject>>& MainEditorWindow::getUnsavedEnemyPhases() {
 	return unsavedEnemyPhases;
 }
 
-std::map<int, std::shared_ptr<LevelPackObject>>& MainEditorWindow::getUnsavedBulletModels() {
+std::map<int, std::shared_ptr<LayerRootLevelPackObject>>& MainEditorWindow::getUnsavedBulletModels() {
 	return unsavedBulletModels;
 }
 

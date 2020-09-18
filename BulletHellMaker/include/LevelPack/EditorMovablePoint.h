@@ -14,13 +14,13 @@
 #include <DataStructs/SpriteLoader.h>
 #include <Game/Systems/CollisionSystem.h>
 #include <Game/AudioPlayer.h>
-#include <LevelPack/LevelPackObject.h>
+#include <LevelPack/LayerRootLevelPackObject.h>
 #include <DataStructs/IDGenerator.h>
 
 class EMPSpawnType;
 class EditorMovablePoint;
 
-class BulletModel : public LevelPackObject, public std::enable_shared_from_this<BulletModel> {
+class BulletModel : public LayerRootLevelPackObject, public std::enable_shared_from_this<BulletModel> {
 public:
 	BulletModel();
 	BulletModel(int id);
@@ -304,6 +304,7 @@ public:
 
 private:
 	// ID is unique only to the attack and is not saved
+	int id;
 
 	// Points to the EMP ID generator in the EditorAttack this EMP is a child of
 	IDGenerator* idGen;

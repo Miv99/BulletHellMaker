@@ -115,17 +115,17 @@ private:
 	std::shared_ptr<EditorMovablePoint> emp;
 };
 
-class CopiedLevelPackObject : public CopiedObject {
+class CopiedLayerRootLevelPackObject : public CopiedObject {
 public:
 	/*
 	objs - a list of the copied LevelPackObject. Every EditorAttack in here will be deep-copied.
 	*/
-	CopiedLevelPackObject(std::string copiedFromID, std::vector<std::shared_ptr<LevelPackObject>> objs);
+	CopiedLayerRootLevelPackObject(std::string copiedFromID, std::vector<std::shared_ptr<LayerRootLevelPackObject>> objs);
 
 	/*
 	Returns a deep copy of the stored LevelPackObjects.
 	*/
-	std::vector<std::shared_ptr<LevelPackObject>> getLevelPackObjects();
+	std::vector<std::shared_ptr<LayerRootLevelPackObject>> getLevelPackObjects();
 
 	/*
 	Returns the number of copied objects.
@@ -133,7 +133,7 @@ public:
 	int getLevelPackObjectsCount();
 
 private:
-	std::vector<std::shared_ptr<LevelPackObject>> objs;
+	std::vector<std::shared_ptr<LayerRootLevelPackObject>> objs;
 };
 
 class CopiedPiecewiseTFVSegment : public CopiedObject {

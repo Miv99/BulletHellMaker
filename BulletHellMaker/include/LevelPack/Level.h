@@ -8,7 +8,7 @@
 #include <SFML/Graphics.hpp>
 
 #include <exprtk.hpp>
-#include <LevelPack/LevelPackObject.h>
+#include <LevelPack/LayerRootLevelPackObject.h>
 #include <DataStructs/SymbolTable.h>
 #include <LevelPack/LevelEventStartCondition.h>
 #include <LevelPack/EnemySpawn.h>
@@ -23,7 +23,7 @@
 This is a top-level object so every expression this uses should be in terms of only its own unredelegated, well-defined symbols
 meaning every symbol in this object's symbol table is not redelegated.
 */
-class Level : public LevelPackObject {
+class Level : public LayerRootLevelPackObject {
 public:
 	Level() {}
 	Level(int id);

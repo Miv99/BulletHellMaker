@@ -91,23 +91,25 @@ std::pair<float, std::shared_ptr<TFV>> CopiedPiecewiseTFVSegment::getSegment() {
 	return std::make_pair(segment.first, segment.second->clone());
 }
 
-CopiedLevelPackObject::CopiedLevelPackObject(std::string copiedFromID, std::vector<std::shared_ptr<LevelPackObject>> objs) : CopiedObject(copiedFromID) {
+CopiedLayerRootLevelPackObject::CopiedLayerRootLevelPackObject(std::string copiedFromID, std::vector<std::shared_ptr<LayerRootLevelPackObject>> objs) 
+	: CopiedObject(copiedFromID) {
+
 	// Deep copy every object
 	for (auto obj : objs) {
-		this->objs.push_back(obj->clone());
+		this->objs.push_back(std::dynamic_pointer_cast<LayerRootLevelPackObject>(obj->clone()));
 	}
 }
 
-std::vector<std::shared_ptr<LevelPackObject>> CopiedLevelPackObject::getLevelPackObjects() {
+std::vector<std::shared_ptr<LayerRootLevelPackObject>> CopiedLayerRootLevelPackObject::getLevelPackObjects() {
 	// Return deep copies of the objects
-	std::vector<std::shared_ptr<LevelPackObject>> copies;
+	std::vector<std::shared_ptr<LayerRootLevelPackObject>> copies;
 	for (auto obj : objs) {
-		copies.push_back(obj->clone());
+		copies.push_back(std::dynamic_pointer_cast<LayerRootLevelPackObject>(obj->clone()));
 	}
 	return copies;
 }
 
-int CopiedLevelPackObject::getLevelPackObjectsCount() {
+int CopiedLayerRootLevelPackObject::getLevelPackObjectsCount() {
 	return objs.size();
 }
 

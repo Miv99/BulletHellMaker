@@ -11,10 +11,11 @@
 
 #include <exprtk.hpp>
 #include <DataStructs/SpriteLoader.h>
+#include <DataStructs/IDGenerator.h>
 #include <LevelPack/TextMarshallable.h>
 #include <Game/AudioPlayer.h>
-#include <DataStructs/IDGenerator.h>
 
+class LayerRootLevelPackObject;
 class LevelPackObject;
 class Level;
 class EditorAttack;
@@ -135,7 +136,7 @@ public:
 	If the attack ID is already in the LevelPack, overwrite the attack.
 	If the attack ID is not in the LevelPack, add in the attack.
 	*/
-	void updateAttack(std::shared_ptr<LevelPackObject> attack, bool emitOnChange = true);
+	void updateAttack(std::shared_ptr<LayerRootLevelPackObject> attack, bool emitOnChange = true);
 	/*
 	Updates an attack pattern.
 	If the attack pattern ID is already in the LevelPack, overwrite the attack pattern.
@@ -147,7 +148,7 @@ public:
 	If the attack pattern ID is already in the LevelPack, overwrite the attack pattern.
 	If the attack pattern ID is not in the LevelPack, add in the attack pattern.
 	*/
-	void updateAttackPattern(std::shared_ptr<LevelPackObject> attackPattern, bool emitOnChange = true);
+	void updateAttackPattern(std::shared_ptr<LayerRootLevelPackObject> attackPattern, bool emitOnChange = true);
 	/*
 	Updates an enemy.
 	If the enemy ID is already in the LevelPack, overwrite the enemy.
@@ -159,7 +160,7 @@ public:
 	If the enemy ID is already in the LevelPack, overwrite the enemy.
 	If the enemy ID is not in the LevelPack, add in the enemy.
 	*/
-	void updateEnemy(std::shared_ptr<LevelPackObject> enemy, bool emitOnChange = true);
+	void updateEnemy(std::shared_ptr<LayerRootLevelPackObject> enemy, bool emitOnChange = true);
 	/*
 	Updates an enemy phase.
 	If the enemy phase ID is already in the LevelPack, overwrite the enemy phase.
@@ -171,7 +172,7 @@ public:
 	If the enemy phase ID is already in the LevelPack, overwrite the enemy phase.
 	If the enemy phase ID is not in the LevelPack, add in the enemy phase.
 	*/
-	void updateEnemyPhase(std::shared_ptr<LevelPackObject> enemyPhase, bool emitOnChange = true);
+	void updateEnemyPhase(std::shared_ptr<LayerRootLevelPackObject> enemyPhase, bool emitOnChange = true);
 	/*
 	Updates a bullet model.
 	If the bullet model ID is already in the LevelPack, overwrite the bullet model.
@@ -183,7 +184,7 @@ public:
 	If the bullet model ID is already in the LevelPack, overwrite the bullet model.
 	If the bullet model ID is not in the LevelPack, add in the bullet model.
 	*/
-	void updateBulletModel(std::shared_ptr<LevelPackObject> bulletModel, bool emitOnChange = true);
+	void updateBulletModel(std::shared_ptr<LayerRootLevelPackObject> bulletModel, bool emitOnChange = true);
 
 	/*
 	Removes a level from the list of levels that the player can play.

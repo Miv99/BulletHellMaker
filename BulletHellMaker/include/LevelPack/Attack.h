@@ -9,12 +9,12 @@
 #include <DataStructs/SpriteLoader.h>
 #include <LevelPack/TextMarshallable.h>
 #include <Game/EntityCreationQueue.h>
-#include <LevelPack/LevelPackObject.h>
+#include <LevelPack/LayerRootLevelPackObject.h>
 #include <DataStructs/IDGenerator.h>
 
 class EditorMovablePoint;
 
-class EditorAttack : public LevelPackObject {
+class EditorAttack : public LayerRootLevelPackObject {
 public:
 	EditorAttack();
 	EditorAttack(int id);
