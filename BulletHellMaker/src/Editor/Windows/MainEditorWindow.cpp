@@ -107,9 +107,29 @@ void MainEditorWindow::loadLevelPack(std::string levelPackName) {
 	audioPlayer = std::make_shared<AudioPlayer>();
 	try {
 		levelPack = std::make_shared<LevelPack>(*audioPlayer, levelPackName);
+		LevelPack::LoadMetrics levelPackLoadMetrics = levelPack->load();
+
 		spriteLoader = levelPack->getSpriteLoader();
-	} catch (const char* str) {
-		// TODO: log error and display to user
+		SpriteLoader::LoadMetrics spriteLoaderLoadMetrics = spriteLoader->loadFromSpriteSheetsFolder();
+
+		// Display load metrics
+		std::string combinedMetrics = format("Loaded level pack name \"%s\".\n\n", levelPackName.c_str()) + levelPackLoadMetrics.formatForUser() 
+			+ "\n\n" + spriteLoaderLoadMetrics.formatForUser();
+		bool levelPackLoadFailed = levelPackLoadMetrics.containsFailedLoads();
+		bool spriteLoaderLoadFailed = spriteLoaderLoadMetrics.containsFailedLoads();
+		if (levelPackLoadFailed) {
+			combinedMetrics += "\n\nWARNING: Some level pack objects failed to load and will be deleted upon the next save.";
+		}
+		if (spriteLoaderLoadFailed) {
+			combinedMetrics += "\n\nWARNING: Some sprite sheets or sprite sheet metafiles failed to load and will neither be editable nor saved.";
+		}
+		if (!levelPackLoadFailed && !spriteLoaderLoadFailed) {
+			combinedMetrics += "\n\nSuccessfully loaded the level pack with no errors.";
+		}
+		showPopupMessageWindow(combinedMetrics, nullptr);
+
+	} catch (const std::exception& e) {
+		showPopupMessageWindow(format("An exception occurred while loading level pack \"%s\": %s", levelPackName.c_str(), e.what()), nullptr);
 		return;
 	}
 
@@ -228,9 +248,13 @@ void MainEditorWindow::deleteAttackPattern(int id) {
 }
 
 void MainEditorWindow::reloadSpriteLoader() {
+	if (!spriteLoader) {
+		return;
+	}
+
 	std::set<std::string> oldLoadedSpriteSheets = spriteLoader->getLoadedSpriteSheetNamesAsSet();
 
-	spriteSheetsListPanel->reloadSpriteLoaderAndList();
+	SpriteLoader::LoadMetrics loadMetrics = spriteSheetsListPanel->reloadSpriteLoaderAndList();
 	// The level pack being edited by this MainEditorWindow is the same SpriteLoader as the one
 	// being used in previewWindow's level pack, so don't reload the one in previewWindow.
 
@@ -249,6 +273,9 @@ void MainEditorWindow::reloadSpriteLoader() {
 			}
 		}
 	}
+
+	// Display load metrics
+	showPopupMessageWindow(loadMetrics.formatForUser(), nullptr);
 	
 	// Reset preview because existing sprites will continue to use the old textures
 	previewWindow->resetPreview();

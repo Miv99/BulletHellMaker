@@ -145,6 +145,14 @@ Note that if the SpriteLoader object goes out of scope, all Sprites loaded from 
 */
 class SpriteLoader {
 public:
+	struct LoadMetrics {
+		int spriteSheetsFailed = 0;
+		int spriteSheetsTotal = 0;
+
+		std::string formatForUser();
+		bool containsFailedLoads();
+	};
+
 	SpriteLoader(const std::string& levelPackName);
 
 	/*
@@ -161,7 +169,7 @@ public:
 	passed in from SpriteLoader's constructor. Sprite sheets without a corresponding
 	metafile are still loaded but will not contain any usable sprites or animations.
 	*/
-	void loadFromSpriteSheetsFolder();
+	LoadMetrics loadFromSpriteSheetsFolder();
 
 	/*
 	Returns whether both the image and its metafile were successfully loaded.

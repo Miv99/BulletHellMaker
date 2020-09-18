@@ -2,6 +2,7 @@
 #include <TGUI/TGUI.hpp>
 
 #include <Util/IOUtils.h>
+#include <DataStructs/SpriteLoader.h>
 #include <Editor/EventCapturable.h>
 #include <Editor/CustomWidgets/ListViewScrollablePanel.h>
 #include <Editor/Windows/EditorWindowConfirmationPromptChoice.h>
@@ -32,7 +33,7 @@ public:
 	Reloads the current level pack's SpriteLoader's sprite sheets and
 	then this widget's list of sprite sheets to match the SpriteLoader.
 	*/
-	void reloadSpriteLoaderAndList();
+	SpriteLoader::LoadMetrics reloadSpriteLoaderAndList();
 
 	/*
 	Reloads the list of sprite sheets to match the loaded ones in

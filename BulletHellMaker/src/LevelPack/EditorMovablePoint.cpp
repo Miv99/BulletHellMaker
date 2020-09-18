@@ -170,9 +170,9 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorMovable
 					status = std::max(status, LEGAL_STATUS::ILLEGAL);
 					messages.push_back("[" + std::to_string(id) + "] Base sprite is an animation.");
 				}
-			} catch (const char* str) {
+			} catch (const std::exception& e) {
 				status = std::max(status, LEGAL_STATUS::ILLEGAL);
-				messages.push_back(std::string(str));
+				messages.push_back(std::string(e.what()));
 			}
 		}
 	}
@@ -186,9 +186,9 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorMovable
 				spriteLoader.getAnimation(animatable.getAnimatableName(), animatable.getSpriteSheetName(), false);
 			}
 		}
-	} catch (const char* str) {
+	} catch (const std::exception& e) {
 		status = std::max(status, LEGAL_STATUS::ILLEGAL);
-		messages.push_back(std::string(str));
+		messages.push_back(std::string(e.what()));
 	}
 	for (auto child : children) {
 		auto childLegal = child->legal(levelPack, spriteLoader, symbolTables);

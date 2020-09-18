@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include <Config.h>
+#include <Util/Logger.h>
 #include <Util/TextFileParser.h>
 #include <LevelPack/Attack.h>
 #include <LevelPack/AttackPattern.h>
@@ -290,101 +291,208 @@ LevelPack::LevelPack(AudioPlayer& audioPlayer, std::string name, std::shared_ptr
 	//load();
 }
 
-void LevelPack::load() {
-	// First line is always the next ID
-	// Every other line is the data for the object
+LevelPack::LoadMetrics LevelPack::load() {
+	LoadMetrics loadMetrics;
 
 	// Read player
-	std::ifstream playerFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\player.txt", name.c_str()));
-	std::string line;
-	std::getline(playerFile, line);
 	player = std::make_shared<EditorPlayer>();
-	player->load(line);
+	std::string playerFilePath = format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\player.txt", name.c_str());
+	L_(linfo) << "Loading player from \"" << playerFilePath << "\"...";
+	std::ifstream playerFile(playerFilePath);
+	std::string line;
+	try {
+		std::getline(playerFile, line);
+		player->load(line);
+		L_(linfo) << "Successfully loaded player at line 1";
+		loadMetrics.playerSuccess = true;
+	} catch (const std::exception& e) {
+		L_(lerror) << "Failed to load player. Exception: " << e.what();
+		loadMetrics.playerSuccess = false;
+	} catch (...) {
+		L_(lerror) << "Failed to load player. Unknown exception.";
+		loadMetrics.playerSuccess = false;
+	}
 
 	// Read levels
 	levelsMap.clear();
-	levels.clear();
-	std::ifstream levelsFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\levels.txt", name.c_str()));
-	// First line is number of levels
-	std::getline(levelsFile, line);
-	int numLevels = std::stoi(line);
-	for (int i = 0; i < numLevels; i++) {
-		std::getline(levelsFile, line);
-
-		std::shared_ptr<Level> level = std::make_shared<Level>();
-		level->load(line);
-		levelIDGen.markIDAsUsed(level->getID());
-
-		levelsMap[level->getID()] = level;
-	}
-	// Every other line determines level order
+	std::string levelsFilePath = format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\levels.txt", name.c_str());
+	L_(linfo) << "Loading levels from \"" << levelsFilePath << "\"...";
+	std::ifstream levelsFile(levelsFilePath);
+	int i = 0;
 	while (std::getline(levelsFile, line)) {
-		int levelID = std::stoi(line);
-		levels.push_back(levelID);
+		try {
+			std::shared_ptr<Level> level = std::make_shared<Level>();
+
+			level->load(line);
+			levelIDGen.markIDAsUsed(level->getID());
+
+			levelsMap[level->getID()] = level;
+			L_(linfo) << "Successfully loaded level ID " << level->getID() << " at line " << (i + 1);
+		} catch (const std::exception& e) {
+			L_(lerror) << "Failed to load level at line " << (i + 1) << ". Exception: " << e.what();
+			loadMetrics.levelsFailed++;
+		} catch (...) {
+			L_(lerror) << "Failed to load level at line " << (i + 1) << ". Unknown exception.";
+			loadMetrics.levelsFailed++;
+		}
+		loadMetrics.levelsTotal++;
 	}
-	levelsFile.close();
+
+	// Read levels ordering
+	levels.clear();
+	std::string levelsOrderingFilePath = format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\levels_order.txt", name.c_str());
+	L_(linfo) << "Loading levels from \"" << levelsOrderingFilePath << "\"...";
+	std::ifstream levelsOrderingFile(levelsOrderingFilePath);
+	i = 0;
+	while (std::getline(levelsFile, line)) {
+		try {
+			int levelID = std::stoi(line);
+			levels.push_back(levelID);
+		} catch (const std::exception& e) {
+			L_(lerror) << "Error reading level ID order at line " << (i + 1) << ". Exception: " << e.what();
+			loadMetrics.levelOrderingsFailed++;
+		} catch (...) {
+			L_(lerror) << "Error reading level ID order at line " << (i + 1) << ". Unknown exception.";
+			loadMetrics.levelOrderingsFailed++;
+		}
+		loadMetrics.levelOrderingsTotal++;
+		i++;
+	}
+	levelsOrderingFile.close();
 
 	// Read bullet models
 	bulletModels.clear();
-	std::ifstream bulletModelsFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\bullet_models.txt", name.c_str()));
+	std::string bulletModelsFilePath = format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\bullet_models.txt", name.c_str());
+	L_(linfo) << "Loading bullet models from \"" << bulletModelsFilePath << "\"...";
+	std::ifstream bulletModelsFile(bulletModelsFilePath);
+	i = 0;
 	while (std::getline(bulletModelsFile, line)) {
-		std::shared_ptr<BulletModel> bulletModel = std::make_shared<BulletModel>();
-		bulletModel->load(line);
-		bulletModelIDGen.markIDAsUsed(bulletModel->getID());
+		try {
+			std::shared_ptr<BulletModel> bulletModel = std::make_shared<BulletModel>();
+			bulletModel->load(line);
+			bulletModelIDGen.markIDAsUsed(bulletModel->getID());
 
-		bulletModels[bulletModel->getID()] = bulletModel;
+			bulletModels[bulletModel->getID()] = bulletModel;
+			L_(linfo) << "Successfully loaded bullet model ID " << bulletModel->getID() << " at line " << (i + 1);
+		} catch (const std::exception& e) {
+			L_(lerror) << "Failed to load bullet model at line " << (i + 1) << ". Exception: " << e.what();
+			loadMetrics.bulletModelsFailed++;
+		} catch (...) {
+			L_(lerror) << "Failed to load bullet model at line " << (i + 1) << ". Unknown exception.";
+			loadMetrics.bulletModelsFailed++;
+		}
+		loadMetrics.bulletModelsTotal++;
+		i++;
 	}
 	bulletModelsFile.close();
 
 	// Read attacks
 	attacks.clear();
-	std::ifstream attacksFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\attacks.txt", name.c_str()));
+	std::string attacksFilePath = format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\attacks.txt", name.c_str());
+	L_(linfo) << "Loading attacks from \"" << attacksFilePath << "\"...";
+	std::ifstream attacksFile(attacksFilePath);
+	i = 0;
 	while (std::getline(attacksFile, line)) {
-		std::shared_ptr<EditorAttack> attack = std::make_shared<EditorAttack>();
-		attack->load(line);
-		attackIDGen.markIDAsUsed(attack->getID());
+		try {
+			std::shared_ptr<EditorAttack> attack = std::make_shared<EditorAttack>();
+			attack->load(line);
+			attackIDGen.markIDAsUsed(attack->getID());
 
-		// Load bullet models for every EMP
-		attack->loadEMPBulletModels(*this);
-		attacks[attack->getID()] = attack;
+			// Load bullet models for every EMP
+			attack->loadEMPBulletModels(*this);
+			attacks[attack->getID()] = attack;
+			L_(linfo) << "Successfully loaded attack ID " << attack->getID() << " at line " << (i + 1);
+		} catch (const std::exception& e) {
+			L_(lerror) << "Failed to load attack at line " << (i + 1) << ". Exception: " << e.what();
+			loadMetrics.attacksFailed++;
+		} catch (...) {
+			L_(lerror) << "Failed to load attack at line " << (i + 1) << ". Unknown exception.";
+			loadMetrics.attacksFailed++;
+		}
+		loadMetrics.attacksTotal++;
+		i++;
 	}
 	attacksFile.close();
 
 	// Read attack patterns
 	attackPatterns.clear();
-	std::ifstream attackPatternsFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\attack_patterns.txt", name.c_str()));
+	std::string attackPatternsFilePath = format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\attack_patterns.txt", name.c_str());
+	L_(linfo) << "Loading attack patterns from \"" << attackPatternsFilePath << "\"...";
+	std::ifstream attackPatternsFile(attackPatternsFilePath);
+	i = 0;
 	while (std::getline(attackPatternsFile, line)) {
-		std::shared_ptr<EditorAttackPattern> attackPattern = std::make_shared<EditorAttackPattern>();
-		attackPattern->load(line);
-		attackPatternIDGen.markIDAsUsed(attackPattern->getID());
+		try {
+			std::shared_ptr<EditorAttackPattern> attackPattern = std::make_shared<EditorAttackPattern>();
+			attackPattern->load(line);
+			attackPatternIDGen.markIDAsUsed(attackPattern->getID());
 
-		attackPatterns[attackPattern->getID()] = attackPattern;
+			attackPatterns[attackPattern->getID()] = attackPattern;
+			L_(linfo) << "Successfully loaded attack pattern ID " << attackPattern->getID() << " at line " << (i + 1);
+		} catch (const std::exception& e) {
+			L_(lerror) << "Failed to load attack pattern at line " << (i + 1) << ". Exception: " << e.what();
+			loadMetrics.attackPatternsFailed++;
+		} catch (...) {
+			L_(lerror) << "Failed to load attack pattern at line " << (i + 1) << ". Unknown exception.";
+			loadMetrics.attackPatternsFailed++;
+		}
+		loadMetrics.attackPatternsTotal++;
+		i++;
 	}
 	attackPatternsFile.close();
 
 	// Read enemies
 	enemies.clear();
-	std::ifstream enemiesFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\enemies.txt", name.c_str()));
+	std::string enemiesFilePath = format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\enemies.txt", name.c_str());
+	L_(linfo) << "Loading enemies from \"" << enemiesFilePath << "\"...";
+	std::ifstream enemiesFile(enemiesFilePath);
+	i = 0;
 	while (std::getline(enemiesFile, line)) {
-		std::shared_ptr<EditorEnemy> enemy = std::make_shared<EditorEnemy>();
-		enemy->load(line);
-		enemyIDGen.markIDAsUsed(enemy->getID());
+		try {
+			std::shared_ptr<EditorEnemy> enemy = std::make_shared<EditorEnemy>();
+			enemy->load(line);
+			enemyIDGen.markIDAsUsed(enemy->getID());
 
-		enemies[enemy->getID()] = enemy;
+			enemies[enemy->getID()] = enemy;
+			L_(linfo) << "Successfully loaded enemy ID " << enemy->getID() << " at line " << (i + 1);
+		} catch (const std::exception& e) {
+			L_(lerror) << "Failed to load enemy at line " << (i + 1) << ". Exception: " << e.what();
+			loadMetrics.enemiesFailed++;
+		} catch (...) {
+			L_(lerror) << "Failed to load enemy at line " << (i + 1) << ". Unknown exception.";
+			loadMetrics.enemiesFailed++;
+		}
+		loadMetrics.enemiesTotal++;
+		i++;
 	}
 	enemiesFile.close();
 
 	// Read enemy phases
 	enemyPhases.clear();
-	std::ifstream enemyPhasesFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\enemy_phases.txt", name.c_str()));
+	std::string enemyPhasesFilePath = format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\enemy_phases.txt", name.c_str());
+	L_(linfo) << "Loading enemy phases from \"" << enemyPhasesFilePath << "\"...";
+	std::ifstream enemyPhasesFile(enemyPhasesFilePath);
+	i = 0;
 	while (std::getline(enemyPhasesFile, line)) {
-		std::shared_ptr<EditorEnemyPhase> enemyPhase = std::make_shared<EditorEnemyPhase>();
-		enemyPhase->load(line);
-		enemyPhaseIDGen.markIDAsUsed(enemyPhase->getID());
+		try {
+			std::shared_ptr<EditorEnemyPhase> enemyPhase = std::make_shared<EditorEnemyPhase>();
+			enemyPhase->load(line);
+			enemyPhaseIDGen.markIDAsUsed(enemyPhase->getID());
 
-		enemyPhases[enemyPhase->getID()] = enemyPhase;
+			enemyPhases[enemyPhase->getID()] = enemyPhase;
+			L_(linfo) << "Successfully loaded enemy phase ID " << enemyPhase->getID() << " at line " << (i + 1);
+		} catch (const std::exception& e) {
+			L_(lerror) << "Failed to load enemy phase at line " << (i + 1) << ". Exception: " << e.what();
+			loadMetrics.enemyPhasesFailed++;
+		} catch (...) {
+			L_(lerror) << "Failed to load enemy phase at line " << (i + 1) << ". Unknown exception.";
+			loadMetrics.enemyPhasesFailed++;
+		}
+		loadMetrics.enemyPhasesTotal++;
+		i++;
 	}
 	enemyPhasesFile.close();
+
+	return loadMetrics;
 }
 
 void LevelPack::save() {
@@ -398,16 +506,19 @@ void LevelPack::save() {
 
 	// Save levels
 	std::ofstream levelsFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\levels.txt", name.c_str()));
-	levelsFile << levelsMap.size() << std::endl;
 	for (auto p : levelsMap) {
 		// Skip if ID < 0, because that signifies that it's a temporary object
 		if (p.first < 0) continue;
 		levelsFile << p.second->format() << std::endl;
 	}
-	for (int id : levels) {
-		levelsFile << id << std::endl;
-	}
 	levelsFile.close();
+
+	// Save levels ordering
+	std::ofstream levelsOrderingFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\levels_order.txt", name.c_str()));
+	for (int id : levels) {
+		levelsOrderingFile << id << std::endl;
+	}
+	levelsOrderingFile.close();
 
 	// Save bullet models
 	std::ofstream bulletModelsFile(format(RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\bullet_models.txt", name.c_str()));
@@ -973,4 +1084,21 @@ void LevelPack::playMusic(std::shared_ptr<sf::Music> music, const MusicSettings&
 	MusicSettings alteredPath = MusicSettings(musicSettings);
 	alteredPath.setFileName("Level Packs/" + name + "/Music/" + alteredPath.getFileName());
 	audioPlayer.playMusic(music, alteredPath);
+}
+
+std::string LevelPack::LoadMetrics::formatForUser() {
+	return format("%d/%d levels failed to load.\n\
+%d/%d level orderings failed to be read.\n\
+%d/%d bullet models failed to load.\n\
+%d/%d attacks failed to load.\n\
+%d/%d attack patterns failed to load.\n\
+%d/%d enemies failed to load.\n\
+%d/%d enemy phases failed to load.\n", levelsFailed, levelsTotal, levelOrderingsFailed, levelOrderingsTotal,
+bulletModelsFailed, bulletModelsTotal, attacksFailed, attacksTotal, attackPatternsFailed, attackPatternsTotal,
+enemiesFailed, enemiesTotal, enemyPhasesFailed, enemyPhasesTotal);
+}
+
+bool LevelPack::LoadMetrics::containsFailedLoads() {
+	return !playerSuccess || levelsFailed > 0 || levelOrderingsFailed > 0 || enemiesFailed > 0
+		|| enemyPhasesFailed > 0 || attackPatternsFailed > 0 || attacksFailed > 0 || bulletModelsFailed > 0;
 }

@@ -91,7 +91,11 @@ void SimpleEngineRenderer::loadLevelPack(std::string name, std::shared_ptr<Sprit
 	std::lock_guard<std::mutex> lock(registryMutex);
 	registry.reset();
 
+	bool spriteLoaderWasNullptr = (spriteLoader == nullptr);
 	levelPack = std::make_shared<LevelPack>(*audioPlayer, name, spriteLoader);
+	if (spriteLoaderWasNullptr) {
+		spriteLoader->loadFromSpriteSheetsFolder();
+	}
 	this->spriteLoader = levelPack->getSpriteLoader();
 
 	movementSystem = std::make_unique<MovementSystem>(*queue, *this->spriteLoader, registry);

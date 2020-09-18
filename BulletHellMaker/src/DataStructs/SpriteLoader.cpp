@@ -233,8 +233,10 @@ void SpriteLoader::saveMetadataFiles() {
 	}
 }
 
-void SpriteLoader::loadFromSpriteSheetsFolder() {
+SpriteLoader::LoadMetrics SpriteLoader::loadFromSpriteSheetsFolder() {
 	spriteSheets.clear();
+
+	LoadMetrics loadMetrics;
 
 	std::string spriteSheetsFolderPath = format(RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH, levelPackName.c_str());
 	std::vector<std::pair<std::string, std::string>> spriteSheetPairs = findAllSpriteSheets(spriteSheetsFolderPath);
@@ -247,9 +249,13 @@ void SpriteLoader::loadFromSpriteSheetsFolder() {
 
 		bool loadIsSuccessful = loadSpriteSheet(pair.first, pair.second);
 		if (!loadIsSuccessful) {
-			L_(lwarning) << "Failed to load sprite sheet";
+			L_(lerror) << "Failed to load sprite sheet";
+			loadMetrics.spriteSheetsFailed++;
 		}
+		loadMetrics.spriteSheetsTotal++;
 	}
+
+	return loadMetrics;
 }
 
 std::shared_ptr<sf::Texture> SpriteLoader::getGuiElementTexture(const std::string& guiElementFileName) {
@@ -396,7 +402,7 @@ bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, c
 	
 	// Make sure image file exists
 	if (!fileExists(formatPathToSpriteSheetImage(spriteSheetImageFileName))) {
-		L_(lwarning) << "Image file \"" << spriteSheetImageFileName << "\" does not exist.";
+		L_(lerror) << "Image file \"" << spriteSheetImageFileName << "\" does not exist.";
 
 		return false;
 	}
@@ -413,7 +419,7 @@ bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, c
 
 		// Load image file
 		if (!sheet->loadTexture(formatPathToSpriteSheetImage(spriteSheetImageFileName))) {
-			L_(lwarning) << "Image file \"" << spriteSheetImageFileName << "\" failed to load.";
+			L_(lerror) << "Image file \"" << spriteSheetImageFileName << "\" failed to load.";
 
 			// If image couldn't be loaded, mark the SpriteSheet as having a failed image load
 			sheet->markFailedImageLoad();
@@ -462,4 +468,12 @@ void AnimationData::load(std::string formattedString) {
 
 bool AnimationData::operator==(const AnimationData & other) const {
 	return animationName == other.animationName;
+}
+
+std::string SpriteLoader::LoadMetrics::formatForUser() {
+	return format("%d/%d sprite sheets failed to load.\n", spriteSheetsFailed, spriteSheetsTotal);
+}
+
+bool SpriteLoader::LoadMetrics::containsFailedLoads() {
+	return spriteSheetsFailed > 0;
 }

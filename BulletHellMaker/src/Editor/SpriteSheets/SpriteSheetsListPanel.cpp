@@ -93,9 +93,10 @@ void SpriteSheetsListPanel::selectSpriteSheetByName(std::string spriteSheetName)
 	spriteSheetsList->getListView()->setSelectedItem(spriteSheetIndexByName[spriteSheetName]);
 }
 
-void SpriteSheetsListPanel::reloadSpriteLoaderAndList() {
-	levelPack->getSpriteLoader()->loadFromSpriteSheetsFolder();
+SpriteLoader::LoadMetrics SpriteSheetsListPanel::reloadSpriteLoaderAndList() {
+	SpriteLoader::LoadMetrics loadMetrics = levelPack->getSpriteLoader()->loadFromSpriteSheetsFolder();
 	reloadListOnly();
+	return loadMetrics;
 }
 
 void SpriteSheetsListPanel::reloadListOnly() {

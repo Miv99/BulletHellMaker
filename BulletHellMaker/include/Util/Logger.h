@@ -198,6 +198,7 @@ inline void initLogger(TLogLevel level) {
                 logFiles.erase(logFiles.begin());
             } catch (const std::exception& e) {
                 // Log file is probably open or something; just ignore the exception
+                break;
             }
         }
     }

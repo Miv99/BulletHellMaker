@@ -20,11 +20,10 @@ int main() {
 		*/
 
 		auto p = MainEditorWindow::create("title", 1024, 768);
-		p->loadLevelPack("test pack");
 		p->start();
-	} catch (const char* e) {
+	} catch (const std::exception& e) {
 		// Unhandled exeception
-		L_(lerror) << "Uncaught exception: " << e << std::endl;
+		L_(lerror) << "Fatal error: uncaught exception: " << e.what() << std::endl;
 	}
 
 	endLogger();

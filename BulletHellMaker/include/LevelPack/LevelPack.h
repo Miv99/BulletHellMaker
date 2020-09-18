@@ -43,6 +43,33 @@ public:
 		ATTACK,
 		BULLET_MODEL
 	};
+	struct LoadMetrics {
+		bool playerSuccess = false;
+
+		int levelsFailed = 0;
+		int levelsTotal = 0;
+
+		int levelOrderingsFailed = 0;
+		int levelOrderingsTotal = 0;
+
+		int enemiesFailed = 0;
+		int enemiesTotal = 0;
+
+		int enemyPhasesFailed = 0;
+		int enemyPhasesTotal = 0;
+
+		int attackPatternsFailed = 0;
+		int attackPatternsTotal = 0;
+
+		int attacksFailed = 0;
+		int attacksTotal = 0;
+
+		int bulletModelsFailed = 0;
+		int bulletModelsTotal = 0;
+
+		std::string formatForUser();
+		bool containsFailedLoads();
+	};
 
 	/*
 	spriteLoader - if not nullptr, this sprite loader will be used in the newly loaded level pack
@@ -53,7 +80,7 @@ public:
 	/*
 	Load the LevelPack from its folder.
 	*/
-	void load();
+	LoadMetrics load();
 	/*
 	Save the LevelPack into its folder.
 	*/
