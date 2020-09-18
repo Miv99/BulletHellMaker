@@ -17,9 +17,14 @@ public:
 	*/
 	inline void setID(int id) { this->id = id; }
 	inline void setName(std::string name) { this->name = name; }
+	/*
+	Marks this object as having failed its load().
+	*/
+	inline void setFailedLoadAttempt(std::string formattedString) { failedLoadAttempt = formattedString; }
 
 	inline int getID() const { return id; }
 	inline std::string getName() const { return name; }
+	inline bool isFailedLoad() const { return failedLoadAttempt.size() != 0; }
 
 protected:
 	// ID unique to all other LevelPackObjects of the same derived class. Only used for non-unique objects (see references for definition of a unique object).
@@ -27,4 +32,6 @@ protected:
 	int id;
 	// User-defined name. Only used for non-unique objects.
 	std::string name;
+
+	std::string failedLoadAttempt;
 };

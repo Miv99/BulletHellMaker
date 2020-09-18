@@ -164,7 +164,7 @@ private:
 	std::shared_ptr<tgui::Container> popupContainer;
 
 	// The widgets for the confirmation popup in promptConfirmation()
-	std::shared_ptr<tgui::Panel> confirmationPanel; // Not added to gui until promptConfirmation() is called; removed after user responds
+	std::shared_ptr<ChildWindow> confirmationWindow; // Not added to gui until promptConfirmation() is called; removed after user responds
 	std::shared_ptr<tgui::Label> confirmationText;
 	std::shared_ptr<tgui::Button> confirmationYes;
 	std::shared_ptr<tgui::Button> confirmationNo;
@@ -250,13 +250,33 @@ inline std::shared_ptr<entt::SigH<void(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE,
 			}
 		});
 
-		confirmationPanel->setSize(std::max(calculateMinPromptPanelWidth(3), getWindow()->getSize().x * 0.5f), std::max(350.0f, getWindow()->getSize().y * 0.5f));
+		confirmationWindow->setFallbackEventHandler([this, confirmationSignal, userObject, widgetToFocusAfter](sf::Event event) {
+			if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
+				confirmationSignal->publish(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::CANCEL, userObject);
+				confirmationSignal->sink().disconnect();
+				closeConfirmationPanel();
+
+				if (widgetToFocusAfter) {
+					widgetToFocusAfter->setFocused(true);
+				}
+
+				return true;
+			}
+			return false;
+		});
+
+		confirmationWindow->setSize(std::max(calculateMinPromptPanelWidth(3), getWindow()->getSize().x * 0.5f), std::max(350.0f, getWindow()->getSize().y * 0.5f));
 	} else {
-		confirmationPanel->setSize(std::max(calculateMinPromptPanelWidth(2), getWindow()->getSize().x * 0.5f), std::max(350.0f, getWindow()->getSize().y * 0.5f));
+		confirmationWindow->setFallbackEventHandler([this, confirmationSignal, widgetToFocusAfter](sf::Event event) {
+			return false;
+		});
+
+		confirmationWindow->setSize(std::max(calculateMinPromptPanelWidth(2), getWindow()->getSize().x * 0.5f), std::max(350.0f, getWindow()->getSize().y * 0.5f));
 	}
 
 	confirmationText->setText(message);
-	gui->add(confirmationPanel);
+	confirmationWindow->setPosition(window->getSize().x / 2.0f - confirmationWindow->getSize().x / 2.0f, window->getSize().y / 2.0f - confirmationWindow->getSize().y / 2.0f);
+	addChildWindow(confirmationWindow);
 	confirmationPanelOpen = true;
 
 	return confirmationSignal;
