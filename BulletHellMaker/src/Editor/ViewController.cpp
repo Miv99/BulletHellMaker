@@ -2,12 +2,14 @@
 
 #include <algorithm>
 
+#include <iostream>
+
 const float ViewController::MIN_CAMERA_ZOOM = 0.2f;
 const float ViewController::MAX_CAMERA_ZOOM = 8.0f;
 const float ViewController::CAMERA_ZOOM_DELTA = 0.2f;
 const float ViewController::KEYBOARD_PAN_STRENGTH = 300.0f;
 
-ViewController::ViewController(const sf::RenderWindow& window, bool controllableWithWASD, bool controllableWithArrowKeys)
+ViewController::ViewController(sf::RenderWindow& window, bool controllableWithWASD, bool controllableWithArrowKeys)
 	: window(window), controllableWithWASD(controllableWithWASD), controllableWithArrowKeys(controllableWithArrowKeys) {
 }
 
@@ -37,23 +39,19 @@ bool ViewController::handleEvent(sf::View& view, sf::Event event) {
 	if (event.type == sf::Event::MouseButtonPressed) {
 		if (event.mouseButton.button == sf::Mouse::Middle || event.mouseButton.button == sf::Mouse::Right) {
 			draggingCamera = true;
-			previousCameraDragCoordsX = event.mouseButton.x;
-			previousCameraDragCoordsY = event.mouseButton.y;
+			draggingStartScreenCoords = sf::Vector2i(event.mouseButton.x, event.mouseButton.y);
+			draggingStartViewCenter = view.getCenter();
 		}
 	} else if (event.type == sf::Event::MouseMoved) {
 		if (draggingCamera) {
-			// Move camera depending on difference in world coordinates between event.mouseMove.x/y and previousCameraDragCoordsX/Y
-			sf::Vector2f diff = (window.mapPixelToCoords(sf::Vector2i(previousCameraDragCoordsX, previousCameraDragCoordsY)) - window.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y))) / cameraZoom;
-			// I have no idea why this is needed
-			if (window.getSize().x > window.getSize().y) {
-				diff.x *= window.getSize().x / window.getSize().y;
-			} else {
-				diff.y *= window.getSize().y / window.getSize().x;
-			}
-			moveCamera(view, diff.x, diff.y);
+			// Move camera depending on difference in world coordinates between event.mouseMove.x/y and draggingStartWorldCoords
+			const sf::View oldView = window.getView();
+			window.setView(view);
+			sf::Vector2i screenDiff = sf::Vector2i(event.mouseMove.x, event.mouseMove.y) - draggingStartScreenCoords;
+			sf::Vector2f diff = window.mapPixelToCoords(screenDiff) - window.mapPixelToCoords(sf::Vector2i(0, 0));
+			window.setView(oldView);
 
-			previousCameraDragCoordsX = event.mouseMove.x;
-			previousCameraDragCoordsY = event.mouseMove.y;
+			view.setCenter(draggingStartViewCenter.x - diff.x, draggingStartViewCenter.y - diff.y);
 
 			consumeEvent = true;
 		}

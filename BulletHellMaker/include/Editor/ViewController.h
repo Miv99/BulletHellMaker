@@ -3,7 +3,7 @@
 
 class ViewController {
 public:
-	ViewController(const sf::RenderWindow& window, bool controllableWithWASD = true, bool controllableWithArrowKeys = true);
+	ViewController(sf::RenderWindow& window, bool controllableWithWASD = true, bool controllableWithArrowKeys = true);
 
 	/*
 	Modifies view.
@@ -36,14 +36,15 @@ private:
 	static const float CAMERA_ZOOM_DELTA;
 	static const float KEYBOARD_PAN_STRENGTH;
 
-	const sf::RenderWindow& window;
+	sf::RenderWindow& window;
 
 	// The original width and height of the view at camera zoom level 1
 	float originalViewWidth, originalViewHeight;
 
-	// Screen coordinates of the mouse in the last MouseMove event while
-	// draggingCamera was true
-	int previousCameraDragCoordsX, previousCameraDragCoordsY;
+	// Screen coordinates of the mouse when camera dragging started
+	sf::Vector2i draggingStartScreenCoords;
+	// View center when camera dragging started
+	sf::Vector2f draggingStartViewCenter;
 	bool draggingCamera = false;
 	// This should be modified only by setCameraZoom()
 	float cameraZoom = 1.0f;
