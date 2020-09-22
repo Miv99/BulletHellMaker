@@ -186,11 +186,19 @@ Random things for TODOs that are noted here so I don't forget:
 -legal checks for everything should make sure all IDs used (ie attack IDs in attack patterns) are valid
 
 TODO:
+-preview window should get instantiated at maineditorwindow constructor but the actual window shouldn't open
+    except through the menu bar
+-fix tgui so that middle mouse press event will focus a widget
+-view controller messed up at high zoom; make it so when dragging camera, the camera isn't being moved based on 
+    the prev known location; it should use only the current mouse pos and the mouse pos where draggingCamera was
+    first set to true
 -When opening preview window from menu bar, call previewWindow->resetPreview() right after
 -SpriteSheetsEditor
     -(Create new)/(Add existing)/(Delete) sprite sheet 
     -double click sprite sheet -> if metafile doesn't exist, create it; no need to load it in the level pack's sprite loader
         because it will be empty anyway
+    -choose background color
+    -toggle show texture borders
 -move player out of level pack metadata and into its own file
 -illegal level pack objects have [!] in maineditorwindow's left panel's list view
 -replace all in menu bar

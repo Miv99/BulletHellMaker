@@ -38,7 +38,7 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 	std::shared_ptr<tgui::CheckBox> snapToGridCheckBox = tgui::CheckBox::create();
 	mouseWorldPosPanel = tgui::Panel::create();
 	mouseWorldPosLabel = tgui::Label::create();
-	extraWidgetsPanel = tgui::ScrollablePanel::create();
+	extraWidgetsPanel = SimpleWidgetsContainerPanel::create();
 
 	markersListView->setTextSize(TEXT_SIZE);
 	addMarker->setTextSize(TEXT_SIZE);
@@ -84,6 +84,8 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 
 	leftPanel->setSize(tgui::bindMin("25%", 250), "100%");
 	extraWidgetsPanel->setPosition(tgui::bindRight(leftPanel), tgui::bindTop(leftPanel));
+	extraWidgetsPanel->setWidth("100%" - tgui::bindRight(leftPanel));
+	extraWidgetsPanel->setMaxHeight(0);
 
 	leftPanel->connect("SizeChanged", [this](sf::Vector2f newSize) {
 		// Height of left panel minus y needed for the widgets that are not the list view
@@ -175,10 +177,10 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 	extraWidgetsPanel->connect("SizeChanged", [this](sf::Vector2f newSize) {
 		gridLinesInterval->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 	});
-	addExtraRowWidget(showGridLines, GUI_LABEL_PADDING_Y);
-	addExtraRowWidget(snapToGridCheckBox, GUI_LABEL_PADDING_Y);
-	addExtraRowWidget(gridLinesIntervalLabel, GUI_LABEL_PADDING_Y);
-	addExtraRowWidget(gridLinesInterval, GUI_LABEL_PADDING_Y);
+	extraWidgetsPanel->addExtraRowWidget(showGridLines, GUI_LABEL_PADDING_Y);
+	extraWidgetsPanel->addExtraRowWidget(snapToGridCheckBox, GUI_LABEL_PADDING_Y);
+	extraWidgetsPanel->addExtraRowWidget(gridLinesIntervalLabel, GUI_LABEL_PADDING_Y);
+	extraWidgetsPanel->addExtraRowWidget(gridLinesInterval, GUI_LABEL_PADDING_Y);
 	add(extraWidgetsPanel);
 
 	mouseWorldPosPanel->add(mouseWorldPosLabel);
@@ -702,25 +704,6 @@ void MarkerPlacer::setGridLinesVisible(bool gridLinesVisible) {
 	if (gridLinesVisible) {
 		calculateGridLines();
 	}
-}
-
-void MarkerPlacer::addExtraRowWidget(std::shared_ptr<tgui::Widget> widget, float topPadding) {
-	if (bottomLeftMostExtraWidget) {
-		widget->setPosition(GUI_PADDING_X, tgui::bindBottom(bottomLeftMostExtraWidget) + topPadding);
-	} else {
-		widget->setPosition(GUI_PADDING_X, topPadding);
-	}
-	extraWidgetsPanel->setSize("100%" - tgui::bindWidth(leftPanel), tgui::bindBottom(widget) + GUI_PADDING_Y);
-	extraWidgetsPanel->add(widget);
-	bottomLeftMostExtraWidget = widget;
-	bottomRightMostExtraWidget = widget;
-}
-
-void MarkerPlacer::addExtraColumnWidget(std::shared_ptr<tgui::Widget> widget, float leftPadding) {
-	assert(bottomRightMostExtraWidget != nullptr);
-	widget->setPosition(tgui::bindRight(bottomRightMostExtraWidget) + leftPadding, tgui::bindTop(bottomRightMostExtraWidget));
-	extraWidgetsPanel->add(widget);
-	bottomRightMostExtraWidget = widget;
 }
 
 CopyOperationResult MarkerPlacer::copyFrom() {

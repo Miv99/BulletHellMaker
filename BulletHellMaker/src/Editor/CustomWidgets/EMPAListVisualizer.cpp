@@ -64,10 +64,10 @@ calculating the movement path and when evaluating positions."));
 	evaluator->setSize("50%", TEXT_BOX_HEIGHT);
 	cycleMovementPathPrimitiveTypeButton->setSize("50%", TEXT_BOX_HEIGHT);
 
-	addExtraRowWidget(timeResolution, GUI_PADDING_Y);
-	addExtraRowWidget(evaluator, GUI_LABEL_PADDING_Y);
-	addExtraColumnWidget(evaluatorResult, GUI_PADDING_X);
-	addExtraRowWidget(cycleMovementPathPrimitiveTypeButton, GUI_LABEL_PADDING_Y);
+	extraWidgetsPanel->addExtraRowWidget(timeResolution, GUI_PADDING_Y);
+	extraWidgetsPanel->addExtraRowWidget(evaluator, GUI_LABEL_PADDING_Y);
+	extraWidgetsPanel->addExtraColumnWidget(evaluatorResult, GUI_PADDING_X);
+	extraWidgetsPanel->addExtraRowWidget(cycleMovementPathPrimitiveTypeButton, GUI_LABEL_PADDING_Y);
 
 	connect("SizeChanged", [this](sf::Vector2f newSize) {
 		mouseWorldPosPanel->setPosition(0, newSize.y - mouseWorldPosPanel->getSize().y);

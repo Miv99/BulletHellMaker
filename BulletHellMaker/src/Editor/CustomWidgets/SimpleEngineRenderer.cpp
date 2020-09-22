@@ -1,7 +1,8 @@
 #include <Editor/CustomWidgets/SimpleEngineRenderer.h>
 
-SimpleEngineRenderer::SimpleEngineRenderer(sf::RenderWindow& parentWindow, bool userControlledView, bool useDebugRenderSystem) : parentWindow(parentWindow),
-paused(true), userControlledView(userControlledView), useDebugRenderSystem(useDebugRenderSystem) {
+SimpleEngineRenderer::SimpleEngineRenderer(sf::RenderWindow& parentWindow, bool userControlledView, bool useDebugRenderSystem) 
+	: parentWindow(parentWindow), paused(true), userControlledView(userControlledView), useDebugRenderSystem(useDebugRenderSystem) {
+
 	audioPlayer = std::make_unique<AudioPlayer>();
 	queue = std::make_unique<EntityCreationQueue>(registry);
 

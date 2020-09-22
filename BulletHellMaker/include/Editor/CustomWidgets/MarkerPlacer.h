@@ -6,6 +6,7 @@
 #include <Editor/CustomWidgets/ListViewScrollablePanel.h>
 #include <Editor/CustomWidgets/NumericalEditBoxWithLimits.h>
 #include <Editor/CustomWidgets/SliderWithEditBox.h>
+#include <Editor/CustomWidgets/SimpleWidgetsContainerPanel.h>
 #include <Editor/ViewController.h>
 #include <DataStructs/UndoStack.h>
 
@@ -79,7 +80,7 @@ protected:
 	std::shared_ptr<tgui::Button> addMarker;
 	std::shared_ptr<tgui::Button> deleteMarker;
 	// Don't do connect("SizeChanged") with this in any derived classes or it'll break
-	std::shared_ptr<tgui::ScrollablePanel> extraWidgetsPanel;
+	std::shared_ptr<SimpleWidgetsContainerPanel> extraWidgetsPanel;
 
 	sf::View viewFromViewController;
 
@@ -92,20 +93,6 @@ protected:
 	bool ignoreSignals = false;
 
 	void setGridLinesVisible(bool showGridLines);
-
-	/*
-	Adds a widget to the bottom of the extra widgets panel.
-
-	topPadding - vertical distance from the previously bottom-most widget in the extra widgets panel
-	*/
-	void addExtraRowWidget(std::shared_ptr<tgui::Widget> widget, float topPadding);
-	/*
-	Adds a widget to the right of the bottom-right-most widget of the extra widgets panel.
-	This should only be called after at least one call to addExtraRowWidget().
-
-	leftPadding - horizontal distance from the bottom-most widget in the extra widgets panel
-	*/
-	void addExtraColumnWidget(std::shared_ptr<tgui::Widget> widget, float leftPadding);
 
 	virtual void manualDelete();
 
@@ -135,8 +122,6 @@ private:
 	std::shared_ptr<tgui::CheckBox> showGridLines;
 	std::shared_ptr<tgui::Label> gridLinesIntervalLabel;
 	std::shared_ptr<SliderWithEditBox> gridLinesInterval;
-	std::shared_ptr<tgui::Widget> bottomLeftMostExtraWidget;
-	std::shared_ptr<tgui::Widget> bottomRightMostExtraWidget;
 
 	std::shared_ptr<tgui::Label> mouseWorldPosLabel;
 
