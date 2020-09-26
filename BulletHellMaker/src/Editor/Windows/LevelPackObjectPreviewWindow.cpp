@@ -15,11 +15,13 @@ LevelPackObjectPreviewWindow::LevelPackObjectPreviewWindow(std::string windowTit
 void LevelPackObjectPreviewWindow::loadLevelPack(std::string levelPackName, std::shared_ptr<SpriteLoader> spriteLoader) {
 	this->levelPackName = levelPackName;
 	this->spriteLoader = spriteLoader;
-	previewPanel->loadLevelPack(levelPackName, spriteLoader);
+	if (previewPanel) {
+		previewPanel->loadLevelPack(levelPackName, spriteLoader);
+	}
 }
 
 void LevelPackObjectPreviewWindow::previewNothing() {
-	if (window->isOpen()) {
+	if (window && window->isOpen()) {
 		previewObjectLabel->setText("Nothing being previewed");
 
 		if (previewThread.joinable()) {
@@ -31,7 +33,7 @@ void LevelPackObjectPreviewWindow::previewNothing() {
 }
 
 void LevelPackObjectPreviewWindow::previewAttack(const std::shared_ptr<EditorAttack> attack) {
-	if (window->isOpen() && !lockCurrentPreview) {
+	if (window && window->isOpen() && !lockCurrentPreview) {
 		previewObjectLabel->setText("Attack ID " + std::to_string(attack->getID()));
 
 		if (previewThread.joinable()) {
@@ -43,7 +45,7 @@ void LevelPackObjectPreviewWindow::previewAttack(const std::shared_ptr<EditorAtt
 }
 
 void LevelPackObjectPreviewWindow::previewAttackPattern(const std::shared_ptr<EditorAttackPattern> attackPattern) {
-	if (window->isOpen() && !lockCurrentPreview) {
+	if (window && window->isOpen() && !lockCurrentPreview) {
 		previewObjectLabel->setText("Attack Pattern ID " + std::to_string(attackPattern->getID()));
 
 		if (previewThread.joinable()) {
@@ -55,37 +57,37 @@ void LevelPackObjectPreviewWindow::previewAttackPattern(const std::shared_ptr<Ed
 }
 
 void LevelPackObjectPreviewWindow::resetPreview() {
-	if (window->isOpen()) {
+	if (window && window->isOpen()) {
 		previewPanel->resetPreview();
 	}
 }
 
 void LevelPackObjectPreviewWindow::onOriginalLevelPackAttackModified(const std::shared_ptr<EditorAttack> attack) {
-	if (window->isOpen()) {
+	if (window && window->isOpen()) {
 		previewPanel->getLevelPack()->updateAttack(attack);
 	}
 }
 
 void LevelPackObjectPreviewWindow::onOriginalLevelPackAttackPatternModified(const std::shared_ptr<EditorAttackPattern> attackPattern) {
-	if (window->isOpen()) {
+	if (window && window->isOpen()) {
 		previewPanel->getLevelPack()->updateAttackPattern(attackPattern);
 	}
 }
 
 void LevelPackObjectPreviewWindow::onOriginalLevelPackSpriteSheetModified(const std::shared_ptr<SpriteSheet> spriteSheet) {
-	if (window->isOpen()) {
+	if (window && window->isOpen()) {
 		previewPanel->getLevelPack()->updateSpriteSheet(spriteSheet);
 	}
 }
 
 void LevelPackObjectPreviewWindow::deleteAttack(int id) {
-	if (window->isOpen()) {
+	if (window && window->isOpen()) {
 		previewPanel->getLevelPack()->deleteAttack(id);
 	}
 }
 
 void LevelPackObjectPreviewWindow::deleteAttackPattern(int id) {
-	if (window->isOpen()) {
+	if (window && window->isOpen()) {
 		previewPanel->getLevelPack()->deleteAttackPattern(id);
 	}
 }
@@ -177,47 +179,47 @@ void LevelPackObjectPreviewWindow::onRenderWindowInitialization() {
 	useDebugRenderSystem->setChecked(previewPanel->getUseDebugRenderSystem());
 	lockCurrentPreviewCheckBox->setChecked(lockCurrentPreview);
 
-	delay->connect("ValueChanged", [this](float value) {
+	delay->onValueChange.connect([this](float value) {
 		if (ignoreSignals) {
 			return;
 		}
 
 		previewPanel->setAttackLoopDelay(value);
 	});
-	timeMultiplier->connect("ValueChanged", [this](float value) {
+	timeMultiplier->onValueChange.connect([this](float value) {
 		if (ignoreSignals) {
 			return;
 		}
 
 		previewPanel->setTimeMultiplier(value);
 	});
-	resetPreviewButton->connect("Pressed", [this]() {
+	resetPreviewButton->onPress.connect([this]() {
 		previewPanel->resetPreview();
 	});
-	resetCameraButton->connect("Pressed", [this]() {
+	resetCameraButton->onPress.connect([this]() {
 		previewPanel->resetCamera();
 	});
-	setPlayerSpawnButton->connect("Pressed", [this]() {
+	setPlayerSpawnButton->onPress.connect([this]() {
 		previewPanel->setSettingPlayerSpawn(true);
 	});
-	setSourceButton->connect("Pressed", [this]() {
+	setSourceButton->onPress.connect([this]() {
 		previewPanel->setSettingSource(true);
 	});
-	useDebugRenderSystem->connect("Changed", [this](bool checked) {
+	useDebugRenderSystem->onChange.connect([this](bool checked) {
 		if (ignoreSignals) {
 			return;
 		}
 
 		previewPanel->setUseDebugRenderSystem(checked);
 	});
-	lockCurrentPreviewCheckBox->connect("Changed", [this](bool checked) {
+	lockCurrentPreviewCheckBox->onChange.connect([this](bool checked) {
 		if (ignoreSignals) {
 			return;
 		}
 
 		this->lockCurrentPreview = checked;
 	});
-	invinciblePlayer->connect("Changed", [this](bool checked) {
+	invinciblePlayer->onChange.connect([this](bool checked) {
 		if (ignoreSignals) {
 			return;
 		}
@@ -274,7 +276,7 @@ but shader effects (such as piercing bullets flashing after hitting a player) wi
 	lockCurrentPreviewCheckBox->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(useDebugRenderSystem) + GUI_PADDING_Y);
 	invinciblePlayer->setPosition(tgui::bindLeft(previewObjectLabel), tgui::bindBottom(lockCurrentPreviewCheckBox) + GUI_PADDING_Y);
 
-	infoPanel->connect("SizeChanged", [this](sf::Vector2f newSize) {
+	infoPanel->onSizeChange.connect([this](sf::Vector2f newSize) {
 		delay->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 		timeMultiplier->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 		resetPreviewButton->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BUTTON_HEIGHT);
@@ -297,14 +299,14 @@ but shader effects (such as piercing bullets flashing after hitting a player) wi
 	infoPanel->add(lockCurrentPreviewCheckBox);
 	infoPanel->add(invinciblePlayer);
 
-	logs = tgui::TextBox::create();
+	logs = tgui::TextArea::create();
 	logs->setVisible(false);
 	logs->setSize(tgui::bindWidth(previewPanel), "40%");
 	logs->setEnabled(false);
 	logs->setPosition(tgui::bindLeft(previewPanel), tgui::bindBottom(previewPanel));
 	gui->add(logs);
 
-	previewPanel->connect("PreviewAttempted", [this](LevelPackObject::LEGAL_STATUS status, std::vector<std::string> messages) {
+	previewPanel->onPreview.connect([this](LevelPackObject::LEGAL_STATUS status, std::vector<std::string> messages) {
 		// The first string in messages is a description of the attempted action
 
 		if (status == LevelPackObject::LEGAL_STATUS::LEGAL) {

@@ -47,7 +47,7 @@ void CollisionSystem::update(float deltaTime) {
 	// Reinsert all bullets, players, and enemies into tables
 	defaultTable.clear();
 	largeObjectsTable.clear();
-	playerBulletView.each([&](auto entity, auto& playerBullet, auto& position, auto& hitbox) {
+	playerBulletView.each([this, deltaTime](auto entity, auto& playerBullet, auto& position, auto& hitbox) {
 		playerBullet.update(deltaTime);
 
 		// Check hitbox size for insertion into correct table
@@ -57,7 +57,7 @@ void CollisionSystem::update(float deltaTime) {
 			largeObjectsTable.insert(entity, hitbox, position);
 		}
 	});
-	enemyBulletView.each([&](auto entity, auto& enemyBullet, auto& position, auto& hitbox) {
+	enemyBulletView.each([this, deltaTime](auto entity, auto& enemyBullet, auto& position, auto& hitbox) {
 		enemyBullet.update(deltaTime);
 
 		// Check hitbox size for insertion into correct table
@@ -69,7 +69,7 @@ void CollisionSystem::update(float deltaTime) {
 	});
 
 	// Insert enemies
-	enemyView.each([&](auto entity, auto& enemy, auto& position, auto& hitbox) {
+	enemyView.each([this](auto entity, auto& enemy, auto& position, auto& hitbox) {
 		if (hitbox.getRadius() < defaultTableObjectMaxSize) {
 			defaultTable.insert(entity, hitbox, position);
 		}
@@ -158,7 +158,7 @@ void CollisionSystem::update(float deltaTime) {
 		}
 	}
 
-	enemyView.each([&](auto entity, auto& enemy, auto& position, auto& hitbox) {
+	enemyView.each([this, &playerBulletView](auto entity, auto& enemy, auto& position, auto& hitbox) {
 		if (!hitbox.isDisabled()) {
 			auto all = defaultTable.getNearbyObjects(hitbox, position);
 			auto large = largeObjectsTable.getNearbyObjects(hitbox, position);

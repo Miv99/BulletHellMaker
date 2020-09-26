@@ -30,7 +30,7 @@ AttackPatternEditorPropertiesPanel::AttackPatternEditorPropertiesPanel(MainEdito
 	add(relationshipEditorLabel);
 
 	relationshipEditor = AttackPatternToAttackUseRelationshipEditor::create(mainEditorWindow, clipboard, undoStack, attackPattern->getAttacks());
-	relationshipEditor->connect("RelationshipsModified", [this](std::vector<std::tuple<std::string, int, ExprSymbolTable>> newRelationships) {
+	relationshipEditor->onRelationshipsModify.connect([this](std::vector<std::tuple<std::string, int, ExprSymbolTable>> newRelationships) {
 		this->attackPattern->setAttacks(newRelationships);
 		onAttackPatternModify.emit(this);
 	});
@@ -41,8 +41,8 @@ AttackPatternEditorPropertiesPanel::AttackPatternEditorPropertiesPanel(MainEdito
 	usedByLabel->setText("Used by");
 	add(usedByLabel);
 
-	usedBy = ListViewScrollablePanel::create();
-	usedBy->getListView()->setTextSize(TEXT_SIZE);
+	usedBy = ListView::create();
+	usedBy->setTextSize(TEXT_SIZE);
 	add(usedBy);
 
 	id->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
@@ -53,13 +53,13 @@ AttackPatternEditorPropertiesPanel::AttackPatternEditorPropertiesPanel(MainEdito
 	usedByLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(relationshipEditor) + GUI_PADDING_Y);
 	usedBy->setPosition(tgui::bindLeft(id), tgui::bindBottom(usedByLabel) + GUI_LABEL_PADDING_Y);
 
-	connect("SizeChanged", [this](sf::Vector2f newSize) {
+	onSizeChange.connect([this](sf::Vector2f newSize) {
 		name->setSize(newSize.x - GUI_PADDING_X * 2, tgui::bindHeight(name));
 		relationshipEditor->setSize(newSize.x - GUI_PADDING_X * 2, "50%");
-		usedBy->setSize(newSize.x - GUI_PADDING_X * 2, newSize.y - tgui::bindTop(usedBy) - GUI_PADDING_Y);
+		usedBy->setSize(newSize.x - GUI_PADDING_X * 2, newSize.y - tgui::bindTop(usedBy) - GUI_PADDING_Y * 2);
 	});
 
-	name->connect("ValueChanged", [this](std::string text) {
+	name->onValueChange.connect([this](tgui::String text) {
 		if (ignoreSignals) {
 			return;
 		}
@@ -68,7 +68,7 @@ AttackPatternEditorPropertiesPanel::AttackPatternEditorPropertiesPanel(MainEdito
 
 		if (text != oldName) {
 			undoStack.execute(UndoableCommand([this, text]() {
-				this->attackPattern->setName(text);
+				this->attackPattern->setName(static_cast<std::string>(text));
 				name->setText(text);
 				onAttackPatternModify.emit(this);
 			}, [this, oldName]() {
@@ -129,8 +129,8 @@ bool AttackPatternEditorPropertiesPanel::handleEvent(sf::Event event) {
 	return false;
 }
 
-tgui::Signal& AttackPatternEditorPropertiesPanel::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onAttackPatternModify.getName())) {
+tgui::Signal& AttackPatternEditorPropertiesPanel::getSignal(tgui::String signalName) {
+	if (signalName == onAttackPatternModify.getName().toLower()) {
 		return onAttackPatternModify;
 	}
 	return tgui::Panel::getSignal(signalName);
@@ -171,7 +171,7 @@ void AttackPatternEditorPropertiesPanel::onPasteIntoConfirmation(EDITOR_WINDOW_C
 	}
 }
 
-std::shared_ptr<ListViewScrollablePanel> AttackPatternEditorPropertiesPanel::getUsedByPanel() {
+std::shared_ptr<ListView> AttackPatternEditorPropertiesPanel::getUsedByListView() {
 	return usedBy;
 }
 

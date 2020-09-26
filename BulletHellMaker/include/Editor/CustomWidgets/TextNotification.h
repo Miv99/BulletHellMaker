@@ -12,7 +12,7 @@ public:
 		return std::make_shared<TextNotification>(notificationLifespan);
 	}
 
-	bool update(sf::Time delta) override;
+	bool updateTime(tgui::Duration elapsedTime) override;
 
 	void setText(std::string text);
 

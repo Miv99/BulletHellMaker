@@ -3,6 +3,7 @@
 #include <Mutex.h>
 #include <GuiConfig.h>
 #include <Editor/Util/EditorUtils.h>
+#include <Editor/Util/TguiUtils.h>
 
 const float EMPAListVisualizer::EVALUATOR_CIRCLE_RADIUS = 3.0f;
 
@@ -20,19 +21,16 @@ EMPAListVisualizer::EMPAListVisualizer(sf::RenderWindow& parentWindow, Clipboard
 	evaluatorCircle.setOrigin(sf::Vector2f(EVALUATOR_CIRCLE_RADIUS, EVALUATOR_CIRCLE_RADIUS));
 	evaluatorCircle.setOutlineThickness(1);
 
-	timeResolution = SliderWithEditBox::create();
 	evaluator = SliderWithEditBox::create(false);
 	evaluatorResult = tgui::Label::create();
 	std::shared_ptr<tgui::Button> cycleMovementPathPrimitiveTypeButton = tgui::Button::create();
 
-	timeResolution->setToolTip(createToolTip("Amount of time in seconds between each movement dot"));
 	evaluator->setToolTip(createToolTip("Evaluates a position given some time in seconds. Note that homing actions cannot be evaluated and will be treated as not moving at all when \
 calculating the movement path and when evaluating positions."));
 	evaluatorResult->setToolTip(createToolTip("The result of the evaluation. Note that homing actions cannot be evaluated and will be treated as not moving at all when \
 calculating the movement path and when evaluating positions."));
 	cycleMovementPathPrimitiveTypeButton->setToolTip(createToolTip("Cycles between points and lines for movement path"));
 
-	timeResolution->setTextSize(TEXT_SIZE);
 	evaluator->setTextSize(TEXT_SIZE);
 	evaluatorResult->setTextSize(TEXT_SIZE);
 	cycleMovementPathPrimitiveTypeButton->setTextSize(TEXT_SIZE);
@@ -40,42 +38,34 @@ calculating the movement path and when evaluating positions."));
 	evaluatorResult->setText("Result:                   ");
 	cycleMovementPathPrimitiveTypeButton->setText("Cycle path type");
 
-	timeResolution->setIntegerMode(false);
-	timeResolution->setMin(MAX_PHYSICS_DELTA_TIME);
-	timeResolution->setMax(1.0f);
-	timeResolution->setStep(MAX_PHYSICS_DELTA_TIME);
-
 	evaluator->setIntegerMode(false);
 	evaluator->setMin(0);
 	evaluator->setMax(0);
 	evaluator->setStep(MAX_PHYSICS_DELTA_TIME);
 
-	timeResolution->connect("ValueChanged", [this]() {
-		updatePath(this->empas);
-	});
-	evaluator->connect("ValueChanged", [this](float value) {
+	evaluator->onValueChange.connect([this](float value) {
 		updateEvaluatorResult();
 	});
-	cycleMovementPathPrimitiveTypeButton->connect("Pressed", [this]() {
+	cycleMovementPathPrimitiveTypeButton->onPress.connect([this]() {
 		cycleMovementPathPrimitiveType();
 	});
 
-	timeResolution->setSize("50%", SLIDER_HEIGHT);
 	evaluator->setSize("50%", TEXT_BOX_HEIGHT);
 	cycleMovementPathPrimitiveTypeButton->setSize("50%", TEXT_BOX_HEIGHT);
 
-	extraWidgetsPanel->addExtraRowWidget(timeResolution, GUI_PADDING_Y);
-	extraWidgetsPanel->addExtraRowWidget(evaluator, GUI_LABEL_PADDING_Y);
+	extraWidgetsPanel->addExtraRowWidget(evaluator, GUI_PADDING_Y);
 	extraWidgetsPanel->addExtraColumnWidget(evaluatorResult, GUI_PADDING_X);
 	extraWidgetsPanel->addExtraRowWidget(cycleMovementPathPrimitiveTypeButton, GUI_LABEL_PADDING_Y);
 
-	connect("SizeChanged", [this](sf::Vector2f newSize) {
-		mouseWorldPosPanel->setPosition(0, newSize.y - mouseWorldPosPanel->getSize().y);
+	onSizeChange.connect([this]() {
+		updateEvaluatorResult();
 	});
 }
 
-void EMPAListVisualizer::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+void EMPAListVisualizer::draw(tgui::BackendRenderTargetBase& target, tgui::RenderStates states) const {
 	MarkerPlacer::draw(target, states);
+
+	sf::RenderStates sfmlStates = toSFMLRenderStates(states);
 
 	// Draw movement path
 	sf::View originalView = parentWindow.getView();
@@ -83,16 +73,16 @@ void EMPAListVisualizer::draw(sf::RenderTarget& target, sf::RenderStates states)
 	// Not sure why this is necessary
 	offsetView.setCenter(offsetView.getCenter() + getAbsolutePosition());
 	parentWindow.setView(offsetView);
-	parentWindow.draw(movementPath, states);
+	parentWindow.draw(movementPath, sfmlStates);
 	if (evaluatorCircle.getRadius() > 0) {
-		parentWindow.draw(evaluatorCircle, states);
+		parentWindow.draw(evaluatorCircle, sfmlStates);
 	}
 	parentWindow.setView(originalView);
 }
 
 void EMPAListVisualizer::updatePath(std::vector<std::shared_ptr<EMPAction>> empas) {
 	this->empas = empas;
-	movementPath = generateVertexArray(empas, timeResolution->getValue(), startX, startY, true, sf::Color::Red, sf::Color::Blue);
+	movementPath = generateVertexArray(empas, MAX_PHYSICS_DELTA_TIME, startX, startY, true, sf::Color::Red, sf::Color::Blue);
 	movementPath.setPrimitiveType(movementPathPrimitiveType);
 	movementPathWithoutSpecialColor = sf::VertexArray(movementPath);
 
@@ -149,8 +139,8 @@ void EMPAListVisualizer::setEMPAPathColor(int empaIndex, sf::Color color) {
 			empaTimeStart += empas[i]->getTime();
 		}
 	}
-	int start = empaTimeStart / timeResolution->getValue();
-	for (int i = start; i < std::min((int)(start + (empas[empaIndex]->getTime() / timeResolution->getValue())), (int)movementPath.getVertexCount()); i++) {
+	int start = empaTimeStart / MAX_PHYSICS_DELTA_TIME;
+	for (int i = start; i <= std::min((int)(start + (empas[empaIndex]->getTime() / MAX_PHYSICS_DELTA_TIME)), (int)movementPath.getVertexCount() - 1); i++) {
 		movementPath[i].color = color;
 	}
 }

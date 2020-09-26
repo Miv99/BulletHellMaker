@@ -28,6 +28,12 @@ Signals:
 class EditorMovablePointPanel : public tgui::ScrollablePanel, public EventCapturable, public CopyPasteable, public ValueSymbolTablesChangePropagator {
 public:
 	/*
+	Signal emitted when the EMP being edited is modified.
+	Optional parameter: a shared_ptr to the newly modified EditorMovablePoint
+	*/
+	tgui::SignalEditorMovablePoint onEMPModify = { "EMPModified" };
+
+	/*
 	mainEditorWindow - the parent MainEditorWindow this widget belongs to
 	levelPack - the LevelPack that emp is in
 	emp - the EditorMovablePoint being edited
@@ -44,7 +50,7 @@ public:
 
 	bool handleEvent(sf::Event event) override;
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 
 	void propagateChangesToChildren() override;
 	ValueSymbolTable getLevelPackObjectSymbolTable() override;
@@ -123,12 +129,6 @@ private:
 	float verticalScrollPos;
 
 	std::shared_ptr<TabsWithPanel> tabs;
-
-	/*
-	Signal emitted when the EMP being edited is modified.
-	Optional parameter: a shared_ptr to the newly modified EditorMovablePoint
-	*/
-	tgui::SignalEditorMovablePoint onEMPModify = { "EMPModified" };
 
 	bool ignoreSignals = false;
 

@@ -15,7 +15,7 @@ MovementSystem::MovementSystem(EntityCreationQueue& queue, SpriteLoader& spriteL
 
 void MovementSystem::update(float deltaTime) {
 	auto view = registry.view<PositionComponent, MovementPathComponent>(entt::persistent_t{});
-	view.each([&](auto entity, auto& position, auto& path) {
+	view.each([this, deltaTime](auto entity, auto& position, auto& path) {
 		float prevX = position.getX();
 		float prevY = position.getY();
 		path.update(queue, registry, entity, position, deltaTime);
@@ -44,7 +44,7 @@ void MovementSystem::update(float deltaTime) {
 	});
 
 	auto spawnerView = registry.view<EMPSpawnerComponent>();
-	spawnerView.each([&](auto entity, auto& spawner) {
+	spawnerView.each([this, deltaTime](auto entity, auto& spawner) {
 		spawner.update(registry, spriteLoader, queue, deltaTime);
 	});
 }

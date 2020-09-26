@@ -1,7 +1,9 @@
 #include <Editor/CustomWidgets/AnimatablePicture.h>
 
+#include <Editor/Util/TguiUtils.h>
+
 AnimatablePicture::AnimatablePicture() {
-	connect("SizeChanged", [&]() {
+	onSizeChange.connect([this]() {
 		resizeCurSpriteToFitWidget();
 	});
 }
@@ -9,8 +11,8 @@ AnimatablePicture::AnimatablePicture() {
 AnimatablePicture::AnimatablePicture(const AnimatablePicture& other) {
 }
 
-bool AnimatablePicture::update(sf::Time elapsedTime) {
-	bool ret = tgui::Widget::update(elapsedTime);
+bool AnimatablePicture::updateTime(tgui::Duration elapsedTime) {
+	bool ret = tgui::Widget::updateTime(elapsedTime);
 
 	if (animation) {
 		std::shared_ptr<sf::Sprite> prevSprite = curSprite;
@@ -24,14 +26,18 @@ bool AnimatablePicture::update(sf::Time elapsedTime) {
 	return ret;
 }
 
-void AnimatablePicture::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+void AnimatablePicture::draw(tgui::BackendRenderTargetBase& target, tgui::RenderStates states) const {
 	if (curSprite) {
+		tgui::BackendRenderTargetSFML& sfmlTarget = dynamic_cast<tgui::BackendRenderTargetSFML&>(target);
+		sf::RenderTarget& renderTarget = *sfmlTarget.getTarget();
+		sf::RenderStates sfmlStates = toSFMLRenderStates(states);
+
 		if (spriteScaledToFitHorizontal) {
 			curSprite->setPosition(getPosition().x + getSize().x / 2, getPosition().y + curSprite->getOrigin().y * curSprite->getScale().y);
 		} else {
 			curSprite->setPosition(getPosition().x + curSprite->getOrigin().x * curSprite->getScale().x, getPosition().y + getSize().y / 2);
 		}
-		target.draw(*curSprite, states);
+		renderTarget.draw(*curSprite, sfmlStates);
 	}
 }
 
@@ -39,7 +45,7 @@ tgui::Widget::Ptr AnimatablePicture::clone() const {
 	return std::make_shared<AnimatablePicture>(*this);
 }
 
-bool AnimatablePicture::mouseOnWidget(tgui::Vector2f pos) const {
+bool AnimatablePicture::isMouseOnWidget(tgui::Vector2f pos) const {
 	if (tgui::FloatRect{ 0, 0, getSize().x, getSize().y }.contains(pos)) {
 		return true;
 	}

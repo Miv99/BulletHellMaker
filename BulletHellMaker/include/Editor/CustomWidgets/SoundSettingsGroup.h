@@ -15,6 +15,9 @@ Signals:
 */
 class SoundSettingsGroup : public HideableGroup {
 public:
+	// Emitted when a change is made to the SoundSettings object being edited
+	tgui::SignalSoundSettings onValueChange = { "ValueChanged" };
+
 	SoundSettingsGroup(std::string pathToSoundsFolder);
 	static std::shared_ptr<SoundSettingsGroup> create(std::string pathToSoundsFolder) {
 		return std::make_shared<SoundSettingsGroup>(pathToSoundsFolder);
@@ -31,12 +34,9 @@ public:
 
 	void setEnabled(bool enabled);
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 
 private:
-	// Emitted when a change is made to the SoundSettings object being edited
-	tgui::SignalSoundSettings onValueChange = { "ValueChanged" };
-
 	std::shared_ptr<tgui::CheckBox> enableAudio;
 	std::shared_ptr<tgui::ComboBox> fileName;
 	std::shared_ptr<SliderWithEditBox> volume;

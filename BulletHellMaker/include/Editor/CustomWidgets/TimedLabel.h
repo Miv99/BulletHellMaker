@@ -14,7 +14,7 @@ public:
 		return std::make_shared<TimedLabel>(charDelay);
 	}
 
-	bool update(sf::Time elapsedTime) override;
+	bool updateTime(tgui::Duration elapsedTime) override;
 	/*
 	initialDelay -  time in seconds before the first character is shown
 	*/

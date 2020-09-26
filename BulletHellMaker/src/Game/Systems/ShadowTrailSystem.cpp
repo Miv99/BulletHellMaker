@@ -11,7 +11,7 @@ ShadowTrailSystem::ShadowTrailSystem(EntityCreationQueue& queue, entt::DefaultRe
 void ShadowTrailSystem::update(float deltaTime) {
 	auto view = registry.view<PositionComponent, SpriteComponent, ShadowTrailComponent>(entt::persistent_t{});
 
-	view.each([&](auto entity, auto& position, auto& sprite, auto& trail) {
+	view.each([this, deltaTime](auto entity, auto& position, auto& sprite, auto& trail) {
 		if (trail.update(deltaTime)) {
 			auto spritePtr = sprite.getSprite();
 			if (spritePtr) {

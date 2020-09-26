@@ -40,12 +40,12 @@ SoundSettingsGroup::SoundSettingsGroup(std::string pathToSoundsFolder) {
 
 	populateFileNames(pathToSoundsFolder);
 
-	enableAudio->connect("Changed", [&]() {
+	enableAudio->onChange.connect([this]() {
 		if (ignoreSignals) {
 			return;
 		}
 
-		onValueChange.emit(this, SoundSettings(fileName->getSelectedItem(), volume->getValue(), pitch->getValue(), !enableAudio->isChecked()));
+		onValueChange.emit(this, SoundSettings(static_cast<std::string>(fileName->getSelectedItem()), volume->getValue(), pitch->getValue(), !enableAudio->isChecked()));
 		if (enableAudio->isChecked()) {
 			fileName->setEnabled(true);
 			volume->setEnabled(true);
@@ -56,21 +56,21 @@ SoundSettingsGroup::SoundSettingsGroup(std::string pathToSoundsFolder) {
 			pitch->setEnabled(false);
 		}
 	});
-	fileName->connect("ItemSelected", [&]() {
+	fileName->onItemSelect.connect([this]() {
 		if (ignoreSignals) {
 			return;
 		}
 
 		onValueChange.emit(this, SoundSettings((std::string)fileName->getSelectedItem(), volume->getValue(), pitch->getValue(), !enableAudio->isChecked()));
 	});
-	volume->connect("ValueChanged", [&](float value) {
+	volume->onValueChange.connect([this](float value) {
 		if (ignoreSignals) {
 			return;
 		}
 
 		onValueChange.emit(this, SoundSettings((std::string)fileName->getSelectedItem(), volume->getValue(), pitch->getValue(), !enableAudio->isChecked()));
 	});
-	pitch->connect("ValueChanged", [&](float value) {
+	pitch->onValueChange.connect([this](float value) {
 		if (ignoreSignals) {
 			return;
 		}
@@ -78,7 +78,7 @@ SoundSettingsGroup::SoundSettingsGroup(std::string pathToSoundsFolder) {
 		onValueChange.emit(this, SoundSettings((std::string)fileName->getSelectedItem(), volume->getValue(), pitch->getValue(), !enableAudio->isChecked()));
 	});
 
-	connect("SizeChanged", [this](sf::Vector2f newSize) {
+	onSizeChange.connect([this](sf::Vector2f newSize) {
 		if (ignoreResizeSignal) {
 			return;
 		}
@@ -147,8 +147,8 @@ void SoundSettingsGroup::setEnabled(bool enabled) {
 	pitch->setEnabled(enabled);
 }
 
-tgui::Signal& SoundSettingsGroup::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onValueChange.getName())) {
+tgui::Signal& SoundSettingsGroup::getSignal(tgui::String signalName) {
+	if (signalName == onValueChange.getName().toLower()) {
 		return onValueChange;
 	}
 	return Group::getSignal(signalName);

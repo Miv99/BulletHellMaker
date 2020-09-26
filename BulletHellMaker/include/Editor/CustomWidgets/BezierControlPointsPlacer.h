@@ -14,7 +14,7 @@ public:
 	virtual PasteOperationResult pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
 	virtual PasteOperationResult paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
 
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+	virtual void draw(tgui::BackendRenderTargetBase& target, tgui::RenderStates states) const override;
 
 	void cycleMovementPathPrimitiveType();
 

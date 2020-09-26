@@ -26,7 +26,7 @@ LevelPackObjectPreviewPanel::LevelPackObjectPreviewPanel(EditorWindow& parentWin
 	symbolTableEditorWindow->setFallbackEventHandler([this](sf::Event event) {
 		return symbolTableEditor->handleEvent(event);
 	});
-	symbolTableEditor->connect("ValueChanged", [this](ValueSymbolTable table) {
+	symbolTableEditor->onValueChange.connect([this](ValueSymbolTable table) {
 		this->testTable = table;
 		resetPreview();
 	});
@@ -41,7 +41,7 @@ LevelPackObjectPreviewPanel::~LevelPackObjectPreviewPanel() {
 	parentEditorWindow.removeChildWindow(symbolTableEditorWindow);
 }
 
-void LevelPackObjectPreviewPanel::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+void LevelPackObjectPreviewPanel::draw(tgui::BackendRenderTargetBase& target, tgui::RenderStates states) const {
 	// Viewport is set here because tgui::Gui's draw function changes it right before renderSystem is updated or something
 	sf::View originalView = parentWindow.getView();
 	parentWindow.setView(viewFromViewController);
@@ -350,8 +350,8 @@ std::shared_ptr<LevelPack> LevelPackObjectPreviewPanel::getLevelPack() {
 	return levelPack;
 }
 
-tgui::Signal& LevelPackObjectPreviewPanel::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onPreview.getName())) {
+tgui::Signal& LevelPackObjectPreviewPanel::getSignal(tgui::String signalName) {
+	if (signalName == onPreview.getName().toLower()) {
 		return onPreview;
 	}
 	return SimpleEngineRenderer::getSignal(signalName);

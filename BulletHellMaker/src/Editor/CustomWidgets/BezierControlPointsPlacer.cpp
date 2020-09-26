@@ -3,6 +3,7 @@
 #include <Mutex.h>
 #include <GuiConfig.h>
 #include <Editor/Util/EditorUtils.h>
+#include <Editor/Util/TguiUtils.h>
 
 const float BezierControlPointsPlacer::EVALUATOR_CIRCLE_RADIUS = 3.0f;
 
@@ -45,13 +46,13 @@ BezierControlPointsPlacer::BezierControlPointsPlacer(sf::RenderWindow& parentWin
 	evaluator->setMax(0);
 	evaluator->setStep(MAX_PHYSICS_DELTA_TIME);
 
-	timeResolution->connect("ValueChanged", [this]() {
+	timeResolution->onValueChange.connect([this]() {
 		updatePath();
 	});
-	evaluator->connect("ValueChanged", [this](float value) {
+	evaluator->onValueChange.connect([this](float value) {
 		updateEvaluatorResult();
 	});
-	cycleMovementPathPrimitiveTypeButton->connect("Pressed", [this]() {
+	cycleMovementPathPrimitiveTypeButton->onPress.connect([this]() {
 		cycleMovementPathPrimitiveType();
 	});
 
@@ -77,8 +78,10 @@ PasteOperationResult BezierControlPointsPlacer::paste2Into(std::shared_ptr<Copie
 	return result;
 }
 
-void BezierControlPointsPlacer::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+void BezierControlPointsPlacer::draw(tgui::BackendRenderTargetBase& target, tgui::RenderStates states) const {
 	MarkerPlacer::draw(target, states);
+
+	sf::RenderStates sfmlStates = toSFMLRenderStates(states);
 
 	// Draw movement path
 	sf::View originalView = parentWindow.getView();
@@ -86,9 +89,9 @@ void BezierControlPointsPlacer::draw(sf::RenderTarget& target, sf::RenderStates 
 	// Not sure why this is necessary
 	offsetView.setCenter(offsetView.getCenter() + getAbsolutePosition());
 	parentWindow.setView(offsetView);
-	parentWindow.draw(movementPath, states);
+	parentWindow.draw(movementPath, sfmlStates);
 	if (evaluatorCircle.getRadius() > 0) {
-		parentWindow.draw(evaluatorCircle, states);
+		parentWindow.draw(evaluatorCircle, sfmlStates);
 	}
 	parentWindow.setView(originalView);
 }
@@ -128,12 +131,12 @@ void BezierControlPointsPlacer::setSelectedMarkerYWidgetValue(float value) {
 void BezierControlPointsPlacer::updateMarkersListView() {
 	ignoreSignals = true;
 
-	markersListView->getListView()->removeAllItems();
+	markersListView->removeAllItems();
 	for (int i = 0; i < markers.size(); i++) {
-		markersListView->getListView()->addItem(format(MARKERS_LIST_VIEW_ITEM_FORMAT, i + 1, markers[i].getPosition().x - markers[0].getPosition().x, -(markers[i].getPosition().y - markers[0].getPosition().y)));
+		markersListView->addItem(format(MARKERS_LIST_VIEW_ITEM_FORMAT, i + 1, markers[i].getPosition().x - markers[0].getPosition().x, -(markers[i].getPosition().y - markers[0].getPosition().y)));
 	}
 	if (selectedMarkerIndex >= 0) {
-		markersListView->getListView()->setSelectedItem(selectedMarkerIndex);
+		markersListView->setSelectedItem(selectedMarkerIndex);
 	}
 	updatePath();
 

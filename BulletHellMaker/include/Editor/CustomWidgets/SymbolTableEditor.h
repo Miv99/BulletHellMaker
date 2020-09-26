@@ -9,8 +9,8 @@
 #include <Editor/Util/ExtraSignals.h>
 #include <Editor/EventCapturable.h>
 #include <Editor/CustomWidgets/NumericalEditBoxWithLimits.h>
-#include <Editor/CustomWidgets/ListBoxScrollablePanel.h>
 #include <Editor/CustomWidgets/EditBox.h>
+#include <Editor/CustomWidgets/ListView.h>
 
 /*
 A widget that allows the user to edit a ValueSymbolTable.
@@ -21,6 +21,8 @@ Signals:
 */
 class ValueSymbolTableEditor : public tgui::Panel, public EventCapturable {
 public:
+	tgui::SignalValueSymbolTable onValueChange = { "ValueChanged" };
+
 	/*
 	isTableForTopLevelObject - indicates whether the ValueSymbolTable being edited is for a top-level
 		LevelPackObject (Player, Level).
@@ -36,7 +38,7 @@ public:
 
 	bool handleEvent(sf::Event event) override;
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 
 	/*
 	Does not emit the ValueChanged signal.
@@ -46,8 +48,6 @@ public:
 	void setSymbolTablesHierarchy(std::vector<ValueSymbolTable> symbolTablesHierarchy);
 
 private:
-	tgui::SignalValueSymbolTable onValueChange = { "ValueChanged" };
-
 	UndoStack undoStack;
 
 	std::vector<ValueSymbolTable> symbolTablesHierarchy;
@@ -56,7 +56,7 @@ private:
 
 	std::shared_ptr<tgui::CheckBox> showParentSymbols;
 	// ID for each item is in format "[index in symbolTablesHierarchy]|[symbol string]"
-	std::shared_ptr<ListBoxScrollablePanel> symbolsList;
+	std::shared_ptr<ListView> symbolsList;
 	std::shared_ptr<tgui::CheckBox> redelegateCheckBox;
 	std::shared_ptr<NumericalEditBoxWithLimits> valueEditBox;
 
@@ -125,12 +125,14 @@ Signals:
 */
 class ExprSymbolTableEditor : public tgui::Panel {
 public:
+	tgui::SignalExprSymbolTable onValueChange = { "ValueChanged" };
+
 	ExprSymbolTableEditor(UndoStack& undoStack);
 	static std::shared_ptr<ExprSymbolTableEditor> create(UndoStack& undoStack) {
 		return std::make_shared<ExprSymbolTableEditor>(undoStack);
 	}
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 
 	/*
 	Sets the ValueSymbolTable hierarchy that can define symbols used in
@@ -149,8 +151,6 @@ public:
 	void setExprSymbolTable(ExprSymbolTable symbolTable);
 
 private:
-	tgui::SignalExprSymbolTable onValueChange = { "ValueChanged" };
-
 	UndoStack& undoStack;
 
 	std::vector<ValueSymbolTable> symbolTablesHierarchy;
@@ -158,7 +158,7 @@ private:
 
 	// ID for each item is in format "[index in symbolTablesHierarchy]|[symbol string]"
 	// Items from exprSymbolTable have index -1.
-	std::shared_ptr<ListBoxScrollablePanel> symbolsList;
+	std::shared_ptr<ListView> symbolsList;
 	std::shared_ptr<EditBox> valueEditBox;
 
 	// The index in symbolsList where the editable portion begins

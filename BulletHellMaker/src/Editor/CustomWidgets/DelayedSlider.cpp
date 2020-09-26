@@ -4,7 +4,7 @@ DelayedSlider::DelayedSlider() {
 	// connect() will call DelayedSlider::getSignal(), so we set ignoreDelayedSliderSignalName
 	// to true to get the tgui::Slider's ValueChanged signal just for this call
 	ignoreDelayedSliderSignalName = true;
-	connect("ValueChanged", [this]() {
+	onValueChange.connect([this]() {
 		if (ignoreSignals) {
 			return;
 		}
@@ -15,8 +15,8 @@ DelayedSlider::DelayedSlider() {
 	ignoreDelayedSliderSignalName = false;
 }
 
-bool DelayedSlider::update(sf::Time elapsedTime) {
-	bool ret = Slider::update(elapsedTime);
+bool DelayedSlider::updateTime(tgui::Duration elapsedTime) {
+	bool ret = Slider::updateTime(elapsedTime);
 
 	timeElapsedSinceLastValueChange += elapsedTime.asSeconds();
 	if (!valueChangeSignalEmitted && timeElapsedSinceLastValueChange >= VALUE_CHANGE_WINDOW) {
@@ -27,8 +27,8 @@ bool DelayedSlider::update(sf::Time elapsedTime) {
 	return ret;
 }
 
-tgui::Signal& DelayedSlider::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onValueChange.getName()) && !ignoreDelayedSliderSignalName) {
+tgui::Signal& DelayedSlider::getSignal(tgui::String signalName) {
+	if (signalName == onValueChange.getName().toLower() && !ignoreDelayedSliderSignalName) {
 		return onValueChange;
 	}
 	return Slider::getSignal(signalName);

@@ -76,8 +76,8 @@ void SpriteSheet::load(std::string formattedString) {
 	}
 
 	animationData.clear();
-	int animationDataStartIndex = i;
-	for (; i < std::stoi(items.at(animationDataStartIndex)) + animationDataStartIndex + 1; i++) {
+	int animationDataStartIndex = i++;
+	for (; i < std::stoi(items.at(animationDataStartIndex)) + animationDataStartIndex; i++) {
 		std::shared_ptr<AnimationData> entry = std::make_shared<AnimationData>();
 		entry->load(items.at(i));
 		animationData[entry->getAnimationName()] = entry;
@@ -193,8 +193,6 @@ SpriteLoader::SpriteLoader(const std::string& levelPackName)
 	backgroundsCache = std::make_unique<Cache<std::string, std::pair<std::shared_ptr<sf::Texture>, std::filesystem::file_time_type>>>(BACKGROUNDS_CACHE_MAX_SIZE);
 	guiElementsCache = std::make_unique<Cache<std::string, std::pair<std::shared_ptr<sf::Texture>, std::filesystem::file_time_type>>>(GUI_ELEMENTS_CACHE_MAX_SIZE);
 	
-	loadFromSpriteSheetsFolder();
-
 	// Create default missing sprite
 	sf::Image missingSpriteImage;
 	sf::Uint8 pixels[16];

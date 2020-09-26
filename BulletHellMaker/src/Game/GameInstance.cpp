@@ -56,7 +56,7 @@ void GameInstance::updateWindowView(int windowWidth, int windowHeight) {
 
 	view.setViewport(sf::FloatRect(posX, posY, playAreaSizeX, playAreaSizeY));
 	// Make sure nothing in the gui autoscales
-	gui->setView(sf::View(sf::Vector2f(windowWidth/2.0f, windowHeight/2.0f), sf::Vector2f(windowWidth, windowHeight)));
+	gui->setAbsoluteView(tgui::FloatRect(0, 0, windowWidth, windowHeight));
 
 	// Recalculate widths/positions of gui elements
 	//TODO: redo this entire part; what do sizeX and sizeY really represent????
@@ -124,7 +124,8 @@ void GameInstance::calculateDialogueBoxWidgetsSizes() {
 	// Only update widget sizes if there is a dialogue event currently in progress
 	if (dialogueBoxTextsQueueIndex != -1) {
 		if (dialogueBoxPortraitPicture->isVisible()) {
-			dialogueBoxPortraitPicture->setSize(dialogueBoxPortraitPicture->getRenderer()->getTexture().getImageSize());
+			tgui::Vector2u size = dialogueBoxPortraitPicture->getRenderer()->getTexture().getImageSize();
+			dialogueBoxPortraitPicture->setSize(size.x, size.y);
 			dialogueBoxPicture->setSize(guiRegionX - GUI_PADDING_X - (dialogueBoxPortraitPicture->getPosition().x - dialogueBoxPortraitPicture->getSize().x), tgui::bindHeight(dialogueBoxPortraitPicture));
 			dialogueBoxLabel->setMaximumTextWidth(dialogueBoxPicture->getSize().x - DIALOGUE_BOX_PADDING * 2);
 		} else {

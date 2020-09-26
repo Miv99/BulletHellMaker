@@ -15,7 +15,7 @@ void CollectibleSystem::update(float deltaTime) {
 
 	itemHitboxTable.clear();
 	activationTable.clear();
-	view.each([&](auto entity, auto& pos, auto& hitbox, auto& collectible) {
+	view.each([this](auto entity, auto& pos, auto& hitbox, auto& collectible) {
 		if (collectible.isActivated()) {
 			itemHitboxTable.insert(entity, hitbox, pos);
 		} else {

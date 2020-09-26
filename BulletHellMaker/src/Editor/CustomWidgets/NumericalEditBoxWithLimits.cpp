@@ -3,13 +3,13 @@
 #include <Util/StringUtils.h>
 
 NumericalEditBoxWithLimits::NumericalEditBoxWithLimits() {
-	connect("ReturnKeyPressed", [&](std::string text) {
+	onReturnKeyPress.connect([this](tgui::String text) {
 		if (ignoreSignals) {
 			return;
 		}
 
 		try {
-			float value = stof(text);
+			float value = text.toFloat();
 			if (hasMax && value > max) {
 				value = max;
 			}
@@ -29,7 +29,7 @@ NumericalEditBoxWithLimits::NumericalEditBoxWithLimits() {
 			// Ignore exceptions
 		}
 	});
-	connect("Unfocused", [&]() {
+	onUnfocus.connect([this]() {
 		if (ignoreSignals) {
 			return;
 		}
@@ -106,8 +106,8 @@ void NumericalEditBoxWithLimits::setIntegerMode(bool intMode) {
 	updateInputValidator();
 }
 
-tgui::Signal& NumericalEditBoxWithLimits::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onValueChange.getName())) {
+tgui::Signal& NumericalEditBoxWithLimits::getSignal(tgui::String signalName) {
+	if (signalName == onValueChange.getName().toLower()) {
 		return onValueChange;
 	}
 	return tgui::EditBox::getSignal(signalName);

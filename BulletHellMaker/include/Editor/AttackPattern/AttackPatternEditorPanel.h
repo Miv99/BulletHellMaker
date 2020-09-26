@@ -29,6 +29,21 @@ AttackPatternModified - emitted when the EditorAttackPattern being edited is mod
 class AttackPatternEditorPanel : public tgui::Panel, public EventCapturable, public ValueSymbolTablesChangePropagator {
 public:
 	/*
+	Signal emitted when an EditorEnemyPhase in the list of attack pattern users is to be edited.
+	Optional parameter: the ID of the EditorEnemyPhase
+	*/
+	tgui::SignalInt onEnemyPhaseBeginEdit = { "EnemyPhaseBeginEdit" };
+	/*
+	Signal emitted when an EditorPlayer in the list of attack pattern users is to be edited.
+	*/
+	tgui::Signal onPlayerBeginEdit = { "PlayerBeginEdit" };
+	/*
+	Signal emitted when the EditorAttackPattern being edited is modified.
+	Optional parameter: a shared_ptr to the newly modified EditorAttackPattern
+	*/
+	tgui::SignalEditorAttackPattern onAttackPatternModify = { "AttackPatternModified" };
+
+	/*
 	mainEditorWindow - the EditorWindow this widget is in
 	levelPack - the LevelPack that attack belongs to
 	clipboard - the parent Clipboard
@@ -43,7 +58,7 @@ public:
 
 	bool handleEvent(sf::Event event) override;
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 
 protected:
 	void propagateChangesToChildren() override;
@@ -80,21 +95,6 @@ private:
 	// Maps an index in usedBy to the ID of the EditorEnemyPhase being shown in that index.
 	// ID -1 is reserved for representing the LevelPack's EditorPlayer
 	std::map<int, int> usedByIDMap;
-
-	/*
-	Signal emitted when an EditorEnemyPhase in the list of attack pattern users is to be edited.
-	Optional parameter: the ID of the EditorEnemyPhase
-	*/
-	tgui::SignalInt onEnemyPhaseBeginEdit = { "EnemyPhaseBeginEdit" };
-	/*
-	Signal emitted when an EditorPlayer in the list of attack pattern users is to be edited.
-	*/
-	tgui::Signal onPlayerBeginEdit = { "PlayerBeginEdit" };
-	/*
-	Signal emitted when the EditorAttackPattern being edited is modified.
-	Optional parameter: a shared_ptr to the newly modified EditorAttackPattern
-	*/
-	tgui::SignalEditorAttackPattern onAttackPatternModify = { "AttackPatternModified" };
 
 	/*
 	Does the save command on this widget.

@@ -1,5 +1,5 @@
 #pragma once
-#include <Editor/CustomWidgets/ListViewScrollablePanel.h>
+#include <Editor/CustomWidgets/ListView.h>
 #include <Editor/CustomWidgets/EditBox.h>
 #include <Editor/CopyPaste.h>
 #include <Editor/Windows/EditorWindowConfirmationPromptChoice.h>
@@ -18,6 +18,8 @@ AttackModified - emitted when the EditorAttack being edited is modified.
 */
 class AttackEditorPropertiesPanel : public tgui::ScrollablePanel, public EventCapturable, public CopyPasteable {
 public:
+	tgui::Signal onAttackModify = { "AttackModified" };
+
 	/*
 	mainEditorWindow - the parent MainEditorWindow
 	clipboard - the parent Clipboard
@@ -35,11 +37,11 @@ public:
 
 	bool handleEvent(sf::Event event) override;
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 
 	void manualPaste();
 
-	std::shared_ptr<ListViewScrollablePanel> getUsedByPanel();
+	std::shared_ptr<ListView> getUsedByListView();
 
 private:
 	MainEditorWindow& mainEditorWindow;
@@ -48,11 +50,9 @@ private:
 	UndoStack undoStack;
 
 	// Lists the EditorAttackPatterns that use the EditorAttack being edited
-	std::shared_ptr<ListViewScrollablePanel> usedBy;
+	std::shared_ptr<ListView> usedBy;
 
 	std::shared_ptr<EditBox> name;
-
-	tgui::Signal onAttackModify = { "AttackModified" };
 
 	bool ignoreSignals = false;
 

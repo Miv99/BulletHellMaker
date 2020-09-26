@@ -19,8 +19,8 @@ EditorMovablePointTreePanel::EditorMovablePointTreePanel(AttackEditorPanel& pare
 
 	empsTreeViewLabel->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
 	empsTreeView->setPosition(tgui::bindLeft(empsTreeViewLabel), tgui::bindBottom(empsTreeViewLabel) + GUI_LABEL_PADDING_Y);
-	connect("SizeChanged", [&](sf::Vector2f newSize) {
-		empsTreeView->setSize(newSize.x - GUI_PADDING_X * 2, newSize.y - tgui::bindTop(empsTreeView) - GUI_PADDING_Y);
+	onSizeChange.connect([this](sf::Vector2f newSize) {
+		empsTreeView->setSize(newSize.x - GUI_PADDING_X * 2, newSize.y - tgui::bindTop(empsTreeView) - GUI_PADDING_Y * 2);
 	});
 
 	add(empsTreeViewLabel);
@@ -30,7 +30,7 @@ EditorMovablePointTreePanel::EditorMovablePointTreePanel(AttackEditorPanel& pare
 CopyOperationResult EditorMovablePointTreePanel::copyFrom() {
 	auto selected = empsTreeView->getSelectedItem();
 	if (selected.size() > 0) {
-		return CopyOperationResult(std::make_shared<CopiedEditorMovablePoint>(getID(), attack->searchEMP(parentAttackEditorPanel.getEMPIDFromTreeViewText(selected[selected.size() - 1]))), "Copied 1 movable point");
+		return CopyOperationResult(std::make_shared<CopiedEditorMovablePoint>(getID(), attack->searchEMP(parentAttackEditorPanel.getEMPIDFromTreeViewText(static_cast<std::string>(selected[selected.size() - 1])))), "Copied 1 movable point");
 	}
 	return CopyOperationResult(nullptr, "");
 }
@@ -43,7 +43,7 @@ PasteOperationResult EditorMovablePointTreePanel::pasteInto(std::shared_ptr<Copi
 			std::shared_ptr<EditorMovablePoint> emp = derived->getEMP();
 			emp->onNewParentEditorAttack(attack);
 
-			std::shared_ptr<EditorMovablePoint> selectedEMP = attack->searchEMP(parentAttackEditorPanel.getEMPIDFromTreeViewText(selected[selected.size() - 1]));
+			std::shared_ptr<EditorMovablePoint> selectedEMP = attack->searchEMP(parentAttackEditorPanel.getEMPIDFromTreeViewText(static_cast<std::string>(selected[selected.size() - 1])));
 
 			undoStack.execute(UndoableCommand([this, emp, selectedEMP]() {
 				// Add the copied EMP as a child of the selected EMP
@@ -75,7 +75,7 @@ PasteOperationResult EditorMovablePointTreePanel::paste2Into(std::shared_ptr<Cop
 		if (selected.size() > 0) {
 			// Overwrite the selected EMP with the copied EMP but keep the ID
 
-			std::shared_ptr<EditorMovablePoint> selectedEMP = attack->searchEMP(parentAttackEditorPanel.getEMPIDFromTreeViewText(selected[selected.size() - 1]));
+			std::shared_ptr<EditorMovablePoint> selectedEMP = attack->searchEMP(parentAttackEditorPanel.getEMPIDFromTreeViewText(static_cast<std::string>(selected[selected.size() - 1])));
 			std::string selectedEMPOldFormat = selectedEMP->format();
 
 			undoStack.execute(UndoableCommand([this, derived, selectedEMP]() {
@@ -143,10 +143,10 @@ bool EditorMovablePointTreePanel::handleEvent(sf::Event event) {
 	return false;
 }
 
-tgui::Signal& EditorMovablePointTreePanel::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onEMPModify.getName())) {
+tgui::Signal& EditorMovablePointTreePanel::getSignal(tgui::String signalName) {
+	if (signalName == onEMPModify.getName().toLower()) {
 		return onEMPModify;
-	} else if (signalName == tgui::toLower(onMainEMPChildDeletion.getName())) {
+	} else if (signalName == onMainEMPChildDeletion.getName().toLower()) {
 		return onMainEMPChildDeletion;
 	}
 	return tgui::Panel::getSignal(signalName);
@@ -161,8 +161,8 @@ void EditorMovablePointTreePanel::manualDelete() {
 	// The hierarchy size must be > 1 because a size of 1 means
 	// the main EMP is selected, which should not be able to be deleted
 	if (selected.size() > 1) {
-		std::shared_ptr<EditorMovablePoint> removedEMP = attack->searchEMP(AttackEditorPanel::getEMPIDFromTreeViewText(selected[selected.size() - 1]));
-		std::shared_ptr<EditorMovablePoint> parentEMP = attack->searchEMP(AttackEditorPanel::getEMPIDFromTreeViewText(selected[selected.size() - 2]));
+		std::shared_ptr<EditorMovablePoint> removedEMP = attack->searchEMP(AttackEditorPanel::getEMPIDFromTreeViewText(static_cast<std::string>(selected[selected.size() - 1])));
+		std::shared_ptr<EditorMovablePoint> parentEMP = attack->searchEMP(AttackEditorPanel::getEMPIDFromTreeViewText(static_cast<std::string>(selected[selected.size() - 2])));
 
 		undoStack.execute(UndoableCommand([this, removedEMP, parentEMP]() {
 			// Remove the EMP from attack
@@ -179,7 +179,7 @@ void EditorMovablePointTreePanel::manualDelete() {
 			}
 		}, [this, selected, removedEMP, empParentID = parentEMP->getID()]() {
 			// Add removedEMP back
-			int empParentID = AttackEditorPanel::getEMPIDFromTreeViewText(selected[selected.size() - 2]);
+			int empParentID = AttackEditorPanel::getEMPIDFromTreeViewText(static_cast<std::string>(selected[selected.size() - 2]));
 			attack->searchEMP(empParentID)->addChild(removedEMP);
 
 			// An EMP is being added back, so no need to reload any tabs in the parent AttackEditorPanel
@@ -196,12 +196,12 @@ void EditorMovablePointTreePanel::manualRedo() {
 	undoStack.redo();
 }
 
-void EditorMovablePointTreePanel::createEMP(std::vector<sf::String> parentHierarchy) {
+void EditorMovablePointTreePanel::createEMP(std::vector<tgui::String> parentHierarchy) {
 	if (parentHierarchy.size() < 1) {
 		return;
 	}
 
-	std::shared_ptr<EditorMovablePoint> parentEMP = attack->searchEMP(parentAttackEditorPanel.getEMPIDFromTreeViewText(parentHierarchy[parentHierarchy.size() - 1]));
+	std::shared_ptr<EditorMovablePoint> parentEMP = attack->searchEMP(parentAttackEditorPanel.getEMPIDFromTreeViewText(static_cast<std::string>(parentHierarchy[parentHierarchy.size() - 1])));
 	int nextEmpID = attack->getNextEMPID()->getNextID();
 
 	undoStack.execute(UndoableCommand([this, parentEMP]() {

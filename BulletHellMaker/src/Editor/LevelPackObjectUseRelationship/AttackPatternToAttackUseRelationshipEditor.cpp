@@ -30,7 +30,7 @@ AttackPatternToAttackUseRelationshipListView::AttackPatternToAttackUseRelationsh
 }
 
 CopyOperationResult AttackPatternToAttackUseRelationshipListView::copyFrom() {
-	auto selectedIndices = getListView()->getSelectedItemIndices();
+	auto selectedIndices = getSelectedItemIndices();
 	if (selectedIndices.size() > 0) {
 		return CopyOperationResult(std::make_shared<CopiedAttackPatternToAttackUseRelationship>(getID(),
 			AttackPatternToAttackUseRelationship::convertRelationshipVectorToDataVector(parentRelationshipEditor.getRelationshipsSubset(selectedIndices))),
@@ -42,7 +42,7 @@ CopyOperationResult AttackPatternToAttackUseRelationshipListView::copyFrom() {
 PasteOperationResult AttackPatternToAttackUseRelationshipListView::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
 	auto derived = std::static_pointer_cast<CopiedAttackPatternToAttackUseRelationship>(pastedObject);
 	if (derived) {
-		std::set<size_t> curSelectedIndices = getListView()->getSelectedItemIndices();
+		std::set<size_t> curSelectedIndices = getSelectedItemIndices();
 		int pasteAtIndex;
 		if (curSelectedIndices.size() == 0) {
 			pasteAtIndex = parentRelationshipEditor.getRelationshipsCount();
@@ -85,7 +85,7 @@ PasteOperationResult AttackPatternToAttackUseRelationshipListView::pasteInto(std
 }
 
 PasteOperationResult AttackPatternToAttackUseRelationshipListView::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
-	std::set<size_t> selectedIndices = getListView()->getSelectedItemIndices();
+	std::set<size_t> selectedIndices = getSelectedItemIndices();
 	auto derived = std::static_pointer_cast<CopiedAttackPatternToAttackUseRelationship>(pastedObject);
 	if (selectedIndices.size() > 0 && derived) {
 		std::vector<std::tuple<std::string, int, ExprSymbolTable>> copiedRelationships = derived->getRelationships();
@@ -123,7 +123,7 @@ void AttackPatternToAttackUseRelationshipListView::onPasteIntoConfirmation(EDITO
 	std::vector<std::tuple<std::string, int, ExprSymbolTable>> newRelationshipsData) {
 
 	if (choice == EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES) {
-		std::set<size_t> curSelectedIndices = getListView()->getSelectedItemIndices();
+		std::set<size_t> curSelectedIndices = getSelectedItemIndices();
 		std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> oldRelationships = parentRelationshipEditor.getRelationshipsSubset(curSelectedIndices);
 
 		std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> newRelationships;
@@ -158,7 +158,7 @@ Any variables used in here must be defined by the attack pattern, not in the var
 
 	timeEditBox = EditBox::create();
 	timeEditBox->setTextSize(TEXT_SIZE);
-	timeEditBox->connect("ValueChanged", [this](std::string value) {
+	timeEditBox->onValueChange.connect([this](tgui::String value) {
 		if (ignoreSignals) {
 			return;
 		}
@@ -171,7 +171,7 @@ Any variables used in here must be defined by the attack pattern, not in the var
 		int currentlyOpenIndex = this->relationshipEditorPanelCurrentRelationshipIndex;
 		this->undoStack.execute(UndoableCommand(
 			[this, currentRelationship, value, currentlyOpenIndex]() {
-			currentRelationship->setData(std::make_tuple(value, std::get<1>(currentRelationship->getData()), std::get<2>(currentRelationship->getData())));
+			currentRelationship->setData(std::make_tuple(static_cast<std::string>(value), std::get<1>(currentRelationship->getData()), std::get<2>(currentRelationship->getData())));
 
 			bool prevIgnoreSignals = ignoreSignals;
 			ignoreSignals = true;
@@ -208,7 +208,7 @@ if it is modified with the intention of changing only one attack pattern's behav
 	idEditBox->setIntegerMode(true);
 	idEditBox->setMin(0);
 	idEditBox->setTextSize(TEXT_SIZE);
-	idEditBox->connect("ValueChanged", [this](float value) {
+	idEditBox->onValueChange.connect([this](float value) {
 		if (ignoreSignals) {
 			return;
 		}
@@ -253,7 +253,7 @@ if it is modified with the intention of changing only one attack pattern's behav
 	relationshipEditorPanel->add(symbolTableEditorLabel);
 
 	symbolTableEditor = ExprSymbolTableEditor::create(undoStack);
-	symbolTableEditor->connect("ValueChanged", [this](ExprSymbolTable value) {
+	symbolTableEditor->onValueChange.connect([this](ExprSymbolTable value) {
 		if (ignoreSignals) {
 			return;
 		}
@@ -275,7 +275,7 @@ if it is modified with the intention of changing only one attack pattern's behav
 	symbolTableEditorLabel->setPosition(tgui::bindLeft(timeLabel), tgui::bindBottom(idEditBox) + GUI_PADDING_Y);
 	symbolTableEditor->setPosition(tgui::bindLeft(timeLabel), tgui::bindBottom(symbolTableEditorLabel) + GUI_LABEL_PADDING_Y);
 
-	relationshipEditorPanel->connect("SizeChanged", [this](sf::Vector2f newSize) {
+	relationshipEditorPanel->onSizeChange.connect([this](sf::Vector2f newSize) {
 		timeEditBox->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 		idEditBox->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 		symbolTableEditor->setSize(newSize.x - GUI_PADDING_X * 2, newSize.y - (symbolTableEditorLabel->getPosition().y + symbolTableEditorLabel->getSize().y) - GUI_PADDING_Y);
@@ -302,8 +302,8 @@ PasteOperationResult AttackPatternToAttackUseRelationshipEditor::paste2Into(std:
 	return PasteOperationResult(false, "Type mismatch");
 }
 
-tgui::Signal& AttackPatternToAttackUseRelationshipEditor::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onRelationshipsModify.getName())) {
+tgui::Signal& AttackPatternToAttackUseRelationshipEditor::getSignal(tgui::String signalName) {
+	if (signalName == onRelationshipsModify.getName().toLower()) {
 		return onRelationshipsModify;
 	}
 	return LevelPackObjectUseRelationshipEditor::getSignal(signalName);

@@ -9,9 +9,10 @@
 const std::string EMPABasedMovementEditorPanel::EMPA_TAB_NAME_FORMAT = "Action %d";
 const int EMPABasedMovementEditorPanel::EMPA_TAB_NAME_FORMAT_NUMBER_INDEX = 7;
 
-EditorMovablePointActionsListView::EditorMovablePointActionsListView(EMPABasedMovementEditorPanel& empaBasedMovementEditorPanel, Clipboard& clipboard, int undoStackSize) : 
-	CopyPasteable(EMPA_COPY_PASTE_ID), empaBasedMovementEditorPanel(empaBasedMovementEditorPanel), clipboard(clipboard), undoStack(UndoStack(undoStackSize)) {
-	getListView()->setMultiSelect(true);
+EditorMovablePointActionsListView::EditorMovablePointActionsListView(EMPABasedMovementEditorPanel& empaBasedMovementEditorPanel, Clipboard& clipboard, int undoStackSize) 
+	: CopyPasteable(EMPA_COPY_PASTE_ID), empaBasedMovementEditorPanel(empaBasedMovementEditorPanel), clipboard(clipboard), undoStack(UndoStack(undoStackSize)) {
+
+	setMultiSelect(true);
 }
 
 CopyOperationResult EditorMovablePointActionsListView::copyFrom() {
@@ -102,7 +103,7 @@ EditorMovablePointActionsListPanel::EditorMovablePointActionsListPanel(EditorWin
 	// Menu for single attack selection
 	auto rightClickMenuPopupSingleSelection = createMenuPopup({
 		std::make_pair("Open", [this]() {
-			this->empaBasedMovementEditorPanel.manualOpenEMPA(empasListView->getListView()->getSelectedItemIndex());
+			this->empaBasedMovementEditorPanel.manualOpenEMPA(empasListView->getSelectedItemIndex());
 		}),
 		std::make_pair("Copy", [this]() {
 			empasListView->manualCopy();
@@ -132,8 +133,12 @@ EditorMovablePointActionsListPanel::EditorMovablePointActionsListPanel(EditorWin
 			this->empaBasedMovementEditorPanel.manualDelete();
 		})
 		});
-	empasListView->getListView()->connect("RightClicked", [this, rightClickMenuPopupSingleSelection, rightClickMenuPopupMultiSelection](int index) {
-		std::set<std::size_t> selectedItemIndices = empasListView->getListView()->getSelectedItemIndices();
+	empasListView->onRightClick.connect([this, rightClickMenuPopupSingleSelection, rightClickMenuPopupMultiSelection](int index) {
+		if (index == -1) {
+			return;
+		}
+
+		std::set<std::size_t> selectedItemIndices = empasListView->getSelectedItemIndices();
 		if (selectedItemIndices.find(index) != selectedItemIndices.end()) {
 			// Right clicked a selected item
 
@@ -147,16 +152,21 @@ EditorMovablePointActionsListPanel::EditorMovablePointActionsListPanel(EditorWin
 			// Right clicked a nonselected item
 
 			// Select the right clicked item
-			empasListView->getListView()->setSelectedItem(index);
+			empasListView->setSelectedItem(index);
 
 			// Open the menu normally
 			this->parentWindow.addPopupWidget(rightClickMenuPopupSingleSelection, this->parentWindow.getMousePos().x, this->parentWindow.getMousePos().y, 150, rightClickMenuPopupSingleSelection->getSize().y);
 		}
 	});
 
-	connect("SizeChanged", [this](sf::Vector2f newSize) {
-		empasListView->setSize(newSize.x, newSize.y - tgui::bindBottom(empaAddButton));
+	onSizeChange.connect([this](sf::Vector2f newSize) {
+		empasListView->setSize(newSize.x, newSize.y - tgui::bindBottom(empaAddButton) * 2);
 	});
+
+	// For some reason, ScrollablePanels' sizes don't fit the last widget, so this is to make sure this one does
+	auto scrollablePanelBuffer = tgui::Label::create();
+	scrollablePanelBuffer->setPosition(0, tgui::bindBottom(empasListView) + GUI_PADDING_Y);
+	add(scrollablePanelBuffer);
 }
 
 bool EditorMovablePointActionsListPanel::handleEvent(sf::Event event) {
@@ -186,12 +196,12 @@ EMPABasedMovementEditorPanel::EMPABasedMovementEditorPanel(EditorWindow& parentW
 	visualizer = EMPAsVisualizerPanel::create(parentWindow, *this, clipboard);
 	tabs->addTab("Visualizer", visualizer, true, false);
 
-	visualizer->getEmpasListView()->getListView()->connect("DoubleClicked", [this](int index) {
+	visualizer->getEmpasListView()->onDoubleClick.connect([this](int index) {
 		manualOpenEMPA(index);
 	});
-	visualizer->getEmpasListPanel()->getEMPAAddButton()->connect("Pressed", [this]() {
+	visualizer->getEmpasListPanel()->getEMPAAddButton()->onPress.connect([this]() {
 		int newEMPAIndex;
-		std::set<size_t> curSelectedIndices = visualizer->getEmpasListView()->getListView()->getSelectedItemIndices();
+		std::set<size_t> curSelectedIndices = visualizer->getEmpasListView()->getSelectedItemIndices();
 		if (curSelectedIndices.size() == 0) {
 			newEMPAIndex = actions.size();
 		} else {
@@ -254,15 +264,15 @@ EMPABasedMovementEditorPanel::EMPABasedMovementEditorPanel(EditorWindow& parentW
 			onEMPAListModify.emit(this, cloneActions(), sumOfDurations);
 		}));
 	});
-	visualizer->getEmpasListPanel()->getEMPADeleteButton()->connect("Pressed", [this]() {
+	visualizer->getEmpasListPanel()->getEMPADeleteButton()->onPress.connect([this]() {
 		manualDelete();
 	});
 
 	add(tabs);
 }
 
-tgui::Signal& EMPABasedMovementEditorPanel::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onEMPAListModify.getName())) {
+tgui::Signal& EMPABasedMovementEditorPanel::getSignal(tgui::String signalName) {
+	if (signalName == onEMPAListModify.getName().toLower()) {
 		return onEMPAListModify;
 	}
 	return tgui::Panel::getSignal(signalName);
@@ -295,7 +305,7 @@ void EMPABasedMovementEditorPanel::setVisualizerStartPosY(std::string startY) {
 }
 
 void EMPABasedMovementEditorPanel::manualDelete() {
-	std::set<size_t> curSelectedIndices = visualizer->getEmpasListView()->getListView()->getSelectedItemIndices();
+	std::set<size_t> curSelectedIndices = visualizer->getEmpasListView()->getSelectedItemIndices();
 	if (curSelectedIndices.size() == 0) {
 		return;
 	}
@@ -431,7 +441,7 @@ void EMPABasedMovementEditorPanel::manualDelete() {
 }
 
 CopyOperationResult EMPABasedMovementEditorPanel::manualCopy() {
-	auto selected = visualizer->getEmpasListView()->getListView()->getSelectedItemIndices();
+	auto selected = visualizer->getEmpasListView()->getSelectedItemIndices();
 	if (selected.size() > 0) {
 		std::vector<std::shared_ptr<EMPAction>> copied;
 		for (int index : selected) {
@@ -454,7 +464,7 @@ PasteOperationResult EMPABasedMovementEditorPanel::manualPaste(std::shared_ptr<C
 
 	auto derived = std::static_pointer_cast<CopiedEMPActions>(pastedObject);
 	if (derived) {
-		std::set<size_t> curSelectedIndices = visualizer->getEmpasListView()->getListView()->getSelectedItemIndices();
+		std::set<size_t> curSelectedIndices = visualizer->getEmpasListView()->getSelectedItemIndices();
 		int pasteAtIndex;
 		if (curSelectedIndices.size() == 0) {
 			pasteAtIndex = actions.size();
@@ -560,7 +570,7 @@ PasteOperationResult EMPABasedMovementEditorPanel::manualPaste(std::shared_ptr<C
 }
 
 PasteOperationResult EMPABasedMovementEditorPanel::manualPaste2(std::shared_ptr<CopiedObject> pastedObject) {
-	std::set<size_t> selectedIndices = visualizer->getEmpasListView()->getListView()->getSelectedItemIndices();
+	std::set<size_t> selectedIndices = visualizer->getEmpasListView()->getSelectedItemIndices();
 	auto derived = std::static_pointer_cast<CopiedEMPActions>(pastedObject);
 	if (selectedIndices.size() > 0 && derived) {
 		std::vector<std::shared_ptr<EMPAction>> copiedEMPAs = derived->getActions();
@@ -612,12 +622,12 @@ ValueSymbolTable EMPABasedMovementEditorPanel::getLevelPackObjectSymbolTable() {
 	return ValueSymbolTable();
 }
 
-std::shared_ptr<tgui::Panel> EMPABasedMovementEditorPanel::createEMPAPanel(std::shared_ptr<EMPAction> empa, int index, std::shared_ptr<ListViewScrollablePanel> empiActions) {
+std::shared_ptr<tgui::Panel> EMPABasedMovementEditorPanel::createEMPAPanel(std::shared_ptr<EMPAction> empa, int index, std::shared_ptr<tgui::ListView> empiActions) {
 	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 
 	std::shared_ptr<EditorMovablePointActionPanel> empaPanel = EditorMovablePointActionPanel::create(parentWindow, clipboard, std::dynamic_pointer_cast<EMPAction>(empa->clone()));
 	empaPanel->updateSymbolTables(symbolTables);
-	empaPanel->connect("EMPAModified", [this, index, empiActions, empaPanel](std::shared_ptr<EMPAction> value) {
+	empaPanel->onEMPAModify.connect([this, index, empiActions, empaPanel](std::shared_ptr<EMPAction> value) {
 		this->actions[this->panelToActionIndexMap[empaPanel]] = value;
 
 		updateEMPAList();
@@ -628,17 +638,19 @@ std::shared_ptr<tgui::Panel> EMPABasedMovementEditorPanel::createEMPAPanel(std::
 }
 
 void EMPABasedMovementEditorPanel::updateEMPAList(bool setSelectedIndices, std::set<size_t> newSelectedIndices) {
-	std::shared_ptr<ListViewScrollablePanel> actionsListBoxScrollablePanel = visualizer->getEmpasListView();
-	auto listView = actionsListBoxScrollablePanel->getListView();
+	std::shared_ptr<tgui::ListView> listView = visualizer->getEmpasListView();
 
 	auto oldSelectedIndices = listView->getSelectedItemIndices();
 	listView->removeAllItems();
 	sumOfDurations = 0;
+
+	std::vector<std::vector<tgui::String>> items;
 	for (int i = 0; i < actions.size(); i++) {
-		listView->addItem(actions[i]->getGuiFormat() + " (d=" + formatNum(actions[i]->getTime()) + "; t=" + formatNum(sumOfDurations) + " to t=" + formatNum(sumOfDurations + actions[i]->getTime()) + ")");
+		items.push_back({ actions[i]->getGuiFormat() + " (d=" + formatNum(actions[i]->getTime()) + "; t=" + formatNum(sumOfDurations) + " to t=" + formatNum(sumOfDurations + actions[i]->getTime()) + ")" });
 		sumOfDurations += actions[i]->getTime();
 	}
-	actionsListBoxScrollablePanel->onListViewItemsUpdate();
+	listView->addMultipleItems(items);
+
 	if (setSelectedIndices) {
 		if (newSelectedIndices.size() == 1) {
 			listView->setSelectedItem(*newSelectedIndices.begin());
@@ -694,7 +706,7 @@ void EMPABasedMovementEditorPanel::reloadEMPATab(int empaIndex) {
 
 void EMPABasedMovementEditorPanel::onPasteIntoConfirmation(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::vector<std::shared_ptr<EMPAction>> newEMPAs) {
 	if (choice == EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES) {
-		std::set<size_t> curSelectedIndices = visualizer->getEmpasListView()->getListView()->getSelectedItemIndices();
+		std::set<size_t> curSelectedIndices = visualizer->getEmpasListView()->getSelectedItemIndices();
 		assert(curSelectedIndices.size() == newEMPAs.size());
 
 		std::vector<std::shared_ptr<EMPAction>> oldEMPAs;
@@ -741,7 +753,7 @@ EMPAsVisualizerPanel::EMPAsVisualizerPanel(EditorWindow& parentWindow, EMPABased
 	visualizer->lookAt(sf::Vector2f(MAP_WIDTH/2.0f, MAP_HEIGHT/2.0f));
 	mainPanel->add(visualizer);
 
-	empasListPanel->getEmpasListView()->getListView()->connect("ItemSelected", [this](int index) {
+	empasListPanel->getEmpasListView()->onItemSelect.connect([this](int index) {
 		visualizer->setEMPAPathColor(index, sf::Color::Green);
 	});
 

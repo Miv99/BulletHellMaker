@@ -15,10 +15,10 @@ public:
 		return std::make_shared<AnimatablePicture>();
 	}
 
-	bool update(sf::Time elapsedTime) override;
-	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+	bool updateTime(tgui::Duration elapsedTime) override;
+	void draw(tgui::BackendRenderTargetBase& target, tgui::RenderStates states) const override;
 	virtual tgui::Widget::Ptr clone() const override;
-	virtual bool mouseOnWidget(tgui::Vector2f pos) const override;
+	virtual bool isMouseOnWidget(tgui::Vector2f pos) const override;
 
 	void setAnimation(SpriteLoader& spriteLoader, const std::string& animationName, const std::string& spriteSheetName);
 	void setSprite(SpriteLoader& spriteLoader, const std::string& spriteName, const std::string& spriteSheetName);

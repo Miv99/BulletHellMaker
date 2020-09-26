@@ -217,7 +217,7 @@ inline std::shared_ptr<entt::SigH<void(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE,
 	}
 	
 	confirmationYes->setVisible(true);
-	confirmationYes->connect("Pressed", [this, confirmationSignal, userObject, widgetToFocusAfter]() {
+	confirmationYes->onPress.connect([this, confirmationSignal, userObject, widgetToFocusAfter]() {
 		confirmationSignal->publish(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES, userObject);
 		confirmationSignal->sink().disconnect();
 		closeConfirmationPanel();
@@ -227,7 +227,7 @@ inline std::shared_ptr<entt::SigH<void(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE,
 		}
 	});
 	confirmationNo->setVisible(true);
-	confirmationNo->connect("Pressed", [this, confirmationSignal, userObject, widgetToFocusAfter]() {
+	confirmationNo->onPress.connect([this, confirmationSignal, userObject, widgetToFocusAfter]() {
 		confirmationSignal->publish(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::NO, userObject);
 		confirmationSignal->sink().disconnect();
 		closeConfirmationPanel();
@@ -240,7 +240,7 @@ inline std::shared_ptr<entt::SigH<void(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE,
 	confirmationCancel->setVisible(includeCancelButton);
 	if (includeCancelButton) {
 		confirmationCancel->setText("Cancel");
-		confirmationCancel->connect("Pressed", [this, confirmationSignal, userObject, widgetToFocusAfter]() {
+		confirmationCancel->onPress.connect([this, confirmationSignal, userObject, widgetToFocusAfter]() {
 			confirmationSignal->publish(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::CANCEL, userObject);
 			confirmationSignal->sink().disconnect();
 			closeConfirmationPanel();
@@ -275,7 +275,7 @@ inline std::shared_ptr<entt::SigH<void(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE,
 	}
 
 	confirmationText->setText(message);
-	confirmationWindow->setPosition(window->getSize().x / 2.0f - confirmationWindow->getSize().x / 2.0f, window->getSize().y / 2.0f - confirmationWindow->getSize().y / 2.0f);
+	confirmationWindow->setPosition(window->getSize().x / 2.0f - confirmationWindow->getClientSize().x / 2.0f, window->getSize().y / 2.0f - confirmationWindow->getClientSize().y / 2.0f);
 	addChildWindow(confirmationWindow);
 	confirmationPanelOpen = true;
 

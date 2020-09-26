@@ -4,7 +4,7 @@
 #include <utility>
 #include <algorithm>
 
-#include <entt/entt.hpp>
+#include <TGUI/String.hpp>
 
 #include <DataStructs/SpriteLoader.h>
 #include <LevelPack/TextMarshallable.h>
@@ -70,15 +70,6 @@ public:
 	float searchLargestHitbox() const;
 	// Search for the EMP with the ID
 	std::shared_ptr<EditorMovablePoint> searchEMP(int id) const;
-
-	/*
-	Generates a list of string vectors such that, when each all the string vectors are added to a tgui::TreeView,
-	the tree hierarchy of this EditorAttack, including all its EMPs, is created. Each entry is an EMP's ID.
-
-	attackText - a function that takes an EditorAttack and returns a string -- the text in the tgui::TreeView for that EditorAttack
-	empText - a function that takes an EMP and returns a string -- the text in the tgui::TreeView for that EMP
-	*/
-	std::vector<std::vector<sf::String>> generateTreeViewHierarchy(std::function<sf::String(const EditorAttack&)> attackText, std::function<sf::String(const EditorMovablePoint&)> empText) const;
 
 	/*
 	For testing.

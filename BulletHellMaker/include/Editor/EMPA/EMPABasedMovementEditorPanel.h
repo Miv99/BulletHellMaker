@@ -16,7 +16,7 @@ Helper class for EMPABasedMovementEditorPanel.
 
 Panel containing a ListView used to edit a vector of EMPActions.
 */
-class EditorMovablePointActionsListView : public ListViewScrollablePanel, public EventCapturable, public CopyPasteable {
+class EditorMovablePointActionsListView : public tgui::ListView, public EventCapturable, public CopyPasteable {
 public:
 	EditorMovablePointActionsListView(EMPABasedMovementEditorPanel& empaBasedMovementEditorPanel, Clipboard& clipboard, int undoStackSize = 50);
 	static std::shared_ptr<EditorMovablePointActionsListView> create(EMPABasedMovementEditorPanel& empaBasedMovementEditorPanel, Clipboard& clipboard, int undoStackSize = 50) {
@@ -118,12 +118,14 @@ Signals:
 */
 class EMPABasedMovementEditorPanel : public tgui::Panel, public EventCapturable, public ValueSymbolTablesChangePropagator {
 public:
+	tgui::SignalEMPAVectorAndFloat onEMPAListModify = { "EMPAListModified" };
+
 	EMPABasedMovementEditorPanel(EditorWindow& parentWindow, Clipboard& clipboard);
 	static std::shared_ptr<EMPABasedMovementEditorPanel> create(EditorWindow& parentWindow, Clipboard& clipboard) {
 		return std::make_shared<EMPABasedMovementEditorPanel>(parentWindow, clipboard);
 	}
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 
 	bool handleEvent(sf::Event event) override;
 
@@ -177,8 +179,6 @@ private:
 	// This is used to extract the action index out of a tab name.
 	static const int EMPA_TAB_NAME_FORMAT_NUMBER_INDEX;
 
-	tgui::SignalEMPAVectorAndFloat onEMPAListModify = { "EMPAListModified" };
-
 	// The EMPAs list being edited
 	std::vector<std::shared_ptr<EMPAction>> actions;
 	// Sum of durations in actions
@@ -197,9 +197,9 @@ private:
 
 	empa - the EMPA for which the panel will edit. This will be deep-copied.
 	index - the index of empa in actions
-	empiActions - the ListBoxScrollablePanel which will display all of the EMPAs
+	empiActions - the ListView which will display all of the EMPAs
 	*/
-	std::shared_ptr<tgui::Panel> createEMPAPanel(std::shared_ptr<EMPAction> empa, int index, std::shared_ptr<ListViewScrollablePanel> empiActions);
+	std::shared_ptr<tgui::Panel> createEMPAPanel(std::shared_ptr<EMPAction> empa, int index, std::shared_ptr<tgui::ListView> empiActions);
 	/*
 	Update the EditorMovablePointActionsListView to match actions.
 	Should be called whenever actions is modified.

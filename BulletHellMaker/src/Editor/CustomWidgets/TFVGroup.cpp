@@ -6,6 +6,7 @@
 #include <Util/StringUtils.h>
 #include <Editor/Windows/MainEditorWindow.h>
 #include <Editor/Util/EditorUtils.h>
+#include <Editor/Util/TguiUtils.h>
 
 const float TFVGroup::TFV_TIME_RESOLUTION = MAX_PHYSICS_DELTA_TIME;
 
@@ -18,7 +19,7 @@ TFVGroup::TFVGroup(EditorWindow& parentWindow, Clipboard& clipboard)
 	showGraph->setText("Show graph");
 	showGraph->setToolTip(createToolTip("Plots the graph of this value with the x-axis representing time in seconds and the y-axis representing the result of this value's evaluation. \
 This might take a while to load the first time."));
-	showGraph->connect("Pressed", [&]() {
+	showGraph->onPress.connect([this]() {
 		auto points = generateMPPoints(tfv, tfvLifespan, TFV_TIME_RESOLUTION);
 		matplotlibcpp::clf();
 		matplotlibcpp::close();
@@ -36,7 +37,7 @@ This might take a while to load the first time."));
 	addSegment = tgui::Button::create();
 	addSegment->setText("Add");
 	addSegment->setToolTip(createToolTip("Adds a new segment to this value."));
-	addSegment->connect("Pressed", [&]() {
+	addSegment->onPress.connect([this]() {
 		if (ignoreSignals) return;
 
 		std::lock_guard<std::recursive_mutex> lock(tfvMutex);
@@ -46,7 +47,7 @@ This might take a while to load the first time."));
 			time = tfv->getSegment(selectedSegmentIndex).first;
 		}
 		tfv->insertSegment(std::make_pair(time, std::make_shared<ConstantTFV>(0)), tfvLifespan);
-		onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+		onValueChange.emit(this, oldTFV, tfv);
 		if (selectedSegment) {
 			selectSegment(selectedSegmentIndex + 1);
 		}
@@ -57,7 +58,7 @@ This might take a while to load the first time."));
 	deleteSegment = tgui::Button::create();
 	deleteSegment->setText("Delete");
 	deleteSegment->setToolTip(createToolTip("Deletes the selected segment."));
-	deleteSegment->connect("Pressed", [&]() {
+	deleteSegment->onPress.connect([this]() {
 		std::lock_guard<std::recursive_mutex> lock(tfvMutex);
 
 		tfv->removeSegment(selectedSegmentIndex, tfvLifespan);
@@ -75,87 +76,87 @@ This might take a while to load the first time."));
 	changeSegmentType = tgui::Button::create();
 	changeSegmentType->setText("Change type");
 	changeSegmentType->setToolTip(createToolTip("Changes the selected segment's type."));
-	changeSegmentType->connect("Pressed", [&]() {
-		parentWindow.addPopupWidget(segmentTypePopup, parentWindow.getMousePos().x, parentWindow.getMousePos().y, 200, segmentTypePopup->getSize().y);
+	changeSegmentType->onPress.connect([this]() {
+		this->parentWindow.addPopupWidget(segmentTypePopup, this->parentWindow.getMousePos().x, this->parentWindow.getMousePos().y, 200, segmentTypePopup->getSize().y);
 	});
 	add(changeSegmentType);
 
 	segmentTypePopup = createMenuPopup({
-		std::make_pair("Linear", [&]() {
+		std::make_pair("Linear", [this]() {
 			std::lock_guard<std::recursive_mutex> lock(tfvMutex);
 
 			std::shared_ptr<TFV> newTFV = std::make_shared<LinearTFV>();
 			float oldStartTime = tfv->getSegment(selectedSegmentIndex).first;
 			int selectedSegmentIndex = this->selectedSegmentIndex;
 			tfv->changeSegment(selectedSegmentIndex, newTFV, tfvLifespan);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 			// Reselect to reload widgets
 			selectSegment(selectedSegmentIndex);
 			populateSegmentList();
 		}),
-		std::make_pair("Constant", [&]() {
+		std::make_pair("Constant", [this]() {
 			std::lock_guard<std::recursive_mutex> lock(tfvMutex);
 
 			std::shared_ptr<TFV> newTFV = std::make_shared<ConstantTFV>();
 			float oldStartTime = tfv->getSegment(selectedSegmentIndex).first;
 			int selectedSegmentIndex = this->selectedSegmentIndex;
 			tfv->changeSegment(selectedSegmentIndex, newTFV, tfvLifespan);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 			selectSegment(selectedSegmentIndex);
 			populateSegmentList();
 		}),
-		std::make_pair("Sine wave", [&]() {
+		std::make_pair("Sine wave", [this]() {
 			std::lock_guard<std::recursive_mutex> lock(tfvMutex);
 
 			std::shared_ptr<TFV> newTFV = std::make_shared<SineWaveTFV>();
 			float oldStartTime = tfv->getSegment(selectedSegmentIndex).first;
 			int selectedSegmentIndex = this->selectedSegmentIndex;
 			tfv->changeSegment(selectedSegmentIndex, newTFV, tfvLifespan);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 			selectSegment(selectedSegmentIndex);
 			populateSegmentList();
 		}),
-		std::make_pair("Distance from acceleration", [&]() {
+		std::make_pair("Distance from acceleration", [this]() {
 			std::lock_guard<std::recursive_mutex> lock(tfvMutex);
 
 			std::shared_ptr<TFV> newTFV = std::make_shared<ConstantAccelerationDistanceTFV>();
 			float oldStartTime = tfv->getSegment(selectedSegmentIndex).first;
 			int selectedSegmentIndex = this->selectedSegmentIndex;
 			tfv->changeSegment(selectedSegmentIndex, newTFV, tfvLifespan);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 			selectSegment(selectedSegmentIndex);
 			populateSegmentList();
 		}),
-		std::make_pair("Dampened start", [&]() {
+		std::make_pair("Dampened start", [this]() {
 			std::lock_guard<std::recursive_mutex> lock(tfvMutex);
 
 			std::shared_ptr<TFV> newTFV = std::make_shared<DampenedStartTFV>();
 			float oldStartTime = tfv->getSegment(selectedSegmentIndex).first;
 			int selectedSegmentIndex = this->selectedSegmentIndex;
 			tfv->changeSegment(selectedSegmentIndex, newTFV, tfvLifespan);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 			selectSegment(selectedSegmentIndex);
 			populateSegmentList();
 		}),
-		std::make_pair("Dampened end", [&]() {
+		std::make_pair("Dampened end", [this]() {
 			std::lock_guard<std::recursive_mutex> lock(tfvMutex);
 
 			std::shared_ptr<TFV> newTFV = std::make_shared<DampenedEndTFV>();
 			float oldStartTime = tfv->getSegment(selectedSegmentIndex).first;
 			int selectedSegmentIndex = this->selectedSegmentIndex;
 			tfv->changeSegment(selectedSegmentIndex, newTFV, tfvLifespan);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 			selectSegment(selectedSegmentIndex);
 			populateSegmentList();
 		}),
-		std::make_pair("Double dampened", [&]() {
+		std::make_pair("Double dampened", [this]() {
 			std::lock_guard<std::recursive_mutex> lock(tfvMutex);
 
 			std::shared_ptr<TFV> newTFV = std::make_shared<DoubleDampenedTFV>();
 			float oldStartTime = tfv->getSegment(selectedSegmentIndex).first;
 			int selectedSegmentIndex = this->selectedSegmentIndex;
 			tfv->changeSegment(selectedSegmentIndex, newTFV, tfvLifespan);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 			selectSegment(selectedSegmentIndex);
 			populateSegmentList();
 		})
@@ -170,15 +171,15 @@ Double dampened - An S-shaped curve, of form y = DampenedStart(x, A, B, D, T/2) 
 The evaluation of this value will return the currently active segment's evaluation at time t-T0, where T0 is the start time of the segment. In every equation above, T is the lifespan in seconds of the segment."));
 	segmentTypePopup->setPosition(tgui::bindLeft(changeSegmentType), tgui::bindTop(changeSegmentType));
 
-	segmentList = std::make_shared<ListBoxScrollablePanel>();
+	segmentList = std::make_shared<ListView>();
 	segmentList->setTextSize(TEXT_SIZE);
 	segmentList->setToolTip(createToolTip("The list of segments in this value. \"(t=A to t=B)\" denotes the time range in seconds in which the segment is active. \
 The evaluation of this value will return the currently active segment's evaluation at time t-A, where A is the start time of the segment. The first segment must have \
 a start time of t=0."));
-	segmentList->getListBox()->connect("ItemSelected", [&](std::string item, std::string id) {
+	segmentList->onItemSelect.connect([this](int index) {
 		if (ignoreSignals) return;
-		if (id != "") {
-			selectSegment(std::stoi(id));
+		if (index != -1) {
+			selectSegment(index);
 		} else {
 			deselectSegment();
 		}
@@ -218,114 +219,114 @@ a start time of t=0."));
 	startTime = SliderWithEditBox::create();
 	startTime->setIntegerMode(false);
 	startTime->setStep(MAX_PHYSICS_DELTA_TIME);
-	tfvFloat1EditBox->connect("ValueChanged", [&](float value) {
+	tfvFloat1EditBox->onValueChange.connect([this](float value) {
 		if (ignoreSignals) return;
 
 		if (dynamic_cast<LinearTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<LinearTFV*>(selectedSegment.get());
 			ptr->setStartValue(value);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 		} else if (dynamic_cast<ConstantTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<ConstantTFV*>(selectedSegment.get());
 			ptr->setValue(value);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 		} else if (dynamic_cast<SineWaveTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<SineWaveTFV*>(selectedSegment.get());
 			ptr->setPeriod(value);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 		} else if (dynamic_cast<ConstantAccelerationDistanceTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<ConstantAccelerationDistanceTFV*>(selectedSegment.get());
 			ptr->setInitialDistance(value);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 		} else if (dynamic_cast<DampenedStartTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<DampenedStartTFV*>(selectedSegment.get());
 			ptr->setStartValue(value);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 		} else if (dynamic_cast<DampenedEndTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<DampenedEndTFV*>(selectedSegment.get());
 			ptr->setStartValue(value);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 		} else if (dynamic_cast<DoubleDampenedTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<DoubleDampenedTFV*>(selectedSegment.get());
 			ptr->setStartValue(value);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 		}
 	});
-	tfvFloat2EditBox->connect("ValueChanged", [&](float value) {
+	tfvFloat2EditBox->onValueChange.connect([this](float value) {
 		if (ignoreSignals) return;
 
 		if (dynamic_cast<LinearTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<LinearTFV*>(selectedSegment.get());
 			ptr->setEndValue(value);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 		} else if (dynamic_cast<SineWaveTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<SineWaveTFV*>(selectedSegment.get());
 			ptr->setAmplitude(value);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 		} else if (dynamic_cast<ConstantAccelerationDistanceTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<ConstantAccelerationDistanceTFV*>(selectedSegment.get());
 			ptr->setInitialVelocity(value);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 		} else if (dynamic_cast<DampenedStartTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<DampenedStartTFV*>(selectedSegment.get());
 			ptr->setEndValue(value);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 		} else if (dynamic_cast<DampenedEndTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<DampenedEndTFV*>(selectedSegment.get());
 			ptr->setEndValue(value);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 		} else if (dynamic_cast<DoubleDampenedTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<DoubleDampenedTFV*>(selectedSegment.get());
 			ptr->setEndValue(value);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 		}
 	});
-	tfvFloat3EditBox->connect("ValueChanged", [&](float value) {
+	tfvFloat3EditBox->onValueChange.connect([this](float value) {
 		if (ignoreSignals) return;
 
 		if (dynamic_cast<SineWaveTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<SineWaveTFV*>(selectedSegment.get());
 			ptr->setValueShift(value);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 		} else if (dynamic_cast<ConstantAccelerationDistanceTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<ConstantAccelerationDistanceTFV*>(selectedSegment.get());
 			ptr->setAcceleration(value);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 		}
 	});
-	tfvFloat4EditBox->connect("ValueChanged", [&](float value) {
+	tfvFloat4EditBox->onValueChange.connect([this](float value) {
 		if (ignoreSignals) return;
 
 		if (dynamic_cast<SineWaveTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<SineWaveTFV*>(selectedSegment.get());
 			ptr->setPhaseShift(value);
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 		}
 	});
-	tfvInt1EditBox->connect("ValueChanged", [&](float value) {
+	tfvInt1EditBox->onValueChange.connect([this](float value) {
 		if (ignoreSignals) return;
 
 		if (dynamic_cast<DampenedStartTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<DampenedStartTFV*>(selectedSegment.get());
 			ptr->setDampeningFactor(std::lrint(value));
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 		} else if (dynamic_cast<DampenedEndTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<DampenedEndTFV*>(selectedSegment.get());
 			ptr->setDampeningFactor(std::lrint(value));
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 		} else if (dynamic_cast<DoubleDampenedTFV*>(selectedSegment.get()) != nullptr) {
 			auto ptr = dynamic_cast<DoubleDampenedTFV*>(selectedSegment.get());
 			ptr->setDampeningFactor(std::lrint(value));
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 		}
 	});
-	startTime->connect("ValueChanged", [&, &selectedSegmentIndex = this->selectedSegmentIndex](float value) {
+	startTime->onValueChange.connect([this](float value) {
 		if (ignoreSignals) return;
 
 		std::lock_guard<std::recursive_mutex> lock(tfvMutex);
 		if (selectedSegmentIndex != -1) {
 			selectSegment(tfv->changeSegmentStartTime(selectedSegmentIndex, value, tfvLifespan));
-			onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+			onValueChange.emit(this, oldTFV, tfv);
 		}
 		populateSegmentList();
 	});
@@ -346,7 +347,7 @@ a start time of t=0."));
 	showGraph->setSize(100, TEXT_BUTTON_HEIGHT);
 	showGraph->setPosition(0, 0);
 
-	connect("SizeChanged", [&](sf::Vector2f newSize) {
+	onSizeChange.connect([this](sf::Vector2f newSize) {
 		if (ignoreResizeSignal) {
 			return;
 		}
@@ -383,7 +384,7 @@ a start time of t=0."));
 		tfvInt1Label->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvFloat2EditBox) + GUI_PADDING_Y);
 		tfvInt1EditBox->setPosition(segmentListRightBoundary, tgui::bindBottom(tfvInt1Label) + GUI_LABEL_PADDING_Y);
 
-		segmentList->setSize(segmentList->getSize().x, tgui::bindBottom(this->tfvInt1EditBox));
+		segmentList->setSize(segmentList->getSize().x, 200);
 
 		float buttonWidth = (segmentList->getSize().x - GUI_PADDING_X * 2) / 3.0f;
 		addSegment->setSize(buttonWidth, TEXT_BUTTON_HEIGHT);
@@ -393,7 +394,7 @@ a start time of t=0."));
 		changeSegmentType->setSize(buttonWidth, TEXT_BUTTON_HEIGHT);
 		changeSegmentType->setPosition(tgui::bindRight(deleteSegment) + GUI_PADDING_X, tgui::bindTop(deleteSegment));
 
-		this->setSize(this->getSizeLayout().x, changeSegmentType->getPosition().y + changeSegmentType->getSize().y);
+		this->setSize(this->getSizeLayout().x, changeSegmentType->getPosition().y + changeSegmentType->getSize().y + GUI_PADDING_Y);
 		ignoreResizeSignal = false;
 	});
 
@@ -412,7 +413,7 @@ PasteOperationResult TFVGroup::pasteInto(std::shared_ptr<CopiedObject> pastedObj
 	auto derived = std::static_pointer_cast<CopiedPiecewiseTFVSegment>(pastedObject);
 	if (derived) {
 		selectSegment(tfv->insertSegment(derived->getSegment(), tfvLifespan));
-		onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+		onValueChange.emit(this, oldTFV, tfv);
 
 		return PasteOperationResult(true, "Pasted 1 time-function variable segment");
 	}
@@ -430,7 +431,7 @@ PasteOperationResult TFVGroup::paste2Into(std::shared_ptr<CopiedObject> pastedOb
 		tfv->changeSegment(selectedSegmentIndex, pasted.second, tfvLifespan);
 		// Change segment start time second because it may change the segment's index
 		selectSegment(tfv->changeSegmentStartTime(selectedSegmentIndex, pasted.first, tfvLifespan));
-		onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+		onValueChange.emit(this, oldTFV, tfv);
 
 		return PasteOperationResult(true, "Replaced 1 time-function variable segment");
 	}
@@ -438,12 +439,12 @@ PasteOperationResult TFVGroup::paste2Into(std::shared_ptr<CopiedObject> pastedOb
 }
 
 bool TFVGroup::handleEvent(sf::Event event) {
-	if (event.type == sf::Event::KeyPressed && segmentList->mouseOnWidget(parentWindow.getLastMousePressPos() - getAbsolutePosition())) {
+	if (event.type == sf::Event::KeyPressed && segmentList->isMouseOnWidget(parentWindow.getLastMousePressPos() - getAbsolutePosition())) {
 		if (event.key.code == sf::Keyboard::Delete) {
 			// Can't delete the last segment
 			if (selectedSegment && tfv->getSegmentsCount() > 1) {
 				tfv->removeSegment(selectedSegmentIndex, tfvLifespan);
-				onValueChange.emit(this, std::make_pair(oldTFV, tfv));
+				onValueChange.emit(this, oldTFV, tfv);
 				return true;
 			}
 		} else if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
@@ -478,8 +479,8 @@ void TFVGroup::setTFV(std::shared_ptr<TFV> tfv, float tfvLifespan) {
 	selectSegment(selectedSegmentIndex);
 }
 
-tgui::Signal& TFVGroup::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onValueChange.getName())) {
+tgui::Signal& TFVGroup::getSignal(tgui::String signalName) {
+	if (signalName == onValueChange.getName().toLower()) {
 		return onValueChange;
 	}
 	return tgui::Group::getSignal(signalName);
@@ -489,8 +490,8 @@ void TFVGroup::deselectSegment() {
 	selectedSegmentIndex = -1;
 	selectedSegment = nullptr;
 	deleteSegment->setEnabled(false);
-	changeSegmentType->setVisible(false);
-	segmentList->getListBox()->deselectItem();
+	changeSegmentType->setEnabled(false);
+	segmentList->deselectItem();
 	bool f1 = false, f2 = false, f3 = false, f4 = false, i1 = false;
 	tfvFloat1Label->setVisible(f1);
 	tfvFloat1EditBox->setVisible(f1);
@@ -518,10 +519,10 @@ void TFVGroup::selectSegment(int index) {
 	selectedSegment = tfv->getSegment(index).second;
 	// Cannot delete the last segment
 	deleteSegment->setEnabled(tfv->getSegmentsCount() != 1);
-	changeSegmentType->setVisible(true);
+	changeSegmentType->setEnabled(true);
 
 	ignoreSignals = true;
-	segmentList->getListBox()->setSelectedItemById(std::to_string(index));
+	segmentList->setSelectedItemById(std::to_string(index));
 
 	// whether to use tfvFloat1EditBox, tfvFloat2EditBox, ...
 	bool f1 = false, f2 = false, f3 = false, f4 = false, i1 = false;
@@ -647,7 +648,7 @@ void TFVGroup::selectSegment(int index) {
 
 	// For some reason selecting segments will mess up stuff so this is to fix that
 	ignoreResizeSignal = true;
-	this->setSize(this->getSizeLayout().x, changeSegmentType->getPosition().y + changeSegmentType->getSize().y);
+	this->setSize(this->getSizeLayout().x, changeSegmentType->getPosition().y + changeSegmentType->getSize().y + GUI_PADDING_Y);
 	ignoreResizeSignal = false;
 	startTime->setCaretPosition(0);
 	tfvFloat1EditBox->setCaretPosition(0);
@@ -662,8 +663,8 @@ void TFVGroup::selectSegment(int index) {
 void TFVGroup::populateSegmentList() {
 	ignoreSignals = true;
 	std::lock_guard<std::recursive_mutex> lock(tfvMutex);
-	std::string selectedIndexString = segmentList->getListBox()->getSelectedItemId();
-	segmentList->getListBox()->removeAllItems();
+	std::string selectedIndexString = static_cast<std::string>(segmentList->getSelectedItemId());
+	segmentList->removeAllItems();
 	int index = 0;
 	for (int i = 0; i < tfv->getSegmentsCount(); i++) {
 		auto segment = tfv->getSegment(i);
@@ -673,12 +674,12 @@ void TFVGroup::populateSegmentList() {
 			nextTime = tfv->getSegment(i + 1).first;
 		}
 
-		segmentList->getListBox()->addItem("[" + std::to_string(index + 1) + "] " + segment.second->getName() + " (t=" + formatNum(segment.first) + " to t=" + formatNum(nextTime) + ")", std::to_string(index));
+		segmentList->addItem("[" + std::to_string(index + 1) + "] " + segment.second->getName() + " (t=" + formatNum(segment.first) + " to t=" + formatNum(nextTime) + ")", std::to_string(index));
 		index++;
 	}
 	// Reselect old segment if any
 	if (selectedIndexString != "") {
-		segmentList->getListBox()->setSelectedItemById(selectedIndexString);
+		segmentList->setSelectedItemById(selectedIndexString);
 	}
 	ignoreSignals = false;
 }

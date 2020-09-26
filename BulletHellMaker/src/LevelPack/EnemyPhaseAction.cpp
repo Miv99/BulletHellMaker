@@ -31,7 +31,7 @@ void DestroyEnemyBulletsEPA::load(std::string formattedString) {
 
 void DestroyEnemyBulletsEPA::execute(entt::DefaultRegistry & registry, uint32_t entity) {
 	auto view = registry.view<EnemyBulletComponent>();
-	view.each([&](auto entity, auto& bullet) {
+	view.each([this, &registry](auto entity, auto& bullet) {
 		if (registry.has<DespawnComponent>(entity)) {
 			registry.get<DespawnComponent>(entity).setMaxTime(0.0f);
 		} else {

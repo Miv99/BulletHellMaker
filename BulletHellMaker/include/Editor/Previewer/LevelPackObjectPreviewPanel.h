@@ -27,6 +27,8 @@ Signals:
 */
 class LevelPackObjectPreviewPanel : public SimpleEngineRenderer {
 public:
+	tgui::SignalLevelPackObjectLegalResult onPreview = { "PreviewAttempted" };
+
 	/*
 	spriteLoader - if not nullptr, spriteLoader will be used instead of creating a new SpriteLoader just for the level pack
 		that will be loaded from levelPackName
@@ -37,7 +39,7 @@ public:
 		return std::make_shared<LevelPackObjectPreviewPanel>(parentWindow, levelPackName, spriteLoader);
 	}
 
-	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+	void draw(tgui::BackendRenderTargetBase& target, tgui::RenderStates states) const override;
 
 	void loadLevelPack(std::string levelPackName, std::shared_ptr<SpriteLoader> spriteLoader) override;
 
@@ -66,7 +68,7 @@ public:
 	float getAttackLoopDelay() const;
 	std::shared_ptr<LevelPack> getLevelPack();
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 
 private:
 	const float CURSOR_RADIUS = 5.0f;
@@ -80,8 +82,6 @@ private:
 	};
 
 	EditorWindow& parentEditorWindow;
-
-	tgui::SignalLevelPackObjectLegalResult onPreview = { "PreviewAttempted" };
 
 	// Type of object currently being previewed
 	PREVIEW_OBJECT currentPreviewObjectType = PREVIEW_OBJECT::NONE;

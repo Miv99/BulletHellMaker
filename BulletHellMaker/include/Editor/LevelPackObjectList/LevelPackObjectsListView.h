@@ -1,5 +1,5 @@
 #pragma once
-#include <Editor/CustomWidgets/ListViewScrollablePanel.h>
+#include <Editor/CustomWidgets/ListView.h>
 #include <Editor/CopyPaste.h>
 #include <LevelPack/LevelPack.h>
 #include <Editor/EventCapturable.h>
@@ -9,11 +9,11 @@
 class MainEditorWindow;
 
 /*
-A ListViewScrollablePanel of LevelPackObjects, for use by MainEditorWindow.
+A ListView of LevelPackObjects, for use by MainEditorWindow.
 Items should not be added or removed from this with the exception of from reload().
 handleEvent() is called from this widget's container, EditorWindow::LevelPackObjectsListPanel.
 */
-class LevelPackObjectsListView : public ListViewScrollablePanel, public EventCapturable, public CopyPasteable {
+class LevelPackObjectsListView : public ListView, public EventCapturable, public CopyPasteable {
 public:
 	/*
 	mainEditorWindow - the parent MainEditorWindow using this widget

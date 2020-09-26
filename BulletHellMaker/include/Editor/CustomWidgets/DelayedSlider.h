@@ -16,8 +16,8 @@ public:
 		return std::make_shared<DelayedSlider>();
 	}
 
-	bool update(sf::Time elapsedTime) override;
-	tgui::Signal& getSignal(std::string signalName) override;
+	bool updateTime(tgui::Duration elapsedTime) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 
 	/*
 	emitValueChanged - if the value of the slider changes as a result of changing the min/max,

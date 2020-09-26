@@ -73,6 +73,7 @@ public:
 
 private:
 	std::string animationName;
+	// How long each sprite appears for, and the name of that sprite
 	std::vector<std::pair<float, std::string>> spriteNames;
 };
 
@@ -115,6 +116,7 @@ public:
 	inline const std::map<std::string, std::shared_ptr<AnimationData>> getAnimationData() { return animationData; }
 	inline bool isFailedImageLoad() const { return failedImageLoad; }
 	inline bool isFailedMetafileLoad() const { return failedMetafileLoad; }
+	inline sf::Texture* getTexture() { return &texture; }
 
 private:
 	// Name of the sprite sheet

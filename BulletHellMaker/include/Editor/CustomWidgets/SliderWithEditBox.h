@@ -13,6 +13,8 @@ Signals:
 */
 class SliderWithEditBox : public HideableGroup {
 public:
+	tgui::SignalFloat onValueChange = { "ValueChanged" };
+
 	/*
 	useDelayedSlider - if true, a DelayedSlider will be used instead of a Slider
 	*/
@@ -61,14 +63,12 @@ public:
 	void setTextSize(int textSize);
 	void setCaretPosition(int position);
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 
 private:
 	bool useDelayedSlider;
 	std::shared_ptr<Slider> slider;
 	std::shared_ptr<NumericalEditBoxWithLimits> editBox;
-
-	tgui::SignalFloat onValueChange = { "ValueChanged" };
 
 	float lastKnownValue;
 

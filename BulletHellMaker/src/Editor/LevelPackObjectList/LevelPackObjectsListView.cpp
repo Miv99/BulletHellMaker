@@ -6,14 +6,16 @@
 const std::string LevelPackObjectsListView::SAVED_LEVEL_PACK_OBJECT_ITEM_FORMAT = "[%d] %s";
 const std::string LevelPackObjectsListView::UNSAVED_LEVEL_PACK_OBJECT_ITEM_FORMAT = "*[%d] %s";
 
-LevelPackObjectsListView::LevelPackObjectsListView(std::string copyPasteableID, MainEditorWindow& mainEditorWindow, Clipboard& clipboard, int undoStackSize) : ListViewScrollablePanel(),
-CopyPasteable(copyPasteableID), levelPack(nullptr), mainEditorWindow(mainEditorWindow), clipboard(clipboard), undoStack(UndoStack(undoStackSize)), sortOption(SORT_OPTION::ID) {
-	getListView()->setMultiSelect(true);
+LevelPackObjectsListView::LevelPackObjectsListView(std::string copyPasteableID, MainEditorWindow& mainEditorWindow, Clipboard& clipboard, int undoStackSize) 
+	: ListView(), CopyPasteable(copyPasteableID), levelPack(nullptr), mainEditorWindow(mainEditorWindow), clipboard(clipboard),
+	undoStack(UndoStack(undoStackSize)), sortOption(SORT_OPTION::ID) {
+
+	setMultiSelect(true);
 }
 
 CopyOperationResult LevelPackObjectsListView::copyFrom() {
 	// Copy every selected object
-	std::set<size_t> selectedIndices = listView->getSelectedItemIndices();
+	std::set<size_t> selectedIndices = getSelectedItemIndices();
 	if (selectedIndices.size() > 0) {
 		std::vector<std::shared_ptr<LayerRootLevelPackObject>> objs;
 		std::map<int, std::shared_ptr<LayerRootLevelPackObject>>& unsavedObjs = getUnsavedLevelPackObjects();
@@ -68,7 +70,7 @@ PasteOperationResult LevelPackObjectsListView::pasteInto(std::shared_ptr<CopiedO
 		for (auto id : newObjIDs) {
 			indicesInListView.insert(getIndexFromLevelPackObjectID(id));
 		}
-		listView->setSelectedItems(indicesInListView);
+		setSelectedItems(indicesInListView);
 
 		// If just one attack, open the attack too
 		if (derived->getLevelPackObjectsCount() == 1) {
@@ -87,7 +89,7 @@ PasteOperationResult LevelPackObjectsListView::pasteInto(std::shared_ptr<CopiedO
 PasteOperationResult LevelPackObjectsListView::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
 	// Paste the new LevelPackObjects such that they overwrite the selected LevelPackObjects
 
-	std::set<size_t> selectedIndices = listView->getSelectedItemIndices();
+	std::set<size_t> selectedIndices = getSelectedItemIndices();
 	auto derived = std::static_pointer_cast<CopiedLayerRootLevelPackObject>(pastedObject);
 	if (selectedIndices.size() > 0 && derived) {
 		std::vector<std::shared_ptr<LayerRootLevelPackObject>> copiedObjs = derived->getLevelPackObjects();
@@ -170,14 +172,14 @@ bool LevelPackObjectsListView::handleEvent(sf::Event event) {
 void LevelPackObjectsListView::setLevelPack(LevelPack * levelPack) {
 	this->levelPack = levelPack;
 
-	listView->deselectItems();
-	listView->removeAllItems();
+	deselectItems();
+	removeAllItems();
 
 	addLevelPackObjectsToListView();
 }
 
 void LevelPackObjectsListView::reload() {
-	std::set<size_t> selectedIndices = listView->getSelectedItemIndices();
+	std::set<size_t> selectedIndices = getSelectedItemIndices();
 	std::set<int> selectedIDs;
 	for (auto it = selectedIndices.begin(); it != selectedIndices.end(); it++) {
 		selectedIDs.insert(getLevelPackObjectIDFromIndex(*it));
@@ -185,7 +187,7 @@ void LevelPackObjectsListView::reload() {
 
 	levelPackObjectIDToListViewIndexMap.clear();
 	listViewIndexToLevelPackObjectIDMap.clear();
-	listView->removeAllItems();
+	removeAllItems();
 
 	// Add the objects back into the list view
 	addLevelPackObjectsToListView();
@@ -198,9 +200,7 @@ void LevelPackObjectsListView::reload() {
 		}
 	}
 
-	listView->setSelectedItems(newSelectedIndices);
-
-	onListViewItemsUpdate();
+	setSelectedItems(newSelectedIndices);
 }
 
 void LevelPackObjectsListView::cycleSortOption() {
@@ -238,7 +238,7 @@ void LevelPackObjectsListView::manualPaste2() {
 }
 
 void LevelPackObjectsListView::manualDelete() {
-	auto selectedIndices = getListView()->getSelectedItemIndices();
+	auto selectedIndices = getSelectedItemIndices();
 	if (selectedIndices.size() > 0) {
 		auto& unsavedObjs = getUnsavedLevelPackObjects();
 		// Each pair is the LevelPackObject and whether it was in unsavedObjs
@@ -268,7 +268,7 @@ void LevelPackObjectsListView::manualDelete() {
 }
 
 void LevelPackObjectsListView::manualSave() {
-	std::set<size_t> selectedIndices = getListView()->getSelectedItemIndices();
+	std::set<size_t> selectedIndices = getSelectedItemIndices();
 	if (selectedIndices.size() > 0) {
 		saveLevelPackObjects(selectedIndices);
 		reload();
@@ -276,19 +276,19 @@ void LevelPackObjectsListView::manualSave() {
 }
 
 void LevelPackObjectsListView::manualSaveAll() {
-	auto oldSelectedIndices = getListView()->getSelectedItemIndices();
+	auto oldSelectedIndices = getSelectedItemIndices();
 	manualSelectAll();
 	manualSave();
-	getListView()->setSelectedItems(oldSelectedIndices);
+	setSelectedItems(oldSelectedIndices);
 }
 
 void LevelPackObjectsListView::manualSelectAll() {
-	int count = getListView()->getItemCount();
+	int count = getItemCount();
 	std::set<size_t> selected;
 	for (int i = 0; i < count; i++) {
 		selected.insert(i);
 	}
-	getListView()->setSelectedItems(selected);
+	setSelectedItems(selected);
 }
 
 AttacksListView::AttacksListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, int undoStackSize) : LevelPackObjectsListView("EditorAttack", mainEditorWindow, clipboard, undoStackSize) {
@@ -391,18 +391,18 @@ void LevelPackObjectsListView::onDeleteConfirmation(EDITOR_WINDOW_CONFIRMATION_P
 	std::vector<std::pair<std::shared_ptr<LayerRootLevelPackObject>, bool>> deletedObjects) {
 
 	if (choice == EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES) {
-		deleteObjects(getListView()->getSelectedItemIndices(), deletedObjects);
+		deleteObjects(getSelectedItemIndices(), deletedObjects);
 	}
 }
 
 void LevelPackObjectsListView::addLevelPackObjectToListView(int objID, std::string objName, bool objIsUnsaved, std::string objUnsavedName) {
 	// If the object is unsaved, signal it with an asterisk
 	if (objIsUnsaved) {
-		listView->addItem(format(UNSAVED_LEVEL_PACK_OBJECT_ITEM_FORMAT, objID, objUnsavedName.c_str()));
+		addItem(format(UNSAVED_LEVEL_PACK_OBJECT_ITEM_FORMAT, objID, objUnsavedName.c_str()));
 	} else {
-		listView->addItem(format(SAVED_LEVEL_PACK_OBJECT_ITEM_FORMAT, objID, objName.c_str()));
+		addItem(format(SAVED_LEVEL_PACK_OBJECT_ITEM_FORMAT, objID, objName.c_str()));
 	}
-	int index = listView->getItemCount() - 1;
+	int index = getItemCount() - 1;
 	levelPackObjectIDToListViewIndexMap[objID] = index;
 	listViewIndexToLevelPackObjectIDMap[index] = objID;
 }
@@ -433,7 +433,7 @@ void LevelPackObjectsListView::deleteObjects(std::set<size_t> selectedIndices, s
 		for (std::pair<std::shared_ptr<LayerRootLevelPackObject>, bool> pair : deletedObjs) {
 			newSelectedIndices.insert(getIndexFromLevelPackObjectID(pair.first->getID()));
 		}
-		getListView()->setSelectedItems(newSelectedIndices);
+		setSelectedItems(newSelectedIndices);
 	}));
 }
 

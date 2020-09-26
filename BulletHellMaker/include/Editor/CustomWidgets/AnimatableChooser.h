@@ -16,6 +16,8 @@ the widgets in it, so changing the height of this widget will do nothing.
 */
 class AnimatableChooser : public HideableGroup {
 public:
+	tgui::SignalAnimatable onValueChange = { "ValueChanged" };
+
 	/*
 	forceSprite - if true, the user is forced to choose between sprites instead of being able to choose between sprites and animations
 	*/
@@ -37,7 +39,7 @@ public:
 	void setAnimatablePictureSize(tgui::Layout width, tgui::Layout height);
 	void setAnimatablePictureSize(const tgui::Layout2d& size);
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 
 private:
 	/*
@@ -54,8 +56,6 @@ private:
 	std::string previousAnimatableSelection = "";
 
 	std::shared_ptr<AnimatablePicture> animatablePicture;
-
-	tgui::SignalAnimatable onValueChange = { "ValueChanged" };
 
 	bool ignoreSignals = false;
 };

@@ -11,10 +11,10 @@ SimpleEngineRenderer::SimpleEngineRenderer(sf::RenderWindow& parentWindow, bool 
 	}
 	viewFromViewController.setCenter(MAP_WIDTH / 2.0f, MAP_HEIGHT / 2.0f);
 
-	connect("PositionChanged", [&]() {
+	onPositionChange.connect([this]() {
 		updateWindowView();
 	});
-	connect("SizeChanged", [&]() {
+	onSizeChange.connect([this]() {
 		updateWindowView();
 	});
 }
@@ -65,13 +65,13 @@ void SimpleEngineRenderer::updateWindowView() {
 	viewFromViewController.setCenter(oldCenter);
 }
 
-bool SimpleEngineRenderer::update(sf::Time elapsedTime) {
-	bool ret = tgui::Panel::update(elapsedTime);
+bool SimpleEngineRenderer::updateTime(tgui::Duration elapsedTime) {
+	bool ret = tgui::Panel::updateTime(elapsedTime);
 
 	return viewController->update(viewFromViewController, elapsedTime.asSeconds()) || ret;
 }
 
-void SimpleEngineRenderer::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+void SimpleEngineRenderer::draw(tgui::BackendRenderTargetBase& target, tgui::RenderStates states) const {
 	// LevelPackObjectPreviewWindow will draw the render system before calling this draw().
 	// To make sure the render system stuff is visible, we can't draw this widget's underlying tgui::Panel.
 	// However, there might be widgets in the panel, so draw only those widgets.

@@ -8,7 +8,7 @@ Animation::Animation(std::string name, std::vector<std::pair<float, std::shared_
 }
 
 std::shared_ptr<sf::Sprite> Animation::update(float deltaTime) {
-	if (done) {
+	if (done || currentSpriteIndex >= sprites.size()) {
 		return nullptr;
 	}
 	

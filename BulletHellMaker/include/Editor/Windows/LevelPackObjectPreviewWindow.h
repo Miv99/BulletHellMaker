@@ -83,7 +83,7 @@ private:
 	std::shared_ptr<tgui::CheckBox> lockCurrentPreviewCheckBox;
 	std::shared_ptr<tgui::CheckBox> invinciblePlayer;
 
-	std::shared_ptr<tgui::TextBox> logs;
+	std::shared_ptr<tgui::TextArea> logs;
 
 	std::string levelPackName;
 

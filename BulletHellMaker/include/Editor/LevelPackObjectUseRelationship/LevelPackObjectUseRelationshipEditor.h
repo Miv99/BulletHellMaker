@@ -3,7 +3,7 @@
 
 #include <GuiConfig.h>
 #include <Editor/CopyPaste.h>
-#include <Editor/CustomWidgets/ListViewScrollablePanel.h>
+#include <Editor/CustomWidgets/ListView.h>
 #include <Editor/Windows/MainEditorWindow.h>
 #include <Editor/Util/EditorUtils.h>
 #include <LevelPack/LevelPack.h>
@@ -14,7 +14,7 @@ class LevelPackObjectUseRelationship {
 class LevelPackObjectUseRelationshipEditor;
 
 /*
-A ListViewScrollablePanel of EditorAttacks, for use by MainEditorWindow.
+A ListView of EditorAttacks, for use by MainEditorWindow.
 Items should not be added or removed from this with the exception of from reload().
 handleEvent() is called from this widget's container, EditorWindow::LevelPackObjectsListPanel.
 
@@ -23,8 +23,10 @@ Deletes in this widget are handled by LevelPackObjectUseRelationshipEditor.
 Signals:
 	ListModified - emitted whenever the list view is modified internally by the paste or paste2 operation.
 */
-class LevelPackObjectUseRelationshipListView : public ListViewScrollablePanel, public EventCapturable, public CopyPasteable {
+class LevelPackObjectUseRelationshipListView : public ListView, public EventCapturable, public CopyPasteable {
 public:
+	tgui::Signal onListModify = { "ListModified" };
+
 	/*
 	mainEditorWindow - the parent MainEditorWindow using this widget
 	clipboard - the parent Clipboard
@@ -62,15 +64,13 @@ public:
 	*/
 	void repopulateRelationships(std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> relationships);
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 
 protected:
 	MainEditorWindow& mainEditorWindow;
 	LevelPackObjectUseRelationshipEditor& parentRelationshipEditor;
 	UndoStack& undoStack;
 	Clipboard& clipboard;
-
-	tgui::Signal onListModify = { "ListModified" };
 
 	/*
 	Returns the text for an entry in this list view corresponding to a relationship.

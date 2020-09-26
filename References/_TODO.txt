@@ -152,7 +152,8 @@ Notes for me:
         -This is only because player death hasn't been implemented yet in CollisionSystem
     -when focused on main editor window, inputs still go to preview window
     -TGUI edit box eats all inputs, including control+z/control+y to undo/redo
-
+    -log files not getting deleted at all
+    
 current todo:
 -PlayerPowerTier->AttackPattern                  int id, ExprSymbolTable
  EnemySpawnInfo->Enemy                           int id, ExprSymbolTable

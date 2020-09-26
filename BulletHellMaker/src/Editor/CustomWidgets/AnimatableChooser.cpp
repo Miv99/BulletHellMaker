@@ -55,9 +55,9 @@ AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprit
 \tFace horizontal movement - The entity's angle of rotation will be either 0 (when it is moving at an angle in range (0, 90) \
 or (270, 360)) or 180 (when it is moving at angle in range (90, 270))."));
 
-	animatable->connect("ItemSelected", [this](std::string itemText, std::string id) {
+	animatable->onItemSelect.connect([this](tgui::String itemText, tgui::String id) {
 		// ID is in format "spriteSheetName\animatableName"
-		std::string spriteSheetName = id.substr(0, id.find_first_of('\\'));
+		std::string spriteSheetName = static_cast<std::string>(id.substr(0, id.find_first_of('\\')));
 
 		// If id is "Sheet", a sheet was selected, so reselect the previous selection if possible since
 		// the user shouldn't be able to select a sheet
@@ -76,21 +76,21 @@ or (270, 360)) or 180 (when it is moving at angle in range (90, 270))."));
 		if (spriteSheetName == "" && !ignoreSignals) {
 			animatable->deselectItem();
 		} else if (!ignoreSignals) {
-			previousAnimatableSelection = id;
+			previousAnimatableSelection = static_cast<std::string>(id);
 			// Item text is in format "[S]spriteName" or "[A]animationName"
 			if (itemText[1] == 'S') {
-				animatablePicture->setSprite(this->spriteLoader, itemText.substr(3), spriteSheetName);
+				animatablePicture->setSprite(this->spriteLoader, static_cast<std::string>(itemText.substr(3)), spriteSheetName);
 			} else {
-				animatablePicture->setAnimation(this->spriteLoader, itemText.substr(3), spriteSheetName);
+				animatablePicture->setAnimation(this->spriteLoader, static_cast<std::string>(itemText.substr(3)), spriteSheetName);
 			}
 
-			onValueChange.emit(this, Animatable(itemText.substr(3), spriteSheetName, itemText[1] == 'S', static_cast<ROTATION_TYPE>(std::stoi(std::string(rotationType->getSelectedItemId())))));
+			onValueChange.emit(this, Animatable(static_cast<std::string>(itemText.substr(3)), spriteSheetName, itemText[1] == 'S', static_cast<ROTATION_TYPE>(std::stoi(std::string(rotationType->getSelectedItemId())))));
 		} else {
 			// Item text is in format "[S]spriteName" or "[A]animationName"
 			if (itemText[1] == 'S') {
-				animatablePicture->setSprite(this->spriteLoader, itemText.substr(3), spriteSheetName);
+				animatablePicture->setSprite(this->spriteLoader, static_cast<std::string>(itemText.substr(3)), spriteSheetName);
 			} else {
-				animatablePicture->setAnimation(this->spriteLoader, itemText.substr(3), spriteSheetName);
+				animatablePicture->setAnimation(this->spriteLoader, static_cast<std::string>(itemText.substr(3)), spriteSheetName);
 			}
 		}
 
@@ -98,16 +98,16 @@ or (270, 360)) or 180 (when it is moving at angle in range (90, 270))."));
 
 	animatable->setChangeItemOnScroll(false);
 	animatable->setExpandDirection(tgui::ComboBox::ExpandDirection::Down);
-	animatable->connect("Focused", [&]() {
+	animatable->onFocus.connect([this]() {
 		calculateItemsToDisplay();
 	});
 
 	rotationType->setChangeItemOnScroll(false);
 	rotationType->setExpandDirection(tgui::ComboBox::ExpandDirection::Down);
-	rotationType->connect("Focused", [&]() {
+	rotationType->onFocus.connect([this]() {
 		calculateItemsToDisplay();
 	});
-	rotationType->connect("ItemSelected", [&](std::string item, std::string id) {
+	rotationType->onItemSelect.connect([this](tgui::String item, tgui::String id) {
 		if (ignoreSignals) {
 			return;
 		}
@@ -131,10 +131,10 @@ or (270, 360)) or 180 (when it is moving at angle in range (90, 270))."));
 	add(rotationType);
 	add(animatablePicture);
 
-	animatablePicture->connect("SizeChanged", [this](sf::Vector2f newSize) {
+	animatablePicture->onSizeChange.connect([this](sf::Vector2f newSize) {
 		this->setSize(this->getSizeLayout().x, tgui::bindBottom(this->rotationType));
 	});
-	connect("SizeChanged", [this](sf::Vector2f newSize) {
+	onSizeChange.connect([this](sf::Vector2f newSize) {
 		calculateItemsToDisplay();
 	});
 }
@@ -181,14 +181,14 @@ void AnimatableChooser::setValue(Animatable animatable) {
 }
 
 Animatable AnimatableChooser::getValue() {
-	std::string itemText = animatable->getSelectedItem();
+	tgui::String itemText = animatable->getSelectedItem();
 	if (itemText == "") {
 		return Animatable("", "", false, ROTATION_TYPE::LOCK_ROTATION);
 	}
-	std::string id = animatable->getSelectedItemId();
+	tgui::String id = animatable->getSelectedItemId();
 
 	// ID is in format "spriteSheetName\animatableName"
-	std::string spriteSheetName = id.substr(0, id.find_first_of('\\'));
+	std::string spriteSheetName = static_cast<std::string>(id.substr(0, id.find_first_of('\\')));
 
 	// The only items without an ID are sprite sheet name indicators, so if ID is empty, this item shouldn't be selectable
 	if (spriteSheetName == "") {
@@ -196,13 +196,13 @@ Animatable AnimatableChooser::getValue() {
 	} else {
 		// Item text is in format "[S]spriteName" or "[A]animationName"
 		if (itemText[1] == 'S') {
-			animatablePicture->setSprite(spriteLoader, itemText.substr(3), spriteSheetName);
+			animatablePicture->setSprite(spriteLoader, static_cast<std::string>(itemText.substr(3)), spriteSheetName);
 		} else {
-			animatablePicture->setAnimation(spriteLoader, itemText.substr(3), spriteSheetName);
+			animatablePicture->setAnimation(spriteLoader, static_cast<std::string>(itemText.substr(3)), spriteSheetName);
 		}
 	}
 
-	return Animatable(itemText.substr(3), spriteSheetName, itemText[1] == 'S', static_cast<ROTATION_TYPE>(std::stoi(std::string(rotationType->getSelectedItemId()))));
+	return Animatable(static_cast<std::string>(itemText.substr(3)), spriteSheetName, itemText[1] == 'S', static_cast<ROTATION_TYPE>(std::stoi(std::string(rotationType->getSelectedItemId()))));
 }
 
 void AnimatableChooser::setEnabled(bool enabled) {
@@ -219,8 +219,8 @@ void AnimatableChooser::setAnimatablePictureSize(const tgui::Layout2d& size) {
 	animatablePicture->setSize(size);
 }
 
-tgui::Signal& AnimatableChooser::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onValueChange.getName())) {
+tgui::Signal& AnimatableChooser::getSignal(tgui::String signalName) {
+	if (signalName == onValueChange.getName().toLower()) {
 		return onValueChange;
 	}
 	return HideableGroup::getSignal(signalName);

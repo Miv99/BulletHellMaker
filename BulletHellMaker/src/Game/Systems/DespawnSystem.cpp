@@ -21,7 +21,7 @@ void DespawnSystem::update(float deltaTime) {
 	auto view = registry.view<DespawnComponent>();
 	std::set<uint32_t> deletionQueue;
 
-	view.each([&](auto entity, auto& despawn) {
+	view.each([this, deltaTime, &deletionQueue](auto entity, auto& despawn) {
 		if (despawn.update(registry, deltaTime)) {
 			dfsInsertChildren(registry, deletionQueue, despawn.getChildren());
 

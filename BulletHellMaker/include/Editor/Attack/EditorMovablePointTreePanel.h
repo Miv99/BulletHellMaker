@@ -16,6 +16,9 @@ MainEMPChildDeleted - emitted when some child (but not necessarily direct child)
 */
 class EditorMovablePointTreePanel : public tgui::Panel, public EventCapturable, public CopyPasteable {
 public:
+	tgui::SignalEditorMovablePoint onEMPModify = { "EMPModified" };
+	tgui::SignalInt onMainEMPChildDeletion = { "MainEMPChildDeleted" };
+
 	/*
 	parentAttackEditorPanel - the AttackEditorPanel this widget is a child of
 	clipboard - the parent Clipboard
@@ -37,13 +40,13 @@ public:
 
 	parent - the node hierarchy in empsTreeView to the desired parent
 	*/
-	void createEMP(std::vector<sf::String> parentHierarchy);
+	void createEMP(std::vector<tgui::String> parentHierarchy);
 	void manualCopy();
 	void manualPaste();
 	void manualPaste2();
 	void manualDelete();
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 	std::shared_ptr<tgui::TreeView> getEmpsTreeView();
 
 private:
@@ -52,9 +55,6 @@ private:
 	Clipboard& clipboard;
 	std::shared_ptr<EditorAttack> attack;
 	std::shared_ptr<tgui::TreeView> empsTreeView;
-
-	tgui::SignalEditorMovablePoint onEMPModify = { "EMPModified" };
-	tgui::SignalInt onMainEMPChildDeletion = { "MainEMPChildDeleted" };
 
 	void manualUndo();
 	void manualRedo();

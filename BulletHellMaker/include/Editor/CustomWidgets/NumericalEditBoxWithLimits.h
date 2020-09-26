@@ -12,6 +12,9 @@ Signals:
 */
 class NumericalEditBoxWithLimits : public tgui::EditBox {
 public:
+	// Emitted when the edit box value is changed
+	tgui::SignalFloat onValueChange = { "ValueChanged" };
+
 	NumericalEditBoxWithLimits();
 	static std::shared_ptr<NumericalEditBoxWithLimits> create() {
 		return std::make_shared<NumericalEditBoxWithLimits>();
@@ -51,13 +54,10 @@ public:
 	inline bool getHasMin() { return hasMin; }
 	inline bool getHasMax() { return hasMax; }
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 
 private:
 	void updateInputValidator();
-
-	// Emitted when the edit box value is changed
-	tgui::SignalFloat onValueChange = { "ValueChanged" };
 
 	bool hasMin = false, hasMax = false;
 	float min, max;

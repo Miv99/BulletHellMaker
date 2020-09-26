@@ -16,7 +16,7 @@ TabsWithPanel::TabsWithPanel(EditorWindow& parentWindow)
 	add(tabsContainer);
 
 	tabs->setPosition(0, 0);
-	tabs->connect("TabSelected", &TabsWithPanel::onTabSelected, this);
+	tabs->onTabSelect.connect(&TabsWithPanel::onTabSelected, this);
 	tabs->setTextSize(TEXT_SIZE);
 	// Clamp tab size
 	tabs->setMinimumTabWidth(TAB_WIDTH);
@@ -28,33 +28,29 @@ TabsWithPanel::TabsWithPanel(EditorWindow& parentWindow)
 	// Make room for the close button for every tab
 	tabNameAppendedSpaces = std::string((int)std::ceil((float)tabs->getSize().y / tabs->getTextSize()), ' ');
 
-	moreTabsList = ListBoxScrollablePanel::create();
+	moreTabsList = ListView::create();
 	moreTabsList->setTextSize(TEXT_SIZE);
-	moreTabsList->getListBox()->setItemHeight(TEXT_SIZE * 1.5f);
-	moreTabsList->getListBox()->connect("ItemSelected", [&](std::string tabName) {
-		// Remove spaces from the end since selectTab() readds them
-		selectTab(tabName.substr(0, tabName.length() - tabNameAppendedSpaces.length()));
+	moreTabsList->setItemHeight(TEXT_SIZE * 1.5f);
+	moreTabsList->onItemSelect.connect([this](int index) {
+		selectTab(index);
 	});
 
 	moreTabsButton = tgui::Button::create();
 	//TODO: image on this instead of a V
 	moreTabsButton->setText("V");
-	moreTabsButton->connect("Pressed", [&]() {
+	moreTabsButton->onPress.connect([this]() {
 		float preferredWidth = 300;
-		float preferredHeight = (moreTabsList->getListBox()->getItemHeight() + 1) * moreTabsList->getListBox()->getItemCount();
+		float preferredHeight = (moreTabsList->getItemHeight() + 1) * moreTabsList->getItemCount();
 		// Set moreTabsList's position releative to the absolute position of the moreTabsButton since it will be a top-level widget
 		if (moreTabsListAlignment == MoreTabsListAlignment::Left) {
-			parentWindow.addPopupWidget(moreTabsList, moreTabsButton->getAbsolutePosition().x - preferredWidth + moreTabsButton->getSize().x, moreTabsButton->getAbsolutePosition().y + moreTabsButton->getSize().y, preferredWidth, preferredHeight);
+			this->parentWindow.addPopupWidget(moreTabsList, moreTabsButton->getAbsolutePosition().x - preferredWidth + moreTabsButton->getSize().x, moreTabsButton->getAbsolutePosition().y + moreTabsButton->getSize().y, preferredWidth, preferredHeight);
 		} else if (moreTabsListAlignment == MoreTabsListAlignment::Right) {
-			parentWindow.addPopupWidget(moreTabsList, moreTabsButton->getAbsolutePosition().x, moreTabsButton->getAbsolutePosition().y + moreTabsButton->getSize().y, preferredWidth, preferredHeight);
-		} else {
-			// You forgot a case
-			assert(false);
+			this->parentWindow.addPopupWidget(moreTabsList, moreTabsButton->getAbsolutePosition().x, moreTabsButton->getAbsolutePosition().y + moreTabsButton->getSize().y, preferredWidth, preferredHeight);
 		}
 	});
 	add(moreTabsButton);
 
-	connect("SizeChanged", [&](sf::Vector2f newSize) {
+	onSizeChange.connect([this](sf::Vector2f newSize) {
 		moreTabsButton->setSize(tabs->getSize().y, tabs->getSize().y);
 		moreTabsButton->setPosition(getSize().x - moreTabsButton->getSize().x, tgui::bindTop(tabs));
 
@@ -127,6 +123,14 @@ void TabsWithPanel::selectTab(std::string tabName) {
 	tabName += tabNameAppendedSpaces;
 
 	tabs->select(tabName);
+}
+
+void TabsWithPanel::selectTab(int index) {
+	if (index == -1) {
+		return;
+	}
+
+	tabs->select(index);
 }
 
 void TabsWithPanel::removeTab(std::string tabName) {
@@ -239,7 +243,7 @@ void TabsWithPanel::cacheTabs(std::string tabsSetIdentifier) {
 	for (std::pair<std::shared_ptr<tgui::Button>, std::string> buttonAndPrompt : closeButtons) {
 		closeButtonPrompts.push_back(buttonAndPrompt.second);
 	}
-	tabsCache.insert(tabsSetIdentifier, { tabs->getSelected(), tabsData, closeButtonPrompts });
+	tabsCache.insert(tabsSetIdentifier, { static_cast<std::string>(tabs->getSelected()), tabsData, closeButtonPrompts });
 }
 
 bool TabsWithPanel::isCached(std::string tabsSetIdentifier) {
@@ -275,15 +279,15 @@ void TabsWithPanel::clearTabsCache() {
 	tabsCache.clear();
 }
 
-tgui::Signal& TabsWithPanel::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onTabClose.getName())) {
+tgui::Signal& TabsWithPanel::getSignal(tgui::String signalName) {
+	if (signalName == onTabClose.getName().toLower()) {
 		return onTabClose;
 	}
 	return tgui::Group::getSignal(signalName);
 }
 
 std::string TabsWithPanel::getSelectedTab() {
-	return tabs->getSelected().substring(0, tabs->getSelected().getSize() - tabNameAppendedSpaces.size());
+	return static_cast<std::string>(tabs->getSelected().substr(0, tabs->getSelected().size() - tabNameAppendedSpaces.size()));
 }
 
 void TabsWithPanel::setMoreTabsListAlignment(MoreTabsListAlignment moreTabsListAlignment) {
@@ -293,7 +297,7 @@ void TabsWithPanel::setMoreTabsListAlignment(MoreTabsListAlignment moreTabsListA
 std::vector<std::string> TabsWithPanel::getTabNames() {
 	std::vector<std::string> res;
 	for (int i = 0; i < panelsMap.size(); i++) {
-		std::string str = tabs->getText(i);
+		std::string str = static_cast<std::string>(tabs->getText(i));
 		res.push_back(str.substr(0, str.length() - tabNameAppendedSpaces.length()));
 	}
 	return res;
@@ -310,28 +314,28 @@ bool TabsWithPanel::handleEvent(sf::Event event) {
 	return false;
 }
 
-void TabsWithPanel::onTabSelected(std::string tabName) {
+void TabsWithPanel::onTabSelected(tgui::String tabName) {
 	// Hide currently open panel
 	if (currentPanel) {
 		currentPanel->setVisible(false);
 	}
 
 	// Show the selected tab's panel
-	currentPanel = panelsMap[tabName];
+	currentPanel = panelsMap[static_cast<std::string>(tabName)];
 	currentPanel->setVisible(true);
 
-	moreTabsList->getListBox()->setSelectedItem(tabName);
+	moreTabsList->setSelectedItem(tabName);
 
 	// Call the associated onSelect function, if any
-	if (onSelectFunctionMap.find(tabName) != onSelectFunctionMap.end()) {
-		onSelectFunctionMap[tabName]();
+	if (onSelectFunctionMap.find(static_cast<std::string>(tabName)) != onSelectFunctionMap.end()) {
+		onSelectFunctionMap[static_cast<std::string>(tabName)]();
 	}
 }
 
 void TabsWithPanel::onTabsChange() {
-	moreTabsList->getListBox()->removeAllItems();
+	moreTabsList->removeAllItems();
 	for (int i = 0; i < tabsOrdering.size(); i++) {
-		moreTabsList->getListBox()->addItem(tabsOrdering[i], tabsOrdering[i]);
+		moreTabsList->addItem(tabsOrdering[i], tabsOrdering[i]);
 	}
 
 	// More tabs button only visible if there are more than 0 tabs
@@ -363,7 +367,7 @@ void TabsWithPanel::setTabCloseButtonConfirmationPrompt(int index, std::string m
 
 void TabsWithPanel::createCloseButton(int index) {
 	// Create close button
-	std::string tabName = tabs->getText(index);
+	std::string tabName = static_cast<std::string>(tabs->getText(index));
 	std::shared_ptr<tgui::Button> closeButton = tgui::Button::create();
 	closeButton->setSize(tabs->getSize().y, tabs->getSize().y);
 	closeButton->setTextSize(TEXT_SIZE);
@@ -371,12 +375,12 @@ void TabsWithPanel::createCloseButton(int index) {
 	// +1 to the tab width because for some reason each tab's width is actually
 	// 1 pixel more than TAB_WIDTH
 	closeButton->setPosition((index + 1) * (TAB_WIDTH + 1) - closeButton->getSize().x, tgui::bindTop(tabs));
-	closeButton->connect("Pressed", [this, tabName]() {
+	closeButton->onPress.connect([this, tabName]() {
 		int pos;
 		for (pos = 0; pos < tabsOrdering.size(); pos++) {
 			if (tabsOrdering[pos] == tabName) break;
 		}
-		std::string fullTabName = tabs->getText(pos); // Includes the spaces, so remove them
+		std::string fullTabName = static_cast<std::string>(tabs->getText(pos)); // Includes the spaces, so remove them
 		std::string closeButtonConfirmationPromptTargetTabShortenedName = fullTabName.substr(0, fullTabName.length() - tabNameAppendedSpaces.length());
 		if (closeButtons[pos].second != "") {
 			parentWindow.promptConfirmation(closeButtons[pos].second, closeButtonConfirmationPromptTargetTabShortenedName, this)->sink()

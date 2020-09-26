@@ -15,7 +15,7 @@ void DebugRenderSystem::update(float deltaTime) {
 	}
 
 	auto view = registry.view<PositionComponent, SpriteComponent>(entt::persistent_t{});
-	view.each([&](auto entity, auto& position, auto& sprite) {
+	view.each([this](auto entity, auto& position, auto& sprite) {
 		if (sprite.getSprite()) {
 			sprite.getSprite()->setPosition(position.getX() * resolutionMultiplier, (MAP_HEIGHT - position.getY()) * resolutionMultiplier);
 			layers[sprite.getRenderLayer()].push_back(std::ref(sprite));
@@ -52,7 +52,7 @@ void DebugRenderSystem::update(float deltaTime) {
 
 	// Draw the hitboxes
 	auto view2 = registry.view<PositionComponent, HitboxComponent>(entt::persistent_t{});
-	view2.each([&](auto entity, auto position, auto hitbox) {
+	view2.each([this](auto entity, auto position, auto hitbox) {
 		// Radius takes into account outline thickness expanding outwards,
 		// making the circle appear larger than it actually is
 		if (hitbox.getRadius() > 0) {

@@ -3,7 +3,7 @@
 
 #include <Editor/EventCapturable.h>
 #include <Editor/CopyPaste.h>
-#include <Editor/CustomWidgets/ListViewScrollablePanel.h>
+#include <Editor/CustomWidgets/ListView.h>
 #include <Editor/CustomWidgets/EditBox.h>
 #include <Editor/LevelPackObjectUseRelationship/AttackPatternToAttackUseRelationshipEditor.h>
 #include <Editor/Windows/EditorWindowConfirmationPromptChoice.h>
@@ -31,6 +31,8 @@ AttackPatternModified - emitted when the EditorAttackPattern being edited is mod
 */
 class AttackPatternEditorPropertiesPanel : public tgui::ScrollablePanel, public EventCapturable, public CopyPasteable {
 public:
+	tgui::Signal onAttackPatternModify = { "AttackPatternModified" };
+
 	/*
 	mainEditorWindow - the parent MainEditorWindow
 	clipboard - the parent Clipboard
@@ -48,9 +50,9 @@ public:
 
 	bool handleEvent(sf::Event event) override;
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 
-	std::shared_ptr<ListViewScrollablePanel> getUsedByPanel();
+	std::shared_ptr<ListView> getUsedByListView();
 
 	void setSymbolTablesHierarchy(std::vector<ValueSymbolTable> symbolTablesHierarchy);
 
@@ -64,11 +66,9 @@ private:
 
 	std::shared_ptr<AttackPatternToAttackUseRelationshipEditor> relationshipEditor;
 	// Lists the EditorEnemyPhases (and possibly EditorPlayer) that use the EditorAttackPattern being edited
-	std::shared_ptr<ListViewScrollablePanel> usedBy;
+	std::shared_ptr<ListView> usedBy;
 
 	std::shared_ptr<EditBox> name;
-
-	tgui::Signal onAttackPatternModify = { "AttackPatternModified" };
 
 	bool ignoreSignals = false;
 

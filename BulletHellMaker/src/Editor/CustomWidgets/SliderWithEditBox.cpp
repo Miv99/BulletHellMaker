@@ -14,7 +14,7 @@ SliderWithEditBox::SliderWithEditBox(bool useDelayedSlider) : useDelayedSlider(u
 	editBox->setPosition(tgui::bindRight(slider) + GUI_PADDING_X, 0);
 
 	slider->setChangeValueOnScroll(false);
-	slider->connect("ValueChanged", [&](float value) {
+	slider->onValueChange.connect([this](float value) {
 		if (ignoreSignals) {
 			return;
 		}
@@ -28,7 +28,7 @@ SliderWithEditBox::SliderWithEditBox(bool useDelayedSlider) : useDelayedSlider(u
 			lastKnownValue = value;
 		}
 	});
-	editBox->connect("ValueChanged", [&](float value) {
+	editBox->onValueChange.connect([this](float value) {
 		if (ignoreSignals) {
 			return;
 		}
@@ -43,10 +43,10 @@ SliderWithEditBox::SliderWithEditBox(bool useDelayedSlider) : useDelayedSlider(u
 		}
 	});
 
-	connect("SizeChanged", [&](sf::Vector2f newSize) {
-		editBox->setSize(tgui::bindMin(200, "30%"), "100%");
+	onSizeChange.connect([this](sf::Vector2f newSize) {
+		editBox->setSize("30%", "100%");
 		// The sliding part of the slider extends upwards and downwards a bit, so make room for it
-		slider->setSize(newSize.x - tgui::bindWidth(editBox) - GUI_PADDING_X - 4, newSize.y - 6);
+		slider->setSize(std::floor(newSize.x - editBox->getSize().x - GUI_PADDING_X - 4), newSize.y - 6);
 		slider->setPosition(4, 3);
 	});
 
@@ -113,8 +113,8 @@ void SliderWithEditBox::setCaretPosition(int position) {
 	editBox->setCaretPosition(position);
 }
 
-tgui::Signal& SliderWithEditBox::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onValueChange.getName())) {
+tgui::Signal& SliderWithEditBox::getSignal(tgui::String signalName) {
+	if (signalName == onValueChange.getName().toLower()) {
 		return onValueChange;
 	}
 	return Group::getSignal(signalName);

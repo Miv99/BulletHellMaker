@@ -28,6 +28,17 @@ AttackModified - emitted when the EditorAttack being edited is modified.
 class AttackEditorPanel : public tgui::Panel, public EventCapturable, public ValueSymbolTablesChangePropagator {
 public:
 	/*
+	Signal emitted when an EditorAttackPattern in the list of attack users is to be edited.
+	Optional parameter: the ID of the EditorAttackPattern
+	*/
+	tgui::SignalInt onAttackPatternBeginEdit = { "AttackPatternBeginEdit" };
+	/*
+	Signal emitted when the EditorAttack being edited is modified.
+	Optional parameter: a shared_ptr to the newly modified EditorAttack
+	*/
+	tgui::SignalEditorAttack onAttackModify = { "AttackModified" };
+
+	/*
 	mainEditorWindow - the EditorWindow this widget is in
 	levelPack - the LevelPack that attack belongs to
 	clipboard - the parent Clipboard
@@ -49,7 +60,7 @@ public:
 
 	bool handleEvent(sf::Event event) override;
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 
 protected:
 	void propagateChangesToChildren() override;
@@ -64,17 +75,6 @@ private:
 	std::shared_ptr<LevelPack> levelPack;
 	SpriteLoader& spriteLoader;
 	Clipboard& clipboard;
-
-	/*
-	Signal emitted when an EditorAttackPattern in the list of attack users is to be edited.
-	Optional parameter: the ID of the EditorAttackPattern
-	*/
-	tgui::SignalInt onAttackPatternBeginEdit = { "AttackPatternBeginEdit" };
-	/*
-	Signal emitted when the EditorAttack being edited is modified.
-	Optional parameter: a shared_ptr to the newly modified EditorAttack
-	*/
-	tgui::SignalEditorAttack onAttackModify = { "AttackModified" };
 
 	// The EditorAttack being edited
 	std::shared_ptr<EditorAttack> attack;
@@ -101,7 +101,7 @@ private:
 
 	empHierarchy - the hierarchy in empsTreeView to the node that represents the EMP to be edited
 	*/
-	void openEMPTab(std::vector<sf::String> empHierarchy);
+	void openEMPTab(std::vector<tgui::String> empHierarchy);
 	/*
 	Opens a tab for editing an EMP of the attack being edited.
 
@@ -135,7 +135,22 @@ private:
 	void reloadEMPTab(int empID);
 
 	/*
+	Generates a list of string vectors such that, when each of the string vectors are added to a tgui::TreeView,
+	the tree hierarchy of an EMP is created.
+
+	nodeText - a function that takes an EMP and returns a string -- the text in the tgui::TreeView for the node for that EMP
+	pathToThisEmp - the ordered series of strings from the root of the tree this EMP is part of, to this EMP.
+		For example, if this EMP has id 3 and its tree looks like
+			  0
+			1   2
+				  3
+		then pathToThisEmp will be { nodeText(emp0), nodeText(emp2) }
+	*/
+	std::vector<std::vector<tgui::String>> generateTreeViewEmpHierarchy(const EditorMovablePoint& emp, 
+		std::function<tgui::String(const EditorMovablePoint&)> nodeText, std::vector<tgui::String> pathToThisEmp);
+
+	/*
 	Returns the string to be shown for each EditorMovablePoint in empsTreeView.
 	*/
-	static sf::String getEMPTextInTreeView(const EditorMovablePoint& emp);
+	static tgui::String getEMPTextInTreeView(const EditorMovablePoint& emp);
 };

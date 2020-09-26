@@ -19,7 +19,6 @@ void SimpleWidgetsContainerPanel::addExtraRowWidget(std::shared_ptr<tgui::Widget
 }
 
 void SimpleWidgetsContainerPanel::addExtraColumnWidget(std::shared_ptr<tgui::Widget> widget, float leftPadding) {
-	assert(bottomRightMostExtraWidget != nullptr);
 	widget->setPosition(tgui::bindRight(bottomRightMostExtraWidget) + leftPadding, tgui::bindTop(bottomRightMostExtraWidget));
 	add(widget);
 	bottomRightMostExtraWidget = widget;

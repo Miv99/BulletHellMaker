@@ -26,7 +26,7 @@ void RenderSystem::update(float deltaTime) {
 	}
 
 	auto view = registry.view<PositionComponent, SpriteComponent>(entt::persistent_t{});
-	view.each([&](auto entity, auto& position, auto& sprite) {
+	view.each([this](auto entity, auto& position, auto& sprite) {
 		if (sprite.getSprite()) {
 			sprite.getSprite()->setPosition(position.getX() * resolutionMultiplier, -position.getY() * resolutionMultiplier);
 			layers[sprite.getRenderLayer()].push_back(std::ref(sprite));

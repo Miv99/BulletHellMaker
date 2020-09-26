@@ -16,6 +16,13 @@ Signals:
 */
 class EMPAAngleOffsetGroup : public HideableGroup {
 public:
+	/*
+	Signal emitted when a change is made to the EMPAAngleOffset being edited.
+	Optional parameter: a pair of a shared_ptr to the old EMPAAngleOffset object
+		and shared_ptr to the new EMPAAngleOffset object
+	*/
+	tgui::SignalTwoEMPAAngleOffsets onValueChange = { "ValueChanged" };
+
 	EMPAAngleOffsetGroup(EditorWindow& parentWindow);
 	static std::shared_ptr<EMPAAngleOffsetGroup> create(EditorWindow& parentWindow) {
 		return std::make_shared<EMPAAngleOffsetGroup>(parentWindow);
@@ -29,7 +36,7 @@ public:
 	*/
 	void setEMPAAngleOffset(std::shared_ptr<EMPAAngleOffset> offset);
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 
 private:
 	EditorWindow& parentWindow;
@@ -44,13 +51,6 @@ private:
 
 	std::shared_ptr<EMPAAngleOffset> oldOffset; // Should never be modified after setTFV() is called
 	std::shared_ptr<EMPAAngleOffset> offset;
-
-	/*
-	Signal emitted when a change is made to the EMPAAngleOffset being edited.
-	Optional parameter: a pair of a shared_ptr to the old EMPAAngleOffset object
-		and shared_ptr to the new EMPAAngleOffset object
-	*/
-	tgui::SignalEMPAAngleOffsetPair onValueChange = { "ValueChanged" };
 
 	// bool used to ignore signals to prevent infinite loops
 	bool ignoreSignals = false;

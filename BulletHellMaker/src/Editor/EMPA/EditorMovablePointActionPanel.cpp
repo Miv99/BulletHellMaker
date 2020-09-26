@@ -4,6 +4,7 @@
 #include <GuiConfig.h>
 #include <Util/StringUtils.h>
 #include <Editor/Util/EditorUtils.h>
+#include <Editor/Util/TguiUtils.h>
 
 const std::string EditorMovablePointActionPanel::BEZIER_CONTROL_POINT_FORMAT = "%d (%.2f, %.2f)";
 
@@ -22,7 +23,7 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 	xyPositionMarkerPlacerFinishEditing->setSize(100, TEXT_BUTTON_HEIGHT);
 	xyPositionMarkerPlacerFinishEditing->setTextSize(TEXT_SIZE);
 	xyPositionMarkerPlacerFinishEditing->setText("Finish");
-	xyPositionMarkerPlacerFinishEditing->connect("Pressed", [&]() {
+	xyPositionMarkerPlacerFinishEditing->onPress.connect([this]() {
 		finishEditingXYPosition();
 	});
 	
@@ -33,7 +34,7 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 	bezierControlPointsMarkerPlacerFinishEditing->setSize(100, TEXT_BUTTON_HEIGHT);
 	bezierControlPointsMarkerPlacerFinishEditing->setTextSize(TEXT_SIZE);
 	bezierControlPointsMarkerPlacerFinishEditing->setText("Finish");
-	bezierControlPointsMarkerPlacerFinishEditing->connect("Pressed", [&]() {
+	bezierControlPointsMarkerPlacerFinishEditing->onPress.connect([this]() {
 		finishEditingBezierControlPoints();
 	});
 
@@ -46,7 +47,7 @@ EditorMovablePointActionPanel::EditorMovablePointActionPanel(EditorWindow& paren
 	empaiPolarAngleLabel = tgui::Label::create();
 	empaiPolarAngle = TFVGroup::create(parentWindow, clipboard);
 	empaiBezierControlPointsLabel = tgui::Label::create();
-	empaiBezierControlPoints = ListViewScrollablePanel::create();
+	empaiBezierControlPoints = ListView::create();
 	empaiAngleOffsetLabel = tgui::Label::create();
 	empaiAngleOffset = EMPAAngleOffsetGroup::create(parentWindow);
 	empaiHomingStrengthLabel = tgui::Label::create();
@@ -104,7 +105,7 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 	empaiXYManualSet->setText("Manual set target");
 
 	changeTypePopup = createMenuPopup({
-		std::make_pair("Detach from parent", [&]() {
+		std::make_pair("Detach from parent", [this]() {
 			std::shared_ptr<EMPAction> oldEMPA = this->empa;
 			undoStack.execute(UndoableCommand(
 				[this]() {
@@ -118,7 +119,7 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 				onEMPAModify.emit(this, this->empa);
 			}));
 		}),
-		std::make_pair("Stay still", [&]() {
+		std::make_pair("Stay still", [this]() {
 			std::shared_ptr<EMPAction> oldEMPA = this->empa;
 			undoStack.execute(UndoableCommand(
 				[this]() {
@@ -132,7 +133,7 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 				onEMPAModify.emit(this, this->empa);
 			}));
 		}),
-		std::make_pair("Polar-based movement", [&]() {
+		std::make_pair("Polar-based movement", [this]() {
 			std::shared_ptr<EMPAction> oldEMPA = this->empa;
 			undoStack.execute(UndoableCommand(
 				[this]() {
@@ -146,7 +147,7 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 				onEMPAModify.emit(this, this->empa);
 			}));
 		}),
-		std::make_pair("Bezier-based movement", [&]() {
+		std::make_pair("Bezier-based movement", [this]() {
 			std::shared_ptr<EMPAction> oldEMPA = this->empa;
 			undoStack.execute(UndoableCommand(
 				[this]() {
@@ -161,7 +162,7 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 				onEMPAModify.emit(this, this->empa);
 			}));
 		}),
-		std::make_pair("Player-homing movement", [&]() {
+		std::make_pair("Player-homing movement", [this]() {
 			std::shared_ptr<EMPAction> oldEMPA = this->empa;
 			undoStack.execute(UndoableCommand(
 				[this]() {
@@ -175,7 +176,7 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 				onEMPAModify.emit(this, this->empa);
 			}));
 		}),
-		std::make_pair("Map-homing movement", [&]() {
+		std::make_pair("Map-homing movement", [this]() {
 			std::shared_ptr<EMPAction> oldEMPA = this->empa;
 			undoStack.execute(UndoableCommand(
 				[this]() {
@@ -190,10 +191,10 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 			}));
 		})
 	});
-	empaiChangeType->connect("Pressed", [&]() {
-		parentWindow.addPopupWidget(changeTypePopup, empaiChangeType->getAbsolutePosition().x, empaiChangeType->getAbsolutePosition().y, 200, changeTypePopup->getSize().y);
+	empaiChangeType->onPress.connect([this]() {
+		this->parentWindow.addPopupWidget(changeTypePopup, empaiChangeType->getAbsolutePosition().x, empaiChangeType->getAbsolutePosition().y, 200, changeTypePopup->getSize().y);
 	});
-	empaiDuration->connect("ValueChanged", [&](float value) {
+	empaiDuration->onValueChange.connect([this](float value) {
 		if (ignoreSignals) {
 			return;
 		}
@@ -255,13 +256,11 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 			onEMPAModify.emit(this, this->empa);
 		}));
 	});
-	empaiAngleOffset->connect("ValueChanged", [&](std::pair<std::shared_ptr<EMPAAngleOffset>, std::shared_ptr<EMPAAngleOffset>> offsets) {
+	empaiAngleOffset->onValueChange.connect([this](std::shared_ptr<EMPAAngleOffset> oldOffset, std::shared_ptr<EMPAAngleOffset> updatedOffset) {
 		if (ignoreSignals) {
 			return;
 		}
 		
-		std::shared_ptr<EMPAAngleOffset> oldOffset = offsets.first;
-		std::shared_ptr<EMPAAngleOffset> updatedOffset = offsets.second;
 		std::shared_ptr<EMPAAngleOffset> copyOfOld = std::dynamic_pointer_cast<EMPAAngleOffset>(oldOffset->clone());
 
 		undoStack.execute(UndoableCommand(
@@ -296,7 +295,7 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 			onEMPAModify.emit(this, this->empa);
 		}));
 	});
-	empaiEditBezierControlPoints->connect("Pressed", [&]() {
+	empaiEditBezierControlPoints->onPress.connect([this]() {
 		savedWidgets = getWidgets();
 		horizontalScrollPos = getHorizontalScrollbarValue();
 		verticalScrollPos = getVerticalScrollbarValue();
@@ -326,13 +325,11 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 
 		editingBezierControlPoints = true;
 	});
-	empaiPolarDistance->connect("ValueChanged", [&](std::pair<std::shared_ptr<TFV>, std::shared_ptr<TFV>> tfvs) {
+	empaiPolarDistance->onValueChange.connect([this](std::shared_ptr<TFV> oldTFV, std::shared_ptr<TFV> updatedTFV) {
 		if (ignoreSignals) {
 			return;
 		}
 
-		std::shared_ptr<TFV> oldTFV = tfvs.first;
-		std::shared_ptr<TFV> updatedTFV = tfvs.second;
 		std::shared_ptr<TFV> copyOfOld = oldTFV->clone();
 
 		undoStack.execute(UndoableCommand(
@@ -357,13 +354,11 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 			onEMPAModify.emit(this, this->empa);
 		}));
 	});
-	empaiPolarAngle->connect("ValueChanged", [&](std::pair<std::shared_ptr<TFV>, std::shared_ptr<TFV>> tfvs) {
+	empaiPolarAngle->onValueChange.connect([this](std::shared_ptr<TFV> oldTFV, std::shared_ptr<TFV> updatedTFV) {
 		if (ignoreSignals) {
 			return;
 		}
 
-		std::shared_ptr<TFV> oldTFV = tfvs.first;
-		std::shared_ptr<TFV> updatedTFV = tfvs.second;
 		std::shared_ptr<TFV> copyOfOld = oldTFV->clone();
 
 		undoStack.execute(UndoableCommand(
@@ -388,13 +383,11 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 			onEMPAModify.emit(this, this->empa);
 		}));
 	});
-	empaiHomingStrength->connect("ValueChanged", [&](std::pair<std::shared_ptr<TFV>, std::shared_ptr<TFV>> tfvs) {
+	empaiHomingStrength->onValueChange.connect([this](std::shared_ptr<TFV> oldTFV, std::shared_ptr<TFV> updatedTFV) {
 		if (ignoreSignals) {
 			return;
 		}
 
-		std::shared_ptr<TFV> oldTFV = tfvs.first;
-		std::shared_ptr<TFV> updatedTFV = tfvs.second;
 		std::shared_ptr<TFV> copyOfOld = oldTFV->clone();
 
 		undoStack.execute(UndoableCommand(
@@ -435,13 +428,11 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 			onEMPAModify.emit(this, this->empa);
 		}));
 	});
-	empaiHomingSpeed->connect("ValueChanged", [&](std::pair<std::shared_ptr<TFV>, std::shared_ptr<TFV>> tfvs) {
+	empaiHomingSpeed->onValueChange.connect([this](std::shared_ptr<TFV> oldTFV, std::shared_ptr<TFV> updatedTFV) {
 		if (ignoreSignals) {
 			return;
 		}
 
-		std::shared_ptr<TFV> oldTFV = tfvs.first;
-		std::shared_ptr<TFV> updatedTFV = tfvs.second;
 		std::shared_ptr<TFV> copyOfOld = oldTFV->clone();
 
 		undoStack.execute(UndoableCommand(
@@ -482,7 +473,7 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 			onEMPAModify.emit(this, this->empa);
 		}));
 	});
-	empaiX->connect("ValueChanged", [this](std::string newValue) {
+	empaiX->onValueChange.connect([this](tgui::String newValue) {
 		if (ignoreSignals) {
 			return;
 		}
@@ -492,7 +483,7 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 		undoStack.execute(UndoableCommand(
 			[this, newValue]() {
 			MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
-			concreteEMPA->setTargetX(newValue);
+			concreteEMPA->setTargetX(static_cast<std::string>(newValue));
 
 			ignoreSignals = true;
 			this->empaiX->setText(newValue);
@@ -511,7 +502,7 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 			onEMPAModify.emit(this, this->empa);
 		}));
 	});
-	empaiY->connect("ValueChanged", [this](std::string newValue) {
+	empaiY->onValueChange.connect([this](tgui::String newValue) {
 		if (ignoreSignals) {
 			return;
 		}
@@ -521,7 +512,7 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 		undoStack.execute(UndoableCommand(
 			[this, newValue]() {
 			MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
-			concreteEMPA->setTargetY(newValue);
+			concreteEMPA->setTargetY(static_cast<std::string>(newValue));
 
 			ignoreSignals = true;
 			this->empaiY->setText(newValue);
@@ -540,7 +531,7 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 			onEMPAModify.emit(this, this->empa);
 		}));
 	});
-	empaiXYManualSet->connect("Pressed", [this]() {
+	empaiXYManualSet->onPress.connect([this]() {
 		MoveGlobalHomingEMPA* concreteEMPA = dynamic_cast<MoveGlobalHomingEMPA*>(this->empa.get());
 
 		float x, y;
@@ -571,7 +562,9 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 		placingXY = true;
 	});
 
-	connect("SizeChanged", [&](sf::Vector2f newSize) {
+	onSizeChange.connect([this](sf::Vector2f newSize) {
+		ignoreSignals = true;
+
 		tgui::Layout empaiAreaWidth = newSize.x;
 		empaiDuration->setSize(empaiAreaWidth - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 		empaiPolarDistance->setSize(empaiAreaWidth - GUI_PADDING_X * 2, 0);
@@ -610,6 +603,8 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 	
 		bezierControlPointsMarkerPlacerFinishEditing->setPosition(newSize.x - bezierControlPointsMarkerPlacerFinishEditing->getSize().x, newSize.y - bezierControlPointsMarkerPlacerFinishEditing->getSize().y);
 		xyPositionMarkerPlacerFinishEditing->setPosition(newSize.x - xyPositionMarkerPlacerFinishEditing->getSize().x, newSize.y - xyPositionMarkerPlacerFinishEditing->getSize().y);
+
+		ignoreSignals = false;
 	});
 
 	// Init values
@@ -639,6 +634,11 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 	add(empaiY);
 	add(empaiXYManualSet);
 
+	// For some reason, ScrollablePanels' sizes don't fit the last widget, so this is to make sure this one does
+	auto scrollablePanelBuffer = tgui::Label::create();
+	scrollablePanelBuffer->setPosition(0, tgui::bindBottom(empaiHomingSpeed) + GUI_PADDING_Y);
+	add(scrollablePanelBuffer);
+
 	symbolTableEditorWindow = ChildWindow::create();
 	symbolTableEditor = ValueSymbolTableEditor::create(false, false);
 	symbolTableEditorWindow->setKeepInParent(false);
@@ -648,7 +648,7 @@ For reference, a value of 0.02 is moderately strong homing strength and a value 
 	symbolTableEditorWindow->setFallbackEventHandler([this](sf::Event event) {
 		return symbolTableEditor->handleEvent(event);
 	});
-	symbolTableEditor->connect("ValueChanged", [this](ValueSymbolTable table) {
+	symbolTableEditor->onValueChange.connect([this](ValueSymbolTable table) {
 		this->empa->setSymbolTable(table);
 		onChange(table);
 		onEMPAModify.emit(this, this->empa);
@@ -680,13 +680,13 @@ bool EditorMovablePointActionPanel::handleEvent(sf::Event event) {
 			finishEditingXYPosition();
 			return true;
 		}
-	} else if (empaiPolarDistance->isVisible() && empaiPolarDistance->mouseOnWidget(parentWindow.getLastMousePressPos() - getAbsolutePosition()) && empaiPolarDistance->handleEvent(event)) {
+	} else if (empaiPolarDistance->isVisible() && empaiPolarDistance->isMouseOnWidget(parentWindow.getLastMousePressPos() - getAbsolutePosition()) && empaiPolarDistance->handleEvent(event)) {
 		return true;
-	} else if (empaiPolarAngle->isVisible() && empaiPolarAngle->mouseOnWidget(parentWindow.getLastMousePressPos() - getAbsolutePosition()) && empaiPolarAngle->handleEvent(event)) {
+	} else if (empaiPolarAngle->isVisible() && empaiPolarAngle->isMouseOnWidget(parentWindow.getLastMousePressPos() - getAbsolutePosition()) && empaiPolarAngle->handleEvent(event)) {
 		return true;
-	} else if (empaiHomingStrength->isVisible() && empaiHomingStrength->mouseOnWidget(parentWindow.getLastMousePressPos() - getAbsolutePosition()) && empaiHomingStrength->handleEvent(event)) {
+	} else if (empaiHomingStrength->isVisible() && empaiHomingStrength->isMouseOnWidget(parentWindow.getLastMousePressPos() - getAbsolutePosition()) && empaiHomingStrength->handleEvent(event)) {
 		return true;
-	} else if (empaiHomingSpeed->isVisible() && empaiHomingSpeed->mouseOnWidget(parentWindow.getLastMousePressPos() - getAbsolutePosition()) && empaiHomingSpeed->handleEvent(event)) {
+	} else if (empaiHomingSpeed->isVisible() && empaiHomingSpeed->isMouseOnWidget(parentWindow.getLastMousePressPos() - getAbsolutePosition()) && empaiHomingSpeed->handleEvent(event)) {
 		return true;
 	} else if (event.type == sf::Event::KeyPressed) {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
@@ -705,8 +705,8 @@ bool EditorMovablePointActionPanel::handleEvent(sf::Event event) {
 	return false;
 }
 
-tgui::Signal & EditorMovablePointActionPanel::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onEMPAModify.getName())) {
+tgui::Signal & EditorMovablePointActionPanel::getSignal(tgui::String signalName) {
+	if (signalName == onEMPAModify.getName().toLower()) {
 		return onEMPAModify;
 	}
 	return tgui::Panel::getSignal(signalName);
@@ -877,10 +877,10 @@ will then be rotated about the first control point (0, 0) when this movement act
 
 void EditorMovablePointActionPanel::updateEmpaiBezierControlPoints() {
 	MoveCustomBezierEMPA* ptr = dynamic_cast<MoveCustomBezierEMPA*>(empa.get());
-	empaiBezierControlPoints->getListView()->removeAllItems();
+	empaiBezierControlPoints->removeAllItems();
 	auto cps = ptr->getUnrotatedControlPoints();
 	for (int i = 0; i < cps.size(); i++) {
-		empaiBezierControlPoints->getListView()->addItem(format(BEZIER_CONTROL_POINT_FORMAT, i + 1, cps[i].x, cps[i].y));
+		empaiBezierControlPoints->addItem(format(BEZIER_CONTROL_POINT_FORMAT, i + 1, cps[i].x, cps[i].y));
 	}
 }
 

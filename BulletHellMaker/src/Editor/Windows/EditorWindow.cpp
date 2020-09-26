@@ -37,8 +37,10 @@ EditorWindow::EditorWindow(std::string windowTitle, int width, int height, bool 
 	confirmationNo->setSize(PROMPT_BUTTON_WIDTH, TEXT_BUTTON_HEIGHT);
 	confirmationCancel->setSize(PROMPT_BUTTON_WIDTH, TEXT_BUTTON_HEIGHT);
 
-	confirmationWindow->connect("SizeChanged", [this](sf::Vector2f newSize) {
-		confirmationText->setMaximumTextWidth(confirmationWindow->getSize().x - GUI_PADDING_X * 2);
+	confirmationWindow->onSizeChange.connect([this]() {
+		sf::Vector2f newSize = confirmationWindow->getClientSize();
+
+		confirmationText->setMaximumTextWidth(confirmationWindow->getClientSize().x - GUI_PADDING_X * 2);
 		if (confirmationCancel->isVisible()) {
 			// All 3 buttons are visible
 			confirmationCancel->setPosition(newSize.x - tgui::bindWidth(confirmationNo) - GUI_PADDING_X, newSize.y - tgui::bindHeight(confirmationNo) - GUI_PADDING_Y);
@@ -230,7 +232,7 @@ std::shared_ptr<entt::SigH<void(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE)>> Edit
 	}
 
 	confirmationYes->setVisible(true);
-	confirmationYes->connect("Pressed", [this, confirmationSignal, widgetToFocusAfter]() {
+	confirmationYes->onPress.connect([this, confirmationSignal, widgetToFocusAfter]() {
 		confirmationSignal->publish(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES);
 		confirmationSignal->sink().disconnect();
 		closeConfirmationPanel();
@@ -240,7 +242,7 @@ std::shared_ptr<entt::SigH<void(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE)>> Edit
 		}
 	});
 	confirmationNo->setVisible(true);
-	confirmationNo->connect("Pressed", [this, confirmationSignal, widgetToFocusAfter]() {
+	confirmationNo->onPress.connect([this, confirmationSignal, widgetToFocusAfter]() {
 		confirmationSignal->publish(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::NO);
 		confirmationSignal->sink().disconnect();
 		closeConfirmationPanel();
@@ -253,7 +255,7 @@ std::shared_ptr<entt::SigH<void(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE)>> Edit
 	confirmationCancel->setVisible(includeCancelButton);
 	if (includeCancelButton) {
 		confirmationCancel->setText("Cancel");
-		confirmationCancel->connect("Pressed", [this, confirmationSignal, widgetToFocusAfter]() {
+		confirmationCancel->onPress.connect([this, confirmationSignal, widgetToFocusAfter]() {
 			confirmationSignal->publish(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::CANCEL);
 			confirmationSignal->sink().disconnect();
 			closeConfirmationPanel();
@@ -288,7 +290,7 @@ std::shared_ptr<entt::SigH<void(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE)>> Edit
 	}
 
 	confirmationText->setText(message);
-	confirmationWindow->setPosition(window->getSize().x / 2.0f - confirmationWindow->getSize().x / 2.0f, window->getSize().y / 2.0f - confirmationWindow->getSize().y / 2.0f);
+	confirmationWindow->setPosition(window->getSize().x / 2.0f - confirmationWindow->getClientSize().x / 2.0f, window->getSize().y / 2.0f - confirmationWindow->getClientSize().y / 2.0f);
 	addChildWindow(confirmationWindow);
 	confirmationPanelOpen = true;
 
@@ -315,7 +317,7 @@ void EditorWindow::showPopupMessageWindow(std::string message, tgui::Widget* wid
 
 	confirmationCancel->setText("Ok");
 	confirmationCancel->setVisible(true);
-	confirmationCancel->connect("Pressed", [this, widgetToFocusAfter]() {
+	confirmationCancel->onPress.connect([this, widgetToFocusAfter]() {
 		closeConfirmationPanel();
 
 		if (widgetToFocusAfter) {
@@ -339,7 +341,7 @@ void EditorWindow::showPopupMessageWindow(std::string message, tgui::Widget* wid
 	confirmationWindow->setSize(std::max(calculateMinPromptPanelWidth(1), getWindow()->getSize().x * 0.5f), std::max(350.0f, getWindow()->getSize().y * 0.5f));
 
 	confirmationText->setText(message);
-	confirmationWindow->setPosition(window->getSize().x / 2.0f - confirmationWindow->getSize().x / 2.0f, window->getSize().y / 2.0f - confirmationWindow->getSize().y / 2.0f);
+	confirmationWindow->setPosition(window->getSize().x / 2.0f - confirmationWindow->getClientSize().x / 2.0f, window->getSize().y / 2.0f - confirmationWindow->getClientSize().y / 2.0f);
 	addChildWindow(confirmationWindow);
 	confirmationPanelOpen = true;
 }
@@ -456,7 +458,7 @@ void EditorWindow::updateWindowView(int windowWidth, int windowHeight) {
 		window->setView(view);
 	}
 	if (!scaleWidgetsOnResize) {
-		gui->setView(sf::View(sf::Vector2f(windowWidth / 2.0f, windowHeight / 2.0f), sf::Vector2f(windowWidth, windowHeight)));
+		gui->setAbsoluteView(tgui::FloatRect(0, 0, windowWidth, windowHeight));
 	}
 
 	if (resizeSignal) {
@@ -504,8 +506,12 @@ bool EditorWindow::handleEvent(sf::Event event) {
 		lastMousePressPos = mousePos;
 	}
 
-	// Disable keyboard events when confirmation panel is open
-	if (!(confirmationPanelOpen && (event.type == sf::Event::TextEntered || event.type == sf::Event::KeyPressed || event.type == sf::Event::KeyReleased))) {
+	// Disable all events except KeyPressed when confirmation panel is open because confirmation panel
+	// can be interacted with using KeyPressed events
+	if (confirmationPanelOpen) {
+		gui->handleEvent(event);
+		return true;
+	} else {
 		// Check if any child window is focused first and call its event handler
 		for (std::shared_ptr<ChildWindow> childWindow : childWindows) {
 			if (childWindow->isFocused()) {
@@ -516,14 +522,14 @@ bool EditorWindow::handleEvent(sf::Event event) {
 			}
 		}
 
-		if (event.type == sf::Event::KeyPressed) {
-			return gui->handleEvent(event);
+		// Workaround for TGUI's gui consuming KeyPressed events that would otherwise be used
+		if (event.type == sf::Event::KeyPressed && std::dynamic_pointer_cast<tgui::EditBox>(gui->getFocusedLeaf())) {
+			gui->handleEvent(event);
+			return true;
 		} else {
 			gui->handleEvent(event);
 			return false;
 		}
-	} else {
-		return true;
 	}
 }
 

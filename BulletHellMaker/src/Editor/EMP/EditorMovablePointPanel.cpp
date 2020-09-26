@@ -40,7 +40,7 @@ EditorMovablePointPanel::EditorMovablePointPanel(MainEditorWindow& mainEditorWin
 	spawnTypePositionMarkerPlacerFinishEditing->setSize(100, TEXT_BUTTON_HEIGHT);
 	spawnTypePositionMarkerPlacerFinishEditing->setTextSize(TEXT_SIZE);
 	spawnTypePositionMarkerPlacerFinishEditing->setText("Finish");
-	spawnTypePositionMarkerPlacerFinishEditing->connect("Pressed", [&]() {
+	spawnTypePositionMarkerPlacerFinishEditing->onPress.connect([this]() {
 		finishEditingSpawnTypePosition();
 	});
 	
@@ -248,7 +248,7 @@ point will update only the values it wants to inherit to match the model."));
 		levelPack->getOnChange()->sink().connect<EditorMovablePointPanel, &EditorMovablePointPanel::onLevelPackChange>(this);
 		emp->loadBulletModel(*levelPack);
 		
-		empiAnimatable->connect("ValueChanged", [this](Animatable value) {
+		empiAnimatable->onValueChange.connect([this](Animatable value) {
 			if (this->ignoreSignals) {
 				return;
 			}
@@ -278,7 +278,7 @@ point will update only the values it wants to inherit to match the model."));
 				onEMPModify.emit(this, this->emp);
 			}));
 		});
-		empiLoopAnimation->connect("Changed", [this](bool value) {
+		empiLoopAnimation->onChange.connect([this](bool value) {
 			if (this->ignoreSignals) {
 				return;
 			}
@@ -306,7 +306,7 @@ point will update only the values it wants to inherit to match the model."));
 				onEMPModify.emit(this, this->emp);
 			}));
 		});
-		empiBaseSprite->connect("ValueChanged", [this](Animatable value) {
+		empiBaseSprite->onValueChange.connect([this](Animatable value) {
 			if (this->ignoreSignals) {
 				return;
 			}
@@ -326,7 +326,7 @@ point will update only the values it wants to inherit to match the model."));
 				onEMPModify.emit(this, this->emp);
 			}));
 		});
-		isBullet->connect("Changed", [this](bool value) {
+		isBullet->onChange.connect([this](bool value) {
 			if (this->ignoreSignals) {
 				return;
 			}
@@ -360,16 +360,16 @@ point will update only the values it wants to inherit to match the model."));
 				onEMPModify.emit(this, this->emp);
 			}));
 		});
-		empiHitboxRadius->connect("ValueChanged", [this](std::string value) {
+		empiHitboxRadius->onValueChange.connect([this](tgui::String value) {
 			if (this->ignoreSignals) {
 				return;
 			}
 
 			std::string oldValue = this->emp->getRawHitboxRadius();
 			undoStack.execute(UndoableCommand([this, value]() {
-				this->emp->setHitboxRadius(value);
+				this->emp->setHitboxRadius(static_cast<std::string>(value));
 				this->ignoreSignals = true;
-				empiHitboxRadius->setText(value);
+				empiHitboxRadius->setText(static_cast<std::string>(value));
 				this->ignoreSignals = false;
 				onEMPModify.emit(this, this->emp);
 			}, [this, oldValue]() {
@@ -380,7 +380,7 @@ point will update only the values it wants to inherit to match the model."));
 				onEMPModify.emit(this, this->emp);
 			}));
 		});
-		empiDespawnTime->connect("ValueChanged", [this](float value) {
+		empiDespawnTime->onValueChange.connect([this](float value) {
 			if (this->ignoreSignals) {
 				return;
 			}
@@ -400,7 +400,7 @@ point will update only the values it wants to inherit to match the model."));
 				onEMPModify.emit(this, this->emp);
 			}));
 		});
-		empiSpawnType->connect("ItemSelected", [this](std::string item, std::string id) {
+		empiSpawnType->onItemSelect.connect([this](tgui::String item, tgui::String id) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -409,7 +409,8 @@ point will update only the values it wants to inherit to match the model."));
 			if (id == "0") {
 				undoStack.execute(UndoableCommand(
 					[this]() {
-					this->emp->setSpawnType(std::make_shared<SpecificGlobalEMPSpawn>(empiSpawnTypeTime->getText(), empiSpawnTypeX->getText(), empiSpawnTypeY->getText()));
+					this->emp->setSpawnType(std::make_shared<SpecificGlobalEMPSpawn>(static_cast<std::string>(empiSpawnTypeTime->getText()), 
+						static_cast<std::string>(empiSpawnTypeX->getText()), static_cast<std::string>(empiSpawnTypeY->getText())));
 					onEMPModify.emit(this, this->emp);
 
 					ignoreSignals = true;
@@ -427,7 +428,8 @@ point will update only the values it wants to inherit to match the model."));
 			} else if (id == "1") {
 				undoStack.execute(UndoableCommand(
 					[this]() {
-					this->emp->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(empiSpawnTypeTime->getText(), empiSpawnTypeX->getText(), empiSpawnTypeY->getText()));
+					this->emp->setSpawnType(std::make_shared<EntityRelativeEMPSpawn>(static_cast<std::string>(empiSpawnTypeTime->getText()), 
+						static_cast<std::string>(empiSpawnTypeX->getText()), static_cast<std::string>(empiSpawnTypeY->getText())));
 					onEMPModify.emit(this, this->emp);
 
 					ignoreSignals = true;
@@ -445,7 +447,8 @@ point will update only the values it wants to inherit to match the model."));
 			} else if (id == "2") {
 				undoStack.execute(UndoableCommand(
 					[this]() {
-					this->emp->setSpawnType(std::make_shared<EntityAttachedEMPSpawn>(empiSpawnTypeTime->getText(), empiSpawnTypeX->getText(), empiSpawnTypeY->getText()));
+					this->emp->setSpawnType(std::make_shared<EntityAttachedEMPSpawn>(static_cast<std::string>(empiSpawnTypeTime->getText()), 
+						static_cast<std::string>(empiSpawnTypeX->getText()), static_cast<std::string>(empiSpawnTypeY->getText())));
 					onEMPModify.emit(this, this->emp);
 
 					ignoreSignals = true;
@@ -465,7 +468,7 @@ point will update only the values it wants to inherit to match the model."));
 				assert(false);
 			}
 		});
-		empiSpawnTypeTime->connect("ValueChanged", [this](std::string value) {
+		empiSpawnTypeTime->onValueChange.connect([this](tgui::String value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -473,7 +476,7 @@ point will update only the values it wants to inherit to match the model."));
 			std::string oldValue = this->emp->getSpawnType()->getRawTime();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
-				this->emp->setSpawnTypeTime(value);
+				this->emp->setSpawnTypeTime(static_cast<std::string>(value));
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
@@ -489,7 +492,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			}));
 		});
-		empiSpawnTypeX->connect("ValueChanged", [this](std::string value) {
+		empiSpawnTypeX->onValueChange.connect([this](tgui::String value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -497,7 +500,7 @@ point will update only the values it wants to inherit to match the model."));
 			std::string oldValue = this->emp->getSpawnType()->getRawX();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
-				this->emp->getSpawnType()->setX(value);
+				this->emp->getSpawnType()->setX(static_cast<std::string>(value));
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
@@ -515,7 +518,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			}));
 		});
-		empiSpawnTypeY->connect("ValueChanged", [this](std::string value) {
+		empiSpawnTypeY->onValueChange.connect([this](tgui::String value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -523,7 +526,7 @@ point will update only the values it wants to inherit to match the model."));
 			std::string oldValue = this->emp->getSpawnType()->getRawY();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
-				this->emp->getSpawnType()->setY(value);
+				this->emp->getSpawnType()->setY(static_cast<std::string>(value));
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
@@ -541,7 +544,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			}));
 		});
-		empiSpawnLocationManualSet->connect("Pressed", [&]() {
+		empiSpawnLocationManualSet->onPress.connect([this]() {
 			savedWidgets = propertiesPanel->getWidgets();
 			horizontalScrollPos = propertiesPanel->getHorizontalScrollbarValue();
 			verticalScrollPos = propertiesPanel->getVerticalScrollbarValue();
@@ -569,7 +572,7 @@ point will update only the values it wants to inherit to match the model."));
 
 			placingSpawnLocation = true;
 		});
-		empiShadowTrailLifespan->connect("ValueChanged", [this](std::string value) {
+		empiShadowTrailLifespan->onValueChange.connect([this](tgui::String value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -577,7 +580,7 @@ point will update only the values it wants to inherit to match the model."));
 			std::string oldValue = this->emp->getRawShadowTrailLifespan();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
-				this->emp->setShadowTrailLifespan(value);
+				this->emp->setShadowTrailLifespan(static_cast<std::string>(value));
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
@@ -593,7 +596,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			}));
 		});
-		empiShadowTrailInterval->connect("ValueChanged", [this](std::string value) {
+		empiShadowTrailInterval->onValueChange.connect([this](tgui::String value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -601,7 +604,7 @@ point will update only the values it wants to inherit to match the model."));
 			std::string oldValue = this->emp->getRawShadowTrailInterval();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
-				this->emp->setShadowTrailInterval(value);
+				this->emp->setShadowTrailInterval(static_cast<std::string>(value));
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
@@ -617,7 +620,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			}));
 		});
-		empiDamage->connect("ValueChanged", [this](std::string value) {
+		empiDamage->onValueChange.connect([this](tgui::String value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -625,7 +628,7 @@ point will update only the values it wants to inherit to match the model."));
 			std::string oldValue = this->emp->getRawDamage();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
-				this->emp->setDamage(value);
+				this->emp->setDamage(static_cast<std::string>(value));
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
@@ -641,12 +644,12 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			}));
 		});
-		empiOnCollisionAction->connect("ItemSelected", [this](std::string item, std::string id) {
+		empiOnCollisionAction->onItemSelect.connect([this](tgui::String item, tgui::String id) {
 			if (ignoreSignals) {
 				return;
 			}
 
-			BULLET_ON_COLLISION_ACTION action = fromID(empiOnCollisionAction->getSelectedItemId());
+			BULLET_ON_COLLISION_ACTION action = fromID(static_cast<std::string>(empiOnCollisionAction->getSelectedItemId()));
 			BULLET_ON_COLLISION_ACTION oldAction = this->emp->getOnCollisionAction();
 			undoStack.execute(UndoableCommand(
 				[this, action]() {
@@ -670,7 +673,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			}));
 		});
-		empiPierceResetTime->connect("ValueChanged", [this](std::string value) {
+		empiPierceResetTime->onValueChange.connect([this](tgui::String value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -678,7 +681,7 @@ point will update only the values it wants to inherit to match the model."));
 			std::string oldValue = this->emp->getRawPierceResetTime();
 			undoStack.execute(UndoableCommand(
 				[this, value]() {
-				this->emp->setPierceResetTime(value);
+				this->emp->setPierceResetTime(static_cast<std::string>(value));
 				onEMPModify.emit(this, this->emp);
 
 				ignoreSignals = true;
@@ -694,7 +697,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			}));
 		});
-		empiSoundSettings->connect("ValueChanged", [this](SoundSettings value) {
+		empiSoundSettings->onValueChange.connect([this](SoundSettings value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -718,12 +721,12 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			}));
 		});
-		empiBulletModel->connect("ItemSelected", [this](std::string item, std::string id) {
+		empiBulletModel->onItemSelect.connect([this](tgui::String item, tgui::String id) {
 			if (ignoreSignals) {
 				return;
 			}
 
-			int bulletModelID = std::stoi(id);
+			int bulletModelID = id.toInt();
 			if (item == "") bulletModelID = -1;
 			int oldBulletModelID = this->emp->getBulletModelID();
 			std::string radius = this->emp->getRawHitboxRadius();
@@ -835,7 +838,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			}));
 		});
-		empiInheritRadius->connect("Changed", [this](bool value) {
+		empiInheritRadius->onChange.connect([this](bool value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -867,7 +870,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			}));
 		});
-		empiInheritDespawnTime->connect("Changed", [this](bool value) {
+		empiInheritDespawnTime->onChange.connect([this](bool value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -899,7 +902,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			}));
 		});
-		empiInheritShadowTrailInterval->connect("Changed", [this](bool value) {
+		empiInheritShadowTrailInterval->onChange.connect([this](bool value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -931,7 +934,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			}));
 		});
-		empiInheritShadowTrailLifespan->connect("Changed", [this](bool value) {
+		empiInheritShadowTrailLifespan->onChange.connect([this](bool value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -963,7 +966,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			}));
 		});
-		empiInheritAnimatables->connect("Changed", [this](bool value) {
+		empiInheritAnimatables->onChange.connect([this](bool value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -1017,7 +1020,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			}));
 		});
-		empiInheritDamage->connect("Changed", [this](bool value) {
+		empiInheritDamage->onChange.connect([this](bool value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -1049,7 +1052,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			}));
 		});
-		empiInheritPierceResetTime->connect("Changed", [this](bool value) {
+		empiInheritPierceResetTime->onChange.connect([this](bool value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -1081,7 +1084,7 @@ point will update only the values it wants to inherit to match the model."));
 				ignoreSignals = false;
 			}));
 		});
-		empiInheritSoundSettings->connect("Changed", [this](bool value) {
+		empiInheritSoundSettings->onChange.connect([this](bool value) {
 			if (ignoreSignals) {
 				return;
 			}
@@ -1162,6 +1165,11 @@ point will update only the values it wants to inherit to match the model."));
 		empiShadowTrailIntervalLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiShadowTrailLifespan) + GUI_PADDING_Y);
 		empiShadowTrailInterval->setPosition(tgui::bindLeft(id), tgui::bindBottom(empiShadowTrailIntervalLabel) + GUI_LABEL_PADDING_Y);
 
+		// For some reason, ScrollablePanels' sizes don't fit the last widget, so this is to make sure this one does
+		auto scrollablePanelBuffer = tgui::Label::create();
+		scrollablePanelBuffer->setPosition(0, tgui::bindBottom(empiShadowTrailInterval) + GUI_PADDING_Y);
+		propertiesPanel->add(scrollablePanelBuffer);
+
 		tgui::Layout fillWidth = tgui::bindWidth(propertiesPanel) - GUI_PADDING_X * 2;
 		empiLoopAnimation->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
 		empiAnimatable->setSize(fillWidth, 0);
@@ -1233,11 +1241,11 @@ point will update only the values it wants to inherit to match the model."));
 		propertiesPanel->add(empiInheritPierceResetTime);
 		propertiesPanel->add(empiInheritSoundSettings);
 
-		propertiesPanel->connect("SizeChanged", [this](sf::Vector2f newSize) {
+		propertiesPanel->onSizeChange.connect([this](sf::Vector2f newSize) {
 			// This is here because of some random bug with SoundSettingsGroup
 			empiSoundSettings->setSize(newSize.x - GUI_PADDING_X * 2, 0);
 
-			spawnTypePositionMarkerPlacerFinishEditing->setPosition(newSize.x - spawnTypePositionMarkerPlacerFinishEditing->getSize().x, newSize.y - spawnTypePositionMarkerPlacerFinishEditing->getSize().y);
+			spawnTypePositionMarkerPlacerFinishEditing->setPosition(newSize.x - spawnTypePositionMarkerPlacerFinishEditing->getSize().x, newSize.y - spawnTypePositionMarkerPlacerFinishEditing->getSize().y * 2);
 		});
 
 		tabs->addTab(PROPERTIES_TAB_NAME, propertiesPanel);
@@ -1245,7 +1253,7 @@ point will update only the values it wants to inherit to match the model."));
 	{
 		// Movement tab
 		movementEditorPanel = EMPABasedMovementEditorPanel::create(mainEditorWindow, clipboard);
-		movementEditorPanel->connect("EMPAListModified", [this](std::vector<std::shared_ptr<EMPAction>> newActions, float newSumOfDurations) {
+		movementEditorPanel->onEMPAListModify.connect([this](std::vector<std::shared_ptr<EMPAction>> newActions, float newSumOfDurations) {
 			// This shouldn't be undoable here because it's already undoable from EMPABasedMovementEditorPanel.
 			// Note: Setting the limits of a SliderWithEditBox to some number and then setting it back does not
 			// revert the SliderWithEditBox's value
@@ -1269,7 +1277,7 @@ point will update only the values it wants to inherit to match the model."));
 	symbolTableEditorWindow->setFallbackEventHandler([this](sf::Event event) {
 		return symbolTableEditor->handleEvent(event);
 	});
-	symbolTableEditor->connect("ValueChanged", [this](ValueSymbolTable table) {
+	symbolTableEditor->onValueChange.connect([this](ValueSymbolTable table) {
 		this->emp->setSymbolTable(table);
 		onChange(table);
 		onEMPModify.emit(this, this->emp);
@@ -1336,8 +1344,8 @@ bool EditorMovablePointPanel::handleEvent(sf::Event event) {
 	return false;
 }
 
-tgui::Signal & EditorMovablePointPanel::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onEMPModify.getName())) {
+tgui::Signal & EditorMovablePointPanel::getSignal(tgui::String signalName) {
+	if (signalName == onEMPModify.getName().toLower()) {
 		return onEMPModify;
 	}
 	return tgui::Panel::getSignal(signalName);

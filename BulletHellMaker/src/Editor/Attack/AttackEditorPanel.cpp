@@ -23,7 +23,7 @@ AttackEditorPanel::AttackEditorPanel(MainEditorWindow& mainEditorWindow, std::sh
 
 	// Properties
 	propertiesPanel = AttackEditorPropertiesPanel::create(mainEditorWindow, clipboard, attack);
-	propertiesPanel->connect("AttackModified", [this]() {
+	propertiesPanel->onAttackModify.connect([this]() {
 		onAttackModify.emit(this, this->attack);
 	});
 	tabs->addTab(PROPERTIES_TAB_NAME, propertiesPanel);
@@ -32,7 +32,7 @@ AttackEditorPanel::AttackEditorPanel(MainEditorWindow& mainEditorWindow, std::sh
 	// Initial population
 	populatePropertiesUsedByList();
 
-	propertiesPanel->getUsedByPanel()->getListView()->connect("DoubleClicked", [&](int index) {
+	propertiesPanel->getUsedByListView()->onDoubleClick.connect([this](int index) {
 		if (usedByIDMap.find(index) != usedByIDMap.end()) {
 			onAttackPatternBeginEdit.emit(this, usedByIDMap[index]);
 		}
@@ -45,7 +45,11 @@ AttackEditorPanel::AttackEditorPanel(MainEditorWindow& mainEditorWindow, std::sh
 				this->onAttackPatternBeginEdit.emit(this, usedByRightClickedAttackPatternID);
 			})
 		});
-		propertiesPanel->getUsedByPanel()->getListView()->connect("RightClicked", [this, rightClickMenuPopup](int index) {
+		propertiesPanel->getUsedByListView()->onRightClick.connect([this, rightClickMenuPopup](int index) {
+			if (index == -1) {
+				return;
+			}
+
 			if (this->usedByIDMap.find(index) != this->usedByIDMap.end()) {
 				this->usedByRightClickedAttackPatternID = usedByIDMap[index];
 				// Open right click menu
@@ -56,7 +60,7 @@ AttackEditorPanel::AttackEditorPanel(MainEditorWindow& mainEditorWindow, std::sh
 
 	// EMP tree view
 	std::shared_ptr<EditorMovablePointTreePanel> emps = EditorMovablePointTreePanel::create(*this, clipboard, attack);
-	emps->connect("EMPModified", [this](std::shared_ptr<EditorMovablePoint> modifiedEMP) {
+	emps->onEMPModify.connect([this](std::shared_ptr<EditorMovablePoint> modifiedEMP) {
 		populateEMPsTreeView();
 
 		// Reload EMP tab of the modifiedEMP and all its children
@@ -70,7 +74,7 @@ AttackEditorPanel::AttackEditorPanel(MainEditorWindow& mainEditorWindow, std::sh
 
 		onAttackModify.emit(this, this->attack);
 	});
-	emps->connect("MainEMPChildDeleted", [this](int empID) {
+	emps->onMainEMPChildDeletion.connect([this](int empID) {
 		// Remove the EMP tab if it exists
 		std::string tabName = format(EMP_TAB_NAME_FORMAT, empID);
 		if (tabs->hasTab(tabName)) {
@@ -104,7 +108,7 @@ AttackEditorPanel::AttackEditorPanel(MainEditorWindow& mainEditorWindow, std::sh
 			emps->manualDelete();
 		})
 	});
-	empsTreeView->connect("RightClicked", [this, rightClickMenuPopup](std::vector<sf::String> nodeHierarchy) {
+	empsTreeView->onRightClick.connect([this, rightClickMenuPopup](std::vector<tgui::String> nodeHierarchy) {
 		if (nodeHierarchy.size() > 0) {
 			// Select item manually here because right-clicking tgui::TreeView doesn't select the item automatically
 			empsTreeView->selectItem(nodeHierarchy);
@@ -122,7 +126,7 @@ AttackEditorPanel::AttackEditorPanel(MainEditorWindow& mainEditorWindow, std::sh
 	symbolTableEditorWindow->setFallbackEventHandler([this](sf::Event event) {
 		return symbolTableEditor->handleEvent(event);
 	});
-	symbolTableEditor->connect("ValueChanged", [this](ValueSymbolTable table) {
+	symbolTableEditor->onValueChange.connect([this](ValueSymbolTable table) {
 		this->attack->setSymbolTable(table);
 		onChange(table);
 		onAttackModify.emit(this, this->attack);
@@ -155,10 +159,10 @@ bool AttackEditorPanel::handleEvent(sf::Event event) {
 	return false;
 }
 
-tgui::Signal& AttackEditorPanel::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onAttackPatternBeginEdit.getName())) {
+tgui::Signal& AttackEditorPanel::getSignal(tgui::String signalName) {
+	if (signalName == onAttackPatternBeginEdit.getName().toLower()) {
 		return onAttackPatternBeginEdit;
-	} else if (signalName == tgui::toLower(onAttackModify.getName())) {
+	} else if (signalName == onAttackModify.getName().toLower()) {
 		return onAttackModify;
 	}
 	return tgui::Panel::getSignal(signalName);
@@ -178,8 +182,8 @@ ValueSymbolTable AttackEditorPanel::getLevelPackObjectSymbolTable() {
 	return attack->getSymbolTable();
 }
 
-void AttackEditorPanel::openEMPTab(std::vector<sf::String> empHierarchy) {
-	openEMPTab(getEMPIDFromTreeViewText(empHierarchy[empHierarchy.size() - 1]));
+void AttackEditorPanel::openEMPTab(std::vector<tgui::String> empHierarchy) {
+	openEMPTab(getEMPIDFromTreeViewText(static_cast<std::string>(empHierarchy[empHierarchy.size() - 1])));
 }
 
 void AttackEditorPanel::openEMPTab(int empID) {
@@ -191,7 +195,7 @@ void AttackEditorPanel::openEMPTab(int empID) {
 		// Create the tab
 		std::shared_ptr<EditorMovablePointPanel> empEditorPanel = EditorMovablePointPanel::create(mainEditorWindow, levelPack, spriteLoader, clipboard, attack->searchEMP(empID));
 		empEditorPanel->updateSymbolTables(symbolTables);
-		empEditorPanel->connect("EMPModified", [&](std::shared_ptr<EditorMovablePoint> emp) {
+		empEditorPanel->onEMPModify.connect([this](std::shared_ptr<EditorMovablePoint> emp) {
 			populateEMPsTreeView();
 			onAttackModify.emit(this, this->attack);
 		});
@@ -208,21 +212,20 @@ void AttackEditorPanel::onLevelPackChange(LevelPack::LEVEL_PACK_OBJECT_HIERARCHY
 
 void AttackEditorPanel::populatePropertiesUsedByList() {
 	usedByIDMap.clear();
-	auto usedBy = propertiesPanel->getUsedByPanel();
-	usedBy->getListView()->removeAllItems();
+	std::shared_ptr<ListView> usedBy = propertiesPanel->getUsedByListView();
+	usedBy->removeAllItems();
 	auto attackPatternIDs = levelPack->getAttackUsers(attack->getID());
 	for (int i = 0; i < attackPatternIDs.size(); i++) {
 		int id = attackPatternIDs[i];
 		usedByIDMap[i] = id;
-		usedBy->getListView()->addItem("Attack pattern ID " + std::to_string(id));
+		usedBy->addItem("Attack pattern ID " + std::to_string(id));
 	}
-	usedBy->onListViewItemsUpdate();
 }
 
 void AttackEditorPanel::populateEMPsTreeView() {
 	empsTreeView->removeAllItems();
-	std::vector<std::vector<sf::String>> paths = attack->getMainEMP()->generateTreeViewEmpHierarchy(getEMPTextInTreeView, {});
-	for (std::vector<sf::String> path : paths) {
+	std::vector<std::vector<tgui::String>> paths = generateTreeViewEmpHierarchy(*attack->getMainEMP(), getEMPTextInTreeView, {});
+	for (std::vector<tgui::String> path : paths) {
 		empsTreeView->addItem(path);
 	}
 }
@@ -242,7 +245,7 @@ void AttackEditorPanel::reloadEMPTab(int empID) {
 
 		// Create the tab
 		std::shared_ptr<EditorMovablePointPanel> empEditorPanel = EditorMovablePointPanel::create(mainEditorWindow, levelPack, spriteLoader, clipboard, attack->searchEMP(empID));
-		empEditorPanel->connect("EMPModified", [&](std::shared_ptr<EditorMovablePoint> emp) {
+		empEditorPanel->onEMPModify.connect([this](std::shared_ptr<EditorMovablePoint> emp) {
 			populateEMPsTreeView();
 			onAttackModify.emit(this, this->attack);
 		});
@@ -250,7 +253,23 @@ void AttackEditorPanel::reloadEMPTab(int empID) {
 	}
 }
 
-sf::String AttackEditorPanel::getEMPTextInTreeView(const EditorMovablePoint& emp) {
+std::vector<std::vector<tgui::String>> AttackEditorPanel::generateTreeViewEmpHierarchy(const EditorMovablePoint& emp, 
+	std::function<tgui::String(const EditorMovablePoint&)> nodeText, std::vector<tgui::String> pathToThisEmp) {
+
+	pathToThisEmp.push_back(nodeText(emp));
+	if (emp.getChildrenIDs().size() == 0) {
+		return { pathToThisEmp };
+	} else {
+		std::vector<std::vector<tgui::String>> ret;
+		for (auto child : emp.getChildren()) {
+			std::vector<std::vector<tgui::String>> childTree = generateTreeViewEmpHierarchy(*child, nodeText, pathToThisEmp);
+			ret.insert(ret.end(), childTree.begin(), childTree.end());
+		}
+		return ret;
+	}
+}
+
+tgui::String AttackEditorPanel::getEMPTextInTreeView(const EditorMovablePoint& emp) {
 	std::string bulletStr = emp.getIsBullet() ? "[X]" : "[-]";
 	std::string idStr = "[" + std::to_string(emp.getID()) + "]";
 	return bulletStr + " " + idStr;

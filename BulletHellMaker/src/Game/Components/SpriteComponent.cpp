@@ -13,11 +13,11 @@ SpriteComponent::SpriteComponent(SpriteLoader& spriteLoader, Animatable animatab
 	: renderLayer(renderLayer), subLayer(subLayer) {
 	setAnimatable(spriteLoader, animatable, loopAnimatable);
 	if (animatable.isSprite()) {
-		originalSprite = *sprite;
+		originalSprite = sprite;
 	}
 }
 SpriteComponent::SpriteComponent(ROTATION_TYPE rotationType, std::shared_ptr<sf::Sprite> sprite, int renderLayer, float subLayer) 
-	: renderLayer(renderLayer), subLayer(subLayer), rotationType(rotationType), sprite(sprite), originalSprite(*sprite) {
+	: renderLayer(renderLayer), subLayer(subLayer), rotationType(rotationType), sprite(sprite), originalSprite(sprite) {
 }
 
 void SpriteComponent::update(float deltaTime) {
@@ -25,7 +25,11 @@ void SpriteComponent::update(float deltaTime) {
 		auto newSprite = animation->update(deltaTime);
 		if (newSprite == nullptr) {
 			// Animation is finished, so revert back to original sprite
-			updateSprite(originalSprite);
+			if (originalSprite) {
+				updateSprite(*originalSprite);
+			} else {
+				updateSprite(nullptr);
+			}
 		} else {
 			updateSprite(newSprite);
 		}
@@ -145,6 +149,10 @@ void SpriteComponent::updateSprite(sf::Sprite newSprite) {
 }
 
 void SpriteComponent::updateSprite(std::shared_ptr<sf::Sprite> newSprite) {
+	if (!newSprite) {
+		return;
+	}
+	
 	if (!sprite) {
 		// SpriteEffectAnimations can change SpriteComponent's Sprite, so create a new Sprite object to avoid 
 		// accidentally modifying the parameter Sprite pointer's object

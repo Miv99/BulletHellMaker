@@ -5,6 +5,8 @@
 #include <Editor/ViewController.h>
 #include <Editor/CopyPaste.h>
 #include <Editor/Util/ExtraSignals.h>
+#include <Editor/CustomWidgets/ListView.h>
+#include <Editor/CustomWidgets/SimpleWidgetsContainerPanel.h>
 
 class MainEditorWindow;
 
@@ -17,6 +19,12 @@ MetafileModified - emitted when the SpriteSheet being edited is modified.
 */
 class SpriteSheetMetafileEditor : public tgui::Panel, public EventCapturable, public CopyPasteable {
 public:
+	/*
+	Signal emitted when an EditorAttackPattern in the list of attack users is to be edited.
+	Optional parameter: the ID of the EditorAttackPattern
+	*/
+	tgui::SignalSpriteSheet onMetafileModify = { "MetafileModified" };
+
 	SpriteSheetMetafileEditor(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, std::shared_ptr<SpriteSheet> spriteSheet);
 	static std::shared_ptr<SpriteSheetMetafileEditor> create(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, 
 		std::shared_ptr<SpriteSheet> spriteSheet) {
@@ -24,7 +32,8 @@ public:
 		return std::make_shared<SpriteSheetMetafileEditor>(mainEditorWindow, clipboard, spriteSheet);
 	}
 	
-	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+	bool updateTime(tgui::Duration elapsedTime) override;
+	void draw(tgui::BackendRenderTargetBase& target, tgui::RenderStates states) const override;
 
 	CopyOperationResult copyFrom() override;
 	PasteOperationResult pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
@@ -32,15 +41,16 @@ public:
 
 	bool handleEvent(sf::Event event) override;
 
-	void loadImage(std::string fileName);
+	void loadImage(std::shared_ptr<SpriteLoader> spriteLoader, std::string spriteSheetName);
 
 	void resetCamera();
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 	
 private:
 	MainEditorWindow& mainEditorWindow;
 	Clipboard& clipboard;
+	// Not guaranteed to contain a loaded texture
 	std::shared_ptr<SpriteSheet> spriteSheet;
 
 	sf::View viewFromViewController;
@@ -48,14 +58,17 @@ private:
 
 	std::unique_ptr<ViewController> viewController;
 
-	/*
-	Signal emitted when an EditorAttackPattern in the list of attack users is to be edited.
-	Optional parameter: the ID of the EditorAttackPattern
-	*/
-	tgui::SignalSpriteSheet onMetafileModify = { "MetafileModified" };
+	std::shared_ptr<ListView> animatablesListView;
+	std::shared_ptr<SimpleWidgetsContainerPanel> utilityWidgetsPanel;
 
 	// Loaded from loadImage()
-	sf::Texture loadedTexture;
+	sf::Texture* loadedTexture;
 	// The sprite with loadedTexture
-	sf::Sprite imageAsSprite;
+	tgui::Sprite fullTextureAsSprite;
+
+	// Texture used for the background 
+	sf::Texture backgroundTexture;
+	tgui::Sprite backgroundSprite;
+
+	void updateWindowView();
 };

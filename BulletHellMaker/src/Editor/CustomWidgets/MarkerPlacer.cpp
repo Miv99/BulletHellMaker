@@ -2,6 +2,7 @@
 
 #include <Mutex.h>
 #include <GuiConfig.h>
+#include <Editor/Util/TguiUtils.h>
 
 // Index, x, and y in that order
 const std::string MarkerPlacer::MARKERS_LIST_VIEW_ITEM_FORMAT = "%d (%.2f, %.2f)";
@@ -25,7 +26,7 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 
 	viewController = std::make_unique<ViewController>(parentWindow);
 	leftPanel = tgui::ScrollablePanel::create();
-	markersListView = ListViewScrollablePanel::create();
+	markersListView = tgui::ListView::create();
 	addMarker = tgui::Button::create();
 	deleteMarker = tgui::Button::create();
 	showGridLines = tgui::CheckBox::create();
@@ -76,21 +77,22 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 	selectedMarkerY->setPosition(tgui::bindLeft(selectedMarkerYLabel), tgui::bindBottom(selectedMarkerYLabel) + GUI_LABEL_PADDING_Y);
 
 	mouseWorldPosPanel->setSize(tgui::bindWidth(mouseWorldPosLabel) + GUI_PADDING_X * 2, tgui::bindHeight(mouseWorldPosLabel) + GUI_LABEL_PADDING_Y * 2);
-	mouseWorldPosPanel->setPosition(tgui::bindRight(leftPanel), tgui::bindBottom(leftPanel) - tgui::bindHeight(mouseWorldPosPanel));
+	mouseWorldPosPanel->setPosition(tgui::bindRight(leftPanel), tgui::bindBottom(leftPanel) - tgui::bindHeight(mouseWorldPosLabel) - GUI_LABEL_PADDING_Y * 2);
 	mouseWorldPosLabel->setPosition(GUI_PADDING_X, GUI_LABEL_PADDING_Y);
 
 	showGridLines->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
 	snapToGridCheckBox->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
 
 	leftPanel->setSize(tgui::bindMin("25%", 250), "100%");
-	extraWidgetsPanel->setPosition(tgui::bindRight(leftPanel), tgui::bindTop(leftPanel));
 	extraWidgetsPanel->setWidth("100%" - tgui::bindRight(leftPanel));
 	extraWidgetsPanel->setMaxHeight(0);
 
-	leftPanel->connect("SizeChanged", [this](sf::Vector2f newSize) {
+	leftPanel->onSizeChange.connect([this](sf::Vector2f newSize) {
+		extraWidgetsPanel->setPosition(leftPanel->getPosition().x + newSize.x, tgui::bindTop(leftPanel));
+
 		// Height of left panel minus y needed for the widgets that are not the list view
 		float markersListViewHeight = newSize.y - GUI_PADDING_Y * 5 - GUI_LABEL_PADDING_Y * 2 - selectedMarkerXLabel->getSize().y * 2 - selectedMarkerX->getSize().y * 2 - addMarker->getSize().y;
-		markersListView->setSize(newSize.x - GUI_PADDING_X * 2, std::max(markersListViewHeight, markersListView->getListView()->getItemHeight() * 6.0f));
+		markersListView->setSize(newSize.x - GUI_PADDING_X * 2, std::max(markersListViewHeight, markersListView->getItemHeight() * 6.0f));
 		float buttonWidth = (markersListView->getSize().x - GUI_PADDING_X) / 2.0f;
 		addMarker->setSize(buttonWidth, TEXT_BUTTON_HEIGHT);
 		deleteMarker->setSize(buttonWidth, TEXT_BUTTON_HEIGHT);
@@ -98,7 +100,7 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 		selectedMarkerY->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 	});
 
-	markersListView->getListView()->connect("ItemSelected", [this](int index) {
+	markersListView->onItemSelect.connect([this](int index) {
 		if (ignoreSignals) {
 			return;
 		}
@@ -108,7 +110,7 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 			selectMarker(index);
 		}
 	});
-	markersListView->getListView()->connect("DoubleClicked", [this](int index) {
+	markersListView->onDoubleClick.connect([this](int index) {
 		if (ignoreSignals) {
 			return;
 		}
@@ -119,29 +121,29 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 			lookAt(sf::Vector2f(markers[index].getPosition().x, -markers[index].getPosition().y));
 		}
 	});
-	addMarker->connect("Pressed", [this]() {
+	addMarker->onPress.connect([this]() {
 		if (ignoreSignals) {
 			return;
 		}
 		setPlacingNewMarker(true);
 	});
-	deleteMarker->connect("Pressed", [this]() {
+	deleteMarker->onPress.connect([this]() {
 		if (ignoreSignals) {
 			return;
 		}
 		manualDelete();
 	});
-	showGridLines->connect("Changed", [this](bool checked) {
+	showGridLines->onChange.connect([this](bool checked) {
 		if (ignoreSignals) {
 			return;
 		}
 
 		setGridLinesVisible(checked);
 	});
-	gridLinesInterval->connect("ValueChanged", [this]() {
+	gridLinesInterval->onValueChange.connect([this]() {
 		calculateGridLines();
 	});
-	selectedMarkerX->connect("ValueChanged", [this](float value) {
+	selectedMarkerX->onValueChange.connect([this](float value) {
 		if (ignoreSignals) {
 			return;
 		}
@@ -149,7 +151,7 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 		markers[selectedMarkerIndex].setPosition(value, markers[selectedMarkerIndex].getPosition().y);
 		updateMarkersListViewItem(selectedMarkerIndex);
 	});
-	selectedMarkerY->connect("ValueChanged", [this](float value) {
+	selectedMarkerY->onValueChange.connect([this](float value) {
 		if (ignoreSignals) {
 			return;
 		}
@@ -157,7 +159,7 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 		markers[selectedMarkerIndex].setPosition(markers[selectedMarkerIndex].getPosition().x, -value);
 		updateMarkersListViewItem(selectedMarkerIndex);
 	});
-	snapToGridCheckBox->connect("Changed", [this](bool checked) {
+	snapToGridCheckBox->onChange.connect([this](bool checked) {
 		if (ignoreSignals) {
 			return;
 		}
@@ -174,10 +176,10 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 	leftPanel->add(selectedMarkerY);
 	add(leftPanel);
 
-	extraWidgetsPanel->connect("SizeChanged", [this](sf::Vector2f newSize) {
+	extraWidgetsPanel->onSizeChange.connect([this](sf::Vector2f newSize) {
 		gridLinesInterval->setSize(newSize.x - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 	});
-	extraWidgetsPanel->addExtraRowWidget(showGridLines, GUI_LABEL_PADDING_Y);
+	extraWidgetsPanel->addExtraRowWidget(showGridLines, GUI_PADDING_Y);
 	extraWidgetsPanel->addExtraRowWidget(snapToGridCheckBox, GUI_LABEL_PADDING_Y);
 	extraWidgetsPanel->addExtraRowWidget(gridLinesIntervalLabel, GUI_LABEL_PADDING_Y);
 	extraWidgetsPanel->addExtraRowWidget(gridLinesInterval, GUI_LABEL_PADDING_Y);
@@ -186,10 +188,10 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 	mouseWorldPosPanel->add(mouseWorldPosLabel);
 	add(mouseWorldPosPanel);
 
-	connect("PositionChanged", [this]() {
+	onPositionChange.connect([this]() {
 		updateWindowView();
 	});
-	connect("SizeChanged", [this](sf::Vector2f newSize) {
+	onSizeChange.connect([this](sf::Vector2f newSize) {
 		updateWindowView();
 	});
 
@@ -235,7 +237,7 @@ bool MarkerPlacer::handleEvent(sf::Event event) {
 		}
 	}
 
-	if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left && leftPanel->mouseOnWidget(sf::Vector2f(event.mouseButton.x, event.mouseButton.y) - getAbsolutePosition())) {
+	if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left && leftPanel->isMouseOnWidget(sf::Vector2f(event.mouseButton.x, event.mouseButton.y) - getAbsolutePosition())) {
 		return true;
 	} else if (viewController->handleEvent(viewFromViewController, event)) {
 		calculateGridLines();
@@ -352,7 +354,7 @@ bool MarkerPlacer::handleEvent(sf::Event event) {
 
 			// Check if initial press was in gameplay area and in relative spatial proximity to mouse release
 			float screenDist = std::sqrt((initialMousePressX - event.mouseButton.x) * (initialMousePressX - event.mouseButton.x) + (initialMousePressY - event.mouseButton.y) * (initialMousePressY - event.mouseButton.y));
-			if (!justSelectedMarker && screenDist < 15 && !leftPanel->mouseOnWidget(sf::Vector2f(event.mouseButton.x, event.mouseButton.y))) {
+			if (!justSelectedMarker && screenDist < 15 && !leftPanel->isMouseOnWidget(sf::Vector2f(event.mouseButton.x, event.mouseButton.y))) {
 				deselectMarker();
 			}
 
@@ -394,7 +396,7 @@ void MarkerPlacer::selectMarker(int index) {
 	deleteMarker->setEnabled(true);
 	setSelectedMarkerXWidgetValue(markers[index].getPosition().x);
 	setSelectedMarkerYWidgetValue(-markers[index].getPosition().y);
-	markersListView->getListView()->setSelectedItem(index);
+	markersListView->setSelectedItem(index);
 
 	selectedMarkerXLabel->setVisible(true);
 	selectedMarkerX->setVisible(true);
@@ -416,7 +418,7 @@ void MarkerPlacer::setPlacingNewMarker(bool placingNewMarker) {
 
 void MarkerPlacer::deselectMarker() {
 	selectedMarkerIndex = -1;
-	markersListView->getListView()->deselectItems();
+	markersListView->deselectItems();
 	deleteMarker->setEnabled(false);
 	selectedMarkerXLabel->setVisible(false);
 	selectedMarkerX->setVisible(false);
@@ -531,12 +533,12 @@ void MarkerPlacer::setSelectedMarkerYWidgetValue(float value) {
 void MarkerPlacer::updateMarkersListView() {
 	ignoreSignals = true;
 
-	markersListView->getListView()->removeAllItems();
+	markersListView->removeAllItems();
 	for (int i = 0; i < markers.size(); i++) {
-		markersListView->getListView()->addItem(format(MARKERS_LIST_VIEW_ITEM_FORMAT, i + 1, markers[i].getPosition().x, -markers[i].getPosition().y));
+		markersListView->addItem(format(MARKERS_LIST_VIEW_ITEM_FORMAT, i + 1, markers[i].getPosition().x, -markers[i].getPosition().y));
 	}
 	if (selectedMarkerIndex >= 0) {
-		markersListView->getListView()->setSelectedItem(selectedMarkerIndex);
+		markersListView->setSelectedItem(selectedMarkerIndex);
 	}
 
 	ignoreSignals = false;
@@ -691,7 +693,7 @@ void MarkerPlacer::manualDelete() {
 }
 
 void MarkerPlacer::updateMarkersListViewItem(int index) {
-	markersListView->getListView()->changeItem(index, { format(MARKERS_LIST_VIEW_ITEM_FORMAT, index + 1, markers[index].getPosition().x, -markers[index].getPosition().y) });
+	markersListView->changeItem(index, { format(MARKERS_LIST_VIEW_ITEM_FORMAT, index + 1, markers[index].getPosition().x, -markers[index].getPosition().y) });
 }
 
 void MarkerPlacer::setGridLinesVisible(bool gridLinesVisible) {
@@ -761,7 +763,7 @@ PasteOperationResult MarkerPlacer::paste2Into(std::shared_ptr<CopiedObject> past
 	return PasteOperationResult(false, "Type mismatch");
 }
 
-void MarkerPlacer::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+void MarkerPlacer::draw(tgui::BackendRenderTargetBase& target, tgui::RenderStates states) const {
 	tgui::Panel::draw(target, states);
 
 	// Viewport is set here because tgui::Gui's draw function changes it right before renderSystem is updated or something
@@ -797,18 +799,27 @@ void MarkerPlacer::draw(sf::RenderTarget& target, sf::RenderStates states) const
 
 	// Draw panels again so that it covers the markers
 	if (leftPanel->isVisible()) {
+		tgui::Transform prev = states.transform;
+		states.transform.translate(leftPanel->getPosition());
 		leftPanel->draw(target, states);
+		states.transform = prev;
 	}
 	if (extraWidgetsPanel->isVisible()) {
+		tgui::Transform prev = states.transform;
+		states.transform.translate(extraWidgetsPanel->getPosition());
 		extraWidgetsPanel->draw(target, states);
+		states.transform = prev;
 	}
 	if (mouseWorldPosPanel->isVisible()) {
+		tgui::Transform prev = states.transform;
+		states.transform.translate(mouseWorldPosPanel->getPosition());
 		mouseWorldPosPanel->draw(target, states);
+		states.transform = prev;
 	}
 }
 
-bool MarkerPlacer::update(sf::Time elapsedTime) {
-	bool ret = tgui::Panel::update(elapsedTime);
+bool MarkerPlacer::updateTime(tgui::Duration elapsedTime) {
+	bool ret = tgui::Panel::updateTime(elapsedTime);
 
 	if (viewController->update(viewFromViewController, elapsedTime.asSeconds())) {
 		calculateGridLines();

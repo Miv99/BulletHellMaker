@@ -48,7 +48,7 @@ PasteOperationResult LevelPackObjectUseRelationshipEditor::pasteInto(std::shared
 
 void LevelPackObjectUseRelationshipEditor::deleteSelectedListItems() {
 	if (relationshipsListView) {
-		std::set<size_t> curSelectedIndices = relationshipsListView->getListView()->getSelectedItemIndices();
+		std::set<size_t> curSelectedIndices = relationshipsListView->getSelectedItemIndices();
 		if (curSelectedIndices.size() == 0) {
 			return;
 		}
@@ -114,14 +114,14 @@ void LevelPackObjectUseRelationshipEditor::setupRelationshipListView() {
 	addButton->setText("+");
 	addButton->setPosition(0, 0);
 	addButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
-	addButton->connect("Pressed", [this]() {
+	addButton->onPress.connect([this]() {
 		addNewRelationship();
 	});
 	relationshipsListViewPanel->add(addButton);
 
 	// List view
 	instantiateRelationshipListView(mainEditorWindow, clipboard);
-	relationshipsListView->connect("ListModified", [this]() {
+	relationshipsListView->onListModify.connect([this]() {
 		onRelationshipsChangeHelper();
 	});
 	relationshipsListView->setPosition(0, tgui::bindBottom(addButton));
@@ -131,7 +131,7 @@ void LevelPackObjectUseRelationshipEditor::setupRelationshipListView() {
 		// Menu for single selection
 		auto rightClickMenuPopupSingleSelection = createMenuPopup({
 			std::make_pair("Open", [this]() {
-				int index = relationshipsListView->getListView()->getSelectedItemIndex();
+				int index = relationshipsListView->getSelectedItemIndex();
 				if (index == -1) {
 					relationshipEditorPanel->setVisible(false);
 				} else {
@@ -166,8 +166,12 @@ void LevelPackObjectUseRelationshipEditor::setupRelationshipListView() {
 				relationshipsListView->manualDelete();
 			})
 		});
-		relationshipsListView->getListView()->connect("RightClicked", [this, rightClickMenuPopupSingleSelection, rightClickMenuPopupMultiSelection](int index) {
-			std::set<std::size_t> selectedItemIndices = relationshipsListView->getListView()->getSelectedItemIndices();
+		relationshipsListView->onRightClick.connect([this, rightClickMenuPopupSingleSelection, rightClickMenuPopupMultiSelection](int index) {
+			if (index == -1) {
+				return;
+			}
+
+			std::set<std::size_t> selectedItemIndices = relationshipsListView->getSelectedItemIndices();
 			auto mousePos = this->mainEditorWindow.getMousePos();
 			if (selectedItemIndices.find(index) != selectedItemIndices.end()) {
 				// Right clicked a selected item
@@ -182,14 +186,14 @@ void LevelPackObjectUseRelationshipEditor::setupRelationshipListView() {
 				// Right clicked a nonselected item
 
 				// Select the right clicked item
-				relationshipsListView->getListView()->setSelectedItem(index);
+				relationshipsListView->setSelectedItem(index);
 
 				// Open the menu normally
 				this->mainEditorWindow.addPopupWidget(rightClickMenuPopupSingleSelection, mousePos.x, mousePos.y, 150, rightClickMenuPopupSingleSelection->getSize().y);
 			}
 		});
 	}
-	relationshipsListView->getListView()->connect("DoubleClicked", [this](int index) {
+	relationshipsListView->onDoubleClick.connect([this](int index) {
 		if (index == -1) {
 			return;
 		}
@@ -258,13 +262,13 @@ void LevelPackObjectUseRelationshipEditor::setRelationships(std::vector<std::sha
 
 void LevelPackObjectUseRelationshipEditor::openRelationshipEditorPanelIndex(int index) {
 	this->relationshipEditorPanelCurrentRelationshipIndex = index;
-	this->relationshipsListView->getListView()->setSelectedItem(index);
+	this->relationshipsListView->setSelectedItem(index);
 	relationshipEditorPanel->setVisible(true);
 	initializeRelationshipEditorPanelWidgetsData(relationships[index], index);
 }
 
 void LevelPackObjectUseRelationshipEditor::addNewRelationship() {
-	std::set<size_t> curSelectedIndices = relationshipsListView->getListView()->getSelectedItemIndices();
+	std::set<size_t> curSelectedIndices = relationshipsListView->getSelectedItemIndices();
 	int pasteAtIndex;
 	if (curSelectedIndices.size() == 0) {
 		pasteAtIndex = getRelationshipsCount();
@@ -320,7 +324,7 @@ void LevelPackObjectUseRelationshipEditor::onRelationshipsChangeHelper() {
 
 LevelPackObjectUseRelationshipListView::LevelPackObjectUseRelationshipListView(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, UndoStack& undoStack,
 	LevelPackObjectUseRelationshipEditor& parentRelationshipEditor, std::string copyPasteableID, int undoStackSize)
-	: ListViewScrollablePanel(), CopyPasteable(copyPasteableID), mainEditorWindow(mainEditorWindow), clipboard(clipboard),
+	: ListView(), CopyPasteable(copyPasteableID), mainEditorWindow(mainEditorWindow), clipboard(clipboard),
 	undoStack(undoStack), parentRelationshipEditor(parentRelationshipEditor) {
 }
 
@@ -369,22 +373,21 @@ void LevelPackObjectUseRelationshipListView::manualDelete() {
 }
 
 void LevelPackObjectUseRelationshipListView::manualSelectAll() {
-	int count = getListView()->getItemCount();
+	int count = getItemCount();
 	std::set<size_t> selected;
 	for (int i = 0; i < count; i++) {
 		selected.insert(i);
 	}
-	getListView()->setSelectedItems(selected);
+	setSelectedItems(selected);
 }
 
 void LevelPackObjectUseRelationshipListView::repopulateRelationships(std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> relationships) {
-	std::shared_ptr<tgui::ListView> listView = getListView();
-	std::set<size_t> oldSelectedIndices = listView->getSelectedItemIndices();
+	std::set<size_t> oldSelectedIndices = getSelectedItemIndices();
 
-	listView->removeAllItems();
+	removeAllItems();
 
 	for (std::shared_ptr<LevelPackObjectUseRelationship> relationship : relationships) {
-		listView->addItem(getRelationshipListViewText(relationship));
+		addItem(getRelationshipListViewText(relationship));
 	}
 
 	// Reselect previous indices
@@ -392,7 +395,7 @@ void LevelPackObjectUseRelationshipListView::repopulateRelationships(std::vector
 		// Remove indices that no longer exist
 		std::set<size_t> afterRemoval;
 		for (auto it = oldSelectedIndices.begin(); it != oldSelectedIndices.end(); it++) {
-			if (*it >= listView->getItemCount()) {
+			if (*it >= getItemCount()) {
 				break;
 			} else {
 				afterRemoval.insert(*it);
@@ -400,16 +403,16 @@ void LevelPackObjectUseRelationshipListView::repopulateRelationships(std::vector
 		}
 
 		if (afterRemoval.size() == 1) {
-			listView->setSelectedItem(*afterRemoval.begin());
+			setSelectedItem(*afterRemoval.begin());
 		} else {
-			listView->setSelectedItems(afterRemoval);
+			setSelectedItems(afterRemoval);
 		}
 	}
 }
 
-tgui::Signal& LevelPackObjectUseRelationshipListView::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onListModify.getName())) {
+tgui::Signal& LevelPackObjectUseRelationshipListView::getSignal(tgui::String signalName) {
+	if (signalName == onListModify.getName().toLower()) {
 		return onListModify;
 	}
-	return ListViewScrollablePanel::getSignal(signalName);
+	return ListView::getSignal(signalName);
 }

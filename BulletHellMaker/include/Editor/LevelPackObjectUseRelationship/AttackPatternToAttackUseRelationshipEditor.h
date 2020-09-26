@@ -51,6 +51,8 @@ Signals:
 */
 class AttackPatternToAttackUseRelationshipEditor : public LevelPackObjectUseRelationshipEditor {
 public:
+	tgui::SignalAttackPatternToAttackUseRelationship onRelationshipsModify = { "RelationshipsModified" };
+
 	AttackPatternToAttackUseRelationshipEditor(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, UndoStack& undoStack,
 		std::vector<std::tuple<std::string, int, ExprSymbolTable>> initialRelationshipsData);
 	static std::shared_ptr<AttackPatternToAttackUseRelationshipEditor> create(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, UndoStack& undoStack,
@@ -60,7 +62,7 @@ public:
 
 	PasteOperationResult paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 
 	void setSymbolTablesHierarchy(std::vector<ValueSymbolTable> symbolTablesHierarchy);
 
@@ -71,8 +73,6 @@ private:
 	std::shared_ptr<NumericalEditBoxWithLimits> idEditBox;
 	std::shared_ptr<tgui::Label> symbolTableEditorLabel;
 	std::shared_ptr<ExprSymbolTableEditor> symbolTableEditor;
-
-	tgui::SignalAttackPatternToAttackUseRelationship onRelationshipsModify = { "RelationshipsModified" };
 
 	void initializeRelationshipEditorPanelWidgetsData(std::shared_ptr<LevelPackObjectUseRelationship> relationship, int relationshipIndex) override;
 	void onRelationshipsChange(std::vector<std::shared_ptr<LevelPackObjectUseRelationship>> newRelationships) override;

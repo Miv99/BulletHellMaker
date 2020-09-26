@@ -16,9 +16,9 @@ TextNotification::TextNotification(float notificationLifespan)
 	setSize(tgui::bindWidth(label) + GUI_PADDING_X * 2, tgui::bindHeight(label) + GUI_LABEL_PADDING_Y * 2);
 }
 
-bool TextNotification::update(sf::Time delta) {
+bool TextNotification::updateTime(tgui::Duration elapsedTime) {
 	if (textVisible) {
-		timeUntilDisappear -= delta.asSeconds();
+		timeUntilDisappear -= elapsedTime.asSeconds();
 		if (timeUntilDisappear <= 0) {
 			setVisible(false);
 			textVisible = false;

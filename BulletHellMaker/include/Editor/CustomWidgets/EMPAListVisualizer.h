@@ -11,7 +11,7 @@ public:
 		return std::make_shared<EMPAListVisualizer>(parentWindow, clipboard, resolution, undoStackSize);
 	}
 
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+	virtual void draw(tgui::BackendRenderTargetBase& target, tgui::RenderStates states) const override;
 
 	/*
 	Will not modify empas.
@@ -44,7 +44,6 @@ private:
 	// Shows position on movement path of the evaluator; radius <= 0 if invisible
 	sf::CircleShape evaluatorCircle;
 
-	std::shared_ptr<SliderWithEditBox> timeResolution;
 	std::shared_ptr<SliderWithEditBox> evaluator;
 	std::shared_ptr<tgui::Label> evaluatorResult;
 

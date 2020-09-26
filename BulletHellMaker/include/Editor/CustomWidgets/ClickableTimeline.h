@@ -43,7 +43,7 @@ public:
 	*/
 	void setElements(std::vector<std::tuple<float, float, std::string>> elementStartTimesAndDuration, float maxTime);
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 
 private:
 	tgui::SignalInt onElementPressed = { "ElementPressed" };

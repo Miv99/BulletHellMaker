@@ -3,7 +3,6 @@
 
 #include <Editor/CopyPaste.h>
 #include <Editor/EventCapturable.h>
-#include <Editor/CustomWidgets/ListViewScrollablePanel.h>
 #include <Editor/CustomWidgets/NumericalEditBoxWithLimits.h>
 #include <Editor/CustomWidgets/SliderWithEditBox.h>
 #include <Editor/CustomWidgets/SimpleWidgetsContainerPanel.h>
@@ -29,8 +28,8 @@ public:
 	virtual PasteOperationResult pasteInto(std::shared_ptr<CopiedObject> pastedObject) override;
 	virtual PasteOperationResult paste2Into(std::shared_ptr<CopiedObject> pastedObject) override;
 
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
-	bool update(sf::Time elapsedTime) override;
+	virtual void draw(tgui::BackendRenderTargetBase& target, tgui::RenderStates states) const override;
+	bool updateTime(tgui::Duration elapsedTime) override;
 	bool handleEvent(sf::Event event) override;
 
 	void lookAt(sf::Vector2f pos);
@@ -74,7 +73,7 @@ protected:
 
 	std::vector<sf::CircleShape> markers;
 	std::shared_ptr<tgui::ScrollablePanel> leftPanel;
-	std::shared_ptr<ListViewScrollablePanel> markersListView;
+	std::shared_ptr<tgui::ListView> markersListView;
 	std::shared_ptr<NumericalEditBoxWithLimits> selectedMarkerX;
 	std::shared_ptr<NumericalEditBoxWithLimits> selectedMarkerY;
 	std::shared_ptr<tgui::Button> addMarker;

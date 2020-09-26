@@ -3,7 +3,7 @@
 
 #include <DataStructs/LRUCache.h>
 #include <Editor/EventCapturable.h>
-#include <Editor/CustomWidgets/ListBoxScrollablePanel.h>
+#include <Editor/CustomWidgets/ListView.h>
 #include <Editor/Windows/EditorWindowConfirmationPromptChoice.h>
 
 class EditorWindow;
@@ -21,6 +21,12 @@ laggy when there's a lot.
 */
 class TabsWithPanel : public tgui::Group, public EventCapturable {
 public:
+	/*
+	Signal emitted when a tab is closed via its close button
+	Optional parameter: the name of the tab being closed
+	*/
+	tgui::SignalString onTabClose = { "TabClosed" };
+
 	enum MoreTabsListAlignment {
 		Left, // The right side of moreTabsList will be x-aligned with the right side of moreTabsButton
 		Right // The left side of moreTabsList will be x-aligned with the left side of moreTabsButton.
@@ -54,6 +60,10 @@ public:
 	tabName - the unique name of the tab
 	*/
 	void selectTab(std::string tabName);
+	/*
+	Selects a tab.
+	*/
+	void selectTab(int index);
 	/*
 	Removes the tab.
 	tabName - the unique name of the tab
@@ -132,7 +142,7 @@ public:
 	*/
 	void clearTabsCache();
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 	/*
 	Returns the unique name of the currently selected tab.
 	*/
@@ -191,8 +201,8 @@ private:
 
 	// Button that shows all tabs that can't fit in this widget
 	std::shared_ptr<tgui::Button> moreTabsButton;
-	// The ListBoxScrollablePanel that is shown when moreTabsButton is clicked
-	std::shared_ptr<ListBoxScrollablePanel> moreTabsList;
+	// The ListView that is shown when moreTabsButton is clicked
+	std::shared_ptr<ListView> moreTabsList;
 	// Alignment of the moreTabsList
 	MoreTabsListAlignment moreTabsListAlignment = MoreTabsListAlignment::Left;
 
@@ -200,11 +210,7 @@ private:
 	// panelsMap, tabsOrdering, the name of the tab that was open (empty string if none)
 	Cache<std::string, CachedTabsValue> tabsCache;
 
-	// Signal emitted when a tab is closed via its close button
-	// Optional parameter: the name of the tab being closed
-	tgui::SignalString onTabClose = { "TabClosed" };
-
-	void onTabSelected(std::string tabName);
+	void onTabSelected(tgui::String tabName);
 	// Should be called whenever there's an update to the tabs
 	void onTabsChange();
 	/*

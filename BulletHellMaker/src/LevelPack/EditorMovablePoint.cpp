@@ -455,32 +455,6 @@ void EditorMovablePoint::onNewParentEditorAttack(std::shared_ptr<EditorAttack> n
 	}
 }
 
-std::vector<std::vector<sf::String>> EditorMovablePoint::generateTreeViewEmpHierarchy(std::function<sf::String(const EditorMovablePoint&)> nodeText, std::vector<sf::String> pathToThisEmp) {
-	pathToThisEmp.push_back(nodeText(*this));
-	if (children.size() == 0) {
-		return {pathToThisEmp};
-	} else {
-		std::vector<std::vector<sf::String>> ret;
-		for (auto child : children) {
-			std::vector<std::vector<sf::String>> childTree = child->generateTreeViewEmpHierarchy(nodeText, pathToThisEmp);
-			ret.insert(ret.end(), childTree.begin(), childTree.end());
-		}
-		return ret;
-	}
-}
-
-std::vector<sf::String> EditorMovablePoint::generatePathToThisEmp(std::function<sf::String(const EditorMovablePoint&)> nodeText) {
-	std::vector<sf::String> ret;
-	ret.push_back(nodeText(*this));
-	std::shared_ptr<EditorMovablePoint> cur = parent.lock();
-	while (cur) {
-		ret.insert(ret.begin(), nodeText(*cur));
-		cur = cur->parent.lock();
-	}
-
-	return ret;
-}
-
 int EditorMovablePoint::getTreeSize() const {
 	int count = 1;
 	for (auto child : children) {

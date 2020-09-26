@@ -1,16 +1,16 @@
 #include <Editor/CustomWidgets/EditBox.h>
 
 EditBox::EditBox() {
-	connect("Unfocused", [this]() {
+	onUnfocus.connect([this]() {
 		onValueChange.emit(this, this->getText());
 	});
-	connect("ReturnKeyPressed", [this](std::string text) {
+	onReturnKeyPress.connect([this](tgui::String text) {
 		onValueChange.emit(this, text);
 	});
 }
 
-tgui::Signal& EditBox::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onValueChange.getName())) {
+tgui::Signal& EditBox::getSignal(tgui::String signalName) {
+	if (signalName == onValueChange.getName().toLower()) {
 		return onValueChange;
 	}
 	return tgui::EditBox::getSignal(signalName);

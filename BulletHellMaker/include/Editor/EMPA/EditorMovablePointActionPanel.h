@@ -27,6 +27,12 @@ Signals:
 class EditorMovablePointActionPanel : public tgui::ScrollablePanel, public EventCapturable, public ValueSymbolTablesChangePropagator {
 public:
 	/*
+	Signal emitted when the EMPA being edited is modified.
+	Optional parameter: a shared_ptr to the newly modified EMPA
+	*/
+	tgui::SignalEMPA onEMPAModify = { "EMPAModified" };
+
+	/*
 	empa - the EMPAction being edited
 	*/
 	EditorMovablePointActionPanel(EditorWindow& parentWindow, Clipboard& clipboard, std::shared_ptr<EMPAction> empa, int undoStackSize = 50);
@@ -37,7 +43,7 @@ public:
 
 	bool handleEvent(sf::Event event) override;
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 
 	void propagateChangesToChildren() override;
 	ValueSymbolTable getLevelPackObjectSymbolTable() override;
@@ -67,7 +73,7 @@ private:
 	std::shared_ptr<tgui::Label> empaiPolarAngleLabel;
 	std::shared_ptr<TFVGroup> empaiPolarAngle;
 	std::shared_ptr<tgui::Label> empaiBezierControlPointsLabel;
-	std::shared_ptr<ListViewScrollablePanel> empaiBezierControlPoints;
+	std::shared_ptr<ListView> empaiBezierControlPoints;
 	std::shared_ptr<tgui::Label> empaiAngleOffsetLabel;
 	std::shared_ptr<EMPAAngleOffsetGroup> empaiAngleOffset;
 	std::shared_ptr<tgui::Label> empaiHomingStrengthLabel;
@@ -96,12 +102,6 @@ private:
 	std::vector<std::shared_ptr<tgui::Widget>> savedWidgets;
 	float horizontalScrollPos;
 	float verticalScrollPos;
-
-	/*
-	Signal emitted when the EMPA being edited is modified.
-	Optional parameter: a shared_ptr to the newly modified EMPA
-	*/
-	tgui::SignalEMPA onEMPAModify = { "EMPAModified" };
 
 	bool ignoreSignals = false;
 

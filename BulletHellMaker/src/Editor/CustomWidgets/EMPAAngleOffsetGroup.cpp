@@ -13,35 +13,35 @@ EMPAAngleOffsetGroup::EMPAAngleOffsetGroup(EditorWindow& parentWindow)
 	changeType = tgui::Button::create();
 	changeType->setText("Change type");
 	changeType->setToolTip(createToolTip("Changes the type of this angle evaluator."));
-	changeType->connect("Pressed", [&]() {
-		parentWindow.addPopupWidget(typePopup, parentWindow.getMousePos().x, parentWindow.getMousePos().y, 200, typePopup->getSize().y);
+	changeType->onPress.connect([this]() {
+		this->parentWindow.addPopupWidget(typePopup, this->parentWindow.getMousePos().x, this->parentWindow.getMousePos().y, 200, typePopup->getSize().y);
 	});
 	add(changeType);
 
 	typePopup = createMenuPopup({
-		std::make_pair("No evaluation", [&]() {
+		std::make_pair("No evaluation", [this]() {
 			this->offset = std::make_shared<EMPAAngleOffsetZero>();
-			onValueChange.emit(this, std::make_pair(oldOffset, offset));
+			onValueChange.emit(this, oldOffset, offset);
 			updateWidgets();
 		}),
-		std::make_pair("Constant value", [&]() {
+		std::make_pair("Constant value", [this]() {
 			this->offset = std::make_shared<EMPAAngleOffsetConstant>();
-			onValueChange.emit(this, std::make_pair(oldOffset, offset));
+			onValueChange.emit(this, oldOffset, offset);
 			updateWidgets();
 		}),
-		std::make_pair("Relative to player", [&]() {
+		std::make_pair("Relative to player", [this]() {
 			this->offset = std::make_shared<EMPAAngleOffsetToPlayer>();
-			onValueChange.emit(this, std::make_pair(oldOffset, offset));
+			onValueChange.emit(this, oldOffset, offset);
 			updateWidgets();
 		}),
-		std::make_pair("Absolute position", [&]() {
+		std::make_pair("Absolute position", [this]() {
 			this->offset = std::make_shared<EMPAAngleOffsetToGlobalPosition>();
-			onValueChange.emit(this, std::make_pair(oldOffset, offset));
+			onValueChange.emit(this, oldOffset, offset);
 			updateWidgets();
 		}),
-		std::make_pair("Bind to player's direction", [&]() {
+		std::make_pair("Bind to player's direction", [this]() {
 			this->offset = std::make_shared<EMPAngleOffsetPlayerSpriteAngle>();
-			onValueChange.emit(this, std::make_pair(oldOffset, offset));
+			onValueChange.emit(this, oldOffset, offset);
 			updateWidgets();
 		})
 		});
@@ -65,34 +65,34 @@ Evaluator refers to the entity that is evaluating this function, and player refe
 
 	x = EditBox::create();
 	y = EditBox::create();
-	x->connect("ValueChanged", [&](std::string value) {
+	x->onValueChange.connect([this](tgui::String value) {
 		if (ignoreSignals) return;
 
 		if (dynamic_cast<EMPAAngleOffsetToPlayer*>(offset.get()) != nullptr) {
 			auto ptr = dynamic_cast<EMPAAngleOffsetToPlayer*>(offset.get());
-			ptr->setXOffset(value);
-			onValueChange.emit(this, std::make_pair(oldOffset, offset));
+			ptr->setXOffset(static_cast<std::string>(value));
+			onValueChange.emit(this, oldOffset, offset);
 		} else if (dynamic_cast<EMPAAngleOffsetToGlobalPosition*>(offset.get()) != nullptr) {
 			auto ptr = dynamic_cast<EMPAAngleOffsetToGlobalPosition*>(offset.get());
-			ptr->setX(value);
-			onValueChange.emit(this, std::make_pair(oldOffset, offset));
+			ptr->setX(static_cast<std::string>(value));
+			onValueChange.emit(this, oldOffset, offset);
 		} else if (dynamic_cast<EMPAAngleOffsetConstant*>(offset.get()) != nullptr) {
 			auto ptr = dynamic_cast<EMPAAngleOffsetConstant*>(offset.get());
-			ptr->setValue(value);
-			onValueChange.emit(this, std::make_pair(oldOffset, offset));
+			ptr->setValue(static_cast<std::string>(value));
+			onValueChange.emit(this, oldOffset, offset);
 		}
 	});
-	y->connect("ValueChanged", [&](std::string value) {
+	y->onValueChange.connect([this](tgui::String value) {
 		if (ignoreSignals) return;
 
 		if (dynamic_cast<EMPAAngleOffsetToPlayer*>(offset.get()) != nullptr) {
 			auto ptr = dynamic_cast<EMPAAngleOffsetToPlayer*>(offset.get());
-			ptr->setYOffset(value);
-			onValueChange.emit(this, std::make_pair(oldOffset, offset));
+			ptr->setYOffset(static_cast<std::string>(value));
+			onValueChange.emit(this, oldOffset, offset);
 		} else if (dynamic_cast<EMPAAngleOffsetToGlobalPosition*>(offset.get()) != nullptr) {
 			auto ptr = dynamic_cast<EMPAAngleOffsetToGlobalPosition*>(offset.get());
-			ptr->setY(value);
-			onValueChange.emit(this, std::make_pair(oldOffset, offset));
+			ptr->setY(static_cast<std::string>(value));
+			onValueChange.emit(this, oldOffset, offset);
 		}
 	});
 	x->setTextSize(TEXT_SIZE);
@@ -102,7 +102,7 @@ Evaluator refers to the entity that is evaluating this function, and player refe
 	add(x);
 	add(y);
 
-	connect("SizeChanged", [&](sf::Vector2f newSize) {
+	onSizeChange.connect([this](sf::Vector2f newSize) {
 		if (ignoreResizeSignal) {
 			return;
 		}
@@ -131,8 +131,8 @@ void EMPAAngleOffsetGroup::setEMPAAngleOffset(std::shared_ptr<EMPAAngleOffset> o
 	updateWidgets();
 }
 
-tgui::Signal& EMPAAngleOffsetGroup::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onValueChange.getName())) {
+tgui::Signal& EMPAAngleOffsetGroup::getSignal(tgui::String signalName) {
+	if (signalName == onValueChange.getName().toLower()) {
 		return onValueChange;
 	}
 	return HideableGroup::getSignal(signalName);

@@ -14,7 +14,7 @@ AttackEditorPropertiesPanel::AttackEditorPropertiesPanel(MainEditorWindow& mainE
 	std::shared_ptr<tgui::Label> nameLabel = tgui::Label::create();
 	name = EditBox::create();
 	std::shared_ptr<tgui::Label> usedByLabel = tgui::Label::create();
-	usedBy = ListViewScrollablePanel::create();
+	usedBy = ListView::create();
 
 	id->setText("Attack ID " + std::to_string(attack->getID()));
 	nameLabel->setText("Name");
@@ -25,7 +25,7 @@ AttackEditorPropertiesPanel::AttackEditorPropertiesPanel(MainEditorWindow& mainE
 	nameLabel->setTextSize(TEXT_SIZE);
 	name->setTextSize(TEXT_SIZE);
 	usedByLabel->setTextSize(TEXT_SIZE);
-	usedBy->getListView()->setTextSize(TEXT_SIZE);
+	usedBy->setTextSize(TEXT_SIZE);
 
 	id->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
 	nameLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(id) + GUI_PADDING_Y);
@@ -33,12 +33,12 @@ AttackEditorPropertiesPanel::AttackEditorPropertiesPanel(MainEditorWindow& mainE
 	usedByLabel->setPosition(tgui::bindLeft(id), tgui::bindBottom(name) + GUI_PADDING_Y);
 	usedBy->setPosition(tgui::bindLeft(id), tgui::bindBottom(usedByLabel) + GUI_LABEL_PADDING_Y);
 
-	connect("SizeChanged", [this](sf::Vector2f newSize) {
+	onSizeChange.connect([this](sf::Vector2f newSize) {
 		name->setSize(newSize.x - GUI_PADDING_X * 2, tgui::bindHeight(name));
-		usedBy->setSize(newSize.x - GUI_PADDING_X * 2, newSize.y - tgui::bindTop(usedBy) - GUI_PADDING_Y);
+		usedBy->setSize(newSize.x - GUI_PADDING_X * 2, newSize.y - tgui::bindTop(usedBy) - GUI_PADDING_Y * 2);
 	});
 
-	name->connect("ValueChanged", [this](std::string text) {
+	name->onValueChange.connect([this](tgui::String text) {
 		if (ignoreSignals) {
 			return;
 		}
@@ -47,7 +47,7 @@ AttackEditorPropertiesPanel::AttackEditorPropertiesPanel(MainEditorWindow& mainE
 
 		if (text != oldName) {
 			undoStack.execute(UndoableCommand([this, text]() {
-				this->attack->setName(text);
+				this->attack->setName(static_cast<std::string>(text));
 				name->setText(text);
 				onAttackModify.emit(this);
 			}, [this, oldName]() {
@@ -109,8 +109,8 @@ bool AttackEditorPropertiesPanel::handleEvent(sf::Event event) {
 	return false;
 }
 
-tgui::Signal& AttackEditorPropertiesPanel::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onAttackModify.getName())) {
+tgui::Signal& AttackEditorPropertiesPanel::getSignal(tgui::String signalName) {
+	if (signalName == onAttackModify.getName().toLower()) {
 		return onAttackModify;
 	}
 	return tgui::Panel::getSignal(signalName);
@@ -120,7 +120,7 @@ void AttackEditorPropertiesPanel::manualPaste() {
 	clipboard.paste2(this);
 }
 
-std::shared_ptr<ListViewScrollablePanel> AttackEditorPropertiesPanel::getUsedByPanel() {
+std::shared_ptr<ListView> AttackEditorPropertiesPanel::getUsedByListView() {
 	return usedBy;
 }
 

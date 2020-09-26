@@ -11,14 +11,15 @@ Signals:
 */
 class EditBox : public tgui::EditBox {
 public:
+	// Emitted when return key is pressed or when the widget is unfocused
+	tgui::SignalString onValueChange = { "ValueChanged" };
+
 	EditBox();
 	static std::shared_ptr<EditBox> create() {
 		return std::make_shared<EditBox>();
 	}
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 
 private:
-	// Emitted when return key is pressed or when the widget is unfocused
-	tgui::SignalString onValueChange = { "ValueChanged" };
 };

@@ -24,7 +24,7 @@ AttackPatternEditorPanel::AttackPatternEditorPanel(MainEditorWindow& mainEditorW
 	symbolTableEditorWindow->setFallbackEventHandler([this](sf::Event event) {
 		return symbolTableEditor->handleEvent(event);
 	});
-	symbolTableEditor->connect("ValueChanged", [this](ValueSymbolTable table) {
+	symbolTableEditor->onValueChange.connect([this](ValueSymbolTable table) {
 		this->attackPattern->setSymbolTable(table);
 		onChange(table);
 		onAttackPatternModify.emit(this, this->attackPattern);
@@ -38,7 +38,7 @@ AttackPatternEditorPanel::AttackPatternEditorPanel(MainEditorWindow& mainEditorW
 
 	// Properties tab
 	propertiesPanel = AttackPatternEditorPropertiesPanel::create(mainEditorWindow, clipboard, attackPattern);
-	propertiesPanel->connect("AttackPatternModified", [this]() {
+	propertiesPanel->onAttackPatternModify.connect([this]() {
 		onAttackPatternModify.emit(this, this->attackPattern);
 	});
 	propertiesPanel->setSize("100%", "100%");
@@ -48,7 +48,7 @@ AttackPatternEditorPanel::AttackPatternEditorPanel(MainEditorWindow& mainEditorW
 	// Initial population
 	populatePropertiesUsedByList();
 
-	propertiesPanel->getUsedByPanel()->getListView()->connect("DoubleClicked", [&](int index) {
+	propertiesPanel->getUsedByListView()->onDoubleClick.connect([this](int index) {
 		if (usedByIDMap.find(index) != usedByIDMap.end()) {
 			if (usedByIDMap[index] == USED_BY_ID_MAP_PLAYER_RESERVED_ID) {
 				onPlayerBeginEdit.emit(this);
@@ -68,7 +68,11 @@ AttackPatternEditorPanel::AttackPatternEditorPanel(MainEditorWindow& mainEditorW
 			}
 		})
 	});
-	propertiesPanel->getUsedByPanel()->getListView()->connect("RightClicked", [this, rightClickMenuPopup](int index) {
+	propertiesPanel->getUsedByListView()->onRightClick.connect([this, rightClickMenuPopup](int index) {
+		if (index == -1) {
+			return;
+		}
+
 		if (this->usedByIDMap.find(index) != this->usedByIDMap.end()) {
 			this->usedByRightClickedID = usedByIDMap[index];
 			// Open right click menu
@@ -78,7 +82,7 @@ AttackPatternEditorPanel::AttackPatternEditorPanel(MainEditorWindow& mainEditorW
 	
 	// Movement tab
 	std::shared_ptr<EMPABasedMovementEditorPanel> movementEditorPanel = EMPABasedMovementEditorPanel::create(mainEditorWindow, clipboard);
-	movementEditorPanel->connect("EMPAListModified", [this](std::vector<std::shared_ptr<EMPAction>> newActions, float newSumOfDurations) {
+	movementEditorPanel->onEMPAListModify.connect([this](std::vector<std::shared_ptr<EMPAction>> newActions, float newSumOfDurations) {
 		// This shouldn't be undoable here because it's already undoable from EMPABasedMovementEditorPanel.
 		// Note: Setting the limits of a SliderWithEditBox to some number and then setting it back does not
 		// revert the SliderWithEditBox's value
@@ -115,12 +119,12 @@ bool AttackPatternEditorPanel::handleEvent(sf::Event event) {
 	return false;
 }
 
-tgui::Signal& AttackPatternEditorPanel::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onEnemyPhaseBeginEdit.getName())) {
+tgui::Signal& AttackPatternEditorPanel::getSignal(tgui::String signalName) {
+	if (signalName == onEnemyPhaseBeginEdit.getName().toLower()) {
 		return onEnemyPhaseBeginEdit;
-	} else if (signalName == tgui::toLower(onPlayerBeginEdit.getName())) {
+	} else if (signalName == onPlayerBeginEdit.getName().toLower()) {
 		return onPlayerBeginEdit;
-	} else if (signalName == tgui::toLower(onAttackPatternModify.getName())) {
+	} else if (signalName == onAttackPatternModify.getName().toLower()) {
 		return onAttackPatternModify;
 	}
 	return tgui::Panel::getSignal(signalName);
@@ -149,19 +153,18 @@ void AttackPatternEditorPanel::onLevelPackChange(LevelPack::LEVEL_PACK_OBJECT_HI
 
 void AttackPatternEditorPanel::populatePropertiesUsedByList() {
 	usedByIDMap.clear();
-	auto usedBy = propertiesPanel->getUsedByPanel();
-	usedBy->getListView()->removeAllItems();
+	std::shared_ptr<ListView> usedBy = propertiesPanel->getUsedByListView();
+	usedBy->removeAllItems();
 	int i = 0;
 	if (levelPack->getAttackPatternIsUsedByPlayer(attackPattern->getID())) {
 		usedByIDMap[i] = -1;
-		usedBy->getListView()->addItem("Player");
+		usedBy->addItem("Player");
 		i++;
 	}
 	auto attackPatternIDs = levelPack->getAttackPatternEnemyUsers(attackPattern->getID());
 	for (; i < attackPatternIDs.size(); i++) {
 		int id = attackPatternIDs[i];
 		usedByIDMap[i] = id;
-		usedBy->getListView()->addItem("Enemy phase ID " + std::to_string(id));
+		usedBy->addItem("Enemy phase ID " + std::to_string(id));
 	}
-	usedBy->onListViewItemsUpdate();
 }

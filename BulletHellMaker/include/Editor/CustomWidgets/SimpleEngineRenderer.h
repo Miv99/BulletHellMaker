@@ -26,8 +26,8 @@ public:
 		return std::make_shared<SimpleEngineRenderer>(parentWindow);
 	}
 
-	bool update(sf::Time elapsedTime) override;
-	virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+	bool updateTime(tgui::Duration elapsedTime) override;
+	virtual void draw(tgui::BackendRenderTargetBase& target, tgui::RenderStates states) const override;
 
 	virtual bool handleEvent(sf::Event event) override;
 

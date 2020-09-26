@@ -65,7 +65,7 @@ private:
 
 	std::shared_ptr<sf::Sprite> sprite;
 	// The original sprite. Used for returning to original appearance after an animation ends.
-	sf::Sprite originalSprite;
+	std::shared_ptr<sf::Sprite> originalSprite;
 	// Effect animation that the sprite is currently undergoing, if any
 	std::unique_ptr<SpriteEffectAnimation> effectAnimation;
 	// Animation that the sprite is currently undergoing, if any

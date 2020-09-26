@@ -4,7 +4,7 @@
 #include <Util/IOUtils.h>
 #include <DataStructs/SpriteLoader.h>
 #include <Editor/EventCapturable.h>
-#include <Editor/CustomWidgets/ListViewScrollablePanel.h>
+#include <Editor/CustomWidgets/ListView.h>
 #include <Editor/Windows/EditorWindowConfirmationPromptChoice.h>
 
 class MainEditorWindow;
@@ -41,7 +41,7 @@ public:
 	*/
 	void reloadListOnly();
 
-	std::shared_ptr<ListViewScrollablePanel> getListViewScrollablePanel();
+	std::shared_ptr<ListView> getListViewScrollablePanel();
 	/*
 	Returns the name of the sprite sheet at some index
 	in the list of sprite sheets.
@@ -68,11 +68,11 @@ private:
 	LevelPack* levelPack;
 
 	// Contains sprite sheets, their sprites, and their animations
-	std::shared_ptr<ListViewScrollablePanel> spriteSheetsList;
+	std::shared_ptr<ListView> spriteSheetsListView;
 
-	// Maps sprite sheet name to index in spriteSheetsList
+	// Maps sprite sheet name to index in spriteSheetsListView
 	std::map<std::string, int> spriteSheetIndexByName;
-	// Maps index in spriteSheetsList to sprite sheet name
+	// Maps index in spriteSheetsListView to sprite sheet name
 	std::map<int, std::string> spriteSheetNameByIndex;
 
 	void importExternalSpriteSheet(SpriteSheetsTreeViewPanelReplaceFileData data);

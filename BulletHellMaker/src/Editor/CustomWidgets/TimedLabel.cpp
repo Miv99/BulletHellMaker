@@ -3,7 +3,7 @@
 TimedLabel::TimedLabel(float charDelay) : charDelay(charDelay) {
 }
 
-bool TimedLabel::update(sf::Time elapsedTime) {
+bool TimedLabel::updateTime(tgui::Duration elapsedTime) {
 	timeSinceTextSet += elapsedTime.asSeconds();
 	if (timeSinceTextSet > initialDelay) {
 		timeSinceLastChar += elapsedTime.asSeconds();
@@ -14,7 +14,7 @@ bool TimedLabel::update(sf::Time elapsedTime) {
 		}
 		timeSinceLastChar = std::fmod(timeSinceLastChar, charDelay);
 	}
-	return Label::update(elapsedTime);
+	return Label::updateTime(elapsedTime);
 }
 
 void TimedLabel::setText(const sf::String& text, float initialDelay) {

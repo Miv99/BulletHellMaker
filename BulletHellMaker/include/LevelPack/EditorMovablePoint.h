@@ -7,15 +7,15 @@
 #include <set>
 #include <limits>
 
-#include <LevelPack/TextMarshallable.h>
-#include <LevelPack/EditorMovablePointAction.h>
-#include <Game/EntityCreationQueue.h>
-#include <LevelPack/Animatable.h>
+#include <DataStructs/IDGenerator.h>
 #include <DataStructs/SpriteLoader.h>
+#include <LevelPack/Animatable.h>
+#include <LevelPack/EditorMovablePointAction.h>
+#include <LevelPack/LayerRootLevelPackObject.h>
+#include <LevelPack/TextMarshallable.h>
+#include <Game/EntityCreationQueue.h>
 #include <Game/Systems/CollisionSystem.h>
 #include <Game/AudioPlayer.h>
-#include <LevelPack/LayerRootLevelPackObject.h>
-#include <DataStructs/IDGenerator.h>
 
 class EMPSpawnType;
 class EditorMovablePoint;
@@ -172,8 +172,8 @@ public:
 	inline float getHitboxRadius() const { return hitboxRadiusExprCompiledValue; }
 	inline std::string getRawHitboxRadius() const { return hitboxRadius; }
 	inline float getDespawnTime() const { return despawnTime; }
-	inline const std::shared_ptr<EMPSpawnType> getSpawnType() { return spawnType; }
-	inline const std::vector<std::shared_ptr<EditorMovablePoint>> getChildren() { return children; }
+	inline const std::shared_ptr<EMPSpawnType> getSpawnType() const { return spawnType; }
+	inline const std::vector<std::shared_ptr<EditorMovablePoint>> getChildren() const { return children; }
 	inline std::shared_ptr<EMPAction> getAction(int index) { return actions[index]; }
 	inline const std::vector<std::shared_ptr<EMPAction>> getActions() { return actions; }
 	inline const int getActionsCount() const { return actions.size(); }
@@ -182,7 +182,7 @@ public:
 	inline std::string getRawShadowTrailInterval() const { return shadowTrailInterval; }
 	inline std::string getRawShadowTrailLifespan() const { return shadowTrailLifespan; }
 	float getTotalPathTime() const;
-	inline std::shared_ptr<EditorMovablePoint> getParent() { return parent.lock(); }
+	inline std::shared_ptr<EditorMovablePoint> getParent() const { return parent.lock(); }
 	inline int getDamage() const { return damageExprCompiledValue; }
 	inline std::string getRawDamage() const { return damage; }
 	inline bool getLoopAnimation() const { return loopAnimation; }
@@ -268,27 +268,6 @@ public:
 	newAttack - the new EditorAttack that this EMP is a child of
 	*/
 	void onNewParentEditorAttack(std::shared_ptr<EditorAttack> newAttack);
-
-
-	/*
-	Generates a list of string vectors such that, when each of the string vectors are added to a tgui::TreeView,
-	the tree hierarchy of the EMPs of this attack is created.
-
-	nodeText - a function that takes an EMP and returns a string -- the text in the tgui::TreeView for the node for that EMP
-	pathToThisEmp - the ordered series of strings from the root of the tree this EMP is part of, to this EMP.
-		For example, if this EMP has id 3 and its tree looks like
-		      0
-			1   2
-			      3
-		then pathToThisEmp will be { nodeText(emp0), nodeText(emp2) }
-	*/
-	std::vector<std::vector<sf::String>> generateTreeViewEmpHierarchy(std::function<sf::String(const EditorMovablePoint&)> nodeText, std::vector<sf::String> pathToThisEmp);
-	/*
-	Generates the path to this EMP such that it can be inserted as an item into a tgui::TreeView
-
-	nodeText - a function that takes an EMP and returns a string -- the text in the tgui::TreeView for the node for that EMP
-	*/
-	std::vector<sf::String> generatePathToThisEmp(std::function<sf::String(const EditorMovablePoint&)> nodeText);
 
 	int getTreeSize() const;
 	float searchLargestHitbox() const;

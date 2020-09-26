@@ -15,7 +15,7 @@ ValueSymbolTableEditor::ValueSymbolTableEditor(bool isTableForTopLevelObject, bo
 	std::shared_ptr<tgui::Button> addSymbol = tgui::Button::create();
 	std::shared_ptr<tgui::Button> deleteSymbol = tgui::Button::create();
 	std::shared_ptr<EditBox> symbolNameChooser = EditBox::create();
-	symbolsList = ListBoxScrollablePanel::create();
+	symbolsList = ListView::create();
 	redelegateCheckBox = tgui::CheckBox::create();
 	std::shared_ptr<tgui::Label> valueEditBoxLabel = tgui::Label::create();
 	valueEditBox = NumericalEditBoxWithLimits::create();
@@ -55,19 +55,19 @@ this object."));
 	addSymbol->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
 	deleteSymbol->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
 	symbolNameChooser->setSize(tgui::bindWidth(symbolsList) - SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
-	connect("SizeChanged", [this, deleteSymbol, symbolNameChooser](sf::Vector2f newSize) {
+	onSizeChange.connect([this, deleteSymbol, symbolNameChooser](sf::Vector2f newSize) {
 		symbolsList->setSize(newSize.x / 2.0f - GUI_PADDING_X * 2, newSize.y - deleteSymbol->getPosition().y - deleteSymbol->getSize().y - symbolNameChooser ->getSize().y - GUI_PADDING_Y);
 		valueEditBox->setSize(newSize.x / 2.0f - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 	});
 
-	symbolsList->getListBox()->connect("ItemSelected", [this, valueEditBoxLabel, canRedelegate](int index) {
+	symbolsList->onItemSelect.connect([this, valueEditBoxLabel, canRedelegate](int index) {
 		if (ignoreSignals) {
 			return;
 		}
 
 		if (index >= 0 && index >= editableIndexBegin) {
 			ValueSymbolDefinition definition = symbolTablesHierarchy[symbolTablesHierarchy.size() - 1]
-				.getSymbolDefinition(getSymbolFromSymbolsListItemID(symbolsList->getListBox()->getSelectedItemId()));
+				.getSymbolDefinition(getSymbolFromSymbolsListItemID(static_cast<std::string>(symbolsList->getSelectedItemId())));
 			redelegateCheckBox->setChecked(definition.redelegated);
 			valueEditBox->setValue(definition.value);
 
@@ -82,17 +82,17 @@ this object."));
 			valueEditBox->setVisible(false);
 		}
 	});
-	redelegateCheckBox->connect("Changed", [this](bool checked) {
+	redelegateCheckBox->onChange.connect([this](bool checked) {
 		valueEditBox->setEnabled(!checked);
 
 		if (ignoreSignals) {
 			return;
 		}
 
-		std::string id = symbolsList->getListBox()->getSelectedItemId();
+		std::string id = static_cast<std::string>(symbolsList->getSelectedItemId());
 		std::string symbol = getSymbolFromSymbolsListItemID(id);
 		undoStack.execute(UndoableCommand(
-			[this, symbol, id, checked]() {
+			[this, symbol, checked]() {
 			ValueSymbolDefinition definition = symbolTablesHierarchy[symbolTablesHierarchy.size() - 1].getSymbolDefinition(symbol);
 			symbolTablesHierarchy[symbolTablesHierarchy.size() - 1].setSymbol(symbol, definition.value, checked);
 
@@ -105,7 +105,7 @@ this object."));
 
 			onValueChange.emit(this, symbolTablesHierarchy[symbolTablesHierarchy.size() - 1]);
 		},
-			[this, symbol, id, checked]() {
+			[this, symbol, checked]() {
 			ValueSymbolDefinition definition = symbolTablesHierarchy[symbolTablesHierarchy.size() - 1].getSymbolDefinition(symbol);
 			symbolTablesHierarchy[symbolTablesHierarchy.size() - 1].setSymbol(symbol, definition.value, !checked);
 
@@ -119,19 +119,19 @@ this object."));
 			onValueChange.emit(this, symbolTablesHierarchy[symbolTablesHierarchy.size() - 1]);
 		}));
 	});
-	valueEditBox->connect("ValueChanged", [this](float value) {
+	valueEditBox->onValueChange.connect([this](float value) {
 		if (ignoreSignals) {
 			return;
 		}
 
-		std::string id = symbolsList->getListBox()->getSelectedItemId();
+		std::string id = static_cast<std::string>(symbolsList->getSelectedItemId());
 		std::string symbol = getSymbolFromSymbolsListItemID(id);
 		float oldValue = symbolTablesHierarchy[symbolTablesHierarchy.size() - 1].getSymbolDefinition(symbol).value;
 		if (oldValue == value) {
 			return;
 		}
 		undoStack.execute(UndoableCommand(
-			[this, symbol, id, value]() {
+			[this, symbol, value]() {
 			ValueSymbolDefinition definition = symbolTablesHierarchy[symbolTablesHierarchy.size() - 1].getSymbolDefinition(symbol);
 			symbolTablesHierarchy[symbolTablesHierarchy.size() - 1].setSymbol(symbol, value, definition.redelegated);
 
@@ -144,7 +144,7 @@ this object."));
 
 			onValueChange.emit(this, symbolTablesHierarchy[symbolTablesHierarchy.size() - 1]);
 		},
-			[this, symbol, id, oldValue]() {
+			[this, symbol, oldValue]() {
 			ValueSymbolDefinition definition = symbolTablesHierarchy[symbolTablesHierarchy.size() - 1].getSymbolDefinition(symbol);
 			symbolTablesHierarchy[symbolTablesHierarchy.size() - 1].setSymbol(symbol, oldValue, definition.redelegated);
 
@@ -158,17 +158,17 @@ this object."));
 			onValueChange.emit(this, symbolTablesHierarchy[symbolTablesHierarchy.size() - 1]);
 		}));
 	});
-	symbolNameChooser->connect("ReturnKeyPressed", [this, symbolNameChooser]() {
-		if (manualAdd(symbolNameChooser->getText())) {
+	symbolNameChooser->onReturnKeyPress.connect([this, symbolNameChooser]() {
+		if (manualAdd(static_cast<std::string>(symbolNameChooser->getText()))) {
 			symbolNameChooser->setText("");
 		}
 	});
-	addSymbol->connect("Pressed", [this, symbolNameChooser]() {
-		if (manualAdd(symbolNameChooser->getText())) {
+	addSymbol->onPress.connect([this, symbolNameChooser]() {
+		if (manualAdd(static_cast<std::string>(symbolNameChooser->getText()))) {
 			symbolNameChooser->setText("");
 		}
 	});
-	deleteSymbol->connect("Pressed", [this]() {
+	deleteSymbol->onPress.connect([this]() {
 		manualDelete();
 	});
 
@@ -197,7 +197,7 @@ this object."));
 		showParentSymbols->setTextSize(TEXT_SIZE);
 		showParentSymbols->setText("Show resolved variables from parents");
 
-		showParentSymbols->connect("Changed", [this](bool checked) {
+		showParentSymbols->onChange.connect([this](bool checked) {
 			// Reload symbolsList
 			setSymbolTablesHierarchy(symbolTablesHierarchy);
 		});
@@ -224,8 +224,8 @@ bool ValueSymbolTableEditor::handleEvent(sf::Event event) {
 	return false;
 }
 
-tgui::Signal& ValueSymbolTableEditor::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onValueChange.getName())) {
+tgui::Signal& ValueSymbolTableEditor::getSignal(tgui::String signalName) {
+	if (signalName == onValueChange.getName().toLower()) {
 		return onValueChange;
 	}
 	return tgui::Panel::getSignal(signalName);
@@ -234,20 +234,19 @@ tgui::Signal& ValueSymbolTableEditor::getSignal(std::string signalName) {
 void ValueSymbolTableEditor::setSymbolTablesHierarchy(std::vector<ValueSymbolTable> symbolTablesHierarchy) {
 	this->symbolTablesHierarchy = symbolTablesHierarchy;
 
-	auto listBox = symbolsList->getListBox();
-	std::string oldSelected = listBox->getSelectedItemId();
+	std::string oldSelected = static_cast<std::string>(symbolsList->getSelectedItemId());
 
 	ignoreSignals = true;
-	listBox->removeAllItems();
+	symbolsList->removeAllItems();
 	editableIndexBegin = 0;
 	if (canShowParentSymbols && showParentSymbols->isChecked()) {
 		for (int i = 0; i < symbolTablesHierarchy.size() - 1; i++) {
 			for (auto it = symbolTablesHierarchy[i].getIteratorBegin(); it != symbolTablesHierarchy[i].getIteratorEnd(); it++) {
 				std::pair<std::string, ValueSymbolDefinition> pair = *it;
 				if (pair.second.redelegated) {
-					listBox->addItem("[P] " + pair.first + " = REDELEGATED", std::to_string(i) + "|" + pair.first);
+					symbolsList->addItem("[P] " + pair.first + " = REDELEGATED", std::to_string(i) + "|" + pair.first);
 				} else {
-					listBox->addItem("[P] " + pair.first + " = " + formatNum(pair.second.value), std::to_string(i) + "|" + pair.first);
+					symbolsList->addItem("[P] " + pair.first + " = " + formatNum(pair.second.value), std::to_string(i) + "|" + pair.first);
 				}
 				editableIndexBegin++;
 			}
@@ -256,16 +255,16 @@ void ValueSymbolTableEditor::setSymbolTablesHierarchy(std::vector<ValueSymbolTab
 	for (auto it = symbolTablesHierarchy[symbolTablesHierarchy.size() - 1].getIteratorBegin(); it != symbolTablesHierarchy[symbolTablesHierarchy.size() - 1].getIteratorEnd(); it++) {
 		std::pair<std::string, ValueSymbolDefinition> pair = *it;
 		if (pair.second.redelegated) {
-			listBox->addItem(pair.first + " = REDELEGATED", std::to_string(symbolTablesHierarchy.size() - 1) + "|" + pair.first);
+			symbolsList->addItem(pair.first + " = REDELEGATED", std::to_string(symbolTablesHierarchy.size() - 1) + "|" + pair.first);
 		} else {
-			listBox->addItem(pair.first + " = " + formatNum(pair.second.value), std::to_string(symbolTablesHierarchy.size() - 1) + "|" + pair.first);
+			symbolsList->addItem(pair.first + " = " + formatNum(pair.second.value), std::to_string(symbolTablesHierarchy.size() - 1) + "|" + pair.first);
 		}
 	}
 
-	if (oldSelected != "" && listBox->getItemById(oldSelected) != "") {
-		listBox->setSelectedItemById(oldSelected);
+	if (oldSelected != "" && symbolsList->getItemById(oldSelected) != "") {
+		symbolsList->setSelectedItemById(oldSelected);
 	} else {
-		listBox->deselectItem();
+		symbolsList->deselectItem();
 	}
 	ignoreSignals = false;
 }
@@ -289,8 +288,8 @@ bool ValueSymbolTableEditor::manualAdd(std::string symbol) {
 	},
 		[this, symbol, id]() {
 		symbolTablesHierarchy[symbolTablesHierarchy.size() - 1].removeSymbol(symbol);
-		if (getSymbolFromSymbolsListItemID(symbolsList->getListBox()->getSelectedItemId()) == symbol) {
-			symbolsList->getListBox()->deselectItem();
+		if (getSymbolFromSymbolsListItemID(static_cast<std::string>(symbolsList->getSelectedItemId())) == symbol) {
+			symbolsList->deselectItem();
 		}
 
 		// Reload symbolsList
@@ -302,15 +301,15 @@ bool ValueSymbolTableEditor::manualAdd(std::string symbol) {
 }
 
 void ValueSymbolTableEditor::manualDelete() {
-	std::string id = symbolsList->getListBox()->getSelectedItemId();
+	tgui::String id = symbolsList->getSelectedItemId();
 	if (id != "") {
-		std::string symbol = getSymbolFromSymbolsListItemID(symbolsList->getListBox()->getSelectedItemId());
+		std::string symbol = getSymbolFromSymbolsListItemID(static_cast<std::string>(symbolsList->getSelectedItemId()));
 		ValueSymbolDefinition oldValue = symbolTablesHierarchy[symbolTablesHierarchy.size() - 1].getSymbolDefinition(symbol);
 		undoStack.execute(UndoableCommand(
-			[this, id, symbol]() {
+			[this, symbol]() {
 			symbolTablesHierarchy[symbolTablesHierarchy.size() - 1].removeSymbol(symbol);
-			if (getSymbolFromSymbolsListItemID(symbolsList->getListBox()->getSelectedItemId()) == symbol) {
-				symbolsList->getListBox()->deselectItem();
+			if (getSymbolFromSymbolsListItemID(static_cast<std::string>(symbolsList->getSelectedItemId())) == symbol) {
+				symbolsList->deselectItem();
 			}
 
 			// Reload symbolsList
@@ -318,7 +317,7 @@ void ValueSymbolTableEditor::manualDelete() {
 
 			onValueChange.emit(this, symbolTablesHierarchy[symbolTablesHierarchy.size() - 1]);
 		},
-			[this, id, symbol, oldValue]() {
+			[this, symbol, oldValue]() {
 			symbolTablesHierarchy[symbolTablesHierarchy.size() - 1].setSymbol(symbol, oldValue.value, oldValue.redelegated);
 
 			// Reload symbolsList
@@ -355,7 +354,7 @@ ExprSymbolTableEditor::ExprSymbolTableEditor(UndoStack& undoStack)
 	std::shared_ptr<tgui::Button> addSymbol = tgui::Button::create();
 	std::shared_ptr<tgui::Button> deleteSymbol = tgui::Button::create();
 	std::shared_ptr<EditBox> symbolNameChooser = EditBox::create();
-	symbolsList = ListBoxScrollablePanel::create();
+	symbolsList = ListView::create();
 	std::shared_ptr<tgui::Label> valueEditBoxLabel = tgui::Label::create();
 	valueEditBox = EditBox::create();
 
@@ -388,19 +387,19 @@ by its children objects."));
 	addSymbol->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
 	deleteSymbol->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
 	symbolNameChooser->setSize(tgui::bindWidth(symbolsList) - SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
-	connect("SizeChanged", [this, deleteSymbol, symbolNameChooser](sf::Vector2f newSize) {
+	onSizeChange.connect([this, deleteSymbol, symbolNameChooser](sf::Vector2f newSize) {
 		symbolsList->setSize(newSize.x / 2.0f - GUI_PADDING_X * 2, newSize.y - deleteSymbol->getPosition().y - deleteSymbol->getSize().y - symbolNameChooser->getSize().y - GUI_PADDING_Y);
 		valueEditBox->setSize(newSize.x / 2.0f - GUI_PADDING_X * 2, TEXT_BOX_HEIGHT);
 	});
 
-	symbolsList->getListBox()->connect("ItemSelected", [this, valueEditBoxLabel](int index) {
+	symbolsList->onItemSelect.connect([this, valueEditBoxLabel](int index) {
 		if (ignoreSignals) {
 			return;
 		}
 
 		if (index >= 0 && index >= editableIndexBegin) {
 			ExprSymbolDefinition definition = exprSymbolTable
-				.getSymbolDefinition(getSymbolFromSymbolsListItemID(symbolsList->getListBox()->getSelectedItemId()));
+				.getSymbolDefinition(getSymbolFromSymbolsListItemID(static_cast<std::string>(symbolsList->getSelectedItemId())));
 			valueEditBox->setText(definition.expressionStr);
 
 			valueEditBoxLabel->setVisible(true);
@@ -410,22 +409,22 @@ by its children objects."));
 			valueEditBox->setVisible(false);
 		}
 	});
-	valueEditBox->connect("ValueChanged", [this](std::string value) {
+	valueEditBox->onValueChange.connect([this](tgui::String value) {
 		if (ignoreSignals) {
 			return;
 		}
 
-		std::string id = symbolsList->getListBox()->getSelectedItemId();
+		std::string id = static_cast<std::string>(symbolsList->getSelectedItemId());
 		std::string symbol = getSymbolFromSymbolsListItemID(id);
 		std::string oldValue = exprSymbolTable.getSymbolDefinition(symbol).expressionStr;
 		if (oldValue == value) {
 			return;
 		}
 		this->undoStack.execute(UndoableCommand(
-			[this, symbol, id, value]() {
+			[this, symbol, value]() {
 			ExprSymbolDefinition definition = exprSymbolTable
-				.getSymbolDefinition(getSymbolFromSymbolsListItemID(symbolsList->getListBox()->getSelectedItemId()));
-			exprSymbolTable.setSymbol(symbol, value);
+				.getSymbolDefinition(getSymbolFromSymbolsListItemID(static_cast<std::string>(symbolsList->getSelectedItemId())));
+			exprSymbolTable.setSymbol(symbol, static_cast<std::string>(value));
 
 			ignoreSignals = true;
 			valueEditBox->setText(value);
@@ -436,9 +435,9 @@ by its children objects."));
 
 			onValueChange.emit(this, exprSymbolTable);
 		},
-			[this, symbol, id, oldValue]() {
+			[this, symbol, oldValue]() {
 			ExprSymbolDefinition definition = exprSymbolTable
-				.getSymbolDefinition(getSymbolFromSymbolsListItemID(symbolsList->getListBox()->getSelectedItemId()));
+				.getSymbolDefinition(getSymbolFromSymbolsListItemID(static_cast<std::string>(symbolsList->getSelectedItemId())));
 			exprSymbolTable.setSymbol(symbol, oldValue);
 
 			ignoreSignals = true;
@@ -451,17 +450,17 @@ by its children objects."));
 			onValueChange.emit(this, exprSymbolTable);
 		}));
 	});
-	symbolNameChooser->connect("ReturnKeyPressed", [this, symbolNameChooser]() {
-		if (manualAdd(symbolNameChooser->getText())) {
+	symbolNameChooser->onReturnKeyPress.connect([this, symbolNameChooser]() {
+		if (manualAdd(static_cast<std::string>(symbolNameChooser->getText()))) {
 			symbolNameChooser->setText("");
 		}
 	});
-	addSymbol->connect("Pressed", [this, symbolNameChooser]() {
-		if (manualAdd(symbolNameChooser->getText())) {
+	addSymbol->onPress.connect([this, symbolNameChooser]() {
+		if (manualAdd(static_cast<std::string>(symbolNameChooser->getText()))) {
 			symbolNameChooser->setText("");
 		}
 	});
-	deleteSymbol->connect("Pressed", [this]() {
+	deleteSymbol->onPress.connect([this]() {
 		manualDelete();
 	});
 
@@ -483,8 +482,8 @@ by its children objects."));
 	valueEditBox->setPosition(tgui::bindLeft(valueEditBoxLabel), tgui::bindBottom(valueEditBoxLabel) + GUI_LABEL_PADDING_Y);
 }
 
-tgui::Signal& ExprSymbolTableEditor::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onValueChange.getName())) {
+tgui::Signal& ExprSymbolTableEditor::getSignal(tgui::String signalName) {
+	if (signalName == onValueChange.getName().toLower()) {
 		return onValueChange;
 	}
 	return tgui::Panel::getSignal(signalName);
@@ -493,16 +492,15 @@ tgui::Signal& ExprSymbolTableEditor::getSignal(std::string signalName) {
 void ExprSymbolTableEditor::setSymbolTablesHierarchy(std::vector<ValueSymbolTable> symbolTablesHierarchy) {
 	this->symbolTablesHierarchy = symbolTablesHierarchy;
 
-	auto listBox = symbolsList->getListBox();
-	std::string oldSelected = listBox->getSelectedItemId();
+	tgui::String oldSelected = symbolsList->getSelectedItemId();
 
 	ignoreSignals = true;
 	repopulateListView();
 
-	if (oldSelected != "" && listBox->getItemById(oldSelected) != "") {
-		listBox->setSelectedItemById(oldSelected);
+	if (oldSelected != "" && symbolsList->getItemById(oldSelected) != "") {
+		symbolsList->setSelectedItemById(oldSelected);
 	} else {
-		listBox->deselectItem();
+		symbolsList->deselectItem();
 	}
 	ignoreSignals = false;
 }
@@ -510,38 +508,36 @@ void ExprSymbolTableEditor::setSymbolTablesHierarchy(std::vector<ValueSymbolTabl
 void ExprSymbolTableEditor::setExprSymbolTable(ExprSymbolTable symbolTable) {
 	this->exprSymbolTable = symbolTable;
 
-	auto listBox = symbolsList->getListBox();
-	std::string oldSelected = listBox->getSelectedItemId();
+	tgui::String oldSelected = symbolsList->getSelectedItemId();
 
 	ignoreSignals = true;
 	repopulateListView();
 
-	if (oldSelected != "" && listBox->getItemById(oldSelected) != "") {
-		listBox->setSelectedItemById(oldSelected);
+	if (oldSelected != "" && symbolsList->getItemById(oldSelected) != "") {
+		symbolsList->setSelectedItemById(oldSelected);
 	} else {
-		listBox->deselectItem();
+		symbolsList->deselectItem();
 	}
 	ignoreSignals = false;
 }
 
 void ExprSymbolTableEditor::repopulateListView() {
-	auto listBox = symbolsList->getListBox();
-	listBox->removeAllItems();
+	symbolsList->removeAllItems();
 	editableIndexBegin = 0;
 	for (int i = 0; i < symbolTablesHierarchy.size(); i++) {
 		for (auto it = symbolTablesHierarchy[i].getIteratorBegin(); it != symbolTablesHierarchy[i].getIteratorEnd(); it++) {
 			std::pair<std::string, ValueSymbolDefinition> pair = *it;
 			if (pair.second.redelegated) {
-				listBox->addItem("[P] " + pair.first + " = REDELEGATED", std::to_string(i) + "|" + pair.first);
+				symbolsList->addItem("[P] " + pair.first + " = REDELEGATED", std::to_string(i) + "|" + pair.first);
 			} else {
-				listBox->addItem("[P] " + pair.first + " = " + formatNum(pair.second.value), std::to_string(i) + "|" + pair.first);
+				symbolsList->addItem("[P] " + pair.first + " = " + formatNum(pair.second.value), std::to_string(i) + "|" + pair.first);
 			}
 			editableIndexBegin++;
 		}
 	}
 	for (auto it = exprSymbolTable.getIteratorBegin(); it != exprSymbolTable.getIteratorEnd(); it++) {
 		std::pair<std::string, ExprSymbolDefinition> pair = *it;
-		listBox->addItem(pair.first + " = " + pair.second.expressionStr, "-1|" + pair.first);
+		symbolsList->addItem(pair.first + " = " + pair.second.expressionStr, "-1|" + pair.first);
 	}
 }
 
@@ -564,8 +560,8 @@ bool ExprSymbolTableEditor::manualAdd(std::string symbol) {
 	},
 		[this, symbol, id]() {
 		exprSymbolTable.removeSymbol(symbol);
-		if (getSymbolFromSymbolsListItemID(symbolsList->getListBox()->getSelectedItemId()) == symbol) {
-			symbolsList->getListBox()->deselectItem();
+		if (getSymbolFromSymbolsListItemID(static_cast<std::string>(symbolsList->getSelectedItemId())) == symbol) {
+			symbolsList->deselectItem();
 		}
 
 		// Reload symbolsList
@@ -577,15 +573,15 @@ bool ExprSymbolTableEditor::manualAdd(std::string symbol) {
 }
 
 void ExprSymbolTableEditor::manualDelete() {
-	std::string id = symbolsList->getListBox()->getSelectedItemId();
+	tgui::String id = symbolsList->getSelectedItemId();
 	if (id != "") {
-		std::string symbol = getSymbolFromSymbolsListItemID(symbolsList->getListBox()->getSelectedItemId());
+		std::string symbol = getSymbolFromSymbolsListItemID(static_cast<std::string>(symbolsList->getSelectedItemId()));
 		ExprSymbolDefinition oldValue = exprSymbolTable.getSymbolDefinition(symbol);
 		undoStack.execute(UndoableCommand(
 			[this, id, symbol]() {
 			exprSymbolTable.removeSymbol(symbol);
-			if (getSymbolFromSymbolsListItemID(symbolsList->getListBox()->getSelectedItemId()) == symbol) {
-				symbolsList->getListBox()->deselectItem();
+			if (getSymbolFromSymbolsListItemID(static_cast<std::string>(symbolsList->getSelectedItemId())) == symbol) {
+				symbolsList->deselectItem();
 			}
 
 			// Reload symbolsList

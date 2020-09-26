@@ -3,7 +3,7 @@
 #include <Editor/CustomWidgets/HideableGroup.h>
 #include <Editor/EventCapturable.h>
 #include <Editor/CopyPaste.h>
-#include <Editor/CustomWidgets/ListBoxScrollablePanel.h>
+#include <Editor/CustomWidgets/ListView.h>
 #include <Editor/CustomWidgets/NumericalEditBoxWithLimits.h>
 #include <Editor/CustomWidgets/SliderWithEditBox.h>
 #include <Editor/Util/ExtraSignals.h>
@@ -20,6 +20,13 @@ Signals:
 */
 class TFVGroup : public HideableGroup, public EventCapturable, public CopyPasteable {
 public:
+	/*
+	Signal emitted when a change is made to the TFV being edited.
+	Optional parameter: a pair of a shared_ptr to the old TFV object
+		and shared_ptr to the new TFV object
+	*/
+	tgui::SignalTwoTFVs onValueChange = { "ValueChanged" };
+
 	TFVGroup(EditorWindow& parentWindow, Clipboard& clipboard);
 	static std::shared_ptr<TFVGroup> create(EditorWindow& parentWindow, Clipboard& clipboard) {
 		return std::make_shared<TFVGroup>(parentWindow, clipboard);
@@ -41,7 +48,7 @@ public:
 	*/
 	void setTFV(std::shared_ptr<TFV> tfv, float tfvLifespan);
 
-	tgui::Signal& getSignal(std::string signalName) override;
+	tgui::Signal& getSignal(tgui::String signalName) override;
 
 private:
 	// Time between each tfv curve vertex
@@ -60,7 +67,7 @@ private:
 	std::shared_ptr<tgui::Button> changeSegmentType;
 	std::shared_ptr<tgui::ListBox> segmentTypePopup;
 
-	std::shared_ptr<ListBoxScrollablePanel> segmentList; // Each item ID is the index of the segment in tfv's segment vector
+	std::shared_ptr<ListView> segmentList; // Each item ID is the index of the segment in tfv's segment vector
 	std::shared_ptr<tgui::Label> tfvFloat1Label;
 	std::shared_ptr<NumericalEditBoxWithLimits> tfvFloat1EditBox;
 	std::shared_ptr<tgui::Label> tfvFloat2Label;
@@ -78,13 +85,6 @@ private:
 	int selectedSegmentIndex = -1;
 
 	float tfvLifespan; // Shouldn't be modified except by setTFV()
-
-	/*
-	Signal emitted when a change is made to the TFV being edited.
-	Optional parameter: a pair of a shared_ptr to the old TFV object
-		and shared_ptr to the new TFV object
-	*/
-	tgui::SignalTFVPair onValueChange = { "ValueChanged" };
 
 	// bool used to ignore signals to prevent infinite loops
 	bool ignoreSignals = false;

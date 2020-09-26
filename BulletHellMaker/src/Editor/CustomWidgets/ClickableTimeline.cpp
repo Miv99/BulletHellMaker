@@ -8,7 +8,7 @@ ClickableTimeline::ClickableTimeline() {
 
 	cameraController = tgui::RangeSlider::create();
 	cameraController->setPosition(6, 6);
-	cameraController->connect("RangeChanged", [&](float lower, float upper) {
+	cameraController->onRangeChange.connect([this](float lower, float upper) {
 		if ((upper - lower) / maxTimeValue < 0.01) {
 			cameraController->setSelectionEnd(lower + maxTimeValue * 0.01);
 			cameraController->setSelectionStart(upper - maxTimeValue * 0.01);
@@ -27,7 +27,7 @@ ClickableTimeline::ClickableTimeline() {
 	panel->setVerticalScrollbarPolicy(tgui::Scrollbar::Policy::Never);
 	add(panel);
 
-	connect("SizeChanged", [&](sf::Vector2f newSize) {
+	onSizeChange.connect([this](sf::Vector2f newSize) {
 		cameraController->setSize(newSize.x - 12, SLIDER_HEIGHT);
 		panel->setSize("100%", newSize.y - SLIDER_HEIGHT - 5);
 		panel->setPosition(0, tgui::bindBottom(cameraController) + 5);
@@ -70,7 +70,7 @@ void ClickableTimeline::setElements(std::vector<std::tuple<float, float, std::st
 	for (std::tuple<float, float, std::string> tuple : elementStartTimesAndDuration) {
 		std::shared_ptr<tgui::Button> button = tgui::Button::create();
 		button->setText(std::get<2>(tuple));
-		button->connect("Pressed", [&, i]() {
+		button->onPress.connect([this, i]() {
 			onElementPressed.emit(this, i);
 		});
 		panel->add(button);
@@ -99,7 +99,7 @@ void ClickableTimeline::setElements(std::vector<std::tuple<float, float, std::st
 	for (std::tuple<float, float, std::string> tuple : elementStartTimesAndDuration) {
 		std::shared_ptr<tgui::Button> button = tgui::Button::create();
 		button->setText(std::get<2>(tuple));
-		button->connect("Pressed", [&, i]() {
+		button->onPress.connect([this, i]() {
 			onElementPressed.emit(this, i);
 		});
 		panel->add(button);
@@ -110,8 +110,8 @@ void ClickableTimeline::setElements(std::vector<std::tuple<float, float, std::st
 	updateButtonsPositionsAndSizes();
 }
 
-tgui::Signal& ClickableTimeline::getSignal(std::string signalName) {
-	if (signalName == tgui::toLower(onElementPressed.getName())) {
+tgui::Signal& ClickableTimeline::getSignal(tgui::String signalName) {
+	if (signalName == onElementPressed.getName().toLower()) {
 		return onElementPressed;
 	}
 	return tgui::Group::getSignal(signalName);

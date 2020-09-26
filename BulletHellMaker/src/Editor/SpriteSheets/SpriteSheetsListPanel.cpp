@@ -24,7 +24,7 @@ SpriteSheetsListPanel::SpriteSheetsListPanel(MainEditorWindow& mainEditorWindow)
 	importSpriteSheetButton->setText("+");
 	importSpriteSheetButton->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
 	importSpriteSheetButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
-	importSpriteSheetButton->connect("Pressed", [this]() {
+	importSpriteSheetButton->onPress.connect([this]() {
 		promptImportExternalSpriteSheet();
 	});
 	importSpriteSheetButton->setToolTip(createToolTip("Imports a sprite sheet image from outside the level pack. \
@@ -32,12 +32,12 @@ If there is a corresponding BulletHellMaker sprite sheet metafile (named \
 \"[SpriteSheetImageFileNameAndExtension].txt\"), it should be in the same folder as the image."));
 	add(importSpriteSheetButton);
 
-	spriteSheetsList = ListViewScrollablePanel::create();
-	spriteSheetsList->setPosition(tgui::bindLeft(importSpriteSheetButton), tgui::bindBottom(importSpriteSheetButton));
-	add(spriteSheetsList);
+	spriteSheetsListView = ListView::create();
+	spriteSheetsListView->setPosition(tgui::bindLeft(importSpriteSheetButton), tgui::bindBottom(importSpriteSheetButton));
+	add(spriteSheetsListView);
 	
-	connect("SizeChanged", [this, importSpriteSheetButton](sf::Vector2f newSize) {
-		spriteSheetsList->setSize(newSize.x - GUI_PADDING_X * 2, newSize.y - GUI_PADDING_Y - tgui::bindBottom(importSpriteSheetButton));
+	onSizeChange.connect([this, importSpriteSheetButton](sf::Vector2f newSize) {
+		spriteSheetsListView->setSize(newSize.x - GUI_PADDING_X * 2, newSize.y - GUI_PADDING_Y - tgui::bindBottom(importSpriteSheetButton));
 	});
 }
 
@@ -91,7 +91,7 @@ void SpriteSheetsListPanel::promptImportExternalSpriteSheet() {
 }
 
 void SpriteSheetsListPanel::selectSpriteSheetByName(std::string spriteSheetName) {
-	spriteSheetsList->getListView()->setSelectedItem(spriteSheetIndexByName[spriteSheetName]);
+	spriteSheetsListView->setSelectedItem(spriteSheetIndexByName[spriteSheetName]);
 }
 
 SpriteLoader::LoadMetrics SpriteSheetsListPanel::reloadSpriteLoaderAndList() {
@@ -103,9 +103,8 @@ SpriteLoader::LoadMetrics SpriteSheetsListPanel::reloadSpriteLoaderAndList() {
 void SpriteSheetsListPanel::reloadListOnly() {
 	spriteSheetIndexByName.clear();
 	spriteSheetNameByIndex.clear();
-	std::shared_ptr<tgui::ListView> listView = spriteSheetsList->getListView();
 
-	listView->removeAllItems();
+	spriteSheetsListView->removeAllItems();
 
 	const std::map<std::string, std::shared_ptr<SpriteSheet>>& unsavedSpriteSheets = mainEditorWindow.getUnsavedSpriteSheets();
 	int i = 0;
@@ -113,12 +112,12 @@ void SpriteSheetsListPanel::reloadListOnly() {
 	for (std::string spriteSheetName : spriteLoader->getLoadedSpriteSheetNames()) {
 		if (unsavedSpriteSheets.find(spriteSheetName) == unsavedSpriteSheets.end()) {
 			if (spriteLoader->spriteSheetFailedImageLoad(spriteSheetName) || spriteLoader->spriteSheetFailedMetafileLoad(spriteSheetName)) {
-				listView->addItem(format(FAILED_LOAD_SPRITE_SHEET_ITEM_FORMAT, spriteSheetName.c_str()));
+				spriteSheetsListView->addItem(format(FAILED_LOAD_SPRITE_SHEET_ITEM_FORMAT, spriteSheetName.c_str()));
 			} else {
-				listView->addItem(format(SAVED_SPRITE_SHEET_ITEM_FORMAT, spriteSheetName.c_str()));
+				spriteSheetsListView->addItem(format(SAVED_SPRITE_SHEET_ITEM_FORMAT, spriteSheetName.c_str()));
 			}
 		} else {
-			listView->addItem(format(UNSAVED_SPRITE_SHEET_ITEM_FORMAT, spriteSheetName.c_str()));
+			spriteSheetsListView->addItem(format(UNSAVED_SPRITE_SHEET_ITEM_FORMAT, spriteSheetName.c_str()));
 		}
 		spriteSheetIndexByName[spriteSheetName] = i;
 		spriteSheetNameByIndex[i] = spriteSheetName;
@@ -126,8 +125,8 @@ void SpriteSheetsListPanel::reloadListOnly() {
 	}
 }
 
-std::shared_ptr<ListViewScrollablePanel> SpriteSheetsListPanel::getListViewScrollablePanel() {
-	return spriteSheetsList;
+std::shared_ptr<ListView> SpriteSheetsListPanel::getListViewScrollablePanel() {
+	return spriteSheetsListView;
 }
 
 std::string SpriteSheetsListPanel::getSpriteSheetNameByIndex(int index) {
