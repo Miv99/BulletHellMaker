@@ -187,20 +187,13 @@ Random things for TODOs that are noted here so I don't forget:
 -legal checks for everything should make sure all IDs used (ie attack IDs in attack patterns) are valid
 
 TODO:
--preview window should get instantiated at maineditorwindow constructor but the actual window shouldn't open
-    except through the menu bar
 -fix tgui so that middle mouse press event will focus a widget
--view controller messed up at high zoom; make it so when dragging camera, the camera isn't being moved based on 
-    the prev known location; it should use only the current mouse pos and the mouse pos where draggingCamera was
-    first set to true
--When opening preview window from menu bar, call previewWindow->resetPreview() right after
 -SpriteSheetsEditor
     -(Create new)/(Add existing)/(Delete) sprite sheet 
     -double click sprite sheet -> if metafile doesn't exist, create it; no need to load it in the level pack's sprite loader
         because it will be empty anyway
     -choose background color
     -toggle show texture borders
--move player out of level pack metadata and into its own file
 -illegal level pack objects have [!] in maineditorwindow's left panel's list view
 -replace all in menu bar
     -replace all instances of an attack pattern ID with some other ID (same for all other relationships)
@@ -208,12 +201,10 @@ TODO:
 -MoveCustomFunctionEMPA: an EMPA where x and y are expressions that can use a special symbol "t" defined in CustomFunctionMP to be
     the "time" parameter in CustomFunctionMP::evaluate(float time)
 -Dialogue boxes
--SpriteSheetLoader emits some signal every time a change is made (sprite/spritesheet added/deleted)
 -LevelPack emits signals for Attack/AttackPattern/Enemy/EnemyPhase/BulletModel every time one is changed (unique signal for each)
 	-make sure to update:
-		-AttackEditor
-			-empiBulletModel items + reload selected EMP with setEMPWidgetValues, empiAnimatable items + reload selected EMP with setEMPWidgetValues, 
-			empiBaseSprite items + reload selected EMP with setEMPWidgetValues, 
+		-AttackEditor: None
+		-EMP: Done
 -Animatables can't have backslashes in name
 -have some default attack patterns (https://www.youtube.com/watch?v=xbQ9e0zYuj4)
 -all default stuff (font, spritesheet, sounds, etc) are copied into every new level pack that is created so that no special code is needed to load
@@ -226,7 +217,6 @@ TODO:
 		-for MoveCustomBezierEMPA, this rotates all control points about (0, 0)
 		-for all other EMPAs, do nothing
     -import bezier control points from text into BezierControlPointsPlacer
--GuiConfig singleton class; editable only from outside of editor
 
 Low priority TODO:
 -Async ReadDirectoryChangesW for SpriteLoader watching changes to its level pack's sprite sheets folder

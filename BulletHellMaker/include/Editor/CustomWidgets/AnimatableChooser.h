@@ -26,6 +26,8 @@ public:
 		return std::make_shared<AnimatableChooser>(spriteLoader, forceSprite);
 	}
 
+	void repopulateAnimatables();
+
 	/*
 	Sets the value of the Animatable being edited.
 	*/

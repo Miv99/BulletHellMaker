@@ -24,21 +24,7 @@ AnimatableChooser::AnimatableChooser(SpriteLoader& spriteLoader, bool forceSprit
 	animatable->setChangeItemOnScroll(false);
 	rotationType->setChangeItemOnScroll(false);
 
-	const std::map<std::string, std::shared_ptr<SpriteSheet>> sheets = spriteLoader.getSpriteSheets();
-	for (auto it = sheets.begin(); it != sheets.end(); it++) {
-		const std::map<std::string, std::shared_ptr<SpriteData>> spriteData = it->second->getSpriteData();
-		animatable->addItem(it->first, "Sheet");
-		for (auto it2 = spriteData.begin(); it2 != spriteData.end(); it2++) {
-			animatable->addItem("[S]" + it2->first, it->first + "\\" + it2->first);
-		}
-
-		if (!forceSprite) {
-			const std::map<std::string, std::shared_ptr<AnimationData>> animationData = it->second->getAnimationData();
-			for (auto it2 = animationData.begin(); it2 != animationData.end(); it2++) {
-				animatable->addItem("[A]" + it2->first, it->first + "\\" + it2->first);
-			}
-		}
-	}
+	repopulateAnimatables();
 
 	rotationType->addItem("Rotate with movement", std::to_string(static_cast<int>(ROTATION_TYPE::ROTATE_WITH_MOVEMENT)));
 	rotationType->addItem("Never rotate", std::to_string(static_cast<int>(ROTATION_TYPE::LOCK_ROTATION)));
@@ -161,6 +147,25 @@ void AnimatableChooser::calculateItemsToDisplay() {
 		float heightLeft = window->getSize().y - rotationType->getAbsolutePosition().y;
 		// Each item in the ComboBox has height equal to the ComboBox's height
 		rotationType->setItemsToDisplay((int)(heightLeft / rotationType->getSize().y));
+	}
+}
+
+void AnimatableChooser::repopulateAnimatables() {
+	animatable->removeAllItems();
+	const std::map<std::string, std::shared_ptr<SpriteSheet>> sheets = spriteLoader.getSpriteSheets();
+	for (auto it = sheets.begin(); it != sheets.end(); it++) {
+		const std::map<std::string, std::shared_ptr<SpriteData>> spriteData = it->second->getSpriteData();
+		animatable->addItem(it->first, "Sheet");
+		for (auto it2 = spriteData.begin(); it2 != spriteData.end(); it2++) {
+			animatable->addItem("[S]" + it2->first, it->first + "\\" + it2->first);
+		}
+
+		if (!forceSprite) {
+			const std::map<std::string, std::shared_ptr<AnimationData>> animationData = it->second->getAnimationData();
+			for (auto it2 = animationData.begin(); it2 != animationData.end(); it2++) {
+				animatable->addItem("[A]" + it2->first, it->first + "\\" + it2->first);
+			}
+		}
 	}
 }
 

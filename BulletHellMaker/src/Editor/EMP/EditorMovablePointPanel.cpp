@@ -1420,11 +1420,17 @@ void EditorMovablePointPanel::updateAllWidgetValues() {
 }
 
 void EditorMovablePointPanel::onLevelPackChange(LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE type, int id) {
-	// EMPs can be used only by attacks, so reload this EMP's bullet model only if the modified attack uses this EMP
-	if (type == LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::ATTACK && levelPack->getAttack(id)->searchEMP(emp->getID()) != nullptr) {
-		emp->loadBulletModel(*levelPack);
+	if (type == LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::SPRITE_SHEET) {
+		// Reload animatables-related widgets
 
-		empiSoundSettings->populateFileNames(format(RELATIVE_LEVEL_PACK_SOUND_FOLDER_PATH, levelPack->getName().c_str()));
+		empiAnimatable->repopulateAnimatables();
+		empiBaseSprite->repopulateAnimatables();
+	} else if (type == LevelPack::LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE::BULLET_MODEL) {
+		// Reload bullet model-related widgets when some bullet model is modified
+
+		if (emp->getBulletModelID() == id) {
+			emp->loadBulletModel(*levelPack);
+		}
 
 		empiBulletModel->removeAllItems();
 		empiBulletModel->addItem("None", "-1");
@@ -1432,6 +1438,7 @@ void EditorMovablePointPanel::onLevelPackChange(LevelPack::LEVEL_PACK_OBJECT_HIE
 			empiBulletModel->addItem(it->second->getName(), std::to_string(it->second->getID()));
 		}
 	}
+	// TODO: when sounds folder is modified, 		empiSoundSettings->populateFileNames(format(RELATIVE_LEVEL_PACK_SOUND_FOLDER_PATH, levelPack->getName().c_str()));
 }
 
 void EditorMovablePointPanel::finishEditingSpawnTypePosition() {
