@@ -25,6 +25,12 @@ MainEditorWindowMenuBar::MainEditorWindowMenuBar(MainEditorWindow& mainEditorWin
 	connectMenuItem("File", "Reload sprites/animations", [this]() {
 		this->mainEditorWindow.reloadSpriteLoader();
 	});
+
+	addMenu("Preview");
+	addMenuItem("Preview", "Open window");
+	connectMenuItem("Preview", "Open window", [this]() {
+		this->mainEditorWindow.openPreviewWindow();
+	});
 }
 
 void MainEditorWindowMenuBar::promptOpenLevelPack() {

@@ -110,6 +110,11 @@ public:
 	bool hasUnsavedChanges();
 
 	/*
+	Opens the preview window.
+	*/
+	void openPreviewWindow();
+
+	/*
 	Opens a sprite sheet in the left panel's sprite sheets list so that
 	its corresponding tab appears in the main panel.
 
@@ -169,6 +174,9 @@ private:
 	std::shared_ptr<AudioPlayer> audioPlayer;
 	std::shared_ptr<LevelPack> levelPack;
 	std::shared_ptr<SpriteLoader> spriteLoader;
+
+	// Whether levelPack should be able to be edited
+	bool loadedEditableLevelPack = false;
 
 	std::shared_ptr<TabsWithPanel> mainPanel;
 	std::shared_ptr<TabsWithPanel> leftPanel;

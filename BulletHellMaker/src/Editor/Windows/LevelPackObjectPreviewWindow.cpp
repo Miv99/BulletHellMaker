@@ -12,6 +12,13 @@ LevelPackObjectPreviewWindow::LevelPackObjectPreviewWindow(std::string windowTit
 	: EditorWindow(windowTitle, width, height, scaleWidgetsOnResize, letterboxingEnabled, renderInterval), levelPackName(levelPackName), spriteLoader(spriteLoader) {
 }
 
+void LevelPackObjectPreviewWindow::reopenWindow() {
+	if (!window || !window->isOpen()) {
+		std::thread previewWindowThread = std::thread(&LevelPackObjectPreviewWindow::start, &(*this));
+		previewWindowThread.detach();
+	}
+}
+
 void LevelPackObjectPreviewWindow::loadLevelPack(std::string levelPackName, std::shared_ptr<SpriteLoader> spriteLoader) {
 	this->levelPackName = levelPackName;
 	this->spriteLoader = spriteLoader;

@@ -64,6 +64,7 @@ void EditorWindow::start() {
 		// SFML requires the RenderWindow to be created in the thread
 
 		std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
 		window = std::make_shared<sf::RenderWindow>(sf::VideoMode(windowWidth, windowHeight), windowTitle, sf::Style::Default);
 		window->setKeyRepeatEnabled(false);
 		window->setActive(true);
@@ -84,8 +85,7 @@ void EditorWindow::start() {
 			sf::Event event;
 			while (!windowCloseQueued && window->pollEvent(event)) {
 				if (windowCloseQueued || event.type == sf::Event::Closed) {
-					closeSignal->publish();
-					window->close();
+					handleWindowCloseEvent();
 					return;
 				} else if (event.type == sf::Event::Resized) {
 					updateWindowView(event.size.width, event.size.height);
@@ -154,8 +154,7 @@ void EditorWindow::startAndHide() {
 			sf::Event event;
 			while (!windowCloseQueued && window->pollEvent(event)) {
 				if (windowCloseQueued || event.type == sf::Event::Closed) {
-					closeSignal->publish();
-					window->close();
+					handleWindowCloseEvent();
 					return;
 				} else if (event.type == sf::Event::Resized) {
 					updateWindowView(event.size.width, event.size.height);
@@ -534,6 +533,15 @@ bool EditorWindow::handleEvent(sf::Event event) {
 }
 
 void EditorWindow::onRenderWindowInitialization() {
+}
+
+void EditorWindow::handleWindowCloseEvent() {
+	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
+
+	gui->removeAllWidgets();
+	closeSignal->publish();
+	window->close();
+	window.reset();
 }
 
 float EditorWindow::calculateMinPromptPanelWidth(int numButtons) {

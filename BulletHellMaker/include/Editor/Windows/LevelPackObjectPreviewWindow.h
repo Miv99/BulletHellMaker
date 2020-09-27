@@ -34,6 +34,11 @@ public:
 		bool scaleWidgetsOnResize = false, bool letterboxingEnabled = false, float renderInterval = RENDER_INTERVAL);
 
 	/*
+	Reopens the window if it was closed.
+	*/
+	void reopenWindow();
+
+	/*
 	Loads a level pack by name.
 
 	spriteLoader - if not nullptr, this sprite loader will be used in the newly loaded level pack

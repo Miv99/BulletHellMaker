@@ -128,8 +128,11 @@ void MainEditorWindow::loadLevelPack(std::string levelPackName) {
 		}
 		showPopupMessageWindow(combinedMetrics, nullptr);
 
+		loadedEditableLevelPack = true;
+
 	} catch (const std::exception& e) {
 		showPopupMessageWindow(format("An exception occurred while loading level pack \"%s\": %s", levelPackName.c_str(), e.what()), nullptr);
+		loadedEditableLevelPack = false;
 		return;
 	}
 
@@ -143,11 +146,6 @@ void MainEditorWindow::loadLevelPack(std::string levelPackName) {
 
 	if (previewWindow) {
 		previewWindow->loadLevelPack(levelPackName, spriteLoader);
-	} else {
-		// TODO: window size from settings
-		previewWindow = std::make_shared<LevelPackObjectPreviewWindow>("Preview", 1024, 768, levelPackName, spriteLoader);
-		std::thread previewWindowThread = std::thread(&LevelPackObjectPreviewWindow::start, &(*previewWindow));
-		previewWindowThread.detach();
 	}
 }
 
@@ -867,6 +865,17 @@ bool MainEditorWindow::hasUnsavedChanges() {
 	return unsavedAttacks.size() > 0 || unsavedAttackPatterns.size() > 0
 		|| unsavedBulletModels.size() > 0 || unsavedEnemies.size() > 0
 		|| unsavedEnemyPhases.size() > 0;
+}
+
+void MainEditorWindow::openPreviewWindow() {
+	if (loadedEditableLevelPack) {
+		if (!previewWindow) {
+			// TODO: window size from settings
+			previewWindow = std::make_shared<LevelPackObjectPreviewWindow>("Preview", 1024, 768, levelPack->getName(), spriteLoader);
+		}
+
+		previewWindow->reopenWindow();
+	}
 }
 
 void MainEditorWindow::createAttack(bool undoable) {

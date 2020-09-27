@@ -124,6 +124,9 @@ public:
 	inline sf::Vector2f getLastMousePressPos() { return lastMousePressPos; }
 
 protected:
+	std::string windowTitle;
+	int windowWidth, windowHeight;
+
 	std::shared_ptr<sf::RenderWindow> window;
 	std::shared_ptr<tgui::Gui> gui;
 
@@ -149,9 +152,6 @@ private:
 
 	int nextVertexArrayID = 0;
 	std::map<int, sf::VertexArray> vertexArrays;
-
-	std::string windowTitle;
-	int windowWidth, windowHeight;
 
 	bool windowCloseQueued = false;
 
@@ -189,6 +189,8 @@ private:
 	std::shared_ptr<entt::SigH<void(int, int)>> resizeSignal;
 	// Signal that's emitted right before the window closes
 	std::shared_ptr<entt::SigH<void()>> closeSignal;
+
+	void handleWindowCloseEvent();
 
 	static float calculateMinPromptPanelWidth(int numButtons);
 	/*
