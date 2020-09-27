@@ -100,7 +100,9 @@ MainEditorWindow::MainEditorWindow(std::string windowTitle, int width, int heigh
 MainEditorWindow::~MainEditorWindow() {
 	clipboard.getOnCopy()->sink().disconnect(this);
 	clipboard.getOnPaste()->sink().disconnect(this);
-	previewWindow->close();
+	if (previewWindow) {
+		previewWindow->close();
+	}
 }
 
 void MainEditorWindow::loadLevelPack(std::string levelPackName) {
@@ -219,17 +221,23 @@ void MainEditorWindow::openLeftPanelPlayer() {
 
 void MainEditorWindow::updateAttack(std::shared_ptr<EditorAttack> attack) {
 	levelPack->updateAttack(attack);
-	previewWindow->onOriginalLevelPackAttackModified(attack);
+	if (previewWindow) {
+		previewWindow->onOriginalLevelPackAttackModified(attack);
+	}
 }
 
 void MainEditorWindow::updateAttackPattern(std::shared_ptr<EditorAttackPattern> attackPattern) {
 	levelPack->updateAttackPattern(attackPattern);
-	previewWindow->onOriginalLevelPackAttackPatternModified(attackPattern);
+	if (previewWindow) {
+		previewWindow->onOriginalLevelPackAttackPatternModified(attackPattern);
+	}
 }
 
 void MainEditorWindow::deleteAttack(int id) {
 	levelPack->deleteAttack(id);
-	previewWindow->deleteAttack(id);
+	if (previewWindow) {
+		previewWindow->deleteAttack(id);
+	}
 
 	if (unsavedAttacks.find(id) != unsavedAttacks.end()) {
 		unsavedAttacks.erase(id);
@@ -238,7 +246,9 @@ void MainEditorWindow::deleteAttack(int id) {
 
 void MainEditorWindow::deleteAttackPattern(int id) {
 	levelPack->deleteAttackPattern(id);
-	previewWindow->deleteAttackPattern(id);
+	if (previewWindow) {
+		previewWindow->deleteAttackPattern(id);
+	}
 
 	if (unsavedAttackPatterns.find(id) != unsavedAttackPatterns.end()) {
 		unsavedAttackPatterns.erase(id);
@@ -276,7 +286,9 @@ void MainEditorWindow::reloadSpriteLoader() {
 	showPopupMessageWindow(loadMetrics.formatForUser(), nullptr);
 	
 	// Reset preview because existing sprites will continue to use the old textures
-	previewWindow->resetPreview();
+	if (previewWindow) {
+		previewWindow->resetPreview();
+	}
 }
 
 bool MainEditorWindow::handleEvent(sf::Event event) {
@@ -454,7 +466,9 @@ Go to \"File > Reload sprites/animations\" to reload sprite sheets afterwards.",
 			unsavedSpriteSheets[spriteSheet->getName()] = spriteSheet;
 			spriteSheetsListPanel->reloadListOnly();
 
-			previewWindow->onOriginalLevelPackSpriteSheetModified(spriteSheet);
+			if (previewWindow) {
+				previewWindow->onOriginalLevelPackSpriteSheetModified(spriteSheet);
+			}
 		});
 		mainPanel->addTab(tabName, spriteSheetsMetafileSpritesEditor, true, true);
 	}
@@ -494,17 +508,23 @@ void MainEditorWindow::openLeftPanelAttack(int attackID) {
 			unsavedAttacks[attack->getID()] = std::dynamic_pointer_cast<LayerRootLevelPackObject>(attack);
 			attacksListView->reload();
 
-			previewWindow->onOriginalLevelPackAttackModified(attack);
+			if (previewWindow) {
+				previewWindow->onOriginalLevelPackAttackModified(attack);
+			}
 		});
 		std::string tabName = format(MAIN_PANEL_ATTACK_TAB_NAME_FORMAT, attackID);
 		mainPanel->addTab(tabName, attackEditorPanel, true, true);
 		mainPanel->setTabOnSelectFunction(tabName, [this, openedAttack]() {
-			previewWindow->previewAttack(openedAttack);
+			if (previewWindow) {
+				previewWindow->previewAttack(openedAttack);
+			}
 		});
 	}
 
 	// View preview
-	previewWindow->previewAttack(openedAttack);
+	if (previewWindow) {
+		previewWindow->previewAttack(openedAttack);
+	}
 }
 
 void MainEditorWindow::openLeftPanelAttackPattern(int id) {
@@ -544,17 +564,23 @@ void MainEditorWindow::openLeftPanelAttackPattern(int id) {
 			unsavedAttackPatterns[attackPattern->getID()] = std::dynamic_pointer_cast<LayerRootLevelPackObject>(attackPattern);
 			attackPatternsListView->reload();
 
-			previewWindow->onOriginalLevelPackAttackPatternModified(attackPattern);
+			if (previewWindow) {
+				previewWindow->onOriginalLevelPackAttackPatternModified(attackPattern);
+			}
 		});
 		std::string tabName = format(MAIN_PANEL_ATTACK_PATTERN_TAB_NAME_FORMAT, id);
 		mainPanel->addTab(tabName, attackPatternEditorPanel, true, true);
 		mainPanel->setTabOnSelectFunction(tabName, [this, openedObject]() {
-			previewWindow->previewAttackPattern(openedObject);
+			if (previewWindow) {
+				previewWindow->previewAttackPattern(openedObject);
+			}
 		});
 	}
 
 	// View preview
-	previewWindow->previewAttackPattern(openedObject);
+	if (previewWindow) {
+		previewWindow->previewAttackPattern(openedObject);
+	}
 }
 
 void MainEditorWindow::overwriteAttackPatterns(std::vector<std::shared_ptr<EditorAttackPattern>> objects, UndoStack* undoStack) {
@@ -653,7 +679,9 @@ void MainEditorWindow::reloadAttackTab(int attackID) {
 		std::string tabName = format(MAIN_PANEL_ATTACK_TAB_NAME_FORMAT, attackID);
 		mainPanel->insertTab(tabName, attackEditorPanel, tabIndex, tabWasSelected, true);
 		mainPanel->setTabOnSelectFunction(tabName, [this, openedAttack]() {
-			previewWindow->previewAttack(openedAttack);
+			if (previewWindow) {
+				previewWindow->previewAttack(openedAttack);
+			}
 		});
 	}
 }
@@ -694,12 +722,16 @@ void MainEditorWindow::reloadAttackPatternTab(int id) {
 			unsavedAttackPatterns[attackPattern->getID()] = std::dynamic_pointer_cast<LayerRootLevelPackObject>(attackPattern);
 			attackPatternsListView->reload();
 
-			previewWindow->onOriginalLevelPackAttackPatternModified(attackPattern);
+			if (previewWindow) {
+				previewWindow->onOriginalLevelPackAttackPatternModified(attackPattern);
+			}
 		});
 		std::string tabName = format(MAIN_PANEL_ATTACK_PATTERN_TAB_NAME_FORMAT, id);
 		mainPanel->insertTab(tabName, attackPatternEditorPanel, tabIndex, tabWasSelected, true);
 		mainPanel->setTabOnSelectFunction(tabName, [this, openedObject]() {
-			previewWindow->previewAttackPattern(openedObject);
+			if (previewWindow) {
+				previewWindow->previewAttackPattern(openedObject);
+			}
 		});
 	}
 }
@@ -883,7 +915,9 @@ void MainEditorWindow::createAttack(bool undoable) {
 	if (undoable) {
 		attacksListView->getUndoStack().execute(UndoableCommand([this, id]() {
 			auto attack = levelPack->createAttack(id);
-			previewWindow->onOriginalLevelPackAttackModified(attack);
+			if (previewWindow) {
+				previewWindow->onOriginalLevelPackAttackModified(attack);
+			}
 
 			// Open the newly created attack
 			openLeftPanelAttack(id);
@@ -894,13 +928,17 @@ void MainEditorWindow::createAttack(bool undoable) {
 			attacksListView->setSelectedItem(attacksListView->getIndexFromLevelPackObjectID(id));
 		}, [this, id]() {
 			levelPack->deleteAttack(id);
-			previewWindow->deleteAttack(id);
+			if (previewWindow) {
+				previewWindow->deleteAttack(id);
+			}
 
 			attacksListView->reload();
 		}));
 	} else {
 		auto attack = levelPack->createAttack(id);
-		previewWindow->onOriginalLevelPackAttackModified(attack);
+		if (previewWindow) {
+			previewWindow->onOriginalLevelPackAttackModified(attack);
+		}
 	}
 }
 
@@ -909,7 +947,9 @@ void MainEditorWindow::createAttackPattern(bool undoable) {
 	if (undoable) {
 		attackPatternsListView->getUndoStack().execute(UndoableCommand([this, id]() {
 			auto attackPattern = levelPack->createAttackPattern(id);
-			previewWindow->onOriginalLevelPackAttackPatternModified(attackPattern);
+			if (previewWindow) {
+				previewWindow->onOriginalLevelPackAttackPatternModified(attackPattern);
+			}
 
 			// Open the newly created attack
 			openLeftPanelAttackPattern(id);
@@ -920,12 +960,16 @@ void MainEditorWindow::createAttackPattern(bool undoable) {
 			attackPatternsListView->setSelectedItem(attackPatternsListView->getIndexFromLevelPackObjectID(id));
 		}, [this, id]() {
 			levelPack->deleteAttackPattern(id);
-			previewWindow->deleteAttackPattern(id);
+			if (previewWindow) {
+				previewWindow->deleteAttackPattern(id);
+			}
 
 			attackPatternsListView->reload();
 		}));
 	} else {
 		auto attackPattern = levelPack->createAttackPattern(id);
-		previewWindow->onOriginalLevelPackAttackPatternModified(attackPattern);
+		if (previewWindow) {
+			previewWindow->onOriginalLevelPackAttackPatternModified(attackPattern);
+		}
 	}
 }
