@@ -145,6 +145,8 @@ void ViewController::setOriginalViewSize(float width, float height) {
 void ViewController::setCameraZoom(sf::View& view, float zoom) {
 	cameraZoom = zoom;
 	view.setSize(originalViewWidth / zoom, originalViewHeight / zoom);
+
+	onCameraZoomChange.publish(cameraZoom);
 }
 
 void ViewController::moveCamera(sf::View& view, float xOffset, float yOffset) {

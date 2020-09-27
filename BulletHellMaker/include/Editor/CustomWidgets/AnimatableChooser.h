@@ -26,6 +26,10 @@ public:
 		return std::make_shared<AnimatableChooser>(spriteLoader, forceSprite);
 	}
 
+	/*
+	Repopulates the list of Animatables able to be chosen on based on existing
+	Animatables in the SpriteLoader.
+	*/
 	void repopulateAnimatables();
 
 	/*

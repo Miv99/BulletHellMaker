@@ -25,11 +25,9 @@ public:
 	*/
 	tgui::SignalSpriteSheet onMetafileModify = { "MetafileModified" };
 
-	SpriteSheetMetafileEditor(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, std::shared_ptr<SpriteSheet> spriteSheet);
-	static std::shared_ptr<SpriteSheetMetafileEditor> create(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, 
-		std::shared_ptr<SpriteSheet> spriteSheet) {
-
-		return std::make_shared<SpriteSheetMetafileEditor>(mainEditorWindow, clipboard, spriteSheet);
+	SpriteSheetMetafileEditor(MainEditorWindow& mainEditorWindow, Clipboard& clipboard);
+	static std::shared_ptr<SpriteSheetMetafileEditor> create(MainEditorWindow& mainEditorWindow, Clipboard& clipboard) {
+		return std::make_shared<SpriteSheetMetafileEditor>(mainEditorWindow, clipboard);
 	}
 	
 	bool updateTime(tgui::Duration elapsedTime) override;
@@ -41,13 +39,21 @@ public:
 
 	bool handleEvent(sf::Event event) override;
 
+	void loadSpriteSheet(std::shared_ptr<SpriteLoader> spriteLoader, std::shared_ptr<SpriteSheet> spriteSheet);
 	void loadImage(std::shared_ptr<SpriteLoader> spriteLoader, std::string spriteSheetName);
 
 	void resetCamera();
 
+	void scaleTransparentTextureToCameraZoom(float cameraZoomAmount);
+
 	tgui::Signal& getSignal(tgui::String signalName) override;
 	
 private:
+	// If an item ID in animatablesListView starts with this, the item is a sprite
+	const static char ANIMATABLES_LIST_SPRITE_INDICATOR;
+	// If an item ID in animatablesListView starts with this, the item is an animation
+	const static char ANIMATABLES_LIST_ANIMATION_INDICATOR;
+
 	MainEditorWindow& mainEditorWindow;
 	Clipboard& clipboard;
 	// Not guaranteed to contain a loaded texture
@@ -60,6 +66,7 @@ private:
 
 	std::shared_ptr<ListView> animatablesListView;
 	std::shared_ptr<SimpleWidgetsContainerPanel> utilityWidgetsPanel;
+	std::shared_ptr<tgui::ColorPicker> backgroundColorPicker;
 
 	// Loaded from loadImage()
 	sf::Texture* loadedTexture;
@@ -68,7 +75,12 @@ private:
 
 	// Texture used for the background 
 	sf::Texture backgroundTexture;
-	tgui::Sprite backgroundSprite;
+	sf::Sprite backgroundSprite;
+	tgui::Color lastChosenBackgroundColor;
+
+	// Texture used for the background of transparent parts of the sprite sheet
+	sf::Texture transparentTexture;
+	sf::Sprite transparentTextureSprite;
 
 	void updateWindowView();
 };

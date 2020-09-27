@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <entt/entt.hpp>
 
 class ViewController {
 public:
@@ -29,6 +30,7 @@ public:
 	void setOriginalViewSize(float width, float height);
 
 	inline float getZoomAmount() { return cameraZoom; }
+	entt::SigH<void(float)>& getOnZoomAmountChange() { return onCameraZoomChange; }
 
 private:
 	static const float MIN_CAMERA_ZOOM;
@@ -54,6 +56,9 @@ private:
 
 	// Whether the camera is currently being panned by keyboard
 	bool panningUp = false, panningDown = false, panningLeft = false, panningRight = false;
+
+	// Parameter: the new zoom amount
+	entt::SigH<void(float)> onCameraZoomChange;
 
 	void setCameraZoom(sf::View& view, float zoom);
 	/*
