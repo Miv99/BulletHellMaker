@@ -2,14 +2,16 @@
 
 #include <Mutex.h>
 #include <GuiConfig.h>
+#include <Editor/CustomWidgets/EditBox.h>
 #include <Editor/Windows/MainEditorWindow.h>
 #include <Editor/Util/TguiUtils.h>
 
 const char SpriteSheetMetafileEditor::ANIMATABLES_LIST_SPRITE_INDICATOR = '!';
 const char SpriteSheetMetafileEditor::ANIMATABLES_LIST_ANIMATION_INDICATOR = '@';
 
-SpriteSheetMetafileEditor::SpriteSheetMetafileEditor(MainEditorWindow& mainEditorWindow, Clipboard& clipboard)
-	: mainEditorWindow(mainEditorWindow), clipboard(clipboard), spriteSheet(spriteSheet), CopyPasteable(SPRITE_SHEET_METAFILE_SPRITE_COPY_PASTE_ID) {
+SpriteSheetMetafileEditor::SpriteSheetMetafileEditor(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, int undoStackSize)
+	: mainEditorWindow(mainEditorWindow), clipboard(clipboard), spriteSheet(spriteSheet),
+	CopyPasteable(SPRITE_SHEET_METAFILE_SPRITE_COPY_PASTE_ID), undoStack(UndoStack(undoStackSize)) {
 
 	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 
@@ -92,10 +94,14 @@ SpriteSheetMetafileEditor::SpriteSheetMetafileEditor(MainEditorWindow& mainEdito
 	});
 	add(animatablesListView);
 
+
+
 	utilityWidgetsPanel = SimpleWidgetsContainerPanel::create();
-	utilityWidgetsPanel->setWidth("100%");
-	utilityWidgetsPanel->setPosition(tgui::bindRight(animatablesListView), 0);
-	//add(utilityWidgetsPanel);
+	utilityWidgetsPanel->setWidth("75%");
+	utilityWidgetsPanel->setPosition("25%", 0);
+	add(utilityWidgetsPanel);
+
+
 
 	lastChosenBackgroundColor = tgui::Color(207, 207, 207, 255);
 	backgroundSprite.setColor(lastChosenBackgroundColor);
@@ -185,13 +191,7 @@ void SpriteSheetMetafileEditor::loadSpriteSheet(std::shared_ptr<SpriteLoader> sp
 
 	loadImage(spriteLoader, spriteSheet->getName());
 
-	animatablesListView->removeAllItems();
-	for (std::pair<std::string, std::shared_ptr<SpriteData>> item : spriteSheet->getSpriteData()) {
-		animatablesListView->addItem(format("[S] %s", item.second->getSpriteName().c_str()), format("%c%s", ANIMATABLES_LIST_SPRITE_INDICATOR, item.second->getSpriteName().c_str()));
-	}
-	for (std::pair<std::string, std::shared_ptr<AnimationData>> item : spriteSheet->getAnimationData()) {
-		animatablesListView->addItem(format("[A] %s", item.second->getAnimationName().c_str()), format("%c%s", ANIMATABLES_LIST_ANIMATION_INDICATOR, item.second->getAnimationName().c_str()));
-	}
+	repopulateAnimatablesListView();
 
 	viewFromViewController.setCenter(loadedTexture->getSize().x / 2.0f, loadedTexture->getSize().y / 2.0f);
 	updateWindowView();
@@ -206,6 +206,16 @@ void SpriteSheetMetafileEditor::loadImage(std::shared_ptr<SpriteLoader> spriteLo
 	scaleTransparentTextureToCameraZoom(viewController->getZoomAmount());
 }
 
+void SpriteSheetMetafileEditor::repopulateAnimatablesListView() {
+	animatablesListView->removeAllItems();
+	for (std::pair<std::string, std::shared_ptr<SpriteData>> item : spriteSheet->getSpriteData()) {
+		animatablesListView->addItem(format("[S] %s", item.second->getSpriteName().c_str()), format("%c%s", ANIMATABLES_LIST_SPRITE_INDICATOR, item.second->getSpriteName().c_str()));
+	}
+	for (std::pair<std::string, std::shared_ptr<AnimationData>> item : spriteSheet->getAnimationData()) {
+		animatablesListView->addItem(format("[A] %s", item.second->getAnimationName().c_str()), format("%c%s", ANIMATABLES_LIST_ANIMATION_INDICATOR, item.second->getAnimationName().c_str()));
+	}
+}
+
 void SpriteSheetMetafileEditor::resetCamera() {
 	// TODO
 }
@@ -217,6 +227,14 @@ void SpriteSheetMetafileEditor::scaleTransparentTextureToCameraZoom(float camera
 	if (loadedTexture) {
 		transparentTextureSprite.setTextureRect(sf::IntRect(0, 0, loadedTexture->getSize().x / scale, loadedTexture->getSize().y / scale));
 	}
+}
+
+void SpriteSheetMetafileEditor::renameSprite(std::string oldSpriteName, std::string newSpriteName) {
+	spriteSheet->renameSprite(oldSpriteName, newSpriteName);
+
+	repopulateAnimatablesListView();
+
+	onMetafileModify.emit(this, spriteSheet);
 }
 
 tgui::Signal& SpriteSheetMetafileEditor::getSignal(tgui::String signalName) {

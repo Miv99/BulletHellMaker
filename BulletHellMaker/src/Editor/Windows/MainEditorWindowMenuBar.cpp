@@ -31,6 +31,12 @@ MainEditorWindowMenuBar::MainEditorWindowMenuBar(MainEditorWindow& mainEditorWin
 	connectMenuItem("Preview", "Open window", [this]() {
 		this->mainEditorWindow.openPreviewWindow();
 	});
+
+	addMenu("Tools");
+	addMenuItem("Tools", "Find/Replace all");
+	connectMenuItem("Tools", "Find/Replace all", [this]() {
+		this->mainEditorWindow.openSearchChildWindow();
+	});
 }
 
 void MainEditorWindowMenuBar::promptOpenLevelPack() {

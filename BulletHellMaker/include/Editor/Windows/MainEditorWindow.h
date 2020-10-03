@@ -4,6 +4,7 @@
 #include <Editor/CopyPaste.h>
 #include <Editor/Windows/EditorWindow.h>
 #include <Editor/CustomWidgets/TextNotification.h>
+#include <Editor/CustomWidgets/LevelPackSearchChildWindow.h>
 #include <Editor/CustomWidgets/TabsWithPanel.h>
 #include <Editor/SpriteSheets/SpriteSheetsListPanel.h>
 #include <Editor/SpriteSheets/SpriteSheetMetafileEditor.h>
@@ -141,6 +142,19 @@ public:
 	*/
 	void openLeftPanelPlayer();
 
+	/*
+	Opens the find/replace all child window.
+	*/
+	void openSearchChildWindow();
+
+	/*
+	Returns all instances of a sprite name in the LevelPack being edited.
+	*/
+	LevelPackSearchChildWindow::LevelPackSearchFindAllResult findAllInstancesOfSpriteName(std::string spriteSheetName, std::string spriteName);
+	/*
+	Returns all instances of an animation name in the LevelPack being edited.
+	*/
+	LevelPackSearchChildWindow::LevelPackSearchFindAllResult findAllInstancesOfAnimationName(std::string spriteSheetName, std::string spriteName);
 
 	// ---------- Operations that affect both the level pack and the preview window's level pack --------------
 
@@ -181,6 +195,9 @@ private:
 	std::shared_ptr<TabsWithPanel> mainPanel;
 	std::shared_ptr<TabsWithPanel> leftPanel;
 
+	// ChildWindow for doing "Find all" and "Replace all"
+	std::shared_ptr<LevelPackSearchChildWindow> searchChildWindow;
+
 	std::shared_ptr<TextNotification> clipboardNotification;
 
 	// For copy-pasting
@@ -202,6 +219,9 @@ private:
 	std::map<int, std::shared_ptr<LayerRootLevelPackObject>> unsavedEnemies;
 	std::map<int, std::shared_ptr<LayerRootLevelPackObject>> unsavedEnemyPhases;
 	std::map<int, std::shared_ptr<LayerRootLevelPackObject>> unsavedBulletModels;
+	
+	// Nullptr when no unsaved player
+	std::shared_ptr<EditorPlayer> unsavedPlayer;
 
 	// Maps a SpriteSheet name to the SpriteSheet object that has unsaved changes.
 	// If the name doesn't exist in this map, then there are no unsaved changes
@@ -212,5 +232,19 @@ private:
 	std::shared_ptr<LevelPackObjectPreviewWindow> previewWindow;
 
 	void showClipboardResult(std::string notification);
-	void populateLeftPanelLevelPackObjectListPanel(std::shared_ptr<LevelPackObjectsListView> listView, std::shared_ptr<LevelPackObjectsListPanel> listPanel, std::function<void()> createLevelPackObject, std::function<void(int)> openLevelPackObjectTab);
+	void populateLeftPanelLevelPackObjectListPanel(std::shared_ptr<LevelPackObjectsListView> listView, std::shared_ptr<LevelPackObjectsListPanel> listPanel, 
+		std::function<void()> createLevelPackObject, std::function<void(int)> openLevelPackObjectTab);
+
+	/*
+	Returns all instances of an animatable in the LevelPack being edited.
+
+	mustBeSprite - if true, find only Animatables that are sprites. If false, find only Animatables that are animations.
+	*/
+	LevelPackSearchChildWindow::LevelPackSearchFindAllResult findAllInstancesOfAnimatable(std::string spriteSheetName, std::string animatableName, bool mustBeSprite);
+	/*
+	Returns a LevelPackSearchResultNode containing only children descriptor nodes describing matching Animatables in an EntityAnimatableSet.
+	Helper function for findAllInstancesOfAnimatable().
+	*/
+	std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode> findAllInstancesOfAnimatableInAnimatableSet(const EntityAnimatableSet& animatableSet,
+		const std::string& spriteSheetName, const std::string& animatableName, bool mustBeSprite);
 };

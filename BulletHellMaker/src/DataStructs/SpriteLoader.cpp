@@ -121,6 +121,10 @@ std::unique_ptr<Animation> SpriteSheet::getAnimation(const std::string& animatio
 	return std::make_unique<Animation>(animationName, animationSprites[animationName], loop);
 }
 
+bool SpriteSheet::hasSpriteData(std::string spriteName) const {
+	return spriteData.find(spriteName) != spriteData.end();
+}
+
 void SpriteSheet::insertSprite(const std::string& spriteName, std::shared_ptr<SpriteData> sprite) {
 	spriteData[spriteName] = sprite;
 }
@@ -151,6 +155,36 @@ void SpriteSheet::markFailedImageLoad() {
 
 void SpriteSheet::markFailedMetafileLoad() {
 	failedMetafileLoad = true;
+}
+
+void SpriteSheet::renameSprite(std::string oldSpriteName, std::string newSpriteName) {
+	if (spriteData.find(oldSpriteName) == spriteData.end()) {
+		return;
+	}
+
+	if (spriteData.find(newSpriteName) != spriteData.end()) {
+		throw std::runtime_error("The new sprite name already exists.");
+	}
+
+	std::shared_ptr<SpriteData> data = spriteData[oldSpriteName];
+	spriteData.erase(oldSpriteName);
+	data->setSpriteName(newSpriteName);
+	spriteData[newSpriteName] = data;
+}
+
+void SpriteSheet::renameAnimation(std::string oldAnimationName, std::string newAnimationName) {
+	if (animationData.find(oldAnimationName) == animationData.end()) {
+		return;
+	}
+
+	if (animationData.find(oldAnimationName) != animationData.end()) {
+		throw std::runtime_error("The new animation name already exists.");
+	}
+
+	std::shared_ptr<AnimationData> data = animationData[oldAnimationName];
+	animationData.erase(oldAnimationName);
+	data->setAnimationName(newAnimationName);
+	animationData[newAnimationName] = data;
 }
 
 SpriteData::SpriteData() {
@@ -185,6 +219,28 @@ void SpriteData::load(std::string formattedString) {
 
 bool SpriteData::operator==(const SpriteData & other) const {
 	return this->area == other.area && this->color == other.color;
+}
+
+void SpriteData::setSpriteName(std::string spriteName) {
+	this->spriteName = spriteName;
+}
+
+void SpriteData::setTextureArea(sf::IntRect area) {
+	this->area = ComparableIntRect(area);
+}
+
+void SpriteData::setColor(sf::Color color) {
+	this->color = color;
+}
+
+void SpriteData::setSpriteSize(int width, int height) {
+	this->spriteWidth = width;
+	this->spriteHeight = height;
+}
+
+void SpriteData::setSpriteOrigin(int x, int y) {
+	this->spriteOriginX = x;
+	this->spriteOriginY = y;
 }
 
 SpriteLoader::SpriteLoader(const std::string& levelPackName) 
@@ -386,6 +442,10 @@ std::shared_ptr<SpriteSheet> SpriteLoader::getSpriteSheet(std::string spriteShee
 	return spriteSheets.at(spriteSheetName);
 }
 
+bool SpriteLoader::hasSpriteSheet(std::string spriteSheetName) const {
+	return spriteSheets.find(spriteSheetName) != spriteSheets.end();
+}
+
 std::string SpriteLoader::formatPathToSpriteSheetImage(std::string imageFileNameWithExtension) {
 	return format(RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH + "\\%s", levelPackName.c_str(), imageFileNameWithExtension.c_str());
 }
@@ -468,10 +528,24 @@ bool AnimationData::operator==(const AnimationData & other) const {
 	return animationName == other.animationName;
 }
 
+void AnimationData::setAnimationName(std::string animationName) {
+	this->animationName = animationName;
+}
+
+void AnimationData::setSpriteNames(std::vector<std::pair<float, std::string>> spriteNames) {
+	this->spriteNames = spriteNames;
+}
+
 std::string SpriteLoader::LoadMetrics::formatForUser() {
 	return format("%d/%d sprite sheets failed to load.\n", spriteSheetsFailed, spriteSheetsTotal);
 }
 
 bool SpriteLoader::LoadMetrics::containsFailedLoads() {
 	return spriteSheetsFailed > 0;
+}
+
+ComparableIntRect::ComparableIntRect() {
+}
+
+ComparableIntRect::ComparableIntRect(sf::IntRect rect) : sf::IntRect(rect) {
 }

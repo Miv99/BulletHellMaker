@@ -17,6 +17,9 @@ The only purpose of this class is to have an IntRect that can be used as a key f
 */
 class ComparableIntRect : public sf::IntRect {
 public:
+	ComparableIntRect();
+	ComparableIntRect(sf::IntRect rect);
+
 	// Non-meaningful operator required for map
 	inline bool operator<(const ComparableIntRect& rhs) const {
 		return this->left == rhs.left ? this->top < rhs.top : this->left < rhs.left;
@@ -39,6 +42,12 @@ public:
 	inline int getSpriteHeight() const { return spriteHeight; }
 	inline int getSpriteOriginX() const { return spriteOriginX; }
 	inline int getSpriteOriginY() const { return spriteOriginY; }
+
+	void setSpriteName(std::string spriteName);
+	void setTextureArea(sf::IntRect area);
+	void setColor(sf::Color color);
+	void setSpriteSize(int width, int height);
+	void setSpriteOrigin(int x, int y);
 
 private:
 	std::string spriteName;
@@ -70,6 +79,9 @@ public:
 		}
 		return total;
 	}
+
+	void setAnimationName(std::string animationName);
+	void setSpriteNames(std::vector<std::pair<float, std::string>> spriteNames);
 
 private:
 	std::string animationName;
@@ -104,6 +116,15 @@ public:
 	void markFailedMetafileLoad();
 
 	/*
+	Throws std::runtime_error.
+	*/
+	void renameSprite(std::string oldSpriteName, std::string newSpriteName);
+	/*
+	Throws std::runtime_error.
+	*/
+	void renameAnimation(std::string oldAnimationName, std::string newAnimationName);
+
+	/*
 	Returns nullptr if the requested sprite does not exist.
 	*/
 	std::shared_ptr<sf::Sprite> getSprite(const std::string& spriteName);
@@ -117,6 +138,8 @@ public:
 	inline bool isFailedImageLoad() const { return failedImageLoad; }
 	inline bool isFailedMetafileLoad() const { return failedMetafileLoad; }
 	inline sf::Texture* getTexture() { return &texture; }
+
+	bool hasSpriteData(std::string spriteName) const;
 
 private:
 	// Name of the sprite sheet
@@ -218,6 +241,7 @@ public:
 	std::vector<std::string> getLoadedSpriteSheetNames();
 	std::set<std::string> getLoadedSpriteSheetNamesAsSet();
 	std::shared_ptr<SpriteSheet> getSpriteSheet(std::string spriteSheetName) const;
+	bool hasSpriteSheet(std::string spriteSheetName) const;
 
 	std::string formatPathToSpriteSheetImage(std::string imageFileNameWithExtension);
 	std::string formatPathToSpriteSheetMetafile(std::string imageFileNameWithExtension);

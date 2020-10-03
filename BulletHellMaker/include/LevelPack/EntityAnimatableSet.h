@@ -21,10 +21,10 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	inline Animatable getIdleAnimatable() { return idleAnimatable; }
-	inline Animatable getMovementAnimatable() { return movementAnimatable; }
-	inline Animatable getAttackAnimatable() { return attackAnimatable; }
-	std::shared_ptr<DeathAction> getDeathAction();
+	inline Animatable getIdleAnimatable() const { return idleAnimatable; }
+	inline Animatable getMovementAnimatable() const { return movementAnimatable; }
+	inline Animatable getAttackAnimatable() const { return attackAnimatable; }
+	std::shared_ptr<DeathAction> getDeathAction() const;
 
 private:
 	// Animatable used when an entity is idle; always loops

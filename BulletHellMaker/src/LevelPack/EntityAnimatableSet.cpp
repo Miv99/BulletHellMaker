@@ -23,6 +23,6 @@ void EntityAnimatableSet::load(std::string formattedString) {
 	deathAction = DeathActionFactory::create(items.at(3));
 }
 
-std::shared_ptr<DeathAction> EntityAnimatableSet::getDeathAction() {
+std::shared_ptr<DeathAction> EntityAnimatableSet::getDeathAction() const {
 	return deathAction;
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include <TGUI/TGUI.hpp>
 
+#include <DataStructs/UndoStack.h>
 #include <Editor/EventCapturable.h>
 #include <Editor/ViewController.h>
 #include <Editor/CopyPaste.h>
@@ -25,9 +26,9 @@ public:
 	*/
 	tgui::SignalSpriteSheet onMetafileModify = { "MetafileModified" };
 
-	SpriteSheetMetafileEditor(MainEditorWindow& mainEditorWindow, Clipboard& clipboard);
-	static std::shared_ptr<SpriteSheetMetafileEditor> create(MainEditorWindow& mainEditorWindow, Clipboard& clipboard) {
-		return std::make_shared<SpriteSheetMetafileEditor>(mainEditorWindow, clipboard);
+	SpriteSheetMetafileEditor(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, int undoStackSize = 50);
+	static std::shared_ptr<SpriteSheetMetafileEditor> create(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, int undoStackSize = 50) {
+		return std::make_shared<SpriteSheetMetafileEditor>(mainEditorWindow, clipboard, undoStackSize);
 	}
 	
 	bool updateTime(tgui::Duration elapsedTime) override;
@@ -42,9 +43,16 @@ public:
 	void loadSpriteSheet(std::shared_ptr<SpriteLoader> spriteLoader, std::shared_ptr<SpriteSheet> spriteSheet);
 	void loadImage(std::shared_ptr<SpriteLoader> spriteLoader, std::string spriteSheetName);
 
+	void repopulateAnimatablesListView();
+
 	void resetCamera();
 
 	void scaleTransparentTextureToCameraZoom(float cameraZoomAmount);
+
+	/*
+	Throws std::runtime_error.
+	*/
+	void renameSprite(std::string oldSpriteName, std::string newSpriteName);
 
 	tgui::Signal& getSignal(tgui::String signalName) override;
 	
@@ -56,6 +64,7 @@ private:
 
 	MainEditorWindow& mainEditorWindow;
 	Clipboard& clipboard;
+	UndoStack undoStack;
 	// Not guaranteed to contain a loaded texture
 	std::shared_ptr<SpriteSheet> spriteSheet;
 

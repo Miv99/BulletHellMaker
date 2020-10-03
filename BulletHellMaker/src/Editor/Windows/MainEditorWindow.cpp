@@ -91,6 +91,9 @@ MainEditorWindow::MainEditorWindow(std::string windowTitle, int width, int heigh
 	clipboardNotification->setPosition(0, tgui::bindBottom(leftPanel) - tgui::bindHeight(clipboardNotification));
 	gui->add(clipboardNotification);
 
+	searchChildWindow = LevelPackSearchChildWindow::create(*this);
+	searchChildWindow->setTitleButtons(tgui::ChildWindow::TitleButton::Close);
+
 	gui->add(menuBar);
 
 	clipboard.getOnCopy()->sink().connect<MainEditorWindow, &MainEditorWindow::showClipboardResult>(this);
@@ -106,6 +109,8 @@ MainEditorWindow::~MainEditorWindow() {
 }
 
 void MainEditorWindow::loadLevelPack(std::string levelPackName) {
+	searchChildWindow->onMainEditorWindowLevelPackLoad();
+
 	audioPlayer = std::make_shared<AudioPlayer>();
 	try {
 		levelPack = std::make_shared<LevelPack>(*audioPlayer, levelPackName);
@@ -219,6 +224,24 @@ void MainEditorWindow::openLeftPanelPlayer() {
 	// TODO
 }
 
+void MainEditorWindow::openSearchChildWindow() {
+	addChildWindow(searchChildWindow);
+}
+
+LevelPackSearchChildWindow::LevelPackSearchFindAllResult MainEditorWindow::findAllInstancesOfSpriteName(std::string spriteSheetName, std::string spriteName) {
+	if (!levelPack || !spriteLoader) {
+		return LevelPackSearchChildWindow::LevelPackSearchFindAllResult();
+	}
+	return findAllInstancesOfAnimatable(spriteSheetName, spriteName, true);
+}
+
+LevelPackSearchChildWindow::LevelPackSearchFindAllResult MainEditorWindow::findAllInstancesOfAnimationName(std::string spriteSheetName, std::string spriteName) {
+	if (!levelPack || !spriteLoader) {
+		return LevelPackSearchChildWindow::LevelPackSearchFindAllResult();
+	}
+	return findAllInstancesOfAnimatable(spriteSheetName, spriteName, false);
+}
+
 void MainEditorWindow::updateAttack(std::shared_ptr<EditorAttack> attack) {
 	levelPack->updateAttack(attack);
 	if (previewWindow) {
@@ -254,6 +277,7 @@ void MainEditorWindow::deleteAttackPattern(int id) {
 		unsavedAttackPatterns.erase(id);
 	}
 }
+
 
 void MainEditorWindow::reloadSpriteLoader() {
 	if (!spriteLoader) {
@@ -293,6 +317,13 @@ void MainEditorWindow::reloadSpriteLoader() {
 
 bool MainEditorWindow::handleEvent(sf::Event event) {
 	if (EditorWindow::handleEvent(event)) {
+		return true;
+	}
+
+	if ((sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) 
+		&& event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::F) {
+
+		openSearchChildWindow();
 		return true;
 	}
 
@@ -418,6 +449,301 @@ void MainEditorWindow::populateLeftPanelLevelPackObjectListPanel(std::shared_ptr
 	listPanel->add(listView);
 }
 
+LevelPackSearchChildWindow::LevelPackSearchFindAllResult MainEditorWindow::findAllInstancesOfAnimatable(std::string spriteSheetName, std::string animatableName, bool mustBeSprite) {
+	LevelPackSearchChildWindow::LevelPackSearchFindAllResult result;
+
+	// Search the sprite sheet for the sprite name
+	if (levelPack->getSpriteLoader()->hasSpriteSheet(spriteSheetName)) {
+		std::shared_ptr<SpriteSheet> spriteSheet;
+		if (unsavedSpriteSheets.find(spriteSheetName) != unsavedSpriteSheets.end()) {
+			spriteSheet = unsavedSpriteSheets[spriteSheetName];
+		} else {
+			spriteSheet = levelPack->getSpriteLoader()->getSpriteSheet(spriteSheetName);
+		}
+
+		if (spriteSheet->hasSpriteData(animatableName)) {
+			std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode> node = std::make_shared<LevelPackSearchChildWindow::LevelPackSearchResultNode>();
+			node->type = LevelPackSearchChildWindow::LEVEL_PACK_SEARCH_RESULT_OBJECT_TYPE::SPRITE_SHEET;
+			node->name = spriteSheetName;
+			result.resultNodes.push_back(node);
+		}
+	}
+
+	// Search the player
+	{
+		std::shared_ptr<EditorPlayer> player;
+		if (unsavedPlayer) {
+			player = unsavedPlayer;
+		} else {
+			player = levelPack->getPlayer();
+		}
+
+		std::vector<std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode>> children;
+
+		std::vector<std::shared_ptr<PlayerPowerTier>> powerTiers = player->getPowerTiers();
+		for (int i = 0; i < powerTiers.size(); i++) {
+			const EntityAnimatableSet& animatableSet = powerTiers[i]->getAnimatableSet();
+
+			std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode> powerTierNode 
+				= findAllInstancesOfAnimatableInAnimatableSet(animatableSet, spriteSheetName, animatableName, mustBeSprite);
+
+			if (powerTierNode) {
+				powerTierNode->type = LevelPackSearchChildWindow::LEVEL_PACK_SEARCH_RESULT_OBJECT_TYPE::PLAYER_POWER_TIER;
+				powerTierNode->id = i;
+
+				children.push_back(powerTierNode);
+			}
+		}
+
+		if (!children.empty()) {
+			std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode> node = std::make_shared<LevelPackSearchChildWindow::LevelPackSearchResultNode>();
+			node->type = LevelPackSearchChildWindow::LEVEL_PACK_SEARCH_RESULT_OBJECT_TYPE::PLAYER;
+			node->children = children;
+			result.resultNodes.push_back(node);
+		}
+	}
+
+	// Search all enemies
+	for (auto it = levelPack->getEnemyIteratorBegin(); it != levelPack->getEnemyIteratorEnd(); it++) {
+		std::shared_ptr<EditorEnemy> enemy;
+		if (unsavedEnemies.find(it->second->getID()) != unsavedEnemies.end()) {
+			enemy = std::dynamic_pointer_cast<EditorEnemy>(unsavedEnemies[it->second->getID()]);
+		} else {
+			enemy = it->second;
+		}
+
+		std::vector<std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode>> children;
+
+		std::vector<EntityAnimatableSet> sets = enemy->getAnimatableSets();
+		for (int i = 0; i < sets.size(); i++) {
+			std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode> phaseUsageNode
+				= findAllInstancesOfAnimatableInAnimatableSet(sets[i], spriteSheetName, animatableName, mustBeSprite);
+
+			if (phaseUsageNode) {
+				phaseUsageNode->type = LevelPackSearchChildWindow::LEVEL_PACK_SEARCH_RESULT_OBJECT_TYPE::ENEMY_PHASE_USAGE;
+				phaseUsageNode->id = i;
+
+				children.push_back(phaseUsageNode);
+			}
+		}
+
+		if (!children.empty()) {
+			std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode> node = std::make_shared<LevelPackSearchChildWindow::LevelPackSearchResultNode>();
+			node->type = LevelPackSearchChildWindow::LEVEL_PACK_SEARCH_RESULT_OBJECT_TYPE::ENEMY;
+			node->id = it->first;
+			node->name = enemy->getName();
+			node->children = children;
+			result.resultNodes.push_back(node);
+		}
+	}
+
+	// Search all bullet models
+	for (auto it = levelPack->getBulletModelIteratorBegin(); it != levelPack->getBulletModelIteratorEnd(); it++) {
+		std::shared_ptr<BulletModel> bulletModel;
+		if (unsavedBulletModels.find(it->second->getID()) != unsavedBulletModels.end()) {
+			bulletModel = std::dynamic_pointer_cast<BulletModel>(unsavedBulletModels[it->second->getID()]);
+		} else {
+			bulletModel = it->second;
+		}
+
+		std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode> bulletModelNode;
+
+		// Check bullet model main animatable
+		Animatable animatable = bulletModel->getAnimatable();
+		if (animatable.getSpriteSheetName() == spriteSheetName
+			&& ((animatable.isSprite() && mustBeSprite) || (!animatable.isSprite() && !mustBeSprite))
+			&& animatable.getAnimatableName() == animatableName) {
+
+			bulletModelNode = std::make_shared<LevelPackSearchChildWindow::LevelPackSearchResultNode>();
+			bulletModelNode->type = LevelPackSearchChildWindow::LEVEL_PACK_SEARCH_RESULT_OBJECT_TYPE::BULLET_MODEL;
+			bulletModelNode->id = bulletModel->getID();
+			bulletModelNode->name = bulletModel->getName();
+
+			std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode> descriptorNode = std::make_shared<LevelPackSearchChildWindow::LevelPackSearchResultNode>();
+			descriptorNode->type = LevelPackSearchChildWindow::LEVEL_PACK_SEARCH_RESULT_OBJECT_TYPE::DESCRIPTOR;
+			descriptorNode->name = "Primary sprite/animation";
+			bulletModelNode->children.push_back(descriptorNode);
+		}
+
+		// Check bullet model base sprite
+		if (mustBeSprite) {
+			animatable = bulletModel->getBaseSprite();
+			if (animatable.getSpriteSheetName() == spriteSheetName && animatable.isSprite() && animatable.getAnimatableName() == animatableName) {
+				if (!bulletModelNode) {
+					bulletModelNode = std::make_shared<LevelPackSearchChildWindow::LevelPackSearchResultNode>();
+					bulletModelNode->type = LevelPackSearchChildWindow::LEVEL_PACK_SEARCH_RESULT_OBJECT_TYPE::BULLET_MODEL;
+					bulletModelNode->id = bulletModel->getID();
+				}
+
+				std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode> descriptorNode = std::make_shared<LevelPackSearchChildWindow::LevelPackSearchResultNode>();
+				descriptorNode->type = LevelPackSearchChildWindow::LEVEL_PACK_SEARCH_RESULT_OBJECT_TYPE::DESCRIPTOR;
+				descriptorNode->name = "Base sprite";
+				bulletModelNode->children.push_back(descriptorNode);
+			}
+		}
+
+		if (bulletModelNode) {
+			result.resultNodes.push_back(bulletModelNode);
+		}
+	}
+
+	// Search all attacks' EMPs
+	for (auto it = levelPack->getAttackIteratorBegin(); it != levelPack->getAttackIteratorEnd(); it++) {
+		std::shared_ptr<EditorAttack> attack;
+		if (unsavedAttacks.find(it->second->getID()) != unsavedAttacks.end()) {
+			attack = std::dynamic_pointer_cast<EditorAttack>(unsavedAttacks[it->second->getID()]);
+		} else {
+			attack = it->second;
+		}
+
+		std::vector<std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode>> children;
+
+		std::stack<std::shared_ptr<EditorMovablePoint>> empStack;
+		empStack.push(attack->getMainEMP());
+		while (!empStack.empty()) {
+			std::shared_ptr<EditorMovablePoint> emp = empStack.top();
+			empStack.pop();
+
+			std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode> empNode;
+
+			// Check EMP main animatable
+			Animatable animatable = emp->getAnimatable();
+			if (animatable.getSpriteSheetName() == spriteSheetName 
+				&& ((animatable.isSprite() && mustBeSprite) || (!animatable.isSprite() && !mustBeSprite))
+				&& animatable.getAnimatableName() == animatableName) {
+
+				empNode = std::make_shared<LevelPackSearchChildWindow::LevelPackSearchResultNode>();
+				empNode->type = LevelPackSearchChildWindow::LEVEL_PACK_SEARCH_RESULT_OBJECT_TYPE::EMP;
+				empNode->id = emp->getID();
+
+				std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode> descriptorNode = std::make_shared<LevelPackSearchChildWindow::LevelPackSearchResultNode>();
+				descriptorNode->type = LevelPackSearchChildWindow::LEVEL_PACK_SEARCH_RESULT_OBJECT_TYPE::DESCRIPTOR;
+				descriptorNode->name = "Primary sprite/animation";
+				empNode->children.push_back(descriptorNode);
+			}
+
+			// Check EMP base sprite
+			if (mustBeSprite) {
+				animatable = emp->getBaseSprite();
+				if (animatable.getSpriteSheetName() == spriteSheetName && animatable.isSprite() && animatable.getAnimatableName() == animatableName) {
+					if (!empNode) {
+						empNode = std::make_shared<LevelPackSearchChildWindow::LevelPackSearchResultNode>();
+						empNode->type = LevelPackSearchChildWindow::LEVEL_PACK_SEARCH_RESULT_OBJECT_TYPE::EMP;
+						empNode->id = emp->getID();
+					}
+
+					std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode> descriptorNode = std::make_shared<LevelPackSearchChildWindow::LevelPackSearchResultNode>();
+					descriptorNode->type = LevelPackSearchChildWindow::LEVEL_PACK_SEARCH_RESULT_OBJECT_TYPE::DESCRIPTOR;
+					descriptorNode->name = "Base sprite";
+					empNode->children.push_back(descriptorNode);
+				}
+			}
+
+			if (empNode) {
+				children.push_back(empNode);
+			}
+
+			for (std::shared_ptr<EditorMovablePoint> empChild : emp->getChildren()) {
+				empStack.push(empChild);
+			}
+		}
+
+		if (!children.empty()) {
+			std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode> node = std::make_shared<LevelPackSearchChildWindow::LevelPackSearchResultNode>();
+			node->type = LevelPackSearchChildWindow::LEVEL_PACK_SEARCH_RESULT_OBJECT_TYPE::ATTACK;
+			node->name = attack->getName();
+			node->id = it->first;
+			node->children = children;
+			result.resultNodes.push_back(node);
+		}
+	}
+
+	return result;
+}
+
+std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode> MainEditorWindow::findAllInstancesOfAnimatableInAnimatableSet(const EntityAnimatableSet& animatableSet, 
+	const std::string& spriteSheetName, const std::string& animatableName, bool mustBeSprite) {
+
+	std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode> node;
+	
+	Animatable animatable = animatableSet.getAttackAnimatable();
+	if (animatable.getSpriteSheetName() == spriteSheetName
+		&& ((animatable.isSprite() && mustBeSprite) || (!animatable.isSprite() && !mustBeSprite))
+		&& animatable.getAnimatableName() == animatableName) {
+
+		node = std::make_shared<LevelPackSearchChildWindow::LevelPackSearchResultNode>();
+
+		std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode> descriptorNode = std::make_shared<LevelPackSearchChildWindow::LevelPackSearchResultNode>();
+		descriptorNode->type = LevelPackSearchChildWindow::LEVEL_PACK_SEARCH_RESULT_OBJECT_TYPE::DESCRIPTOR;
+		descriptorNode->name = "Attack sprite/animation";
+		node->children.push_back(descriptorNode);
+	}
+
+	animatable = animatableSet.getIdleAnimatable();
+	if (animatable.getSpriteSheetName() == spriteSheetName
+		&& ((animatable.isSprite() && mustBeSprite) || (!animatable.isSprite() && !mustBeSprite))
+		&& animatable.getAnimatableName() == animatableName) {
+
+		if (!node) {
+			node = std::make_shared<LevelPackSearchChildWindow::LevelPackSearchResultNode>();
+		}
+
+		std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode> descriptorNode = std::make_shared<LevelPackSearchChildWindow::LevelPackSearchResultNode>();
+		descriptorNode->type = LevelPackSearchChildWindow::LEVEL_PACK_SEARCH_RESULT_OBJECT_TYPE::DESCRIPTOR;
+		descriptorNode->name = "Idle sprite/animation";
+		node->children.push_back(descriptorNode);
+	}
+
+	animatable = animatableSet.getMovementAnimatable();
+	if (animatable.getSpriteSheetName() == spriteSheetName
+		&& ((animatable.isSprite() && mustBeSprite) || (!animatable.isSprite() && !mustBeSprite))
+		&& animatable.getAnimatableName() == animatableName) {
+
+		if (!node) {
+			node = std::make_shared<LevelPackSearchChildWindow::LevelPackSearchResultNode>();
+		}
+
+		std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode> descriptorNode = std::make_shared<LevelPackSearchChildWindow::LevelPackSearchResultNode>();
+		descriptorNode->type = LevelPackSearchChildWindow::LEVEL_PACK_SEARCH_RESULT_OBJECT_TYPE::DESCRIPTOR;
+		descriptorNode->name = "Movement sprite/animation";
+		node->children.push_back(descriptorNode);
+	}
+
+	if (std::dynamic_pointer_cast<ParticleExplosionDeathAction>(animatableSet.getDeathAction())) {
+		animatable = std::dynamic_pointer_cast<ParticleExplosionDeathAction>(animatableSet.getDeathAction())->getAnimatable();
+		if (animatable.getSpriteSheetName() == spriteSheetName
+			&& ((animatable.isSprite() && mustBeSprite) || (!animatable.isSprite() && !mustBeSprite))
+			&& animatable.getAnimatableName() == animatableName) {
+
+			if (!node) {
+				node = std::make_shared<LevelPackSearchChildWindow::LevelPackSearchResultNode>();
+			}
+
+			std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode> descriptorNode = std::make_shared<LevelPackSearchChildWindow::LevelPackSearchResultNode>();
+			descriptorNode->type = LevelPackSearchChildWindow::LEVEL_PACK_SEARCH_RESULT_OBJECT_TYPE::DESCRIPTOR;
+			descriptorNode->name = "Death action: particle explosion";
+			node->children.push_back(descriptorNode);
+		}
+	} else if (std::dynamic_pointer_cast<PlayAnimatableDeathAction>(animatableSet.getDeathAction())) {
+		animatable = std::dynamic_pointer_cast<PlayAnimatableDeathAction>(animatableSet.getDeathAction())->getAnimatable();
+		if (animatable.getSpriteSheetName() == spriteSheetName
+			&& ((animatable.isSprite() && mustBeSprite) || (!animatable.isSprite() && !mustBeSprite))
+			&& animatable.getAnimatableName() == animatableName) {
+
+			if (!node) {
+				node = std::make_shared<LevelPackSearchChildWindow::LevelPackSearchResultNode>();
+			}
+
+			std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode> descriptorNode = std::make_shared<LevelPackSearchChildWindow::LevelPackSearchResultNode>();
+			descriptorNode->type = LevelPackSearchChildWindow::LEVEL_PACK_SEARCH_RESULT_OBJECT_TYPE::DESCRIPTOR;
+			descriptorNode->name = "Death action: show sprite/animation";
+			node->children.push_back(descriptorNode);
+		}
+	}
+
+	return node;
+}
+
 void MainEditorWindow::openLeftPanelSpriteSheet(std::string spriteSheetName) {
 	// Open sprite sheets tab in left panel if not already open
 	if (leftPanel->getSelectedTab() != LEFT_PANEL_SPRITE_SHEETS_TAB_NAME) {
@@ -441,13 +767,13 @@ Go to \"File > Reload sprites/animations\" to reload sprite sheets afterwards.",
 		return;
 	}
 
-	// Get the attack
+	// Get the sprite sheet
 	std::shared_ptr<SpriteSheet> openedSpriteSheet;
 	if (unsavedSpriteSheets.find(spriteSheetName) != unsavedSpriteSheets.end()) {
-		// There are unsaved changes for this attack, so open the one with unsaved changes
+		// There are unsaved changes for this sprite sheet, so open the one with unsaved changes
 		openedSpriteSheet = unsavedSpriteSheets.at(spriteSheetName);
 	} else {
-		// Make a copy of the attack in the LevelPack so that changes can be applied/discarded
+		// Make a copy of the sprite sheet in the LevelPack so that changes can be applied/discarded
 		// whenever the user wants instead of modifying the LevelPack directly.
 		openedSpriteSheet = std::make_shared<SpriteSheet>(levelPack->getSpriteLoader()->getSpriteSheet(spriteSheetName));
 	}

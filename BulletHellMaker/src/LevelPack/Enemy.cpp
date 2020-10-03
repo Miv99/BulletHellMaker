@@ -162,6 +162,14 @@ void EditorEnemy::setIsBoss(bool isBoss) {
 	this->isBoss = isBoss;
 }
 
+std::vector<EntityAnimatableSet> EditorEnemy::getAnimatableSets() const {
+	std::vector<EntityAnimatableSet> sets;
+	for (auto t : phaseIDs) {
+		sets.push_back(std::get<2>(t));
+	}
+	return sets;
+}
+
 std::tuple<std::shared_ptr<EnemyPhaseStartCondition>, int, EntityAnimatableSet, ExprSymbolTable, exprtk::symbol_table<float>> EditorEnemy::getPhaseData(int index) const {
 	return phaseIDs[index];
 }

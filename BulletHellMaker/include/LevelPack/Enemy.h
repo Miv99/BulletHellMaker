@@ -46,6 +46,11 @@ public:
 	void setDespawnTime(std::string despawnTime);
 	void setIsBoss(bool isBoss);
 
+	/*
+	Returns a list of EntityAnimatableSets used by this enemy. Each item's index in the returned list
+	will match the index in getPhaseData() from which the animatable set is being used.
+	*/
+	std::vector<EntityAnimatableSet> getAnimatableSets() const;
 	std::tuple<std::shared_ptr<EnemyPhaseStartCondition>, int, EntityAnimatableSet, ExprSymbolTable, exprtk::symbol_table<float>> getPhaseData(int index) const;
 	int getPhasesCount() const;
 	float getHitboxRadius() const;

@@ -413,7 +413,12 @@ void EditorWindow::removeAllVertexArrays() {
 }
 
 void EditorWindow::addChildWindow(std::shared_ptr<ChildWindow> childWindow) {
+	std::weak_ptr<ChildWindow> weakChildWindowPtr = std::weak_ptr(childWindow);
+
 	childWindows.insert(childWindow);
+	childWindow->onClose([this, weakChildWindowPtr]() {
+		childWindows.erase(weakChildWindowPtr.lock());
+	});
 	gui->add(childWindow);
 }
 

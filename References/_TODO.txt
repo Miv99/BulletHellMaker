@@ -194,6 +194,7 @@ TODO:
         because it will be empty anyway
     -choose background color
     -toggle show texture borders
+-indicator somewhere in MainEditorWindow leftPanel when there are unsaved changes to the level pack due to a created LevelPackObject
 -illegal level pack objects have [!] in maineditorwindow's left panel's list view
 -replace all in menu bar
     -replace all instances of an attack pattern ID with some other ID (same for all other relationships)
