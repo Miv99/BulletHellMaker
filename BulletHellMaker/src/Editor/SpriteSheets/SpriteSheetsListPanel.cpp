@@ -22,7 +22,7 @@ SpriteSheetsListPanel::SpriteSheetsListPanel(MainEditorWindow& mainEditorWindow)
 	std::shared_ptr<tgui::Button> importSpriteSheetButton = tgui::Button::create();
 	importSpriteSheetButton->setTextSize(TEXT_SIZE);
 	importSpriteSheetButton->setText("+");
-	importSpriteSheetButton->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
+	importSpriteSheetButton->setPosition(0, 0);
 	importSpriteSheetButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
 	importSpriteSheetButton->onPress.connect([this]() {
 		promptImportExternalSpriteSheet();
@@ -34,11 +34,8 @@ If there is a corresponding BulletHellMaker sprite sheet metafile (named \
 
 	spriteSheetsListView = ListView::create();
 	spriteSheetsListView->setPosition(tgui::bindLeft(importSpriteSheetButton), tgui::bindBottom(importSpriteSheetButton));
+	spriteSheetsListView->setSize("100%", "100%" - tgui::bindBottom(importSpriteSheetButton));
 	add(spriteSheetsListView);
-	
-	onSizeChange.connect([this, importSpriteSheetButton](sf::Vector2f newSize) {
-		spriteSheetsListView->setSize(newSize.x - GUI_PADDING_X * 2, newSize.y - GUI_PADDING_Y - tgui::bindBottom(importSpriteSheetButton));
-	});
 }
 
 void SpriteSheetsListPanel::promptImportExternalSpriteSheet() {

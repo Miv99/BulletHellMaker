@@ -348,6 +348,7 @@ void MainEditorWindow::populateLeftPanelLevelPackObjectListPanel(std::shared_ptr
 	addButton->setText("+");
 	addButton->setPosition(0, 0);
 	addButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
+	addButton->setToolTip(createToolTip("Creates a new object"));
 	addButton->onPress.connect([this, createLevelPackObject]() {
 		createLevelPackObject();
 	});
@@ -358,6 +359,7 @@ void MainEditorWindow::populateLeftPanelLevelPackObjectListPanel(std::shared_ptr
 	saveAllButton->setText("S");
 	saveAllButton->setPosition(tgui::bindRight(addButton), 0);
 	saveAllButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
+	saveAllButton->setToolTip(createToolTip("Saves all objects in this list"));
 	saveAllButton->onPress.connect([this, listView]() {
 		listView->manualSaveAll();
 	});
@@ -368,6 +370,7 @@ void MainEditorWindow::populateLeftPanelLevelPackObjectListPanel(std::shared_ptr
 	sortButton->setText("=");
 	sortButton->setPosition(tgui::bindRight(saveAllButton), 0);
 	sortButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
+	sortButton->setToolTip(createToolTip("Toggles between sorting this list by either ID number or name"));
 	sortButton->onPress.connect([this, listView]() {
 		listView->cycleSortOption();
 	});
