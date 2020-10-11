@@ -16,8 +16,8 @@ public:
 		return std::make_shared<ListView>();
 	}
 
-	void addItem(const tgui::String& item);
-	void addItem(const tgui::String& item, const tgui::String& id);
+	std::size_t addItem(const tgui::String& item);
+	std::size_t addItem(const tgui::String& item, const tgui::String& id);
 
 	void deselectItem();
 

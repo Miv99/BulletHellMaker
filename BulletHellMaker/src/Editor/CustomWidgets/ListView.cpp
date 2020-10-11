@@ -3,17 +3,19 @@
 ListView::ListView() {
 }
 
-void ListView::addItem(const tgui::String& item) {
+std::size_t ListView::addItem(const tgui::String& item) {
 	std::size_t index = tgui::ListView::addItem(item);
 	itemToIndex[item] = index;
+	return index;
 }
 
-void ListView::addItem(const tgui::String& item, const tgui::String& id) {
+std::size_t ListView::addItem(const tgui::String& item, const tgui::String& id) {
 	std::size_t index = tgui::ListView::addItem(item);
 	idToItem[id] = item;
 	indexToId[index] = id;
 	idToIndex[id] = index;
 	itemToIndex[item] = index;
+	return index;
 }
 
 void ListView::deselectItem() {

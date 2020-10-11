@@ -61,6 +61,10 @@ private:
 	const static char ANIMATABLES_LIST_SPRITE_INDICATOR;
 	// If an item ID in animatablesListView starts with this, the item is an animation
 	const static char ANIMATABLES_LIST_ANIMATION_INDICATOR;
+	// Time it takes for selectionRectangleColor to change color once
+	const static float SELECTION_RECTANGLE_COLOR_CHANGE_INTERVAL;
+	// Width of selection rectangle borders in pixels
+	const static int SELECTION_RECTANGLE_WIDTH;
 
 	MainEditorWindow& mainEditorWindow;
 	Clipboard& clipboard;
@@ -91,5 +95,14 @@ private:
 	sf::Texture transparentTexture;
 	sf::Sprite transparentTextureSprite;
 
+	// Rectangles being drawn
+	std::vector<sf::RectangleShape> selectionRectangles;
+	tgui::Color selectionRectangleColor = sf::Color::Black;
+	float timeUntilSelectionRectangleColorChange = 0;
+
 	void updateWindowView();
+
+	void deselectRectangles();
+	void selectSpriteRectangles(std::shared_ptr<SpriteData> spriteData);
+	void selectAnimationRectangles(std::shared_ptr<AnimationData> animationData);
 };

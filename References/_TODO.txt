@@ -187,6 +187,8 @@ Random things for TODOs that are noted here so I don't forget:
 -legal checks for everything should make sure all IDs used (ie attack IDs in attack patterns) are valid
 
 TODO:
+-make tabs be lighter color blue by default; turn dark blue only if the tabs widget is focused (not sure how to do this
+    yet since the TabsWithPanel itself might not have focus, but rather the panel or a widget inside the panel)
 -fix tgui so that middle mouse press event will focus a widget
 -SpriteSheetsEditor
     -(Create new)/(Add existing)/(Delete) sprite sheet 
@@ -220,6 +222,14 @@ TODO:
     -import bezier control points from text into BezierControlPointsPlacer
 
 Low priority TODO:
+-"rename all" feature for LevelPackSearchChildWindow; after clicking apply, run findAll to get an updated
+    LevelPackSearchFindAllResult and compare against the preview one; if matching, just do apply. if not
+    matching, inform the user about a change being detected and update the Results tab without doing the apply:
+    "Warning: There was a mismatch between the list of items to be replaced and the previewed list. The previewed list has now
+        been updated. Clicking apply again will attempt the \"Replace all\" operation again."
+-right click > open to open a LevelPackSearchFindAllResult node:
+    -When user tries to right click and open a thing, surround in a try/catch and just display something
+        like "object no longer exists. try searching again" when some exception occurs
 -SpriteSheetMetafileEditor initial background color should come from some preferences file (for the editor, not for each Level Pack)
 -Async ReadDirectoryChangesW for SpriteLoader watching changes to its level pack's sprite sheets folder
     and keeping the list of loaded sprite sheets consistent with the folder

@@ -8,6 +8,8 @@
 
 const char SpriteSheetMetafileEditor::ANIMATABLES_LIST_SPRITE_INDICATOR = '!';
 const char SpriteSheetMetafileEditor::ANIMATABLES_LIST_ANIMATION_INDICATOR = '@';
+const float SpriteSheetMetafileEditor::SELECTION_RECTANGLE_COLOR_CHANGE_INTERVAL = 0.4f;
+const int SpriteSheetMetafileEditor::SELECTION_RECTANGLE_WIDTH = 2;
 
 SpriteSheetMetafileEditor::SpriteSheetMetafileEditor(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, int undoStackSize)
 	: mainEditorWindow(mainEditorWindow), clipboard(clipboard), spriteSheet(spriteSheet),
@@ -64,10 +66,11 @@ SpriteSheetMetafileEditor::SpriteSheetMetafileEditor(MainEditorWindow& mainEdito
 	animatablesListView->setSize("25%", "100%");
 	animatablesListView->onDoubleClick([this](int index) {
 		if (index == -1) {
+			deselectRectangles();
 			return;
 		}
 
-		tgui::String id = animatablesListView->getItem(index);
+		tgui::String id = animatablesListView->getSelectedItemId();
 
 		if (id.at(0) == ANIMATABLES_LIST_SPRITE_INDICATOR) {
 			// TODO: look at the sprite
@@ -79,17 +82,22 @@ SpriteSheetMetafileEditor::SpriteSheetMetafileEditor(MainEditorWindow& mainEdito
 	});
 	animatablesListView->onItemSelect([this](int index) {
 		if (index == -1) {
+			deselectRectangles();
 			return;
 		}
 
-		tgui::String id = animatablesListView->getItem(index);
+		tgui::String id = animatablesListView->getSelectedItemId();
 
 		if (id.at(0) == ANIMATABLES_LIST_SPRITE_INDICATOR) {
-			// TODO: draw rectangle around the sprite
 			std::string spriteName = static_cast<std::string>(id.substr(1));
+			if (spriteSheet->hasSpriteData(spriteName)) {
+				selectSpriteRectangles(spriteSheet->getSpriteData(spriteName));
+			}
 		} else if (id.at(0) == ANIMATABLES_LIST_ANIMATION_INDICATOR) {
-			// TODO: draw rectangles around the sprites used in the animation
 			std::string animationName = static_cast<std::string>(id.substr(1));
+			if (spriteSheet->hasAnimationData(animationName)) {
+				selectAnimationRectangles(spriteSheet->getAnimationData(animationName));
+			}
 		}
 	});
 	add(animatablesListView);
@@ -131,6 +139,17 @@ SpriteSheetMetafileEditor::SpriteSheetMetafileEditor(MainEditorWindow& mainEdito
 bool SpriteSheetMetafileEditor::updateTime(tgui::Duration elapsedTime) {
 	bool ret = tgui::Panel::updateTime(elapsedTime);
 
+	timeUntilSelectionRectangleColorChange -= elapsedTime.asSeconds();
+	if (timeUntilSelectionRectangleColorChange <= 0) {
+		timeUntilSelectionRectangleColorChange = SELECTION_RECTANGLE_COLOR_CHANGE_INTERVAL;
+
+		if (selectionRectangleColor == tgui::Color::Black) {
+			selectionRectangleColor = tgui::Color::White;
+		} else {
+			selectionRectangleColor = tgui::Color::Black;
+		}
+	}
+
 	return viewController->update(viewFromViewController, elapsedTime.asSeconds()) || ret;
 }
 
@@ -145,6 +164,20 @@ void SpriteSheetMetafileEditor::draw(tgui::BackendRenderTargetBase& target, tgui
 	renderTarget.draw(transparentTextureSprite, sfmlStates);
 	if (loadedTexture) {
 		sfmlTarget.drawSprite(states, fullTextureAsSprite);
+
+		// 1 pixel on the screen is equal to this much in world coordinates
+		sf::Vector2f scale = renderTarget.mapPixelToCoords(sf::Vector2i(1, 1)) - renderTarget.mapPixelToCoords(sf::Vector2i(0, 0));
+		scale.x = std::abs(scale.x);
+		scale.y = std::abs(scale.y);
+		// Create borders such that they're always 2 pixels in each direction
+		tgui::Borders borders = { scale.x * SELECTION_RECTANGLE_WIDTH, scale.x * SELECTION_RECTANGLE_WIDTH, 
+			scale.y * SELECTION_RECTANGLE_WIDTH, scale.y * SELECTION_RECTANGLE_WIDTH };
+
+		for (auto rect : selectionRectangles) {
+			states.transform.translate(rect.getPosition());
+			sfmlTarget.drawBorders(states, borders, rect.getSize(), selectionRectangleColor);
+			states.transform.translate(-rect.getPosition());
+		}
 	}
 	renderTarget.setView(originalView);
 
@@ -285,4 +318,31 @@ void SpriteSheetMetafileEditor::updateWindowView() {
 
 	backgroundSprite.setScale(size);
 	backgroundSprite.setPosition(getPosition());
+}
+
+void SpriteSheetMetafileEditor::deselectRectangles() {
+	selectionRectangles.clear();
+}
+
+void SpriteSheetMetafileEditor::selectSpriteRectangles(std::shared_ptr<SpriteData> spriteData) {
+	selectionRectangles.clear();
+
+	sf::RectangleShape shape;
+	ComparableIntRect spriteRect = spriteData->getArea();
+	shape.setSize(sf::Vector2f(spriteRect.width, spriteRect.height));
+	shape.setPosition(spriteRect.left, spriteRect.top);
+	selectionRectangles.push_back(shape);
+}
+
+void SpriteSheetMetafileEditor::selectAnimationRectangles(std::shared_ptr<AnimationData> animationData) {
+	selectionRectangles.clear();
+	for (std::pair<float, std::string> data : animationData->getSpriteNames()) {
+		if (spriteSheet->hasSpriteData(data.second)) {
+			sf::RectangleShape shape;
+			ComparableIntRect spriteRect = spriteSheet->getSpriteData(data.second)->getArea();
+			shape.setSize(sf::Vector2f(spriteRect.width, spriteRect.height));
+			shape.setPosition(spriteRect.left, spriteRect.top);
+			selectionRectangles.push_back(shape);
+		}
+	}
 }

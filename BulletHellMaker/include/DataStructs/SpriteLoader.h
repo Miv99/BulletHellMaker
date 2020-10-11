@@ -134,12 +134,15 @@ public:
 	std::unique_ptr<Animation> getAnimation(const std::string& animationName, bool loop);
 	inline std::string getName() const { return name; }
 	inline const std::map<std::string, std::shared_ptr<SpriteData>>& getSpriteData() { return spriteData; }
+	std::shared_ptr<SpriteData> getSpriteData(std::string name) const;
 	inline const std::map<std::string, std::shared_ptr<AnimationData>>& getAnimationData() { return animationData; }
+	std::shared_ptr<AnimationData> getAnimationData(std::string animationName) const;
 	inline bool isFailedImageLoad() const { return failedImageLoad; }
 	inline bool isFailedMetafileLoad() const { return failedMetafileLoad; }
 	inline sf::Texture* getTexture() { return &texture; }
 
 	bool hasSpriteData(std::string spriteName) const;
+	bool hasAnimationData(std::string animationName) const;
 
 private:
 	// Name of the sprite sheet

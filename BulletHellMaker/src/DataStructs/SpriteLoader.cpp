@@ -121,8 +121,20 @@ std::unique_ptr<Animation> SpriteSheet::getAnimation(const std::string& animatio
 	return std::make_unique<Animation>(animationName, animationSprites[animationName], loop);
 }
 
+std::shared_ptr<SpriteData> SpriteSheet::getSpriteData(std::string spriteName) const {
+	return spriteData.at(spriteName);
+}
+
+std::shared_ptr<AnimationData> SpriteSheet::getAnimationData(std::string animationName) const {
+	return animationData.at(animationName);
+}
+
 bool SpriteSheet::hasSpriteData(std::string spriteName) const {
 	return spriteData.find(spriteName) != spriteData.end();
+}
+
+bool SpriteSheet::hasAnimationData(std::string animationName) const {
+	return animationData.find(animationName) != animationData.end();
 }
 
 void SpriteSheet::insertSprite(const std::string& spriteName, std::shared_ptr<SpriteData> sprite) {
