@@ -16,7 +16,7 @@ bool AnimatablePicture::updateTime(tgui::Duration elapsedTime) {
 
 	if (animation) {
 		std::shared_ptr<sf::Sprite> prevSprite = curSprite;
-		curSprite = animation->update(elapsedTime.asSeconds());
+		setCurSprite(animation->update(elapsedTime.asSeconds()));
 		if (curSprite != prevSprite) {
 			resizeCurSpriteToFitWidget();
 			return true;
@@ -32,11 +32,7 @@ void AnimatablePicture::draw(tgui::BackendRenderTargetBase& target, tgui::Render
 		sf::RenderTarget& renderTarget = *sfmlTarget.getTarget();
 		sf::RenderStates sfmlStates = toSFMLRenderStates(states);
 
-		if (spriteScaledToFitHorizontal) {
-			curSprite->setPosition(getPosition().x + getSize().x / 2, getPosition().y + curSprite->getOrigin().y * curSprite->getScale().y);
-		} else {
-			curSprite->setPosition(getPosition().x + curSprite->getOrigin().x * curSprite->getScale().x, getPosition().y + getSize().y / 2);
-		}
+		curSprite->setPosition(getPosition().x + curSprite->getOrigin().x * curSprite->getScale().x, getPosition().y + curSprite->getOrigin().y * curSprite->getScale().y);
 		renderTarget.draw(*curSprite, sfmlStates);
 	}
 }
@@ -62,16 +58,29 @@ void AnimatablePicture::setAnimation(SpriteLoader& spriteLoader, const std::stri
 }
 
 void AnimatablePicture::setSprite(SpriteLoader& spriteLoader, const std::string& spriteName, const std::string& spriteSheetName) {
-	curSprite = spriteLoader.getSprite(spriteName, spriteSheetName);
+	setCurSprite(spriteLoader.getSprite(spriteName, spriteSheetName));
 	animation = nullptr;
 	resizeCurSpriteToFitWidget();
 }
 
 void AnimatablePicture::setSpriteToMissingSprite(SpriteLoader& spriteLoader) {
-	curSprite = spriteLoader.getMissingSprite();
+	setCurSprite(spriteLoader.getMissingSprite());
 	animation = nullptr;
 	resizeCurSpriteToFitWidget();
 
+}
+
+void AnimatablePicture::setEmptyAnimatable() {
+	setCurSprite(nullptr);
+	animation = nullptr;
+}
+
+void AnimatablePicture::setCurSprite(std::shared_ptr<sf::Sprite> curSprite) {
+	this->curSprite = curSprite;
+
+	if (curSprite) {
+		curSpriteOriginalScale = curSprite->getScale();
+	}
 }
 
 void AnimatablePicture::resizeCurSpriteToFitWidget() {
@@ -79,15 +88,15 @@ void AnimatablePicture::resizeCurSpriteToFitWidget() {
 		return;
 	}
 
-	float width = curSprite->getLocalBounds().width * curSprite->getScale().x;
-	float height = curSprite->getLocalBounds().height * curSprite->getScale().y;
+	float width = curSprite->getLocalBounds().width * curSpriteOriginalScale.x;
+	float height = curSprite->getLocalBounds().height * curSpriteOriginalScale.y;
 	float scaleAmount;
-	if (width > height) {
+	if (getSize().x/getSize().y < width/height) {
 		scaleAmount = getSize().x / width;
 		spriteScaledToFitHorizontal = true;
 	} else {
 		scaleAmount = getSize().y / height;
 		spriteScaledToFitHorizontal = false;
 	}
-	curSprite->scale(scaleAmount, scaleAmount);
+	curSprite->setScale(curSpriteOriginalScale.x * scaleAmount, curSpriteOriginalScale.y * scaleAmount);
 }
