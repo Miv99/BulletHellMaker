@@ -77,7 +77,6 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 	selectedMarkerY->setPosition(tgui::bindLeft(selectedMarkerYLabel), tgui::bindBottom(selectedMarkerYLabel) + GUI_LABEL_PADDING_Y);
 
 	mouseWorldPosPanel->setSize(tgui::bindWidth(mouseWorldPosLabel) + GUI_PADDING_X * 2, tgui::bindHeight(mouseWorldPosLabel) + GUI_LABEL_PADDING_Y * 2);
-	mouseWorldPosPanel->setPosition(tgui::bindRight(leftPanel), tgui::bindBottom(leftPanel) - tgui::bindHeight(mouseWorldPosLabel) - GUI_LABEL_PADDING_Y * 2);
 	mouseWorldPosLabel->setPosition(GUI_PADDING_X, GUI_LABEL_PADDING_Y);
 
 	showGridLines->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
@@ -186,12 +185,12 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 	add(extraWidgetsPanel);
 
 	mouseWorldPosPanel->add(mouseWorldPosLabel);
-	add(mouseWorldPosPanel);
 
 	onPositionChange.connect([this]() {
 		updateWindowView();
 	});
 	onSizeChange.connect([this](sf::Vector2f newSize) {
+		mouseWorldPosPanel->setPosition(tgui::bindRight(leftPanel), newSize.y - tgui::bindHeight(mouseWorldPosLabel) - GUI_LABEL_PADDING_Y * 4);
 		updateWindowView();
 	});
 
@@ -232,8 +231,18 @@ bool MarkerPlacer::handleEvent(sf::Event event) {
 		} else if (event.key.code == sf::Keyboard::G) {
 			// Toggle grid lines visibility
 			setGridLinesVisible(!gridLinesVisible);
+
+			return true;
 		} else if (event.key.code == sf::Keyboard::Delete) {
 			manualDelete();
+
+			return true;
+		} else if (event.key.code == sf::Keyboard::Escape) {
+			if (placingNewMarker) {
+				setPlacingNewMarker(false);
+
+				return true;
+			}
 		}
 	}
 
