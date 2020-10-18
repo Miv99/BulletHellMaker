@@ -120,7 +120,7 @@ public:
 	std::shared_ptr<entt::SigH<void(int, int)>> getResizeSignal();
 	std::shared_ptr<entt::SigH<void()>> getCloseSignal();
 	inline std::shared_ptr<sf::RenderWindow> getWindow() { return window; }
-	inline sf::Vector2f getMousePos() { return mousePos; }
+	inline sf::Vector2i getMousePos() { return mousePos; }
 	inline sf::Vector2f getLastMousePressPos() { return lastMousePressPos; }
 
 protected:
@@ -131,7 +131,7 @@ protected:
 	std::shared_ptr<tgui::Gui> gui;
 
 	// The last known position of the mouse
-	sf::Vector2f mousePos = sf::Vector2f(0, 0);
+	sf::Vector2i mousePos = sf::Vector2i(0, 0);
 	// The position of the mouse at the last mouse press
 	sf::Vector2f lastMousePressPos = sf::Vector2f(0, 0);
 
