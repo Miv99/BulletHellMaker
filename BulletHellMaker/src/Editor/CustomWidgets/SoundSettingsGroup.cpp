@@ -89,9 +89,6 @@ SoundSettingsGroup::SoundSettingsGroup(std::string pathToSoundsFolder) {
 		fileName->setSize(newSize.x, TEXT_BOX_HEIGHT);
 		volume->setSize(newSize.x, SLIDER_HEIGHT);
 		pitch->setSize(newSize.x, SLIDER_HEIGHT);
-		fileNameLabel->setSize(newSize.x, TEXT_BOX_HEIGHT);
-		volumeLabel->setSize(newSize.x, TEXT_BOX_HEIGHT);
-		pitchLabel->setSize(newSize.x, TEXT_BOX_HEIGHT);
 
 		enableAudio->setPosition(0, 0);
 		fileNameLabel->setPosition(tgui::bindLeft(enableAudio), enableAudio->getPosition().y + enableAudio->getSize().y + GUI_PADDING_Y);
