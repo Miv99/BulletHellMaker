@@ -151,8 +151,8 @@ void ViewController::setMaxCameraZoom(sf::View& view, float maxCameraZoom) {
 	this->maxCameraZoom = maxCameraZoom;
 
 	// Set cameraZoomIntegerLevel such that zoom level is as close to 1.0 as possible using the cameraZoom curve defined in setCameraZoom()
-	cameraZoomIntegerLevel = std::max(0,
-		(int)(std::lround(std::log((1.0f - MIN_CAMERA_ZOOM)/(maxCameraZoom - MIN_CAMERA_ZOOM)) + std::exp(0.1177f * (0 - (NUM_ZOOM_ACTIONS_TO_CHANGE_FROM_MIN_TO_MAX_ZOOM - 1)))) / 0.1177f + (NUM_ZOOM_ACTIONS_TO_CHANGE_FROM_MIN_TO_MAX_ZOOM - 1)));
+	cameraZoomIntegerLevel = std::max(0, std::min(NUM_ZOOM_ACTIONS_TO_CHANGE_FROM_MIN_TO_MAX_ZOOM - 1,
+		(int)(std::lround(std::log((1.0f - MIN_CAMERA_ZOOM)/(maxCameraZoom - MIN_CAMERA_ZOOM)) + std::exp(0.1177f * (0 - (NUM_ZOOM_ACTIONS_TO_CHANGE_FROM_MIN_TO_MAX_ZOOM - 1)))) / 0.1177f + (NUM_ZOOM_ACTIONS_TO_CHANGE_FROM_MIN_TO_MAX_ZOOM - 1))));
 
 	cameraZoomDelta = (maxCameraZoom - MIN_CAMERA_ZOOM) / NUM_ZOOM_ACTIONS_TO_CHANGE_FROM_MIN_TO_MAX_ZOOM;
 
