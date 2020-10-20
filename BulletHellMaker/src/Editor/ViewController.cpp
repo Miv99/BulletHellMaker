@@ -5,12 +5,16 @@
 #include <iostream>
 
 const float ViewController::MIN_CAMERA_ZOOM = 0.2f;
-const float ViewController::MAX_CAMERA_ZOOM = 8.0f;
-const float ViewController::CAMERA_ZOOM_DELTA = 0.2f;
+const int ViewController::NUM_ZOOM_ACTIONS_TO_CHANGE_FROM_MIN_TO_MAX_ZOOM = 38;
 const float ViewController::KEYBOARD_PAN_STRENGTH = 300.0f;
 
-ViewController::ViewController(sf::RenderWindow& window, bool controllableWithWASD, bool controllableWithArrowKeys)
+ViewController::ViewController(sf::RenderWindow& window, bool controllableWithWASD, bool controllableWithArrowKeys, float maxCameraZoom)
 	: window(window), controllableWithWASD(controllableWithWASD), controllableWithArrowKeys(controllableWithArrowKeys) {
+	
+	// Set cameraZoomIntegerLevel such that zoom level is as close to 1.0 as possible
+	cameraZoomIntegerLevel = std::lround(std::log((1 - MIN_CAMERA_ZOOM) / (maxCameraZoom - MIN_CAMERA_ZOOM)) / (NUM_ZOOM_ACTIONS_TO_CHANGE_FROM_MIN_TO_MAX_ZOOM * 0.1177f) + NUM_ZOOM_ACTIONS_TO_CHANGE_FROM_MIN_TO_MAX_ZOOM);
+
+	cameraZoomDelta = (maxCameraZoom - MIN_CAMERA_ZOOM) / NUM_ZOOM_ACTIONS_TO_CHANGE_FROM_MIN_TO_MAX_ZOOM;
 }
 
 bool ViewController::handleEvent(sf::View& view, sf::Event event) {
@@ -18,19 +22,20 @@ bool ViewController::handleEvent(sf::View& view, sf::Event event) {
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
 		if (event.type == sf::Event::KeyPressed) {
+			// TODO: change this so that cameraZoom changes nonlinearly
 			if (event.key.code == sf::Keyboard::Dash) {
-				setCameraZoom(view, std::max(MIN_CAMERA_ZOOM, cameraZoom - 0.2f));
+				setCameraZoom(view, cameraZoomIntegerLevel - 1);
 				consumeEvent = true;
 			} else if (event.key.code == sf::Keyboard::Equal) {
-				setCameraZoom(view, std::min(8.0f, cameraZoom + 0.2f));
+				setCameraZoom(view, cameraZoomIntegerLevel + 1);
 				consumeEvent = true;
 			}
 		} else if (event.type == sf::Event::MouseWheelScrolled) {
 			if (event.mouseWheelScroll.delta < 0) {
-				setCameraZoom(view, std::max(0.2f, cameraZoom - 0.2f));
+				setCameraZoom(view, cameraZoomIntegerLevel - 1);
 				consumeEvent = true;
 			} else if (event.mouseWheelScroll.delta > 0) {
-				setCameraZoom(view, std::min(8.0f, cameraZoom + 0.2f));
+				setCameraZoom(view, cameraZoomIntegerLevel + 1);
 				consumeEvent = true;
 			}
 		}
@@ -142,9 +147,28 @@ void ViewController::setOriginalViewSize(float width, float height) {
 	originalViewHeight = height;
 }
 
-void ViewController::setCameraZoom(sf::View& view, float zoom) {
-	cameraZoom = zoom;
-	view.setSize(originalViewWidth / zoom, originalViewHeight / zoom);
+void ViewController::setMaxCameraZoom(sf::View& view, float maxCameraZoom) {
+	this->maxCameraZoom = maxCameraZoom;
+
+	// Set cameraZoomIntegerLevel such that zoom level is as close to 1.0 as possible using the cameraZoom curve defined in setCameraZoom()
+	cameraZoomIntegerLevel = std::max(0,
+		(int)(std::lround(std::log((1.0f - MIN_CAMERA_ZOOM)/(maxCameraZoom - MIN_CAMERA_ZOOM)) + std::exp(0.1177f * (0 - (NUM_ZOOM_ACTIONS_TO_CHANGE_FROM_MIN_TO_MAX_ZOOM - 1)))) / 0.1177f + (NUM_ZOOM_ACTIONS_TO_CHANGE_FROM_MIN_TO_MAX_ZOOM - 1)));
+
+	cameraZoomDelta = (maxCameraZoom - MIN_CAMERA_ZOOM) / NUM_ZOOM_ACTIONS_TO_CHANGE_FROM_MIN_TO_MAX_ZOOM;
+
+	setCameraZoom(view, cameraZoomIntegerLevel);
+}
+
+void ViewController::setCameraZoom(sf::View& view, int cameraZoomIntegerLevel) {
+	if (cameraZoomIntegerLevel < 0 || cameraZoomIntegerLevel >= NUM_ZOOM_ACTIONS_TO_CHANGE_FROM_MIN_TO_MAX_ZOOM) {
+		return;
+	}
+
+	this->cameraZoomIntegerLevel = cameraZoomIntegerLevel;
+	cameraZoom = std::max(0.0f, std::exp(0.1177f * (cameraZoomIntegerLevel - (NUM_ZOOM_ACTIONS_TO_CHANGE_FROM_MIN_TO_MAX_ZOOM - 1))) - std::exp(0.1177f * (0 - (NUM_ZOOM_ACTIONS_TO_CHANGE_FROM_MIN_TO_MAX_ZOOM - 1))))
+		* (maxCameraZoom - MIN_CAMERA_ZOOM) + MIN_CAMERA_ZOOM;
+
+	view.setSize(originalViewWidth / cameraZoom, originalViewHeight / cameraZoom);
 
 	onCameraZoomChange.publish(cameraZoom);
 }

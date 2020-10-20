@@ -4,7 +4,13 @@
 
 class ViewController {
 public:
-	ViewController(sf::RenderWindow& window, bool controllableWithWASD = true, bool controllableWithArrowKeys = true);
+	/*
+	controllableWithWASD - whether WASD can be used to pan the camera
+	controllableWithArrowKeys - whether arrow keys can be used to pan the camera
+	maxCameraZoom - the max camera zoom level
+	*/
+	ViewController(sf::RenderWindow& window, bool controllableWithWASD = true, 
+		bool controllableWithArrowKeys = true, float maxCameraZoom = 8.0f);
 
 	/*
 	Modifies view.
@@ -29,13 +35,14 @@ public:
 	*/
 	void setOriginalViewSize(float width, float height);
 
-	inline float getZoomAmount() { return cameraZoom; }
+	void setMaxCameraZoom(sf::View& view, float maxCameraZoom);
+
+	inline float getZoomAmount() const { return cameraZoom; }
 	entt::SigH<void(float)>& getOnZoomAmountChange() { return onCameraZoomChange; }
 
 private:
 	static const float MIN_CAMERA_ZOOM;
-	static const float MAX_CAMERA_ZOOM;
-	static const float CAMERA_ZOOM_DELTA;
+	static const int NUM_ZOOM_ACTIONS_TO_CHANGE_FROM_MIN_TO_MAX_ZOOM;
 	static const float KEYBOARD_PAN_STRENGTH;
 
 	sf::RenderWindow& window;
@@ -48,8 +55,12 @@ private:
 	// View center when camera dragging started
 	sf::Vector2f draggingStartViewCenter;
 	bool draggingCamera = false;
-	// This should be modified only by setCameraZoom()
+	// cameraZoom should be modified only by setCameraZoom()
 	float cameraZoom = 1.0f;
+	// Always in range [0, NUM_ZOOM_ACTIONS_TO_CHANGE_FROM_MIN_TO_MAX_ZOOM)
+	int cameraZoomIntegerLevel;
+	float maxCameraZoom;
+	float cameraZoomDelta;
 
 	bool controllableWithWASD;
 	bool controllableWithArrowKeys;
@@ -60,7 +71,7 @@ private:
 	// Parameter: the new zoom amount
 	entt::SigH<void(float)> onCameraZoomChange;
 
-	void setCameraZoom(sf::View& view, float zoom);
+	void setCameraZoom(sf::View& view, int cameraZoomIntegerLevel);
 	/*
 	Moves the camera by some amount of world coordinates.
 	*/

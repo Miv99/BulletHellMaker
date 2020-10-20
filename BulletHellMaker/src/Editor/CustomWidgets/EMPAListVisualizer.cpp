@@ -69,7 +69,7 @@ void EMPAListVisualizer::draw(tgui::BackendRenderTargetBase& target, tgui::Rende
 
 	// Draw movement path
 	sf::View originalView = parentWindow.getView();
-	// Adjust to account for the window's view
+	// Adjust to account for the window's view (idk why this works)
 	sf::View offsetView = viewFromViewController;
 	offsetView.setCenter(offsetView.getCenter() + getAbsolutePosition());
 	

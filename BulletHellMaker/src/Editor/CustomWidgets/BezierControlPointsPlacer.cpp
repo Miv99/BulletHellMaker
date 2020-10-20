@@ -89,9 +89,10 @@ void BezierControlPointsPlacer::draw(tgui::BackendRenderTargetBase& target, tgui
 
 	// Draw movement path
 	sf::View originalView = parentWindow.getView();
+	// Adjust to account for the window's view (idk why this works)
 	sf::View offsetView = viewFromViewController;
-	// Not sure why this is necessary
 	offsetView.setCenter(offsetView.getCenter() + getAbsolutePosition());
+
 	parentWindow.setView(offsetView);
 	parentWindow.draw(movementPath, sfmlStates);
 	if (evaluatorCircle.getRadius() > 0) {

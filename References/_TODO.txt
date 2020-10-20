@@ -147,6 +147,10 @@ Notes for me:
     -EMPABasedMovementEditorPanel: when the EMPA list is modified, the visualizer special color for the selected EMPA
         disappears. This happens because EditorMovablePointActionsListView does not receive an item selection signal in updateEMPAList() 
         due to TGUI's ListView not emitting a signal for multiple selected indices.
+-TGUI's Widget that have layouts (size/position) that are bound to a parent widget (eg "25%") can emit their "onSizeChange" signal
+  BEFORE their parents' layouts are updated, causing the children layouts to get messed up. This can be avoided by
+  updating the child's size directly (using floats rather than something like "25%") in the parent's onSizeChange.
+    -Very noticeable when something in an onSizeChange handler uses getAbsolutePosition()
 -Known big bugs:
     -Player death -> death sound plays every time player gets hit again
         -This is only because player death hasn't been implemented yet in CollisionSystem
@@ -187,6 +191,7 @@ Random things for TODOs that are noted here so I don't forget:
 -legal checks for everything should make sure all IDs used (ie attack IDs in attack patterns) are valid
 
 TODO:
+-MarkerPlacer "add" button should insert marker at selected index; last if none selected
 -make tabs be lighter color blue by default; turn dark blue only if the tabs widget is focused (not sure how to do this
     yet since the TabsWithPanel itself might not have focus, but rather the panel or a widget inside the panel)
 -fix tgui so that middle mouse press event will focus a widget
