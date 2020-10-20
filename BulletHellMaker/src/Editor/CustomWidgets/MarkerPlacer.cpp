@@ -193,8 +193,12 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 		updateWindowView();
 	});
 	onSizeChange.connect([this](sf::Vector2f newSize) {
-		leftPanel->setSize(tgui::bindMin(0.25f * newSize.x, 250), "100%");
-		mouseWorldPosPanel->setPosition(tgui::bindRight(leftPanel), newSize.y - tgui::bindHeight(mouseWorldPosLabel) - GUI_LABEL_PADDING_Y * 4);
+		leftPanel->setSize(tgui::bindMin(0.25f * newSize.x, 250), newSize.y);
+		if (leftPanel->isVisible()) {
+			mouseWorldPosPanel->setPosition(tgui::bindRight(leftPanel), newSize.y - tgui::bindHeight(mouseWorldPosLabel) - GUI_LABEL_PADDING_Y * 4);
+		} else {
+			mouseWorldPosPanel->setPosition(0, newSize.y - tgui::bindHeight(mouseWorldPosLabel) - GUI_LABEL_PADDING_Y * 4);
+		}
 		updateWindowView();
 	});
 
