@@ -95,6 +95,11 @@ protected:
 
 	virtual void manualDelete();
 
+	/*
+	Returns the top-left scren position where the world is drawn to.
+	*/
+	sf::Vector2f getWorldViewOffsetInPixels() const;
+
 private:
 	// Color of grid lines
 	static const sf::Color GRID_COLOR;

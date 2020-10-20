@@ -58,7 +58,7 @@ private:
 	float startX = 0, startY = 0;
 
 	/*
-	Updates
+	Updates the evaluator result text.
 	*/
 	void updateEvaluatorResult();
 };

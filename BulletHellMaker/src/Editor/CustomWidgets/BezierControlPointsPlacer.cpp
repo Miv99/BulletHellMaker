@@ -56,6 +56,10 @@ BezierControlPointsPlacer::BezierControlPointsPlacer(sf::RenderWindow& parentWin
 		cycleMovementPathPrimitiveType();
 	});
 
+	onSizeChange.connect([this]() {
+		updateEvaluatorResult();
+	});
+
 	timeResolution->setSize("50%", SLIDER_HEIGHT);
 	evaluator->setSize("50%", TEXT_BOX_HEIGHT);
 	cycleMovementPathPrimitiveTypeButton->setSize("50%", TEXT_BOX_HEIGHT);

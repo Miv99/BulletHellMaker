@@ -50,16 +50,16 @@ calculating the movement path and when evaluating positions."));
 		cycleMovementPathPrimitiveType();
 	});
 
+	onSizeChange.connect([this]() {
+		updateEvaluatorResult();
+	});
+
 	evaluator->setSize("50%", TEXT_BOX_HEIGHT);
 	cycleMovementPathPrimitiveTypeButton->setSize("50%", TEXT_BOX_HEIGHT);
 
 	extraWidgetsPanel->addExtraRowWidget(evaluator, GUI_PADDING_Y);
 	extraWidgetsPanel->addExtraColumnWidget(evaluatorResult, GUI_PADDING_X);
 	extraWidgetsPanel->addExtraRowWidget(cycleMovementPathPrimitiveTypeButton, GUI_LABEL_PADDING_Y);
-
-	onSizeChange.connect([this]() {
-		updateEvaluatorResult();
-	});
 }
 
 void EMPAListVisualizer::draw(tgui::BackendRenderTargetBase& target, tgui::RenderStates states) const {
@@ -69,9 +69,10 @@ void EMPAListVisualizer::draw(tgui::BackendRenderTargetBase& target, tgui::Rende
 
 	// Draw movement path
 	sf::View originalView = parentWindow.getView();
+	// Adjust to account for the window's view
 	sf::View offsetView = viewFromViewController;
-	// Not sure why this is necessary
 	offsetView.setCenter(offsetView.getCenter() + getAbsolutePosition());
+	
 	parentWindow.setView(offsetView);
 	parentWindow.draw(movementPath, sfmlStates);
 	if (evaluatorCircle.getRadius() > 0) {

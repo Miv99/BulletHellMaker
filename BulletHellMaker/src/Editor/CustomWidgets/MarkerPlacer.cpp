@@ -82,12 +82,15 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 	showGridLines->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
 	snapToGridCheckBox->setSize(CHECKBOX_SIZE, CHECKBOX_SIZE);
 
-	leftPanel->setSize(tgui::bindMin("25%", 250), "100%");
 	extraWidgetsPanel->setWidth("100%" - tgui::bindRight(leftPanel));
 	extraWidgetsPanel->setMaxHeight(0);
 
 	leftPanel->onSizeChange.connect([this](sf::Vector2f newSize) {
-		extraWidgetsPanel->setPosition(leftPanel->getPosition().x + newSize.x, tgui::bindTop(leftPanel));
+		if (leftPanel->isVisible()) {
+			extraWidgetsPanel->setPosition(leftPanel->getPosition().x + newSize.x, tgui::bindTop(leftPanel));
+		} else {
+			extraWidgetsPanel->setPosition(0, tgui::bindTop(leftPanel));
+		}
 
 		// Height of left panel minus y needed for the widgets that are not the list view
 		float markersListViewHeight = newSize.y - GUI_PADDING_Y * 5 - GUI_LABEL_PADDING_Y * 2 - selectedMarkerXLabel->getSize().y * 2 - selectedMarkerX->getSize().y * 2 - addMarker->getSize().y;
@@ -190,6 +193,7 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 		updateWindowView();
 	});
 	onSizeChange.connect([this](sf::Vector2f newSize) {
+		leftPanel->setSize(tgui::bindMin(0.25f * newSize.x, 250), "100%");
 		mouseWorldPosPanel->setPosition(tgui::bindRight(leftPanel), newSize.y - tgui::bindHeight(mouseWorldPosLabel) - GUI_LABEL_PADDING_Y * 4);
 		updateWindowView();
 	});
@@ -199,6 +203,8 @@ MarkerPlacer::MarkerPlacer(sf::RenderWindow& parentWindow, Clipboard& clipboard,
 	leftPanel->setHorizontalScrollAmount(SCROLL_AMOUNT);
 	leftPanel->setVerticalScrollAmount(SCROLL_AMOUNT);
 	setGridLinesVisible(gridLinesVisible);
+
+	updateWindowView();
 }
 
 bool MarkerPlacer::handleEvent(sf::Event event) {
@@ -646,7 +652,7 @@ void MarkerPlacer::calculateGridLines() {
 
 void MarkerPlacer::updateWindowView() {
 	auto windowSize = parentWindow.getSize();
-	auto size = getSize();
+	auto size = getSize() - getWorldViewOffsetInPixels();
 	float sizeRatio = size.x / (float)size.y;
 	float playAreaViewRatio = resolution.x / (float)resolution.y;
 
@@ -667,10 +673,10 @@ void MarkerPlacer::updateWindowView() {
 
 	viewController->setOriginalViewSize(viewWidth, viewHeight);
 
-	float viewportX = getAbsolutePosition().x / windowSize.x;
-	float viewportY = getAbsolutePosition().y / windowSize.y;
-	float viewportWidth = getSize().x / windowSize.x;
-	float viewportHeight = getSize().y / windowSize.y;
+	float viewportX = (getAbsolutePosition().x + getWorldViewOffsetInPixels().x) / windowSize.x;
+	float viewportY = (getAbsolutePosition().y + getWorldViewOffsetInPixels().y) / windowSize.y;
+	float viewportWidth = (getSize().x - getWorldViewOffsetInPixels().x) / windowSize.x;
+	float viewportHeight = (getSize().y - getWorldViewOffsetInPixels().y) / windowSize.y;
 	viewportFloatRect = sf::FloatRect(viewportX, viewportY, viewportWidth, viewportHeight);
 
 	sf::Vector2f oldCenter = viewFromViewController.getCenter();
@@ -687,6 +693,23 @@ int MarkerPlacer::roundToNearestMultiple(int num, int multiple) {
 	const auto ratio = static_cast<double>(num) / multiple;
 	const auto iratio = std::lround(ratio);
 	return iratio * multiple;
+}
+
+sf::Vector2f MarkerPlacer::getWorldViewOffsetInPixels() const {
+	if (leftPanel->isVisible()) {
+		if (extraWidgetsPanel->isVisible()) {
+			return sf::Vector2f(leftPanel->getPosition().x + leftPanel->getSize().x,
+				extraWidgetsPanel->getPosition().y + extraWidgetsPanel->getSize().y);
+		} else {
+			return sf::Vector2f(leftPanel->getPosition().x + leftPanel->getSize().x, 0);
+		}
+	} else {
+		if (extraWidgetsPanel->isVisible()) {
+			return sf::Vector2f(0, extraWidgetsPanel->getPosition().y + extraWidgetsPanel->getSize().y);
+		} else {
+			return sf::Vector2f(0, 0);
+		}
+	}
 }
 
 void MarkerPlacer::manualDelete() {
