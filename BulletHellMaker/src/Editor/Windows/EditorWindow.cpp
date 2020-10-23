@@ -507,7 +507,7 @@ bool EditorWindow::handleEvent(sf::Event event) {
 		mousePos.x = event.mouseMove.x;
 		mousePos.y = event.mouseMove.y;
 	} else if (event.type == sf::Event::MouseButtonPressed) {
-		lastMousePressPos = mousePos;
+		lastMousePressPos = sf::Vector2f(mousePos);
 	}
 
 	// Disable all events except KeyPressed when confirmation panel is open because confirmation panel
