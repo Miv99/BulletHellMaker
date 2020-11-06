@@ -195,12 +195,6 @@ TODO:
 -make tabs be lighter color blue by default; turn dark blue only if the tabs widget is focused (not sure how to do this
     yet since the TabsWithPanel itself might not have focus, but rather the panel or a widget inside the panel)
 -fix tgui so that middle mouse press event will focus a widget
--SpriteSheetsEditor
-    -(Create new)/(Add existing)/(Delete) sprite sheet 
-    -double click sprite sheet -> if metafile doesn't exist, create it; no need to load it in the level pack's sprite loader
-        because it will be empty anyway
-    -choose background color
-    -toggle show texture borders
 -indicator somewhere in MainEditorWindow leftPanel when there are unsaved changes to the level pack due to a created LevelPackObject
 -illegal level pack objects have [!] in maineditorwindow's left panel's list view
 -replace all in menu bar
@@ -227,6 +221,7 @@ TODO:
     -import bezier control points from text into BezierControlPointsPlacer
 
 Low priority TODO:
+-Background thread that autosaves everything that the user can restore Level Packs from; runs on a timer
 -"rename all" feature for LevelPackSearchChildWindow; after clicking apply, run findAll to get an updated
     LevelPackSearchFindAllResult and compare against the preview one; if matching, just do apply. if not
     matching, inform the user about a change being detected and update the Results tab without doing the apply:

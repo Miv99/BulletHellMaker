@@ -7,7 +7,10 @@
 #include <Editor/CopyPaste.h>
 #include <Editor/Util/ExtraSignals.h>
 #include <Editor/CustomWidgets/ListView.h>
+#include <Editor/CustomWidgets/NumericalEditBoxWithLimits.h>
 #include <Editor/CustomWidgets/SimpleWidgetsContainerPanel.h>
+#include <Editor/CustomWidgets/ChildWindow.h>
+#include <Editor/CustomWidgets/AnimatablePicture.h>
 
 class MainEditorWindow;
 
@@ -40,8 +43,8 @@ public:
 
 	bool handleEvent(sf::Event event) override;
 
-	void loadSpriteSheet(std::shared_ptr<SpriteLoader> spriteLoader, std::shared_ptr<SpriteSheet> spriteSheet);
-	void loadImage(std::shared_ptr<SpriteLoader> spriteLoader, std::string spriteSheetName);
+	void loadSpriteSheet(const std::string& levelPackName, std::shared_ptr<SpriteLoader> spriteLoader, std::shared_ptr<SpriteSheet> spriteSheet);
+	void loadImage(const std::string& levelPackName, std::shared_ptr<SpriteLoader> spriteLoader, std::string spriteSheetName);
 
 	void repopulateAnimatablesListView();
 
@@ -61,16 +64,22 @@ private:
 	const static char ANIMATABLES_LIST_SPRITE_INDICATOR;
 	// If an item ID in animatablesListView starts with this, the item is an animation
 	const static char ANIMATABLES_LIST_ANIMATION_INDICATOR;
-	// Time it takes for selectionRectangleColor to change color once
-	const static float SELECTION_RECTANGLE_COLOR_CHANGE_INTERVAL;
+	// Time it takes for selectionRectangleColor/worldSelectionCursorColor to change colors once
+	const static float WORLD_SELECTION_COLORS_CHANGE_INTERVAL;
 	// Width of selection rectangle borders in pixels
 	const static int SELECTION_RECTANGLE_WIDTH;
+	// Diameter of the world selection circle cursor (for sprite rect or origin selection)
+	const static float WORLD_SELECTION_CURSOR_DIAMETER;
+	const static float WORLD_SELECTION_CURSOR_BORDER_THICKNESS;
+	// The larger this number, the less viewController's max zoom level scales on the loaded image's size
+	const static float MAX_CAMERA_ZOOM_SCALAR;
 
 	MainEditorWindow& mainEditorWindow;
 	Clipboard& clipboard;
 	UndoStack undoStack;
 	// Not guaranteed to contain a loaded texture
 	std::shared_ptr<SpriteSheet> spriteSheet;
+	std::shared_ptr<SpriteLoader> spriteLoader;
 
 	sf::View viewFromViewController;
 	sf::FloatRect viewportFloatRect, viewFloatRect;
@@ -80,9 +89,21 @@ private:
 	std::shared_ptr<ListView> animatablesListView;
 	std::shared_ptr<SimpleWidgetsContainerPanel> utilityWidgetsPanel;
 	std::shared_ptr<tgui::ColorPicker> backgroundColorPicker;
+	std::shared_ptr<tgui::Button> chooseSpriteRectButton;
+	std::shared_ptr<tgui::Button> chooseSpriteOriginButton;
+	std::shared_ptr<tgui::Button> openSpriteColorPickerButton;
+	std::shared_ptr<tgui::Label> spriteOriginLabel;
+	std::shared_ptr<NumericalEditBoxWithLimits> spriteOriginXEditBox;
+	std::shared_ptr<NumericalEditBoxWithLimits> spriteOriginYEditBox;
+	std::shared_ptr<tgui::Label> ingameSpriteSizeLabel;
+	std::shared_ptr<NumericalEditBoxWithLimits> ingameSpriteSizeXEditBox;
+	std::shared_ptr<NumericalEditBoxWithLimits> ingameSpriteSizeYEditBox;
+
+	std::shared_ptr<ChildWindow> animatablePreviewChildWindow;
+	std::shared_ptr<AnimatablePicture> animatablePreviewPicture;
 
 	// Loaded from loadImage()
-	sf::Texture* loadedTexture;
+	sf::Texture* loadedTexture = nullptr;
 	// The sprite with loadedTexture
 	tgui::Sprite fullTextureAsSprite;
 
@@ -98,11 +119,42 @@ private:
 	// Rectangles being drawn
 	std::vector<sf::RectangleShape> selectionRectangles;
 	tgui::Color selectionRectangleColor = sf::Color::Black;
-	float timeUntilSelectionRectangleColorChange = 0;
+
+	std::shared_ptr<SpriteData> selectedSpriteData;
+	std::shared_ptr<AnimationData> selectedAnimationData;
+
+	bool selectingSpriteRectTopLeft = false;
+	bool selectingSpriteRectBottomRight = false;
+	bool selectingSpriteRectOrigin = false;
+	// Sprite sheet coordinates of the sprite being edited's area rect's top-left position; only used when editing a sprite's rect
+	sf::Vector2i spriteRectTopLeftSet;
+	// The cursor used to indicate the world position of the mouse when selecting sprite rect or origin.
+	// Is always the opposite color of selectionRectangleColor.
+	tgui::Color worldSelectionCursorColor = sf::Color::White;
+
+	// Timer used for updating selectionRectangleColor and worldSelectionCursorColor
+	float timeUntilWorldSelectionColorsChange = 0;
+
+	bool ignoreSignals = false;
 
 	void updateWindowView();
 
-	void deselectRectangles();
-	void selectSpriteRectangles(std::shared_ptr<SpriteData> spriteData);
-	void selectAnimationRectangles(std::shared_ptr<AnimationData> animationData);
+	void beginSelectingSpriteRectTopLeft();
+	void beginSelectingSpriteRectBottomRight();
+	void beginSelectingSpriteRectOrigin();
+	// Cancels beginSelectingSpriteRectTopLeft(), beginSelectingSpriteRectBottomRight(), and/or beginSelectingSpriteRectOrigin()
+	void stopEditingSpriteProperties();
+
+	void onAnimatableDeselect();
+	void onSpriteSelect(std::shared_ptr<SpriteData> spriteData);
+	void onAnimationSelect(std::shared_ptr<AnimationData> animationData);
+	void onLeftClick(int mouseX, int mouseY);
+
+	/*
+	Returns the top-left scren position where the world (the sprite sheet view) is
+	drawn to.
+	*/
+	sf::Vector2f getWorldViewOffsetInPixels() const;
+	std::string getAnimatablesListViewSpriteItemId(std::string spriteName) const;
+	std::string getAnimatablesListViewAnimationItemId(std::string animationName) const;
 };

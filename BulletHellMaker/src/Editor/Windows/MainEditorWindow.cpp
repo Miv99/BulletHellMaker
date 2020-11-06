@@ -301,7 +301,7 @@ void MainEditorWindow::reloadSpriteLoader() {
 				mainPanel->removeTab(tabName);
 			} else {
 				// Reload image of existing sprite sheet tabs
-				std::dynamic_pointer_cast<SpriteSheetMetafileEditor>(mainPanel->getTab(tabName))->loadImage(spriteLoader, spriteSheetName);
+				std::dynamic_pointer_cast<SpriteSheetMetafileEditor>(mainPanel->getTab(tabName))->loadImage(levelPack->getName(), spriteLoader, spriteSheetName);
 			}
 		}
 	}
@@ -790,7 +790,7 @@ Go to \"File > Reload sprites/animations\" to reload sprite sheets afterwards.",
 		// Create the tab
 		std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 		std::shared_ptr<SpriteSheetMetafileEditor> spriteSheetsMetafileSpritesEditor = SpriteSheetMetafileEditor::create(*this, clipboard);
-		spriteSheetsMetafileSpritesEditor->loadSpriteSheet(spriteLoader, openedSpriteSheet);
+		spriteSheetsMetafileSpritesEditor->loadSpriteSheet(levelPack->getName(), spriteLoader, openedSpriteSheet);
 		spriteSheetsMetafileSpritesEditor->onMetafileModify.connect([this](std::shared_ptr<SpriteSheet> spriteSheet) {
 			unsavedSpriteSheets[spriteSheet->getName()] = spriteSheet;
 			spriteSheetsListPanel->reloadListOnly();
