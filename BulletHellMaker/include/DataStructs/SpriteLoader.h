@@ -40,14 +40,14 @@ public:
 	inline sf::Color getColor() const { return color; }
 	inline int getSpriteWidth() const { return spriteWidth; }
 	inline int getSpriteHeight() const { return spriteHeight; }
-	inline int getSpriteOriginX() const { return spriteOriginX; }
-	inline int getSpriteOriginY() const { return spriteOriginY; }
+	inline float getSpriteOriginX() const { return spriteOriginX; }
+	inline float getSpriteOriginY() const { return spriteOriginY; }
 
 	void setSpriteName(std::string spriteName);
 	void setTextureArea(sf::IntRect area);
 	void setColor(sf::Color color);
 	void setSpriteSize(int width, int height);
-	void setSpriteOrigin(int x, int y);
+	void setSpriteOrigin(float x, float y);
 
 private:
 	std::string spriteName;
@@ -57,8 +57,8 @@ private:
 	int spriteWidth;
 	int spriteHeight;
 	// Local position of the sprite's origin
-	int spriteOriginX;
-	int spriteOriginY;
+	float spriteOriginX;
+	float spriteOriginY;
 };
 
 class AnimationData : public TextMarshallable {
@@ -203,6 +203,10 @@ public:
 	Returns whether both the image and its metafile were successfully loaded.
 	*/
 	bool loadSpriteSheet(const std::string& spriteSheetMetaFileName, const std::string& spriteSheetImageFileName);
+	/*
+	Returns whether both the image and its metafile were successfully loaded.
+	*/
+	bool loadSpriteSheet(const std::string& spriteSheetName);
 
 	void clearSpriteSheets();
 

@@ -250,7 +250,7 @@ void SpriteData::setSpriteSize(int width, int height) {
 	this->spriteHeight = height;
 }
 
-void SpriteData::setSpriteOrigin(int x, int y) {
+void SpriteData::setSpriteOrigin(float x, float y) {
 	this->spriteOriginX = x;
 	this->spriteOriginY = y;
 }
@@ -413,6 +413,11 @@ const std::shared_ptr<sf::Sprite> SpriteLoader::getMissingSprite() {
 	sprite->setScale(50.0f * globalSpriteScale, 50.0f * globalSpriteScale);
 	sprite->setOrigin(1, 1);
 	return sprite;
+}
+
+bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetName) {
+	std::string spriteSheetMetafileName = spriteSheetName + ".txt";
+	return loadSpriteSheet(spriteSheetMetafileName, spriteSheetName);
 }
 
 void SpriteLoader::clearSpriteSheets() {
