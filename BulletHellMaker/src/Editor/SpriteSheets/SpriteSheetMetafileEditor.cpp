@@ -372,7 +372,7 @@ will be scaled to match this size. For reference, the map is %d by %d units larg
 	onSizeChange.connect([this](sf::Vector2f newSize) {
 		// Handle animatablesListView size change here to avoid calling updateWindowView() before animatablesListView's size is updated
 		// since updateWindowView() uses animatablesListView's size
-		animatablesListView->setSize(0.25f * newSize.x, newSize.y);
+		animatablesListView->setSize(0.25f * newSize.x, newSize.y - DEFAULT_SCROLLBAR_SIZE);
 
 		updateWindowView();
 	});
@@ -861,7 +861,6 @@ void SpriteSheetMetafileEditor::onLeftClick(int mouseX, int mouseY) {
 		undoStack.execute(UndoableCommand([this, weakCaptureOfSelectedSpriteData, newOrigin]() {
 			std::shared_ptr<SpriteData> spriteData = weakCaptureOfSelectedSpriteData.lock();
 			spriteData->setSpriteOrigin(newOrigin.x, newOrigin.y);
-			// TODO: set edit box text
 
 			onMetafileModify.emit(this, spriteSheet);
 
@@ -871,7 +870,6 @@ void SpriteSheetMetafileEditor::onLeftClick(int mouseX, int mouseY) {
 		}, [this, weakCaptureOfSelectedSpriteData, oldOrigin]() {
 			std::shared_ptr<SpriteData> spriteData = weakCaptureOfSelectedSpriteData.lock();
 			spriteData->setSpriteOrigin(oldOrigin.x, oldOrigin.y);
-			// TODO: set edit box text
 
 			onMetafileModify.emit(this, spriteSheet);
 

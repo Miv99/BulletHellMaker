@@ -378,7 +378,7 @@ void MainEditorWindow::populateLeftPanelLevelPackObjectListPanel(std::shared_ptr
 
 	// List view
 	listView->setPosition(0, tgui::bindBottom(addButton));
-	listView->setSize("100%", tgui::bindHeight(listPanel) - tgui::bindBottom(addButton));
+	listView->setSize("100%", tgui::bindHeight(listPanel) - tgui::bindBottom(addButton) - DEFAULT_SCROLLBAR_SIZE);
 	{
 		// Right click menu
 		// Menu for single selection

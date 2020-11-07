@@ -20,6 +20,8 @@ const static float GUI_LABEL_PADDING_Y = 5;
 const static float SCROLL_AMOUNT = 20;
 // Opacity of a disabled widget
 const static float WIDGET_OPACITY_DISABLED = 0.6f;
+// Default hard-coded width/height (depending on orientation) of a tgui::Scrollbar
+const static float DEFAULT_SCROLLBAR_SIZE = 16;
 
 const static float DIALOGUE_BOX_PADDING = 5;
 // Height of dialogue box if there is no portrait

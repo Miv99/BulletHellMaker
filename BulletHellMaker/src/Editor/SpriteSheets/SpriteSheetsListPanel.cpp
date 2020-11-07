@@ -34,7 +34,7 @@ If there is a corresponding BulletHellMaker sprite sheet metafile (named \
 
 	spriteSheetsListView = ListView::create();
 	spriteSheetsListView->setPosition(tgui::bindLeft(importSpriteSheetButton), tgui::bindBottom(importSpriteSheetButton));
-	spriteSheetsListView->setSize("100%", "100%" - tgui::bindBottom(importSpriteSheetButton));
+	spriteSheetsListView->setSize("100%", "100%" - tgui::bindBottom(importSpriteSheetButton) - DEFAULT_SCROLLBAR_SIZE);
 	add(spriteSheetsListView);
 }
 
