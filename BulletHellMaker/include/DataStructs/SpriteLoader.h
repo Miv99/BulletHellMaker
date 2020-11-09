@@ -102,8 +102,11 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
-	void insertSprite(const std::string&, std::shared_ptr<SpriteData>);
-	void insertAnimation(const std::string&, std::shared_ptr<AnimationData>);
+	void insertSprite(const std::string& spriteName, std::shared_ptr<SpriteData> spriteData);
+	void insertAnimation(const std::string& animationName, std::shared_ptr<AnimationData> animationData);
+
+	void deleteSprite(const std::string& spriteName);
+	void deleteAnimation(const std::string& animationName);
 
 	bool loadTexture(const std::string& spriteSheetFilePath);
 

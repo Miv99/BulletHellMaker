@@ -145,6 +145,18 @@ void SpriteSheet::insertAnimation(const std::string & animationName, std::shared
 	animationData[animationName] = animation;
 }
 
+void SpriteSheet::deleteSprite(const std::string& spriteName) {
+	if (hasSpriteData(spriteName)) {
+		spriteData.erase(spriteName);
+	}
+}
+
+void SpriteSheet::deleteAnimation(const std::string& animationName) {
+	if (hasAnimationData(animationName)) {
+		animationData.erase(animationName);
+	}
+}
+
 bool SpriteSheet::loadTexture(const std::string& spriteSheetFilePath) {
 	if (!(texture.loadFromFile(spriteSheetFilePath))) {
 		return false;
