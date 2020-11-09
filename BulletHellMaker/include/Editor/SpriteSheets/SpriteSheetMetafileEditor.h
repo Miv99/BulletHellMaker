@@ -11,6 +11,7 @@
 #include <Editor/CustomWidgets/SimpleWidgetsContainerPanel.h>
 #include <Editor/CustomWidgets/ChildWindow.h>
 #include <Editor/CustomWidgets/AnimatablePicture.h>
+#include <Editor/Windows/EditorWindowConfirmationPromptChoice.h>
 
 class MainEditorWindow;
 
@@ -149,6 +150,9 @@ private:
 	void onSpriteSelect(std::shared_ptr<SpriteData> spriteData);
 	void onAnimationSelect(std::shared_ptr<AnimationData> animationData);
 	void onLeftClick(int mouseX, int mouseY);
+
+	void onNewSpriteNameInput(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::string spriteName);
+	void onNewAnimationNameInput(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::string animationName);
 
 	/*
 	Returns the top-left scren position where the world (the sprite sheet view) is

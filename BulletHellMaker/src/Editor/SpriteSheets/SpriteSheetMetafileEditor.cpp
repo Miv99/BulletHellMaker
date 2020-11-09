@@ -65,10 +65,29 @@ SpriteSheetMetafileEditor::SpriteSheetMetafileEditor(MainEditorWindow& mainEdito
 		transparentTextureSprite.setPosition(0, 0);
 	}
 
-	// TODO: "+A" and "+S" buttons on top of animatablesListView for new animation and new sprite
+	std::shared_ptr<tgui::Button> addSpriteButton = tgui::Button::create();
+	addSpriteButton->setTextSize(TEXT_SIZE);
+	addSpriteButton->setText("+S");
+	addSpriteButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
+	addSpriteButton->onPress([this]() {
+		this->mainEditorWindow.promptInput("Enter name of new sprite:", animatablesListView.get(), true)->sink()
+			.connect<SpriteSheetMetafileEditor, &SpriteSheetMetafileEditor::onNewSpriteNameInput>(this);
+	});
+	add(addSpriteButton);
+
+	std::shared_ptr<tgui::Button> addAnimationButton = tgui::Button::create();
+	addAnimationButton->setTextSize(TEXT_SIZE);
+	addAnimationButton->setText("+A");
+	addAnimationButton->setSize(SMALL_BUTTON_SIZE, SMALL_BUTTON_SIZE);
+	addAnimationButton->setPosition(tgui::bindRight(addSpriteButton), tgui::bindTop(addSpriteButton));
+	addAnimationButton->onPress([this]() {
+		this->mainEditorWindow.promptInput("Enter name of new animation:", animatablesListView.get(), true)->sink()
+			.connect<SpriteSheetMetafileEditor, &SpriteSheetMetafileEditor::onNewAnimationNameInput>(this);
+	});
+	add(addAnimationButton);
 
 	animatablesListView = ListView::create();
-	animatablesListView->setPosition(0, 0);
+	animatablesListView->setPosition(tgui::bindLeft(addSpriteButton), tgui::bindBottom(addSpriteButton));
 	animatablesListView->onDoubleClick([this](int index) {
 		if (index == -1) {
 			onAnimatableDeselect();
@@ -78,8 +97,16 @@ SpriteSheetMetafileEditor::SpriteSheetMetafileEditor(MainEditorWindow& mainEdito
 		tgui::String id = animatablesListView->getSelectedItemId();
 
 		if (id.at(0) == ANIMATABLES_LIST_SPRITE_INDICATOR) {
-			// TODO: look at the sprite
 			std::string spriteName = static_cast<std::string>(id.substr(1));
+
+			// Look at the sprite
+			if (spriteSheet) {
+				std::shared_ptr<SpriteData> spriteData = spriteSheet->getSpriteData(spriteName);
+				if (spriteData) {
+					sf::IntRect area = spriteData->getArea();
+					viewFromViewController.setCenter(area.left + area.width / 2.0f, area.top + area.height / 2.0f);
+				}
+			}
 		} else if (id.at(0) == ANIMATABLES_LIST_ANIMATION_INDICATOR) {
 			// TODO: open animation editor
 			std::string animationName = static_cast<std::string>(id.substr(1));
@@ -369,10 +396,10 @@ will be scaled to match this size. For reference, the map is %d by %d units larg
 	onPositionChange.connect([this]() {
 		updateWindowView();
 	});
-	onSizeChange.connect([this](sf::Vector2f newSize) {
+	onSizeChange.connect([this, addSpriteButton](sf::Vector2f newSize) {
 		// Handle animatablesListView size change here to avoid calling updateWindowView() before animatablesListView's size is updated
 		// since updateWindowView() uses animatablesListView's size
-		animatablesListView->setSize(0.25f * newSize.x, newSize.y - DEFAULT_SCROLLBAR_SIZE);
+		animatablesListView->setSize(0.25f * newSize.x, newSize.y - tgui::bindBottom(addSpriteButton) - DEFAULT_SCROLLBAR_SIZE);
 
 		updateWindowView();
 	});
@@ -503,16 +530,10 @@ void SpriteSheetMetafileEditor::draw(tgui::BackendRenderTargetBase& target, tgui
 	}
 	renderTarget.setView(originalView);
 
-
-	animatablesListView->draw(target, states);
 	for (auto widget : getWidgets()) {
-		if (widget == backgroundColorPicker || widget == utilityWidgetsPanel || widget == animatablePreviewChildWindow) {
-			states.transform.translate(widget->getPosition());
-			widget->draw(target, states);
-			states.transform.translate(-widget->getPosition());
-		} else {
-			widget->draw(target, states);
-		}
+		states.transform.translate(widget->getPosition());
+		widget->draw(target, states);
+		states.transform.translate(-widget->getPosition());
 	}
 }
 
@@ -879,6 +900,76 @@ void SpriteSheetMetafileEditor::onLeftClick(int mouseX, int mouseY) {
 		}));
 
 		stopEditingSpriteProperties();
+	}
+}
+
+void SpriteSheetMetafileEditor::onNewSpriteNameInput(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::string spriteName) {
+	if (choice == EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES) {
+		// Sprite name can't be empty
+		if (spriteName.empty()) {
+			mainEditorWindow.showPopupMessageWindow("Sprite name cannot be empty.", animatablesListView.get());
+			return;
+		}
+
+		// Check if sprite name already exists
+		if (spriteSheet->hasSpriteData(spriteName)) {
+			mainEditorWindow.showPopupMessageWindow("Sprite name already exists.", animatablesListView.get());
+			return;
+		}
+
+		undoStack.execute(UndoableCommand([this, spriteName]() {
+			std::shared_ptr<SpriteData> newSprite = std::make_shared<SpriteData>(spriteName, 
+				sf::IntRect{0, 0, 0, 0}, 0, 0, 0, 0, sf::Color(255, 255, 255, 255));
+			spriteSheet->insertSprite(spriteName, newSprite);
+
+			onMetafileModify.emit(this, spriteSheet);
+
+			repopulateAnimatablesListView();
+			// Select the sprite
+			animatablesListView->deselectItem();
+			animatablesListView->setSelectedItemById(getAnimatablesListViewSpriteItemId(spriteName));
+		}, [this, spriteName]() {
+			spriteSheet->deleteSprite(spriteName);
+
+			onMetafileModify.emit(this, spriteSheet);
+
+			repopulateAnimatablesListView();
+		}));
+	}
+}
+
+void SpriteSheetMetafileEditor::onNewAnimationNameInput(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::string animationName) {
+	if (choice == EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES) {
+		// Animation name can't be empty
+		if (animationName.empty()) {
+			mainEditorWindow.showPopupMessageWindow("Animation name cannot be empty.", animatablesListView.get());
+			return;
+		}
+
+		// Check if sprite name already exists
+		if (spriteSheet->hasAnimationData(animationName)) {
+			mainEditorWindow.showPopupMessageWindow("Animation name already exists.", animatablesListView.get());
+			return;
+		}
+
+		undoStack.execute(UndoableCommand([this, animationName]() {
+			std::shared_ptr<AnimationData> newAnimation = std::make_shared<AnimationData>(animationName, 
+				std::vector<std::pair<float, std::string>>());
+			spriteSheet->insertAnimation(animationName, newAnimation);
+
+			onMetafileModify.emit(this, spriteSheet);
+
+			repopulateAnimatablesListView();
+			// Select the animation
+			animatablesListView->deselectItem();
+			animatablesListView->setSelectedItemById(getAnimatablesListViewAnimationItemId(animationName));
+		}, [this, animationName]() {
+			spriteSheet->deleteAnimation(animationName);
+
+			onMetafileModify.emit(this, spriteSheet);
+
+			repopulateAnimatablesListView();
+		}));
 	}
 }
 
