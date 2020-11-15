@@ -88,13 +88,16 @@ MainEditorWindow::MainEditorWindow(std::string windowTitle, int width, int heigh
 	gui->add(mainPanel);
 
 	clipboardNotification = TextNotification::create();
-	clipboardNotification->setPosition(0, tgui::bindBottom(leftPanel) - tgui::bindHeight(clipboardNotification));
 	gui->add(clipboardNotification);
 
 	searchChildWindow = LevelPackSearchChildWindow::create(*this);
 	searchChildWindow->setTitleButtons(tgui::ChildWindow::TitleButton::Close);
 
 	gui->add(menuBar);
+
+	leftPanel->onSizeChange.connect([this](sf::Vector2f newSize) {
+		clipboardNotification->setPosition(0, newSize.y - tgui::bindHeight(clipboardNotification));
+	});
 
 	clipboard.getOnCopy()->sink().connect<MainEditorWindow, &MainEditorWindow::showClipboardResult>(this);
 	clipboard.getOnPaste()->sink().connect<MainEditorWindow, &MainEditorWindow::showClipboardResult>(this);
