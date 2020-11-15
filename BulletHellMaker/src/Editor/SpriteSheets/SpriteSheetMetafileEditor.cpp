@@ -538,17 +538,95 @@ void SpriteSheetMetafileEditor::draw(tgui::BackendRenderTargetBase& target, tgui
 }
 
 CopyOperationResult SpriteSheetMetafileEditor::copyFrom() {
-	// TODO
+	if (selectedSpriteData) {
+		return CopyOperationResult(std::make_shared<CopiedSpriteData>(getID(), selectedSpriteData), "Copied the selected sprite");
+	} else if (selectedAnimationData) {
+		return CopyOperationResult(std::make_shared<CopiedAnimationData>(getID(), selectedAnimationData), "Copied the selected animation");
+	}
 	return CopyOperationResult(nullptr, "");
 }
 
 PasteOperationResult SpriteSheetMetafileEditor::pasteInto(std::shared_ptr<CopiedObject> pastedObject) {
-	// TODO
+	if (std::static_pointer_cast<CopiedSpriteData>(pastedObject)) {
+		this->mainEditorWindow.promptInput("Enter name of new pasted sprite:", 
+			std::static_pointer_cast<CopiedSpriteData>(pastedObject)->getSpriteData(), animatablesListView.get(), true)->sink()
+			.connect<SpriteSheetMetafileEditor, &SpriteSheetMetafileEditor::onNewPastedSpriteNameInput>(this);
+		return PasteOperationResult(true, "Pasted the selected sprite");
+	} else if (std::static_pointer_cast<CopiedAnimationData>(pastedObject)) {
+		this->mainEditorWindow.promptInput("Enter name of new pasted animation:",
+			std::static_pointer_cast<CopiedAnimationData>(pastedObject)->getAnimationData(), animatablesListView.get(), true)->sink()
+			.connect<SpriteSheetMetafileEditor, &SpriteSheetMetafileEditor::onNewPastedAnimationNameInput>(this);
+		return PasteOperationResult(true, "Pasted the selected animation");
+	}
 	return PasteOperationResult(false, "");
 }
 
 PasteOperationResult SpriteSheetMetafileEditor::paste2Into(std::shared_ptr<CopiedObject> pastedObject) {
-	// TODO
+	if (std::static_pointer_cast<CopiedSpriteData>(pastedObject) && selectedSpriteData) {
+		std::shared_ptr<SpriteData> pastedSprite = std::static_pointer_cast<CopiedSpriteData>(pastedObject)->getSpriteData();
+		if (*selectedSpriteData == *pastedSprite) {
+			return PasteOperationResult(false, "");
+		}
+
+		std::weak_ptr<SpriteData> weakCaptureOfSelectedSpriteData = std::weak_ptr<SpriteData>(selectedSpriteData);
+		std::shared_ptr<SpriteData> copyOfSelectedSpriteData = std::make_shared<SpriteData>(selectedSpriteData);
+		undoStack.execute(UndoableCommand([this, pastedSprite, weakCaptureOfSelectedSpriteData, copyOfSelectedSpriteData]() {
+			std::shared_ptr<SpriteData> selectedSpriteData = weakCaptureOfSelectedSpriteData.lock();
+			selectedSpriteData->load(pastedSprite->format());
+			selectedSpriteData->setSpriteName(copyOfSelectedSpriteData->getSpriteName());
+
+			onMetafileModify.emit(this, spriteSheet);
+
+			repopulateAnimatablesListView();
+			// Select the sprite
+			animatablesListView->deselectItem();
+			animatablesListView->setSelectedItemById(getAnimatablesListViewSpriteItemId(selectedSpriteData->getSpriteName()));
+		}, [this, copyOfSelectedSpriteData, weakCaptureOfSelectedSpriteData, pastedSprite]() {
+			std::shared_ptr<SpriteData> selectedSpriteData = weakCaptureOfSelectedSpriteData.lock();
+			selectedSpriteData->load(copyOfSelectedSpriteData->format());
+
+			onMetafileModify.emit(this, spriteSheet);
+
+			repopulateAnimatablesListView();
+			// Select the sprite
+			animatablesListView->deselectItem();
+			animatablesListView->setSelectedItemById(getAnimatablesListViewSpriteItemId(selectedSpriteData->getSpriteName()));
+		}));
+
+		return PasteOperationResult(true, "Replaced the selected sprite");
+	} else if (std::static_pointer_cast<CopiedAnimationData>(pastedObject) && selectedAnimationData) {
+		std::shared_ptr<AnimationData> pastedAnimation = std::static_pointer_cast<CopiedAnimationData>(pastedObject)->getAnimationData();
+		if (*selectedAnimationData == *pastedAnimation) {
+			return PasteOperationResult(false, "");
+		}
+
+		std::weak_ptr<AnimationData> weakCaptureOfSelectedAnimationData = std::weak_ptr<AnimationData>(selectedAnimationData);
+		std::shared_ptr<AnimationData> copyOfSelectedAnimationData = std::make_shared<AnimationData>(selectedAnimationData);
+		undoStack.execute(UndoableCommand([this, pastedAnimation, weakCaptureOfSelectedAnimationData, copyOfSelectedAnimationData]() {
+			std::shared_ptr<AnimationData> selectedAnimationData = weakCaptureOfSelectedAnimationData.lock();
+			selectedAnimationData->load(pastedAnimation->format());
+			selectedAnimationData->setAnimationName(copyOfSelectedAnimationData->getAnimationName());
+
+			onMetafileModify.emit(this, spriteSheet);
+
+			repopulateAnimatablesListView();
+			// Select the animation
+			animatablesListView->deselectItem();
+			animatablesListView->setSelectedItemById(getAnimatablesListViewAnimationItemId(selectedAnimationData->getAnimationName()));
+		}, [this, copyOfSelectedAnimationData, weakCaptureOfSelectedAnimationData, pastedAnimation]() {
+			std::shared_ptr<AnimationData> selectedAnimationData = weakCaptureOfSelectedAnimationData.lock();
+			selectedAnimationData->load(copyOfSelectedAnimationData->format());
+
+			onMetafileModify.emit(this, spriteSheet);
+
+			repopulateAnimatablesListView();
+			// Select the animation
+			animatablesListView->deselectItem();
+			animatablesListView->setSelectedItemById(getAnimatablesListViewAnimationItemId(selectedAnimationData->getAnimationName()));
+		}));
+
+		return PasteOperationResult(true, "Replaced the selected animation");
+	}
 	return PasteOperationResult(false, "");
 }
 
@@ -561,6 +639,14 @@ bool SpriteSheetMetafileEditor::handleEvent(sf::Event event) {
 				undoStack.undo();
 			} else if (event.key.code == sf::Keyboard::Y) {
 				undoStack.redo();
+			} else if (event.key.code == sf::Keyboard::C) {
+				clipboard.copy(this);
+			} else if (event.key.code == sf::Keyboard::V) {
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift)) {
+					clipboard.paste2(this);
+				} else {
+					clipboard.paste(this);
+				}
 			}
 		} else {
 			if (event.key.code == sf::Keyboard::B) {
@@ -971,6 +1057,82 @@ void SpriteSheetMetafileEditor::onNewAnimationNameInput(EDITOR_WINDOW_CONFIRMATI
 			repopulateAnimatablesListView();
 		}));
 	}
+}
+
+void SpriteSheetMetafileEditor::onNewPastedSpriteNameInput(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice,
+	std::string spriteName, std::shared_ptr<SpriteData> pastedSprite) {
+
+	if (choice != EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES) {
+		return;
+	}
+
+	// Sprite name can't be empty
+	if (spriteName.empty()) {
+		mainEditorWindow.showPopupMessageWindow("Sprite name cannot be empty.", animatablesListView.get());
+		return;
+	}
+
+	// Check if sprite name already exists
+	if (spriteSheet->hasSpriteData(spriteName)) {
+		mainEditorWindow.showPopupMessageWindow("Sprite name already exists.", animatablesListView.get());
+		return;
+	}
+
+	pastedSprite->setSpriteName(spriteName);
+	undoStack.execute(UndoableCommand([this, pastedSprite]() {
+		spriteSheet->insertSprite(pastedSprite->getSpriteName(), pastedSprite);
+
+		onMetafileModify.emit(this, spriteSheet);
+
+		repopulateAnimatablesListView();
+		// Select the sprite
+		animatablesListView->deselectItem();
+		animatablesListView->setSelectedItemById(getAnimatablesListViewSpriteItemId(pastedSprite->getSpriteName()));
+	}, [this, pastedSprite]() {
+		spriteSheet->deleteSprite(pastedSprite->getSpriteName());
+
+		onMetafileModify.emit(this, spriteSheet);
+
+		repopulateAnimatablesListView();
+	}));
+}
+
+void SpriteSheetMetafileEditor::onNewPastedAnimationNameInput(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, 
+	std::string animationName, std::shared_ptr<AnimationData> pastedAnimation) {
+
+	if (choice != EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE::YES) {
+		return;
+	}
+
+	// Animation name can't be empty
+	if (animationName.empty()) {
+		mainEditorWindow.showPopupMessageWindow("Animation name cannot be empty.", animatablesListView.get());
+		return;
+	}
+
+	// Check if sprite name already exists
+	if (spriteSheet->hasAnimationData(animationName)) {
+		mainEditorWindow.showPopupMessageWindow("Animation name already exists.", animatablesListView.get());
+		return;
+	}
+
+	pastedAnimation->setAnimationName(animationName);
+	undoStack.execute(UndoableCommand([this, pastedAnimation]() {
+		spriteSheet->insertAnimation(pastedAnimation->getAnimationName(), pastedAnimation);
+
+		onMetafileModify.emit(this, spriteSheet);
+
+		repopulateAnimatablesListView();
+		// Select the animation
+		animatablesListView->deselectItem();
+		animatablesListView->setSelectedItemById(getAnimatablesListViewAnimationItemId(pastedAnimation->getAnimationName()));
+	}, [this, pastedAnimation]() {
+		spriteSheet->deleteAnimation(pastedAnimation->getAnimationName());
+
+		onMetafileModify.emit(this, spriteSheet);
+
+		repopulateAnimatablesListView();
+	}));
 }
 
 sf::Vector2f SpriteSheetMetafileEditor::getWorldViewOffsetInPixels() const {

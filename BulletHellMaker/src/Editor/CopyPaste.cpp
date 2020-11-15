@@ -152,3 +152,21 @@ std::vector<std::tuple<std::string, int, ExprSymbolTable>> CopiedAttackPatternTo
 int CopiedAttackPatternToAttackUseRelationship::getRelationshipsCount() {
 	return relationships.size();
 }
+
+CopiedSpriteData::CopiedSpriteData(std::string copiedFromID, std::shared_ptr<SpriteData> spriteData)
+	: CopiedObject(copiedFromID), spriteData(spriteData) {
+}
+
+std::shared_ptr<SpriteData> CopiedSpriteData::getSpriteData() {
+	// Return a deep copy of the sprite data
+	return std::make_shared<SpriteData>(spriteData);
+}
+
+CopiedAnimationData::CopiedAnimationData(std::string copiedFromID, std::shared_ptr<AnimationData> animationData) 
+	: CopiedObject(copiedFromID), animationData(animationData) {
+}
+
+std::shared_ptr<AnimationData> CopiedAnimationData::getAnimationData() {
+	// Return a deep copy of the animation data
+	return std::make_shared<AnimationData>(animationData);
+}

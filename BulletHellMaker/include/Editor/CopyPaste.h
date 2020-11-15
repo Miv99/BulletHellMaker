@@ -197,3 +197,35 @@ public:
 private:
 	std::vector<std::tuple<std::string, int, ExprSymbolTable>> relationships;
 };
+
+class CopiedSpriteData : public CopiedObject {
+public:
+	/*
+	spriteData - will be deep-copied
+	*/
+	CopiedSpriteData(std::string copiedFromID, std::shared_ptr<SpriteData> spriteData);
+
+	/*
+	Returns a deep copy.
+	*/
+	std::shared_ptr<SpriteData> getSpriteData();
+
+private:
+	std::shared_ptr<SpriteData> spriteData;
+};
+
+class CopiedAnimationData : public CopiedObject {
+public:
+	/*
+	animationData - will be deep-copied
+	*/
+	CopiedAnimationData(std::string copiedFromID, std::shared_ptr<AnimationData> animationData);
+
+	/*
+	Returns a deep copy.
+	*/
+	std::shared_ptr<AnimationData> getAnimationData();
+
+private:
+	std::shared_ptr<AnimationData> animationData;
+};

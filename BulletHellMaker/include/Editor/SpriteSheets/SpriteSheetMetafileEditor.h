@@ -153,6 +153,10 @@ private:
 
 	void onNewSpriteNameInput(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::string spriteName);
 	void onNewAnimationNameInput(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, std::string animationName);
+	void onNewPastedSpriteNameInput(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, 
+		std::string spriteName, std::shared_ptr<SpriteData> pastedSprite);
+	void onNewPastedAnimationNameInput(EDITOR_WINDOW_CONFIRMATION_PROMPT_CHOICE choice, 
+		std::string animationName, std::shared_ptr<AnimationData> pastedAnimation);
 
 	/*
 	Returns the top-left scren position where the world (the sprite sheet view) is

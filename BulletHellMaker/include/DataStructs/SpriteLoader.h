@@ -29,7 +29,16 @@ public:
 class SpriteData : public TextMarshallable {
 public:
 	SpriteData();
-	SpriteData(std::string spriteName, ComparableIntRect area, int spriteWidth, int spriteHeight, int spriteOriginX, int spriteOriginY, sf::Color color = sf::Color(255, 255, 255, 255));
+	SpriteData(std::string spriteName, ComparableIntRect area, int spriteWidth, int spriteHeight, 
+		int spriteOriginX, int spriteOriginY, sf::Color color = sf::Color(255, 255, 255, 255));
+	/*
+	Copy constructor.
+	*/
+	SpriteData(const SpriteData& other);
+	/*
+	Copy constructor.
+	*/
+	SpriteData(std::shared_ptr<SpriteData> other);
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
@@ -65,6 +74,14 @@ class AnimationData : public TextMarshallable {
 public:
 	AnimationData();
 	AnimationData(std::string animationName, std::vector<std::pair<float, std::string>> spriteNames);
+	/*
+	Copy constructor.
+	*/
+	AnimationData(const AnimationData& other);
+	/*
+	Copy constructor.
+	*/
+	AnimationData(std::shared_ptr<AnimationData> other);
 
 	std::string format() const override;
 	void load(std::string formattedString) override;

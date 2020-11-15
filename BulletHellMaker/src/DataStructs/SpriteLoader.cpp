@@ -218,6 +218,14 @@ SpriteData::SpriteData(std::string spriteName, ComparableIntRect area, int sprit
 	: spriteName(spriteName), area(area), color(color), spriteWidth(spriteWidth), spriteHeight(spriteHeight), spriteOriginX(spriteOriginX), spriteOriginY(spriteOriginY) {
 }
 
+SpriteData::SpriteData(const SpriteData& other) {
+	load(other.format());
+}
+
+SpriteData::SpriteData(std::shared_ptr<SpriteData> other) {
+	load(other->format());
+}
+
 std::string SpriteData::format() const {
 	return formatString(spriteName) + tos(area.left) + tos(area.top) + tos(area.width) + tos(area.height)
 		+ tos(color.r) + tos(color.g) + tos(color.b) + tos(color.a)
@@ -533,6 +541,14 @@ AnimationData::AnimationData() {
 
 AnimationData::AnimationData(std::string animationName, std::vector<std::pair<float, std::string>> spriteNames)
 	: animationName(animationName), spriteNames(spriteNames) {
+}
+
+AnimationData::AnimationData(const AnimationData& other) {
+	load(other.format());
+}
+
+AnimationData::AnimationData(std::shared_ptr<AnimationData> other) {
+	load(other->format());
 }
 
 std::string AnimationData::format() const {

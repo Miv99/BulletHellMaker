@@ -221,6 +221,7 @@ TODO:
     -import bezier control points from text into BezierControlPointsPlacer
 
 Low priority TODO:
+-Custom shaders applied as a LevelEvent + part of an Attack
 -Background thread that autosaves everything that the user can restore Level Packs from; runs on a timer
 -"rename all" feature for LevelPackSearchChildWindow; after clicking apply, run findAll to get an updated
     LevelPackSearchFindAllResult and compare against the preview one; if matching, just do apply. if not
