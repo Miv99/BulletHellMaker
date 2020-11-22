@@ -93,6 +93,7 @@ private:
 	std::shared_ptr<tgui::Button> chooseSpriteRectButton;
 	std::shared_ptr<tgui::Button> chooseSpriteOriginButton;
 	std::shared_ptr<tgui::Button> openSpriteColorPickerButton;
+	std::shared_ptr<tgui::ColorPicker> spriteColorPicker;
 	std::shared_ptr<tgui::Label> spriteOriginLabel;
 	std::shared_ptr<NumericalEditBoxWithLimits> spriteOriginXEditBox;
 	std::shared_ptr<NumericalEditBoxWithLimits> spriteOriginYEditBox;

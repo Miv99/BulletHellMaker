@@ -189,10 +189,54 @@ SpriteSheetMetafileEditor::SpriteSheetMetafileEditor(MainEditorWindow& mainEdito
 	openSpriteColorPickerButton->setText("Set sprite color");
 	openSpriteColorPickerButton->setSize(100, TEXT_BUTTON_HEIGHT);
 	openSpriteColorPickerButton->onClick.connect([this]() {
-		// TODO
+		add(spriteColorPicker);
 	});
 	openSpriteColorPickerButton->setVisible(false);
 	utilityWidgetsPanel->addExtraColumnWidget(openSpriteColorPickerButton, GUI_PADDING_X);
+
+	spriteColorPicker = tgui::ColorPicker::create();
+	spriteColorPicker->setTitle("Sprite color");
+	spriteColorPicker->setKeepInParent(true);
+	spriteColorPicker->setColor(sf::Color(255, 255, 255, 255));
+	spriteColorPicker->onOkPress([this](tgui::Color color) {
+		if (selectedSpriteData) {
+			sf::Color oldColor = selectedSpriteData->getColor();
+			std::weak_ptr<SpriteData> weakCaptureOfSelectedSpriteData = std::weak_ptr(selectedSpriteData);
+			undoStack.execute(UndoableCommand([this, weakCaptureOfSelectedSpriteData, color]() {
+				std::shared_ptr<SpriteData> spriteData = weakCaptureOfSelectedSpriteData.lock();
+				spriteData->setColor(color);
+
+				ignoreSignals = true;
+				spriteColorPicker->setColor(color);
+				ignoreSignals = false;
+
+				onMetafileModify.emit(this, spriteSheet);
+
+				// Reselect the sprite
+				animatablesListView->deselectItem();
+				animatablesListView->setSelectedItemById(getAnimatablesListViewSpriteItemId(spriteData->getSpriteName()));
+			}, [this, weakCaptureOfSelectedSpriteData, oldColor]() {
+				std::shared_ptr<SpriteData> spriteData = weakCaptureOfSelectedSpriteData.lock();
+				spriteData->setColor(oldColor);
+
+				ignoreSignals = true;
+				spriteColorPicker->setColor(oldColor);
+				ignoreSignals = false;
+
+				onMetafileModify.emit(this, spriteSheet);
+
+				// Reselect the sprite
+				animatablesListView->deselectItem();
+				animatablesListView->setSelectedItemById(getAnimatablesListViewSpriteItemId(spriteData->getSpriteName()));
+			}));
+			selectedSpriteData->setColor(color);
+
+			// Reselect the sprite
+			std::string spriteName = selectedSpriteData->getSpriteName();
+			animatablesListView->deselectItem();
+			animatablesListView->setSelectedItemById(getAnimatablesListViewSpriteItemId(spriteName));
+		}
+	});
 
 	spriteOriginLabel = tgui::Label::create();
 	spriteOriginLabel->setTextSize(TEXT_SIZE);
@@ -840,6 +884,7 @@ void SpriteSheetMetafileEditor::onAnimatableDeselect() {
 
 	selectionRectangles.clear();
 	animatablePreviewPicture->setEmptyAnimatable();
+	remove(spriteColorPicker);
 
 	chooseSpriteRectButton->setVisible(false);
 	chooseSpriteOriginButton->setVisible(false);
@@ -872,6 +917,7 @@ void SpriteSheetMetafileEditor::onSpriteSelect(std::shared_ptr<SpriteData> sprit
 	spriteOriginYEditBox->setValue(spriteData->getSpriteOriginY());
 	ingameSpriteSizeXEditBox->setValue(spriteData->getSpriteWidth());
 	ingameSpriteSizeYEditBox->setValue(spriteData->getSpriteHeight());
+	spriteColorPicker->setColor(spriteData->getColor());
 	ignoreSignals = false;
 
 	chooseSpriteRectButton->setVisible(true);
