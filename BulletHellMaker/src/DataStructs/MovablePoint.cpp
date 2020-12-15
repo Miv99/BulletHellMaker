@@ -208,7 +208,7 @@ sf::Vector2f BezierMP::evaluate(float time) {
 	} else {
 		sf::Vector2f sum(0, 0);
 		for (int i = 0; i < numControlPoints; i++) {
-			sum += binom(numControlPoints - 1, i) * std::pow(1.0f - time, numControlPoints - 1 - i) * std::pow(time, i) * controlPoints[i];
+			sum += float(binom(numControlPoints - 1, i) * std::pow(1.0f - time, numControlPoints - 1 - i) * std::pow(time, i)) * controlPoints[i];
 		}
 		return sum;
 	}
