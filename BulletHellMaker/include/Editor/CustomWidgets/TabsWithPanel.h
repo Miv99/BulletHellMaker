@@ -172,7 +172,6 @@ private:
 		// confirmation prompt, with an empty string meaning a prompt shouldn't be displayed
 		std::vector<std::string> closeButtonConfirmationPrompts;
 	};
-	const float EXTRA_HEIGHT_FROM_SCROLLBAR = 16;
 	// Spaces appended to the end of every tab name to make room for the close button
 	// If font size changes, the number of spaces should be updated and every tab
 	// name also should be updated accordingly (even the ones that are cached).

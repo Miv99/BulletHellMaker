@@ -38,7 +38,6 @@ MainEditorWindow::MainEditorWindow(std::string windowTitle, int width, int heigh
 	
 	leftPanel = TabsWithPanel::create(*this);
 	leftPanel->setPosition(0, tgui::bindBottom(menuBar));
-	leftPanel->setSize("20%", "100%");
 	leftPanel->setVisible(true);
 	leftPanel->setMoreTabsListAlignment(TabsWithPanel::MoreTabsListAlignment::Right);
 	gui->add(leftPanel);
@@ -82,7 +81,6 @@ MainEditorWindow::MainEditorWindow(std::string windowTitle, int width, int heigh
 
 	mainPanel = TabsWithPanel::create(*this);
 	mainPanel->setPosition(tgui::bindRight(leftPanel), tgui::bindTop(leftPanel));
-	mainPanel->setSize("80%", "100%");
 	mainPanel->setVisible(true);
 	mainPanel->setMoreTabsListAlignment(TabsWithPanel::MoreTabsListAlignment::Left);
 	gui->add(mainPanel);
@@ -96,11 +94,13 @@ MainEditorWindow::MainEditorWindow(std::string windowTitle, int width, int heigh
 	gui->add(menuBar);
 
 	leftPanel->onSizeChange.connect([this](sf::Vector2f newSize) {
-		clipboardNotification->setPosition(0, newSize.y - tgui::bindHeight(clipboardNotification));
+		clipboardNotification->setPosition(0, leftPanel->getPosition().y + newSize.y - tgui::bindHeight(clipboardNotification));
 	});
 
 	clipboard.getOnCopy()->sink().connect<MainEditorWindow, &MainEditorWindow::showClipboardResult>(this);
 	clipboard.getOnPaste()->sink().connect<MainEditorWindow, &MainEditorWindow::showClipboardResult>(this);
+
+	this->getResizeSignal()->sink().connect<MainEditorWindow, &MainEditorWindow::onWindowResize>(this);
 }
 
 MainEditorWindow::~MainEditorWindow() {
@@ -381,7 +381,7 @@ void MainEditorWindow::populateLeftPanelLevelPackObjectListPanel(std::shared_ptr
 
 	// List view
 	listView->setPosition(0, tgui::bindBottom(addButton));
-	listView->setSize("100%", tgui::bindHeight(listPanel) - tgui::bindBottom(addButton) - DEFAULT_SCROLLBAR_SIZE);
+	listView->setSize("100%", tgui::bindHeight(listPanel) - tgui::bindBottom(addButton));
 	{
 		// Right click menu
 		// Menu for single selection
@@ -748,6 +748,11 @@ std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode> MainEdito
 	}
 
 	return node;
+}
+
+void MainEditorWindow::onWindowResize(int width, int height) {
+	leftPanel->setSize("20%", height - DEFAULT_SCROLLBAR_SIZE);
+	mainPanel->setSize("80%", height - DEFAULT_SCROLLBAR_SIZE);
 }
 
 void MainEditorWindow::openLeftPanelSpriteSheet(std::string spriteSheetName) {

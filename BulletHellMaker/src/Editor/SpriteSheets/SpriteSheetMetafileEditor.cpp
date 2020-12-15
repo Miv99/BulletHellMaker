@@ -443,7 +443,7 @@ will be scaled to match this size. For reference, the map is %d by %d units larg
 	onSizeChange.connect([this, addSpriteButton](sf::Vector2f newSize) {
 		// Handle animatablesListView size change here to avoid calling updateWindowView() before animatablesListView's size is updated
 		// since updateWindowView() uses animatablesListView's size
-		animatablesListView->setSize(0.25f * newSize.x, newSize.y - tgui::bindBottom(addSpriteButton) - DEFAULT_SCROLLBAR_SIZE);
+		animatablesListView->setSize(0.25f * newSize.x, newSize.y - tgui::bindBottom(addSpriteButton));
 
 		updateWindowView();
 	});

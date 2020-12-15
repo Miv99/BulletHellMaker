@@ -247,4 +247,6 @@ private:
 	*/
 	std::shared_ptr<LevelPackSearchChildWindow::LevelPackSearchResultNode> findAllInstancesOfAnimatableInAnimatableSet(const EntityAnimatableSet& animatableSet,
 		const std::string& spriteSheetName, const std::string& animatableName, bool mustBeSprite);
+
+	void onWindowResize(int width, int height);
 };

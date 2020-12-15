@@ -58,7 +58,7 @@ TabsWithPanel::TabsWithPanel(EditorWindow& parentWindow)
 		if (tabs->getSize().x > getSize().x - moreTabsButton->getSize().x) {
 			// If tabs's width > this widget's parent's width, the scrollbar is visible,
 			// so make room for the scrollbar
-			tabsContainer->setSize(getSize().x - moreTabsButton->getSize().x, tgui::bindHeight(tabs) + EXTRA_HEIGHT_FROM_SCROLLBAR);
+			tabsContainer->setSize(getSize().x - moreTabsButton->getSize().x, tgui::bindHeight(tabs) + DEFAULT_SCROLLBAR_SIZE);
 		} else {
 			// The scrollbar is not visible, so don't make room for the scrollbar
 			tabsContainer->setSize(getSize().x - moreTabsButton->getSize().x, tgui::bindHeight(tabs));
@@ -347,7 +347,7 @@ void TabsWithPanel::onTabsChange() {
 	// Update height of the tabs container
 	if (tabs->getSize().x > getSize().x - moreTabsButton->getSize().x) {
 		// The scrollbar is visible, so make room for the scrollbar
-		tabsContainer->setSize(getSize().x - moreTabsButton->getSize().x, tgui::bindHeight(tabs) + EXTRA_HEIGHT_FROM_SCROLLBAR);
+		tabsContainer->setSize(getSize().x - moreTabsButton->getSize().x, tgui::bindHeight(tabs) + DEFAULT_SCROLLBAR_SIZE);
 	} else {
 		// The scrollbar is not visible, so don't make room for the scrollbar
 		tabsContainer->setSize(getSize().x - moreTabsButton->getSize().x, tgui::bindHeight(tabs));
