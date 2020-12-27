@@ -16,19 +16,22 @@
 class MainEditorWindow;
 
 /*
-A panel that can load a sprite sheet and edit its metafile (a SpriteSheet object).
+A panel that can load a sprite sheet and edit its metafile (a SpriteSheet object). However,
+this cannot edit animations, only create new empty ones.
 
 Signals:
-MetafileModified - emitted when the SpriteSheet being edited is modified.
-	Optional parameter: a shared_ptr to the newly modified SpriteSheet
+	MetafileModified - emitted when the SpriteSheet being edited is modified.
+		Optional parameter: a shared_ptr to the newly modified SpriteSheet
+	AnimationEditRequested - emitted when the user requests to edit an AnimationData.
+		Optional parameter: the name of the animation
+	AnimationDeleted - emitted when the user deletes an AnimationData.
+		Optional parameter: the name of the animation
 */
 class SpriteSheetMetafileEditor : public tgui::Panel, public EventCapturable, public CopyPasteable {
 public:
-	/*
-	Signal emitted when an EditorAttackPattern in the list of attack users is to be edited.
-	Optional parameter: the ID of the EditorAttackPattern
-	*/
 	tgui::SignalSpriteSheet onMetafileModify = { "MetafileModified" };
+	tgui::SignalString onAnimationEditRequest = { "AnimationEditRequested" };
+	tgui::SignalString onAnimationDelete = { "AnimationDeleted" };
 
 	SpriteSheetMetafileEditor(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, int undoStackSize = 50);
 	static std::shared_ptr<SpriteSheetMetafileEditor> create(MainEditorWindow& mainEditorWindow, Clipboard& clipboard, int undoStackSize = 50) {
@@ -44,8 +47,22 @@ public:
 
 	bool handleEvent(sf::Event event) override;
 
-	void loadSpriteSheet(const std::string& levelPackName, std::shared_ptr<SpriteLoader> spriteLoader, std::shared_ptr<SpriteSheet> spriteSheet);
-	void loadImage(const std::string& levelPackName, std::shared_ptr<SpriteLoader> spriteLoader, std::string spriteSheetName);
+	/*
+	Loads a copy of spriteSheet to be edited.
+	Returns whether it was successfully loaded.
+
+	spriteLoader - will not be modified
+	spriteSheet - will not be modified
+	*/
+	bool loadSpriteSheet(const std::string& levelPackName, std::shared_ptr<SpriteLoader> spriteLoader, std::shared_ptr<SpriteSheet> spriteSheet);
+	/*
+	Loads the sprite sheet image.
+	Returns whether it was successfully loaded.
+	This function will also set the SpriteLoader and SpriteSheet member variables.
+
+	spriteLoader - will not be modified
+	*/
+	bool loadImage(const std::string& levelPackName, std::shared_ptr<SpriteLoader> spriteLoader, std::string spriteSheetName);
 
 	void repopulateAnimatablesListView();
 
@@ -53,13 +70,23 @@ public:
 
 	void scaleTransparentTextureToCameraZoom(float cameraZoomAmount);
 
+	void reselectSelectedAnimatable();
+
 	/*
+	Reloads the animatable preview to reflect any changes in the animation being previewed, if any.
+	*/
+	void reloadPreviewAnimation();
+
+	/*
+	Renames one of the sprite sheet's sprite.
 	Throws std::runtime_error.
 	*/
-	void renameSprite(std::string oldSpriteName, std::string newSpriteName);
+	void renameSprite(std::string oldSpriteName, std::string newSpriteName) noexcept(false);
 
 	tgui::Signal& getSignal(tgui::String signalName) override;
-	
+	std::shared_ptr<SpriteLoader> getSpriteLoader() const;
+	std::shared_ptr<SpriteSheet> getSpriteSheet() const;
+
 private:
 	// If an item ID in animatablesListView starts with this, the item is a sprite
 	const static char ANIMATABLES_LIST_SPRITE_INDICATOR;
@@ -146,6 +173,12 @@ private:
 	void beginSelectingSpriteRectOrigin();
 	// Cancels beginSelectingSpriteRectTopLeft(), beginSelectingSpriteRectBottomRight(), and/or beginSelectingSpriteRectOrigin()
 	void stopEditingSpriteProperties();
+
+	/*
+	Deletes the selected animatable in animatablesListView from the SpriteSheet
+	as an undoable action.
+	*/
+	void deleteSelectedAnimatable();
 
 	void onAnimatableDeselect();
 	void onSpriteSelect(std::shared_ptr<SpriteData> spriteData);

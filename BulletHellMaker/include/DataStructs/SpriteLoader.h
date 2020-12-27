@@ -88,7 +88,8 @@ public:
 
 	bool operator==(const AnimationData& other) const;
 	inline std::string getAnimationName() const { return animationName; }
-	inline const std::vector<std::pair<float, std::string>> getSpriteNames() const { return spriteNames; }
+	inline const std::vector<std::pair<float, std::string>> getSpriteInfo() const { return spriteNames; }
+	inline std::pair<float, std::string> getSpriteInfo(int index) const { return spriteNames.at(index); }
 	inline float getTotalTime() {
 		float total = 0;
 		for (auto p : spriteNames) {
@@ -96,9 +97,30 @@ public:
 		}
 		return total;
 	}
+	inline int getNumSprites() {
+		return spriteNames.size();
+	}
 
 	void setAnimationName(std::string animationName);
 	void setSpriteNames(std::vector<std::pair<float, std::string>> spriteNames);
+	/*
+	Modifies an existing sprite entry.
+	*/
+	void setSpriteInfo(int index, std::pair<float, std::string> newInfo);
+	/*
+	Modifies an existing sprite entry.
+	*/
+	void setSpriteDuration(int index, float newDuration);
+	/*
+	Modifies an existing sprite entry.
+	*/
+	void setSpriteName(int index, std::string newName);
+
+	/*
+	Inserts a new sprite entry.
+	*/
+	void insertSpriteInfo(int index, std::pair<float, std::string> newInfo);
+	void removeSpriteEntry(int index);
 
 private:
 	std::string animationName;
@@ -126,6 +148,12 @@ public:
 	void deleteAnimation(const std::string& animationName);
 
 	bool loadTexture(const std::string& spriteSheetFilePath);
+
+	/*
+	Unloads an animation so that the next time it is fetched, changes in its AnimationData
+	from before it was unloaded are visible.
+	*/
+	void unloadAnimation(const std::string& animationName);
 
 	/*
 	Scale all sprites by the same amount
@@ -227,6 +255,12 @@ public:
 	Returns whether both the image and its metafile were successfully loaded.
 	*/
 	bool loadSpriteSheet(const std::string& spriteSheetName);
+
+	/*
+	Unloads an animation so that the next time it is fetched, changes in its AnimationData
+	from before it was unloaded are visible.
+	*/
+	void unloadAnimation(const std::string& spriteSheetName, const std::string& animationName);
 
 	void clearSpriteSheets();
 

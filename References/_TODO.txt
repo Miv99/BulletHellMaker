@@ -234,6 +234,8 @@ Low priority TODO:
 -SpriteSheetMetafileEditor initial background color should come from some preferences file (for the editor, not for each Level Pack)
 -Async ReadDirectoryChangesW for SpriteLoader watching changes to its level pack's sprite sheets folder
     and keeping the list of loaded sprite sheets consistent with the folder
+-Be able to paste a copied AnimationData into SpriteSheetAnimationEditor (no copying operation; the copied AnimationData would come from
+    SpriteSheetMetafileEditor)
 	  
 // ------------------------------------------------------------------------------------------------------------------------------------------------
 editable = attack/attack pattern/emp/enemy/enemyphase/player

@@ -7,7 +7,7 @@
 #include <Editor/CustomWidgets/LevelPackSearchChildWindow.h>
 #include <Editor/CustomWidgets/TabsWithPanel.h>
 #include <Editor/SpriteSheets/SpriteSheetsListPanel.h>
-#include <Editor/SpriteSheets/SpriteSheetMetafileEditor.h>
+#include <Editor/SpriteSheets/SpriteSheetMetafileEditorContainer.h>
 #include <LevelPack/LevelPackObject.h>
 #include <LevelPack/Attack.h>
 #include <LevelPack/AttackPattern.h>

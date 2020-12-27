@@ -108,8 +108,8 @@ SpriteSheetMetafileEditor::SpriteSheetMetafileEditor(MainEditorWindow& mainEdito
 				}
 			}
 		} else if (id.at(0) == ANIMATABLES_LIST_ANIMATION_INDICATOR) {
-			// TODO: open animation editor
 			std::string animationName = static_cast<std::string>(id.substr(1));
+			onAnimationEditRequest.emit(this, animationName);
 		}
 	});
 	animatablesListView->onItemSelect([this](int index) {
@@ -681,26 +681,37 @@ bool SpriteSheetMetafileEditor::handleEvent(sf::Event event) {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) || sf::Keyboard::isKeyPressed(sf::Keyboard::RControl)) {
 			if (event.key.code == sf::Keyboard::Z) {
 				undoStack.undo();
+				return true;
 			} else if (event.key.code == sf::Keyboard::Y) {
 				undoStack.redo();
+				return true;
 			} else if (event.key.code == sf::Keyboard::C) {
 				clipboard.copy(this);
+				return true;
 			} else if (event.key.code == sf::Keyboard::V) {
 				if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift)) {
 					clipboard.paste2(this);
 				} else {
 					clipboard.paste(this);
 				}
+				return true;
 			}
 		} else {
 			if (event.key.code == sf::Keyboard::B) {
 				add(backgroundColorPicker);
+				return true;
 			} else if (event.key.code == sf::Keyboard::P) {
 				add(animatablePreviewChildWindow);
+				return true;
 			} else if (event.key.code == sf::Keyboard::G) {
 				resetCamera();
+				return true;
 			} else if (event.key.code == sf::Keyboard::Escape) {
 				stopEditingSpriteProperties();
+				return true;
+			} else if (event.key.code == sf::Keyboard::Delete) {
+				deleteSelectedAnimatable();
+				return true;
 			}
 		}
 	} else if (event.type == sf::Event::MouseButtonPressed) {
@@ -711,21 +722,26 @@ bool SpriteSheetMetafileEditor::handleEvent(sf::Event event) {
 	return false;
 }
 
-void SpriteSheetMetafileEditor::loadSpriteSheet(const std::string& levelPackName, std::shared_ptr<SpriteLoader> spriteLoader, std::shared_ptr<SpriteSheet> spriteSheet) {
+bool SpriteSheetMetafileEditor::loadSpriteSheet(const std::string& levelPackName, std::shared_ptr<SpriteLoader> spriteLoader, std::shared_ptr<SpriteSheet> spriteSheet) {
 	animatablePreviewPicture->setEmptyAnimatable();
-	loadImage(levelPackName, spriteLoader, spriteSheet->getName());
+	bool success = loadImage(levelPackName, spriteLoader, spriteSheet->getName());
+	if (!success) {
+		return false;
+	}
 
 	repopulateAnimatablesListView();
 
 	viewFromViewController.setCenter(loadedTexture->getSize().x / 2.0f, loadedTexture->getSize().y / 2.0f);
 	updateWindowView();
+
+	return true;
 }
 
-void SpriteSheetMetafileEditor::loadImage(const std::string& levelPackName, std::shared_ptr<SpriteLoader> spriteLoader, std::string spriteSheetName) {
+bool SpriteSheetMetafileEditor::loadImage(const std::string& levelPackName, std::shared_ptr<SpriteLoader> spriteLoader, std::string spriteSheetName) {
 	this->spriteLoader = std::make_shared<SpriteLoader>(levelPackName);
 	bool successfulLoad = this->spriteLoader->loadSpriteSheet(spriteSheetName);
 	if (!successfulLoad) {
-		return;
+		return false;
 	}
 	this->spriteSheet = this->spriteLoader->getSpriteSheet(spriteSheetName);
 	
@@ -755,6 +771,8 @@ void SpriteSheetMetafileEditor::loadImage(const std::string& levelPackName, std:
 	scaleTransparentTextureToCameraZoom(viewController->getZoomAmount());
 
 	resetCamera();
+
+	return true;
 }
 
 void SpriteSheetMetafileEditor::repopulateAnimatablesListView() {
@@ -786,6 +804,21 @@ void SpriteSheetMetafileEditor::scaleTransparentTextureToCameraZoom(float camera
 	}
 }
 
+void SpriteSheetMetafileEditor::reselectSelectedAnimatable() {
+	if (animatablesListView->getSelectedItemIndex() != -1) {
+		tgui::String selectedItemId = animatablesListView->getSelectedItemId();
+		animatablesListView->deselectItem();
+		animatablesListView->setSelectedItemById(selectedItemId);
+	}
+}
+
+void SpriteSheetMetafileEditor::reloadPreviewAnimation() {
+	if (spriteLoader && selectedAnimationData) {
+		animatablePreviewChildWindow->setTitle(format("%s preview", selectedAnimationData->getAnimationName().c_str()));
+		animatablePreviewPicture->setAnimation(*spriteLoader, selectedAnimationData->getAnimationName(), spriteSheet->getName());
+	}
+}
+
 void SpriteSheetMetafileEditor::renameSprite(std::string oldSpriteName, std::string newSpriteName) {
 	spriteSheet->renameSprite(oldSpriteName, newSpriteName);
 
@@ -799,6 +832,14 @@ tgui::Signal& SpriteSheetMetafileEditor::getSignal(tgui::String signalName) {
 		return onMetafileModify;
 	}
 	return tgui::Panel::getSignal(signalName);
+}
+
+std::shared_ptr<SpriteLoader> SpriteSheetMetafileEditor::getSpriteLoader() const {
+	return spriteLoader;
+}
+
+std::shared_ptr<SpriteSheet> SpriteSheetMetafileEditor::getSpriteSheet() const {
+	return spriteSheet;
 }
 
 void SpriteSheetMetafileEditor::updateWindowView() {
@@ -871,11 +912,51 @@ void SpriteSheetMetafileEditor::stopEditingSpriteProperties() {
 	selectingSpriteRectOrigin = false;
 
 	// Reselect selected sprite to fully revert to not-editing state
-	if (animatablesListView->getSelectedItemIndex() != -1) {
-		tgui::String selectedItemId = animatablesListView->getSelectedItemId();
-		animatablesListView->deselectItem();
-		animatablesListView->setSelectedItemById(selectedItemId);
+	reselectSelectedAnimatable();
+}
+
+void SpriteSheetMetafileEditor::deleteSelectedAnimatable() {
+	if (selectedSpriteData) {
+		std::shared_ptr<SpriteData> copyOfDeletedSpriteData = std::make_shared<SpriteData>(selectedSpriteData);
+		std::string selectedSpriteName = selectedSpriteData->getSpriteName();
+		undoStack.execute(UndoableCommand([this, selectedSpriteName]() {
+			spriteSheet->deleteSprite(selectedSpriteName);
+
+			onMetafileModify.emit(this, spriteSheet);
+
+			repopulateAnimatablesListView();
+		}, [this, copyOfDeletedSpriteData]() {
+			spriteSheet->insertSprite(copyOfDeletedSpriteData->getSpriteName(), copyOfDeletedSpriteData);
+
+			onMetafileModify.emit(this, spriteSheet);
+
+			repopulateAnimatablesListView();
+			// Select the animation
+			animatablesListView->deselectItem();
+			animatablesListView->setSelectedItemById(getAnimatablesListViewSpriteItemId(copyOfDeletedSpriteData->getSpriteName()));
+		}));
+	} else if (selectedAnimationData) {
+		std::shared_ptr<AnimationData> copyOfDeletedAnimationData = std::make_shared<AnimationData>(selectedAnimationData);
+		std::string selectedAnimationName = selectedAnimationData->getAnimationName();
+		undoStack.execute(UndoableCommand([this, selectedAnimationName]() {
+			spriteSheet->deleteAnimation(selectedAnimationName);
+
+			onAnimationDelete.emit(this, selectedAnimationName);
+			onMetafileModify.emit(this, spriteSheet);
+
+			repopulateAnimatablesListView();
+		}, [this, copyOfDeletedAnimationData]() {
+			spriteSheet->insertAnimation(copyOfDeletedAnimationData->getAnimationName(), copyOfDeletedAnimationData);
+
+			onMetafileModify.emit(this, spriteSheet);
+
+			repopulateAnimatablesListView();
+			// Select the animation
+			animatablesListView->deselectItem();
+			animatablesListView->setSelectedItemById(getAnimatablesListViewAnimationItemId(copyOfDeletedAnimationData->getAnimationName()));
+		}));
 	}
+	
 }
 
 void SpriteSheetMetafileEditor::onAnimatableDeselect() {
@@ -884,6 +965,7 @@ void SpriteSheetMetafileEditor::onAnimatableDeselect() {
 
 	selectionRectangles.clear();
 	animatablePreviewPicture->setEmptyAnimatable();
+	animatablePreviewChildWindow->setTitle("Empty preview");
 	remove(spriteColorPicker);
 
 	chooseSpriteRectButton->setVisible(false);
@@ -899,6 +981,7 @@ void SpriteSheetMetafileEditor::onAnimatableDeselect() {
 
 void SpriteSheetMetafileEditor::onSpriteSelect(std::shared_ptr<SpriteData> spriteData) {
 	selectedSpriteData = spriteData;
+	selectedAnimationData = nullptr;
 
 	selectionRectangles.clear();
 	sf::RectangleShape shape;
@@ -932,10 +1015,11 @@ void SpriteSheetMetafileEditor::onSpriteSelect(std::shared_ptr<SpriteData> sprit
 }
 
 void SpriteSheetMetafileEditor::onAnimationSelect(std::shared_ptr<AnimationData> animationData) {
+	selectedSpriteData = nullptr;
 	selectedAnimationData = animationData;
 
 	selectionRectangles.clear();
-	for (std::pair<float, std::string> data : animationData->getSpriteNames()) {
+	for (std::pair<float, std::string> data : animationData->getSpriteInfo()) {
 		if (spriteSheet->hasSpriteData(data.second)) {
 			sf::RectangleShape shape;
 			ComparableIntRect spriteRect = spriteSheet->getSpriteData(data.second)->getArea();
@@ -1098,6 +1182,7 @@ void SpriteSheetMetafileEditor::onNewAnimationNameInput(EDITOR_WINDOW_CONFIRMATI
 		}, [this, animationName]() {
 			spriteSheet->deleteAnimation(animationName);
 
+			onAnimationDelete.emit(this, animationName);
 			onMetafileModify.emit(this, spriteSheet);
 
 			repopulateAnimatablesListView();
@@ -1175,6 +1260,7 @@ void SpriteSheetMetafileEditor::onNewPastedAnimationNameInput(EDITOR_WINDOW_CONF
 	}, [this, pastedAnimation]() {
 		spriteSheet->deleteAnimation(pastedAnimation->getAnimationName());
 
+		onAnimationDelete.emit(this, pastedAnimation->getAnimationName());
 		onMetafileModify.emit(this, spriteSheet);
 
 		repopulateAnimatablesListView();

@@ -112,7 +112,7 @@ std::unique_ptr<Animation> SpriteSheet::getAnimation(const std::string& animatio
 	// Animation has not been loaded yet
 	if (animationSprites.find(animationName) == animationSprites.end()) {
 		std::vector<std::pair<float, std::shared_ptr<sf::Sprite>>> sprites;
-		for (auto p : data->getSpriteNames()) {
+		for (auto p : data->getSpriteInfo()) {
 			sprites.push_back(std::make_pair(p.first, getSprite(p.second)));
 		}
 		animationSprites[animationName] = sprites;
@@ -154,6 +154,7 @@ void SpriteSheet::deleteSprite(const std::string& spriteName) {
 void SpriteSheet::deleteAnimation(const std::string& animationName) {
 	if (hasAnimationData(animationName)) {
 		animationData.erase(animationName);
+		animationSprites.erase(animationName);
 	}
 }
 
@@ -162,6 +163,10 @@ bool SpriteSheet::loadTexture(const std::string& spriteSheetFilePath) {
 		return false;
 	}
 	return true;
+}
+
+void SpriteSheet::unloadAnimation(const std::string& animationName) {
+	animationSprites.erase(animationName);
 }
 
 void SpriteSheet::setGlobalSpriteScale(float scale) {
@@ -440,6 +445,10 @@ bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetName) {
 	return loadSpriteSheet(spriteSheetMetafileName, spriteSheetName);
 }
 
+void SpriteLoader::unloadAnimation(const std::string& spriteSheetName, const std::string& animationName) {
+	spriteSheets[spriteSheetName]->unloadAnimation(animationName);
+}
+
 void SpriteLoader::clearSpriteSheets() {
 	spriteSheets.clear();
 }
@@ -579,6 +588,26 @@ void AnimationData::setAnimationName(std::string animationName) {
 
 void AnimationData::setSpriteNames(std::vector<std::pair<float, std::string>> spriteNames) {
 	this->spriteNames = spriteNames;
+}
+
+void AnimationData::setSpriteInfo(int index, std::pair<float, std::string> newInfo) {
+	spriteNames.at(index) = newInfo;
+}
+
+void AnimationData::setSpriteDuration(int index, float newDuration) {
+	spriteNames.at(index).first = newDuration;
+}
+
+void AnimationData::setSpriteName(int index, std::string newName) {
+	spriteNames.at(index).second = newName;
+}
+
+void AnimationData::insertSpriteInfo(int index, std::pair<float, std::string> newInfo) {
+	spriteNames.insert(spriteNames.begin() + index, newInfo);
+}
+
+void AnimationData::removeSpriteEntry(int index) {
+	spriteNames.erase(spriteNames.begin() + index);
 }
 
 std::string SpriteLoader::LoadMetrics::formatForUser() {
