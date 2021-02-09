@@ -26,6 +26,26 @@ void EMPAAngleOffsetToPlayer::load(std::string formattedString) {
 	symbolTable.load(items.at(3));
 }
 
+nlohmann::json EMPAAngleOffsetToPlayer::toJson() {
+	return {
+		{"className", "EMPAAngleOffsetToPlayer"},
+		{"xOffset", xOffset},
+		{"yOffset", yOffset},
+		{"valueSymbolTable", symbolTable.toJson()}
+	};
+}
+
+void EMPAAngleOffsetToPlayer::load(const nlohmann::json& j) {
+	j.at("xOffset").get_to(xOffset);
+	j.at("yOffset").get_to(yOffset);
+
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
+}
+
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EMPAAngleOffsetToPlayer::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
@@ -80,6 +100,26 @@ void EMPAAngleOffsetToGlobalPosition::load(std::string formattedString) {
 	symbolTable.load(items.at(3));
 }
 
+nlohmann::json EMPAAngleOffsetToGlobalPosition::toJson() {
+	return {
+		{"className", "EMPAAngleOffsetToGlobalPosition"},
+		{"x", x},
+		{"y", y},
+		{"valueSymbolTable", symbolTable.toJson()}
+	};
+}
+
+void EMPAAngleOffsetToGlobalPosition::load(const nlohmann::json& j) {
+	j.at("x").get_to(x);
+	j.at("y").get_to(y);
+
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
+}
+
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EMPAAngleOffsetToGlobalPosition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
@@ -126,6 +166,21 @@ void EMPAAngleOffsetZero::load(std::string formattedString) {
 	symbolTable.load(items.at(1));
 }
 
+nlohmann::json EMPAAngleOffsetZero::toJson() {
+	return {
+		{"className", "EMPAAngleOffsetZero"},
+		{"valueSymbolTable", symbolTable.toJson()}
+	};
+}
+
+void EMPAAngleOffsetZero::load(const nlohmann::json& j) {
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
+}
+
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EMPAAngleOffsetZero::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	// Always legal
 	return std::make_pair(LEGAL_STATUS::LEGAL, std::vector<std::string>());
@@ -158,6 +213,24 @@ void EMPAAngleOffsetConstant::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	value = items.at(1);
 	symbolTable.load(items.at(2));
+}
+
+nlohmann::json EMPAAngleOffsetConstant::toJson() {
+	return {
+		{"className", "EMPAAngleOffsetConstant"},
+		{"value", value},
+		{"valueSymbolTable", symbolTable.toJson()}
+	};
+}
+
+void EMPAAngleOffsetConstant::load(const nlohmann::json& j) {
+	j.at("value").get_to(value);
+
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EMPAAngleOffsetConstant::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -194,6 +267,21 @@ std::string EMPAngleOffsetPlayerSpriteAngle::format() const {
 void EMPAngleOffsetPlayerSpriteAngle::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	symbolTable.load(items.at(1));
+}
+
+nlohmann::json EMPAngleOffsetPlayerSpriteAngle::toJson() {
+	return {
+		{"className", "EMPAngleOffsetPlayerSpriteAngle"},
+		{"valueSymbolTable", symbolTable.toJson()}
+	};
+}
+
+void EMPAngleOffsetPlayerSpriteAngle::load(const nlohmann::json& j) {
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EMPAngleOffsetPlayerSpriteAngle::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -234,6 +322,21 @@ std::string DetachFromParentEMPA::format() const {
 void DetachFromParentEMPA::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	symbolTable.load(items.at(1));
+}
+
+nlohmann::json DetachFromParentEMPA::toJson() {
+	return {
+		{"className", "DetachFromParentEMPA"},
+		{"valueSymbolTable", symbolTable.toJson()}
+	};
+}
+
+void DetachFromParentEMPA::load(const nlohmann::json& j) {
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> DetachFromParentEMPA::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -291,6 +394,24 @@ void StayStillAtLastPositionEMPA::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	duration = std::stof(items.at(1));
 	symbolTable.load(items.at(2));
+}
+
+nlohmann::json StayStillAtLastPositionEMPA::toJson() {
+	return {
+		{"className", "StayStillAtLastPositionEMPA"},
+		{"duration", duration},
+		{"valueSymbolTable", symbolTable.toJson()}
+	};
+}
+
+void StayStillAtLastPositionEMPA::load(const nlohmann::json& j) {
+	j.at("duration").get_to(duration);
+
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> StayStillAtLastPositionEMPA::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -357,8 +478,47 @@ void MoveCustomPolarEMPA::load(std::string formattedString) {
 	distance = TFVFactory::create(items.at(1));
 	angle = TFVFactory::create(items.at(2));
 	time = std::stof(items.at(3));
-	angleOffset = EMPAngleOffsetFactory::create(items.at(4));
+	angleOffset = EMPAAngleOffsetFactory::create(items.at(4));
 	symbolTable.load(items.at(5));
+}
+
+nlohmann::json MoveCustomPolarEMPA::toJson() {
+	return {
+		{"className", "MoveCustomPolarEMPA"},
+		{"distance", distance->toJson()},
+		{"angle", angle->toJson()},
+		{"time", time},
+		{"angleOffset", angleOffset->toJson()},
+		{"valueSymbolTable", symbolTable.toJson()}
+	};
+}
+
+void MoveCustomPolarEMPA::load(const nlohmann::json& j) {
+	if (j.contains("distance")) {
+		distance = TFVFactory::create(j.at("distance"));
+	} else {
+		distance = std::make_shared<ConstantTFV>(0);
+	}
+
+	if (j.contains("angle")) {
+		angle = TFVFactory::create(j.at("angle"));
+	} else {
+		angle = std::make_shared<ConstantTFV>(0);
+	}
+
+	j.at("time").get_to(time);
+
+	if (j.contains("angleOffset")) {
+		angleOffset = EMPAAngleOffsetFactory::create(j.at("angleOffset"));
+	} else {
+		angleOffset = std::make_shared<EMPAAngleOffsetZero>();
+	}
+
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> MoveCustomPolarEMPA::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -459,12 +619,55 @@ std::string MoveCustomBezierEMPA::format() const {
 void MoveCustomBezierEMPA::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	time = std::stof(items.at(1));
-	rotationAngle = EMPAngleOffsetFactory::create(items.at(2));
+	rotationAngle = EMPAAngleOffsetFactory::create(items.at(2));
 	symbolTable.load(items.at(3));
 	unrotatedControlPoints.clear();
 	int i;
 	for (i = 4; i < items.size(); i += 2) {
 		unrotatedControlPoints.push_back(sf::Vector2f(std::stof(items.at(i)), std::stof(items.at(i + 1))));
+	}
+}
+
+nlohmann::json MoveCustomBezierEMPA::toJson() {
+	nlohmann::json j = {
+		{"className", "MoveCustomBezierEMPA"},
+		{"time", time},
+		{"rotationAngle", rotationAngle->toJson()},
+		{"valueSymbolTable", symbolTable.toJson()}
+	};
+
+	nlohmann::json unrotatedControlPointsJson;
+	for (sf::Vector2f point : unrotatedControlPoints) {
+		unrotatedControlPointsJson.push_back(nlohmann::json{{"x", point.x }, { "y", point.y }});
+	}
+	j["unrotatedControlPoints"] = unrotatedControlPointsJson;
+
+	return j;
+}
+
+void MoveCustomBezierEMPA::load(const nlohmann::json& j) {
+	j.at("time").get_to(time);
+
+	if (j.contains("rotationAngle")) {
+		rotationAngle = EMPAAngleOffsetFactory::create(j.at("rotationAngle"));
+	} else {
+		rotationAngle = std::make_shared<EMPAAngleOffsetZero>();
+	}
+
+	unrotatedControlPoints.clear();
+	if (j.contains("unrotatedControlPoints")) {
+		for (nlohmann::json pointJson : j.at("unrotatedControlPoints")) {
+			float x, y;
+			pointJson.at("x").get_to(x);
+			pointJson.at("y").get_to(y);
+			unrotatedControlPoints.push_back(sf::Vector2f(x, y));
+		}
+	}
+
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
 	}
 }
 
@@ -580,6 +783,38 @@ void MovePlayerHomingEMPA::load(std::string formattedString) {
 	symbolTable.load(items.at(4));
 }
 
+nlohmann::json MovePlayerHomingEMPA::toJson() {
+	return {
+		{"className", "MovePlayerHomingEMPA"},
+		{"homingStrength", homingStrength->toJson()},
+		{"speed", speed->toJson()},
+		{"time", time},
+		{"valueSymbolTable", symbolTable.toJson()}
+	};
+}
+
+void MovePlayerHomingEMPA::load(const nlohmann::json& j) {
+	if (j.contains("homingStrength")) {
+		homingStrength = TFVFactory::create(j.at("homingStrength"));
+	} else {
+		homingStrength = std::make_shared<ConstantTFV>(0);
+	}
+
+	if (j.contains("speed")) {
+		speed = TFVFactory::create(j.at("speed"));
+	} else {
+		speed = std::make_shared<ConstantTFV>(0);
+	}
+
+	j.at("time").get_to(time);
+
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
+}
+
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> MovePlayerHomingEMPA::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
@@ -645,6 +880,43 @@ void MoveGlobalHomingEMPA::load(std::string formattedString) {
 	symbolTable.load(items.at(6));
 }
 
+nlohmann::json MoveGlobalHomingEMPA::toJson() {
+	return {
+		{"className", "MoveGlobalHomingEMPA"},
+		{"targetX", targetX},
+		{"targetY", targetY},
+		{"homingStrength", homingStrength->toJson()},
+		{"speed", speed->toJson()},
+		{"time", time},
+		{"valueSymbolTable", symbolTable.toJson()}
+	};
+}
+
+void MoveGlobalHomingEMPA::load(const nlohmann::json& j) {
+	j.at("targetX").get_to(targetX);
+	j.at("targetY").get_to(targetY);
+
+	if (j.contains("homingStrength")) {
+		homingStrength = TFVFactory::create(j.at("homingStrength"));
+	} else {
+		homingStrength = std::make_shared<ConstantTFV>(0);
+	}
+
+	if (j.contains("speed")) {
+		speed = TFVFactory::create(j.at("speed"));
+	} else {
+		speed = std::make_shared<ConstantTFV>(0);
+	}
+
+	j.at("time").get_to(time);
+
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
+}
+
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> MoveGlobalHomingEMPA::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
@@ -684,7 +956,7 @@ bool MoveGlobalHomingEMPA::operator==(const EMPAction& other) const {
 }
 
 std::shared_ptr<EMPAction> EMPActionFactory::create(std::string formattedString) {
-	auto name = split(formattedString, TextMarshallable::DELIMITER)[0];
+	std::string name = split(formattedString, TextMarshallable::DELIMITER)[0];
 	std::shared_ptr<EMPAction> ptr;
 	if (name == "DetachFromParentEMPA") {
 		ptr = std::make_shared<DetachFromParentEMPA>();
@@ -703,7 +975,33 @@ std::shared_ptr<EMPAction> EMPActionFactory::create(std::string formattedString)
 	return ptr;
 }
 
-std::shared_ptr<EMPAAngleOffset> EMPAngleOffsetFactory::create(std::string formattedString) {
+std::shared_ptr<EMPAction> EMPActionFactory::create(const nlohmann::json& j) {
+	if (j.contains("className")) {
+		std::string name;
+		j.at("className").get_to(name);
+
+		std::shared_ptr<EMPAction> ptr;
+		if (name == "DetachFromParentEMPA") {
+			ptr = std::make_shared<DetachFromParentEMPA>();
+		} else if (name == "StayStillAtLastPositionEMPA") {
+			ptr = std::make_shared<StayStillAtLastPositionEMPA>();
+		} else if (name == "MoveCustomPolarEMPA") {
+			ptr = std::make_shared<MoveCustomPolarEMPA>();
+		} else if (name == "MoveCustomBezierEMPA") {
+			ptr = std::make_shared<MoveCustomBezierEMPA>();
+		} else if (name == "MovePlayerHomingEMPA") {
+			ptr = std::make_shared<MovePlayerHomingEMPA>();
+		} else if (name == "MoveGlobalHomingEMPA") {
+			ptr = std::make_shared<MoveGlobalHomingEMPA>();
+		}
+		ptr->load(j);
+		return ptr;
+	} else {
+		return std::make_shared<StayStillAtLastPositionEMPA>();
+	}
+}
+
+std::shared_ptr<EMPAAngleOffset> EMPAAngleOffsetFactory::create(std::string formattedString) {
 	auto name = split(formattedString, TextMarshallable::DELIMITER)[0];
 	std::shared_ptr<EMPAAngleOffset> ptr;
 	if (name == "EMPAAngleOffsetToPlayer") {
@@ -719,4 +1017,28 @@ std::shared_ptr<EMPAAngleOffset> EMPAngleOffsetFactory::create(std::string forma
 	}
 	ptr->load(formattedString);
 	return ptr;
+}
+
+std::shared_ptr<EMPAAngleOffset> EMPAAngleOffsetFactory::create(const nlohmann::json& j) {
+	if (j.contains("className")) {
+		std::string name;
+		j.at("className").get_to(name);
+
+		std::shared_ptr<EMPAAngleOffset> ptr;
+		if (name == "EMPAAngleOffsetToPlayer") {
+			ptr = std::make_shared<EMPAAngleOffsetToPlayer>();
+		} else if (name == "EMPAAngleOffsetToGlobalPosition") {
+			ptr = std::make_shared<EMPAAngleOffsetToGlobalPosition>();
+		} else if (name == "EMPAAngleOffsetZero") {
+			ptr = std::make_shared<EMPAAngleOffsetZero>();
+		} else if (name == "EMPAngleOffsetPlayerSpriteAngle") {
+			ptr = std::make_shared<EMPAngleOffsetPlayerSpriteAngle>();
+		} else if (name == "EMPAAngleOffsetConstant") {
+			ptr = std::make_shared<EMPAAngleOffsetConstant>();
+		}
+		ptr->load(j);
+		return ptr;
+	} else {
+		return std::make_shared<EMPAAngleOffsetZero>();
+	}
 }

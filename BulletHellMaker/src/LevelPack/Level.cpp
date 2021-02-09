@@ -68,6 +68,89 @@ void Level::load(std::string formattedString) {
 	symbolTable.load(items.at(i++));
 }
 
+nlohmann::json Level::toJson() {
+	nlohmann::json j = {
+		{"id", id},
+		{"name", name},
+		{"healthPack", healthPack->toJson()},
+		{"pointPack", pointPack->toJson()},
+		{"powerPack", powerPack->toJson()},
+		{"bombItem", bombItem->toJson()},
+		{"musicSettings", musicSettings.toJson()},
+		{"backgroundFileName", backgroundFileName},
+		{"backgroundScrollSpeedX", backgroundScrollSpeedX},
+		{"backgroundScrollSpeedY", backgroundScrollSpeedY},
+		{"backgroundTextureWidth", backgroundTextureWidth},
+		{"backgroundTextureHeight", backgroundTextureHeight},
+		{"bossNameColor", nlohmann::json{ {"r", bossNameColor.r}, {"g", bossNameColor.g}, 
+			{"b", bossNameColor.b}, {"a", bossNameColor.a} }},
+		{"bossHPBarColor", nlohmann::json{ {"r", bossHPBarColor.r}, {"g", bossHPBarColor.g},
+			{"b", bossHPBarColor.b}, {"a", bossHPBarColor.a} }},
+	};
+
+	nlohmann::json eventsJson;
+	for (auto p : events) {
+		eventsJson.push_back(nlohmann::json{ {"startCondition", p.first->toJson()},
+			{"event", p.second->toJson()} });
+	}
+	j["events"] = eventsJson;
+
+	return j;
+}
+
+void Level::load(const nlohmann::json& j) {
+	j.at("id").get_to(id);
+	j.at("name").get_to(name);
+
+	if (!healthPack) healthPack = std::make_shared<HealthPackItem>();
+	healthPack->load(j.at("healthPack"));
+	if (!pointPack) pointPack = std::make_shared<PointsPackItem>();
+	pointPack->load(j.at("pointPack"));
+	if (!powerPack) powerPack = std::make_shared<PowerPackItem>();
+	powerPack->load(j.at("powerPack"));
+	if (!bombItem) bombItem = std::make_shared<BombItem>();
+	bombItem->load(j.at("bombItem"));
+
+	musicSettings.load(j.at("musicSettings"));
+	j.at("backgroundFileName").get_to(backgroundFileName);
+	j.at("backgroundScrollSpeedX").get_to(backgroundScrollSpeedX);
+	j.at("backgroundScrollSpeedY").get_to(backgroundScrollSpeedY);
+	j.at("backgroundTextureWidth").get_to(backgroundTextureWidth);
+	j.at("backgroundTextureHeight").get_to(backgroundTextureHeight);
+	j.at("bossNameColor").at("r").get_to(bossNameColor.r);
+	j.at("bossNameColor").at("g").get_to(bossNameColor.g);
+	j.at("bossNameColor").at("b").get_to(bossNameColor.b);
+	j.at("bossNameColor").at("a").get_to(bossNameColor.a);
+	j.at("bossHPBarColor").at("r").get_to(bossHPBarColor.r);
+	j.at("bossHPBarColor").at("g").get_to(bossHPBarColor.g);
+	j.at("bossHPBarColor").at("b").get_to(bossHPBarColor.b);
+	j.at("bossHPBarColor").at("a").get_to(bossHPBarColor.a);
+
+	events.clear();
+	enemyIDCount.clear();
+	if (j.contains("events")) {
+		for (const nlohmann::json& item : j.at("events")) {
+			std::shared_ptr<LevelEventStartCondition> startCondition = LevelEventStartConditionFactory::create(item.at("startCondition"));
+			std::shared_ptr<LevelEvent> event = LevelEventFactory::create(item.at("event"));
+			
+			// Update enemyIDCount if possible
+			std::shared_ptr<SpawnEnemiesLevelEvent> ptr = std::dynamic_pointer_cast<SpawnEnemiesLevelEvent>(event);
+			if (ptr) {
+				for (auto& enemy : ptr->getSpawnInfo()) {
+					int enemyID = enemy->getEnemyID();
+					if (enemyIDCount.find(enemyID) == enemyIDCount.end()) {
+						enemyIDCount[enemyID] = 1;
+					} else {
+						enemyIDCount[enemyID]++;
+					}
+				}
+			}
+
+			events.push_back(std::make_pair(startCondition, event));
+		}
+	}
+}
+
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> Level::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;

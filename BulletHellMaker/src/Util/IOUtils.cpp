@@ -5,6 +5,8 @@
 #include <filesystem>
 #include <set>
 
+#include <Constants.h>
+
 LPITEMIDLIST ConvertPathToLpItemIdList(const char* pszPath) {
 	LPITEMIDLIST  pidl = NULL;
 	LPSHELLFOLDER pDesktopFolder = NULL;
@@ -46,7 +48,7 @@ bool fileExists(const char* name) {
 }
 
 bool fileExists(const std::string& name) {
-	return std::filesystem::exists(name);
+	return std::filesystem::exists(name) && std::filesystem::is_regular_file(name);
 }
 
 int countFiles(const char* directory, const char* extension) {
@@ -146,12 +148,12 @@ std::vector<std::pair<std::string, std::string>> findAllSpriteSheetsWithMetafile
 			strcpy(imageNameAndExtension, fileName.c_str());
 			strcat(imageNameAndExtension, extension.c_str());
 
-			if (fileNamesAndExtensions.find(std::make_pair(std::string(imageNameAndExtension), ".txt")) != fileNamesAndExtensions.end()) {
+			if (fileNamesAndExtensions.find(std::make_pair(std::string(imageNameAndExtension), LEVEL_PACK_SERIALIZED_DATA_FORMAT)) != fileNamesAndExtensions.end()) {
 				// Sprite sheet image has a corresponding metafile
 
 				char metafileNameAndExtension[MAX_PATH + 1];
 				strcpy(metafileNameAndExtension, imageNameAndExtension);
-				strcat(metafileNameAndExtension, ".txt");
+				strcat(metafileNameAndExtension, LEVEL_PACK_SERIALIZED_DATA_FORMAT.c_str());
 
 				results.push_back(std::make_pair(std::string(metafileNameAndExtension), std::string(imageNameAndExtension)));
 			} else {
@@ -184,12 +186,12 @@ std::vector<std::pair<std::string, std::string>> findAllSpriteSheets(std::string
 			strcpy(imageNameAndExtension, fileName.c_str());
 			strcat(imageNameAndExtension, extension.c_str());
 
-			if (fileNamesAndExtensions.find(std::make_pair(std::string(imageNameAndExtension), ".txt")) != fileNamesAndExtensions.end()) {
+			if (fileNamesAndExtensions.find(std::make_pair(std::string(imageNameAndExtension), LEVEL_PACK_SERIALIZED_DATA_FORMAT)) != fileNamesAndExtensions.end()) {
 				// Sprite sheet image has a corresponding metafile
 
 				char metafileNameAndExtension[MAX_PATH + 1];
 				strcpy(metafileNameAndExtension, imageNameAndExtension);
-				strcat(metafileNameAndExtension, ".txt");
+				strcat(metafileNameAndExtension, LEVEL_PACK_SERIALIZED_DATA_FORMAT.c_str());
 
 				results.push_back(std::make_pair(std::string(metafileNameAndExtension), std::string(imageNameAndExtension)));
 			} else {

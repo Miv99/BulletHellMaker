@@ -46,6 +46,9 @@ public:
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
 };
 
 class MusicSettings : public TextMarshallable, public AudioSettings {
@@ -56,6 +59,9 @@ public:
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
 
 	inline bool getLoop() const { return loops; }
 	inline int getLoopStartMilliseconds() const { return loopStartMilliseconds; }

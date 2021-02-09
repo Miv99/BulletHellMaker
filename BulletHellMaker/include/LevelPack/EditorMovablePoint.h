@@ -16,6 +16,7 @@
 #include <Game/EntityCreationQueue.h>
 #include <Game/Systems/CollisionSystem.h>
 #include <Game/AudioPlayer.h>
+#include <Util/json.hpp>
 
 class EMPSpawnType;
 class EditorMovablePoint;
@@ -37,6 +38,9 @@ public:
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
 
 	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
@@ -146,6 +150,9 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
+
 	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
@@ -217,7 +224,7 @@ public:
 	inline void setDamage(std::string damage) { this->damage = damage; }
 	inline void setAnimatable(Animatable animatable) { this->animatable = animatable; }
 	inline void setLoopAnimation(bool loopAnimation) { this->loopAnimation = loopAnimation; }
-	inline void setBaseSprite(Animatable baseSprite) { assert(baseSprite.isSprite()); this->baseSprite = baseSprite; }
+	inline void setBaseSprite(Animatable baseSprite) { this->baseSprite = baseSprite; }
 	inline void setHitboxRadius(std::string hitboxRadius) { this->hitboxRadius = hitboxRadius; }
 	inline void setDespawnTime(float despawnTime) { this->despawnTime = despawnTime; }
 	void setSpawnType(std::shared_ptr<EMPSpawnType> spawnType);

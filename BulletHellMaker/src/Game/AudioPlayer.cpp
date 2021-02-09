@@ -45,6 +45,22 @@ void SoundSettings::load(std::string formattedString) {
 	disabled = unformatBool(items.at(3));
 }
 
+nlohmann::json SoundSettings::toJson() {
+	return {
+		{"fileName", fileName},
+		{"volume", volume},
+		{"pitch", pitch},
+		{"disabled", disabled}
+	};
+}
+
+void SoundSettings::load(const nlohmann::json& j) {
+	j.at("fileName").get_to(fileName);
+	j.at("volume").get_to(volume);
+	j.at("pitch").get_to(pitch);
+	j.at("disabled").get_to(disabled);
+}
+
 MusicSettings::MusicSettings() {
 }
 
@@ -82,6 +98,30 @@ void MusicSettings::load(std::string formattedString) {
 	pitch = std::stof(items.at(5));
 	disabled = unformatBool(items.at(6));
 	transitionTime = std::stof(items.at(7));
+}
+
+nlohmann::json MusicSettings::toJson() {
+	return {
+		{"fileName", fileName},
+		{"volume", volume},
+		{"pitch", pitch},
+		{"disabled", disabled},
+		{"loops", loops},
+		{"loopStartMilliseconds", loopStartMilliseconds},
+		{"loopLengthMilliseconds", loopLengthMilliseconds},
+		{"transitionTime", transitionTime}
+	};
+}
+
+void MusicSettings::load(const nlohmann::json& j) {
+	j.at("fileName").get_to(fileName);
+	j.at("volume").get_to(volume);
+	j.at("pitch").get_to(pitch);
+	j.at("disabled").get_to(disabled);
+	j.at("loops").get_to(loops);
+	j.at("loopStartMilliseconds").get_to(loopStartMilliseconds);
+	j.at("loopLengthMilliseconds").get_to(loopLengthMilliseconds);
+	j.at("transitionTime").get_to(transitionTime);
 }
 
 bool MusicSettings::operator==(const AudioSettings& other) const {

@@ -32,7 +32,7 @@ std::shared_ptr<LevelPackObject> SpecificGlobalEMPSpawn::clone() const {
 }
 
 std::string SpecificGlobalEMPSpawn::format() const {
-	return formatString("SpecificGlobalEMPSpawn") + formatString(x) + formatString(y) + formatString(time);
+	return formatString("SpecificGlobalEMPSpawn") + formatString(x) + formatString(y) + formatString(time) + formatTMObject(symbolTable);
 }
 
 void SpecificGlobalEMPSpawn::load(std::string formattedString) {
@@ -40,6 +40,15 @@ void SpecificGlobalEMPSpawn::load(std::string formattedString) {
 	x = items.at(1);
 	y = items.at(2);
 	time = items.at(3);
+	symbolTable.load(items.at(4));
+}
+
+nlohmann::json SpecificGlobalEMPSpawn::toJson() {
+	nlohmann::json j = EMPSpawnType::toJson();
+
+	j["className"] = "SpecificGlobalEMPSpawn";
+
+	return j;
 }
 
 MPSpawnInformation SpecificGlobalEMPSpawn::getSpawnInfo(entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
@@ -68,7 +77,7 @@ std::shared_ptr<LevelPackObject> EntityRelativeEMPSpawn::clone() const {
 }
 
 std::string EntityRelativeEMPSpawn::format() const {
-	return formatString("EntityRelativeEMPSpawn") + formatString(x) + formatString(y) + formatString(time);
+	return formatString("EntityRelativeEMPSpawn") + formatString(x) + formatString(y) + formatString(time) + formatTMObject(symbolTable);
 }
 
 void EntityRelativeEMPSpawn::load(std::string formattedString) {
@@ -76,6 +85,15 @@ void EntityRelativeEMPSpawn::load(std::string formattedString) {
 	x = items.at(1);
 	y = items.at(2);
 	time = items.at(3);
+	symbolTable.load(items.at(4));
+}
+
+nlohmann::json EntityRelativeEMPSpawn::toJson() {
+	nlohmann::json j = EMPSpawnType::toJson();
+
+	j["className"] = "EntityRelativeEMPSpawn";
+
+	return j;
 }
 
 MPSpawnInformation EntityRelativeEMPSpawn::getSpawnInfo(entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
@@ -117,7 +135,7 @@ std::shared_ptr<LevelPackObject> EntityAttachedEMPSpawn::clone() const {
 }
 
 std::string EntityAttachedEMPSpawn::format() const {
-	return formatString("EntityAttachedEMPSpawn") + formatString(x) + formatString(y) + formatString(time);
+	return formatString("EntityAttachedEMPSpawn") + formatString(x) + formatString(y) + formatString(time) + formatTMObject(symbolTable);
 }
 
 void EntityAttachedEMPSpawn::load(std::string formattedString) {
@@ -125,6 +143,15 @@ void EntityAttachedEMPSpawn::load(std::string formattedString) {
 	x = items.at(1);
 	y = items.at(2);
 	time = items.at(3);
+	symbolTable.load(items.at(4));
+}
+
+nlohmann::json EntityAttachedEMPSpawn::toJson() {
+	nlohmann::json j = EMPSpawnType::toJson();
+
+	j["className"] = "EntityAttachedEMPSpawn";
+
+	return j;
 }
 
 MPSpawnInformation EntityAttachedEMPSpawn::getSpawnInfo(entt::DefaultRegistry & registry, uint32_t entity, float timeLag) {
@@ -158,8 +185,49 @@ std::shared_ptr<EMPSpawnType> EMPSpawnTypeFactory::create(std::string formattedS
 	return ptr;
 }
 
+std::shared_ptr<EMPSpawnType> EMPSpawnTypeFactory::create(const nlohmann::json& j) {
+	if (j.contains("className")) {
+		std::string name;
+		j.at("className").get_to(name);
+
+		std::shared_ptr<EMPSpawnType> ptr;
+		if (name == "SpecificGlobalEMPSpawn") {
+			ptr = std::make_shared<SpecificGlobalEMPSpawn>();
+		} else if (name == "EntityRelativeEMPSpawn") {
+			ptr = std::make_shared<EntityRelativeEMPSpawn>();
+		} else if (name == "EntityAttachedEMPSpawn") {
+			ptr = std::make_shared<EntityAttachedEMPSpawn>();
+		}
+		ptr->load(j);
+		return ptr;
+	} else {
+		return std::make_shared<SpecificGlobalEMPSpawn>();
+	}
+}
+
 bool EMPSpawnType::operator==(const EMPSpawnType& other) const {
 	return time == other.time && x == other.x && y == other.y;
+}
+
+nlohmann::json EMPSpawnType::toJson() {
+	return {
+		{"time", time},
+		{"x", x},
+		{"y", y},
+		{"valueSymbolTable", symbolTable.toJson()}
+	};
+}
+
+void EMPSpawnType::load(const nlohmann::json& j) {
+	j.at("time").get_to(time);
+	j.at("x").get_to(x);
+	j.at("y").get_to(y);
+
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EMPSpawnType::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {

@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <set>
 
+#include <Constants.h>
 #include <Config.h>
 #include <Util/Logger.h>
 #include <Util/TextFileParser.h>
@@ -77,10 +78,54 @@ void SpriteSheet::load(std::string formattedString) {
 
 	animationData.clear();
 	int animationDataStartIndex = i++;
-	for (; i < std::stoi(items.at(animationDataStartIndex)) + animationDataStartIndex; i++) {
+	for (; i < std::stoi(items.at(animationDataStartIndex)) + animationDataStartIndex + 1; i++) {
 		std::shared_ptr<AnimationData> entry = std::make_shared<AnimationData>();
 		entry->load(items.at(i));
 		animationData[entry->getAnimationName()] = entry;
+	}
+}
+
+nlohmann::json SpriteSheet::toJson() {
+	nlohmann::json j = {
+		{"name", name}
+	};
+
+	nlohmann::json spriteDataJson;
+	for (auto p : spriteData) {
+		spriteDataJson[p.second->getSpriteName()] = p.second->toJson();
+	}
+	j["spriteData"] = spriteDataJson;
+
+	nlohmann::json animationDataJson;
+	for (auto p : animationData) {
+		animationDataJson[p.second->getAnimationName()] = p.second->toJson();
+	}
+	j["animationData"] = animationDataJson;
+
+	return j;
+}
+
+void SpriteSheet::load(const nlohmann::json& j) {
+	j.at("name").get_to(name);
+
+	spriteData.clear();
+	if (j.contains("spriteData")) {
+		for (const nlohmann::json& item : j.at("spriteData")) {
+			std::shared_ptr<SpriteData> data = std::make_shared<SpriteData>();
+			data->load(item);
+
+			spriteData[data->getSpriteName()] = data;
+		}
+	}
+
+	animationData.clear();
+	if (j.contains("animationData")) {
+		for (const nlohmann::json& item : j.at("animationData")) {
+			std::shared_ptr<AnimationData> data = std::make_shared<AnimationData>();
+			data->load(item);
+
+			animationData[data->getAnimationName()] = data;
+		}
 	}
 }
 
@@ -254,6 +299,39 @@ void SpriteData::load(std::string formattedString) {
 	spriteOriginY = std::stoi(items.at(12));
 }
 
+nlohmann::json SpriteData::toJson() {
+	return {
+		{"spriteName", spriteName},
+		{"area", nlohmann::json{ {"left", area.left}, {"top", area.top}, 
+			{"width", area.width}, {"height", area.height} }},
+		{"color", nlohmann::json{ {"r", color.r}, {"g", color.g},
+			{"b", color.b}, {"a", color.a} }},
+		{"spriteWidth", spriteWidth},
+		{"spriteHeight", spriteHeight},
+		{"spriteOriginX", spriteOriginX},
+		{"spriteOriginY", spriteOriginY}
+	};
+}
+
+void SpriteData::load(const nlohmann::json& j) {
+	j.at("spriteName").get_to(spriteName);
+
+	j.at("area").at("left").get_to(area.left);
+	j.at("area").at("top").get_to(area.top);
+	j.at("area").at("width").get_to(area.width);
+	j.at("area").at("height").get_to(area.height);
+
+	j.at("color").at("r").get_to(color.r);
+	j.at("color").at("g").get_to(color.g);
+	j.at("color").at("b").get_to(color.b);
+	j.at("color").at("a").get_to(color.a);
+
+	j.at("spriteWidth").get_to(spriteWidth);
+	j.at("spriteHeight").get_to(spriteHeight);
+	j.at("spriteOriginX").get_to(spriteOriginX);
+	j.at("spriteOriginY").get_to(spriteOriginY);
+}
+
 bool SpriteData::operator==(const SpriteData & other) const {
 	return this->area == other.area && this->color == other.color;
 }
@@ -317,8 +395,8 @@ void SpriteLoader::saveMetadataFiles() {
 	for (std::pair<std::string, std::shared_ptr<SpriteSheet>> spriteSheet : spriteSheets) {
 		// Only save SpriteSheets that were initially loaded successfully
 		if (!spriteSheet.second->isFailedMetafileLoad()) {
-			std::ofstream metafile(format(spriteSheetsFolderPath + "\\%s.txt", spriteSheet.first.c_str()));
-			metafile << spriteSheet.second->format();
+			std::ofstream metafile(format(spriteSheetsFolderPath + "\\%s%s", spriteSheet.first.c_str(), LEVEL_PACK_SERIALIZED_DATA_FORMAT.c_str()));
+			metafile << std::setw(4) << spriteSheet.second->toJson();
 			metafile.close();
 		}
 	}
@@ -441,7 +519,7 @@ const std::shared_ptr<sf::Sprite> SpriteLoader::getMissingSprite() {
 }
 
 bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetName) {
-	std::string spriteSheetMetafileName = spriteSheetName + ".txt";
+	std::string spriteSheetMetafileName = spriteSheetName + LEVEL_PACK_SERIALIZED_DATA_FORMAT;
 	return loadSpriteSheet(spriteSheetMetafileName, spriteSheetName);
 }
 
@@ -497,7 +575,7 @@ std::string SpriteLoader::formatPathToSpriteSheetImage(std::string imageFileName
 }
 
 std::string SpriteLoader::formatPathToSpriteSheetMetafile(std::string imageFileNameWithExtension) {
-	return format(RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH + "\\%s.txt", levelPackName.c_str(), imageFileNameWithExtension.c_str());
+	return format(RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH + "\\%s%s", levelPackName.c_str(), imageFileNameWithExtension.c_str(), LEVEL_PACK_SERIALIZED_DATA_FORMAT.c_str());
 }
 
 bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, const std::string& spriteSheetImageFileName) {
@@ -516,9 +594,9 @@ bool SpriteLoader::loadSpriteSheet(const std::string& spriteSheetMetaFileName, c
 		if (metafile) {
 			// If metafile can be opened, load the SpriteSheet using it
 
-			std::string line;
-			std::getline(metafile, line);
-			sheet->load(line);
+			nlohmann::json j;
+			metafile >> j;
+			sheet->load(j);
 		}
 
 		// Load image file
@@ -575,6 +653,37 @@ void AnimationData::load(std::string formattedString) {
 	spriteNames.clear();
 	for (int i = 1; i < items.size(); i += 2) {
 		spriteNames.push_back(std::make_pair(std::stof(items.at(i)), items.at(i + 1)));
+	}
+}
+
+nlohmann::json AnimationData::toJson() {
+	nlohmann::json j = {
+		{"animationName", animationName}
+	};
+
+	nlohmann::json spriteNamesJson;
+	for (auto p : spriteNames) {
+		spriteNamesJson.push_back(nlohmann::json{ {"duration", p.first}, {"spriteName", p.second} });
+	}
+	j["spriteNames"] = spriteNamesJson;
+
+	return j;
+}
+
+void AnimationData::load(const nlohmann::json& j) {
+	j.at("animationName").get_to(animationName);
+
+	spriteNames.clear();
+	if (j.contains("spriteNames")) {
+		for (const nlohmann::json& item : j.at("spriteNames")) {
+			float duration;
+			std::string spriteName;
+
+			item.at("duration").get_to(duration);
+			item.at("spriteName").get_to(spriteName);
+
+			spriteNames.push_back(std::make_pair(duration, spriteName));
+		}
 	}
 }
 

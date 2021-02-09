@@ -74,6 +74,9 @@ private:
 	void physicsUpdate(float deltaTime);
 	void render(float deltaTime);
 
+	// Whether this GameInstance was successfully instantiated/loaded and can be played
+	bool validGameInstance;
+
 	bool gameInstanceCloseQueued = false;
 
 	std::unique_ptr<LevelPack> levelPack;

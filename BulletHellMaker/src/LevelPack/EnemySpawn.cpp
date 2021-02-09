@@ -38,6 +38,55 @@ void EnemySpawnInfo::load(std::string formattedString) {
 	}
 }
 
+nlohmann::json EnemySpawnInfo::toJson() {
+	nlohmann::json j = {
+		{"x", x},
+		{"y", y},
+		{"enemyID", enemyID},
+		{"valueSymbolTable", symbolTable.toJson()},
+		{"enemySymbolsDefiner", enemySymbolsDefiner.toJson()}
+	};
+
+	nlohmann::json itemsDroppedOnDeathJson;
+	for (auto p : itemsDroppedOnDeath) {
+		itemsDroppedOnDeathJson.push_back(nlohmann::json{ {"item", p.first->toJson()}, {"itemCount", p.second} });
+	}
+	j["itemsDroppedOnDeath"] = itemsDroppedOnDeathJson;
+
+	return j;
+}
+
+void EnemySpawnInfo::load(const nlohmann::json& j) {
+	j.at("x").get_to(x);
+	j.at("y").get_to(y);
+	j.at("enemyID").get_to(enemyID);
+
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
+
+	if (j.contains("enemySymbolsDefiner")) {
+		enemySymbolsDefiner.load(j.at("enemySymbolsDefiner"));
+	} else {
+		enemySymbolsDefiner = ExprSymbolTable();
+	}
+
+	itemsDroppedOnDeath.clear();
+	if (j.contains("itemsDroppedOnDeath")) {
+		for (const nlohmann::json& itemJson : j.at("itemsDroppedOnDeath")) {
+			std::shared_ptr<Item> item;
+			std::string itemCount;
+
+			item = ItemFactory::create(itemJson.at("item"));
+			itemJson.at("itemCount").get_to(itemCount);
+
+			itemsDroppedOnDeath.push_back(std::make_pair(item, itemCount));
+		}
+	}
+}
+
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EnemySpawnInfo::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;

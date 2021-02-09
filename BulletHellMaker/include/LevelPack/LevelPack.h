@@ -49,9 +49,6 @@ public:
 		int levelsFailed = 0;
 		int levelsTotal = 0;
 
-		int levelOrderingsFailed = 0;
-		int levelOrderingsTotal = 0;
-
 		int enemiesFailed = 0;
 		int enemiesTotal = 0;
 
@@ -392,6 +389,15 @@ public:
 	*/
 	std::set<int> getNextBulletModelIDs(int count) const;
 
+	/*
+	Returns whether this LevelPack attempted to load from a folder.
+	*/
+	bool getAttemptedLoad() const;
+	/*
+	Returns whether this LevelPack successfully loaded from a folder.
+	*/
+	bool getSuccessfulLoad() const;
+
 	std::shared_ptr<entt::SigH<void(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE, int)>> getOnChange();
 
 	void setPlayer(std::shared_ptr<EditorPlayer> player);
@@ -417,6 +423,21 @@ public:
 	void playMusic(std::shared_ptr<sf::Music> music, const MusicSettings& musicSettings) const;
 
 private:
+	const static std::string LEVELS_ORDER_FILE_NAME;
+	const static std::string PLAYER_FILE_NAME;
+
+	const static std::string LEVEL_FILE_PREFIX;
+	const static std::string ATTACK_FILE_PREFIX;
+	const static std::string ATTACK_PATTERN_FILE_PREFIX;
+	const static std::string BULLET_MODEL_FILE_PREFIX;
+	const static std::string ENEMY_FILE_PREFIX;
+	const static std::string ENEMY_PHASE_FILE_PREFIX;
+
+	// Whether this LevelPack was attempted to be loaded
+	bool attemptedLoad = false;
+	// Whether this LevelPack was loaded successfully
+	bool successfulLoad;
+
 	std::string name;
 
 	std::shared_ptr<SpriteLoader> spriteLoader;
@@ -459,4 +480,23 @@ private:
 	*/
 	std::shared_ptr<entt::SigH<void(LEVEL_PACK_OBJECT_HIERARCHY_LAYER_ROOT_TYPE, int)>> onChange;
 
+	/*
+	Returns a set of IDs of level pack object files currently existing in a folder.
+	Level pack object files are assumed to be in the format "[levelPackObjectFilePrefix][ID][levelPackObjectFileExtension]"
+	ie "level0.xml"
+
+	folderPath - the path of the folder relative to the game root
+	levelPackObjectFilePrefix - a file in folderPath must start with levelPackObjectFilePrefix to be counted as a level pack object file
+	levelPackObjectFileExtension - a file in folderPath must have this extension to be counted as a level pack object file (ie ".xml")
+	*/
+	std::set<int> getAllExistingLevelPackObjectFilesIDs(std::string folderPath, std::string levelPackObjectFilePrefix, std::string levelPackObjectFileExtension);
+	/*
+	Deletes all level pack object files in the folderPath folder that have an ID in ids.
+	Failed deletions are logged as warnings.
+
+	levelPackObjectFilePrefix - a file in folderPath must start with levelPackObjectFilePrefix to be counted as a level pack object file
+	levelPackObjectFileExtension - a file in folderPath must have this extension to be counted as a level pack object file (ie ".xml")
+	ids - the set of IDs of level pack objects to be deleted
+	*/
+	void deleteLevelPackObjectFiles(std::string folderPath, std::string levelPackObjectFilePrefix, std::string levelPackObjectFileExtension, std::set<int> ids);
 };

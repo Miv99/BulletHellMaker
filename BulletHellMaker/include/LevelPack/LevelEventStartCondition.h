@@ -16,6 +16,9 @@ public:
 	std::string format() const = 0;
 	void load(std::string formattedString) = 0;
 
+	virtual nlohmann::json toJson() = 0;
+	virtual void load(const nlohmann::json& j) = 0;
+
 	virtual std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const = 0;
 	virtual void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) = 0;
 
@@ -34,6 +37,9 @@ public:
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
 
 	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
@@ -58,6 +64,9 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
+
 	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
@@ -81,6 +90,9 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
+
 	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
@@ -98,4 +110,5 @@ Creates the correct concrete EnemyPhaseStartConditions using the formatted strin
 class LevelEventStartConditionFactory {
 public:
 	static std::shared_ptr<LevelEventStartCondition> create(std::string formattedString);
+	static std::shared_ptr<LevelEventStartCondition> create(const nlohmann::json& j);
 };

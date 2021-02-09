@@ -19,6 +19,20 @@ void Animatable::load(std::string formattedString) {
 	rotationType = static_cast<ROTATION_TYPE>(std::stoi(items.at(3)));
 }
 
+nlohmann::json Animatable::toJson() {
+	return {{"animatableName", animatableName},
+			{"spriteSheetName", spriteSheetName},
+			{"animatableIsSprite", animatableIsSprite},
+			{"rotationType", rotationType}};
+}
+
+void Animatable::load(const nlohmann::json& j) {
+	j.at("animatableName").get_to(animatableName);
+	j.at("spriteSheetName").get_to(spriteSheetName);
+	j.at("animatableIsSprite").get_to(animatableIsSprite);
+	j.at("rotationType").get_to(rotationType);
+}
+
 bool Animatable::operator==(const Animatable& other) const {
 	return animatableName == other.animatableName && spriteSheetName == other.spriteSheetName
 		&& animatableIsSprite == other.animatableIsSprite && rotationType == other.rotationType;

@@ -27,9 +27,9 @@ SpriteSheetsListPanel::SpriteSheetsListPanel(MainEditorWindow& mainEditorWindow)
 	importSpriteSheetButton->onPress.connect([this]() {
 		promptImportExternalSpriteSheet();
 	});
-	importSpriteSheetButton->setToolTip(createToolTip("Imports a sprite sheet image from outside the level pack. \
+	importSpriteSheetButton->setToolTip(createToolTip(format("Imports a sprite sheet image from outside the level pack. \
 If there is a corresponding BulletHellMaker sprite sheet metafile (named \
-\"[SpriteSheetImageFileNameAndExtension].txt\"), it should be in the same folder as the image."));
+\"[SpriteSheetImageFileNameAndExtension]%s\"), it should be in the same folder as the image.", LEVEL_PACK_SERIALIZED_DATA_FORMAT.c_str())));
 	add(importSpriteSheetButton);
 
 	spriteSheetsListView = ListView::create();
@@ -64,7 +64,7 @@ void SpriteSheetsListPanel::promptImportExternalSpriteSheet() {
 
 	char sourceMetafileFullPath[MAX_PATH + 1];
 	strcpy(sourceMetafileFullPath, sourceImageFullPath);
-	strcat(sourceMetafileFullPath, ".txt");
+	strcat(sourceMetafileFullPath, LEVEL_PACK_SERIALIZED_DATA_FORMAT.c_str());
 	bool sourceMetafileExists = fileExists(sourceMetafileFullPath);
 
 	char imageFileName[MAX_PATH + 1];
@@ -75,7 +75,8 @@ void SpriteSheetsListPanel::promptImportExternalSpriteSheet() {
 		std::string curDirectory = getPathToFolderContainingExe();
 
 		std::string destImageFullPath = format(curDirectory + "\\" + RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH + "\\%s%s", levelPack->getName().c_str(), imageFileName, imageFileExtension);
-		std::string destMetafileFullPath = format(curDirectory + "\\" + RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH + "\\%s%s.txt", levelPack->getName().c_str(), imageFileName, imageFileExtension);
+		std::string destMetafileFullPath = format(curDirectory + "\\" + RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH + "\\%s%s%s", levelPack->getName().c_str(), imageFileName, 
+			imageFileExtension, LEVEL_PACK_SERIALIZED_DATA_FORMAT.c_str());
 
 		SpriteSheetsTreeViewPanelReplaceFileData data = { std::string(sourceImageFullPath), destImageFullPath, sourceMetafileExists, std::string(sourceMetafileFullPath), destMetafileFullPath };
 		if ((fileExists(destImageFullPath) || (fileExists(destMetafileFullPath) && sourceMetafileExists)) && std::string(sourceImageFullPath) != destImageFullPath) {

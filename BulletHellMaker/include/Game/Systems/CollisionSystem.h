@@ -6,6 +6,7 @@
 #include <LevelPack/LevelPack.h>
 #include <Game/Components/HitboxComponent.h>
 #include <Game/Components/PositionComponent.h>
+#include <Util/json.hpp>
 
 class EntityCreationQueue;
 
@@ -14,6 +15,12 @@ enum class BULLET_ON_COLLISION_ACTION {
 	DESTROY_THIS_BULLET_ONLY, // Only itself is destroyed
 	PIERCE_ENTITY // Do nothing on hitting an entity but bullet is unable to hit the same entity twice in some time frame (a property of the EMP)
 };
+
+NLOHMANN_JSON_SERIALIZE_ENUM(BULLET_ON_COLLISION_ACTION, {
+	{BULLET_ON_COLLISION_ACTION::DESTROY_THIS_BULLET_AND_ATTACHED_CHILDREN, "DESTROY_THIS_BULLET_AND_ATTACHED_CHILDREN"},
+	{BULLET_ON_COLLISION_ACTION::DESTROY_THIS_BULLET_ONLY, "DESTROY_THIS_BULLET_ONLY"},
+	{BULLET_ON_COLLISION_ACTION::PIERCE_ENTITY, "PIERCE_ENTITY"}
+})
 
 class CollisionSystem {
 public:

@@ -6,6 +6,7 @@
 #include <stdexcept>
 
 #include <Util/StringUtils.h>
+#include <Util/json.hpp>
 
 /*
 Splits a string char by delimiter, ignoring all delimiters enclosed in parantheses.
@@ -47,6 +48,9 @@ public:
 	// Throws an exception if the implementation contains strings that contain delimiters
 	virtual std::string format() const = 0;
 	virtual void load(std::string formattedString) = 0;
+
+	virtual nlohmann::json toJson() { return nlohmann::json(); };
+	virtual void load(const nlohmann::json& j) {};
 };
 
 /*

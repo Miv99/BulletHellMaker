@@ -1,6 +1,9 @@
 #pragma once
 #include <string>
 
+// The file format for level pack-related 
+const static std::string LEVEL_PACK_SERIALIZED_DATA_FORMAT = ".json";
+
 // The slowest time between each physics update. If the program takes longer than this time,
 // physics is simulated at 1/MAX_PHYSICS_DELTA_TIME FPS.
 const static float MAX_PHYSICS_DELTA_TIME = 1 / 30.0f;

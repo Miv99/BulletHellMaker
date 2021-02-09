@@ -26,6 +26,24 @@ void TimeBasedEnemyPhaseStartCondition::load(std::string formattedString) {
 	symbolTable.load(items.at(2));
 }
 
+nlohmann::json TimeBasedEnemyPhaseStartCondition::toJson() {
+	return {
+		{"className", "TimeBasedEnemyPhaseStartCondition"},
+		{"time", time},
+		{"valueSymbolTable", symbolTable.toJson()}
+	};
+}
+
+void TimeBasedEnemyPhaseStartCondition::load(const nlohmann::json& j) {
+	j.at("time").get_to(time);
+
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
+}
+
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> TimeBasedEnemyPhaseStartCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
@@ -73,6 +91,24 @@ void HPBasedEnemyPhaseStartCondition::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	ratio = items.at(1);
 	symbolTable.load(items.at(2));
+}
+
+nlohmann::json HPBasedEnemyPhaseStartCondition::toJson() {
+	return {
+		{"className", "HPBasedEnemyPhaseStartCondition"},
+		{"ratio", ratio},
+		{"valueSymbolTable", symbolTable.toJson()}
+	};
+}
+
+void HPBasedEnemyPhaseStartCondition::load(const nlohmann::json& j) {
+	j.at("ratio").get_to(ratio);
+
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> HPBasedEnemyPhaseStartCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -126,6 +162,24 @@ void EnemyCountBasedEnemyPhaseStartCondition::load(std::string formattedString) 
 	symbolTable.load(items.at(2));
 }
 
+nlohmann::json EnemyCountBasedEnemyPhaseStartCondition::toJson() {
+	return {
+		{"className", "EnemyCountBasedEnemyPhaseStartCondition"},
+		{"enemyCount", enemyCount},
+		{"valueSymbolTable", symbolTable.toJson()}
+	};
+}
+
+void EnemyCountBasedEnemyPhaseStartCondition::load(const nlohmann::json& j) {
+	j.at("enemyCount").get_to(enemyCount);
+
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
+}
+
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EnemyCountBasedEnemyPhaseStartCondition::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
@@ -165,4 +219,24 @@ std::shared_ptr<EnemyPhaseStartCondition> EnemyPhaseStartConditionFactory::creat
 	}
 	ptr->load(formattedString);
 	return ptr;
+}
+
+std::shared_ptr<EnemyPhaseStartCondition> EnemyPhaseStartConditionFactory::create(const nlohmann::json& j) {
+	if (j.contains("className")) {
+		std::string name;
+		j.at("className").get_to(name);
+
+		std::shared_ptr<EnemyPhaseStartCondition> ptr;
+		if (name == "TimeBasedEnemyPhaseStartCondition") {
+			ptr = std::make_shared<TimeBasedEnemyPhaseStartCondition>();
+		} else if (name == "HPBasedEnemyPhaseStartCondition") {
+			ptr = std::make_shared<HPBasedEnemyPhaseStartCondition>();
+		} else if (name == "EnemyCountBasedEnemyPhaseStartCondition") {
+			ptr = std::make_shared<EnemyCountBasedEnemyPhaseStartCondition>();
+		}
+		ptr->load(j);
+		return ptr;
+	} else {
+		return std::make_shared<TimeBasedEnemyPhaseStartCondition>();
+	}
 }

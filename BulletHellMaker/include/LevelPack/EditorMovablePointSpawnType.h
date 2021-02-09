@@ -39,6 +39,9 @@ public:
 	virtual std::string format() const = 0;
 	virtual void load(std::string formattedString) = 0;
 
+	virtual nlohmann::json toJson();
+	void load(const nlohmann::json& j) override;
+
 	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;
 
@@ -93,6 +96,8 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	nlohmann::json toJson() override;
+
 	MPSpawnInformation getSpawnInfo(entt::DefaultRegistry& registry, uint32_t entity, float timeLag) override;
 	MPSpawnInformation getForcedDetachmentSpawnInfo(entt::DefaultRegistry& registry, float timeLag) override;
 };
@@ -113,6 +118,8 @@ public:
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	nlohmann::json toJson() override;
 
 	/*
 	entity - the entity that is being used as the reference
@@ -139,6 +146,8 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	nlohmann::json toJson() override;
+
 	/*
 	entity - the entity that the spawned EMP will be attached to
 	*/
@@ -149,4 +158,5 @@ public:
 class EMPSpawnTypeFactory {
 public:
 	static std::shared_ptr<EMPSpawnType> create(std::string formattedString);
+	static std::shared_ptr<EMPSpawnType> create(const nlohmann::json& j);
 };

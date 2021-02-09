@@ -56,7 +56,8 @@ std::string EditorMovablePoint::format() const {
 		+ formatBool(loopAnimation) + formatTMObject(baseSprite) + formatString(damage) + tos(static_cast<int>(onCollisionAction))
 		+ formatString(pierceResetTime) + formatTMObject(soundSettings) + tos(bulletModelID) + formatBool(inheritRadius)
 		+ formatBool(inheritDespawnTime) + formatBool(inheritShadowTrailInterval) + formatBool(inheritShadowTrailLifespan)
-		+ formatBool(inheritAnimatables) + formatBool(inheritDamage) + formatBool(inheritPierceResetTime) + formatBool(inheritSoundSettings) + formatBool(isBullet);
+		+ formatBool(inheritAnimatables) + formatBool(inheritDamage) + formatBool(inheritPierceResetTime) + formatBool(inheritSoundSettings) + formatBool(isBullet)
+		+ formatTMObject(symbolTable);
 
 	return res;
 }
@@ -122,6 +123,117 @@ void EditorMovablePoint::load(std::string formattedString) {
 	inheritPierceResetTime = unformatBool(items.at(i++));
 	inheritSoundSettings = unformatBool(items.at(i++));
 	isBullet = unformatBool(items.at(i++));
+	symbolTable.load(items.at(i++));
+}
+
+nlohmann::json EditorMovablePoint::toJson() {
+	nlohmann::json j = {
+		{"id", id},
+		{"valueSymbolTable", symbolTable.toJson()},
+		{"hitboxRadius", hitboxRadius},
+		{"despawnTime", despawnTime},
+		{"spawnType", spawnType->toJson()},
+		{"shadowTrailInterval", shadowTrailInterval},
+		{"shadowTrailLifespan", shadowTrailLifespan},
+		{"animatable", animatable.toJson()},
+		{"loopAnimation", loopAnimation},
+		{"baseSprite", baseSprite.toJson()},
+		{"damage", damage},
+		{"onCollisionAction", onCollisionAction},
+		{"pierceResetTime", pierceResetTime},
+		{"soundSettings", soundSettings.toJson()},
+		{"bulletModelID", bulletModelID},
+		{"inheritRadius", inheritRadius},
+		{"inheritDespawnTime", inheritDespawnTime},
+		{"inheritShadowTrailInterval", inheritShadowTrailInterval},
+		{"inheritShadowTrailLifespan", inheritShadowTrailLifespan},
+		{"inheritAnimatables", inheritAnimatables},
+		{"inheritDamage", inheritDamage},
+		{"inheritPierceResetTime", inheritPierceResetTime},
+		{"inheritSoundSettings", inheritSoundSettings},
+		{"isBullet", isBullet}
+	};
+
+	nlohmann::json childrenJson;
+	for (auto child : children) {
+		childrenJson.push_back(child->toJson());
+	}
+	j["children"] = childrenJson;
+
+	nlohmann::json actionsJson;
+	for (auto action : actions) {
+		actionsJson.push_back(action->toJson());
+	}
+	j["actions"] = actionsJson;
+
+	return j;
+}
+
+void EditorMovablePoint::load(const nlohmann::json& j) {
+	j.at("id").get_to(id);
+
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
+
+	j.at("hitboxRadius").get_to(hitboxRadius);
+	j.at("despawnTime").get_to(despawnTime);
+	spawnType = EMPSpawnTypeFactory::create(j.at("spawnType"));
+	j.at("shadowTrailInterval").get_to(shadowTrailInterval);
+	j.at("shadowTrailLifespan").get_to(shadowTrailLifespan);
+
+	if (j.contains("animatable")) {
+		animatable.load(j.at("animatable"));
+	} else {
+		animatable = Animatable();
+	}
+
+	j.at("loopAnimation").get_to(loopAnimation);
+
+	if (j.contains("baseSprite")) {
+		baseSprite.load(j.at("baseSprite"));
+	} else {
+		baseSprite = Animatable();
+	}
+
+	j.at("damage").get_to(damage);
+	j.at("onCollisionAction").get_to(onCollisionAction);
+	j.at("pierceResetTime").get_to(pierceResetTime);
+
+	if (j.contains("soundSettings")) {
+		soundSettings.load(j.at("soundSettings"));
+	} else {
+		soundSettings = SoundSettings();
+	}
+
+	j.at("bulletModelID").get_to(bulletModelID);
+	j.at("inheritRadius").get_to(inheritRadius);
+	j.at("inheritDespawnTime").get_to(inheritDespawnTime);
+	j.at("inheritShadowTrailInterval").get_to(inheritShadowTrailInterval);
+	j.at("inheritShadowTrailLifespan").get_to(inheritShadowTrailLifespan);
+	j.at("inheritAnimatables").get_to(inheritAnimatables);
+	j.at("inheritDamage").get_to(inheritDamage);
+	j.at("inheritPierceResetTime").get_to(inheritPierceResetTime);
+	j.at("inheritSoundSettings").get_to(inheritSoundSettings);
+	j.at("isBullet").get_to(isBullet);
+
+	children.clear();
+	if (j.contains("children")) {
+		for (nlohmann::json childJson : j.at("children")) {
+			std::shared_ptr<EditorMovablePoint> emp = std::make_shared<EditorMovablePoint>(idGen, weak_from_this(), bulletModelsCount, false);
+			emp->load(childJson);
+			children.push_back(emp);
+		}
+	}
+
+	actions.clear();
+	if (j.contains("actions")) {
+		for (nlohmann::json actionJson : j.at("actions")) {
+			actions.push_back(EMPActionFactory::create(actionJson));
+		}
+	}
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorMovablePoint::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -701,6 +813,57 @@ void BulletModel::load(std::string formattedString) {
 
 	playSoundOnSpawn = unformatBool(items.at(11));
 	soundSettings.load(items.at(12));
+}
+
+nlohmann::json BulletModel::toJson() {
+	return {
+		{"id", id},
+		{"name", name},
+		{"hitboxRadius", hitboxRadius},
+		{"despawnTime", despawnTime},
+		{"shadowTrailInterval", shadowTrailInterval},
+		{"shadowTrailLifespan", shadowTrailLifespan},
+		{"animatable", animatable.toJson()},
+		{"loopAnimation", loopAnimation},
+		{"baseSprite", baseSprite.toJson()},
+		{"damage", damage},
+		{"pierceResetTime", pierceResetTime},
+		{"playSoundOnSpawn", playSoundOnSpawn},
+		{"soundSettings", soundSettings.toJson()}
+	};
+}
+
+void BulletModel::load(const nlohmann::json& j) {
+	j.at("id").get_to(id);
+	j.at("name").get_to(name);
+	j.at("hitboxRadius").get_to(hitboxRadius);
+	j.at("despawnTime").get_to(despawnTime);
+	j.at("shadowTrailInterval").get_to(shadowTrailInterval);
+	j.at("shadowTrailLifespan").get_to(shadowTrailLifespan);
+
+	if (j.contains("animatable")) {
+		animatable.load(j.at("animatable"));
+	} else {
+		animatable = Animatable();
+	}
+
+	j.at("loopAnimation").get_to(loopAnimation);
+
+	if (j.contains("baseSprite")) {
+		baseSprite.load(j.at("baseSprite"));
+	} else {
+		baseSprite = Animatable();
+	}
+
+	j.at("damage").get_to(damage);
+	j.at("pierceResetTime").get_to(pierceResetTime);
+	j.at("playSoundOnSpawn").get_to(playSoundOnSpawn);
+
+	if (j.contains("soundSettings")) {
+		soundSettings.load(j.at("soundSettings"));
+	} else {
+		soundSettings = SoundSettings();
+	}
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> BulletModel::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {

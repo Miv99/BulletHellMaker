@@ -32,6 +32,33 @@ void PlayAnimatableDeathAction::load(std::string formattedString) {
 	symbolTable.load(items.at(4));
 }
 
+nlohmann::json PlayAnimatableDeathAction::toJson() {
+	return {
+		{"className", "PlayAnimatableDeathAction"},
+		{"valueSymbolTable", symbolTable.toJson()},
+		{"animatable", animatable.toJson()},
+		{"effect", effect},
+		{"duration", duration}
+	};
+}
+
+void PlayAnimatableDeathAction::load(const nlohmann::json& j) {
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
+
+	if (j.contains("animatable")) {
+		animatable.load(j.at("animatable"));
+	} else {
+		animatable = Animatable();
+	}
+
+	j.at("effect").get_to(effect);
+	j.at("duration").get_to(duration);
+}
+
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> PlayAnimatableDeathAction::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
@@ -98,6 +125,21 @@ void PlaySoundDeathAction::load(std::string formattedString) {
 	soundSettings.load(items.at(1));
 }
 
+nlohmann::json PlaySoundDeathAction::toJson() {
+	return {
+		{"className", "PlaySoundDeathAction"},
+		{"soundSettings", soundSettings.toJson()},
+	};
+}
+
+void PlaySoundDeathAction::load(const nlohmann::json& j) {
+	if (j.contains("soundSettings")) {
+		soundSettings.load(j.at("soundSettings"));
+	} else {
+		soundSettings = SoundSettings();
+	}
+}
+
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> PlaySoundDeathAction::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
@@ -136,7 +178,7 @@ std::shared_ptr<LevelPackObject> ExecuteAttacksDeathAction::clone() const {
 }
 
 std::string ExecuteAttacksDeathAction::format() const {
-	std::string ret = formatString("ExecuteAttacksDeathAction") + tos(attackIDs.size());
+	std::string ret = formatString("ExecuteAttacksDeathAction") + formatTMObject(symbolTable) + tos(attackIDs.size());
 	for (auto p : attackIDs) {
 		ret += tos(p.first) + formatTMObject(p.second);
 	}
@@ -145,11 +187,52 @@ std::string ExecuteAttacksDeathAction::format() const {
 
 void ExecuteAttacksDeathAction::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
+
+	symbolTable.load(items.at(1));
+
 	attackIDs.clear();
-	for (int i = 2; i < std::stoi(items.at(1)) + 2; i += 2) {
+	for (int i = 3; i < std::stoi(items.at(2)) + 3; i += 2) {
 		ExprSymbolTable definer;
 		definer.load(items.at(i + 1));
 		attackIDs.push_back(std::make_pair(std::stoi(items.at(i)), definer));
+	}
+}
+
+nlohmann::json ExecuteAttacksDeathAction::toJson() {
+	nlohmann::json j = {
+		{"className", "ExecuteAttacksDeathAction"},
+		{"valueSymbolTable", symbolTable.toJson()}
+	};
+
+	nlohmann::json attackIDsJson;
+	for (std::pair<int, ExprSymbolTable> p : attackIDs) {
+		attackIDsJson.push_back(nlohmann::json{ {"attackID", p.first}, {"exprSymbolTable", p.second.toJson()} });
+	}
+	j["attackIDs"] = attackIDsJson;
+
+	return j;
+}
+
+void ExecuteAttacksDeathAction::load(const nlohmann::json& j) {
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
+
+	attackIDs.clear();
+	if (j.contains("attackIDs")) {
+		for (const nlohmann::json& item : j.at("attackIDs")) {
+			int attackID;
+			ExprSymbolTable exprSymbolTable;
+
+			item.at("attackID").get_to(attackID);
+			if (item.contains("exprSymbolTable")) {
+				exprSymbolTable.load(item.at("exprSymbolTable"));
+			}
+
+			attackIDs.push_back(std::make_pair(attackID, exprSymbolTable));
+		}
 	}
 }
 
@@ -248,6 +331,51 @@ void ParticleExplosionDeathAction::load(std::string formattedString) {
 	minLifespan = items.at(12);
 	minLifespan = items.at(13);
 	symbolTable.load(items.at(14));
+}
+
+nlohmann::json ParticleExplosionDeathAction::toJson() {
+	return {
+		{"className", "ParticleExplosionDeathAction"},
+		{"effect", effect},
+		{"animatable", animatable.toJson()},
+		{"loopAnimatable", loopAnimatable},
+		{"color", nlohmann::json{{"r", color.r}, {"g", color.g}, {"b", color.b}, {"a", color.a}}},
+		{"minParticles", minParticles},
+		{"maxParticles", maxParticles},
+		{"minDistance", minDistance},
+		{"maxDistance", maxDistance},
+		{"minLifespan", minLifespan},
+		{"maxLifespan",maxLifespan}
+	};
+}
+
+void ParticleExplosionDeathAction::load(const nlohmann::json& j) {
+	j.at("effect").get_to(effect);
+
+	if (j.contains("animatable")) {
+		animatable.load(j.at("animatable"));
+	} else {
+		animatable = Animatable();
+	}
+
+	j.at("loopAnimatable").get_to(loopAnimatable);
+
+	if (j.contains("color")) {
+		nlohmann::json colorJson = j.at("color");
+		colorJson.at("r").get_to(color.r);
+		colorJson.at("g").get_to(color.g);
+		colorJson.at("b").get_to(color.b);
+		colorJson.at("a").get_to(color.a);
+	} else {
+		color = sf::Color::Red;
+	}
+
+	j.at("minParticles").get_to(minParticles);
+	j.at("maxParticles").get_to(maxParticles);
+	j.at("minDistance").get_to(minDistance);
+	j.at("maxDistance").get_to(maxDistance);
+	j.at("minLifespan").get_to(minLifespan);
+	j.at("maxLifespan").get_to(maxLifespan);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> ParticleExplosionDeathAction::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -369,6 +497,30 @@ std::shared_ptr<DeathAction> DeathActionFactory::create(std::string formattedStr
 	return ptr;
 }
 
+std::shared_ptr<DeathAction> DeathActionFactory::create(const nlohmann::json& j) {
+	if (j.contains("className")) {
+		std::string name;
+		j.at("className").get_to(name);
+
+		std::shared_ptr<DeathAction> ptr;
+		if (name == "PlayAnimatableDeathAction") {
+			ptr = std::make_shared<PlayAnimatableDeathAction>();
+		} else if (name == "PlaySoundDeathAction") {
+			ptr = std::make_shared<PlaySoundDeathAction>();
+		} else if (name == "ExecuteAttacksDeathAction") {
+			ptr = std::make_shared<ExecuteAttacksDeathAction>();
+		} else if (name == "ParticleExplosionDeathAction") {
+			ptr = std::make_shared<ParticleExplosionDeathAction>();
+		} else if (name == "NullDeathAction") {
+			ptr = std::make_shared<NullDeathAction>();
+		}
+		ptr->load(j);
+		return ptr;
+	} else {
+		return std::make_shared<NullDeathAction>();
+	}
+}
+
 NullDeathAction::NullDeathAction() {
 }
 
@@ -381,6 +533,15 @@ std::string NullDeathAction::format() const {
 }
 
 void NullDeathAction::load(std::string formattedString) {
+}
+
+nlohmann::json NullDeathAction::toJson() {
+	return {
+		{"className", "NullDeathAction"}
+	};
+}
+
+void NullDeathAction::load(const nlohmann::json& j) {
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> NullDeathAction::legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {

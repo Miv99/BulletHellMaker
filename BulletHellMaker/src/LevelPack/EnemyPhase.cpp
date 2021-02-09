@@ -38,6 +38,7 @@ void EditorEnemyPhase::load(std::string formattedString) {
 	phaseEndAction = EPAFactory::create(items.at(3));
 	attackPatternLoopDelay = items.at(4);
 
+	attackPatternIDs.clear();
 	attackPatternIDCount.clear();
 	int i = 6;
 	for (int a = 0; a < std::stoi(items.at(5)); a++) {
@@ -50,13 +51,80 @@ void EditorEnemyPhase::load(std::string formattedString) {
 			attackPatternIDCount[attackPatternID] = 1;
 		} else {
 			attackPatternIDCount[attackPatternID]++;
-
 		}
 		i += 3;
 	}
 	playMusic = unformatBool(items.at(i++));
 	musicSettings.load(items.at(i++));
 	symbolTable.load(items.at(i++));
+}
+
+nlohmann::json EditorEnemyPhase::toJson() {
+	nlohmann::json j = {
+		{"id", id},
+		{"name", name},
+		{"valueSymbolTable", symbolTable.toJson()},
+		{"attackPatternLoopDelay", attackPatternLoopDelay},
+		{"phaseBeginAction", phaseBeginAction->toJson()},
+		{"phaseEndAction", phaseEndAction->toJson()},
+		{"playMusic", playMusic},
+		{"musicSettings", musicSettings.toJson()}
+	};
+
+	nlohmann::json attackPatternIDsJson;
+	for (auto t : attackPatternIDs) {
+		attackPatternIDsJson.push_back(nlohmann::json{ {"beginTime", std::get<0>(t)},
+			{"attackPatternID", std::get<1>(t)}, {"exprSymbolTable", std::get<2>(t).toJson()} });
+	}
+	j["attackPatternIDs"] = attackPatternIDsJson;
+
+	return j;
+}
+
+void EditorEnemyPhase::load(const nlohmann::json& j) {
+	j.at("id").get_to(id);
+	j.at("name").get_to(name);
+
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
+
+	j.at("attackPatternLoopDelay").get_to(attackPatternLoopDelay);
+	phaseBeginAction = EPAFactory::create(j.at("phaseBeginAction"));
+	phaseEndAction = EPAFactory::create(j.at("phaseEndAction"));
+	j.at("playMusic").get_to(playMusic);
+
+	if (j.contains("musicSettings")) {
+		musicSettings.load(j.at("musicSettings"));
+	} else {
+		musicSettings = MusicSettings();
+	}
+
+	attackPatternIDs.clear();
+	attackPatternIDCount.clear();
+	if (j.contains("attackPatternIDs")) {
+		for (const nlohmann::json& item : j.at("attackPatternIDs")) {
+			std::string beginTime;
+			int attackPatternID;
+			ExprSymbolTable exprSymbolTable;
+
+			item.at("beginTime").get_to(beginTime);
+			item.at("attackPatternID").get_to(attackPatternID);
+			if (item.contains("exprSymbolTable")) {
+				exprSymbolTable.load(item.at("exprSymbolTable"));
+			}
+
+			if (attackPatternIDCount.find(attackPatternID) == attackPatternIDCount.end()) {
+				attackPatternIDCount[attackPatternID] = 1;
+			} else {
+				attackPatternIDCount[attackPatternID]++;
+			}
+
+			attackPatternIDs.push_back(std::make_tuple(beginTime, attackPatternID, exprSymbolTable));
+		}
+	}
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorEnemyPhase::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {

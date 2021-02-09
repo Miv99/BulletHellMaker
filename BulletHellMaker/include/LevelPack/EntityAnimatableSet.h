@@ -21,6 +21,9 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
+
 	inline Animatable getIdleAnimatable() const { return idleAnimatable; }
 	inline Animatable getMovementAnimatable() const { return movementAnimatable; }
 	inline Animatable getAttackAnimatable() const { return attackAnimatable; }

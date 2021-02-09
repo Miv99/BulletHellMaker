@@ -11,6 +11,7 @@
 #include <Game/EntityCreationQueue.h>
 #include <LevelPack/LayerRootLevelPackObject.h>
 #include <DataStructs/IDGenerator.h>
+#include <Util/json.hpp>
 
 class EditorMovablePoint;
 
@@ -31,6 +32,9 @@ public:
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
 
 	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const override;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) override;

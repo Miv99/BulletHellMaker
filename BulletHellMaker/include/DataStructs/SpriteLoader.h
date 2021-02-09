@@ -43,6 +43,9 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
+
 	bool operator==(const SpriteData& other) const;
 	inline std::string getSpriteName() const { return spriteName; }
 	inline ComparableIntRect getArea() const { return area; }
@@ -85,6 +88,9 @@ public:
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
 
 	bool operator==(const AnimationData& other) const;
 	inline std::string getAnimationName() const { return animationName; }
@@ -140,6 +146,9 @@ public:
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
 
 	void insertSprite(const std::string& spriteName, std::shared_ptr<SpriteData> spriteData);
 	void insertAnimation(const std::string& animationName, std::shared_ptr<AnimationData> animationData);

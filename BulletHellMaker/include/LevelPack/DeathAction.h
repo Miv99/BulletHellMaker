@@ -28,6 +28,9 @@ public:
 	virtual std::string format() const = 0;
 	virtual void load(std::string formattedString) = 0;
 
+	virtual nlohmann::json toJson() = 0;
+	virtual void load(const nlohmann::json& j) = 0;
+
 	virtual std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const = 0;
 	virtual void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) = 0;
 
@@ -49,6 +52,9 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
+
 	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables);
 
@@ -68,6 +74,12 @@ public:
 		FADE_AWAY
 	};
 
+	NLOHMANN_JSON_SERIALIZE_ENUM(DEATH_ANIMATION_EFFECT, {
+		{DEATH_ANIMATION_EFFECT::NONE, "NONE"},
+		{DEATH_ANIMATION_EFFECT::SHRINK, "SHRINK"},
+		{DEATH_ANIMATION_EFFECT::FADE_AWAY, "FADE_AWAY"}
+	})
+
 	PlayAnimatableDeathAction();
 	PlayAnimatableDeathAction(Animatable animatable, DEATH_ANIMATION_EFFECT effect, std::string duration);
 
@@ -75,6 +87,9 @@ public:
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
 
 	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables);
@@ -116,6 +131,9 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
+
 	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables);
 
@@ -142,6 +160,9 @@ public:
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
 
 	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables);
@@ -173,6 +194,12 @@ public:
 		SHRINK
 	};
 
+	NLOHMANN_JSON_SERIALIZE_ENUM(PARTICLE_EFFECT, {
+		{PARTICLE_EFFECT::NONE, "NONE"},
+		{PARTICLE_EFFECT::FADE_AWAY, "FADE_AWAY"},
+		{PARTICLE_EFFECT::SHRINK, "SHRINK"}
+	})
+
 	ParticleExplosionDeathAction();
 	ParticleExplosionDeathAction(PARTICLE_EFFECT effect, Animatable animatable, bool loopAnimatable, sf::Color color, std::string minParticles = "20", std::string maxParticles = "30",
 		std::string minDistance = "20", std::string maxDistance = "500", std::string minLifespan = "0.75", std::string maxLifespan = "2.5");
@@ -181,6 +208,9 @@ public:
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
 
 	std::pair<LEGAL_STATUS, std::vector<std::string>> legal(LevelPack& levelPack, SpriteLoader& spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const;
 	void compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables);
@@ -231,4 +261,5 @@ private:
 class DeathActionFactory {
 public:
 	static std::shared_ptr<DeathAction> create(std::string formattedString);
+	static std::shared_ptr<DeathAction> create(const nlohmann::json& j);
 };

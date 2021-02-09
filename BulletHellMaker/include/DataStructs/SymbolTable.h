@@ -28,6 +28,9 @@ public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
 
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
+
 	void setSymbol(std::string symbol, std::string expressionStr);
 	void removeSymbol(std::string symbol);
 
@@ -62,6 +65,9 @@ class ValueSymbolTable : public TextMarshallable {
 public:
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
 
 	void setSymbol(std::string symbol, float value, bool redelegated);
 	void removeSymbol(std::string symbol);

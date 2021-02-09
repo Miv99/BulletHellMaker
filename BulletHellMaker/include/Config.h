@@ -16,6 +16,13 @@ const static int MAX_LOG_FILES = 30;
 const static std::string RELATIVE_LEVEL_PACKS_FOLDER_PATH = "Level Packs";
 // The %s in the strings in this section represent the level pack name
 const static std::string RELATIVE_LEVEL_PACK_SOUND_FOLDER_PATH = RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\Sounds";
-const static std::string RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH = RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\Sprite Sheets";
+const static std::string RELATIVE_LEVEL_PACK_SPRITE_SHEETS_FOLDER_PATH = RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\SpriteSheets";
 const static std::string RELATIVE_LEVEL_PACK_BACKGROUNDS_FOLDER_PATH = RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\Backgrounds";
 const static std::string RELATIVE_LEVEL_PACK_GUI_FOLDER_PATH = RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\GUI";
+const static std::string RELATIVE_LEVEL_PACK_MUSIC_FOLDER_NAME = RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\Music";
+const static std::string RELATIVE_LEVEL_PACK_ATTACKS_FOLDER_NAME = RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\Attacks";
+const static std::string RELATIVE_LEVEL_PACK_ATTACK_PATTERNS_FOLDER_NAME = RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\AttackPatterns";
+const static std::string RELATIVE_LEVEL_PACK_BULLET_MODELS_FOLDER_NAME = RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\BulletModels";
+const static std::string RELATIVE_LEVEL_PACK_ENEMIES_FOLDER_NAME = RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\Enemies";
+const static std::string RELATIVE_LEVEL_PACK_ENEMY_PHASES_FOLDER_NAME = RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\EnemyPhases";
+const static std::string RELATIVE_LEVEL_PACK_LEVELS_FOLDER_NAME = RELATIVE_LEVEL_PACKS_FOLDER_PATH + "\\%s\\Levels";

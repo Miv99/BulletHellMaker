@@ -30,6 +30,19 @@ void ConstantTFV::load(std::string formattedString) {
 	value = std::stof(items.at(1));
 }
 
+nlohmann::json ConstantTFV::toJson() {
+	return {
+		{"className", "ConstantTFV"},
+		{"maxTime", maxTime},
+		{"value", value}
+	};
+}
+
+void ConstantTFV::load(const nlohmann::json& j) {
+	j.at("maxTime").get_to(maxTime);
+	j.at("value").get_to(value);
+}
+
 bool ConstantTFV::operator==(const TFV& other) const {
 	const ConstantTFV& derived = dynamic_cast<const ConstantTFV&>(other);
 	return value == derived.value;
@@ -55,6 +68,21 @@ void LinearTFV::load(std::string formattedString) {
 	startValue = std::stof(items.at(1));
 	endValue = std::stof(items.at(2));
 	maxTime = std::stof(items.at(3));
+}
+
+nlohmann::json LinearTFV::toJson() {
+	return {
+		{"className", "LinearTFV"},
+		{"maxTime", maxTime},
+		{"startValue", startValue},
+		{"endValue", endValue}
+	};
+}
+
+void LinearTFV::load(const nlohmann::json& j) {
+	j.at("maxTime").get_to(maxTime);
+	j.at("startValue").get_to(startValue);
+	j.at("endValue").get_to(endValue);
 }
 
 bool LinearTFV::operator==(const TFV& other) const {
@@ -85,6 +113,25 @@ void SineWaveTFV::load(std::string formattedString) {
 	phaseShift = std::stof(items.at(4));
 }
 
+nlohmann::json SineWaveTFV::toJson() {
+	return {
+		{"className", "SineWaveTFV"},
+		{"maxTime", maxTime},
+		{"period", period},
+		{"amplitude", amplitude},
+		{"valueShift", valueShift},
+		{"phaseShift", phaseShift},
+	};
+}
+
+void SineWaveTFV::load(const nlohmann::json& j) {
+	j.at("maxTime").get_to(maxTime);
+	j.at("period").get_to(period);
+	j.at("amplitude").get_to(amplitude);
+	j.at("valueShift").get_to(valueShift);
+	j.at("phaseShift").get_to(phaseShift);
+}
+
 bool SineWaveTFV::operator==(const TFV& other) const {
 	const SineWaveTFV& derived = dynamic_cast<const SineWaveTFV&>(other);
 	return period == derived.period && amplitude == derived.amplitude && valueShift == derived.valueShift && phaseShift == derived.phaseShift;
@@ -110,6 +157,23 @@ void ConstantAccelerationDistanceTFV::load(std::string formattedString) {
 	initialDistance = std::stof(items.at(1));
 	initialVelocity = std::stof(items.at(2));
 	acceleration = std::stof(items.at(3));
+}
+
+nlohmann::json ConstantAccelerationDistanceTFV::toJson() {
+	return {
+		{"className", "ConstantAccelerationDistanceTFV"},
+		{"maxTime", maxTime},
+		{"initialDistance", initialDistance},
+		{"initialVelocity", initialVelocity},
+		{"acceleration", acceleration}
+	};
+}
+
+void ConstantAccelerationDistanceTFV::load(const nlohmann::json& j) {
+	j.at("maxTime").get_to(maxTime);
+	j.at("initialDistance").get_to(initialDistance);
+	j.at("initialVelocity").get_to(initialVelocity);
+	j.at("acceleration").get_to(acceleration);
 }
 
 bool ConstantAccelerationDistanceTFV::operator==(const TFV& other) const {
@@ -144,6 +208,25 @@ void DampenedStartTFV::load(std::string formattedString) {
 	dampeningFactor = std::stoi(items.at(4));
 }
 
+nlohmann::json DampenedStartTFV::toJson() {
+	return {
+		{"className", "DampenedStartTFV"},
+		{"maxTime", maxTime},
+		{"startValue", startValue},
+		{"endValue", endValue},
+		{"dampeningFactor", dampeningFactor}
+	};
+}
+
+void DampenedStartTFV::load(const nlohmann::json& j) {
+	j.at("maxTime").get_to(maxTime);
+	j.at("startValue").get_to(startValue);
+	j.at("endValue").get_to(endValue);
+	j.at("dampeningFactor").get_to(dampeningFactor);
+
+	a = (endValue - startValue) / pow(maxTime, 0.08f * dampeningFactor + 1);
+}
+
 bool DampenedStartTFV::operator==(const TFV& other) const {
 	const DampenedStartTFV& derived = dynamic_cast<const DampenedStartTFV&>(other);
 	return a == derived.a && startValue == derived.startValue && endValue == derived.endValue && dampeningFactor == derived.dampeningFactor;
@@ -174,6 +257,25 @@ void DampenedEndTFV::load(std::string formattedString) {
 	endValue = std::stof(items.at(3));
 	maxTime = std::stof(items.at(4));
 	dampeningFactor = std::stoi(items.at(5));
+}
+
+nlohmann::json DampenedEndTFV::toJson() {
+	return {
+		{"className", "DampenedEndTFV"},
+		{"maxTime", maxTime},
+		{"startValue", startValue},
+		{"endValue", endValue},
+		{"dampeningFactor", dampeningFactor}
+	};
+}
+
+void DampenedEndTFV::load(const nlohmann::json& j) {
+	j.at("maxTime").get_to(maxTime);
+	j.at("startValue").get_to(startValue);
+	j.at("endValue").get_to(endValue);
+	j.at("dampeningFactor").get_to(dampeningFactor);
+
+	a = (endValue - startValue) / pow(maxTime, 0.08f * dampeningFactor + 1);
 }
 
 void DampenedEndTFV::setStartValue(float startValue) {
@@ -224,6 +326,25 @@ void DoubleDampenedTFV::load(std::string formattedString) {
 	endValue = std::stof(items.at(3));
 	maxTime = std::stof(items.at(4));
 	dampeningFactor = std::stoi(items.at(5));
+}
+
+nlohmann::json DoubleDampenedTFV::toJson() {
+	return {
+		{"className", "DoubleDampenedTFV"},
+		{"maxTime", maxTime},
+		{"startValue", startValue},
+		{"endValue", endValue},
+		{"dampeningFactor", dampeningFactor}
+	};
+}
+
+void DoubleDampenedTFV::load(const nlohmann::json& j) {
+	j.at("maxTime").get_to(maxTime);
+	j.at("startValue").get_to(startValue);
+	j.at("endValue").get_to(endValue);
+	j.at("dampeningFactor").get_to(dampeningFactor);
+
+	a = 0.5f * (endValue - startValue) / pow(maxTime / 2.0f, 0.08f * dampeningFactor + 1);
 }
 
 float DoubleDampenedTFV::evaluate(float time) {
@@ -282,6 +403,27 @@ void TranslationWrapperTFV::load(std::string formattedString) {
 	wrappedTFV = TFVFactory::create(items.at(2));
 }
 
+nlohmann::json TranslationWrapperTFV::toJson() {
+	return {
+		{"className", "TranslationWrapperTFV"},
+		{"maxTime", maxTime},
+		{"wrappedTFV", wrappedTFV->toJson()},
+		{"valueTranslation", valueTranslation}
+	};
+}
+
+void TranslationWrapperTFV::load(const nlohmann::json& j) {
+	j.at("maxTime").get_to(maxTime);
+	
+	if (j.contains("wrappedTFV")) {
+		wrappedTFV = TFVFactory::create(j.at("wrappedTFV"));
+	} else {
+		wrappedTFV = std::make_shared<ConstantTFV>(0);
+	}
+
+	j.at("valueTranslation").get_to(valueTranslation);
+}
+
 bool TranslationWrapperTFV::operator==(const TFV& other) const {
 	const TranslationWrapperTFV& derived = dynamic_cast<const TranslationWrapperTFV&>(other);
 	return *wrappedTFV == *derived.wrappedTFV && valueTranslation == derived.valueTranslation;
@@ -309,6 +451,32 @@ void PiecewiseTFV::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
 	for (int i = 1; i < items.size(); i += 2) {
 		segments.push_back(std::make_pair(std::stof(items.at(i)), TFVFactory::create(items.at(i + 1))));
+	}
+}
+
+nlohmann::json PiecewiseTFV::toJson() {
+	nlohmann::json j;
+
+	j["className"] = "PiecewiseTFV";
+
+	nlohmann::json segmentsJson;
+	for (std::pair<float, std::shared_ptr<TFV>> segment : segments) {
+		segmentsJson.push_back(nlohmann::json{ {"beginTime", segment.first}, {"tfv", segment.second->toJson()} });
+	}
+	j["segments"] = segmentsJson;
+
+	return j;
+}
+
+void PiecewiseTFV::load(const nlohmann::json& j) {
+	segments.clear();
+	if (j.contains("segments")) {
+		for (const nlohmann::json& segmentJson : j.at("segments")) {
+			std::pair<float, std::shared_ptr<TFV>> segment;
+			segmentJson.at("beginTime").get_to(segment.first);
+			segment.second = TFVFactory::create(segmentJson.at("tfv"));
+			segments.push_back(segment);
+		}
 	}
 }
 
@@ -519,6 +687,38 @@ std::shared_ptr<TFV> TFVFactory::create(std::string formattedString) {
 	}
 	ptr->load(formattedString);
 	return std::move(ptr);
+}
+
+std::shared_ptr<TFV> TFVFactory::create(const nlohmann::json& j) {
+	if (j.contains("className")) {
+		std::string name;
+		j.at("className").get_to(name);
+
+		std::shared_ptr<TFV> ptr;
+		if (name == "ConstantTFV") {
+			ptr = std::make_shared<ConstantTFV>();
+		} else if (name == "LinearTFV") {
+			ptr = std::make_shared<LinearTFV>();
+		} else if (name == "SineWaveTFV") {
+			ptr = std::make_shared<SineWaveTFV>();
+		} else if (name == "ConstantAccelerationDistanceTFV") {
+			ptr = std::make_shared<ConstantAccelerationDistanceTFV>();
+		} else if (name == "DampenedStartTFV") {
+			ptr = std::make_shared<DampenedStartTFV>();
+		} else if (name == "DampenedEndTFV") {
+			ptr = std::make_shared<DampenedEndTFV>();
+		} else if (name == "DoubleDampenedTFV") {
+			ptr = std::make_shared<DoubleDampenedTFV>();
+		} else if (name == "TranslationWrapperTFV") {
+			ptr = std::make_shared<TranslationWrapperTFV>();
+		} else if (name == "PiecewiseTFV") {
+			ptr = std::make_shared<PiecewiseTFV>();
+		}
+		ptr->load(j);
+		return std::move(ptr);
+	} else {
+		return std::make_shared<ConstantTFV>(0);
+	}
 }
 
 CurrentAngleTFV::CurrentAngleTFV(entt::DefaultRegistry& registry, uint32_t from, uint32_t to) : registry(registry), from(from), to(to) {

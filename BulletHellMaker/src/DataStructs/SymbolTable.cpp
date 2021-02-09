@@ -16,6 +16,23 @@ void ExprSymbolTable::load(std::string formattedString) {
     }
 }
 
+nlohmann::json ExprSymbolTable::toJson() {
+    nlohmann::json j;
+
+    for (auto it = map.begin(); it != map.end(); it++) {
+        j[it->first] = it->second.expressionStr;
+    }
+
+    return j;
+}
+
+void ExprSymbolTable::load(const nlohmann::json& j) {
+    map.clear();
+    for (auto item : j.items()) {
+        map[item.key()] = { item.value() };
+    }
+}
+
 void ExprSymbolTable::setSymbol(std::string symbol, std::string expressionStr) {
     map[symbol] = { expressionStr };
 }
@@ -84,6 +101,29 @@ void ValueSymbolTable::load(std::string formattedString) {
     map.clear();
     for (int i = 0; i < items.size(); i += 3) {
         map[items.at(i)] = { std::stof(items.at(i + 1)), unformatBool(items.at(i + 2)) };
+    }
+}
+
+nlohmann::json ValueSymbolTable::toJson() {
+    nlohmann::json j;
+
+    for (auto it = map.begin(); it != map.end(); it++) {
+        j[it->first] = nlohmann::json{ {"value", it->second.value}, {"redelegated", it->second.redelegated} };
+    }
+
+    return j;
+}
+
+void ValueSymbolTable::load(const nlohmann::json& j) {
+    map.clear();
+    for (auto item : j.items()) {
+        float value;
+        bool redelegated;
+        
+        item.value().at("value").get_to(value);
+        item.value().at("redelegated").get_to(redelegated);
+
+        map[item.key()] = { value, redelegated };
     }
 }
 

@@ -27,6 +27,34 @@ void SpawnEnemiesLevelEvent::load(std::string formattedString) {
 	}
 }
 
+nlohmann::json SpawnEnemiesLevelEvent::toJson() {
+	nlohmann::json j = {
+		{"className", "SpawnEnemiesLevelEvent"},
+		{"valueSymbolTable", symbolTable.toJson()}
+	};
+
+	nlohmann::json spawnInfoJson;
+	for (auto item : spawnInfo) {
+		spawnInfoJson.push_back(item->toJson());
+	}
+	j["spawnInfo"] = spawnInfoJson;
+
+	return j;
+}
+
+void SpawnEnemiesLevelEvent::load(const nlohmann::json& j) {
+	symbolTable.load(j.at("valueSymbolTable"));
+
+	spawnInfo.clear();
+	if (j.contains("spawnInfo")) {
+		for (const nlohmann::json& item : j.at("spawnInfo")) {
+			std::shared_ptr<EnemySpawnInfo> info = std::make_shared<EnemySpawnInfo>();
+			info->load(item);
+			spawnInfo.push_back(info);
+		}
+	}
+}
+
 std::shared_ptr<LevelPackObject> SpawnEnemiesLevelEvent::clone() const {
 	auto clone = std::make_shared<SpawnEnemiesLevelEvent>();
 	clone->load(format());
@@ -75,7 +103,7 @@ void SpawnEnemiesLevelEvent::execute(SpriteLoader & spriteLoader, LevelPack & le
 ShowDialogueLevelEvent::ShowDialogueLevelEvent() {
 }
 
-ShowDialogueLevelEvent::ShowDialogueLevelEvent(std::string dialogueBoxTextureFileName, std::vector<std::string> text, PositionOnScreen pos, tgui::ShowAnimationType showAnimation) 
+ShowDialogueLevelEvent::ShowDialogueLevelEvent(std::string dialogueBoxTextureFileName, std::vector<std::string> text, POSITION_ON_SCREEN pos, tgui::ShowAnimationType showAnimation)
 	: text(text), dialogueBoxPosition(pos), dialogueBoxShowAnimationType(showAnimation), dialogueBoxTextureFileName(dialogueBoxTextureFileName) {
 }
 
@@ -91,7 +119,7 @@ std::string ShowDialogueLevelEvent::format() const {
 
 void ShowDialogueLevelEvent::load(std::string formattedString) {
 	auto items = split(formattedString, TextMarshallable::DELIMITER);
-	dialogueBoxPosition = static_cast<PositionOnScreen>(std::stoi(items.at(1)));
+	dialogueBoxPosition = static_cast<POSITION_ON_SCREEN>(std::stoi(items.at(1)));
 	dialogueBoxShowAnimationType = static_cast<tgui::ShowAnimationType>(std::stoi(items.at(2)));
 	dialogueBoxShowAnimationTime = std::stof(items.at(3));
 	dialogueBoxTextureFileName = items.at(4);
@@ -101,6 +129,48 @@ void ShowDialogueLevelEvent::load(std::string formattedString) {
 	text.clear();
 	for (int i = 11; i < items.size() + 11; i++) {
 		text.push_back(items.at(i));
+	}
+}
+
+nlohmann::json ShowDialogueLevelEvent::toJson() {
+	nlohmann::json j = {
+		{"className", "ShowDialogueLevelEvent"},
+		{"dialogueBoxPosition", dialogueBoxPosition},
+		{"dialogueBoxShowAnimationType", dialogueBoxShowAnimationType},
+		{"dialogueBoxShowAnimationTime", dialogueBoxShowAnimationTime},
+		{"dialogueBoxTextureFileName", dialogueBoxTextureFileName},
+		{"textureMiddlePart", nlohmann::json{ {"left", textureMiddlePart.left}, {"top", textureMiddlePart.top},
+			{"width", textureMiddlePart.width}, {"height", textureMiddlePart.height} }},
+		{"dialogueBoxPortraitFileName", dialogueBoxPortraitFileName}
+	};
+
+	nlohmann::json textJson;
+	for (std::string str : text) {
+		textJson.push_back(str);
+	}
+	j["text"] = textJson;
+
+	return j;
+}
+
+void ShowDialogueLevelEvent::load(const nlohmann::json& j) {
+	j.at("dialogueBoxPosition").get_to(dialogueBoxPosition);
+	j.at("dialogueBoxShowAnimationType").get_to(dialogueBoxShowAnimationType);
+	j.at("dialogueBoxShowAnimationTime").get_to(dialogueBoxShowAnimationTime);
+	j.at("dialogueBoxTextureFileName").get_to(dialogueBoxTextureFileName);
+	j.at("textureMiddlePart").at("left").get_to(textureMiddlePart.left);
+	j.at("textureMiddlePart").at("top").get_to(textureMiddlePart.top);
+	j.at("textureMiddlePart").at("width").get_to(textureMiddlePart.width);
+	j.at("textureMiddlePart").at("height").get_to(textureMiddlePart.height);
+	j.at("dialogueBoxPortraitFileName").get_to(dialogueBoxPortraitFileName);
+
+	text.clear();
+	if (j.contains("text")) {
+		for (const nlohmann::json& item : j.at("text")) {
+			std::string str;
+			item.get_to(str);
+			text.push_back(str);
+		}
 	}
 }
 
@@ -133,4 +203,22 @@ std::shared_ptr<LevelEvent> LevelEventFactory::create(std::string formattedStrin
 	}
 	ptr->load(formattedString);
 	return ptr;
+}
+
+std::shared_ptr<LevelEvent> LevelEventFactory::create(const nlohmann::json& j) {
+	if (j.contains("className")) {
+		std::string name;
+		j.at("className").get_to(name);
+
+		std::shared_ptr<LevelEvent> ptr;
+		if (name == "SpawnEnemiesLevelEvent") {
+			ptr = std::make_shared<SpawnEnemiesLevelEvent>();
+		} else if (name == "ShowDialogueLevelEvent") {
+			ptr = std::make_shared<ShowDialogueLevelEvent>();
+		}
+		ptr->load(j);
+		return ptr;
+	} else {
+		return std::make_shared<SpawnEnemiesLevelEvent>();
+	}
 }

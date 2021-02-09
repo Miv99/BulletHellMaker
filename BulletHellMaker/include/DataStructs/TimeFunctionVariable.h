@@ -33,6 +33,10 @@ public:
 
 	virtual std::string format() const = 0;
 	virtual void load(std::string formattedString) = 0;
+
+	virtual nlohmann::json toJson() = 0;
+	virtual void load(const nlohmann::json& j) = 0;
+
 	// Display name for the user
 	virtual std::string getName() = 0;
 	
@@ -68,6 +72,10 @@ public:
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
+
 	std::string getName() override { return "Linear"; }
 
 	inline float evaluate(float time) {
@@ -100,6 +108,10 @@ public:
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
+
 	std::string getName() override { return "Constant"; }
 
 	inline float evaluate(float time) {
@@ -133,6 +145,10 @@ public:
 	
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
+
 	std::string getName() override { return "Sine wave"; }
 	
 	inline float evaluate(float time) {
@@ -173,6 +189,10 @@ public:
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
+
 	std::string getName() override { return "Distance from acceleration"; }
 	
 	inline float evaluate(float time) override {
@@ -211,6 +231,10 @@ public:
 	
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
+
 	std::string getName() override { return "Dampened start"; }
 	
 	inline float evaluate(float time) override {
@@ -263,6 +287,10 @@ public:
 	
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
+
 	std::string getName() override { return "Dampened end"; }
 	
 	inline float evaluate(float time) override {
@@ -305,6 +333,10 @@ public:
 	
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
+
 	std::string getName() override { return "Dampened start and end"; }
 	
 	float evaluate(float time) override;
@@ -343,6 +375,10 @@ public:
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
+
 	std::string getName() override { return "Translated"; }
 
 	inline float evaluate(float time) override {
@@ -388,6 +424,16 @@ public:
 		assert(false && "CurrentAngleTFV cannot be loaded. If it is ever used by something, that something must know that the TFV it is \
 			using is a CurrentAngleTFV so that the CurrentAngleTFV can be constructed again.");
 	}
+
+	nlohmann::json toJson() override {
+		assert(false && "CurrentAngleTFV cannot be saved.");
+		return "";
+	}
+	void load(const nlohmann::json& j) override {
+		assert(false && "CurrentAngleTFV cannot be loaded. If it is ever used by something, that something must know that the TFV it is \
+			using is a CurrentAngleTFV so that the CurrentAngleTFV can be constructed again.");
+	}
+
 	std::string getName() override { return "Angle to entity"; }
 
 	float evaluate(float time) override;
@@ -418,6 +464,10 @@ public:
 
 	std::string format() const override;
 	void load(std::string formattedString) override;
+
+	nlohmann::json toJson() override;
+	void load(const nlohmann::json& j) override;
+
 	std::string getName() override {
 		if (segments.size() > 1) {
 			return "Piecewise";
@@ -492,4 +542,5 @@ private:
 class TFVFactory {
 public:
 	static std::shared_ptr<TFV> create(std::string formattedString);
+	static std::shared_ptr<TFV> create(const nlohmann::json& j);
 };

@@ -29,7 +29,7 @@ std::shared_ptr<LevelPackObject> EditorAttack::clone() const {
 }
 
 std::string EditorAttack::format() const {
-	return tos(id) + formatString(name) + formatTMObject(*mainEMP) + formatBool(playAttackAnimation);
+	return tos(id) + formatString(name) + formatTMObject(*mainEMP) + formatBool(playAttackAnimation) + formatTMObject(symbolTable);
 }
 
 void EditorAttack::load(std::string formattedString) {
@@ -41,6 +41,37 @@ void EditorAttack::load(std::string formattedString) {
 	mainEMP = std::make_shared<EditorMovablePoint>(&empIDGen, false, &bulletModelsCount);
 	mainEMP->load(items.at(2));
 	playAttackAnimation = unformatBool(items.at(3));
+	symbolTable.load(items.at(4));
+}
+
+nlohmann::json EditorAttack::toJson() {
+	return {
+		{"id", id},
+		{"name", name},
+		{"valueSymbolTable", symbolTable.toJson()},
+		{"mainEMP", mainEMP->toJson()},
+		{"playAttackAnimation", playAttackAnimation}
+	};
+}
+
+void EditorAttack::load(const nlohmann::json& j) {
+	bulletModelsCount.clear();
+	empIDGen = IDGenerator();
+
+	j.at("id").get_to(id);
+	j.at("name").get_to(name);
+	j.at("playAttackAnimation").get_to(playAttackAnimation);
+
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
+
+	mainEMP = std::make_shared<EditorMovablePoint>(&empIDGen, false, &bulletModelsCount);
+	if (j.contains("mainEMP")) {
+		mainEMP->load(j.at("mainEMP"));
+	}
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorAttack::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -61,6 +92,10 @@ std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorAttack:
 }
 
 void EditorAttack::compileExpressions(std::vector<exprtk::symbol_table<float>> symbolTables) {
+	if (!symbolTable.isEmpty()) {
+		symbolTables.push_back(symbolTable.toExprtkSymbolTable());
+	}
+
 	mainEMP->compileExpressions(symbolTables);
 }
 

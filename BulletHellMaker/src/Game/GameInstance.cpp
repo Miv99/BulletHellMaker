@@ -12,6 +12,7 @@
 #include <Constants.h>
 #include <Util/TextFileParser.h>
 #include <Util/StringUtils.h>
+#include <Util/Logger.h>
 #include <DataStructs/SpriteLoader.h>
 #include <DataStructs/TimeFunctionVariable.h>
 #include <DataStructs/MovablePoint.h>
@@ -136,13 +137,25 @@ void GameInstance::calculateDialogueBoxWidgetsSizes() {
 }
 
 GameInstance::GameInstance(std::string levelPackName) {
+	validGameInstance = false;
+
 	std::lock_guard<std::recursive_mutex> lock(tguiMutex);
 
 	audioPlayer = std::make_unique<AudioPlayer>();
 	levelPack = std::make_unique<LevelPack>(*audioPlayer, levelPackName);
+
+	if (!levelPack->getAttemptedLoad()) {
+		L_(lerror) << "Failed to instantiate game instance. The level pack did not attempt to load.";
+		return;
+	} else if (!levelPack->getSuccessfulLoad()) {
+		L_(lerror) << "Failed to instantiate game instance. The level pack did not attempt to load.";
+		return;
+	}
+
 	playerInfo = levelPack->getGameplayPlayer();
 
 	spriteLoader = levelPack->getSpriteLoader();
+	spriteLoader->loadFromSpriteSheetsFolder();
 
 	//TODO: these numbers should come from settings
 	window = std::make_unique<sf::RenderWindow>(sf::VideoMode(1600, 900), "Bullet Hell Maker");
@@ -161,20 +174,24 @@ GameInstance::GameInstance(std::string levelPackName) {
 	bombLabel = tgui::Label::create();
 	bossLabel = tgui::Label::create();
 	std::shared_ptr<sf::Texture> bombTexture = spriteLoader->getGuiElementTexture(playerInfo->getBombGuiElementFileName());
-	for (int i = 0; i < playerInfo->getMaxBombs(); i++) {
-		auto bombPicture = tgui::Picture::create(*bombTexture);
-		bombPicture->setSize(bombPictureSize, bombPictureSize);
-		bombPictures.push_back(bombPicture);
+	if (bombTexture) {
+		for (int i = 0; i < playerInfo->getMaxBombs(); i++) {
+			auto bombPicture = tgui::Picture::create(*bombTexture);
+			bombPicture->setSize(bombPictureSize, bombPictureSize);
+			bombPictures.push_back(bombPicture);
+		}
 	}
 	if (!smoothPlayerHPBar) {
 		playerHPPictureGrid = tgui::Grid::create();
 
 		std::shared_ptr<sf::Texture> playerHPTexture = spriteLoader->getGuiElementTexture(playerInfo->getDiscretePlayerHPGuiElementFileName());
 
-		for (int i = 0; i < playerInfo->getMaxHealth(); i++) {
-			auto playerHPPicture = tgui::Picture::create(*playerHPTexture);
-			playerHPPicture->setSize(playerHPPictureSize, playerHPPictureSize);
-			playerHPPictures.push_back(playerHPPicture);
+		if (playerHPTexture) {
+			for (int i = 0; i < playerInfo->getMaxHealth(); i++) {
+				auto playerHPPicture = tgui::Picture::create(*playerHPTexture);
+				playerHPPicture->setSize(playerHPPictureSize, playerHPPictureSize);
+				playerHPPictures.push_back(playerHPPicture);
+			}
 		}
 	}
 	scoreLabel = tgui::Label::create();
@@ -302,9 +319,16 @@ GameInstance::GameInstance(std::string levelPackName) {
 	dialogueBoxLabel->setVisible(false);
 
 	updateWindowView(window->getSize().x, window->getSize().y);
+
+	validGameInstance = true;
 }
 
 void GameInstance::start() {
+	if (!validGameInstance) {
+		L_(lerror) << "Attempted to start an invalid GameInstance that was not instantiated/loaded successfully";
+		return;
+	}
+
 	sf::Clock deltaClock;
 
 	// Game loop
@@ -416,6 +440,11 @@ void GameInstance::render(float deltaTime) {
 }
 
 void GameInstance::loadLevel(int levelIndex) {
+	if (!validGameInstance) {
+		L_(lerror) << "Attempted to load a level with an invalid GameInstance that was not instantiated/loaded successfully";
+		return;
+	}
+
 	currentLevel = levelPack->getGameplayLevel(levelIndex);
 
 	// Update relevant gui elements
@@ -516,9 +545,9 @@ void GameInstance::showDialogue(ShowDialogueLevelEvent* dialogueEvent) {
 	}
 
 	// Set positions
-	if (dialogueEvent->getDialogueBoxPosition() == ShowDialogueLevelEvent::PositionOnScreen::BOTTOM) {
+	if (dialogueEvent->getDialogueBoxPosition() == ShowDialogueLevelEvent::POSITION_ON_SCREEN::BOTTOM) {
 		dialogueBoxPortraitPicture->setPosition(GUI_PADDING_X, windowHeight - GUI_PADDING_Y - dialogueBoxPortraitPicture->getSize().y);
-	} else if (dialogueEvent->getDialogueBoxPosition() == ShowDialogueLevelEvent::PositionOnScreen::TOP) {
+	} else if (dialogueEvent->getDialogueBoxPosition() == ShowDialogueLevelEvent::POSITION_ON_SCREEN::TOP) {
 		dialogueBoxPortraitPicture->setPosition(GUI_PADDING_X, GUI_PADDING_Y);
 	} else {
 		// Missed a case

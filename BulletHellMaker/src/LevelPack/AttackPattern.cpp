@@ -75,6 +75,79 @@ void EditorAttackPattern::load(std::string formattedString) {
 	onActionsModified();
 }
 
+nlohmann::json EditorAttackPattern::toJson() {
+	nlohmann::json j = {
+		{"id", id},
+		{"name", name},
+		{"shadowTrailInterval", shadowTrailInterval},
+		{"shadowTrailLifespan", shadowTrailLifespan},
+		{"valueSymbolTable", symbolTable.toJson()}
+	};
+
+	nlohmann::json attackIDsJson;
+	for (std::tuple<std::string, int, ExprSymbolTable> t : attackIDs) {
+		attackIDsJson.push_back(nlohmann::json{ {"beginTime", std::get<0>(t)}, 
+			{"attackID", std::get<1>(t)}, {"exprSymbolTable", std::get<2>(t).toJson()} });
+	}
+	j["attackIDs"] = attackIDsJson;
+
+	nlohmann::json actionsJson;
+	for (std::shared_ptr<EMPAction> action : actions) {
+		actionsJson.push_back(action->toJson());
+	}
+	j["actions"] = actionsJson;
+
+	j["shadowTrailInterval"] = shadowTrailInterval;
+
+	return j;
+}
+
+void EditorAttackPattern::load(const nlohmann::json& j) {
+	j.at("id").get_to(id);
+	j.at("name").get_to(name);
+	j.at("shadowTrailInterval").get_to(shadowTrailInterval);
+	j.at("shadowTrailLifespan").get_to(shadowTrailLifespan);
+
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
+
+	attackIDs.clear();
+	attackIDCount.clear();
+	if (j.contains("attackIDs")) {
+		for (const nlohmann::json& item : j.at("attackIDs")) {
+			std::string beginTime;
+			int attackID;
+			ExprSymbolTable exprSymbolTable;
+
+			item.at("beginTime").get_to(beginTime);
+			item.at("attackID").get_to(attackID);
+			if (item.contains("exprSymbolTable")) {
+				exprSymbolTable.load(item.at("exprSymbolTable"));
+			}
+
+			if (attackIDCount.find(attackID) == attackIDCount.end()) {
+				attackIDCount[attackID] = 1;
+			} else {
+				attackIDCount[attackID]++;
+			}
+
+			attackIDs.push_back(std::make_tuple(beginTime, attackID, exprSymbolTable));
+		}
+	}
+
+	actions.clear();
+	if (j.contains("actions")) {
+		for (nlohmann::json actionJson : j.at("actions")) {
+			actions.push_back(EMPActionFactory::create(actionJson));
+		}
+	}
+
+	onActionsModified();
+}
+
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorAttackPattern::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;

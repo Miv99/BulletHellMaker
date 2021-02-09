@@ -21,6 +21,28 @@ std::shared_ptr<Item> ItemFactory::create(std::string formattedString) {
 	return ptr;
 }
 
+std::shared_ptr<Item> ItemFactory::create(const nlohmann::json& j) {
+	if (j.contains("className")) {
+		std::string name;
+		j.at("className").get_to(name);
+
+		std::shared_ptr<Item> ptr;
+		if (name == "HealthPackItem") {
+			ptr = std::make_shared<HealthPackItem>();
+		} else if (name == "PowerPackItem") {
+			ptr = std::make_shared<PowerPackItem>();
+		} else if (name == "BombItem") {
+			ptr = std::make_shared<BombItem>();
+		} else if (name == "PointsPackItem") {
+			ptr = std::make_shared<PointsPackItem>();
+		}
+		ptr->load(j);
+		return ptr;
+	} else {
+		return std::make_shared<PointsPackItem>();
+	}
+}
+
 Item::Item() {
 }
 
@@ -63,6 +85,21 @@ void HealthPackItem::load(std::string formattedString) {
 	onCollectSound.load(items.at(4));
 	healthRestoreAmount = items.at(5);
 	symbolTable.load(items.at(6));
+}
+
+nlohmann::json HealthPackItem::toJson() {
+	nlohmann::json j = Item::toJson();
+	
+	j["className"] = "HealthPackItem";
+	j["healthRestoreAmount"] = healthRestoreAmount;
+
+	return j;
+}
+
+void HealthPackItem::load(const nlohmann::json& j) {
+	Item::load(j);
+
+	j.at("healthRestoreAmount").get_to(healthRestoreAmount);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> HealthPackItem::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -117,6 +154,23 @@ void PowerPackItem::load(std::string formattedString) {
 	powerAmount = items.at(5);
 	pointsPerExtraPower = items.at(6);
 	symbolTable.load(items.at(7));
+}
+
+nlohmann::json PowerPackItem::toJson() {
+	nlohmann::json j = Item::toJson();
+
+	j["className"] = "PowerPackItem";
+	j["powerAmount"] = powerAmount;
+	j["pointsPerExtraPower"] = pointsPerExtraPower;
+
+	return j;
+}
+
+void PowerPackItem::load(const nlohmann::json& j) {
+	Item::load(j);
+
+	j.at("powerAmount").get_to(powerAmount);
+	j.at("pointsPerExtraPower").get_to(pointsPerExtraPower);
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> PowerPackItem::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
@@ -174,6 +228,21 @@ void PointsPackItem::load(std::string formattedString) {
 	symbolTable.load(items.at(6));
 }
 
+nlohmann::json PointsPackItem::toJson() {
+	nlohmann::json j = Item::toJson();
+
+	j["className"] = "PointsPackItem";
+	j["pointsAmount"] = pointsAmount;
+
+	return j;
+}
+
+void PointsPackItem::load(const nlohmann::json& j) {
+	Item::load(j);
+
+	j.at("pointsAmount").get_to(pointsAmount);
+}
+
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> PointsPackItem::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
@@ -228,6 +297,23 @@ void BombItem::load(std::string formattedString) {
 	symbolTable.load(items.at(7));
 }
 
+nlohmann::json BombItem::toJson() {
+	nlohmann::json j = Item::toJson();
+
+	j["className"] = "BombItem";
+	j["bombsAmount"] = bombsAmount;
+	j["pointsPerExtraBomb"] = pointsPerExtraBomb;
+
+	return j;
+}
+
+void BombItem::load(const nlohmann::json& j) {
+	Item::load(j);
+
+	j.at("bombsAmount").get_to(bombsAmount);
+	j.at("pointsPerExtraBomb").get_to(pointsPerExtraBomb);
+}
+
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> BombItem::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
 	LEGAL_STATUS status = LEGAL_STATUS::LEGAL;
 	std::vector<std::string> messages;
@@ -252,4 +338,37 @@ void BombItem::onPlayerContact(entt::DefaultRegistry & registry, uint32_t player
 
 void Item::onPlayerContact(entt::DefaultRegistry & registry, uint32_t player) {
 	registry.get<LevelManagerTag>().getLevelPack()->playSound(onCollectSound);
+}
+
+nlohmann::json Item::toJson() {
+	return {
+		{"animatable", animatable.toJson()},
+		{"hitboxRadius", hitboxRadius},
+		{"activationRadius", activationRadius},
+		{"onCollectSound", onCollectSound.toJson()},
+		{"valueSymbolTable", symbolTable.toJson()},
+	};
+}
+
+void Item::load(const nlohmann::json& j) {
+	if (j.contains("animatable")) {
+		animatable.load(j.at("animatable"));
+	} else {
+		animatable = Animatable();
+	}
+
+	j.at("hitboxRadius").get_to(hitboxRadius);
+	j.at("activationRadius").get_to(activationRadius);
+
+	if (j.contains("onCollectSound")) {
+		onCollectSound.load(j.at("onCollectSound"));
+	} else {
+		onCollectSound = SoundSettings();
+	}
+
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
 }

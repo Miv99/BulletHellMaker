@@ -13,14 +13,15 @@ int main() {
 	initLogger(linfo);
 
 	try {
-		/*
+		
 		GameInstance a("test pack");
 		a.loadLevel(0);
 		a.start();
-		*/
-
+		
+		/*
 		auto p = MainEditorWindow::create("title", 1024, 768);
 		p->start();
+		*/
 	} catch (const std::exception& e) {
 		// Unhandled exeception
 		L_(lerror) << "Fatal error: uncaught exception: " << e.what() << std::endl;

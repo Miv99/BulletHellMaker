@@ -28,7 +28,7 @@ std::string EditorEnemy::format() const {
 	for (auto action : deathActions) {
 		res += formatTMObject(*action);
 	}
-	res += formatBool(isBoss) + formatTMObject(hurtSound) + formatTMObject(deathSound);
+	res += formatBool(isBoss) + formatTMObject(hurtSound) + formatTMObject(deathSound) + formatTMObject(symbolTable);
 	return res;
 }
 
@@ -66,6 +66,99 @@ void EditorEnemy::load(std::string formattedString) {
 	isBoss = unformatBool(items.at(i++));
 	hurtSound.load(items.at(i++));
 	deathSound.load(items.at(i++));
+	symbolTable.load(items.at(i++));
+}
+
+nlohmann::json EditorEnemy::toJson() {
+	nlohmann::json j = {
+		{"id", id},
+		{"name", name},
+		{"valueSymbolTable", symbolTable.toJson()},
+		{"hitboxRadius", hitboxRadius},
+		{"health", health},
+		{"despawnTime", despawnTime},
+		{"isBoss", isBoss},
+		{"hurtSound", hurtSound.toJson()},
+		{"deathSound", deathSound.toJson()}
+	};
+
+	nlohmann::json phaseIDsJson;
+	for (auto t : phaseIDs) {
+		phaseIDsJson.push_back(nlohmann::json{ {"phaseStartCondition", std::get<0>(t)->toJson()},
+			{"phaseID", std::get<1>(t)}, {"animatableSet", std::get<2>(t).toJson()}, {"exprSymbolTable", std::get<3>(t).toJson()} });
+	}
+	j["phaseIDs"] = phaseIDsJson;
+
+	nlohmann::json deathActionsJson;
+	for (auto action : deathActions) {
+		phaseIDsJson.push_back(action->toJson());
+	}
+	j["deathActions"] = deathActionsJson;
+
+	return j;
+}
+
+void EditorEnemy::load(const nlohmann::json& j) {
+	j.at("id").get_to(id);
+	j.at("name").get_to(name);
+
+	if (j.contains("valueSymbolTable")) {
+		symbolTable.load(j.at("valueSymbolTable"));
+	} else {
+		symbolTable = ValueSymbolTable();
+	}
+
+	j.at("hitboxRadius").get_to(hitboxRadius);
+	j.at("health").get_to(health);
+	j.at("despawnTime").get_to(despawnTime);
+	j.at("isBoss").get_to(isBoss);
+
+	if (j.contains("hurtSound")) {
+		hurtSound.load(j.at("hurtSound"));
+	} else {
+		hurtSound = SoundSettings();
+	}
+	
+	if (j.contains("deathSound")) {
+		deathSound.load(j.at("deathSound"));
+	} else {
+		deathSound = SoundSettings();
+	}
+
+	phaseIDs.clear();
+	enemyPhaseCount.clear();
+	if (j.contains("phaseIDs")) {
+		for (const nlohmann::json& item : j.at("phaseIDs")) {
+			std::shared_ptr<EnemyPhaseStartCondition> phaseStartCondition;
+			int phaseID;
+			EntityAnimatableSet animatableSet;
+			ExprSymbolTable exprSymbolTable;
+
+			phaseStartCondition = EnemyPhaseStartConditionFactory::create(item.at("phaseStartCondition"));
+			item.at("phaseID").get_to(phaseID);
+			if (item.contains("animatableSet")) {
+				animatableSet.load(item.at("animatableSet"));
+			}
+			if (item.contains("exprSymbolTable")) {
+				exprSymbolTable.load(item.at("exprSymbolTable"));
+			}
+
+			if (enemyPhaseCount.find(phaseID) == enemyPhaseCount.end()) {
+				enemyPhaseCount[phaseID] = 1;
+			} else {
+				enemyPhaseCount[phaseID]++;
+			}
+
+			phaseIDs.push_back(std::make_tuple(phaseStartCondition, phaseID, animatableSet, exprSymbolTable, exprtk::symbol_table<float>()));
+		}
+	}
+
+	deathActions.clear();
+	if (j.contains("deathActions")) {
+		for (nlohmann::json deathActionJson : j.at("deathActions")) {
+			deathActions.push_back(DeathActionFactory::create(deathActionJson));
+		}
+	}
 }
 
 std::pair<LevelPackObject::LEGAL_STATUS, std::vector<std::string>> EditorEnemy::legal(LevelPack & levelPack, SpriteLoader & spriteLoader, std::vector<exprtk::symbol_table<float>> symbolTables) const {
