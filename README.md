@@ -1,3 +1,6 @@
+# NOTE
+I'm moving this entire concept to Unity; this repo's dead
+
 # BulletHellMaker
 A game focused on user-created bullet hell levels. Supports only Windows.
 
